@@ -1,0 +1,73 @@
+const products = [
+    {
+      id: 1,
+      name: "Plaid Colourful Fabric",
+      price: "₦12,000",
+      image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214605/AoStyle/image4_p4lpek.png",
+    },
+    {
+      id: 2,
+      name: "Yellow Cashmere",
+      price: "₦12,000",
+      image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214577/AoStyle/image2_dqzhpz.png",
+    },
+    {
+      id: 3,
+      name: "100% Cotton Material",
+      price: "₦12,000",
+      image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214577/AoStyle/image2_dqzhpz.png",
+    },
+    {
+      id: 4,
+      name: "Red Ankara Fabric",
+      price: "₦12,000",
+      image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214549/AoStyle/image_exywgk.png",
+    },
+    {
+      id: 5,
+      name: "Red Ankara Fabric",
+      price: "₦12,000",
+      image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214549/AoStyle/image_exywgk.png",
+    },
+    {
+      id: 6,
+      name: "Plaid Colourful Fabric",
+      price: "₦12,000",
+      image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214605/AoStyle/image4_p4lpek.png",
+    },
+    {
+      id: 7,
+      name: "Yellow Cashmere",
+      price: "₦12,000",
+      image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214604/AoStyle/image3_ebun7q.png",
+    },
+    {
+      id: 8,
+      name: "100% Cotton Material",
+      price: "₦12,000",
+      image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214604/AoStyle/image3_ebun7q.png",
+    },
+  ];
+  
+  export default function ProductGrid() {
+    return (
+      <section className="Resizer just px-4">
+        <h2 className="text-2xl font-medium mb-8">Top Trending Fabrics</h2>
+  
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {products.map((product) => (
+            <div key={product.id} className="text-center">
+              <img
+                src={product.image}
+                alt={product.name}
+                className="w-full h-56 object-cover rounded-md"
+              />
+              <h3 className="font-medium text-left mt-4 mb-3">{product.name}</h3>
+              <p className="text-[#2B21E5]  text-left font-light">{product.price} <span className="text-[#8A8A8A] font-medium">per yard</span></p>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+  

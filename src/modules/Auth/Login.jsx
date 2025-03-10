@@ -9,11 +9,13 @@ export default function SignInCustomer() {
         <div className="min-h-screen flex items-center justify-center bg-gradient">
             <div className="max-w-lg w-full bg-white rounded-lg p-8">
                 <div className="flex justify-center mb-6">
-                    <img
-                        src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741185293/AoStyle/Vector_biigue.png"
-                        alt="OAStyles Logo"
-                        className="h-12"
-                    />
+                    <Link to="/">
+                        <img
+                            src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741185293/AoStyle/Vector_biigue.png"
+                            alt="OAStyles Logo"
+                            className="h-12"
+                        />
+                    </Link>
                 </div>
                 <h2 className="text-2xl font-medium text-black mb-4">Login</h2>
                 <p className="text-gray-500 text-sm mb-6">Enter your credentials to access your account</p>
@@ -55,7 +57,7 @@ export default function SignInCustomer() {
                     </div>
 
                     <button className="w-full flex items-center justify-center border border-[#CCCCCC] py-3 rounded-lg font-normal">
-                    <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google" className="h-5 mr-2" />
+                        <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google" className="h-5 mr-2" />
                         Login with Google
                     </button>
                 </form>

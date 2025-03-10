@@ -1,4 +1,4 @@
-// import Login from "../modules/Auth/login";
+import Login from "../modules/Auth/Login";
 import SignUp from "../modules/Auth/GetStarted";
 import SignInCustomer from "../modules/Auth/SignInCustomer";
 import SignInTailorDesigner from "../modules/Auth/SignInTailor";
@@ -7,10 +7,10 @@ import SignInAsFabricVendor from "../modules/Auth/SigInFabric";
 // import AdminLogin from "../modules/SuperAdmin";
 
 export const authRoutes = [
-    // {
-    //     path: '/login',
-    //     element: <Login />,
-    // },
+    {
+        path: '/login',
+        element: <Login />,
+    },
     {
         path: '/sign-up',
         element: <SignUp />,

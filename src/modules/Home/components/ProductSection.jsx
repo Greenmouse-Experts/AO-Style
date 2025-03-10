@@ -77,7 +77,7 @@ export default function ProductSection() {
                 Top Styles
             </button>
             </div>
-            <h2 className="text-2xl font-medium mt-6 max-w-md leading-relaxed mb-8 px-4">Get Access to the best Tailors and a range of Designs for your next outfit</h2>
+            <h2 className="text-2xl font-medium mt-6 max-w-lg leading-relaxed mb-8 px-4">Get Access to the best Tailors and a range of Designs for your next outfit</h2>
             <div className="flex space-x-4 overflow-x-auto mb-10 px-4">
                 {categories.map(category => (
                     <button

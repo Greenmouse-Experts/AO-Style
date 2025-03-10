@@ -9,7 +9,7 @@ const testimonials = [
     image: "https://randomuser.me/api/portraits/men/1.jpg",
   },
   {
-    name: "Victor Promise",
+    name: "Hamzat Abdul",
     role: "Vendor",
     text: "With this app, I was able to measure my body size.\n\nI ordered premium fabric from a trusted vendor.\n\nAnd I hired a tailor—all in one place!",
     image: "https://randomuser.me/api/portraits/men/2.jpg",
@@ -21,7 +21,7 @@ const testimonials = [
     image: "https://randomuser.me/api/portraits/men/2.jpg",
   },
   {
-    name: "Victor Promise",
+    name: "Hamzat Adeleke",
     role: "Vendor",
     text: "With this app, I was able to measure my body size.\n\nI ordered premium fabric from a trusted vendor.\n\nAnd I hired a tailor—all in one place!",
     image: "https://randomuser.me/api/portraits/men/2.jpg",

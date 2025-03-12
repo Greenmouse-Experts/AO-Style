@@ -108,11 +108,11 @@ export default function HeroSlider() {
                 </div>
             </div>
             {/* Slider Dots */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 ">
                 {slides.map((_, i) => (
                     <button
                         key={i}
-                        className={`w-3 h-3 rounded-full transition ${i === index ? "bg-white" : "bg-gray-400"}`}
+                        className={`w-8 h-1 rounded-sm transition ${i === index ? "bg-white cursor-pointer" : "bg-gray-400 cursor-pointer"}`}
                         onClick={() => setIndex(i)}
                     />
                 ))}

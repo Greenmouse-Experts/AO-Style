@@ -10,7 +10,7 @@ export default function HeroSection() {
             {/* Center Content */}
             <div className="text-center z-10">
                 <img
-                    src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741185293/AoStyle/Vector_biigue.png"
+                    src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741724592/AoStyle/Vector_kcxfqx.png"
                     alt="OA Styles"
                     className="h-10 mx-auto mb-10"
                 />

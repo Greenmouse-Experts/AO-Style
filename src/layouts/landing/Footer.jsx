@@ -3,7 +3,7 @@ import { BsLinkedin, BsWhatsapp, BsInstagram, BsFacebook, BsTwitterX } from "rea
 
 const Footer = () => {
     return (
-        <footer className="relative text-white jus bg-cover bg-bottom" style={{ backgroundImage: "url('https://res.cloudinary.com/greenmouse-tech/image/upload/v1741340184/AoStyle/Frame_1618873174_1_dqzrsq.png')" }}>
+        <footer className="relative text-white jus bg-cover bg-bottom" style={{ backgroundImage: "url('https://res.cloudinary.com/greenmouse-tech/image/upload/v1741734865/AoStyle/Frame_1618873174_htyz4s.jpg')" }}>
             <div className="Resizer mx-auto px-6 grid md:grid-cols-6 gap-4 text-sm">
                 {/* Quick Links */}
                 <div className="col-span-1">

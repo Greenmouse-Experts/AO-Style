@@ -1,5 +1,6 @@
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock } from "react-icons/fa";
 import { BsLinkedin, BsWhatsapp, BsInstagram, BsFacebook, BsTwitterX } from "react-icons/bs";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
     return (
@@ -9,12 +10,12 @@ const Footer = () => {
                 <div className="col-span-1">
                     <h4 className="font-medium mb-6 text-lg">Quick Links</h4>
                     <ul className="space-y-6">
-                        <li><a href="#" className="hover:underline text-[#C5C5C5] font-light">Home</a></li>
-                        <li><a href="#" className="hover:underline text-[#C5C5C5] font-light">About Us</a></li>
-                        <li><a href="#" className="hover:underline text-[#C5C5C5] font-light">Shop</a></li>
-                        <li><a href="#" className="hover:underline text-[#C5C5C5] font-light">Marketplace</a></li>
-                        <li><a href="#" className="hover:underline text-[#C5C5C5] font-light">Contact</a></li>
-                        <li><a href="#" className="hover:underline text-[#C5C5C5] font-light">FAQs</a></li>
+                        <li><Link to="/" className="hover:underline text-[#C5C5C5] font-light">Home</Link></li>
+                        <li><Link to="/about" className="hover:underline text-[#C5C5C5] font-light">About Us</Link></li>
+                        <li><Link to="/shop" className="hover:underline text-[#C5C5C5] font-light">Shop</Link></li>
+                        <li><Link to="/marketplace" className="hover:underline text-[#C5C5C5] font-light">Marketplace</Link></li>
+                        <li><Link to="/contact" className="hover:underline text-[#C5C5C5] font-light">Contact</Link></li>
+                        <li><Link to="/faqs" className="hover:underline text-[#C5C5C5] font-light">FAQs</Link></li>
                     </ul>
                 </div>
 
@@ -22,11 +23,11 @@ const Footer = () => {
                 <div className="col-span-1">
                     <h4 className="font-medium mb-6 text-lg">Legal</h4>
                     <ul className="space-y-6">
-                        <li><a href="#" className="hover:underline text-[#C5C5C5] font-light">Privacy Policy</a></li>
-                        <li><a href="#" className="hover:underline text-[#C5C5C5] font-light">Refund Policy</a></li>
-                        <li><a href="#" className="hover:underline text-[#C5C5C5] font-light">Cookie Policy</a></li>
-                        <li><a href="#" className="hover:underline text-[#C5C5C5] font-light">Policy Statement</a></li>
-                        <li><a href="#" className="hover:underline text-[#C5C5C5] font-light">Terms of Use</a></li>
+                        <li><Link to="/privacy-policy" className="hover:underline text-[#C5C5C5] font-light">Privacy Policy</Link></li>
+                        <li><Link to="/refund-policy" className="hover:underline text-[#C5C5C5] font-light">Refund Policy</Link></li>
+                        <li><Link to="/cookie-policy" className="hover:underline text-[#C5C5C5] font-light">Cookie Policy</Link></li>
+                        <li><Link to="/policy-statement" className="hover:underline text-[#C5C5C5] font-light">Policy Statement</Link></li>
+                        <li><Link to="/terms" className="hover:underline text-[#C5C5C5] font-light">Terms of Use</Link></li>
                     </ul>
                 </div>
 

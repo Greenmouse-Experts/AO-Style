@@ -34,7 +34,7 @@ export default function MarketplaceSection() {
   }, [index]);
 
   return (
-    <section className="Resizer section px-4">
+    <section className="Resizer just px-4">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center text-left">
         <button className="border border-purple-500 text-purple-500 px-4 py-2 rounded-full text-sm w-full md:w-auto mb-2 md:mb-0">
           Shop Fabrics

@@ -130,19 +130,19 @@ const AboutUs = () => {
                                     <feature.icon className="text-[#AB52EE]" size={35} />
                                     {/* Title & Description */}
                                     <h3 className="text-lg font-medium leading-relaxed mt-3 mb-2">{feature.title}</h3>
-                                    <p className="text-dark leading-loose md:items-start text-center">{feature.description}</p>
+                                    <p className="text-dark leading-loose md:text-left text-center">{feature.description}</p>
                                 </div>
                             ))}
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:mt-10">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:mt-10 mt-8">
                         {alones.map((alone, index) => (
                             <div key={index} className="flex flex-col md:items-start items-center">
                                 {/* Icon */}
                                 <alone.icon className="text-[#AB52EE]" size={35} />
                                 {/* Title & Description */}
                                 <h3 className="text-lg font-medium leading-relaxed mt-3 mb-2">{alone.title}</h3>
-                                <p className="text-dark leading-loose md:items-start text-center">{alone.description}</p>
+                                <p className="text-dark leading-loose md:text-left text-center">{alone.description}</p>
                             </div>
                         ))}
                     </div>

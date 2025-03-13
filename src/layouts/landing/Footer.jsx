@@ -54,10 +54,10 @@ const Footer = () => {
                         <button className="ma-auto px-6 bg-white py-4 text-black hover:bg-purple-600 hover:text-white cursor-pointer" type="submit">SUBSCRIBE</button>
                     </form>
                     <div className="flex gap-8 mt-6">
-                        <a href="#" className="hover:text-purple-300 text-xl"><BsLinkedin /></a>
-                        <a href="#" className="hover:text-purple-300 text-xl"><BsInstagram /></a>
-                        <a href="#" className="hover:text-purple-300 text-xl"><BsFacebook /></a>
-                        <a href="#" className="hover:text-purple-300 text-xl"><BsTwitterX /></a>
+                        <a href="#" className="hover:text-purple-300 text-[24px]"><BsLinkedin /></a>
+                        <a href="#" className="hover:text-purple-300 text-[24px]"><BsInstagram /></a>
+                        <a href="#" className="hover:text-purple-300 text-[24px]"><BsFacebook /></a>
+                        <a href="#" className="hover:text-purple-300 text-[24px]"><BsTwitterX /></a>
                     </div>
                 </div>
             </div>

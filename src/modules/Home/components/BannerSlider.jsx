@@ -69,7 +69,7 @@ export default function HeroSlider() {
                 </motion.div>
                 <motion.h1
                     key={`heading-${index}`}
-                    className="text-2xl md:text-5xl font-medium leading-tight"
+                    className="text-2xl md:text-3xl font-medium leading-relaxed max-w-[750px]"
                     dangerouslySetInnerHTML={{ __html: slides[index].heading }}
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}

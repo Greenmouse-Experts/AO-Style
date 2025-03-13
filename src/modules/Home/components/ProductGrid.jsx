@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+
 const products = [
     {
       id: 1,
@@ -55,19 +57,29 @@ const products = [
         <h2 className="text-2xl font-medium mb-8">Top Trending Fabrics</h2>
   
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <div key={product.id} className="text-center">
-              <img
+          {products.map((product, index) => (
+            <motion.div
+              key={product.id}
+              className="text-center"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+            >
+              <motion.img
                 src={product.image}
                 alt={product.name}
                 className="w-full h-56 object-cover rounded-md"
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.3 }}
               />
               <h3 className="font-medium text-left mt-4 mb-3">{product.name}</h3>
-              <p className="text-[#2B21E5]  text-left font-light">{product.price} <span className="text-[#8A8A8A] font-medium">per yard</span></p>
-            </div>
+              <p className="text-[#2B21E5] text-left font-light">
+                {product.price} <span className="text-[#8A8A8A] font-medium">per yard</span>
+              </p>
+            </motion.div>
           ))}
         </div>
       </section>
     );
   }
-  
+   

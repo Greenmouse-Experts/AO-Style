@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 
 const markets = [
@@ -27,18 +27,24 @@ export default function MarketplaceSection() {
     setIndex((prev) => (prev > 0 ? prev - 1 : maxIndex));
   };
 
+  // Auto-scroll effect
+  useEffect(() => {
+    const interval = setInterval(nextSlide, 3000); // Change slide every 3 seconds
+    return () => clearInterval(interval); // Cleanup interval on unmount
+  }, [index]);
+
   return (
     <section className="Resizer section px-4">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center text-left mb-6">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center text-left">
         <button className="border border-purple-500 text-purple-500 px-4 py-2 rounded-full text-sm w-full md:w-auto mb-2 md:mb-0">
           Shop Fabrics
         </button>
-        <button className="bg-gradient text-white px-8 py-3 w-full md:w-auto">
+        <button className="bg-gradient text-white px-8 py-3 w-full md:w-auto sm:mt-38 mt-3">
           Explore All Markets
         </button>
       </div>
 
-      <h2 className="text-2xl font-medium">Explore Materials by Market Place</h2>
+      <h2 className="text-2xl font-medium sm:-mt-14 mt-6">Explore Materials by Market Place</h2>
       <p className="text-[#4B4A4A] mt-4 max-w-md font-light leading-loose mb-6">
         A virtual marketplace that offers high-quality fabric from various parts of the country.
       </p>
@@ -76,7 +82,6 @@ export default function MarketplaceSection() {
           </div>
         </div>
 
-        {/* Right Arrow */}
         <button
           className="absolute right-0 md:-right-8 p-2 bg-white shadow-md rounded-full z-10"
           onClick={nextSlide}
@@ -87,3 +92,4 @@ export default function MarketplaceSection() {
     </section>
   );
 }
+

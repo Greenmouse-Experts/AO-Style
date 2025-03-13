@@ -36,7 +36,7 @@ export default function FAQSection() {
               className="w-full flex justify-between items-center p-6 text-left"
               onClick={() => toggleFAQ(index)}
             >
-              <span className="font-medium text-gray-900">Q{index + 1}: {faq.question}</span>
+              <span className="font-medium text-base text-gray-900">Q{index + 1}: {faq.question}</span>
               {openIndex === index ? (
                 <MinusIcon className="w-5 h-5 text-gray-600" />
               ) : (
@@ -44,7 +44,7 @@ export default function FAQSection() {
               )}
             </button>
             {openIndex === index && (
-              <div className="p-4 border-t text-gray-700">{faq.answer}</div>
+              <div className="p-6 text-base border-t text-gray-700">{faq.answer}</div>
             )}
           </div>
         ))}

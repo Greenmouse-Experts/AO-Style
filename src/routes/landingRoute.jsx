@@ -4,6 +4,7 @@ import MarketPlace from "../modules/Home/Marketplace";
 import Product from "../modules/Home/Product";
 import Shops from "../modules/Home/Shop";
 import ShopDetails from "../modules/Home/ShopDetails";
+import AboutUs from "../modules/Home/About";
 
 export const landingRooutes = [
     {
@@ -13,6 +14,10 @@ export const landingRooutes = [
         {
           index: true,
           element: <LandingHomepage />,
+        },
+        {
+          path: 'about',
+          element: <AboutUs />,
         },
         {
           path: 'marketplace',

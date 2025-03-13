@@ -1,31 +1,35 @@
-import { TruckIcon, ChatBubbleBottomCenterTextIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
+import React from "react";
+import { Truck, MessageSquareText, ShieldCheck } from "lucide-react";
 
 const Features = () => {
   const features = [
     {
-      icon: <TruckIcon className="w-8 h-8 text-[#E070BB]" />, 
+      icon: <Truck className="w-10 h-10 text-[#E070BB]" />, 
       title: "Shipping", 
       description: "We ship across Nigeria. T&C Apply"
     },
     {
-      icon: <ChatBubbleBottomCenterTextIcon className="w-8 h-8 text-[#E070BB]" />, 
+      icon: <MessageSquareText className="w-10 h-10 text-[#E070BB]" />, 
       title: "Customer Services", 
-      description: "A question? Contact us at +234-000-0000000"
+      description: "A question? We are here to assist you."
     },
     {
-      icon: <ShieldCheckIcon className="w-8 h-8 text-[#E070BB]" />, 
+      icon: <ShieldCheck className="w-10 h-10 text-[#E070BB]" />, 
       title: "Secure Payments", 
       description: "Your payment information is processed securely"
     }
   ];
 
   return (
-    <div className="flex flex-col md:flex-row justify-between items-center just Resizer">
+    <div className="flex flex-col md:flex-row items-center justify-center gap-6 just Resizer px-4">
       {features.map((feature, index) => (
-        <div key={index} className="flex items-center space-x-4 p-4 text-center md:text-left">
-          {feature.icon}
+        <div 
+          key={index} 
+          className="flex flex-col md:flex-row items-center text-center md:text-left bg-white p-6 rounded-lg w-full sm:w-[80%] md:w-1/3"
+        >
+          <div className="mb-3 md:mb-0 md:mr-4">{feature.icon}</div>
           <div>
-            <h3 className="font-semibold text-lg leading-loose">{feature.title}</h3>
+          <h3 className="font-semibold text-lg leading-loose">{feature.title}</h3>
             <p className="text-gray-600 text-sm">{feature.description}</p>
           </div>
         </div>

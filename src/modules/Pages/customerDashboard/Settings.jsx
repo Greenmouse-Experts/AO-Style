@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 const Settings = () => {
     const [activeTab, setActiveTab] = useState("personalDetails");
+    const [bodyTab, setBodyTab] = useState("upperBody");
 
     return (
         <>
@@ -41,7 +42,7 @@ const Settings = () => {
                     </div>
 
                     {/* Tabs */}
-                    <div className="mt-6 flex space-x-6 text-gray-500">
+                    <div className="mt-6  flex space-x-6 text-gray-500">
                         <button
                             className={`pb-2 ${activeTab === "personalDetails" ? "border-b-2 border-purple-600 text-purple-600" : ""}`}
                             onClick={() => setActiveTab("personalDetails")}
@@ -94,7 +95,40 @@ const Settings = () => {
 
                         {activeTab === "bodyMeasurement" && (
                             <div>
-                                <p>Body Measurement form goes here...</p>
+                                <div className="border-b-4 border-[#D9D9D9] flex space-x-10 text-gray-500">
+                                    <button
+                                        className={`pb-2 ${bodyTab === "upperBody" ? "border-b-1 border-purple-600 text-purple-600" : ""}`}
+                                        onClick={() => setBodyTab("upperBody")}
+                                    >
+                                        Upper Body
+                                    </button>
+                                    <button
+                                        className={`pb-2 ${bodyTab === "lowerBody" ? "border-b-1 border-purple-600 text-purple-600" : ""}`}
+                                        onClick={() => setBodyTab("lowerBody")}
+                                    >
+                                        Lower Body
+                                    </button>
+                                    <button
+                                        className={`pb-2 ${bodyTab === "fullBody" ? "border-b-1 border-purple-600 text-purple-600" : ""}`}
+                                        onClick={() => setBodyTab("fullBody")}
+                                    >
+                                        Full Body
+                                    </button>
+                                </div>
+
+                                {bodyTab === "upperBody" && (
+                                    <form className="space-y-4 grid grid-cols-2 gap-4 mt-8">
+                                        <input type="text" placeholder="Neck Circumference" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg" required />
+                                        <input type="text" placeholder="Shoulder Width" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg" required />
+                                        <input type="text" placeholder="Chest Circumference" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg" required />
+                                        <input type="text" placeholder="Waist Circumference" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg" required />
+                                        <input type="text" placeholder="Sleeve Length" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg" required />
+                                        <input type="text" placeholder="Bicep Circumference" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg" required />
+                                        <input type="text" placeholder="Wrist Circumference" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg" required />
+                                        <input type="text" placeholder="Shirt Length" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg" required />
+                                        <button type="submit" className="mt-4 bg-purple-600 text-white px-6 py-2 rounded-md col-span-2">Update Upper Body</button>
+                                    </form>
+                                )}
                             </div>
                         )}
                     </div>

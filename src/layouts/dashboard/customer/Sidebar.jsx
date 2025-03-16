@@ -84,6 +84,7 @@ const SidebarItem = ({ to, icon, text }) => (
           : "text-[#B0AFAF] hover:bg-gray-200 hover:text-[#9847FE]"
       }`
     }
+    
   >
     <span className="mr-3">{icon}</span> {text}
   </NavLink>

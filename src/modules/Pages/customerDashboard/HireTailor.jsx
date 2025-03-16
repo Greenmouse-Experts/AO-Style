@@ -40,7 +40,7 @@ export default function HireTailor() {
                         <input
                             type="text"
                             placeholder="Search"
-                            className="w-full md:w-64 pl-10 pr-4 py-2 border rounded-md"
+                            className="w-full md:w-64 pl-10 pr-4 py-2 border border-gray-200 outline-none rounded-md"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />

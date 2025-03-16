@@ -181,6 +181,7 @@ export default function Navbar() {
       <div
         ref={menuRef}
         className={`fixed inset-y-0 right-0 w-74 bg-white transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "translate-x-full"}`}
+        onMouseLeave={() => setIsOpen(false)}
       >
         <div className="p-6">
           <button className="absolute top-4 right-4" onClick={() => setIsOpen(false)}>
@@ -191,7 +192,8 @@ export default function Navbar() {
             { name: "About", link: "/about" },
             { name: "FAQs", link: "/faqs" },
             ].map((item) => (
-              <Link key={item.name} to={item.link} className="text-[#545252] font-light hover:text-purple-500 transition">
+              <Link key={item.name} to={item.link} className="text-[#545252] font-light hover:text-purple-500 transition"
+                onClick={() => setIsOpen(false)} >
                 {item.name}
               </Link>
             ))}
@@ -201,8 +203,18 @@ export default function Navbar() {
             </button>
             {mobileProductOpen && (
               <div className="bg-white rounded-md mt-2">
-                <Link to="/products/type1" className="block px-4 py-2 text-[#545252] font-light hover:bg-gray-100">Product Type 1</Link>
-                <Link to="/products/type2" className="block px-4 py-2 text-[#545252] font-light hover:bg-gray-100">Product Type 2</Link>
+                <div className="space-y-2">
+                  <Link to="/products" className="flex items-center p-3 rounded-lg hover:bg-gray-100" onClick={() => setIsOpen(false)}>
+                    <img src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741727773/AoStyle/image_jmwiuo.jpg" alt="OA Styles" className="h-10 w-10 rounded-md" />
+                    <p className="ml-4">OA Styles - Tailoring Services</p>
+                    <ArrowRightIcon className="h-6 w-6 text-purple-500 ml-auto" />
+                  </Link>
+                  <Link to="/marketplace" className="flex items-center p-3 rounded-lg hover:bg-gray-100" onClick={() => setIsOpen(false)}>
+                    <img src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741727765/AoStyle/Group_1321315093_la6kma.jpg" alt="Marketplace" className="h-10 w-10 rounded-md" />
+                    <p className="ml-4">Marketplace - Buy Fabrics</p>
+                    <ArrowRightIcon className="h-6 w-6 text-purple-500 ml-auto" />
+                  </Link>
+                </div>
               </div>
             )}
             {/* Careers Dropdown for Mobile */}
@@ -214,7 +226,7 @@ export default function Navbar() {
                 Careers <ChevronDownIcon className="h-4 w-4" />
               </button>
               {mobileCareersOpen && (
-                <div className="bg-white rounded-md mt-2">
+                <div className="bg-white rounded-md mt-2" onClick={() => setIsOpen(false)}>
                   <a href="#" className="flex items-center px-4 py-2 text-[#545252] font-light hover:bg-gray-100">
                     <UsersIcon className="h-5 w-5 text-purple-600 mr-4" />
                     Become A Sales Rep

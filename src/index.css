@@ -65,6 +65,9 @@ body {
   .just {
     padding: 0px 0px 80px 0px;
   }
+  .top {
+    padding: 80px 0px 0px 0px;
+  }
 
   .justing {
     padding: 0px 0px 60px 0px;
@@ -83,195 +86,11 @@ body {
       padding: 60px 0px;
     }
   }
-
-  .fw-200 {
-    font-weight: 200;
-  }
-
-  .fw-300 {
-    font-weight: 300;
-  }
-
-  .fw-400 {
-    font-weight: 400;
-  }
-
-  .fw-500 {
-    font-weight: 500;
-  }
-
-  .fw-600 {
-    font-weight: 600;
-  }
-
-  .fw-700 {
-    font-weight: 700;
-  }
-
-  .fw-800 {
-    font-weight: 800;
-  }
-
-  .fw-900 {
-    font-weight: 900;
-  }
-
-  .fs-400 {
-    font-size: 14px;
-  }
-
-  .fs-00 {
-    font-size: 10px;
-  }
-
-  .fs-100 {
-    font-size: 11px;
-  }
-
-  .fs-200 {
-    font-size: 12px;
-  }
-
-  .fs-300 {
-    font-size: 13px;
-  }
-
-  .fs-500 {
-    font-size: 15px;
-  }
-
-  .fs-600 {
-    font-size: 16px;
-  }
-
-  .fs-700 {
-    font-size: 17px;
-  }
-
-  .fs-800 {
-    font-size: 18px;
-  }
-
-  .circle {
-    border-radius: 50%;
-  }
-
-  .text-pri {
-    color: #e4b080;
-  }
-
-  .bg-secondary {
-    background: #fc819f;
-  }
-
-  .text-primary {
-    color: #6817fc;
-  }
-
-  .bg-primary {
-    background: #6817fc;
-  }
-
-  .bg-pri {
-    background: #feb470;
-  }
-
-  .bg-light {
-    background: #f1f1f1;
-  }
-
-  .bg-fit {
-    background-size: 100% 100%;
-  }
-
   .bg-gradient {
     background: linear-gradient(92.49deg, #9E4BFA -14.1%, #EE79AC 111.07%);
   }  
-
-  .btn-primary {
-    background: linear-gradient(92.49deg, #9E4BFA -14.1%, #EE79AC 111.07%);
-    color: white;
-    font-weight: 500;
-    border-radius: 9px;
-    cursor: pointer;
-  }
-
-  .btn-black {
-    background: #161616;
-    color: white;
-    font-weight: 500;
-    border-radius: 50px;
-  }
-
-  .btn-int {
-    background: #6817fc;
-    color: white;
-    font-weight: 500;
-    border-radius: 6.75px;
-  }
-
-  .btn-disabled {
-    background: #11182795;
-    color: white;
-    font-weight: 500;
-    border-radius: 4px;
-    box-shadow: rgba(0, 0, 0, 0.1) 1.95px 1.95px 2.6px;
-  }
-
-  .btn-primary:hover,
-  .btn-like:hover {
-    background: #1d9cd7;
-    transform: scaleX(1.02);
-    transition: 0.6s;
-  }
-
-  .btn-feel:hover {
-    background: #9847fe;
-    transform: scaleX(1.02);
-    transition: 0.6s;
-    color: #fff;
-  }
-
-  .btn-feel {
-    border-radius: 1000px;
-    background: #f3e8ff;
-    color: #291946;
-    font-weight: 500;
-    cursor: pointer;
-  }
-
-  .btn-like {
-    background: #111827;
-    color: white;
-    font-weight: 500;
-    padding: 10px 30px;
-    border-radius: 5px;
-  }
-
-  .place-center {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .form-shadow {
-    box-shadow: 0px 4px 28px 0px #0000001a;
-  }
-
-  .div-shadow {
-    box-shadow: 0px 12px 33.4px 0px #00000024;
-  }
-
-  .box-drop {
-    box-shadow: 0px 2px 20px 5px #0523bc08;
-  }
-
   .active-class {
     background-color: #242ef21a;
     border-left: 3px solid #242ef2;
-  }
-
-  .ps-menu-button .ps-active {
-    padding-left: 0 !important;
   }
 }

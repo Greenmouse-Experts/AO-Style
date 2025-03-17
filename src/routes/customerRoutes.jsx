@@ -5,6 +5,8 @@ import HireTailor from "../modules/Pages/customerDashboard/HireTailor";
 import NotificationPage from "../modules/Pages/customerDashboard/NotificationPage";
 import TransactionPage from "../modules/Pages/customerDashboard/TransactionPage";
 import Settings from "../modules/Pages/customerDashboard/Settings";
+import Orders from "../modules/Pages/customerDashboard/Orders";
+import OrdersDetails from "../modules/Pages/customerDashboard/OrdersDetails";
 
 export const customerRoutes = [
   {
@@ -22,6 +24,14 @@ export const customerRoutes = [
       {
         path: '/customer/tailor-hiring',
         element: <HireTailor />,
+      },
+      {
+        path: '/customer/orders',
+        element: <Orders />,
+      },
+      {
+        path: '/customer/orders/orders-details',
+        element: <OrdersDetails />,
       },
       {
         path: '/customer/notifications',

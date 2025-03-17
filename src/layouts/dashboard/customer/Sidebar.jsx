@@ -36,7 +36,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <SidebarItem to="/customer" icon={<FaHome />} text="Dashboard" />
           <SidebarItem to="/customer/shop-materials" icon={<FaStore />} text="Shop Materials" />
           <SidebarItem to="/customer/tailor-hiring" icon={<GiScissors />} text="Tailor Hiring" />
-          <SidebarItem to="/orders" icon={<FaShoppingCart />} text="Orders" />
+          <SidebarItem to="/customer/orders" icon={<FaShoppingCart />} text="Orders" />
           <SidebarItem to="/inbox" icon={<FaInbox />} text="Inbox" />
           <SidebarItem to="/customer/notifications" icon={<FaBell />} text="Notifications" />
           <SidebarItem to="/customer/transactions" icon={<FaCreditCard />} text="Transactions" />
@@ -80,7 +80,7 @@ const SidebarItem = ({ to, icon, text }) => (
     className={({ isActive }) =>
       `flex items-center py-3 px-3 rounded-md cursor-pointer transition-colors ${
         isActive
-          ? "text-[#9847FE] bg-[#f3e8ff] font-bold"
+          ? "text-[#9847FE] bg-[#f3e8ff] font-normal"
           : "text-[#B0AFAF] hover:bg-gray-200 hover:text-[#9847FE]"
       }`
     }

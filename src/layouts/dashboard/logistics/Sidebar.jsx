@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import {
-  FaHome, FaStore, FaSignOutAlt , FaShoppingCart, FaInbox, FaBell, FaCreditCard, FaCog
+  FaHome, FaStore, FaSignOutAlt, FaShoppingCart, FaInbox, FaBell, FaCreditCard, FaCog, FaUser
 } from "react-icons/fa";
 import { GiScissors } from "react-icons/gi";
 
@@ -33,21 +33,24 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
         {/* Sidebar Links */}
         <nav className="flex-1 space-y-2">
-          <SidebarItem to="/customer" icon={<FaHome />} text="Dashboard" />
-          <SidebarItem to="/customer/shop-materials" icon={<FaStore />} text="Shop Materials" />
-          <SidebarItem to="/customer/tailor-hiring" icon={<GiScissors />} text="Tailor Hiring" />
-          <SidebarItem to="/customer/orders" icon={<FaShoppingCart />} text="Orders" />
+          <SidebarItem to="/logistics" icon={<FaHome />} text="Dashboard" activeClass="text-[#9847FE] font-medium" />
+          <SidebarItem to="/logistics/orders" icon={<FaShoppingCart />} text="Orders" />
+          <SidebarItem to="/logistics/order-requests" icon={<FaStore />} text="Order Requests" />
           <SidebarItem to="/inbox" icon={<FaInbox />} text="Inbox" />
-          <SidebarItem to="/customer/notifications" icon={<FaBell />} text="Notifications" />
-          <SidebarItem to="/customer/transactions" icon={<FaCreditCard />} text="Transactions" />
-          <SidebarItem to="/customer/settings" icon={<FaCog />} text="Settings" />
+          <SidebarItem to="/logistics/notifications" icon={<FaBell />} text="Notifications" />
+          <SidebarItem to="/logistics/transactions" icon={<FaCreditCard />} text="Transactions" />
+          
+          {/* Settings Section */}
+          <p className="text-gray-500 text-xs font-semibold mt-3 mb-3">Settings</p>
+          <SidebarItem to="/logistics/settings" icon={<FaCog />} text="Settings" />
         </nav>
+
         {/* User Profile */}
         <div className="mt-auto border-t border-gray-300 pt-5 flex items-center">
           <img
             src="https://randomuser.me/api/portraits/men/1.jpg"
             alt="User"
-            className="w-12 h-12 rounded-full mr-3"
+            className="w-10 h-10 rounded-full mr-3"
           />
           <div>
             <p className="text-sm font-semibold leading-loose">Chukka Uzo</p>
@@ -56,11 +59,10 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         </div>
 
         {/* Logout Button */}
-        <button className="mt-6 bg-gradient text-white py-3 px-4 rounded-md w-full flex items-center justify-center">
+        <button className="mt-6 bg-gradient-to-r from-[#A056FE] to-[#E44ED8] text-white py-3 px-4 rounded-md w-full flex items-center justify-center">
           <FaSignOutAlt className="mr-2" /> Log Out
         </button>
       </div>
-      
 
       {/* Mobile Overlay */}
       {isOpen && (
@@ -76,19 +78,17 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 const SidebarItem = ({ to, icon, text }) => (
   <NavLink
     to={to}
-    end 
+    end
     className={({ isActive }) =>
       `flex items-center py-3 px-3 rounded-md cursor-pointer transition-colors ${
         isActive
-          ? "text-[#9847FE] bg-[#f3e8ff] font-normal"
+          ? "text-[#9847FE] bg-[#f3e8ff] font-medium"
           : "text-[#B0AFAF] hover:bg-gray-200 hover:text-[#9847FE]"
       }`
     }
-    
   >
     <span className="mr-3">{icon}</span> {text}
   </NavLink>
 );
-
 
 export default Sidebar;

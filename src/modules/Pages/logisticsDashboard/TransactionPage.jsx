@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { Link } from "react-router-dom";
-import ReusableTable from "./components/ReusableTable";
+import ReusableTable from "../logisticsDashboard/components/ReusableTable";
 
 const transactions = [
     { id: 1, transactionId: "TXNRIO1234FNK", date: "19-02-25", time: "12:30pm", category: "Fabric & Tailor", amount: "N 200,000", status: "Completed" },
@@ -45,7 +45,7 @@ export default function TransactionPage() {
             <div className="bg-white px-6 py-4 mb-6">
                 <h1 className="text-2xl font-medium mb-3">Transactions</h1>
                 <p className="text-gray-500">
-                    <Link to="/customer" className="text-blue-500 hover:underline">Dashboard</Link> &gt; Transactions
+                    <Link to="/logistics" className="text-blue-500 hover:underline">Dashboard</Link> &gt; Transactions
                 </p>
             </div>
 

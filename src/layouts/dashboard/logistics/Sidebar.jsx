@@ -14,7 +14,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         } md:translate-x-0 md:w-72 w-64`}
       >
         {/* Logo */}
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center">
           <NavLink to="/">
             <img
               src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741724592/AoStyle/Vector_kcxfqx.png"
@@ -36,7 +36,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <SidebarItem to="/logistics" icon={<FaHome />} text="Dashboard" activeClass="text-[#9847FE] font-medium" />
           <SidebarItem to="/logistics/orders" icon={<FaShoppingCart />} text="Orders" />
           <SidebarItem to="/logistics/order-requests" icon={<FaStore />} text="Order Requests" />
-          <SidebarItem to="/inbox" icon={<FaInbox />} text="Inbox" />
+          <SidebarItem to="/logistics/inbox" icon={<FaInbox />} text="Inbox" />
           <SidebarItem to="/logistics/notifications" icon={<FaBell />} text="Notifications" />
           <SidebarItem to="/logistics/transactions" icon={<FaCreditCard />} text="Transactions" />
           

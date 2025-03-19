@@ -4,6 +4,7 @@ import OrderRequested from "../modules/Pages/logisticsDashboard/OrderRequested";
 import Orders from "../modules/Pages/logisticsDashboard/Orders";
 import TransactionPage from "../modules/Pages/logisticsDashboard/TransactionPage";
 import NotificationPage from "../modules/Pages/logisticsDashboard/NotificationPage";
+import InboxPage from "../modules/Pages/logisticsDashboard/Inbox";
 
 
 export const logisticsRoutes = [
@@ -26,6 +27,10 @@ export const logisticsRoutes = [
       {
         path: '/logistics/transactions',
         element: <TransactionPage />,
+      },
+      {
+        path: '/logistics/inbox',
+        element: <InboxPage />,
       },
       {
         path: '/logistics/notifications',

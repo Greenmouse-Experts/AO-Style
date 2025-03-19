@@ -7,6 +7,7 @@ import TransactionPage from "../modules/Pages/customerDashboard/TransactionPage"
 import Settings from "../modules/Pages/customerDashboard/Settings";
 import Orders from "../modules/Pages/customerDashboard/Orders";
 import OrdersDetails from "../modules/Pages/customerDashboard/OrdersDetails";
+import InboxPage from "../modules/Pages/customerDashboard/Inbox";
 
 export const customerRoutes = [
   {
@@ -44,6 +45,10 @@ export const customerRoutes = [
       {
         path: '/customer/settings',
         element: <Settings />,
+      },
+      {
+        path: '/customer/inbox',
+        element: <InboxPage />,
       },
       // Add other customer dashboard routes here
     ],

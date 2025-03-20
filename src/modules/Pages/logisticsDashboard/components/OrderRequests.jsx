@@ -131,27 +131,32 @@ const OrderRequests = () => {
     };
 
     return (
-        <div className="bg-white mt-6 p-6 rounded-xl">
-            {/* Header & Search */}
+        <div className="bg-white mt-6 p-6 rounded-xl overflow-x-auto">
             <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
                 <h2 className="text-lg font-semibold">Order Requests</h2>
-                
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3 w-full sm:w-auto">
                     <input
-                    type="text"
-                    placeholder="Search orders..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="py-2 p-2 border border-gray-200 rounded-md outline-none text-sm w-64"
-                />
-                    <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md">Export As ▾</button>
-                    <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md">Sort: Newest First ▾</button>
+                        type="text"
+                        placeholder="Search orders..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
+                    />
+                    <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
+                        Export As ▾
+                    </button>
+                    <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
+                        Sort: Newest First ▾
+                    </button>
                 </div>
             </div>
 
             {/* Table */}
-            <ReusableTable columns={columns} data={filteredData} />
+            <div className="overflow-x-auto">
+                <ReusableTable columns={columns} data={filteredData} />
+            </div>
         </div>
+
     );
 };
 

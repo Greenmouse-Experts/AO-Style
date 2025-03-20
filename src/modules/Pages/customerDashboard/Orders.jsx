@@ -71,30 +71,43 @@ const OrderPage = () => {
                 </p>
             </div>
             <div className="bg-white p-4 rounded-lg">
-                <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
-                    <div className="flex flex-wrap space-x-6 text-gray-600 text-sm font-medium">
+                {/* Filters & Actions */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pb-3 mb-4 gap-4">
+                    {/* Order Filters */}
+                    <div className="flex flex-wrap justify-center sm:justify-start gap-3 text-gray-600 text-sm font-medium">
                         {["all", "ongoing", "completed", "cancelled"].map((tab) => (
-                            <button key={tab} onClick={() => setFilter(tab)}
-                                className={`font-medium capitalize ${filter === tab ? "text-[#A14DF6] border-b-2 border-[#A14DF6]" : "text-gray-500"}`}>{tab} Orders</button>
+                            <button
+                                key={tab}
+                                onClick={() => setFilter(tab)}
+                                className={`font-medium capitalize px-3 py-1 ${filter === tab ? "text-[#A14DF6] border-b-2 border-[#A14DF6]" : "text-gray-500"
+                                    }`}
+                            >
+                                {tab} Orders
+                            </button>
                         ))}
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                        <div className="relative">
+
+                    {/* Search & Actions */}
+                    <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                        <div className="relative w-full sm:w-auto">
                             <Search className="absolute left-3 top-3 text-gray-400" size={18} />
                             <input
                                 type="text"
                                 placeholder="Search"
-                                className="pl-10 pr-4 py-2 border border-gray-200 rounded-md outline-none"
+                                className="w-full sm:w-[200px] pl-10 pr-4 py-2 border border-gray-200 rounded-md outline-none"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
-                        <button className="px-4 py-2 bg-gray-200 rounded-md">Export As ▼</button>
-                        <button className="px-4 py-2 bg-gray-200 rounded-md">Sort: Newest First ▼</button>
+                        <button className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md text-sm">Export As ▼</button>
+                        <button className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md text-sm">Sort: Newest First ▼</button>
                     </div>
                 </div>
+
+                {/* Table Section */}
                 <ReusableTable columns={columns} data={filteredOrders} />
             </div>
+
         </div>
     );
 };

@@ -100,25 +100,44 @@ const OrderRequests = () => {
                 </p>
             </div>
             <div className="bg-white p-6 rounded-xl">
-                <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
-                    <div className="flex flex-wrap space-x-6 text-gray-600 text-sm font-medium">
+                {/* Filters & Actions */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pb-3 mb-4 gap-4">
+                    {/* Order Filters */}
+                    <div className="flex flex-wrap justify-center sm:justify-start gap-3 text-gray-600 text-sm font-medium">
                         {["all", "ongoing", "completed", "cancelled"].map((tab) => (
-                            <button key={tab} onClick={() => setFilter(tab)} className={`font-medium capitalize ${filter === tab ? "text-[#A14DF6] border-b-2 border-[#A14DF6]" : "text-gray-500"}`}>
+                            <button
+                                key={tab}
+                                onClick={() => setFilter(tab)}
+                                className={`font-medium capitalize px-3 py-1 ${filter === tab ? "text-[#A14DF6] border-b-2 border-[#A14DF6]" : "text-gray-500"
+                                    }`}
+                            >
                                 {tab} Orders
                             </button>
                         ))}
                     </div>
 
-                    <div className="flex gap-3">
-                        <input type="text" placeholder="Search orders..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="py-2 p-2 border border-gray-200 rounded-md outline-none text-sm w-64" />
-                        <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md">Export As ▾</button>
-                        <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md">Sort: Newest First ▾</button>
+                    {/* Search & Actions */}
+                    <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                        <input
+                            type="text"
+                            placeholder="Search orders..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full sm:w-64 py-2 px-3 border border-gray-200 rounded-md outline-none text-sm"
+                        />
+                        <button className="w-full sm:w-auto bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md">
+                            Export As ▾
+                        </button>
+                        <button className="w-full sm:w-auto bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md">
+                            Sort: Newest First ▾
+                        </button>
                     </div>
                 </div>
 
-                {/* Table */}
+                {/* Table Section */}
                 <ReusableTable columns={columns} data={filteredData} />
             </div>
+
         </>
     );
 };

@@ -133,7 +133,7 @@ const OrderRequests = () => {
 
     return (
         <>
-         <div className="bg-white px-6 py-4 mb-6">
+            <div className="bg-white px-6 py-4 mb-6">
                 <h1 className="text-2xl font-medium mb-3">Orders Requests</h1>
                 <p className="text-gray-500">
                     <Link to="/logistics" className="text-blue-500 hover:underline">Dashboard</Link> &gt; Orders Requests
@@ -141,25 +141,30 @@ const OrderRequests = () => {
             </div>
             <div className="bg-white p-6 rounded-xl">
                 {/* Header & Search */}
-                <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pb-3 mb-4 gap-4">
                     <h2 className="text-lg font-semibold">Order Requests</h2>
 
-                    <div className="flex gap-3">
+                    <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                         <input
                             type="text"
                             placeholder="Search orders..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="py-2 p-2 border border-gray-200 rounded-md outline-none text-sm w-64"
+                            className="w-full sm:w-64 py-2 px-3 border border-gray-200 rounded-md outline-none text-sm"
                         />
-                        <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md">Export As ▾</button>
-                        <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md">Sort: Newest First ▾</button>
+                        <button className="w-full sm:w-auto bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md">
+                            Export As ▾
+                        </button>
+                        <button className="w-full sm:w-auto bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md">
+                            Sort: Newest First ▾
+                        </button>
                     </div>
                 </div>
 
                 {/* Table */}
                 <ReusableTable columns={columns} data={filteredData} />
             </div>
+
         </>
     );
 };

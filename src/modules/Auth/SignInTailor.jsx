@@ -18,19 +18,10 @@ export default function SignInAsCustomer() {
                 {/* Left Section - Image & Text */}
                 <div className="hidden md:flex w-1/2 relative">
                     <img
-                       src={step === 1 ? personalImage : businessImage}
+                        src={step === 1 ? personalImage : businessImage}
                         alt="Sign In"
                         className="w-full h-full object-cover"
                     />
-                    <div className="absolute top-6 left-6">
-                        <Link to="/">
-                            <img
-                                src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741724592/AoStyle/Vector_kcxfqx.png"
-                                alt="OA Styles"
-                                className="h-12 w-auto"
-                            />
-                        </Link>
-                    </div>
                     <div className="absolute bottom-3 left-0 p-8 text-white w-full">
                         <h2 className="text-xl font-medium">
                             Showcase Your Talent – Get Hired  <br />  to Create Stunning Outfits!
@@ -45,6 +36,15 @@ export default function SignInAsCustomer() {
 
                 {/* Right Section - Sign In Form */}
                 <div className="w-full md:w-1/2 p-4 sm:p-8">
+                    <div className=" mb-6">
+                        <Link to="/">
+                            <img
+                                src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741724592/AoStyle/Vector_kcxfqx.png"
+                                alt="OA Styles"
+                                className="h-12 w-auto"
+                            />
+                        </Link>
+                    </div>
                     <h2 className="text-2xl font-semibold text-gray-800 mb-4">Sign Up As A <span className="text-[#2B21E5]">Tailor/Fashion Designer</span></h2>
                     <p className="text-gray-500 text-sm mt-1">Fill the form below to create an account instantly</p>
                     {/* Tabs Navigation */}

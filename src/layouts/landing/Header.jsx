@@ -243,16 +243,16 @@ export default function Navbar() {
           {/* Bottom Buttons */}
           <div className="flex flex-col space-y-6 mt-6">
             <div className="flex justify-start space-x-4">
-              <MagnifyingGlassIcon className="h-5 w-5 text-[#545252] cursor-pointer" />
+              <MagnifyingGlassIcon className="h-5 w-5 text-[#545252] cursor-pointer md:hidden hidden" />
               <ShoppingCartIcon className="h-5 w-5 text-[#545252] cursor-pointer" />
               <div className="flex items-center space-x-1 cursor-pointer">
                 <UserIcon className="h-5 w-5 text-[#545252]" />
-                <span className="text-[#545252]">Login</span>
+                <Link to="/login" className="text-gray-800">Login</Link>
               </div>
             </div>
-            <button className="bg-gradient text-white px-4 py-2 rounded-md hover:bg-purple-600 transition">
+            <Link to="/sign-up" className="bg-gradient text-white px-5 rounded-md lg:px-6 py-2 lg:py-3 hover:bg-purple-600 transition">
               Get Started
-            </button>
+            </Link>
           </div>
         </div>
       </div>

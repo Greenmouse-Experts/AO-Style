@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { PlusIcon, MinusIcon } from "@heroicons/react/24/outline";
+import { Link } from "react-router-dom";
 
 const faqs = [
   { question: "How can I register on OASTYLES?", answer: "To register, simply visit our website and click on the 'Sign Up' button." },
@@ -23,9 +24,11 @@ export default function FAQSection() {
         <button className="border border-[#EE79AC] text-[#484545] px-4 py-2 rounded-full text-sm w-full md:w-auto mb-2 md:mb-0">
           FAQs
         </button>
-        <button className="bg-gradient text-white px-8 py-3 w-full md:w-auto">
-        See ALL FAQs
-        </button>
+        <Link to="/faqs">
+          <button className="bg-gradient text-white px-8 py-3 w-full md:w-auto cursor-pointer">
+            See ALL FAQs
+          </button>
+        </Link>
       </div>
 
       <h2 className="text-2xl font-medium max-w-md loose-relaxed px-4">Here are some of our Frequently Asked Questions</h2>

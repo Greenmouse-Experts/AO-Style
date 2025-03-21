@@ -9,6 +9,7 @@ import {
     Eye, PenTool
 } from "lucide-react";
 import ShippingInfo from "./components/ShippingInfo";
+import { Link } from "react-router-dom";
 
 // Feature List
 const features = [
@@ -227,9 +228,11 @@ const AboutUs = () => {
                             OAStyles is a platform for you to make more money. Join the
                             community today and enjoy all the benefits.
                         </p>
-                        <button className="mt-6 px-6 py-3 bg-gradient text-white font-normal rounded-md cursor-pointer">
-                            GET STARTED
-                        </button>
+                        <Link to='/sign-up'>
+                            <button className="mt-6 px-6 py-3 bg-gradient text-white font-normal rounded-md cursor-pointer">
+                                GET STARTED
+                            </button>
+                        </Link>
                     </div>
                 </div>
             </section>

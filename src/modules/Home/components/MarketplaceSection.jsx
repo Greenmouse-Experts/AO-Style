@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import { Link } from "react-router-dom";
+
 
 const markets = [
   { id: 1, name: "Onitsha Main Market", location: "Anambra", image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741212970/AoStyle/image5_lqdp3e.png" },
@@ -39,9 +41,11 @@ export default function MarketplaceSection() {
         <button className="border border-purple-500 text-purple-500 px-4 py-2 rounded-full text-sm w-full md:w-auto mb-2 md:mb-0">
           Shop Fabrics
         </button>
-        <button className="bg-gradient text-white px-8 py-3 w-full md:w-auto sm:mt-38 mt-3">
-          Explore All Markets
-        </button>
+        <Link to="/marketplace">
+          <button className="bg-gradient text-white px-8 py-3 w-full md:w-auto sm:mt-38 mt-3 cursor-pointer">
+            Explore All Markets
+          </button>
+        </Link>
       </div>
 
       <h2 className="text-2xl font-medium sm:-mt-14 mt-6">Explore Materials by Market Place</h2>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const categories = [
     "All Products", "Agbada", "Kaftan", "Bubu", "Hats & Caps", "Suits", "Jump Suits", "Dresses & Gowns", "Trousers", "Shirts"
@@ -103,9 +104,11 @@ export default function ProductSection() {
                 ))}
             </div>
             <div className="flex justify-center mt-14">
-                <button className="bg-gradient text-white px-10 py-3 w-full md:w-auto">
-                    Explore All Styles
-                </button>
+                <Link to="/marketplace">
+                    <button className="bg-gradient text-white px-10 py-3 w-full md:w-auto cursor-pointer">
+                        Explore All Styles
+                    </button>
+                </Link>
             </div>
         </section>
     );

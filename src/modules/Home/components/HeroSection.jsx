@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 export default function HeroSection() {
     return (
         <section className="relative w-full h-[70vh] flex items-center justify-center bg-cover bg-center px-6 md:px-12"
@@ -25,9 +27,11 @@ export default function HeroSection() {
                         className="h-12 mx-auto"
                     />
                 </div>
-                <button className="bg-gradient text-white px-10 mt-10 py-3 w-full md:w-auto hover:bg-purple-700 transition">
-                    Shop Now
-                </button>
+                <Link to="/shop">
+                    <button className="bg-gradient text-white px-10 mt-10 py-3 w-full md:w-auto hover:bg-purple-700 transition cursor-pointer">
+                        Shop Now
+                    </button>
+                </Link>
             </div>
 
             {/* Right Image */}

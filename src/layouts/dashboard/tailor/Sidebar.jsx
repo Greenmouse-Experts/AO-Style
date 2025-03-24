@@ -1,17 +1,15 @@
 import { NavLink } from "react-router-dom";
 import {
-  FaHome, FaStore, FaSignOutAlt , FaShoppingCart, FaInbox, FaBell, FaCreditCard, FaCog
+  FaHome, FaStar, FaSignOutAlt, FaCommentDots, FaClipboardList, FaBell, FaCreditCard, FaCog ,
 } from "react-icons/fa";
-import { GiScissors } from "react-icons/gi";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   return (
     <div className="relative">
       {/* Sidebar */}
       <div
-        className={`fixed md:relative top-0 left-0 h-screen bg-white p-5 flex flex-col transition-transform duration-300 z-40 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 md:w-72 w-64`}
+        className={`fixed md:relative top-0 left-0 h-screen bg-white p-5 flex flex-col transition-transform duration-300 z-40 ${isOpen ? "translate-x-0" : "-translate-x-full"
+          } md:translate-x-0 md:w-72 w-64`}
       >
         {/* Logo */}
         <div className="flex justify-center">
@@ -33,24 +31,24 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
         {/* Sidebar Links */}
         <nav className="flex-1 space-y-2">
-          <SidebarItem to="/customer" icon={<FaHome />} text="Dashboard" />
-          <SidebarItem to="/customer/shop-materials" icon={<FaStore />} text="Shop Materials" />
-          <SidebarItem to="/customer/tailor-hiring" icon={<GiScissors />} text="Tailor Hiring" />
-          <SidebarItem to="/customer/orders" icon={<FaShoppingCart />} text="Orders" />
-          <SidebarItem to="/customer/inbox" icon={<FaInbox />} text="Inbox" />
-          <SidebarItem to="/customer/notifications" icon={<FaBell />} text="Notifications" />
-          <SidebarItem to="/customer/transactions" icon={<FaCreditCard />} text="Transactions" />
-          <SidebarItem to="/customer/settings" icon={<FaCog />} text="Settings" />
+
+          <SidebarItem to="/tailor" icon={<FaHome />} text="Dashboard" />
+          <SidebarItem to="/tailor/my-catalog" icon={<FaStar />} text="My Catalog" />
+          <SidebarItem to="/tailor/orders" icon={<FaClipboardList />} text="Orders" />
+          {/* <SidebarItem to="/tailor/inbox" icon={<FaCommentDots />} text="Inbox" /> */}
+          <SidebarItem to="/tailor/notifications" icon={<FaBell />} text="Notifications" />
+          <SidebarItem to="/tailor/transactions" icon={<FaCreditCard />} text="Transactions" />
+          <SidebarItem to="/tailor/settings" icon={<FaCog />} text="Settings" />
         </nav>
         {/* User Profile */}
         <div className="mt-auto border-t border-gray-300 pt-5 flex items-center">
           <img
-            src="https://randomuser.me/api/portraits/men/1.jpg"
+            src="https://randomuser.me/api/portraits/men/5.jpg"
             alt="User"
             className="w-12 h-12 rounded-full mr-3"
           />
           <div>
-            <p className="text-sm font-semibold leading-loose">Chukka Uzo</p>
+            <p className="text-sm font-semibold leading-loose">Hamzat Adeleke</p>
             <p className="text-xs text-gray-500">Account settings</p>
           </div>
         </div>
@@ -60,7 +58,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <FaSignOutAlt className="mr-2" /> Log Out
         </button>
       </div>
-      
+
 
       {/* Mobile Overlay */}
       {isOpen && (
@@ -76,15 +74,14 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 const SidebarItem = ({ to, icon, text }) => (
   <NavLink
     to={to}
-    end 
+    end
     className={({ isActive }) =>
-      `flex items-center py-3 px-3 rounded-md cursor-pointer transition-colors ${
-        isActive
-          ? "text-[#9847FE] bg-[#f3e8ff] font-normal"
-          : "text-[#B0AFAF] hover:bg-gray-200 hover:text-[#9847FE]"
+      `flex items-center py-3 px-3 rounded-md cursor-pointer transition-colors ${isActive
+        ? "text-[#9847FE] bg-[#f3e8ff] font-normal"
+        : "text-[#B0AFAF] hover:bg-gray-200 hover:text-[#9847FE]"
       }`
     }
-    
+
   >
     <span className="mr-3">{icon}</span> {text}
   </NavLink>

@@ -52,7 +52,6 @@ export default function MarketplaceSection() {
       <p className="text-[#4B4A4A] mt-4 max-w-md font-light leading-loose mb-6">
         A virtual marketplace that offers high-quality fabric from various parts of the country.
       </p>
-
       {/* Carousel */}
       <div className="relative flex items-center justify-center">
         <button

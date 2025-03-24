@@ -10,5 +10,5 @@ export const routes = [
     ...customerRoutes,
     ...logisticsRoutes,
     ...salesRoutes,
-    ...tailorRoutes,
+    ...tailorRoutes
 ];

@@ -45,7 +45,7 @@ export const salesRoutes = [
         path: '/sales/settings',
         element: <SettingPages />,
       },
-      // Add other customer dashboard routes here
+      // Add other sales dashboard routes here
     ],
   },
 ];

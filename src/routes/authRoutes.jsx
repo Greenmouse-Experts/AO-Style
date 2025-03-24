@@ -5,7 +5,6 @@ import SignInTailorDesigner from "../modules/Auth/SignInTailor";
 import SignInAsFabricVendor from "../modules/Auth/SigInFabric";
 // import VerifyEmail from "../modules/Auth/verifyEmail";
 // import AdminLogin from "../modules/SuperAdmin";
-
 export const authRoutes = [
     {
         path: '/login',

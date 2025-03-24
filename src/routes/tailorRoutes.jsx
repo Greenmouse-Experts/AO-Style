@@ -11,10 +11,10 @@ export const tailorRoutes = [
         index: true,
         element: <TailorDashboard />,
       },
-      {
-        path: '/sales/fabric-vendors',
-        element: <FabricVendorPage />,
-      },
+    //   {
+    //     path: '/sales/fabric-vendors',
+    //     element: <FabricVendorPage />,
+    //   },
       
       // Add other tailor dashboard routes here
     ],

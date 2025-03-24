@@ -19,7 +19,6 @@ export default function StylesTable() {
         if (filter === "unpublished" && style.status !== "Unpublished") return false;
         return style.name.toLowerCase().includes(searchTerm.toLowerCase());
     });
-
     return (
         <div className="">
             <div className="bg-white p-6 mb-6 rounded-lg">

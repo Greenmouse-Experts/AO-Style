@@ -7,7 +7,6 @@ import NotificationPage from "../modules/Pages/tailorDashboard/NotificationPage"
 import TransactionPage from "../modules/Pages/tailorDashboard/TransactionPage";
 import Settings from "../modules/Pages/tailorDashboard/Settings";
 
-
 export const tailorRoutes = [
   {
     path: "/tailor",

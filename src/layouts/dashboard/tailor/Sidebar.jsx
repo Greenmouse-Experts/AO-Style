@@ -35,7 +35,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <SidebarItem to="/tailor" icon={<FaHome />} text="Dashboard" />
           <SidebarItem to="/tailor/my-catalog" icon={<FaStar />} text="My Catalog" />
           <SidebarItem to="/tailor/orders" icon={<FaClipboardList />} text="Orders" />
-          {/* <SidebarItem to="/tailor/inbox" icon={<FaCommentDots />} text="Inbox" /> */}
+          <SidebarItem to="/tailor/inbox" icon={<FaCommentDots />} text="Inbox" />
           <SidebarItem to="/tailor/notifications" icon={<FaBell />} text="Notifications" />
           <SidebarItem to="/tailor/transactions" icon={<FaCreditCard />} text="Transactions" />
           <SidebarItem to="/tailor/settings" icon={<FaCog />} text="Settings" />

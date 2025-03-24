@@ -7,7 +7,7 @@ import NotificationPage from "../modules/Pages/tailorDashboard/NotificationPage"
 import TransactionPage from "../modules/Pages/tailorDashboard/TransactionPage";
 import Settings from "../modules/Pages/tailorDashboard/Settings";
 
-export const tailorRoutes = [
+export const tailorRoute = [
   {
     path: "/tailor",
     element: <TailorLayout />,
@@ -17,7 +17,7 @@ export const tailorRoutes = [
         element: <TailorDashboard />,
       },
       {
-        path: '/tailor/my-catalog',
+        path: '/tailor/catalog',
         element: <Cataloging />,
       },
       {
@@ -40,7 +40,6 @@ export const tailorRoutes = [
         path: '/tailor/settings',
         element: <Settings />,
       },
-      
       // Add other tailor dashboard routes here
     ],
   },

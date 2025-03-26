@@ -6,9 +6,9 @@ export default function GetStarted() {
             <div className="mb-5">
                 <Link to="/">
                     <img
-                        src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741724592/AoStyle/Vector_kcxfqx.png"
+                        src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742964300/AoStyle/CARYBIN_TRANSPARENT_1_ujbdei.png"
                         alt="OA Styles"
-                        className="h-12 w-auto"
+                        className="h-20 w-auto"
                     />
                 </Link>
             </div>

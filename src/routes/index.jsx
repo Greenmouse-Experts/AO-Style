@@ -4,6 +4,7 @@ import { customerRoutes } from "./customerRoutes";
 import { logisticsRoutes } from "./logisticsRoutes";
 import { salesRoutes } from "./salesRoutes";
 import { tailorRoute } from "./tailorRoutes";
+import { fabricRoutes } from "./fabricRoutes";
 export const routes = [
     ...landingRooutes,
     ...authRoutes,
@@ -11,4 +12,5 @@ export const routes = [
     ...logisticsRoutes,
     ...salesRoutes,
     ...tailorRoute,
+    ...fabricRoutes,
 ];

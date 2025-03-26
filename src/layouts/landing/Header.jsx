@@ -54,9 +54,9 @@ export default function Navbar() {
           <div className="flex-shrink-0 pr-3 lg:pr-5 xl:pr-20">
             <Link to="/">
               <img
-                src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741724592/AoStyle/Vector_kcxfqx.png"
+                src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742964300/AoStyle/CARYBIN_TRANSPARENT_1_ujbdei.png"
                 alt="OA Styles"
-                className="h-12 w-auto"
+                className="h-14 w-auto"
               />
             </Link>
           </div>

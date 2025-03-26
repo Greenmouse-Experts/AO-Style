@@ -25,7 +25,7 @@ export default function NotificationPage() {
             <div className="bg-white px-6 py-4 mb-6">
                 <h1 className="text-2xl font-medium mb-3">Notifications</h1>
                 <p className="text-gray-500">
-                    <Link to="/tailor" className="text-blue-500 hover:underline">Dashboard</Link> &gt; Notifications
+                    <Link to="/customer" className="text-blue-500 hover:underline">Dashboard</Link> &gt; Notifications
                 </p>
             </div>
             

@@ -48,7 +48,7 @@ export default function TransactionPage() {
             <div className="bg-white px-6 py-4 mb-6">
                 <h1 className="text-2xl font-medium mb-3">Transactions</h1>
                 <p className="text-gray-500">
-                    <Link to="/tailor" className="text-blue-500 hover:underline">Dashboard</Link> &gt; Transactions
+                    <Link to="/fabric" className="text-blue-500 hover:underline">Dashboard</Link> &gt; Transactions
                 </p>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 mb-6">

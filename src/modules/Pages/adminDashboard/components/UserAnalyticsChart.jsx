@@ -7,7 +7,7 @@ const data = [
   { name: "Tailors", value: 25, color: "#E3B448" },
   { name: "Fabric Vendors", value: 15, color: "#8CE99A" },
   { name: "Logistics Agents", value: 10, color: "#E599F7" },
-  { name: "Sales Reps", value: 10, color: "#A5B4FC" },
+  { name: "Market Reps", value: 10, color: "#A5B4FC" },
 ];
 
 const UserAnalyticsChart = () => {

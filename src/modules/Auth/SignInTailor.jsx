@@ -9,7 +9,7 @@ export default function SignInAsCustomer() {
     const [step, setStep] = useState(1);
 
     const personalImage = "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741615921/AoStyle/image_1_m2zq1t.png";
-    const businessImage = "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741618321/AoStyle/image_3_zkxomp.jpg";
+    const businessImage = "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741615921/AoStyle/image_1_m2zq1t.png";
 
 
     return (

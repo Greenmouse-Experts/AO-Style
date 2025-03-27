@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 import Filters from "./components/Filters";
 import HeaderCard from "./components/HeaderCard";
 import { Link } from "react-router-dom";
+import { FaFilter } from "react-icons/fa";
 
 
 const marketplaces = [
@@ -30,6 +31,7 @@ const products = [
 
 export default function ShopMaterials() {
     const [index, setIndex] = useState(0);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [itemsPerPage, setItemsPerPage] = useState(10); // Default for large screens
 
     useEffect(() => {
@@ -96,13 +98,36 @@ export default function ShopMaterials() {
                 <h1 className="text-2xl font-medium mt-2 mb-3">Shop Materials</h1>
                 <p className="text-gray-500"><Link to="/customer">Dashboard</Link> &gt; Shop Materials</p>
             </div>
-            <div className="flex flex-col md:flex-row h-screen">
-                <div className="w-full md:w-1/4 pr-2 hidden md:block h-screen sticky top-0 overflow-y-auto">
-                    <Filters filters={filters} setFilters={setFilters} />
+            <div className="flex h-screen">
+                <div
+                    className={`hidden md:block bg-white fixed md:relative left-0 transition-all duration-300 overflow-hidden
+                ${isSidebarOpen ? "w-1/5 h-screen p-2" : "w-14 h-14 p-2 rounded-md flex items-center justify-center cursor-pointer"}`}
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                >
+                    {isSidebarOpen ? (
+                        <>
+                            <button
+                                className="absolute top-4 right-4 text-black"
+                                onClick={(e) => { e.stopPropagation(); setIsSidebarOpen(false); }}
+                            >
+                                ✖
+                            </button>
+
+                            {/* Filters */}
+                            <Filters filters={filters} setFilters={setFilters} />
+                        </>
+                    ) : (
+                        /* Filter Button - Only on Desktop */
+                        <button className="bg-gradient text-white p-3 rounded-full">
+                            <FaFilter size={15} />
+                        </button>
+                    )}
                 </div>
 
                 {/* Main Content */}
-                <div className="flex-1 overflow-auto p-1 md:p-4">
+                <div
+                    className={`flex-1 overflow-auto p-4 transition-all duration-300  -mt-4`}
+                >
                     <HeaderCard />
 
                     {/* Mobile Filters Button */}
@@ -162,7 +187,7 @@ export default function ShopMaterials() {
                                 <div key={index} className="">
                                     <img src={product.image} alt={product.name} className="w-full object-cover rounded-md" />
                                     <h3 className="font-medium text-left mt-4 mb-3">{product.name}</h3>
-                                    <p className="text-[#2B21E5]  text-left font-light">₦{product.price.toLocaleString()}</p>
+                                    <p className="text-[#2B21E5] text-left font-light">₦{product.price.toLocaleString()}</p>
                                 </div>
                             ))
                         ) : (

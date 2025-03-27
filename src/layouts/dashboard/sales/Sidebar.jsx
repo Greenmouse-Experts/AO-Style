@@ -17,9 +17,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         <div className="flex justify-center">
           <NavLink to="/">
             <img
-              src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742964300/AoStyle/CARYBIN_TRANSPARENT_1_ujbdei.png"
+              src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1743094475/AoStyle/CARYBIN_TRANSPARENT_crm6rl.png"
               alt="Carybin Logo"
-              className="h-20 w-auto"
+              className="h-28 w-auto"
             />
           </NavLink>
         </div>

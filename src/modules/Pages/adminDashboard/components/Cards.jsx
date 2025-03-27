@@ -18,7 +18,7 @@ export default function StatsCard() {
       {
         image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1742827223/AoStyle/Group_38685_qx6z7j.png", 
         value: "24",
-        label: "Sales Representatives",
+        label: "Market Representatives",
       },
     ];
   

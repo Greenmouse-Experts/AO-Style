@@ -34,7 +34,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <SidebarItem to="/admin/customers" icon={<FaUsers />} text="Customers" />
           <SidebarItem to="/admin/tailors" icon={<GiScissors />} text="Tailors / Designers" />
           <SidebarItem to="/admin/fabric-vendor" icon={<FaBox />} text="Fabric Vendor" />
-          <SidebarItem to="/admin/sales-rep" icon={<FaBriefcase />} text="Sales Rep" />
+          <SidebarItem to="/admin/sales-rep" icon={<FaBriefcase />} text="Market Rep" />
           <SidebarItem to="/logistics" icon={<FaTruck />} text="Logistics" />
           <SidebarItem to="/admin/sub-admins" icon={<FaUserShield />} text="Admins" />
           {/* Products Section */}

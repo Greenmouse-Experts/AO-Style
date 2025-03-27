@@ -119,7 +119,7 @@ export default function Navbar() {
                     className="flex items-center px-4 py-3 text-gray-800 hover:bg-gray-100"
                   >
                     <UsersIcon className="h-6 w-6 text-purple-600 mr-4" />
-                    Become A Sales Rep
+                    Become A Market Rep
                   </a>
                   <a
                     href="#"
@@ -229,7 +229,7 @@ export default function Navbar() {
                 <div className="bg-white rounded-md mt-2" onClick={() => setIsOpen(false)}>
                   <a href="#" className="flex items-center px-4 py-2 text-[#545252] font-light hover:bg-gray-100">
                     <UsersIcon className="h-5 w-5 text-purple-600 mr-4" />
-                    Become A Sales Rep
+                    Become A Market Rep
                   </a>
                   <a href="#" className="flex items-center px-4 py-2 text-[#545252] font-light hover:bg-gray-100">
                     <BriefcaseIcon className="h-5 w-5 text-purple-600 mr-4" />

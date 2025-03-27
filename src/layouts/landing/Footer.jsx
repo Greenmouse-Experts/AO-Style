@@ -1,8 +1,16 @@
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock } from "react-icons/fa";
 import { BsLinkedin, BsWhatsapp, BsInstagram, BsFacebook, BsTwitterX } from "react-icons/bs";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 
 const Footer = () => {
+
+    const { pathname } = useLocation();
+
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }, [pathname]);
+
     return (
         <footer className="relative text-white jus bg-cover bg-bottom" style={{ backgroundImage: "url('https://res.cloudinary.com/greenmouse-tech/image/upload/v1741734865/AoStyle/Frame_1618873174_htyz4s.jpg')" }}>
             <div className="Resizer mx-auto px-6 grid md:grid-cols-6 gap-4 text-sm">

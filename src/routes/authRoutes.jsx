@@ -4,7 +4,7 @@ import SignInCustomer from "../modules/Auth/SignInCustomer";
 import SignInTailorDesigner from "../modules/Auth/SignInTailor";
 import SignInAsFabricVendor from "../modules/Auth/SigInFabric";
 // import VerifyEmail from "../modules/Auth/verifyEmail";
-// import AdminLogin from "../modules/SuperAdmin";
+import AdminLogin from "../modules/Auth/AdminLogin";
 export const authRoutes = [
     {
         path: '/login',
@@ -30,8 +30,8 @@ export const authRoutes = [
     //     path: '/verify-account',
     //     element: <VerifyEmail />
     // },
-    // {
-    //     path: "auth/admin/login",
-    //     element: <AdminLogin />
-    // },
+    {
+        path: "/admin/login",
+        element: <AdminLogin />
+    },
 ];

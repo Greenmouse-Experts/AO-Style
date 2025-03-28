@@ -40,19 +40,19 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           {/* Products Section */}
           <div className="mb-4">
             <h3 className="text-xs text-gray-400 uppercase mb-2">Products</h3>
-            <SidebarItem to="/markets" icon={<FaStore />} text="Markets" />
-            <SidebarItem to="/fabrics" icon={<FaTshirt />} text="Fabrics" />
-            <SidebarItem to="/styles" icon={<FaPalette />} text="Styles" />
+            <SidebarItem to="/admin/markets" icon={<FaStore />} text="Markets" />
+            <SidebarItem to="/admin/fabrics" icon={<FaTshirt />} text="Fabrics" />
+            <SidebarItem to="/admin/styles" icon={<FaPalette />} text="Styles" />
           </div>
           {/* More Section */}
           <div className="mb-4">
             <h3 className="text-xs text-gray-400 uppercase mb-2">More</h3>
-            <SidebarItem to="/orders" icon={<FaShoppingCart />} text="Orders" />
-            <SidebarItem to="/transactions" icon={<FaCreditCard />} text="Payments & Transactions" />
-            <SidebarItem to="/notifications" icon={<FaBell />} text="Notifications" />
-            <SidebarItem to="/messages" icon={<FaEnvelope />} text="Messages" />
-            <SidebarItem to="/analytics" icon={<FaChartBar />} text="Reports & Analytics" />
-            <SidebarItem to="/settings" icon={<FaCog />} text="Settings & Configuration" />
+            <SidebarItem to="/admin/orders" icon={<FaShoppingCart />} text="Orders" />
+            <SidebarItem to="/admin/transactions" icon={<FaCreditCard />} text="Payments & Transactions" />
+            <SidebarItem to="/admin/notifications" icon={<FaBell />} text="Notifications" />
+            <SidebarItem to="/admin/messages" icon={<FaEnvelope />} text="Messages" />
+            <SidebarItem to="/admin/analytics" icon={<FaChartBar />} text="Reports & Analytics" />
+            <SidebarItem to="/admin/settings" icon={<FaCog />} text="Settings & Configuration" />
           </div>
           {/* Profile Section */}
           <div className="mt-auto bg-gray-100 p-4 rounded-lg text-center">

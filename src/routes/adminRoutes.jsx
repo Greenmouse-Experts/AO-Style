@@ -4,6 +4,7 @@ import Customers from "../modules/Pages/adminDashboard/Customer";
 import Tailors from "../modules/Pages/adminDashboard/Tailor";
 import FabricVendor from "../modules/Pages/adminDashboard/Fabric";
 import SalesRep from "../modules/Pages/adminDashboard/Sales";
+import Logistics from "../modules/Pages/adminDashboard/Logistics";
 import SubAdmin from "../modules/Pages/adminDashboard/SubAdmin";
 
 export const adminRoutes = [
@@ -30,6 +31,10 @@ export const adminRoutes = [
       {
         path: '/admin/sales-rep',
         element: <SalesRep />,
+      },
+      {
+        path: '/admin/logistics',
+        element: <Logistics />,
       },
       {
         path: '/admin/sub-admins',

@@ -56,7 +56,7 @@ export default function Navbar() {
               <img
                 src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742964300/AoStyle/CARYBIN_TRANSPARENT_1_ujbdei.png"
                 alt="OA Styles"
-                className="h-14 w-auto"
+                className="h-16 w-auto"
               />
             </Link>
           </div>

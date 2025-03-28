@@ -5,6 +5,7 @@ import Orders from "../modules/Pages/logisticsDashboard/Orders";
 import TransactionPage from "../modules/Pages/logisticsDashboard/TransactionPage";
 import NotificationPage from "../modules/Pages/logisticsDashboard/NotificationPage";
 import InboxPage from "../modules/Pages/logisticsDashboard/Inbox";
+import Settings from "../modules/Pages/logisticsDashboard/Settings";
 
 
 export const logisticsRoutes = [
@@ -35,6 +36,10 @@ export const logisticsRoutes = [
       {
         path: '/logistics/notifications',
         element: <NotificationPage />,
+      },
+      {
+        path: '/logistics/settings',
+        element: <Settings />,
       },
       // Add other logistics dashboard routes here
     ],

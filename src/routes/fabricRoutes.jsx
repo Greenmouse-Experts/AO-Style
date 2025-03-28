@@ -3,6 +3,7 @@ import FabricDashboard from "../modules/Pages/fabricDashboard";
 import MyProducts from "../modules/Pages/fabricDashboard/MyProducts";
 import AddNewProduct from "../modules/Pages/fabricDashboard/AddNewProduct";
 import Orders from "../modules/Pages/fabricDashboard/Orders";
+import ShopMaterial from "../modules/Pages/fabricDashboard/ShopMaterial";
 import OrdersDetails from "../modules/Pages/fabricDashboard/OrdersDetails";
 import NotificationPage from "../modules/Pages/fabricDashboard/NotificationPage";
 import TransactionPage from "../modules/Pages/fabricDashboard/TransactionPage";
@@ -28,6 +29,10 @@ export const fabricRoutes = [
       {
         path: '/fabric/orders',
         element: <Orders />,
+      },
+      {
+        path: '/fabric/shop-materials',
+        element: <ShopMaterial />,
       },
       {
         path: '/fabric/orders/orders-details',

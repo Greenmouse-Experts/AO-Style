@@ -5,6 +5,7 @@ import { logisticsRoutes } from "./logisticsRoutes";
 import { salesRoutes } from "./salesRoutes";
 import { tailorRoute } from "./tailorRoutes";
 import { fabricRoutes } from "./fabricRoutes";
+import NotFoundPage from "../components/ui/NotFoundPage";
 // Admin Routes
 import { adminRoutes } from "./adminRoutes";
 // Admin Routes Ends
@@ -19,4 +20,9 @@ export const routes = [
     ...fabricRoutes,
     // Admin Routes
     ...adminRoutes,
+    // Catch-All 404 Route
+    {
+        path: "*",
+        element: <NotFoundPage />,
+    },
 ];

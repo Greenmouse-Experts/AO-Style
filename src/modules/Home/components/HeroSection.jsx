@@ -14,7 +14,7 @@ export default function HeroSection() {
                 <img
                     src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742964300/AoStyle/CARYBIN_TRANSPARENT_1_ujbdei.png"
                     alt="OA Styles"
-                    className="h-10 mx-auto mb-10"
+                    className="h-24 mx-auto mb-5"
                 />
                 <h5 className="text-2xl md:text-4xl md:leading-16 leading-10 font-bold text-black">
                     Choose A Style, have it Made <br /> and Delivered to your Doorstep

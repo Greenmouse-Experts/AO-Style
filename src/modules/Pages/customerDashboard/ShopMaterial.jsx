@@ -126,7 +126,7 @@ export default function ShopMaterials() {
 
                 {/* Main Content */}
                 <div
-                    className={`flex-1 overflow-auto p-4 transition-all duration-300  -mt-4`}
+                    className={`flex-1 overflow-auto p-1 md:p-4 transition-all duration-300  -mt-4`}
                 >
                     <HeaderCard />
 

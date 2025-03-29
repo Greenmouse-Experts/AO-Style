@@ -50,8 +50,7 @@ export default function HireTailor() {
                     </button>
                     <button className="p-2 bg-gray-200 rounded-md flex items-center">
                         <MapPin size={18} className="mr-1" /> Location
-                    </button>
-            https://test.nanasafri.ng/#    </div>
+                    </button> </div>
             </div>
 
             {/* Tailors List - Responsive Grid */}

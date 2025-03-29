@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import {
-  FaHome, FaSignOutAlt, FaCommentDots, FaClipboardList, FaBell, FaCreditCard, FaCog , FaStore,
+  FaHome, FaSignOutAlt, FaCommentDots, FaClipboardList, FaBell, FaCreditCard, FaCog, FaStore,
 } from "react-icons/fa";
 import { MdProductionQuantityLimits } from "react-icons/md";
 
@@ -10,16 +10,16 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     <div className="relative">
       {/* Sidebar */}
       <div
-        className={`fixed md:relative top-0 left-0 h-screen bg-white p-5 flex flex-col transition-transform duration-300 z-40 ${isOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed md:relative top-0 left-0 h-screen bg-[#280C70] p-5 flex flex-col transition-transform duration-300 z-40 ${isOpen ? "translate-x-0" : "-translate-x-full"
           } md:translate-x-0 md:w-72 w-64`}
       >
         {/* Logo */}
         <div className="flex justify-center">
           <NavLink to="/">
             <img
-              src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742964300/AoStyle/CARYBIN_TRANSPARENT_1_ujbdei.png"
+              src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1743094475/AoStyle/CARYBIN_TRANSPARENT_crm6rl.png"
               alt="Carybin Logo"
-              className="h-20 w-auto"
+              className="h-28 w-auto"
             />
           </NavLink>
         </div>
@@ -28,7 +28,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         <input
           type="text"
           placeholder="Search for..."
-          className="w-full p-3 rounded-md border border-gray-300 mb-5 mt-3 outline-none"
+          className="w-full p-3 rounded-md text-white border border-white mb-5 mt-3 outline-none"
         />
 
         {/* Sidebar Links */}
@@ -44,7 +44,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <SidebarItem to="/fabric/settings" icon={<FaCog />} text="Settings" />
         </nav>
         {/* User Profile */}
-        <div className="mt-auto border-t border-gray-300 pt-5 flex items-center">
+        <div className="mt-auto border-t border-white text-white pt-5 flex items-center">
           <img
             src="https://randomuser.me/api/portraits/men/5.jpg"
             alt="User"
@@ -52,7 +52,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           />
           <div>
             <p className="text-sm font-semibold leading-loose">Hamzat Adeleke</p>
-            <p className="text-xs text-gray-500">Account settings</p>
+            <p className="text-xs text-white">Account settings</p>
           </div>
         </div>
 
@@ -81,7 +81,7 @@ const SidebarItem = ({ to, icon, text }) => (
     className={({ isActive }) =>
       `flex items-center py-3 px-3 rounded-md cursor-pointer transition-colors ${isActive
         ? "text-[#9847FE] bg-[#f3e8ff] font-normal"
-        : "text-[#B0AFAF] hover:bg-gray-200 hover:text-[#9847FE]"
+        : "text-white hover:bg-gray-200 hover:text-[#9847FE]"
       }`
     }
 

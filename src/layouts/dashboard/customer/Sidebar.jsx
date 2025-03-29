@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import {
-  FaHome, FaStore, FaSignOutAlt , FaShoppingCart, FaInbox, FaBell, FaCreditCard, FaCog
+  FaHome, FaStore, FaSignOutAlt, FaShoppingCart, FaInbox, FaBell, FaCreditCard, FaCog
 } from "react-icons/fa";
 import { GiScissors } from "react-icons/gi";
 
@@ -9,17 +9,16 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     <div className="relative">
       {/* Sidebar */}
       <div
-        className={`fixed md:relative top-0 left-0 h-screen bg-white p-5 flex flex-col transition-transform duration-300 z-40 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 md:w-72 w-64`}
+        className={`fixed md:relative top-0 left-0 h-screen bg-[#280C70] p-5 flex flex-col transition-transform duration-300 z-40 ${isOpen ? "translate-x-0" : "-translate-x-full"
+          } md:translate-x-0 md:w-72 w-64`}
       >
         {/* Logo */}
         <div className="flex justify-center">
           <NavLink to="/">
             <img
-              src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742964300/AoStyle/CARYBIN_TRANSPARENT_1_ujbdei.png"
+              src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1743094475/AoStyle/CARYBIN_TRANSPARENT_crm6rl.png"
               alt="Carybin Logo"
-              className="h-20 w-auto"
+              className="h-28 w-auto"
             />
           </NavLink>
         </div>
@@ -28,7 +27,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         <input
           type="text"
           placeholder="Search for..."
-          className="w-full p-3 rounded-md border border-gray-300 mb-5 mt-3 outline-none"
+          className="w-full p-3 rounded-md border border-white text-white mb-5 mt-3 outline-none"
         />
 
         {/* Sidebar Links */}
@@ -43,15 +42,15 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <SidebarItem to="/customer/settings" icon={<FaCog />} text="Settings" />
         </nav>
         {/* User Profile */}
-        <div className="mt-auto border-t border-gray-300 pt-5 flex items-center">
+        <div className="mt-auto border-t border-white pt-5 flex items-center">
           <img
             src="https://randomuser.me/api/portraits/men/1.jpg"
             alt="User"
             className="w-12 h-12 rounded-full mr-3"
           />
           <div>
-            <p className="text-sm font-semibold leading-loose">Chukka Uzo</p>
-            <p className="text-xs text-gray-500">Account settings</p>
+            <p className="text-sm font-semibold leading-loose text-white">Chukka Uzo</p>
+            <p className="text-xs text-white">Account settings</p>
           </div>
         </div>
 
@@ -60,7 +59,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <FaSignOutAlt className="mr-2" /> Log Out
         </button>
       </div>
-      
+
 
       {/* Mobile Overlay */}
       {isOpen && (
@@ -76,15 +75,14 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 const SidebarItem = ({ to, icon, text }) => (
   <NavLink
     to={to}
-    end 
+    end
     className={({ isActive }) =>
-      `flex items-center py-3 px-3 rounded-md cursor-pointer transition-colors ${
-        isActive
-          ? "text-[#9847FE] bg-[#f3e8ff] font-normal"
-          : "text-[#B0AFAF] hover:bg-gray-200 hover:text-[#9847FE]"
+      `flex items-center py-3 px-3 rounded-md cursor-pointer transition-colors ${isActive
+        ? "text-[#9847FE] bg-[#f3e8ff] font-normal"
+        : "text-white hover:bg-gray-200 hover:text-[#9847FE]"
       }`
     }
-    
+
   >
     <span className="mr-3">{icon}</span> {text}
   </NavLink>

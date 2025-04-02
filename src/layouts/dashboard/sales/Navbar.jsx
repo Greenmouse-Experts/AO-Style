@@ -13,7 +13,7 @@ export default function Navbar({ toggleSidebar }) {
 
       {/* Page Title */}
       <h1 className="text-base font-normal text-[#7A7979] lg:ml-4">
-        Sales Dashboard
+        Market Rep Dashboard
       </h1>
 
       {/* Right: Notification & Profile */}

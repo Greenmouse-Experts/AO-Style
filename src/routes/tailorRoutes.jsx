@@ -6,6 +6,7 @@ import OrdersDetails from "../modules/Pages/tailorDashboard/OrdersDetails";
 import NotificationPage from "../modules/Pages/tailorDashboard/NotificationPage";
 import TransactionPage from "../modules/Pages/tailorDashboard/TransactionPage";
 import Settings from "../modules/Pages/tailorDashboard/Settings";
+import InboxPage from "../modules/Pages/tailorDashboard/Inbox";
 
 export const tailorRoute = [
   {
@@ -27,6 +28,10 @@ export const tailorRoute = [
       {
         path: '/tailor/orders/orders-details',
         element: <OrdersDetails />,
+      },
+      {
+        path: '/tailor/inbox',
+        element: <InboxPage />,
       },
       {
         path: '/tailor/notifications',

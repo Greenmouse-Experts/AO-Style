@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import {
-  FaHome, FaStore, FaSignOutAlt, FaShoppingCart, FaInbox, FaBell, FaCreditCard, FaCog, FaUser
+  FaHome, FaStore, FaSignOutAlt, FaShoppingCart, FaCommentDots, FaBell, FaCreditCard, FaCog, FaUser
 } from "react-icons/fa";
 import { GiScissors } from "react-icons/gi";
 
@@ -36,7 +36,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <SidebarItem to="/logistics" icon={<FaHome />} text="Dashboard" activeClass="text-[#9847FE] font-medium" />
           <SidebarItem to="/logistics/orders" icon={<FaShoppingCart />} text="Orders" />
           <SidebarItem to="/logistics/order-requests" icon={<FaStore />} text="Order Requests" />
-          {/* <SidebarItem to="/logistics/inbox" icon={<FaInbox />} text="Inbox" /> */}
+          <SidebarItem to="/logistics/inbox" icon={<FaCommentDots />} text="Inbox" />
           <SidebarItem to="/logistics/notifications" icon={<FaBell />} text="Notifications" />
           <SidebarItem to="/logistics/transactions" icon={<FaCreditCard />} text="Transactions" />
           

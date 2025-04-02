@@ -277,7 +277,7 @@ export default function AddFabricVendorPage() {
                         </div>
 
                         {/* BVN Input */}
-                        <div className="mb-4">
+                        {/* <div className="mb-4">
                             <label className="block text-gray-600 font-medium mb-4">BVN</label>
                             <input
                                 type="text"
@@ -287,7 +287,7 @@ export default function AddFabricVendorPage() {
                                 placeholder="Enter your BVN"
                                 className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                             />
-                        </div>
+                        </div> */}
 
                         {/* Navigation Buttons */}
                         <div className="flex justify-between mt-6">

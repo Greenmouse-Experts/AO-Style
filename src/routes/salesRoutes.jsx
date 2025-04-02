@@ -7,6 +7,7 @@ import AddTailorDesigners from "../modules/Pages/salesDashboard/AddTailor";
 import TransactionPages from "../modules/Pages/salesDashboard/TransactionPage";
 import NotificationPages from "../modules/Pages/salesDashboard/NotificationPage";
 import SettingPages from "../modules/Pages/salesDashboard/Settings";
+import InboxPage from "../modules/Pages/salesDashboard/Inbox";
 
 export const salesRoutes = [
   {
@@ -28,6 +29,10 @@ export const salesRoutes = [
       {
         path: '/sales/fashion-designers',
         element: <FashionDesigners />,
+      },
+      {
+        path: '/sales/inbox',
+        element: <InboxPage />,
       },
       {
         path: '/sales/add-fashion-designers',

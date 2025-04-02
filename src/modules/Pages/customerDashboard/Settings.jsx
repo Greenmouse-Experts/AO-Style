@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import SecuritySettings from "./components/SecuritySettings";
+import BankDetails from "./components/BankDetails";
+import KYCVerification from "./components/KYCVerification";
 
 const Settings = () => {
     const [activeTab, setActiveTab] = useState("personalDetails");
     const [bodyTab, setBodyTab] = useState("upperBody");
     const [activeSection, setActiveSection] = useState("Profile");
-
+   
     return (
         <>
             <div className="bg-white px-6 py-4 mb-6">
@@ -241,9 +244,23 @@ const Settings = () => {
                         </div>
                     )}
 
-                    {activeSection === "KYC" && <h2 className="text-xl font-medium">KYC Verification</h2>}
-                    {activeSection === "Bank Details" && <h2 className="text-xl font-medium">Bank Details</h2>}
-                    {activeSection === "Security" && <h2 className="text-xl font-medium">Security Settings</h2>}
+                    {activeSection === "KYC" && (
+                        <div className="">
+                            <KYCVerification />
+                        </div>
+                    )}
+
+                    {activeSection === "Bank Details" && (
+                        <div className="">
+                            <BankDetails />
+                        </div>
+                    )}
+
+                    {activeSection === "Security" && (
+                        <div className="">
+                           <SecuritySettings />
+                        </div>
+                    )}
                     {activeSection === "Settings" && <h2 className="text-xl font-medium">General Settings</h2>}
                     {activeSection === "Support" && <h2 className="text-xl font-medium">Support & Help</h2>}
                 </div>
@@ -252,5 +269,4 @@ const Settings = () => {
         </>
     );
 };
-
 export default Settings;

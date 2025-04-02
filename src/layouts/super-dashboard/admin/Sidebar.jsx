@@ -5,6 +5,7 @@ import {
   FaChartBar, FaCog, FaSignOutAlt
 } from "react-icons/fa";
 import { GiScissors } from "react-icons/gi";
+import { Link } from "react-router-dom";
 
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
@@ -58,7 +59,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             <img src="https://randomuser.me/api/portraits/men/10.jpg" alt="Admin" className="w-12 h-12 mx-auto rounded-full mb-2" />
             <p className="text-sm font-semibold">OA Styles</p>
             <p className="text-xs text-gray-500">Super Admin Dashboard</p>
-            <button className="mt-2 text-xs bg-[#172B4D] text-white px-3 py-2 cursor-pointer rounded-md">Go to Profile</button>
+            <Link to="/admin/settings"><button className="mt-2 text-xs bg-[#172B4D] text-white px-3 py-2 cursor-pointer rounded-md">Go to Profile</button></Link>
           </div>
         </nav>
       </div>

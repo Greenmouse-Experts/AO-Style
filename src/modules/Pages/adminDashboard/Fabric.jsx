@@ -89,7 +89,7 @@ const CustomersTable = () => {
                 <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
                     <input
                         type="text"
-                        placeholder="Search customers..."
+                        placeholder="Search fabrics..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"

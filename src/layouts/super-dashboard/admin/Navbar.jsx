@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Bell, Menu } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Navbar({ toggleSidebar }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -38,12 +39,12 @@ export default function Navbar({ toggleSidebar }) {
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg z-50">
               <ul className="py-2">
-                <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                {/* <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
                   Profile
-                </li>
-                <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                </li> */}
+                <Link to="/admin/settings"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
                   Settings
-                </li>
+                </li></Link>
                 <li className="px-4 py-2 text-red-500 hover:bg-gray-100 cursor-pointer">
                   Logout
                 </li>

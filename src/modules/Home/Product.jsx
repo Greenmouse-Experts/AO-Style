@@ -50,7 +50,7 @@ export default function MarketplaceSection() {
             <Breadcrumb
                 title="Products"
                 subtitle="Access fabric markets all around the country from your home"
-                backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741735303/AoStyle/image_1_yjbeyq.jpg"
+                backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1743712882/AoStyle/image_lslmok.png"
             />
             <section className="Resizer section px-4">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center text-left mb-6">

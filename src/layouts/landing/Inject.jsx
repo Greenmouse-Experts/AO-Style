@@ -49,7 +49,7 @@ export default function Navbar() {
                     </button>
                     {productOpen && (
                         <div
-                            className="absolute mt-2 w-80 bg-white rounded-lg p-4"
+                            className="absolute mt-2 w-80 bg-white rounded-lg p-4 z-20"
                             onMouseEnter={() => setProductOpen(true)}
                             onMouseLeave={() => setProductOpen(false)}
                         >
@@ -83,7 +83,7 @@ export default function Navbar() {
                     </button>
                     {careersOpen && (
                         <div
-                            className="absolute left-0 mt-2 bg-white p-4 rounded-md w-66"
+                            className="absolute left-0 mt-2 bg-white p-4 rounded-md w-66 z-10"
                             onMouseEnter={() => setCareersOpen(true)}
                             onMouseLeave={() => setCareersOpen(false)}
                         >

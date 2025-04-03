@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import ReusableTable from "./components/ReusableTable";
-import AddCustomerModal from "./components/AddCustomerModal";
+import ReusableTable from "../components/ReusableTable";
 import { FaEllipsisH } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const CustomersTable = () => {
     const [openDropdown, setOpenDropdown] = useState(null);
@@ -9,16 +9,16 @@ const CustomersTable = () => {
     const dropdownRef = useRef(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
+    const itemsPerPage = 7;
 
-    // Dummy Customer Data
-    const data = Array.from({ length: 20 }, (_, i) => ({
+      // Dummy Tailors/Designers Data
+      const data = Array.from({ length: 30 }, (_, i) => ({
         id: i + 1,
         profile: `https://randomuser.me/api/portraits/thumb/men/${i}.jpg`,
-        name: `Customer ${i + 1}`,
-        userId: `CUS-${Math.random().toString(36).substr(2, 8).toUpperCase()}`,
+        name: `Tailor ${i + 1}`,
+        business: `Business ${i + 1}`,
         phone: `+234 80${Math.floor(10000000 + Math.random() * 90000000)}`,
-        email: `customer${i + 1}@email.com`,
+        email: `tailor${i + 1}@email.com`,
         location: `Location ${i + 1}`,
         dateJoined: `22/5/${2020 + (i % 15)}`
     }));
@@ -26,7 +26,7 @@ const CustomersTable = () => {
     // Table Columns
     const columns = [
         { label: "Profile", key: "profile", render: (_, row) => <img src={row.profile} alt="profile" className="w-8 h-8 rounded-full" /> },
-        { label: "User ID", key: "userId" },
+        { label: "Business", key: "business" },
         { label: "Phone Number", key: "phone" },
         { label: "Email Address", key: "email" },
         { label: "Location", key: "location" },
@@ -43,10 +43,10 @@ const CustomersTable = () => {
                         <FaEllipsisH />
                     </button>
                     {openDropdown === row.id && (
-                        <div className="absolute right-0 mt-2 w-40 bg-white rounded-md z-10">
+                        <div className="absolute right-0 mt-2 w-40 bg-white rounded-md z-10 shadow-lg">
                             <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">View Details</button>
-                            <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">Edit User</button>
-                            <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">Remove User</button>
+                            <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">Edit Vendors</button>
+                            <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">Remove Vendors</button>
                         </div>
                     )}
                 </div>
@@ -84,12 +84,12 @@ const CustomersTable = () => {
             <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
                 <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
 
-                    <h2 className="text-lg font-semibold">Customers</h2>
+                    <h2 className="text-lg font-semibold">Vendors (Fabric Sellers)</h2>
                 </div>
                 <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
                     <input
                         type="text"
-                        placeholder="Search customers..."
+                        placeholder="Search fabrics..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
@@ -100,13 +100,14 @@ const CustomersTable = () => {
                     <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
                         Sort: Newest First ▾
                     </button>
-                    <button onClick={() => setIsModalOpen(true)} className="bg-[#9847FE] text-white px-4 py-2 text-sm rounded-md">
-                        + Add New Customer
-                    </button>
+                    <Link to="/admin/fabric/add-fabric">
+                        <button className="bg-[#9847FE] text-white px-4 py-2 text-sm rounded-md">
+                        + Add a New Vendors
+                        </button>
+                    </Link>
                 </div>
             </div>
             {/* Table */}
-            <AddCustomerModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
             <ReusableTable columns={columns} data={currentItems} />
 
             {/* Pagination */}

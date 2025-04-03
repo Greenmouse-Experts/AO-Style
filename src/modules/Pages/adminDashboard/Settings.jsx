@@ -14,7 +14,7 @@ const Settings = () => {
             <div className="bg-white px-6 py-4 mb-6">
                 <h1 className="text-2xl font-medium mb-3">Settings</h1>
                 <p className="text-gray-500">
-                    <Link to="/logistics" className="text-blue-500 hover:underline">Dashboard</Link> &gt; Settings
+                    <Link to="/admin" className="text-blue-500 hover:underline">Dashboard</Link> &gt; Settings
                 </p>
             </div>
             <div className="flex flex-col md:flex-row bg-gray-100">

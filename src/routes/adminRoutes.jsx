@@ -1,8 +1,14 @@
 import AdminLayout from "../layouts/super-dashboard/admin";
 import AdminDashboard from "../modules/Pages/adminDashboard";
-import Customers from "../modules/Pages/adminDashboard/Customer";
-import Tailors from "../modules/Pages/adminDashboard/Tailor";
-import FabricVendor from "../modules/Pages/adminDashboard/Fabric";
+// CUSTOMER COMPONENTS
+import Customers from "../modules/Pages/adminDashboard/customer/Customer";
+import ViewCustomer from "../modules/Pages/adminDashboard/customer/ViewCustomer";
+// TAILOR COMPONENTS
+import Tailors from "../modules/Pages/adminDashboard/tailor/Tailor";
+import AddTailor from "../modules/Pages/adminDashboard/tailor/AddTailor";
+// FABRIC COMPONENTS
+import FabricVendor from "../modules/Pages/adminDashboard/fabric/Fabric";
+import AddFabricVendor from "../modules/Pages/adminDashboard/fabric/AddFabricVendor";
 import SalesRep from "../modules/Pages/adminDashboard/Sales";
 import Logistics from "../modules/Pages/adminDashboard/Logistics";
 import SubAdmin from "../modules/Pages/adminDashboard/SubAdmin";
@@ -23,17 +29,32 @@ export const adminRoutes = [
         index: true,
         element: <AdminDashboard />,
       },
+      // Customer Routes
       {
         path: '/admin/customers',
         element: <Customers />,
       },
       {
+        path: '/admin/view-customers',
+        element: <ViewCustomer />,
+      },
+      // Tailor Routes
+      {
         path: '/admin/tailors',
         element: <Tailors />,
       },
       {
+        path: '/admin/tailor/add-tailor',
+        element: <AddTailor />,
+      },
+      // Fabric Routes
+      {
         path: '/admin/fabric-vendor',
         element: <FabricVendor />,
+      },
+      {
+        path: '/admin/fabric/add-fabric',
+        element: <AddFabricVendor />,
       },
       {
         path: '/admin/sales-rep',

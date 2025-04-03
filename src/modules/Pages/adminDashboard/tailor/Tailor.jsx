@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import ReusableTable from "./components/ReusableTable";
-import AddCustomerModal from "./components/AddCustomerModal";
+import ReusableTable from "../components/ReusableTable";
 import { FaEllipsisH } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const CustomersTable = () => {
     const [openDropdown, setOpenDropdown] = useState(null);
@@ -45,8 +45,8 @@ const CustomersTable = () => {
                     {openDropdown === row.id && (
                         <div className="absolute right-0 mt-2 w-40 bg-white rounded-md z-10 shadow-lg">
                             <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">View Details</button>
-                            <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">Edit Vendors</button>
-                            <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">Remove Vendors</button>
+                            <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">Edit Tailor</button>
+                            <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">Remove Tailor</button>
                         </div>
                     )}
                 </div>
@@ -83,13 +83,12 @@ const CustomersTable = () => {
         <div className="bg-white p-6 rounded-xl overflow-x-auto">
             <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
                 <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-
-                    <h2 className="text-lg font-semibold">Vendors (Fabric Sellers)</h2>
+                    <h2 className="text-lg font-semibold">Tailor/Designer</h2>
                 </div>
                 <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
                     <input
                         type="text"
-                        placeholder="Search fabrics..."
+                        placeholder="Search customers..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
@@ -100,13 +99,14 @@ const CustomersTable = () => {
                     <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
                         Sort: Newest First ▾
                     </button>
-                    <button onClick={() => setIsModalOpen(true)} className="bg-[#9847FE] text-white px-4 py-2 text-sm rounded-md">
-                        + Add a New Vendors (Fabric Sellers)
-                    </button>
+                    <Link to="/admin/tailor/add-tailor">
+                        <button className="bg-[#9847FE] text-white px-4 py-2 text-sm rounded-md">
+                            + Add a New Tailor/Designer
+                        </button>
+                    </Link>
                 </div>
             </div>
             {/* Table */}
-            <AddCustomerModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
             <ReusableTable columns={columns} data={currentItems} />
 
             {/* Pagination */}

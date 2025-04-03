@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import ReusableTable from "./components/ReusableTable";
-import AddCustomerModal from "./components/AddCustomerModal";
+import LogisticsModal from "./components/LogisticsModal";
 import { FaEllipsisH } from "react-icons/fa";
 
 const CustomersTable = () => {
@@ -106,7 +106,7 @@ const CustomersTable = () => {
                 </div>
             </div>
             {/* Table */}
-            <AddCustomerModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+            <LogisticsModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
             <ReusableTable columns={columns} data={currentItems} />
 
             {/* Pagination */}

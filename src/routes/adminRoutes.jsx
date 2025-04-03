@@ -8,6 +8,7 @@ import Tailors from "../modules/Pages/adminDashboard/tailor/Tailor";
 import AddTailor from "../modules/Pages/adminDashboard/tailor/AddTailor";
 // FABRIC COMPONENTS
 import FabricVendor from "../modules/Pages/adminDashboard/fabric/Fabric";
+import AddFabric from "../modules/Pages/adminDashboard/fabric/AddFabric";
 import AddFabricVendor from "../modules/Pages/adminDashboard/fabric/AddFabricVendor";
 import SalesRep from "../modules/Pages/adminDashboard/Sales";
 import Logistics from "../modules/Pages/adminDashboard/Logistics";
@@ -53,8 +54,12 @@ export const adminRoutes = [
         element: <FabricVendor />,
       },
       {
-        path: '/admin/fabric/add-fabric',
+        path: '/admin/fabric/add-fabric-vendor',
         element: <AddFabricVendor />,
+      },
+      {
+        path: '/admin/fabric/add-fabric',
+        element: <AddFabric />,
       },
       {
         path: '/admin/sales-rep',

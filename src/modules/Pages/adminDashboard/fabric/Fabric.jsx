@@ -100,7 +100,7 @@ const CustomersTable = () => {
                     <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
                         Sort: Newest First ▾
                     </button>
-                    <Link to="/admin/fabric/add-fabric">
+                    <Link to="/admin/fabric/add-fabric-vendor">
                         <button className="bg-[#9847FE] text-white px-4 py-2 text-sm rounded-md">
                         + Add a New Vendors
                         </button>

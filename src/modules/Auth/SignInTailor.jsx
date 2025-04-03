@@ -41,7 +41,7 @@ export default function SignInAsCustomer() {
                             <img
                                 src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742964300/AoStyle/CARYBIN_TRANSPARENT_1_ujbdei.png"
                                 alt="OA Styles"
-                                className="h-20 w-auto"
+                                className="h-20 w-auto mx-auto"
                             />
                         </Link>
                     </div>

@@ -207,7 +207,7 @@ const AboutUs = () => {
                 </div>
 
                 {/* Blue Background */}
-                <div className="absolute bottom-0 left-0 w-full h-1/3 bg-[#280C70] z-0"></div>
+                <div className="absolute bottom-0 left-0 w-full h-1/3 bg-gradient z-0"></div>
             </section>
             <section className="relative w-full">
                 <div className="relative w-full">

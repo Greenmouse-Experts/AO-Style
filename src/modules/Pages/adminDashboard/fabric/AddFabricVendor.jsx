@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from "react-router-dom";
 
 const AddFabricForm = () => {
     const [activeTab, setActiveTab] = useState('personal');
@@ -255,7 +256,13 @@ const AddFabricForm = () => {
                     onClick={handleProceed}
                     className="bg-gradient text-white py-3 px-6 rounded-md hover:opacity-90"
                 >
-                    {activeTab === 'kyc' ? 'Submit & Proceed' : activeTab === 'business' ? 'Proceed to KYC' : 'Proceed to Business Info'}
+                    {activeTab === 'kyc' ? (
+                        <Link to="/admin/fabric/add-fabric">Submit & Proceed</Link>
+                    ) : activeTab === 'business' ? (
+                        'Proceed to KYC'
+                    ) : (
+                        'Proceed to Business Info'
+                    )}
                 </button>
             </div>
 

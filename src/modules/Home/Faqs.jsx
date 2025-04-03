@@ -28,7 +28,7 @@ export default function FAQsSectionPage() {
             <Breadcrumb
                 title="FAQs"
                 subtitle="Frequently Asked Questions"
-                backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741899692/AoStyle/image_3_eenvtc.jpg"
+                backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1743712882/AoStyle/image_lslmok.png"
             />
             <div className="Resizer section px-4">
                 <div className="space-y-4 mx-auto">

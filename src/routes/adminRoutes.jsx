@@ -13,7 +13,7 @@ import AddFabricVendor from "../modules/Pages/adminDashboard/fabric/AddFabricVen
 import SalesRep from "../modules/Pages/adminDashboard/Sales";
 import Logistics from "../modules/Pages/adminDashboard/Logistics";
 import SubAdmin from "../modules/Pages/adminDashboard/SubAdmin";
-import Market from "../modules/Pages/adminDashboard/Market";
+import Market from "../modules/Pages/adminDashboard/market/Market";
 import FabricCategory from "../modules/Pages/adminDashboard/FabricCategory";
 import StyleCategories from "../modules/Pages/adminDashboard/StyleCategories";
 import Orders from "../modules/Pages/adminDashboard/Orders";

@@ -50,8 +50,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             <SidebarItem to="/admin/orders" icon={<FaShoppingCart />} text="Orders" />
             <SidebarItem to="/admin/transactions" icon={<FaCreditCard />} text="Payments & Transactions" />
             <SidebarItem to="/admin/notifications" icon={<FaBell />} text="Notifications" />
-            <SidebarItem to="/admin/messages" icon={<FaEnvelope />} text="Messages" />
-            <SidebarItem to="/admin/analytics" icon={<FaChartBar />} text="Reports & Analytics" />
+            {/* <SidebarItem to="/admin/messages" icon={<FaEnvelope />} text="Messages" />
+            <SidebarItem to="/admin/analytics" icon={<FaChartBar />} text="Reports & Analytics" /> */}
             <SidebarItem to="/admin/settings" icon={<FaCog />} text="Settings & Configuration" />
           </div>
           {/* Profile Section */}

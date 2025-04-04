@@ -1,9 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import ReusableTable from "./components/ReusableTable";
+import ReusableTable from "../components/ReusableTable";
 import { FaEllipsisH } from "react-icons/fa";
-import { AiOutlineSearch } from "react-icons/ai";
-import { BsFilter } from "react-icons/bs";
-
 const MarketsTable = () => {
     const [openDropdown, setOpenDropdown] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
@@ -104,9 +101,9 @@ const MarketsTable = () => {
                     <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
                         Sort: Newest First ▾
                     </button>
-                    <button className="bg-[#9847FE] text-white px-4 py-2 text-sm rounded-md">
+                    {/* <button className="bg-[#9847FE] text-white px-4 py-2 text-sm rounded-md">
                     + Add a New Market
-                    </button>
+                    </button> */}
                 </div>
             </div>
             <ReusableTable columns={columns} data={currentItems} />

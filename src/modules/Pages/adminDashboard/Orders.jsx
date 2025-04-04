@@ -122,9 +122,9 @@ const OrdersTable = () => {
                     <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
                         Sort: Newest First ▾
                     </button>
-                    <button className="bg-[#9847FE] text-white px-4 py-2 text-sm rounded-md">
+                    {/* <button className="bg-[#9847FE] text-white px-4 py-2 text-sm rounded-md">
                         + Add New Order
-                    </button>
+                    </button> */}
                 </div>
             </div>
             <ReusableTable columns={columns} data={currentItems} />

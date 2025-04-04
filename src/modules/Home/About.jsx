@@ -1,52 +1,39 @@
 import React from "react";
 import Breadcrumb from "./components/Breadcrumb";
 import {
-    Package,
-    Shirt,
-    Smile,
-    Gem,
-    DollarSign,
-    Eye, PenTool
+    HeartHandshake,
+    Scissors,
+    Star,
+    TrendingUp,
+    Eye,
+    PenTool,
+    Users,
+    CalendarCheck,
+    ArrowRight,
 } from "lucide-react";
 import ShippingInfo from "./components/ShippingInfo";
 import { Link } from "react-router-dom";
 
-// Feature List
-const features = [
+const highlights = [
     {
-        title: "Convenience",
-        description:
-            "Offering an easy-to-use online platform for selecting fabrics, designing garments, and accessing tailoring services.",
-        icon: Package,
+        title: "Tailoring Reimagined",
+        description: "Gone are the days of market runs and long queues. OAStyles brings the market to your fingertips — with expert tailors just a click away.",
+        icon: Scissors,
     },
     {
-        title: "Personalization",
-        description:
-            "Highlighting the ability to customize garments to individual tastes and measurements.",
-        icon: Shirt,
+        title: "Effortless Elegance",
+        description: "From selecting fabrics to final fittings, our platform lets you design your dream look from the comfort of your home.",
+        icon: Star,
     },
     {
-        title: "Quality",
-        description:
-            "Emphasis on the high quality of fabrics and craftsmanship in tailoring.",
-        icon: Gem,
+        title: "Fashion That Fits You",
+        description: "No two people are the same — and your clothes shouldn’t be either. We tailor every piece to your unique measurements and style.",
+        icon: HeartHandshake,
     },
     {
-        title: "Affordability",
-        description:
-            "We offer the best price on the fabrics and tailoring services we offer.",
-        icon: DollarSign,
-    },
-];
-
-// Alone
-const alones = [
-
-    {
-        title: "Customer Satisfaction",
-        description:
-            "Commitment to ensuring a high level of customer satisfaction through quality products and excellent customer support.",
-        icon: Smile,
+        title: "Driven by Impact",
+        description: "We’re empowering fashion lovers, busy professionals, and creatives with tools to express themselves — stylishly and stress-free.",
+        icon: TrendingUp,
     },
 ];
 
@@ -65,6 +52,44 @@ const sections = [
         icon: PenTool,
     },
 ];
+
+const teamMembers = [
+    {
+        name: "Jane Doe",
+        role: "Creative Director",
+        image: "https://randomuser.me/api/portraits/men/10.jpg",
+    },
+    {
+        name: "John Smith",
+        role: "Lead Tailor",
+        image: "https://randomuser.me/api/portraits/men/11.jpg",
+    },
+    {
+        name: "Grace Ayo",
+        role: "Product Manager",
+        image: "https://randomuser.me/api/portraits/men/12.jpg",
+    },
+];
+
+const timeline = [
+    {
+        year: "2022",
+        event: "OAStyles was born — built to solve fashion access and delivery challenges.",
+    },
+    {
+        year: "2023",
+        event: "Launched our digital fabric selection and tailoring platform.",
+    },
+    {
+        year: "2024",
+        event: "Expanded delivery coverage across all major Nigerian cities.",
+    },
+    {
+        year: "2025",
+        event: "Rolling out international access and fashion partner collaborations.",
+    },
+];
+
 
 
 const AboutUs = () => {
@@ -103,50 +128,47 @@ const AboutUs = () => {
 
                 {/* Section 2 */}
                 <div className="mt-16">
-                    <h2 className="text-2xl md:text-3xl font-medium">
+                    <h2 className="text-2xl md:text-3xl font-medium text-center">
                         With OAStyles, you don’t just buy fabric; you create your own fashion
                         story.
                     </h2>
-                    <p className="text-dark text-base leading-loose mt-2 mb-10">
+                    <p className="text-dark text-base leading-loose text-center mt-2 mb-10">
                         We pride ourselves on our commitment to quality, customization, and
                         customer satisfaction.
                     </p>
 
                     {/* Image & Features */}
-                    <div className="flex flex-col md:flex-row items-center gap-10">
-                        {/* Image */}
-                        <div className="md:w-1/2">
-                            <img
-                                src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741885799/AoStyle/image1_etirxc.jpg"
-                                alt="Happy Customers"
-                                className="rounded-lg w-full"
-                            />
-
-                        </div>
-                        {/* Features */}
-                        <div className="md:w-1/2 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            {features.map((feature, index) => (
-                                <div key={index} className="flex flex-col md:items-start items-center">
-                                    {/* Icon */}
-                                    <feature.icon className="text-[#AB52EE]" size={35} />
-                                    {/* Title & Description */}
-                                    <h3 className="text-lg font-medium leading-relaxed mt-3 mb-2">{feature.title}</h3>
-                                    <p className="text-dark leading-loose md:text-left text-center">{feature.description}</p>
+                    <section className="px-4 pb-16 ">
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+                            {highlights.map((item, index) => (
+                                <div key={index} className="flex flex-col items-center p-4 bg-gray-100 rounded-lg hover:shadow-md transition">
+                                    <item.icon className="text-[#AB52EE]" size={36} />
+                                    <h3 className="mt-4 text-lg font-medium leading-loose">{item.title}</h3>
+                                    <p className="text-sm text-gray-600 mt-2 leading-loose">{item.description}</p>
                                 </div>
                             ))}
                         </div>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:mt-10 mt-8">
-                        {alones.map((alone, index) => (
-                            <div key={index} className="flex flex-col md:items-start items-center">
-                                {/* Icon */}
-                                <alone.icon className="text-[#AB52EE]" size={35} />
-                                {/* Title & Description */}
-                                <h3 className="text-lg font-medium leading-relaxed mt-3 mb-2">{alone.title}</h3>
-                                <p className="text-dark leading-loose md:text-left text-center">{alone.description}</p>
-                            </div>
-                        ))}
-                    </div>
+                    </section>
+                    {/* Meet the Team */}
+                    <section className="px-4">
+                        <h2 className="text-2xl md:text-3xl font-medium text-center mb-10">
+                            Meet the Team Behind OAStyles
+                        </h2>
+                        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-10 text-center">
+                            {teamMembers.map((member, index) => (
+                                <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-50 p-4">
+                                    <img
+                                        src={member.image}
+                                        alt={member.name}
+                                        className="w-24 h-24 rounded-full mx-auto mb-4"
+                                    />
+                                    <h4 className="text-lg font-semibold">{member.name}</h4>
+                                    <p className="text-sm text-gray-600">{member.role}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                    
                 </div>
             </div>
             <section className="px-6 md:px-16 lg:px-28 just bg-[#fafafa] relative">

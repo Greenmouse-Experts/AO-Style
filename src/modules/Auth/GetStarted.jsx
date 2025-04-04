@@ -44,7 +44,7 @@ export default function GetStarted() {
                         title: "Logistics Agent",
                         description: "For logistics agents looking to deliver goods on the platform",
                         image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741609876/AoStyle/image3_jvbthg.png",
-                        link: "/register/logistics",
+                        link: "/sign-in-as-logistics",
                         btnText: "Join As Logistic Agent",
                     },
                 ].map((user, index) => (

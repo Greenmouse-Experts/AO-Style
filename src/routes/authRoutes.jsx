@@ -3,6 +3,7 @@ import SignUp from "../modules/Auth/GetStarted";
 import SignInCustomer from "../modules/Auth/SignInCustomer";
 import SignInTailorDesigner from "../modules/Auth/SignInTailor";
 import SignInAsFabricVendor from "../modules/Auth/SigInFabric";
+import SignInLogistics from "../modules/Auth/SignInLogistics";
 // import VerifyEmail from "../modules/Auth/verifyEmail";
 import AdminLogin from "../modules/Auth/AdminLogin";
 export const authRoutes = [
@@ -26,6 +27,11 @@ export const authRoutes = [
         path: '/sign-in-as-fabric-vendor',
         element: <SignInAsFabricVendor />,
     },
+    {
+        path: '/sign-in-as-logistics',
+        element: <SignInLogistics />,
+    },
+    
     // {
     //     path: '/verify-account',
     //     element: <VerifyEmail />

@@ -42,7 +42,11 @@ export default function Navbar() {
                 <div
                     className="relative"
                     ref={productRef}
-                    onMouseEnter={() => setProductOpen(true)}
+                    onMouseEnter={() => {
+                        setProductOpen(true);
+                        setCareersOpen(false); // Auto-close Careers
+                    }}
+                    onMouseLeave={() => setProductOpen(false)}
                 >
                     <button className="flex items-center text-[#545252] text-base font-light hover:text-purple-500 transition">
                         Product <ChevronDownIcon className="h-4 w-4 ml-1" />
@@ -57,13 +61,29 @@ export default function Navbar() {
                                 Products
                             </h4>
                             <div className="space-y-2">
-                                <Link to="/products" className="flex items-center p-3 rounded-lg hover:bg-gray-100">
-                                    <img src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741727773/AoStyle/image_jmwiuo.jpg" alt="OA Styles" className="h-12 w-12 rounded-md" />
-                                    <p className="ml-4">OA Styles - Tailoring Services</p>
+                                <Link
+                                    to="/products"
+                                    className="flex items-center p-3 rounded-lg hover:bg-gray-100"
+                                >
+                                    <img
+                                        src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741727773/AoStyle/image_jmwiuo.jpg"
+                                        alt="OA Styles"
+                                        className="h-12 w-12 rounded-md"
+                                    />
+                                    <p className="ml-4">
+                                        OA Styles - Tailoring Services
+                                    </p>
                                     <ArrowRightIcon className="h-6 w-6 text-purple-500 ml-auto" />
                                 </Link>
-                                <Link to="/marketplace" className="flex items-center p-3 rounded-lg hover:bg-gray-100">
-                                    <img src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741727765/AoStyle/Group_1321315093_la6kma.jpg" alt="Marketplace" className="h-12 w-12 rounded-md" />
+                                <Link
+                                    to="/marketplace"
+                                    className="flex items-center p-3 rounded-lg hover:bg-gray-100"
+                                >
+                                    <img
+                                        src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741727765/AoStyle/Group_1321315093_la6kma.jpg"
+                                        alt="Marketplace"
+                                        className="h-12 w-12 rounded-md"
+                                    />
                                     <p className="ml-4">Marketplace - Buy Fabrics</p>
                                     <ArrowRightIcon className="h-6 w-6 text-purple-500 ml-auto" />
                                 </Link>
@@ -76,7 +96,11 @@ export default function Navbar() {
                 <div
                     className="relative"
                     ref={careersRef}
-                    onMouseEnter={() => setCareersOpen(true)}
+                    onMouseEnter={() => {
+                        setCareersOpen(true);
+                        setProductOpen(false); // Auto-close Product
+                    }}
+                    onMouseLeave={() => setCareersOpen(false)}
                 >
                     <button className="flex items-center text-[#545252] text-base font-light hover:text-purple-500 transition">
                         Careers <ChevronDownIcon className="h-4 w-4 ml-1" />

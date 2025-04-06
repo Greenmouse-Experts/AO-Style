@@ -20,7 +20,7 @@ export default function FAQSection() {
 
   return (
     <div className="just Resizer">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center text-left mb-6 px-4">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center text-left mb-6 px-4">
         <button className="border border-[#EE79AC] text-[#484545] px-4 py-2 rounded-full text-sm w-full md:w-auto mb-2 md:mb-0">
           FAQs
         </button>

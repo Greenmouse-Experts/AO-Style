@@ -7,9 +7,6 @@ import {
     TrendingUp,
     Eye,
     PenTool,
-    Users,
-    CalendarCheck,
-    ArrowRight,
 } from "lucide-react";
 import ShippingInfo from "./components/ShippingInfo";
 import { Link } from "react-router-dom";
@@ -62,12 +59,19 @@ const teamMembers = [
     {
         name: "John Smith",
         role: "Lead Tailor",
-        image: "https://randomuser.me/api/portraits/men/11.jpg",
+        image: "https://randomuser.me/api/portraits/men/13.jpg",
     },
+
+    {
+        name: "Hamzat Adeleke",
+        role: "Lead Developer",
+        image: "https://randomuser.me/api/portraits/men/14.jpg",
+    },
+
     {
         name: "Grace Ayo",
         role: "Product Manager",
-        image: "https://randomuser.me/api/portraits/men/12.jpg",
+        image: "https://randomuser.me/api/portraits/women/11.jpg",
     },
 ];
 
@@ -98,23 +102,17 @@ const AboutUs = () => {
             <Breadcrumb
                 title="About Us"
                 subtitle="About us"
-                backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741885654/AoStyle/image_kag9em.jpg"
+                backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1743712882/AoStyle/image_lslmok.png"
             />
-            <div className="Resizer section px-4">
-                {/* Section 1 */}
+            <section className="px-6 md:px-16 section lg:px-28 bg-grey-50 relative">
                 <div className="flex flex-col-reverse md:flex-row items-center gap-10">
                     <div className="md:w-1/1 md:text-left">
                         <h1 className="text-2xl md:text-3xl font-medium leading-snug">
-                            We are focused on bridging the gap that exists between customers who
-                            are too busy to shop physically at their preferred marketplaces in
-                            Nigeria.
+                            Who We Are
                         </h1>
                         <p className="mt-4 text-dark text-base leading-loose">
-                            We offer a seamless and personalized shopping experience for
-                            high-quality fabrics and bespoke tailoring services. Our diverse
-                            range of premium fabrics, combined with expert tailoring and design
-                            consultation, ensures that every customer can create unique and
-                            perfectly fitted garments.
+                            Carybin Limited is the first pan-African e-commerce platform. Our global platform empowers users to choose fabrics from the major fabric markets in Nigeria, personalize their clothing, and seamlessly order both materials and custom-tailored garments. We are dedicated to serving fashion enthusiasts, designers, and anyone seeking bespoke clothing. Our business combines a user-friendly website(OAstyles.com) with a strong supply chain to provide outstanding products and services.
+                            Any personal data provided or collected by Oastyles is controlled by Carybin Limited.
                         </p>
                     </div>
                     <div className="md:w-1/2">
@@ -125,52 +123,7 @@ const AboutUs = () => {
                         />
                     </div>
                 </div>
-
-                {/* Section 2 */}
-                <div className="mt-16">
-                    <h2 className="text-2xl md:text-3xl font-medium text-center">
-                        With OAStyles, you don’t just buy fabric; you create your own fashion
-                        story.
-                    </h2>
-                    <p className="text-dark text-base leading-loose text-center mt-2 mb-10">
-                        We pride ourselves on our commitment to quality, customization, and
-                        customer satisfaction.
-                    </p>
-
-                    {/* Image & Features */}
-                    <section className="px-4 pb-16 ">
-                        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
-                            {highlights.map((item, index) => (
-                                <div key={index} className="flex flex-col items-center p-4 bg-gray-100 rounded-lg hover:shadow-md transition">
-                                    <item.icon className="text-[#AB52EE]" size={36} />
-                                    <h3 className="mt-4 text-lg font-medium leading-loose">{item.title}</h3>
-                                    <p className="text-sm text-gray-600 mt-2 leading-loose">{item.description}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                    {/* Meet the Team */}
-                    <section className="px-4">
-                        <h2 className="text-2xl md:text-3xl font-medium text-center mb-10">
-                            Meet the Team Behind OAStyles
-                        </h2>
-                        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-10 text-center">
-                            {teamMembers.map((member, index) => (
-                                <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-50 p-4">
-                                    <img
-                                        src={member.image}
-                                        alt={member.name}
-                                        className="w-24 h-24 rounded-full mx-auto mb-4"
-                                    />
-                                    <h4 className="text-lg font-semibold">{member.name}</h4>
-                                    <p className="text-sm text-gray-600">{member.role}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                    
-                </div>
-            </div>
+            </section>
             <section className="px-6 md:px-16 lg:px-28 just bg-[#fafafa] relative">
                 {/* Reviews Badge */}
                 <div className="flex justify-center">
@@ -231,6 +184,77 @@ const AboutUs = () => {
                 {/* Blue Background */}
                 <div className="absolute bottom-0 left-0 w-full h-1/3 bg-gradient z-0"></div>
             </section>
+            <div className="Resizer section px-4">
+                {/* Section 1 */}
+                <div className="flex flex-col-reverse md:flex-row items-center gap-10">
+                    <div className="md:w-1/1 md:text-left">
+                        <h1 className="text-2xl md:text-3xl font-medium leading-snug">
+                            We are focused on bridging the gap that exists between customers who
+                            are too busy to shop physically at their preferred marketplaces in
+                            Nigeria.
+                        </h1>
+                        <p className="mt-4 text-dark text-base leading-loose">
+                            We offer a seamless and personalized shopping experience for
+                            high-quality fabrics and bespoke tailoring services. Our diverse
+                            range of premium fabrics, combined with expert tailoring and design
+                            consultation, ensures that every customer can create unique and
+                            perfectly fitted garments.
+                        </p>
+                    </div>
+                    <div className="md:w-1/2">
+                        <img
+                            src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741885799/AoStyle/image1_etirxc.jpg"
+                            alt="Happy Customers"
+                            className="rounded-lg w-full"
+                        />
+                    </div>
+                </div>
+                {/* Section 2 */}
+                <div className="mt-16">
+                    <h2 className="text-2xl md:text-3xl font-medium text-center">
+                        With OAStyles, you don’t just buy fabric; you create your own fashion
+                        story.
+                    </h2>
+                    <p className="text-dark text-base leading-loose text-center mt-2 mb-10">
+                        We pride ourselves on our commitment to quality, customization, and
+                        customer satisfaction.
+                    </p>
+
+                    {/* Image & Features */}
+                    <section className="px-4 pb-16 ">
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+                            {highlights.map((item, index) => (
+                                <div key={index} className="flex flex-col items-center p-4 bg-gray-100 rounded-lg hover:shadow-md transition">
+                                    <item.icon className="text-[#AB52EE]" size={36} />
+                                    <h3 className="mt-4 text-lg font-medium leading-loose">{item.title}</h3>
+                                    <p className="text-sm text-gray-600 mt-2 leading-loose">{item.description}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                    {/* Meet the Team */}
+                    <section className="px-4">
+                        <h2 className="text-2xl md:text-3xl font-medium text-center mb-10">
+                            Meet the Team Behind Carybin Limited
+                        </h2>
+                        <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-10 text-center">
+                            {teamMembers.map((member, index) => (
+                                <div key={index} className="bg-white rounded-lg shadow-sm border-2 border-gray-50 p-6">
+                                    <img
+                                        src={member.image}
+                                        alt={member.name}
+                                        className="w-24 h-24 rounded-full mx-auto mb-4"
+                                    />
+                                    <h4 className="text-lg font-semibold">{member.name}</h4>
+                                    <p className="text-sm text-gray-600">{member.role}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+            
             <section className="relative w-full">
                 <div className="relative w-full">
                     <img

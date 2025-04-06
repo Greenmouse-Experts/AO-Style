@@ -42,17 +42,17 @@ export default function Navbar() {
                 <div
                     className="relative"
                     ref={productRef}
-                    onMouseEnter={() => setProductOpen(true)}
+                    onMouseEnter={() => {
+                        setProductOpen(true);
+                        setCareersOpen(false);
+                    }}
+                    onMouseLeave={() => setProductOpen(false)}
                 >
                     <button className="flex items-center text-[#545252] text-base font-light hover:text-purple-500 transition">
                         Product <ChevronDownIcon className="h-4 w-4 ml-1" />
                     </button>
                     {productOpen && (
-                        <div
-                            className="absolute mt-2 w-80 bg-white rounded-lg p-4 z-20"
-                            onMouseEnter={() => setProductOpen(true)}
-                            onMouseLeave={() => setProductOpen(false)}
-                        >
+                        <div className="absolute top-full w-80 bg-white rounded-lg p-4 z-20">
                             <h4 className="text-gray-500 text-xs uppercase mb-2">
                                 Products
                             </h4>
@@ -76,17 +76,17 @@ export default function Navbar() {
                 <div
                     className="relative"
                     ref={careersRef}
-                    onMouseEnter={() => setCareersOpen(true)}
+                    onMouseEnter={() => {
+                        setCareersOpen(true);
+                        setProductOpen(false);
+                    }}
+                    onMouseLeave={() => setCareersOpen(false)}
                 >
                     <button className="flex items-center text-[#545252] text-base font-light hover:text-purple-500 transition">
                         Careers <ChevronDownIcon className="h-4 w-4 ml-1" />
                     </button>
                     {careersOpen && (
-                        <div
-                            className="absolute left-0 mt-2 bg-white p-4 rounded-md w-66 z-10"
-                            onMouseEnter={() => setCareersOpen(true)}
-                            onMouseLeave={() => setCareersOpen(false)}
-                        >
+                        <div className="absolute top-full left-0 bg-white p-4 rounded-md w-66 z-20">
                             <a
                                 href="#"
                                 className="flex items-center px-4 py-4 text-gray-800 hover:bg-gray-100 rounded-lg"

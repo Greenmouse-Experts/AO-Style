@@ -7,6 +7,12 @@ import ShopDetails from "../modules/Home/ShopDetails";
 import AboutUs from "../modules/Home/About";
 import ContactUs from "../modules/Home/Contact";
 import FAQs from "../modules/Home/Faqs";
+import PolicyStatement from "../modules/Home/PolicyStatement";
+import PrivacyPolicy from "../modules/Home/PrivacyPolicy";
+import TermsandConditions from "../modules/Home/TermsandConditions";
+import CookiePolicy from "../modules/Home/CookiePolicy";
+import RefundPolicy from "../modules/Home/RefundPolicy";
+
 
 export const landingRooutes = [
   {
@@ -44,6 +50,26 @@ export const landingRooutes = [
       {
         path: 'shop-details',
         element: <ShopDetails />,
+      },
+      {
+        path: 'policy-statement',
+        element: <PolicyStatement />
+      },
+      {
+        path: 'privacy-policy',
+        element: <PrivacyPolicy />
+      },
+      {
+        path: 'terms',
+        element: <TermsandConditions />
+      },
+      {
+        path: 'cookie-policy',
+        element: <CookiePolicy />
+      },
+      {
+        path: 'refund-policy',
+        element: <RefundPolicy />
       },
     ],
   }

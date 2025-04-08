@@ -26,12 +26,14 @@ export default function FAQsSectionPage() {
 
   return (
     <>
+      {/* Breadcrumb */}
       <Breadcrumb
         title="FAQs"
         subtitle="Frequently Asked Questions"
         backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1743712882/AoStyle/image_lslmok.png"
       />
 
+      {/* FAQ Section */}
       <div className="Resizer section px-4">
         <h2 className="text-2xl font-bold mb-10 text-center">Frequently Asked Questions</h2>
 

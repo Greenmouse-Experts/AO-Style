@@ -1,6 +1,7 @@
 import Login from "../modules/Auth/Login";
 import SignUp from "../modules/Auth/GetStarted";
 import SignInCustomer from "../modules/Auth/SignInCustomer";
+import SigInMarketRep from "../modules/Auth/SigInMarketRep";
 import SignInTailorDesigner from "../modules/Auth/SignInTailor";
 import SignInAsFabricVendor from "../modules/Auth/SigInFabric";
 import SignInLogistics from "../modules/Auth/SignInLogistics";
@@ -18,6 +19,10 @@ export const authRoutes = [
     {
         path: '/sign-in-as-customer',
         element: <SignInCustomer />,
+    },
+    {
+        path: '/sign-in-as-market-rep',
+        element: <SigInMarketRep />,
     },
     {
         path: '/sign-in-as-tailor-designer',

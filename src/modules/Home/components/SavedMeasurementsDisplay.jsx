@@ -109,7 +109,7 @@ export default function SavedMeasurementsDisplay() {
             <input 
               type="text" 
               placeholder="Enter measurement name" 
-              className="flex-1 p-2 border border-gray-300 rounded-md"
+              className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
               value={newMeasurementName}
               onChange={(e) => setNewMeasurementName(e.target.value)}
             />

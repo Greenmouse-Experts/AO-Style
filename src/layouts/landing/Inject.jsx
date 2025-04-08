@@ -87,13 +87,11 @@ export default function Navbar() {
                     </button>
                     {careersOpen && (
                         <div className="absolute top-full left-0 bg-white p-4 rounded-md w-66 z-20">
-                            <a
-                                href="#"
-                                className="flex items-center px-4 py-4 text-gray-800 hover:bg-gray-100 rounded-lg"
-                            >
-                                <UsersIcon className="h-6 w-6 text-purple-600 mr-4" />
+                            <Link to="/sign-in-as-market-rep" className="flex items-center px-4 py-4 text-gray-800 hover:bg-gray-100 rounded-lg">
+                                <BriefcaseIcon className="h-6 w-6 text-purple-600 mr-4" />
                                 Become A Market Rep
-                            </a>
+                            </Link>
+                            
                             <a
                                 href="#"
                                 className="flex items-center px-4 py-4 text-gray-800 hover:bg-gray-100 rounded-lg"

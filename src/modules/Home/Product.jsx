@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Search, Filter, SortDesc, X } from "lucide-react";
 import Breadcrumb from "./components/Breadcrumb";
-import { Link } from "react-router-dom";  // Import Link for routing
+import { Link } from "react-router-dom";
 
 const categories = [
     "All Styles", "Male Styles", "Female Styles", "Bubu"
@@ -177,7 +177,7 @@ export default function MarketplaceSection() {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {sortedProducts.map((product) => (
                         <Link
-                            to={`/aostyle-details`}  // Add the router link for each product
+                            to={`/aostyle-details`} 
                             key={product.id}
                             className="text-center"
                         >

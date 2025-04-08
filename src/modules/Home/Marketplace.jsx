@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Search, MapPin } from "lucide-react";
 import Breadcrumb from "./components/Breadcrumb";
+import { Link } from "react-router-dom";
 
 
 const initialMarkets = [
@@ -58,19 +59,30 @@ export default function MarketplaceSection() {
                 {/* Marketplace Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 mt-8">
                     {filteredMarkets.map((market) => (
-                        <div key={market.id} className="text-center">
-                            <img src={market.image} alt={market.name} className="w-20 h-20 sm:w-24 sm:h-24 md:w-48 md:h-48 rounded-full object-cover mx-auto" />
-                            <h3 className="font-medium mt-6 mb-2">{market.name}</h3>
-                            <p className="text-[#2B21E5] text-sm flex items-center justify-center font-light">
-                                <MapPin size={14} className="mr-1" /> {market.location}
-                            </p>
-                        </div>
+                        <Link
+                            to={`/inner-marketplace`}
+                            key={market.id}
+                            className="transition-transform transform hover:scale-105 duration-300"
+                        >
+                            <div className="text-center">
+                                <img
+                                    src={market.image}
+                                    alt={market.name}
+                                    className="w-20 h-20 sm:w-24 sm:h-24 md:w-48 md:h-48 rounded-full object-cover mx-auto"
+                                />
+                                <h3 className="font-medium mt-6 mb-2">{market.name}</h3>
+                                <p className="text-[#2B21E5] text-sm flex items-center justify-center font-light">
+                                    <MapPin size={14} className="mr-1" /> {market.location}
+                                </p>
+                            </div>
+                        </Link>
                     ))}
                 </div>
 
+
                 {/* Load More Button */}
                 <div className="flex justify-center mt-16">
-                    <button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 cursor-pointer" onClick={handleLoadMore}>
+                    <button className="bg-gradient text-white px-6 py-3 cursor-pointer" onClick={handleLoadMore}>
                         Load More Markets
                     </button>
                 </div>

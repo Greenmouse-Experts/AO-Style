@@ -1,6 +1,7 @@
 import LandingLayout from "../layouts/landing";
 import LandingHomepage from "../modules/Home";
 import MarketPlace from "../modules/Home/Marketplace";
+import InnerMarket from "../modules/Home/InnerMarket";
 import Product from "../modules/Home/Product";
 import AoStyleDetails from "../modules/Home/AoStyleDetails";
 import Shops from "../modules/Home/Shop";
@@ -39,6 +40,10 @@ export const landingRooutes = [
       {
         path: 'marketplace',
         element: <MarketPlace />,
+      },
+      {
+        path: 'inner-marketplace',
+        element: <InnerMarket />,
       },
       {
         path: 'products',

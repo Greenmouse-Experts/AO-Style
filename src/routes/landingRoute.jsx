@@ -2,6 +2,7 @@ import LandingLayout from "../layouts/landing";
 import LandingHomepage from "../modules/Home";
 import MarketPlace from "../modules/Home/Marketplace";
 import Product from "../modules/Home/Product";
+import AoStyleDetails from "../modules/Home/AoStyleDetails";
 import Shops from "../modules/Home/Shop";
 import ShopDetails from "../modules/Home/ShopDetails";
 import AboutUs from "../modules/Home/About";
@@ -42,6 +43,10 @@ export const landingRooutes = [
       {
         path: 'products',
         element: <Product />,
+      },
+      {
+        path: 'aostyle-details',
+        element: <AoStyleDetails />,
       },
       {
         path: 'shop',

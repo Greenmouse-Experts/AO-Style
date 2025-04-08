@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 
-const Breadcrumb = ({ title, subtitle, backgroundImage }) => {
+const Breadcrumb = ({ title, subtitle, just,  backgroundImage }) => {
     return (
         <div
             className=" bg-cover bg-center h-92 flex items-center justify-center text-white"
@@ -17,6 +17,7 @@ const Breadcrumb = ({ title, subtitle, backgroundImage }) => {
                         <Link to="/" className="hover:text-white">Home</Link>
                         <span>{">"}</span>
                         <span className="text-white">{subtitle}</span>
+                        <span className="text-white">{just}</span>
                     </nav>
                 </div>
             </div>

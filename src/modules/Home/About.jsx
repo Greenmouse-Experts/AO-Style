@@ -102,7 +102,7 @@ const AboutUs = () => {
             <Breadcrumb
                 title="About Us"
                 subtitle="About us"
-                backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1743712882/AoStyle/image_lslmok.png"
+                backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1744104104/AoStyle/image_1_xxie9w.jpg"
             />
             <section className="px-6 md:px-16 section lg:px-28 bg-grey-50 relative">
                 <div className="flex flex-col-reverse md:flex-row items-center gap-10">

@@ -91,14 +91,11 @@ export default function Navbar() {
                                 <BriefcaseIcon className="h-6 w-6 text-purple-600 mr-4" />
                                 Become A Market Rep
                             </Link>
-                            
-                            <a
-                                href="#"
-                                className="flex items-center px-4 py-4 text-gray-800 hover:bg-gray-100 rounded-lg"
-                            >
-                                <BriefcaseIcon className="h-6 w-6 text-purple-600 mr-4" />
+
+                            <Link to="/jobs" className="flex items-center px-4 py-4 text-gray-800 hover:bg-gray-100 rounded-lg">
+                                <UsersIcon className="h-6 w-6 text-purple-600 mr-4" />
                                 See All Jobs
-                            </a>
+                            </Link>
                         </div>
                     )}
                 </div>

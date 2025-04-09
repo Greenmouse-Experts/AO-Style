@@ -15,6 +15,7 @@ import PrivacyPolicy from "../modules/Home/PrivacyPolicy";
 import TermsandConditions from "../modules/Home/TermsandConditions";
 import CookiePolicy from "../modules/Home/CookiePolicy";
 import RefundPolicy from "../modules/Home/RefundPolicy";
+import Jobs from "../modules/Home/Jobs";
 
 
 export const landingRooutes = [
@@ -85,6 +86,10 @@ export const landingRooutes = [
       {
         path: 'refund-policy',
         element: <RefundPolicy />
+      },
+      {
+        path: 'jobs',
+        element: <Jobs />
       },
     ],
   }

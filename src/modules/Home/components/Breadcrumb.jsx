@@ -10,7 +10,6 @@ const Breadcrumb = ({ title, subtitle, just,  backgroundImage }) => {
         >
 
             <div className="Resizer Push">
-                <div className="absolute inset-0"></div>
                 <div className="relative z-10">
                     <h1 className="text-4xl font-semibold">{title}</h1>
                     <nav className="text-sm text-gray-300 mt-2 flex items-center space-x-2">

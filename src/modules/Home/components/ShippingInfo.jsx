@@ -29,7 +29,7 @@ const Features = () => {
         >
           <div className="mb-3 md:mb-0 md:mr-4">{feature.icon}</div>
           <div>
-          <h3 className="font-semibold text-lg leading-loose">{feature.title}</h3>
+          <h3 className="font-medium text-lg leading-loose">{feature.title}</h3>
             <p className="text-gray-600 text-sm">{feature.description}</p>
           </div>
         </div>

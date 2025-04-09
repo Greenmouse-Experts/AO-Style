@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Breadcrumb = ({ title, subtitle, just, backgroundImage }) => {
     return (
@@ -214,25 +215,26 @@ export default function MarketplacePage() {
                     {filteredProducts.length > 0 ? (
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                             {filteredProducts.map((product, index) => (
-                                <motion.div
-                                    key={product.id}
-                                    className="text-center"
-                                    initial={{ opacity: 0, y: 50 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                                >
-                                    <motion.img
-                                        src={product.image}
-                                        alt={product.name}
-                                        className="w-full h-66 object-cover rounded-md"
-                                        whileHover={{ scale: 1.05 }}
-                                        transition={{ duration: 0.3 }}
-                                    />
-                                    <h3 className="font-medium text-left mt-4 mb-2 text-sm">{product.name}</h3>
-                                    <p className="text-[#2B21E5] text-left text-sm">
-                                        ₦{product.price.toLocaleString()} <span className="text-gray-500">per yard</span>
-                                    </p>
-                                </motion.div>
+                                <Link to={`/shop-details`} key={product.id}>
+                                    <motion.div
+                                        className="text-center"
+                                        initial={{ opacity: 0, y: 50 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.5, delay: index * 0.1 }}
+                                    >
+                                        <motion.img
+                                            src={product.image}
+                                            alt={product.name}
+                                            className="w-full h-66 object-cover rounded-md"
+                                            whileHover={{ scale: 1.05 }}
+                                            transition={{ duration: 0.3 }}
+                                        />
+                                        <h3 className="font-medium text-left mt-4 mb-2 text-sm">{product.name}</h3>
+                                        <p className="text-[#2B21E5] text-left text-sm">
+                                            ₦{product.price.toLocaleString()} <span className="text-gray-500">per yard</span>
+                                        </p>
+                                    </motion.div>
+                                </Link>
                             ))}
                         </div>
                     ) : (
@@ -243,12 +245,13 @@ export default function MarketplacePage() {
 
                     {filteredProducts.length > 0 && (
                         <div className="mt-10 flex justify-center">
-                            <button className="bg-gradient bg-gradient text-white px-6 py-3 cursor-pointer">
+                            <button className="bg-gradient text-white px-6 py-3 cursor-pointer">
                                 Load More
                             </button>
                         </div>
                     )}
                 </section>
+
             </main>
         </>
     );

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Search, Filter, SortDesc, X } from "lucide-react";
-import Breadcrumb from "./components/Breadcrumb";
+import Breadcrumb from "../components/Breadcrumb";
 import { Link } from "react-router-dom";
 
 const categories = [

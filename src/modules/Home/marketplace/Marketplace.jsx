@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Search, MapPin } from "lucide-react";
-import Breadcrumb from "./components/Breadcrumb";
+import Breadcrumb from "../components/Breadcrumb";
 import { Link } from "react-router-dom";
 
 
@@ -78,8 +78,7 @@ export default function MarketplaceSection() {
                         </Link>
                     ))}
                 </div>
-
-
+                
                 {/* Load More Button */}
                 <div className="flex justify-center mt-16">
                     <button className="bg-gradient text-white px-6 py-3 cursor-pointer" onClick={handleLoadMore}>

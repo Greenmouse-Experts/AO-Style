@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
-import { Link } from "react-router-dom";
 
 const Breadcrumb = ({ title, subtitle, just, backgroundImage }) => {
     return (

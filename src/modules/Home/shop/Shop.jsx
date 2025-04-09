@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Filter, SortDesc } from "lucide-react";
-import Breadcrumb from "./components/Breadcrumb";
+import Breadcrumb from "../components/Breadcrumb";
 
 const categories = ["Male", "Female"];
 const initialProducts = [

@@ -104,7 +104,7 @@ export default function ProductSection() {
                 ))}
             </div>
             <div className="flex justify-center mt-14">
-                <Link to="/marketplace">
+                <Link to="/products">
                     <button className="bg-gradient text-white px-10 py-3 w-full md:w-auto cursor-pointer">
                         Explore All Styles
                     </button>

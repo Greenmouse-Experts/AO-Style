@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
-import SavedMeasurementsDisplay from "./components/SavedMeasurementsDisplay";
+import SavedMeasurementsDisplay from "../components/SavedMeasurementsDisplay";
 
 // Breadcrumb Component
 const Breadcrumb = ({ title, subtitle, just, backgroundImage }) => {

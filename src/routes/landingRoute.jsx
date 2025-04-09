@@ -1,11 +1,12 @@
 import LandingLayout from "../layouts/landing";
 import LandingHomepage from "../modules/Home";
-import MarketPlace from "../modules/Home/Marketplace";
-import InnerMarket from "../modules/Home/InnerMarket";
-import Product from "../modules/Home/Product";
-import AoStyleDetails from "../modules/Home/AoStyleDetails";
-import Shops from "../modules/Home/Shop";
-import ShopDetails from "../modules/Home/ShopDetails";
+import MarketPlace from "../modules/Home/marketplace/Marketplace";
+import InnerMarket from "../modules/Home/marketplace/InnerMarket";
+import Product from "../modules/Home/aostyle/Product";
+import AoStyleDetails from "../modules/Home/aostyle/AoStyleDetails";
+import Shops from "../modules/Home/shop/Shop";
+import ShopDetails from "../modules/Home/shop/ShopDetails";
+import PickaStyle from "../modules/Home/shop/PickaStyle";
 import AboutUs from "../modules/Home/About";
 import ContactUs from "../modules/Home/Contact";
 import FAQs from "../modules/Home/Faqs";
@@ -52,6 +53,10 @@ export const landingRooutes = [
       {
         path: 'aostyle-details',
         element: <AoStyleDetails />,
+      },
+      {
+        path: 'pickastyle',
+        element: <PickaStyle />,
       },
       {
         path: 'shop',

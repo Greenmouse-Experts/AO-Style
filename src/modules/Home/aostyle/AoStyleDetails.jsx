@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import SavedMeasurementsDisplay from "../components/SavedMeasurementsDisplay";
+import { Link } from "react-router-dom";
 
 // Breadcrumb Component
 const Breadcrumb = ({ title, subtitle, just, backgroundImage }) => {
@@ -149,100 +150,102 @@ export default function AnkaraGownPage() {
 
             {/* Measurement Section */}
             <div className="mt-20">
-              <div className="flex flex-col md:flex-row gap-8">
-                {/* Measurement Image */}
-                <div className="md:w-2/5">
-                  <img
-                    src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1744094425/AoStyle/image_ccvd3c.png"
-                    alt="Body measurement diagram"
-                    className="w-full rounded-md border border-gray-300"
-                  />
+              {measurementsSubmitted ? (
+                <div className="w-full">
+                  <SavedMeasurementsDisplay />
                 </div>
+              ) : (
+                <div className="flex flex-col md:flex-row gap-8">
+                  {/* Measurement Image */}
+                  <div className="md:w-2/5">
+                    <img
+                      src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1744094425/AoStyle/image_ccvd3c.png"
+                      alt="Body measurement diagram"
+                      className="w-full rounded-md border border-gray-300"
+                    />
+                  </div>
 
-                {/* Measurement Form */}
-                <div className="md:w-3/5">
-                  {!measurementsSubmitted ? (
-                    <>
-                      <h2 className="text-xl font-medium max-w-xs text-purple-500 pb-2 border-b-1 border-purple-500 mb-8">
-                        Your Measurement
-                      </h2>
-                      <h3 className="text-xl font-medium mb-4">Fill in your measurements</h3>
-                      <p className="text-gray-600 mb-6">Fill the form below to give the tailor your accurate measurement</p>
-                      {/* Tabs */}
-                      <div className="flex mb-6 border-b border-purple-500">
-                        {tabs.map((tab) => (
-                          <button
-                            key={tab}
-                            className={`px-8 py-3 font-medium relative ${selectedTab === tab ? 'text-purple-500' : 'text-gray-500'}`}
-                            onClick={() => setSelectedTab(tab)}
-                          >
-                            {tab}
-                            {selectedTab === tab && (
-                              <div className="absolute bottom-0 left-0 w-full h-1 bg-purple-500"></div>
-                            )}
-                          </button>
-                        ))}
+                  {/* Measurement Form */}
+                  <div className="md:w-3/5">
+                    <h2 className="text-xl font-medium max-w-xs text-purple-500 pb-2 border-b-1 border-purple-500 mb-8">
+                      Your Measurement
+                    </h2>
+                    <h3 className="text-xl font-medium mb-4">Fill in your measurements</h3>
+                    <p className="text-gray-600 mb-6">Fill the form below to give the tailor your accurate measurement</p>
+
+                    {/* Tabs */}
+                    <div className="flex mb-6 border-b border-purple-500">
+                      {tabs.map((tab) => (
+                        <button
+                          key={tab}
+                          className={`px-8 py-3 font-medium relative ${selectedTab === tab ? 'text-purple-500' : 'text-gray-500'}`}
+                          onClick={() => setSelectedTab(tab)}
+                        >
+                          {tab}
+                          {selectedTab === tab && (
+                            <div className="absolute bottom-0 left-0 w-full h-1 bg-purple-500"></div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Customer Name field only for Upper Body */}
+                    {selectedTab === 'Upper Body' && (
+                      <div className="mb-6">
+                        <label className="block text-gray-700 mb-4">Customer Name</label>
+                        <input
+                          type="text"
+                          placeholder="Enter customer name"
+                          className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                        />
                       </div>
+                    )}
 
-                      {/* Customer Name field only for Upper Body */}
-                      {selectedTab === 'Upper Body' && (
-                        <div className="mb-6">
-                          <label className="block text-gray-700 mb-4">Customer Name</label>
-                          <input
-                            type="text"
-                            placeholder="Enter customer name"
-                            className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                          />
-                        </div>
-                      )}
-
-                      {/* Dynamic Measurement Fields based on tab */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {getMeasurements().map((measurement, index) => (
-                          <div key={index} className="mb-4">
-                            <label className="block text-gray-700 mb-4">{measurement.name}</label>
-                            <div className="flex">
-                              <input
-                                type="text"
-                                placeholder={measurement.placeholder}
-                                className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
-                              />
-                              <div className="relative">
-                                <select
-                                  className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                  value={measurementUnit}
-                                  onChange={(e) => setMeasurementUnit(e.target.value)}
-                                >
-                                  {unitOptions.map(unit => (
-                                    <option key={unit} value={unit}>{unit}</option>
-                                  ))}
-                                </select>
-                                <ChevronDown className="absolute right-2 top-5 w-4 h-4 text-gray-500" />
-                              </div>
+                    {/* Dynamic Measurement Fields based on tab */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {getMeasurements().map((measurement, index) => (
+                        <div key={index} className="mb-4">
+                          <label className="block text-gray-700 mb-4">{measurement.name}</label>
+                          <div className="flex">
+                            <input
+                              type="text"
+                              placeholder={measurement.placeholder}
+                              className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
+                            />
+                            <div className="relative">
+                              <select
+                                className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
+                                value={measurementUnit}
+                                onChange={(e) => setMeasurementUnit(e.target.value)}
+                              >
+                                {unitOptions.map(unit => (
+                                  <option key={unit} value={unit}>{unit}</option>
+                                ))}
+                              </select>
+                              <ChevronDown className="absolute right-2 top-5 w-4 h-4 text-gray-500" />
                             </div>
                           </div>
-                        ))}
-                      </div>
-                      {/* Proceed Button */}
-                      <button
-                        className="bg-gradient text-white font-medium py-3 px-6 cursor-pointer"
-                        onClick={() => {
-                          if (selectedTab === 'Full Body') {
-                            setMeasurementsSubmitted(true);
-                          } else {
-                            handleProceed();
-                          }
-                        }}
-                      >
-                        {selectedTab === 'Upper Body' ? 'Proceed to Lower Body' :
-                          selectedTab === 'Lower Body' ? 'Proceed to Full Body' : 'Submit Measurements'}
-                      </button>
-                    </>
-                  ) : (
-                    <SavedMeasurementsDisplay />
-                  )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Proceed Button */}
+                    <button
+                      className="bg-gradient text-white font-medium py-3 px-6 cursor-pointer"
+                      onClick={() => {
+                        if (selectedTab === 'Full Body') {
+                          setMeasurementsSubmitted(true);
+                        } else {
+                          handleProceed();
+                        }
+                      }}
+                    >
+                      {selectedTab === 'Upper Body' ? 'Proceed to Lower Body' :
+                        selectedTab === 'Lower Body' ? 'Proceed to Full Body' : 'Submit Measurements'}
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

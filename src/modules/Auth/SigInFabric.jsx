@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
+import HowDidYouHearAboutUs from "../Auth/components/HowDidYouHearAboutUs";
 
 
 export default function SignInAsCustomer() {
@@ -96,7 +97,13 @@ export default function SignInAsCustomer() {
                                         </button>
                                     </div>
 
-                                    <button type="button" className="w-full bg-gradient text-white py-4 rounded-lg font-meduim cursor-pointer" onClick={() => setStep(2)}>
+                                    <div>
+                                        <HowDidYouHearAboutUs />
+                                    </div>
+
+
+
+                                    <button type="button" className="w-full bg-gradient text-white py-4 rounded-lg font-meduim cursor-pointer mt-4" onClick={() => setStep(2)}>
                                         Proceed to Business Details
                                     </button>
                                 </>

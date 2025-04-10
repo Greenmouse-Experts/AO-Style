@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
-
+import HowDidYouHearAboutUs from "../Auth/components/HowDidYouHearAboutUs";
 
 export default function SignInAsCustomer() {
     const [showPassword, setShowPassword] = useState(false);
@@ -95,6 +95,10 @@ export default function SignInAsCustomer() {
                                         >
                                             {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                                         </button>
+                                    </div>
+
+                                    <div>
+                                        <HowDidYouHearAboutUs />
                                     </div>
 
                                     <button type="button" className="w-full bg-gradient text-white py-4 rounded-lg font-meduim cursor-pointer" onClick={() => setStep(2)}>

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
+import HowDidYouHearAboutUs from "../Auth/components/HowDidYouHearAboutUs";
 
 export default function SignUpAsLogisticsAgent() {
     const [showPassword, setShowPassword] = useState(false);
@@ -29,7 +30,7 @@ export default function SignUpAsLogisticsAgent() {
 
                 {/* Right Section - Sign Up Form */}
                 <div className="w-full md:w-1/2 p-4 sm:p-8">
-                    <div className=" mb-4">
+                    <div className="mb-4">
                         <Link to="/">
                             <img
                                 src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742964300/AoStyle/CARYBIN_TRANSPARENT_1_ujbdei.png"
@@ -167,9 +168,13 @@ export default function SignUpAsLogisticsAgent() {
                             </div>
                         </div>
 
+                        <div>
+                            <HowDidYouHearAboutUs />
+                        </div>
+
                         <button
                             type="submit"
-                            className="w-full bg-gradient text-white py-3 rounded-lg font-medium transition-colors"
+                            className="w-full bg-gradient text-white py-3 rounded-lg font-medium mt-4 transition-colors"
                         >
                             Sign Up As A Logistics Agent
                         </button>

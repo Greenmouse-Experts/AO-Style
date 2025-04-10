@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
+import HowDidYouHearAboutUs from "../Auth/components/HowDidYouHearAboutUs";
+
 
 export default function SignInAsCustomer() {
     const [showPassword, setShowPassword] = useState(false);
@@ -30,7 +32,7 @@ export default function SignInAsCustomer() {
 
                 {/* Right Section - Sign In Form */}
                 <div className="w-full md:w-1/2 p-4 sm:p-8">
-                    <div className=" mb-6">
+                    <div className="">
                         <Link to="/">
                             <img
                                 src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742964300/AoStyle/CARYBIN_TRANSPARENT_1_ujbdei.png"
@@ -83,8 +85,11 @@ export default function SignInAsCustomer() {
                                 {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                             </button>
                         </div>
+                        <div>
+                            <HowDidYouHearAboutUs />
+                        </div>
 
-                        <button className="w-full bg-gradient cursor-pointer text-white py-4 rounded-lg font-normal" type="submit">
+                        <button className="w-full bg-gradient cursor-pointer text-white py-4 rounded-lg font-normal mt-4" type="submit">
                             Sign Up As A Customer
                         </button>
                     </form>

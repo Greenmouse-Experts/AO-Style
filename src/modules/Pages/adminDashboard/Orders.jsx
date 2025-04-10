@@ -7,7 +7,7 @@ const OrdersTable = () => {
     const dropdownRef = useRef(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-   const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
 
     const data = Array.from({ length: 100 }, (_, i) => ({
         id: i + 1,

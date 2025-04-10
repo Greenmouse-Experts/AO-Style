@@ -16,6 +16,7 @@ import TermsandConditions from "../modules/Home/TermsandConditions";
 import CookiePolicy from "../modules/Home/CookiePolicy";
 import RefundPolicy from "../modules/Home/RefundPolicy";
 import Jobs from "../modules/Home/Jobs";
+import CartPage from "../modules/Home/CartPage";
 
 
 export const landingRooutes = [
@@ -90,6 +91,10 @@ export const landingRooutes = [
       {
         path: 'jobs',
         element: <Jobs />
+      },
+      {
+        path: 'view-cart',
+        element: <CartPage />
       },
     ],
   }

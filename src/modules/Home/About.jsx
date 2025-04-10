@@ -117,7 +117,7 @@ const AboutUs = () => {
                         We are dedicated to serving fashion enthusiasts, designers, and anyone seeking bespoke clothing. 
                         </p>
                         <p className="text-dark text-base leading-[38px]">
-                            Our business combines a user-friendly website(OAstyles.com) with a strong supply chain to provide outstanding products and services.
+                            Our business combines a user-friendly website Carybin.com with a strong supply chain to provide outstanding products and services.
                             Any personal data provided or collected by Oastyles is controlled by Carybin Limited.
                         </p>
                     </div>

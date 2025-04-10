@@ -4,10 +4,11 @@ const HowDidYouHearAboutUs = () => {
     const [selectedOptions, setSelectedOptions] = useState([]);
     const [isOpen, setIsOpen] = useState(false); 
     const options = [
-        "Google",
-        "Facebook",
-        "Instagram",
-        "Word of Mouth",
+        "Social Media",
+        "Radio/ TV Ads",
+        "Blogs/Articles",
+        "Personal Referral",
+        "Just got here",
         "Other"
     ];
 

@@ -1,5 +1,5 @@
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock } from "react-icons/fa";
-import { BsLinkedin, BsWhatsapp, BsInstagram, BsFacebook, BsTwitterX } from "react-icons/bs";
+import { BsTiktok, BsWhatsapp, BsInstagram, BsFacebook, BsTwitterX } from "react-icons/bs";
 import { Link, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 
@@ -43,10 +43,10 @@ const Footer = () => {
                 <div className="col-span-2">
                     <h4 className="font-medium mb-6 text-lg">Contact Info (Lagos)</h4>
                     <ul className="space-y-6">
-                        <p className="flex items-center gap-2 text-[#C5C5C5] font-light"><FaPhone /> (+234) 000 000 0000</p>
-                        <p className="flex items-center gap-2 text-[#C5C5C5] font-light"><FaEnvelope /> support@oastyles.com</p>
-                        <p className="flex items-center gap-2 text-[#C5C5C5] font-light"><FaMapMarkerAlt /> Akgintunde Oludaise Street Lagos State, Nigeria</p>
-                        <p className="flex items-center gap-2 text-[#C5C5C5] font-light"><FaClock /> Office Hours: 9 AM - 6 PM, Mon-Sat</p>
+                        <p className="flex items-center gap-2 text-[#C5C5C5] font-light"><FaPhone /> 07053559086</p>
+                        <p className="flex items-center gap-2 text-[#C5C5C5] font-light"><FaEnvelope /> info@carybin.com</p>
+                        <p className="flex items-center gap-2 text-[#C5C5C5] font-light"><FaMapMarkerAlt /> 13 Road 101, Efab Sunshine Estate, Waru, Apo, FCT Abuja, Nigeria</p>
+                        <p className="flex items-center gap-2 text-[#C5C5C5] font-light"><FaClock />Office hours: Mon – Friday: 8am – 5pm, Sat: 10am – 2pm </p>
                     </ul>
                 </div>
 
@@ -63,10 +63,10 @@ const Footer = () => {
                         <button className="ma-auto px-6 bg-white py-4 text-black hover:bg-purple-600 hover:text-white cursor-pointer" type="submit">SUBSCRIBE</button>
                     </form>
                     <div className="flex gap-8 mt-6">
-                        <a href="#" className="hover:text-purple-300 text-[24px]"><BsLinkedin /></a>
-                        <a href="#" className="hover:text-purple-300 text-[24px]"><BsInstagram /></a>
-                        <a href="#" className="hover:text-purple-300 text-[24px]"><BsFacebook /></a>
-                        <a href="#" className="hover:text-purple-300 text-[24px]"><BsTwitterX /></a>
+                        <a href="https://www.tiktok.com/@carybin_ltd?lang=en" className="hover:text-purple-300 text-[24px]"><BsTiktok /></a>
+                        <a href="https://www.instagram.com/carybin_ltd/" className="hover:text-purple-300 text-[24px]"><BsInstagram /></a>
+                        <a href="https://www.facebook.com/profile.php?id=61574779554971" className="hover:text-purple-300 text-[24px]"><BsFacebook /></a>
+                        <a href="https://x.com/Carybin_LTD" className="hover:text-purple-300 text-[24px]"><BsTwitterX /></a>
                     </div>
                 </div>
             </div>

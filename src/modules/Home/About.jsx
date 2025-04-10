@@ -107,11 +107,17 @@ const AboutUs = () => {
             <section className="px-6 md:px-16 section lg:px-28 bg-grey-50 relative">
                 <div className="flex flex-col-reverse md:flex-row items-center gap-10">
                     <div className="md:w-1/1 md:text-left">
-                        <h1 className="text-2xl md:text-3xl font-medium leading-snug">
-                            Who We Are
-                        </h1>
-                        <p className="mt-4 text-dark text-base leading-loose">
-                            Carybin Limited is the first pan-African e-commerce platform. Our global platform empowers users to choose fabrics from the major fabric markets in Nigeria, personalize their clothing, and seamlessly order both materials and custom-tailored garments. We are dedicated to serving fashion enthusiasts, designers, and anyone seeking bespoke clothing. Our business combines a user-friendly website(OAstyles.com) with a strong supply chain to provide outstanding products and services.
+                        <button className="text-2xl font-medium leading-snug px-6 py-2 bg-gradient text-white rounded-md cursor-pointer">
+                                WHO WE ARE
+                        </button>
+                        <p className="mt-4 text-dark text-base leading-[38px]">
+                            Carybin Limited is the first pan-African e-commerce platform. Our global platform empowers users to choose fabrics from the major fabric markets in Nigeria, personalize their clothing, and seamlessly order both materials and custom-tailored garments. 
+                        </p>
+                        <p className="text-dark text-base leading-[38px]">
+                        We are dedicated to serving fashion enthusiasts, designers, and anyone seeking bespoke clothing. 
+                        </p>
+                        <p className="text-dark text-base leading-[38px]">
+                            Our business combines a user-friendly website(OAstyles.com) with a strong supply chain to provide outstanding products and services.
                             Any personal data provided or collected by Oastyles is controlled by Carybin Limited.
                         </p>
                     </div>
@@ -124,7 +130,7 @@ const AboutUs = () => {
                     </div>
                 </div>
             </section>
-            <section className="px-6 md:px-16 lg:px-28 just bg-[#fafafa] relative">
+            <section className="px-6 md:px-16 lg:px-28 just bg-[#f7f7f7] relative">
                 {/* Reviews Badge */}
                 <div className="flex justify-center">
                     <div className="flex items-center gap-2 border border-[#E070BB] px-4 py-2 rounded-full sm:-mt-6 mt-2 bg-white">
@@ -186,14 +192,14 @@ const AboutUs = () => {
             </section>
             <div className="Resizer section px-4">
                 {/* Section 1 */}
-                <div className="flex flex-col-reverse md:flex-row items-center gap-10">
+                <div className="flex flex-col-reverse md:flex-row items-center gap-10 py-8">
                     <div className="md:w-1/1 md:text-left">
                         <h1 className="text-2xl md:text-3xl font-medium leading-snug">
                             We are focused on bridging the gap that exists between customers who
                             are too busy to shop physically at their preferred marketplaces in
                             Nigeria.
                         </h1>
-                        <p className="mt-4 text-dark text-base leading-loose">
+                        <p className="mt-4 text-dark text-base leading-[38px]">
                             We offer a seamless and personalized shopping experience for
                             high-quality fabrics and bespoke tailoring services. Our diverse
                             range of premium fabrics, combined with expert tailoring and design
@@ -221,7 +227,7 @@ const AboutUs = () => {
                     </p>
 
                     {/* Image & Features */}
-                    <section className="px-4 pb-16 ">
+                    <section className="px-4 pb-16 mt-10">
                         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
                             {highlights.map((item, index) => (
                                 <div key={index} className="flex flex-col items-center p-4 bg-gray-100 rounded-lg hover:shadow-md transition">

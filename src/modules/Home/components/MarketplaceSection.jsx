@@ -68,7 +68,8 @@ export default function MarketplaceSection() {
             style={{ transform: `translateX(-${index * 100 / itemsPerPage}%)` }}
           >
             {markets.map((market) => (
-              <div
+              <Link
+                to={`/inner-marketplace`}
                 key={market.id}
                 className="flex-shrink-0 px-2 w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/6 text-center"
               >
@@ -81,7 +82,7 @@ export default function MarketplaceSection() {
                 <p className="text-[#2B21E5] text-sm flex items-center justify-center font-light">
                   <MapPin size={14} className="mr-1" /> {market.location}
                 </p>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

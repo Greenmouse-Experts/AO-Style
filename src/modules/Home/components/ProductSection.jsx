@@ -92,7 +92,7 @@ export default function ProductSection() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4">
                 {filteredProducts.map(product => (
-                    <div key={product.id} className="">
+                    <Link to={`/aostyle-details`}  key={product.id} className="">
                         <img
                             src={product.image}
                             alt={product.name}
@@ -100,7 +100,7 @@ export default function ProductSection() {
                         />
                         <h3 className="font-medium text-left mt-4 mb-3">{product.name}</h3>
                         <p className="text-[#2B21E5]  text-left font-light">{product.price}</p>
-                    </div>
+                    </Link>
                 ))}
             </div>
             <div className="flex justify-center mt-14">

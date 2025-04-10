@@ -9,10 +9,10 @@ const CustomersTable = () => {
     const dropdownRef = useRef(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 7;
+    const [itemsPerPage, setItemsPerPage] = useState(7); // Default items per page
 
-      // Dummy Tailors/Designers Data
-      const data = Array.from({ length: 30 }, (_, i) => ({
+    // Dummy Tailors/Designers Data
+    const data = Array.from({ length: 30 }, (_, i) => ({
         id: i + 1,
         profile: `https://randomuser.me/api/portraits/thumb/men/${i}.jpg`,
         name: `Tailor ${i + 1}`,
@@ -78,12 +78,29 @@ const CustomersTable = () => {
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+    const handlePreviousPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+        }
+    };
+
+    const handleNextPage = () => {
+        if (currentPage < totalPages) {
+            setCurrentPage(currentPage + 1);
+        }
+    };
+
+    const handleItemsPerPageChange = (e) => {
+        setItemsPerPage(Number(e.target.value));
+        setCurrentPage(1); // Reset to page 1 when items per page changes
+    };
 
     return (
         <div className="bg-white p-6 rounded-xl overflow-x-auto">
             <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
                 <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-
                     <h2 className="text-lg font-semibold">Vendors (Fabric Sellers)</h2>
                 </div>
                 <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
@@ -102,25 +119,34 @@ const CustomersTable = () => {
                     </button>
                     <Link to="/admin/fabric/add-fabric-vendor">
                         <button className="bg-[#9847FE] text-white px-4 py-2 text-sm rounded-md">
-                        + Add a New Vendors
+                            + Add a New Vendor
                         </button>
                     </Link>
                 </div>
             </div>
+
             {/* Table */}
             <ReusableTable columns={columns} data={currentItems} />
 
-            {/* Pagination */}
-            <div className="flex justify-center mt-4 space-x-2">
-                {Array.from({ length: Math.ceil(filteredData.length / itemsPerPage) }, (_, i) => (
-                    <button
-                        key={i}
-                        onClick={() => setCurrentPage(i + 1)}
-                        className={`px-3 py-1 rounded-md ${currentPage === i + 1 ? "bg-[#9847FE] text-white" : "bg-gray-200 text-gray-700"}`}
+            {/* Pagination Controls */}
+            <div className="flex justify-between items-center mt-4">
+                <div className="flex">
+                    <p className="text-sm text-gray-600">Page {currentPage} of {totalPages}</p>
+                    <select
+                        value={itemsPerPage}
+                        onChange={handleItemsPerPageChange}
+                        className="py-2 px-3 border border-gray-200 ml-4 rounded-md outline-none text-sm w-auto"
                     >
-                        {i + 1}
-                    </button>
-                ))}
+                        <option value={5}>5</option>
+                        <option value={10}>10</option>
+                        <option value={15}>15</option>
+                        <option value={20}>20</option>
+                    </select>
+                </div>
+                <div className="flex gap-1">
+                    <button onClick={handlePreviousPage} disabled={currentPage === 1} className="px-3 py-1 rounded-md bg-gray-200">&#9664;</button>
+                    <button onClick={handleNextPage} disabled={currentPage === totalPages} className="px-3 py-1 rounded-md bg-gray-200">&#9654;</button>
+                </div>
             </div>
         </div>
     );

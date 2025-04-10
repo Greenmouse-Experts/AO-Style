@@ -8,7 +8,7 @@ const StyleCategoriesTable = () => {
     const [openDropdown, setOpenDropdown] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
+    const [itemsPerPage, setItemsPerPage] = useState(10);
 
     const data = Array.from({ length: 200 }, (_, i) => ({
         id: i + 1,
@@ -35,8 +35,8 @@ const StyleCategoriesTable = () => {
         },
     ];
 
-    const filteredData = data.filter((style) =>
-        Object.values(style).some((value) =>
+    const filteredData = data.filter((market) =>
+        Object.values(market).some((value) =>
             typeof value === "string" && value.toLowerCase().includes(searchTerm.toLowerCase())
         )
     );
@@ -57,6 +57,11 @@ const StyleCategoriesTable = () => {
         if (currentPage < totalPages) {
             setCurrentPage(currentPage + 1);
         }
+    };
+
+    const handleItemsPerPageChange = (e) => {
+        setItemsPerPage(Number(e.target.value)); // Update items per page
+        setCurrentPage(1); // Reset to the first page whenever the items per page is changed
     };
 
     return (
@@ -84,7 +89,19 @@ const StyleCategoriesTable = () => {
             </div>
             <ReusableTable columns={columns} data={currentItems} />
             <div className="flex justify-between items-center mt-4">
-                <p className="text-sm text-gray-600">Page {currentPage} of {totalPages}</p>
+                <div className="flex">
+                    <p className="text-sm text-gray-600">Page {currentPage} of {totalPages}</p>
+                    <select
+                        value={itemsPerPage}
+                        onChange={handleItemsPerPageChange}
+                        className="py-2 px-3 border border-gray-200 ml-4 rounded-md outline-none text-sm w-auto"
+                    >
+                        <option value={5}>5</option>
+                        <option value={10}>10</option>
+                        <option value={15}>15</option>
+                        <option value={20}>20</option>
+                    </select>
+                </div>
                 <div className="flex gap-1">
                     <button onClick={handlePreviousPage} disabled={currentPage === 1} className="px-3 py-1 rounded-md bg-gray-200">&#9664;</button>
                     <button onClick={handleNextPage} disabled={currentPage === totalPages} className="px-3 py-1 rounded-md bg-gray-200">&#9654;</button>

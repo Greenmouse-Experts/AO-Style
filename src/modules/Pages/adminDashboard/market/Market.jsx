@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import ReusableTable from "../components/ReusableTable";
 import { FaEllipsisH } from "react-icons/fa";
+
 const MarketsTable = () => {
     const [openDropdown, setOpenDropdown] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
+    const [itemsPerPage, setItemsPerPage] = useState(10); 
     const dropdownRef = useRef(null);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
 
     const data = Array.from({ length: 200 }, (_, i) => ({
         id: i + 1,
@@ -83,6 +84,11 @@ const MarketsTable = () => {
         }
     };
 
+    const handleItemsPerPageChange = (e) => {
+        setItemsPerPage(Number(e.target.value)); // Update items per page
+        setCurrentPage(1); // Reset to the first page whenever the items per page is changed
+    };
+
     return (
         <div className="bg-white p-6 rounded-xl overflow-x-auto">
             <div className="flex justify-between items-center mb-4">
@@ -101,14 +107,24 @@ const MarketsTable = () => {
                     <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
                         Sort: Newest First ▾
                     </button>
-                    {/* <button className="bg-[#9847FE] text-white px-4 py-2 text-sm rounded-md">
-                    + Add a New Market
-                    </button> */}
+                    {/* Add dropdown to select items per page */}
                 </div>
             </div>
             <ReusableTable columns={columns} data={currentItems} />
             <div className="flex justify-between items-center mt-4">
-                <p className="text-sm text-gray-600">Page {currentPage} of {totalPages}</p>
+                <div className="flex">
+                    <p className="text-sm text-gray-600">Page {currentPage} of {totalPages}</p>
+                    <select
+                        value={itemsPerPage}
+                        onChange={handleItemsPerPageChange}
+                        className="py-2 px-3 border border-gray-200 ml-4 rounded-md outline-none text-sm w-auto"
+                    >
+                        <option value={5}>5</option>
+                        <option value={10}>10</option>
+                        <option value={15}>15</option>
+                        <option value={20}>20</option>
+                    </select>
+                </div>
                 <div className="flex gap-1">
                     <button onClick={handlePreviousPage} disabled={currentPage === 1} className="px-3 py-1 rounded-md bg-gray-200">&#9664;</button>
                     <button onClick={handleNextPage} disabled={currentPage === totalPages} className="px-3 py-1 rounded-md bg-gray-200">&#9654;</button>

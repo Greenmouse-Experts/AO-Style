@@ -9,7 +9,7 @@ const CustomersTable = () => {
     const dropdownRef = useRef(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
+    const [itemsPerPage, setItemsPerPage] = useState(10);
 
     // Dummy Sub-Admins Data
     const data = Array.from({ length: 30 }, (_, i) => ({
@@ -77,9 +77,8 @@ const CustomersTable = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    // Pagination Logic
-    const filteredData = data.filter((customer) =>
-        Object.values(customer).some((value) =>
+    const filteredData = data.filter((market) =>
+        Object.values(market).some((value) =>
             typeof value === "string" && value.toLowerCase().includes(searchTerm.toLowerCase())
         )
     );
@@ -87,6 +86,25 @@ const CustomersTable = () => {
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+
+    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+    const handlePreviousPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+        }
+    };
+
+    const handleNextPage = () => {
+        if (currentPage < totalPages) {
+            setCurrentPage(currentPage + 1);
+        }
+    };
+
+    const handleItemsPerPageChange = (e) => {
+        setItemsPerPage(Number(e.target.value)); // Update items per page
+        setCurrentPage(1); // Reset to the first page whenever the items per page is changed
+    };
 
     return (
         <div className="bg-white p-6 rounded-xl overflow-x-auto">
@@ -118,17 +136,24 @@ const CustomersTable = () => {
             <SubAdminModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
             <ReusableTable columns={columns} data={currentItems} />
 
-            {/* Pagination */}
-            <div className="flex justify-center mt-4 space-x-2">
-                {Array.from({ length: Math.ceil(filteredData.length / itemsPerPage) }, (_, i) => (
-                    <button
-                        key={i}
-                        onClick={() => setCurrentPage(i + 1)}
-                        className={`px-3 py-1 rounded-md ${currentPage === i + 1 ? "bg-[#9847FE] text-white" : "bg-gray-200 text-gray-700"}`}
+            <div className="flex justify-between items-center mt-4">
+                <div className="flex">
+                    <p className="text-sm text-gray-600">Page {currentPage} of {totalPages}</p>
+                    <select
+                        value={itemsPerPage}
+                        onChange={handleItemsPerPageChange}
+                        className="py-2 px-3 border border-gray-200 ml-4 rounded-md outline-none text-sm w-auto"
                     >
-                        {i + 1}
-                    </button>
-                ))}
+                        <option value={5}>5</option>
+                        <option value={10}>10</option>
+                        <option value={15}>15</option>
+                        <option value={20}>20</option>
+                    </select>
+                </div>
+                <div className="flex gap-1">
+                    <button onClick={handlePreviousPage} disabled={currentPage === 1} className="px-3 py-1 rounded-md bg-gray-200">&#9664;</button>
+                    <button onClick={handleNextPage} disabled={currentPage === totalPages} className="px-3 py-1 rounded-md bg-gray-200">&#9654;</button>
+                </div>
             </div>
         </div>
     );

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pencil, Trash2, Plus, X } from 'lucide-react';
 import { Link } from "react-router-dom";
+import SubmitModal from "../components/SubmitModal";
 
 export default function SavedMeasurementsDisplay({ onAddNewMeasurement }) {
   const [measurements, setMeasurements] = useState([
@@ -37,15 +38,14 @@ export default function SavedMeasurementsDisplay({ onAddNewMeasurement }) {
     }
   ]);
 
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newMeasurementName, setNewMeasurementName] = useState("");
 
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [currentEdit, setCurrentEdit] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleAddNewMeasurement = () => {
     if (onAddNewMeasurement) {
-      onAddNewMeasurement(); // Navigate back to AStyleDetails
+      onAddNewMeasurement();
     }
   };
 
@@ -106,19 +106,23 @@ export default function SavedMeasurementsDisplay({ onAddNewMeasurement }) {
         className="inline-flex items-center gap-2 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-md py-3 px-5 cursor-pointer"
         onClick={handleAddNewMeasurement}
       >
-        <div className="bg-purple-500 text-white rounded-full p-1">
-          <Plus className="w-4 h-4" />
-        </div>
-        <span>Add New Measurement</span>
+        <Link to="/aostyle-details">
+          <div className="bg-purple-500 text-white mx-auto w-6 mb-2 rounded-full p-1">
+            <Plus className="w-4 h-4" />
+          </div>
+          <span>Add New Measurement</span>
+        </Link>
       </div>
 
       {/* Submit Button */}
       <div className="mt-10 flex justify-center">
-        <Link to="/aostyle-details">
-          <button className="bg-purple-500 hover:bg-purple-600 text-white font-medium py-3 px-12 rounded-md">
-            Submit Measurements
-          </button>
-        </Link>
+        <SubmitModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+        <button
+          className="bg-purple-500 hover:bg-purple-600 text-white font-medium py-3 px-12 rounded-md"
+          onClick={() => setIsModalOpen(true)} // Opens the modal
+        >
+          Submit Measurements
+        </button>
       </div>
 
       {/* Edit Modal */}

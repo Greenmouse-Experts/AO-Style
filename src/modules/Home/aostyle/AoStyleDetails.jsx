@@ -152,7 +152,7 @@ export default function AnkaraGownPage() {
             <div className="mt-20">
               {measurementsSubmitted ? (
                 <div className="w-full">
-                  <SavedMeasurementsDisplay />
+                  <SavedMeasurementsDisplay onAddNewMeasurement={() => setMeasurementsSubmitted(false)} />
                 </div>
               ) : (
                 <div className="flex flex-col md:flex-row gap-8">
@@ -171,7 +171,9 @@ export default function AnkaraGownPage() {
                       Your Measurement
                     </h2>
                     <h3 className="text-xl font-medium mb-4">Fill in your measurements</h3>
-                    <p className="text-gray-600 mb-6">Fill the form below to give the tailor your accurate measurement</p>
+                    <p className="text-gray-600 mb-6">
+                      Fill the form below to give the tailor your accurate measurement
+                    </p>
 
                     {/* Tabs */}
                     <div className="flex mb-6 border-b border-purple-500">
@@ -218,8 +220,10 @@ export default function AnkaraGownPage() {
                                 value={measurementUnit}
                                 onChange={(e) => setMeasurementUnit(e.target.value)}
                               >
-                                {unitOptions.map(unit => (
-                                  <option key={unit} value={unit}>{unit}</option>
+                                {unitOptions.map((unit) => (
+                                  <option key={unit} value={unit}>
+                                    {unit}
+                                  </option>
                                 ))}
                               </select>
                               <ChevronDown className="absolute right-2 top-5 w-4 h-4 text-gray-500" />
@@ -240,13 +244,17 @@ export default function AnkaraGownPage() {
                         }
                       }}
                     >
-                      {selectedTab === 'Upper Body' ? 'Proceed to Lower Body' :
-                        selectedTab === 'Lower Body' ? 'Proceed to Full Body' : 'Submit Measurements'}
+                      {selectedTab === 'Upper Body'
+                        ? 'Proceed to Lower Body'
+                        : selectedTab === 'Lower Body'
+                          ? 'Proceed to Full Body'
+                          : 'Submit Measurements'}
                     </button>
                   </div>
                 </div>
               )}
             </div>
+
           </div>
         </div>
       </section>

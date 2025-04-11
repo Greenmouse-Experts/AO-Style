@@ -1,9 +1,19 @@
 import { useState } from 'react';
 import { Pencil, Trash2, Plus, X } from 'lucide-react';
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import SubmitModal from "../components/SubmitModal";
 
 export default function SavedMeasurementsDisplay({ onAddNewMeasurement }) {
+  const navigate = useNavigate();
+
+  const handleAddNewMeasurement = () => {
+    if (onAddNewMeasurement) {
+      onAddNewMeasurement(); 
+    }
+    navigate("/aostyle-details");
+  };
+
+
   const [measurements, setMeasurements] = useState([
     {
       id: 1,
@@ -42,12 +52,6 @@ export default function SavedMeasurementsDisplay({ onAddNewMeasurement }) {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [currentEdit, setCurrentEdit] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const handleAddNewMeasurement = () => {
-    if (onAddNewMeasurement) {
-      onAddNewMeasurement();
-    }
-  };
 
   const openEditModal = (measurement) => {
     setCurrentEdit(measurement);
@@ -106,13 +110,12 @@ export default function SavedMeasurementsDisplay({ onAddNewMeasurement }) {
         className="inline-flex items-center gap-2 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-md py-3 px-5 cursor-pointer"
         onClick={handleAddNewMeasurement}
       >
-        <Link to="/aostyle-details">
-          <div className="bg-purple-500 text-white mx-auto w-6 mb-2 rounded-full p-1">
-            <Plus className="w-4 h-4" />
-          </div>
-          <span>Add New Measurement</span>
-        </Link>
+        <div className="bg-purple-500 text-white w-6 h-6 flex items-center justify-center rounded-full">
+          <Plus className="w-4 h-4" />
+        </div>
+        <span>Add New Measurement</span>
       </div>
+
 
       {/* Submit Button */}
       <div className="mt-10 flex justify-center">

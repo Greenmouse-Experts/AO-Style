@@ -69,7 +69,7 @@ const OrderDetails = () => {
                         {orderSteps[currentStep] === "Delivered" ? "Completed" : "Ongoing"}
                     </span>
                 </span>
-                <div className="space-x-2">
+                {/* <div className="space-x-2">
                     <button
                         className="px-4 py-2 bg-gray-300 rounded-md"
                         disabled={currentStep === 0}
@@ -84,7 +84,7 @@ const OrderDetails = () => {
                     >
                         {currentStep === orderSteps.length - 1 ? "Completed" : "Next"}
                     </button>
-                </div>
+                </div> */}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                 <div className="bg-white p-6 rounded-md md:col-span-2">

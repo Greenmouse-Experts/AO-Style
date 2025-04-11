@@ -34,7 +34,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         <nav className="flex-1 space-y-2">
           <SidebarItem to="/customer" icon={<FaHome />} text="Dashboard" />
           <SidebarItem to="/customer/shop-materials" icon={<FaStore />} text="Shop Materials" />
-          <SidebarItem to="/customer/tailor-hiring" icon={<GiScissors />} text="Tailor Hiring" />
+          {/* <SidebarItem to="/customer/tailor-hiring" icon={<GiScissors />} text="Tailor Hiring" /> */}
           <SidebarItem to="/customer/orders" icon={<FaShoppingCart />} text="Orders" />
           <SidebarItem to="/customer/inbox" icon={<FaInbox />} text="Inbox" />
           <SidebarItem to="/customer/notifications" icon={<FaBell />} text="Notifications" />

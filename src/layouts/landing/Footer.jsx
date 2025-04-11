@@ -43,7 +43,7 @@ const Footer = () => {
                 <div className="col-span-2">
                     <h4 className="font-medium mb-6 text-lg">Contact Info (Lagos)</h4>
                     <ul className="space-y-6">
-                        <p className="flex items-center gap-2 text-[#C5C5C5] font-light"><FaPhone /> 07053559086</p>
+                        <p className="flex items-center gap-2 text-[#C5C5C5] font-light"><FaPhone /> +234 705 355 9086</p>
                         <p className="flex items-center gap-2 text-[#C5C5C5] font-light"><FaEnvelope /> info@carybin.com</p>
                         <p className="flex items-center gap-2 text-[#C5C5C5] font-light"><FaMapMarkerAlt /> 13 Road 101, Efab Sunshine Estate, Waru, Apo, FCT Abuja, Nigeria</p>
                         <p className="flex items-center gap-2 text-[#C5C5C5] font-light"><FaClock />Office hours: Mon – Friday: 8am – 5pm, Sat: 10am – 2pm </p>

@@ -41,7 +41,7 @@ const ContactUs = () => {
                             <img src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741900777/AoStyle/Vector_n3qkjf.png" className="h-10 w-10" draggable="false" alt="Phone Icon" />
                             <div>
                                 <h6 className="text-dark leading-loose font-light text-base">PHONE NUMBER</h6>
-                                <p className="text-dark font-medium text-lg leading-loose ">07053559086 </p>
+                                <p className="text-dark font-medium text-lg leading-loose ">+234 705 355 9086 </p>
                             </div>
                         </div>
                         <div className="flex items-center space-x-4 mt-4">

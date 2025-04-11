@@ -147,10 +147,6 @@ export default function Navbar() {
                     <BriefcaseIcon className="h-6 w-6 text-purple-600 mr-4" />
                     Become A Market Rep
                   </Link>
-                  <a href="#" className="flex items-center px-4 py-2 text-[#545252] font-light hover:bg-gray-100">
-                    <BriefcaseIcon className="h-5 w-5 text-purple-600 mr-4" />
-                    See All Jobs
-                  </a>
                   <Link to="/jobs" className="flex items-center px-4 py-4 text-gray-800 hover:bg-gray-100">
                     <UsersIcon className="h-6 w-6 text-purple-600 mr-4" />
                     See All Jobs

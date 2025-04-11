@@ -117,7 +117,7 @@ const AboutUs = () => {
                         We are dedicated to serving fashion enthusiasts, designers, and anyone seeking bespoke clothing. 
                         </p>
                         <p className="text-dark text-base leading-[38px]">
-                            Our business combines a user-friendly website Carybin.com with a strong supply chain to provide outstanding products and services.
+                            Our business combines a user-friendly website <a href="#">www.carybin.com</a> with a strong supply chain to provide outstanding products and services.
                             Any personal data provided or collected by Oastyles is controlled by Carybin Limited.
                         </p>
                     </div>
@@ -261,7 +261,7 @@ const AboutUs = () => {
                 </div>
             </div>
             
-            <section className="relative w-full">
+            {/* <section className="relative w-full">
                 <div className="relative w-full">
                     <img
                         src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741891529/AoStyle/image_2_vp7jbt.jpg"
@@ -287,7 +287,7 @@ const AboutUs = () => {
                         </Link>
                     </div>
                 </div>
-            </section>
+            </section> */}
             <div className="just"></div>
             <ShippingInfo />
         </>

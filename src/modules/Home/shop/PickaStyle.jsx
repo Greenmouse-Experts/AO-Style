@@ -34,7 +34,7 @@ export default class PickaStyle extends Component {
                         {/* Header */}
                         <h1 className="text-2xl font-medium mb-4">Order Details</h1>
                         {/* Order Info */}
-                        <div className="p-4 rounded-lg">
+                        {/* <div className="p-4 rounded-lg">
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-700">
                                 <div>
                                     <p className="font-medium">Order ID</p>
@@ -49,7 +49,7 @@ export default class PickaStyle extends Component {
                                     <span className="text-green-600 font-medium">In progress</span>
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
                         {/* Product List */}
                         <div className="rounded-lg p-4">
                             <h3 className="font-medium text-base mb-4">Items Ordered</h3>

@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import Details from "../components/Details";
-
 export default class PickaStyle extends Component {
     render() {
         const Breadcrumb = ({ title, subtitle, just, backgroundImage }) => {

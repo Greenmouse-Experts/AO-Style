@@ -83,7 +83,7 @@ const Privacy = () => {
     };
 
     const dataControllers = {
-        description: "If you have any questions or concerns about Oasiyahs Privacy Notice or you are looking for more information on how we process your personal data, or wish to exercise your legal rights in respect of your personal data, please contact the Data Privacy Officer by email at datan@partylink.com.",
+        description: "If you have any questions or concerns about Oasiyahs Privacy Notice or you are looking for more information on how we process your personal data, or wish to exercise your legal rights in respect of your personal data, please contact the Data Privacy Officer by email at  info@carybin.com.",
         points: [
             "We will investigate any complaint about the way we manage Personal Data and ensure that we respond to all administered complaints within prescribed timelines."
         ]

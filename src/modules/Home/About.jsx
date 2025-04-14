@@ -107,7 +107,7 @@ const AboutUs = () => {
             <section className="px-6 md:px-16 section lg:px-28 bg-grey-50 relative">
                 <div className="flex flex-col-reverse md:flex-row items-center gap-10">
                     <div className="md:w-1/1 md:text-left">
-                        <button className="text-2xl font-medium leading-snug px-6 py-2 bg-gradient text-white rounded-md cursor-pointer">
+                        <button className="text-lg font-medium leading-snug px-6 py-2 bg-gradient text-white rounded-md cursor-pointer">
                                 WHO WE ARE
                         </button>
                         <p className="mt-4 text-dark text-base leading-[38px]">
@@ -194,12 +194,15 @@ const AboutUs = () => {
                 {/* Section 1 */}
                 <div className="flex flex-col-reverse md:flex-row items-center gap-10 py-8">
                     <div className="md:w-1/1 md:text-left">
-                        <h1 className="text-2xl md:text-3xl font-medium leading-snug">
+                    <button className="text-lg font-medium leading-snug px-6 py-2 bg-gradient text-white rounded-md cursor-pointer">
+                               OUR FOCUS
+                        </button>
+                        <p className="mt-4 text-dark text-base leading-[38px]">
                             We are focused on bridging the gap that exists between customers who
                             are too busy to shop physically at their preferred marketplaces in
                             Nigeria.
-                        </h1>
-                        <p className="mt-4 text-dark text-base leading-[38px]">
+                        </p>
+                        <p className="text-dark text-base leading-[38px]">
                             We offer a seamless and personalized shopping experience for
                             high-quality fabrics and bespoke tailoring services. Our diverse
                             range of premium fabrics, combined with expert tailoring and design

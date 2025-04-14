@@ -70,7 +70,7 @@ const Footer = () => {
                     </div>
                 </div>
             </div>
-            <div className="text-center text-xs mt-10 pb-2 border-t pt-5">© {new Date().getFullYear()} OASTYLES. All rights reserved.</div>
+            <div className="text-center text-xs mt-10 pb-2 border-t pt-5">© {new Date().getFullYear()} CARYBIN LIMITED. All rights reserved.</div>
         </footer>
     );
 };

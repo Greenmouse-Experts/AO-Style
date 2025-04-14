@@ -27,7 +27,7 @@ const slides = [
         description:
             "Find the best fashion trends and designs from top designers around the world. Get inspired and shop effortlessly.",
         buttonText: "Explore Now",
-        buttonLink: "/explore",
+        buttonLink: "/sign-up",
     },
     {
         id: 4,

@@ -1,6 +1,7 @@
 import TailorLayout from "../layouts/dashboard/tailor";
 import TailorDashboard from "../modules/Pages/tailorDashboard";
 import Cataloging from "../modules/Pages/tailorDashboard/Catalog";
+import AddStyle from "../modules/Pages/tailorDashboard/AddStyle";
 import OrdersTable from "../modules/Pages/tailorDashboard/Orders";
 import OrdersDetails from "../modules/Pages/tailorDashboard/OrdersDetails";
 import NotificationPage from "../modules/Pages/tailorDashboard/NotificationPage";
@@ -20,6 +21,10 @@ export const tailorRoute = [
       {
         path: '/tailor/catalog',
         element: <Cataloging />,
+      },
+      {
+        path: '/tailor/catalog-add-style',
+        element: <AddStyle />,
       },
       {
         path: '/tailor/orders',

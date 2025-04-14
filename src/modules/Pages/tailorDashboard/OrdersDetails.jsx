@@ -22,7 +22,7 @@ const OrderDetails = () => {
                         <div className="grid grid-cols-3 gap-6 border-b border-gray-200 pb-6 mb-6">
                             {/* Style Info */}
                             <div className="flex gap-4">
-                                <img src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170600/AoStyle/image_bwjfib.jpg" alt="Ankara Gown" className="w-20 h-20 rounded-md object-cover" />
+                                <img src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170600/AoStyle/image_bwjfib.jpg" alt="Ankara Gown" className="w-28 h-28 rounded-md object-cover" />
                                 <div>
                                     <p className="font-meduim">Ankara Gown</p>
                                     <p className="text-gray-500 text-sm">x 1 Piece</p>
@@ -32,22 +32,21 @@ const OrderDetails = () => {
 
                             {/* Fabric Info */}
                             <div className="flex gap-4">
-                                <img src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214605/AoStyle/image4_p4lpek.png" alt="Fabric" className="w-20 h-20 rounded-md object-cover" />
+                                <img src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214605/AoStyle/image4_p4lpek.png" alt="Fabric" className="w-28 h-28 rounded-md object-cover" />
                                 <div>
                                     <p className="font-meduim">Luxury Embellished Lace</p>
                                     <p className="text-gray-500 text-sm">x 2 Yards</p>
                                 </div>
                             </div>
-
-                            {/* Measurements */}
-                            <div className="flex items-center">
-                                <a href="#" className="text-blue-700 underline text-sm">See measurement</a>
+                            <div className="flex gap-4">
+                                
+                            <a href="#" className="text-blue-700 underline text-sm">See measurement</a>
                             </div>
                         </div>
 
-                        <div className="flex justify-between items-center">
-                            <span className="text-gray-700 font-medium">
-                                Order Total: <span className="font-bold">N 11,440,000</span>
+                        <div className="flex justify-between items-center mt-5">
+                            <span className="text-gray-700 mb-4 font-medium">
+                                Order Total: <span className="font-medium">N 11,440,000</span>
                                 <span className="ml-2 px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm">Pending</span>
                             </span>
                         </div>

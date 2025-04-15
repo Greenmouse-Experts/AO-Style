@@ -1,311 +1,278 @@
 import { useState } from "react";
-import { Eye, EyeOff, Upload } from "lucide-react";
 import { Link } from "react-router-dom";
 
-export default function AddFabricVendorPage() {
-    const [step, setStep] = useState(1);
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [formData, setFormData] = useState({
-        fullName: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-        profilePic: null,
-    });
+const AddProduct = () => {
+    const [colorCount, setColorCount] = useState(1);
 
-    // Handle input changes
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-    };
-
-    // Handle file upload
-    const handleFileChange = (e) => {
-        setFormData({ ...formData, profilePic: e.target.files[0] });
+    const increaseColorCount = () => setColorCount(colorCount + 1);
+    const decreaseColorCount = () => {
+        if (colorCount > 1) setColorCount(colorCount - 1);
     };
 
     return (
-        <div className="">
+        <>
             <div className="bg-white px-6 py-4 mb-6 relative">
                 <h1 className="text-2xl font-medium mb-3">Add Product</h1>
                 <p className="text-gray-500"><Link to="/fabric" className="text-blue-500 hover:underline">Dashboard</Link> &gt; My Product &gt; Add Product</p>
             </div>
+            <div className="bg-white p-6 rounded-xl overflow-x-auto">
 
-            {/* Tabs Section */}
-            <div className="mt-6 bg-white p-4 rounded-md">
-                <div className="flex pb-2 text-sm font-medium">
-                    {["Personal Info", "Business Info", "KYC"].map((tab, index) => (
-                        <button
-                            key={index}
-                            onClick={() => setStep(index + 1)}
-                            className={`w-1/3 text-center pb-2 ${step === index + 1 ? "text-[#A14DF6] border-b-2 border-[#A14DF6]" : "text-gray-500"}`}
-                        >
-                            {tab}
-                        </button>
-                    ))}
-                </div>
+                <h2 className="text-lg font-semibold mb-6">Add Product</h2>
 
-                {/* Form Sections */}
-                {step === 1 && (
-                    <div className="p-4">
-                        <label className="block text-gray-600 font-medium mb-4">Profile Picture</label>
-                        <div className="border border-gray-300 rounded-lg p-10 flex flex-col items-center justify-center">
-                            <Upload size={30} className="text-gray-400" />
-                            <input type="file" className="hidden" id="file-upload" onChange={handleFileChange} />
-                            <label htmlFor="file-upload" className="cursor-pointer text-gray-500 mt-2">
-                                {formData.profilePic ? formData.profilePic.name : "Upload profile picture"}
-                            </label>
-                        </div>
-
-                        {/* Full Name & Email */}
-                        <div className="mt-4 flex flex-col sm:flex-row gap-4">
-                            <div className="w-full sm:w-1/2">
-                                <label className="block text-gray-600 font-medium mb-4">Full Name</label>
-                                <input
-                                    type="text"
-                                    name="fullName"
-                                    value={formData.fullName}
-                                    onChange={handleChange}
-                                    placeholder="Enter the vendor full name"
-                                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                                />
-                            </div>
-                            <div className="w-full sm:w-1/2">
-                                <label className="block text-gray-600 font-medium mb-4">Email Address</label>
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    placeholder="Enter the vendor email address"
-                                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Password & Confirm Password */}
-                        <div className="mt-4 flex flex-col sm:flex-row gap-4">
-                            <div className="w-full sm:w-1/2 relative">
-                                <label className="block text-gray-600 font-medium mb-4">Password</label>
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    name="password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    placeholder="Enter the vendor password"
-                                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                                />
-                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-10 text-gray-400">
-                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                </button>
-                            </div>
-                            <div className="w-full sm:w-1/2 relative">
-                                <label className="block text-gray-600 font-medium mb-4">Confirm Password</label>
-                                <input
-                                    type={showConfirmPassword ? "text" : "password"}
-                                    name="confirmPassword"
-                                    value={formData.confirmPassword}
-                                    onChange={handleChange}
-                                    placeholder="Re-enter the vendor password"
-                                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                                />
-                                <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-10 text-gray-400">
-                                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                </button>
-                            </div>
-                        </div>
-
-                        <button onClick={() => setStep(2)} className="mt-6 w-full bg-[#A14DF6] text-white py-3 cursor-pointer rounded-md">
-                            Proceed to Business Info
-                        </button>
-                    </div>
-                )}
-
-
-                {/* Business Info Section */}
-                {step === 2 && (
-                    <div className="p-4">
-                        <h2 className="text-lg font-medium mb-4">Business Information</h2>
-
-                        {/* Business Name & Registration Number */}
-                        <div className="flex flex-col sm:flex-row gap-4">
-                            <div className="w-full">
-                                <label className="block text-gray-600 font-medium mb-4">Business Name</label>
-                                <input
-                                    type="text"
-                                    name="businessName"
-                                    value={formData.businessName}
-                                    onChange={handleChange}
-                                    placeholder="Enter the vendor business name"
-                                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                                />
-                            </div>
-                            <div className="w-full">
-                                <label className="block text-gray-600 font-medium mb-4">Business Registration Number (Optional)</label>
-                                <input
-                                    type="text"
-                                    name="businessRegNumber"
-                                    value={formData.businessRegNumber}
-                                    onChange={handleChange}
-                                    placeholder="Enter your business registration number"
-                                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Phone Number & Market Location */}
-                        <div className="flex flex-col sm:flex-row gap-4 mt-4">
-                            <div className="w-full relative">
-                                <label className="block text-gray-600 font-medium mb-4">Phone Number</label>
-                                <div className="flex items-center border border-gray-300 rounded-md">
-                                    <span className="p-4 bg-gray-100 border-r border-gray-300">🇳🇬</span>
-                                    <input
-                                        type="tel"
-                                        name="phoneNumber"
-                                        value={formData.phoneNumber}
-                                        onChange={handleChange}
-                                        placeholder="Enter your phone number"
-                                        className="w-full p-4 outline-none rounded-lg"
-                                    />
-                                </div>
-                            </div>
-                            <div className="w-full">
-                                <label className="block text-gray-600 font-medium mb-4">Market Location</label>
-                                <select
-                                    name="marketLocation"
-                                    value={formData.marketLocation}
-                                    onChange={handleChange}
-                                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                                >
-                                    <option value="">Choose your marketplace</option>
-                                    <option value="Lagos">Lagos</option>
-                                    <option value="Abuja">Abuja</option>
-                                    <option value="Kano">Kano</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        {/* Business Address */}
-                        <div className="mt-4">
-                            <label className="block text-gray-600 font-medium mb-4">Business Address</label>
+                <div className="grid grid-cols-1 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Fabric Name */}
+                        <div>
+                            <label className="block text-gray-700 mb-4">Fabric Name</label>
                             <input
                                 type="text"
-                                name="businessAddress"
-                                value={formData.businessAddress}
-                                onChange={handleChange}
-                                placeholder="Enter your business address"
+                                placeholder="Enter the fabric name"
                                 className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                             />
                         </div>
 
-                        {/* City & State Dropdowns */}
-                        <div className="flex flex-col sm:flex-row gap-4 mt-4">
-                            <div className="w-full">
-                                <label className="block text-gray-600 font-medium mb-4">City</label>
-                                <select
-                                    name="city"
-                                    value={formData.city}
-                                    onChange={handleChange}
-                                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                                >
-                                    <option value="">Choose the city</option>
-                                    <option value="Lagos">Lagos</option>
-                                    <option value="Abuja">Abuja</option>
-                                    <option value="Kano">Kano</option>
-                                </select>
-                            </div>
-                            <div className="w-full">
-                                <label className="block text-gray-600 font-medium mb-4">State</label>
-                                <select
-                                    name="state"
-                                    value={formData.state}
-                                    onChange={handleChange}
-                                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                                >
-                                    <option value="">Choose the state</option>
-                                    <option value="Lagos">Lagos</option>
-                                    <option value="Abuja">Abuja</option>
-                                    <option value="Kano">Kano</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        {/* Navigation Buttons */}
-                        <div className="flex justify-between mt-6">
-                            <button onClick={() => setStep(1)} className="bg-gray-300 text-gray-700 px-6 py-3 rounded-md">
-                                Back
-                            </button>
-                            <button onClick={() => setStep(3)} className="bg-gradient text-white px-6 py-3 rounded-md">
-                                Proceed to KYC
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-
-
-                {/* KYC Section */}
-                {step === 3 && (
-                    <div className="p-4">
-                        <h2 className="text-lg font-medium mb-4">KYC Verification</h2>
-
-                        {/* ID Upload */}
-                        <div className="mb-4">
-                            <label className="block text-gray-600 font-medium mb-4">National ID / Driver’s License / Passport</label>
-                            <div className="flex flex-col sm:flex-row gap-4">
-                                <div className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg flex flex-col items-center">
-                                    <input type="file" name="idFront" onChange={handleFileChange} className="hidden" id="idFront" />
-                                    <label htmlFor="idFront" className="cursor-pointer flex flex-col items-center space-y-2 text-gray-500">
-                                        <span>⬆️</span> <span>Upload Front</span>
-                                    </label>
-                                </div>
-                                <div className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg flex flex-col items-center">
-                                    <input type="file" name="idBack" onChange={handleFileChange} className="hidden" id="idBack" />
-                                    <label htmlFor="idBack" className="cursor-pointer flex flex-col items-center space-y-2 text-gray-500">
-                                        <span>⬆️</span> <span>Upload Back</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Utility Bill Upload */}
-                        <div className="mb-4">
-                            <label className="block text-gray-600 font-medium mb-4">Utility Bill (Proof of Address)</label>
-                            <div className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg flex flex-col items-center">
-                                <input type="file" name="utilityBill" onChange={handleFileChange} className="hidden" id="utilityBill" />
-                                <label htmlFor="utilityBill" className="cursor-pointer flex flex-col items-center space-y-2 text-gray-500">
-                                    <span>⬆️</span> <span>Upload Utility Bill</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        {/* BVN Input */}
-                        <div className="mb-4">
-                            <label className="block text-gray-600 font-medium mb-4">BVN</label>
+                        {/* SKU */}
+                        <div>
+                            <label className="block text-gray-700 mb-4">SKU</label>
                             <input
                                 type="text"
-                                name="bvn"
-                                value={formData.bvn}
-                                onChange={handleChange}
-                                placeholder="Enter your BVN"
-                                className="w-full p-3 border border-[#CCCCCC] outline-none rounded-lg"
+                                placeholder="Enter the unique identifier"
+                                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Market */}
+                        <div>
+                            <label className="block text-gray-700 mb-4">Market</label>
+                            <select className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg">
+                                <option>Choose market</option>
+                                <option>Local Market</option>
+                                <option>Online Market</option>
+                            </select>
+                        </div>
+
+                        {/* Gender Suitability */}
+                        <div>
+                            <label className="block text-gray-700 mb-4">Gender Suitability</label>
+                            <select className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg">
+                                <option>Choose suitability gender</option>
+                                <option>Male</option>
+                                <option>Female</option>
+                                <option>Unisex</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Fabric Vendor */}
+                        <div>
+                            <label className="block text-gray-700 mb-4">Fabric Vendor</label>
+                            <input
+                                type="text"
+                                placeholder="Enter the name of the fabric vendor"
+                                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                             />
                         </div>
 
-                        {/* Navigation Buttons */}
-                        <div className="flex flex-col sm:flex-row justify-between gap-4 mt-6">
-                            <button onClick={() => setStep(2)} className="bg-gray-300 text-gray-700 px-6 py-3 rounded-md w-full sm:w-auto">
-                                Back
-                            </button>
-                            <button className="bg-gradient text-white px-6 py-3 rounded-md w-full sm:w-auto">
-                                Submit & Proceed
-                            </button>
+                        {/* Weight per yard */}
+                        <div>
+                            <label className="block text-gray-700 mb-4">Weight per yard</label>
+                            <input
+                                type="text"
+                                placeholder="Enter the weight per yard"
+                                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                            />
                         </div>
                     </div>
-                )}
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Location Coordinate */}
+                        <div>
+                            <label className="block text-gray-700 mb-4">Location Coordinate</label>
+                            <input
+                                type="text"
+                                placeholder="Enter the coordinates of the shop"
+                                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                            />
+                        </div>
+
+                        {/* Local Name */}
+                        <div>
+                            <label className="block text-gray-700 mb-4">Local Name</label>
+                            <input
+                                type="text"
+                                placeholder="Enter the name the fabric is known as locally"
+                                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Manufacturer's Name */}
+                        <div>
+                            <label className="block text-gray-700 mb-4">Manufacturer's Name</label>
+                            <input
+                                type="text"
+                                placeholder="Enter the name called by the manufacturer"
+                                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                            />
+                        </div>
+
+                        {/* Material Type */}
+                        <div>
+                            <label className="block text-gray-700 mb-4">Material Type</label>
+                            <input
+                                type="text"
+                                placeholder="e.g. cotton, polyester, etc"
+                                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Alternative Names */}
+                        <div>
+                            <label className="block text-gray-700 mb-4">Alternative Names</label>
+                            <input
+                                type="text"
+                                placeholder="Enter the name it is called in other locations"
+                                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                            />
+                        </div>
+
+                        {/* Fabric Texture */}
+                        <div>
+                            <label className="block text-gray-700 mb-4">Fabric Texture</label>
+                            <input
+                                type="text"
+                                placeholder="Enter the fabric texture"
+                                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                            />
+                        </div>
+                    </div>
+
+
+                    {/* Feel-a-like */}
+                    <div>
+                        <label className="block text-gray-700 mb-4">Feel-a-like</label>
+                        <input
+                            type="text"
+                            placeholder="Describe what it feels like"
+                            className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Quantity */}
+                        <div>
+                            <label className="block text-gray-700 mb-4">Quantity (Must be more than 10 years)</label>
+                            <input
+                                type="number"
+                                placeholder="Enter the quantity available"
+                                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                            />
+                        </div>
+
+                        {/* Minimum yards to purchase */}
+                        <div>
+                            <label className="block text-gray-700 mb-4">Minimum yards to purchase</label>
+                            <input
+                                type="number"
+                                placeholder="Enter the minimum yards for purchase"
+                                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                            />
+                        </div>
+                    </div>
+
+
+                    {/* Colors and Color Picker */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* How many colors available */}
+                        <div>
+                            <label className="block text-gray-700 mb-4">How many colours available?</label>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="number"
+                                    value={colorCount}
+                                    readOnly
+                                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                                />
+                                <button
+                                    onClick={increaseColorCount}
+                                    className="p-2 bg-gray-200 rounded-md hover:bg-gray-300"
+                                >
+                                    +
+                                </button>
+                                <button
+                                    onClick={decreaseColorCount}
+                                    className="p-2 bg-gray-200 rounded-md hover:bg-gray-300"
+                                >
+                                    -
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Color Picker */}
+                        <div>
+                            <label className="block text-gray-700 mb-4">Pick Available Fabric Colours</label>
+                            <input
+                                type="color"
+                                className="w-full h-14 border border-gray-300  outline-none  rounded-lg cursor-pointer"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Price per yard */}
+                    <div>
+                        <label className="block text-gray-700 mb-4">Price per yard</label>
+                        <div className="flex items-center">
+                            <span className="p-5 bg-gray-200 rounded-l-md">₦</span>
+                            <input
+                                type="number"
+                                placeholder="Enter amount per yard"
+                                className="w-full p-4 border-t border-r border-b outline-none border-gray-300 rounded-r-md"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Upload Photos */}
+                    <div>
+                        <label className="block text-gray-700 mb-4">Upload Photos</label>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {['Close Up View', 'Spread Out View', 'Manufacturer\'s Label', 'Fabric\'s Name'].map((label) => (
+                                <div key={label} className="w-full h-40 border border-gray-300 rounded-md flex items-center justify-center">
+                                    <input type="file" className="hidden" id={label} />
+                                    <label htmlFor={label} className="cursor-pointer text-gray-400">
+                                        <span>{label} (click to upload)</span>
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Upload Video */}
+                    <div>
+                        <label className="block text-gray-700 mb-4">Upload Video</label>
+                        <div className="w-full h-40 border border-gray-300 rounded-md flex items-center justify-center">
+                            <input type="file" className="hidden" id="uploadVideo" />
+                            <label htmlFor="uploadVideo" className="cursor-pointer text-gray-400">
+                                Upload 5-second video (showing the cloth angles)
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* Submit Button */}
+                    <button
+                        className="mt-6 w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-md hover:opacity-90"
+                    >
+                        Upload Fabric
+                    </button>
+                </div>
             </div>
-        </div>
+        </>
     );
-}
+};
+
+export default AddProduct;
+

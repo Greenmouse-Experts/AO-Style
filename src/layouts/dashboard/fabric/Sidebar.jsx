@@ -38,7 +38,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <SidebarItem to="/fabric/products" icon={<MdProductionQuantityLimits />} text="Products" />
           <SidebarItem to="/fabric/orders" icon={<FaClipboardList />} text="Orders" />
           <SidebarItem to="/fabric/inbox" icon={<FaCommentDots />} text="Inbox" />
-          <SidebarItem to="/fabric/shop-materials" icon={<FaStore />} text="Shop Materials" />
+          {/* <SidebarItem to="/fabric/shop-materials" icon={<FaStore />} text="Shop Materials" /> */}
           <SidebarItem to="/fabric/notifications" icon={<FaBell />} text="Notifications" />
           <SidebarItem to="/fabric/transactions" icon={<FaCreditCard />} text="Transactions" />
           <SidebarItem to="/fabric/settings" icon={<FaCog />} text="Settings" />

@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { FaEye, FaEyeSlash, FaArrowUp, FaArrowDown } from "react-icons/fa";
+import WithdrawalModal from "./WithdrawalModal";
 
 const WalletPage = () => {
     const [showBalance, setShowBalance] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     return (
         <div className="bg-white p-6 rounded-xl max-w-md mx-auto">
@@ -52,7 +54,8 @@ const WalletPage = () => {
 
             {/* Withdraw Button */}
             <div className="mt-6 text-center">
-                <button className="border border-purple-600 w-full text-purple-600 px-6 py-4 rounded-lg font-light cursor-pointer">
+                <WithdrawalModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+                <button className="border border-purple-600 w-full text-purple-600 px-6 py-4 rounded-lg font-light cursor-pointer" onClick={() => setIsModalOpen(true)}>
                     Withdraw
                 </button>
             </div>

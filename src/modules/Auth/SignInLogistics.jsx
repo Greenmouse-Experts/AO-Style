@@ -6,30 +6,30 @@ import HowDidYouHearAboutUs from "../Auth/components/HowDidYouHearAboutUs";
 export default function SignUpAsLogisticsAgent() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [agentType, setAgentType] = useState("individual"); // "individual" or "organization"
+    const [agentType, setAgentType] = useState("individual");
 
     return (
-        <div className="min-h-screen flex items-center justify-center Resizer">
-            <div className="w-full flex overflow-hidden">
-                {/* Left Section - Image & Text */}
-                <div className="hidden md:flex w-1/2 relative">
-                    <img
-                        src='https://res.cloudinary.com/diqa0sakr/image/upload/v1743763031/image_ov4nhd.jpg'
-                        alt="Sign In"
-                        className="w-full h-full object-cover"
-                    />
-                    <div className="absolute bottom-3 left-0 p-8 text-white w-full">
-                        <h2 className="text-xl font-medium">
-                            Earn More with Every Delivery – Join Our  <br /> Logistics Network Today!
-                        </h2>
-                        <p className="text-sm mt-2">
-                            Welcome to OAStyles, a platform that simplifies tailoring <br /> processes; from buying materials to finding a tailor for you  
-                        </p>
-                    </div>
+        <div className="flex flex-col md:flex-row h-screen">
+            {/* Left Section */}
+            <div className="hidden md:flex w-1/2 h-screen relative">
+                <img
+                    src='https://res.cloudinary.com/diqa0sakr/image/upload/v1743763031/image_ov4nhd.jpg'
+                    alt="Sign In"
+                    className="w-full h-full object-cover"
+                />
+                <div className="absolute bottom-0 left-0 p-8 text-white bg-gradient-to-t from-black/70 to-transparent w-full">
+                    <h2 className="text-xl font-medium">
+                        Earn More with Every Delivery – Join Our  <br /> Logistics Network Today!
+                    </h2>
+                    <p className="text-sm mt-2">
+                        Welcome to OAStyles, a platform that simplifies tailoring <br /> processes; from buying materials to finding a tailor for you
+                    </p>
                 </div>
+            </div>
 
-                {/* Right Section - Sign Up Form */}
-                <div className="w-full md:w-1/2 p-4 sm:p-8">
+            {/* Right Section */}
+            <div className="w-full md:w-1/2 h-screen overflow-y-auto p-4 sm:p-8">
+                <div className="max-w-2xl mx-auto">
                     <div className="mb-4">
                         <Link to="/">
                             <img
@@ -39,6 +39,7 @@ export default function SignUpAsLogisticsAgent() {
                             />
                         </Link>
                     </div>
+
                     <div className="mb-4">
                         <h2 className="text-2xl font-semibold text-gray-800 mb-2">
                             Sign Up As A <span className="text-[#2B21E5]">Logistics Agent</span>
@@ -64,13 +65,13 @@ export default function SignUpAsLogisticsAgent() {
                         </button>
                     </div>
 
-                    <form className="space-y-4">
+                    <form className="space-y-4 pb-10">
                         <div>
                             <label className="block text-gray-700 mb-1">Full Name</label>
                             <input
                                 type="text"
                                 placeholder="Enter your full name"
-                                className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg"
+                                className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
                                 required
                             />
                         </div>
@@ -80,7 +81,7 @@ export default function SignUpAsLogisticsAgent() {
                             <input
                                 type="tel"
                                 placeholder="Enter your phone number"
-                                className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg"
+                                className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
                                 required
                             />
                         </div>
@@ -90,7 +91,7 @@ export default function SignUpAsLogisticsAgent() {
                             <input
                                 type="text"
                                 placeholder="Enter your home address"
-                                className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg"
+                                className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
                                 required
                             />
                         </div>
@@ -101,31 +102,18 @@ export default function SignUpAsLogisticsAgent() {
                                 <input
                                     type="text"
                                     placeholder="Enter your organization name"
-                                    className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg"
+                                    className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
                                     required
                                 />
                             </div>
                         )}
-
-                        {/* <div>
-                            <label className="block text-gray-700 mb-1">Service Areas</label>
-                            <select
-                                className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg"
-                                required
-                            >
-                                <option value="">Choose your service area</option>
-                                <option value="area1">Area 1</option>
-                                <option value="area2">Area 2</option>
-                                <option value="area3">Area 3</option>
-                            </select>
-                        </div> */}
 
                         <div>
                             <label className="block text-gray-700 mb-1">Email Address</label>
                             <input
                                 type="email"
                                 placeholder="Enter your email address"
-                                className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg"
+                                className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
                                 required
                             />
                         </div>
@@ -136,7 +124,7 @@ export default function SignUpAsLogisticsAgent() {
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     placeholder="Enter your password"
-                                    className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg pr-10"
+                                    className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg pr-10"
                                     required
                                 />
                                 <button
@@ -155,7 +143,7 @@ export default function SignUpAsLogisticsAgent() {
                                 <input
                                     type={showConfirmPassword ? "text" : "password"}
                                     placeholder="Re enter your password"
-                                    className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg pr-10"
+                                    className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg pr-10"
                                     required
                                 />
                                 <button

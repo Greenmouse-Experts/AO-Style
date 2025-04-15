@@ -9,7 +9,6 @@ import {
     PenTool,
 } from "lucide-react";
 import ShippingInfo from "./components/ShippingInfo";
-import { Link } from "react-router-dom";
 
 const highlights = [
     {
@@ -108,13 +107,13 @@ const AboutUs = () => {
                 <div className="flex flex-col-reverse md:flex-row items-center gap-10">
                     <div className="md:w-1/1 md:text-left">
                         <button className="text-lg font-medium leading-snug px-6 w-full py-2 bg-gradient text-white rounded-md cursor-pointer">
-                                WHO WE ARE
+                            WHO WE ARE
                         </button>
                         <p className="mt-4 text-dark text-base leading-[38px]">
-                            Carybin Limited is the first pan-African e-commerce platform. Our global platform empowers users to choose fabrics from the major fabric markets in Nigeria, personalize their clothing, and seamlessly order both materials and custom-tailored garments. 
+                            Carybin Limited is the first pan-African e-commerce platform. Our global platform empowers users to choose fabrics from the major fabric markets in Nigeria, personalize their clothing, and seamlessly order both materials and custom-tailored garments.
                         </p>
                         <p className="text-dark text-base leading-[38px]">
-                        We are dedicated to serving fashion enthusiasts, designers, and anyone seeking bespoke clothing. 
+                            We are dedicated to serving fashion enthusiasts, designers, and anyone seeking bespoke clothing.
                         </p>
                         <p className="text-dark text-base leading-[38px]">
                             Our business combines a user-friendly website <a href="#">www.carybin.com</a> with a strong supply chain to provide outstanding products and services.
@@ -192,8 +191,8 @@ const AboutUs = () => {
                 {/* Section 1 */}
                 <div className="flex flex-col-reverse md:flex-row items-center gap-10 py-8">
                     <div className="md:w-1/1 md:text-left">
-                    <button className="text-lg font-medium  w-full leading-snug px-6 py-2 bg-gradient text-white rounded-md cursor-pointer">
-                               OUR FOCUS
+                        <button className="text-lg font-medium  w-full leading-snug px-6 py-2 bg-gradient text-white rounded-md cursor-pointer">
+                            OUR FOCUS
                         </button>
                         <p className="mt-4 text-dark text-base leading-[38px]">
                             We are focused on bridging the gap that exists between customers who
@@ -261,7 +260,7 @@ const AboutUs = () => {
 
                 </div>
             </div>
-            
+
             {/* <section className="relative w-full">
                 <div className="relative w-full">
                     <img

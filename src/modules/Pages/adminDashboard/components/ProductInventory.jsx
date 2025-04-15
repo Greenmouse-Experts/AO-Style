@@ -7,7 +7,7 @@ const ProductInventoryCard = () => {
   return (
     <div className="space-y-4">
       {/* Product Inventory Card */}
-      <div className="bg-[#5B21B6] p-6 rounded-2xl text-white">
+      <div className="bg-gradient p-6 rounded-2xl text-white">
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-2">
             <Folder size={24} className="bg-white p-1 rounded-md text-[#5B21B6]" />

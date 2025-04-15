@@ -15,9 +15,8 @@ const WalletPage = () => {
                     Monthly ▾
                 </button>
             </div>
-
             {/* Balance Card */}
-            <div className="bg-[#9847FE] text-white p-6 h-28 rounded-lg relative">
+            <div className="bg-gradient text-white p-6 h-28 rounded-lg relative">
                 <p className="text-sm mb-3">TOTAL BALANCE</p>
                 <h1 className="text-3xl font-bold">
                     {showBalance ? "N 120,000" : "******"}

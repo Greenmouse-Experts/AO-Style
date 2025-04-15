@@ -93,8 +93,6 @@ const timeline = [
     },
 ];
 
-
-
 const AboutUs = () => {
     return (
         <>

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import ReusableTable from "./components/ReusableTable";
+import BarChartComponent from "./components/BarChartComponent";
+import ExpensesChart from "./components/ExpensesChart";
 
 const transactions = [
     { id: 1, transactionId: "TXNRIO1234FNK", date: "19-02-25", time: "12:30pm", category: "Fabric & Tailor", amount: "N 200,000", status: "Completed" },
@@ -82,6 +84,14 @@ export default function TransactionPage() {
                 </div>
 
                 <ReusableTable columns={columns} data={filteredTransactions || []} />
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 mb-6">
+                <div className="lg:col-span-2">
+                    <BarChartComponent />
+                </div>
+                <div className="lg:col-span-1">
+                     <ExpensesChart />
+                </div>
             </div>
         </div>
     );

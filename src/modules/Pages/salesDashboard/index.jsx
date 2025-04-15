@@ -10,9 +10,9 @@ export default function SalesDashboard() {
                     <h1 className="text-xl sm:text-2xl font-medium">
                         Welcome back, Hamzat 👋
                     </h1>
-                    <button className="bg-gradient text-white px-6 sm:px-8 py-2 sm:py-3 cursor-pointer rounded-md hover:bg-purple-600 transition w-full sm:w-auto">
+                    {/* <button className="bg-gradient text-white px-6 sm:px-8 py-2 sm:py-3 cursor-pointer rounded-md hover:bg-purple-600 transition w-full sm:w-auto">
                         Add User
-                    </button>
+                    </button> */}
                 </div>
                 <p className="text-gray-500 mt-2 text-sm sm:text-base">
                     Another day to earn from registering users on OAStyles

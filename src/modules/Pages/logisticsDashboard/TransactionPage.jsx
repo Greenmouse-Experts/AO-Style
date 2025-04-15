@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import ReusableTable from "../logisticsDashboard/components/ReusableTable";
+import WalletPage from "./components/WalletPage";
+import BarChartComponent from "./components/BarChartComponent";
 
 const transactions = [
     { id: 1, transactionId: "TXNRIO1234FNK", date: "19-02-25", time: "12:30pm", category: "Fabric & Tailor", amount: "N 200,000", status: "Completed" },
@@ -47,6 +49,15 @@ export default function TransactionPage() {
                 <p className="text-gray-500">
                     <Link to="/logistics" className="text-blue-500 hover:underline">Dashboard</Link> &gt; Transactions
                 </p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 mb-6">
+                <div className="lg:col-span-2">
+                    <BarChartComponent />
+                </div>
+                <div className="lg:col-span-1">
+                    <WalletPage />
+                </div>
             </div>
 
             <div className="bg-white p-4 rounded-lg">

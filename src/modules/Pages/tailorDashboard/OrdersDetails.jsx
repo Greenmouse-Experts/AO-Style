@@ -91,7 +91,7 @@ const OrderDetails = () => {
                             <div>
                                 <p className="text-gray-700 mb-3">FABRIC</p>
                                 <label className="flex items-center gap-2 mb-4">
-                                    <span className="text-sm w-full">Mark as Received</span>
+                                    <span className="text-sm w-full">Mark as Delivered</span>
                                     <input
                                         type="checkbox"
                                         className="accent-purple-500 w-5 h-5"
@@ -101,7 +101,7 @@ const OrderDetails = () => {
                                 </label>
                             </div>
 
-                            <div>
+                            {/* <div>
                                 <p className="text-gray-700 mb-3">TAILORING</p>
                                 <label className="flex items-center gap-2 mb-4">
                                     <span className="text-sm w-full">Mark as Completed</span>
@@ -123,7 +123,7 @@ const OrderDetails = () => {
                                         onChange={() => handleCheckboxChange("sent")}
                                     />
                                 </label>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                 </div>
@@ -140,7 +140,7 @@ const OrderDetails = () => {
                         </button>
                             <h2 className="text-lg font-semibold mb-4">Upload Received Material</h2>
                             <p className="text-black mb-6 leading-loose">
-                                Upload a clear picture of the fabric you received from the fabric vendor to mark fabric as “Received”
+                                Upload a clear picture of the fabric you received from the fabric vendor to mark fabric as “Delivered”
                             </p>
                             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center mb-6">
                                 <div className="flex justify-center mb-2">

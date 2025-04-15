@@ -101,7 +101,7 @@ const OrderDetails = () => {
                                 </label>
                             </div>
 
-                            <div>
+                            {/* <div>
                                 <p className="text-gray-700 mb-3">TAILORING</p>
                                 <label className="flex items-center gap-2 mb-4">
                                     <span className="text-sm w-full">Mark as Completed</span>
@@ -123,7 +123,7 @@ const OrderDetails = () => {
                                         onChange={() => handleCheckboxChange("sent")}
                                     />
                                 </label>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                 </div>

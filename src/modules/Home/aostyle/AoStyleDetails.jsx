@@ -152,7 +152,13 @@ export default function AnkaraGownPage() {
             <div className="mt-20">
               {measurementsSubmitted ? (
                 <div className="w-full">
-                  <SavedMeasurementsDisplay onAddNewMeasurement={() => setMeasurementsSubmitted(false)} />
+                  <SavedMeasurementsDisplay
+                    onAddNewMeasurement={() => {
+                      setMeasurementsSubmitted(false);
+                      setSelectedTab('Upper Body');
+                    }}
+                  />
+
                 </div>
               ) : (
                 <div className="flex flex-col md:flex-row gap-8">

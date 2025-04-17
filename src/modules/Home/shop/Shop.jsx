@@ -45,7 +45,9 @@ export default function ShopPage() {
       <section className="Resizer section px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Sidebar */}
-          <aside className="bg-white p-6 border border-gray-300 rounded-md">
+          <aside className="bg-white p-6 border border-gray-300 rounded-md 
+  md:h-[50vh] md:sticky md:top-24 md:overflow-y-auto 
+  scrollbar-thin scrollbar-thumb-purple-500 scrollbar-track-gray-100">
             <h3 className="font-semibold mb-2">CATEGORY</h3>
             {categories.map(category => (
               <div key={category} className="flex items-center mb-2">

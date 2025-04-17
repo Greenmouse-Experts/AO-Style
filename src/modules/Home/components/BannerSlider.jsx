@@ -31,7 +31,7 @@ const slides = [
     },
     {
         id: 4,
-        image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214079/AoStyle/image3_xi3hxi.jpg",
+        image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1744870895/Group_1321315150_rvdrzb.jpg",
         heading: "Get your order to your doorstep - <span class='font-bold italic'> In time !</span>",
         description:
             "Get custom-made outfits designed to match your unique style and preferences, delivered right to your doorstep.",

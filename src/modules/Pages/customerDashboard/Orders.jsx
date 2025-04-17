@@ -5,7 +5,7 @@ import { Search } from "lucide-react";
 
 const orders = [
     { id: "01", orderId: "QWER123DFDG324R", date: "15-02-25", vendor: "Sandra Fabrics", designer: "Jude Stitches", delivery: "21-05-25", status: "Ongoing" },
-    { id: "02", orderId: "QWER123DFDG324R", date: "15-02-25", vendor: "Sandra Fabrics", designer: "-", delivery: "21-05-25", status: "Ongoing" },
+    { id: "02", orderId: "QWER123DFDG324R", date: "15-02-25", vendor: "Sandra Fabrics", designer: "Hamzat Stitches", delivery: "21-05-25", status: "Ongoing" },
     { id: "03", orderId: "QWER123DFDG324R", date: "15-02-25", vendor: "Sandra Fabrics", designer: "Jude Stitches", delivery: "21-05-25", status: "Ongoing" },
     { id: "04", orderId: "QWER123DFDG324R", date: "15-02-25", vendor: "Sandra Fabrics", designer: "Jude Stitches", delivery: "21-05-25", status: "Cancelled" },
     { id: "05", orderId: "QWER123DFDG324R", date: "15-02-25", vendor: "Sandra Fabrics", designer: "Jude Stitches", delivery: "21-05-25", status: "Ongoing" },

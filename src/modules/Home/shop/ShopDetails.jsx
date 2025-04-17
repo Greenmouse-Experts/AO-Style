@@ -53,15 +53,20 @@ export default function ShopDetails() {
     const incrementQty = () => setQuantity(prev => prev + 1);
     const decrementQty = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
 
+    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+
     const handleAddToCart = () => {
-        alert("Product added to cart successfully!");
+        setIsSuccessModalOpen(true);
 
         setTimeout(() => {
+            setIsSuccessModalOpen(false);
             setIsModalOpen(true);
-        }, 500);
+        }, 2500);
     };
+
+
 
     return (
         <>
@@ -86,10 +91,10 @@ export default function ShopDetails() {
                                 />
                             ))}
                         </div>
-                        <img 
-                            src={mainImage} 
-                            alt={product.name} 
-                            className="w-full h-auto object-cover rounded-md mt-2 md:mt-0" 
+                        <img
+                            src={mainImage}
+                            alt={product.name}
+                            className="w-full h-auto object-cover rounded-md mt-2 md:mt-0"
                         />
                     </div>
 
@@ -152,7 +157,7 @@ export default function ShopDetails() {
                             </div>
                         </div>
                         <CheckModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-                        
+
                         {/* Add to Cart Button */}
                         <button
                             onClick={handleAddToCart}
@@ -160,6 +165,28 @@ export default function ShopDetails() {
                         >
                             <ShoppingCart size={18} className="mr-2" /> Add To Cart
                         </button>
+                        {isSuccessModalOpen && (
+                            <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
+                                <div className="bg-white rounded-lg shadow-lg p-6 w-[90%] max-w-sm animate-fade-in-up">
+                                    <h2 className="text-lg font-semibold text-green-600 mb-1">Success!</h2>
+                                    <p className="text-gray-700">Product added to cart successfully.</p>
+
+                                    <div className="mt-3 flex justify-end">
+                                        <button
+                                            onClick={() => {
+                                                setIsSuccessModalOpen(false);
+                                                setIsModalOpen(true); // Show CheckModal immediately if manually closed
+                                            }}
+                                            className="px-4 py-2 bg-gradient text-white rounded hover:bg-purple-700 transition"
+                                        >
+                                            Continue
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+
 
                         {/* Social Links */}
                         <div className="flex flex-wrap gap-4 md:space-x-6 text-gray-600 mt-6 md:mt-10 text-sm md:text-base items-center">

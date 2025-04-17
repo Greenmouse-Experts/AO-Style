@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Filter, SortDesc } from "lucide-react";
 import Breadcrumb from "../components/Breadcrumb";
+import { Link } from "react-router-dom";
 
 const categories = ["Male", "Female"];
 const initialProducts = [
@@ -62,11 +63,11 @@ export default function ShopPage() {
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
                             {filteredProducts.map((product) => (
-                                <div key={product.id} className="text-center">
+                                <Link key={product.id} className="text-center" to={`/inner-marketplace`}>
                                     <img src={product.image} alt={product.name} className="w-full h-56 object-cover rounded-md" />
                                     <h3 className="font-medium text-left mt-4 mb-3">{product.name}</h3>
                                     <p className="text-[#2B21E5] text-left font-light">{product.price} <span className="text-[#8A8A8A] font-medium">per yard</span></p>
-                                </div>
+                                </Link>
                             ))}
                         </div>
                         <div className="text-center mt-6">

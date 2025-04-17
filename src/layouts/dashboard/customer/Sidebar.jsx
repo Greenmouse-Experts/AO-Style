@@ -2,15 +2,15 @@ import { NavLink } from "react-router-dom";
 import {
   FaHome, FaStore, FaSignOutAlt, FaShoppingCart, FaInbox, FaBell, FaCreditCard, FaCog
 } from "react-icons/fa";
-import { GiScissors } from "react-icons/gi";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   return (
     <div className="relative">
       {/* Sidebar */}
       <div
-        className={`fixed md:relative top-0 left-0 h-screen bg-gradient p-5 flex flex-col transition-transform duration-300 z-40 ${isOpen ? "translate-x-0" : "-translate-x-full"
-          } md:translate-x-0 md:w-72 w-64`}
+        className={`fixed md:relative top-0 left-0 h-screen bg-gradient p-5 flex flex-col transition-transform duration-300 z-40 overflow-y-auto ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0 md:w-72 w-64`}
       >
         {/* Logo */}
         <div className="flex justify-center">
@@ -59,7 +59,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <FaSignOutAlt className="mr-2" /> Log Out
         </button>
       </div>
-
 
       {/* Mobile Overlay */}
       {isOpen && (

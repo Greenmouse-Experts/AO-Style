@@ -8,7 +8,7 @@ const Settings = () => {
     const [activeTab, setActiveTab] = useState("personalDetails");
     const [bodyTab, setBodyTab] = useState("upperBody");
     const [activeSection, setActiveSection] = useState("Profile");
-   
+
     return (
         <>
             <div className="bg-white px-6 py-4 mb-6">
@@ -21,7 +21,7 @@ const Settings = () => {
                 {/* Sidebar */}
                 <div className="w-full md:w-1/5 bg-white md:mb-0 mb-6 h-fit p-4 rounded-lg">
                     <ul className="space-y-2 text-gray-600">
-                        {["Profile", "KYC", "Bank Details", "Security", ].map((item) => (
+                        {["Profile", "KYC", "Bank Details", "Security",].map((item) => (
                             <li
                                 key={item}
                                 className={`cursor-pointer px-4 py-3 rounded-lg transition-colors duration-300 ${activeSection === item ? "font-medium text-purple-600 bg-purple-100" : "hover:text-purple-600"
@@ -127,116 +127,144 @@ const Settings = () => {
                                         </div>
 
                                         {bodyTab === "upperBody" && (
-                                            <form className="space-y-4 grid grid-cols-2 gap-4 mt-8">
+                                            <form className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
                                                 <div>
                                                     <label className="block text-gray-700 mb-4">Neck Circumference</label>
                                                     <div className="relative">
                                                         <input type="text" placeholder="Neck Circumference" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg pr-10" required />
-                                                        <span className="absolute right-3 top-1/2 border-l-1 border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
+                                                        <span className="absolute right-3 top-1/2 border-l border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
                                                     </div>
                                                 </div>
                                                 <div>
                                                     <label className="block text-gray-700 mb-4">Shoulder Width</label>
                                                     <div className="relative">
                                                         <input type="text" placeholder="Shoulder Width" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg pr-10" required />
-                                                        <span className="absolute right-3 top-1/2 border-l-1 border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
+                                                        <span className="absolute right-3 top-1/2 border-l border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
                                                     </div>
                                                 </div>
-
                                                 <div>
                                                     <label className="block text-gray-700 mb-4">Chest Circumference</label>
                                                     <div className="relative">
                                                         <input type="text" placeholder="Chest Circumference" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg pr-10" required />
-                                                        <span className="absolute right-3 top-1/2 border-l-1 border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
+                                                        <span className="absolute right-3 top-1/2 border-l border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
                                                     </div>
                                                 </div>
-
                                                 <div>
                                                     <label className="block text-gray-700 mb-4">Waist Circumference</label>
                                                     <div className="relative">
                                                         <input type="text" placeholder="Waist Circumference" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg pr-10" required />
-                                                        <span className="absolute right-3 top-1/2 border-l-1 border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
+                                                        <span className="absolute right-3 top-1/2 border-l border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
                                                     </div>
                                                 </div>
-
                                                 <div>
                                                     <label className="block text-gray-700 mb-4">Sleeve Length</label>
                                                     <div className="relative">
                                                         <input type="text" placeholder="Sleeve Length" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg pr-10" required />
-                                                        <span className="absolute right-3 top-1/2 border-l-1 border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
+                                                        <span className="absolute right-3 top-1/2 border-l border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
                                                     </div>
                                                 </div>
-
                                                 <div>
                                                     <label className="block text-gray-700 mb-4">Bicep Circumference</label>
                                                     <div className="relative">
                                                         <input type="text" placeholder="Bicep Circumference" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg pr-10" required />
-                                                        <span className="absolute right-3 top-1/2 border-l-1 border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
+                                                        <span className="absolute right-3 top-1/2 border-l border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
                                                     </div>
                                                 </div>
-
                                                 <div>
                                                     <label className="block text-gray-700 mb-4">Wrist Circumference</label>
                                                     <div className="relative">
                                                         <input type="text" placeholder="Wrist Circumference" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg pr-10" required />
-                                                        <span className="absolute right-3 top-1/2 border-l-1 border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
+                                                        <span className="absolute right-3 top-1/2 border-l border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
                                                     </div>
                                                 </div>
-
-                                                <div >
+                                                <div>
                                                     <label className="block text-gray-700 mb-4">Shirt Length</label>
                                                     <div className="relative">
                                                         <input type="text" placeholder="Shirt Length" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg pr-10" required />
-                                                        <span className="absolute right-3 top-1/2 border-l-1 border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
+                                                        <span className="absolute right-3 top-1/2 border-l border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
                                                     </div>
                                                 </div>
 
-
-                                                <button type="submit" className="mt-4 bg-gradient text-white px-6 py-2 rounded-md">Update Upper Body</button>
+                                                <div className="col-span-1 sm:col-span-2">
+                                                    <button type="submit" className="w-full sm:w-auto mt-4 bg-gradient text-white px-6 py-2">
+                                                        Update Upper Body
+                                                    </button>
+                                                </div>
                                             </form>
+
                                         )}
                                         {bodyTab === "lowerBody" && (
-                                            <form className="space-y-4 grid grid-cols-2 gap-4 mt-4">
+                                            <form className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                                                 <div>
                                                     <label className="block text-gray-700 mb-4">Waist Circumference</label>
                                                     <div className="relative">
                                                         <input type="text" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg pr-10" placeholder="Enter the circumference of your waist" required />
-                                                        <span className="absolute right-3 top-1/2 border-l-1 border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
+                                                        <span className="absolute right-3 top-1/2 border-l border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
                                                     </div>
                                                 </div>
+
                                                 <div>
                                                     <label className="block text-gray-700 mb-4">Hip Circumference</label>
                                                     <div className="relative">
                                                         <input type="text" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg pr-10" placeholder="Enter the circumference of your hip" required />
-                                                        <span className="absolute right-3 top-1/2 border-l-1 border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
+                                                        <span className="absolute right-3 top-1/2 border-l border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
                                                     </div>
                                                 </div>
+
                                                 <div>
                                                     <label className="block text-gray-700 mb-4">Thigh Circumference</label>
                                                     <div className="relative">
                                                         <input type="text" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg pr-10" placeholder="Enter the circumference of your thigh" required />
-                                                        <span className="absolute right-3 top-1/2 border-l-1 border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
+                                                        <span className="absolute right-3 top-1/2 border-l border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
                                                     </div>
                                                 </div>
+
                                                 <div>
                                                     <label className="block text-gray-700 mb-4">Knee Circumference</label>
                                                     <div className="relative">
                                                         <input type="text" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg pr-10" placeholder="Enter the circumference of your knee" required />
-                                                        <span className="absolute right-3 top-1/2 border-l-1 border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
+                                                        <span className="absolute right-3 top-1/2 border-l border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
                                                     </div>
                                                 </div>
-                                                <div className="col-span-2">
+
+                                                <div className="sm:col-span-2">
                                                     <label className="block text-gray-700 mb-4">Trouser Length (Waist to Ankle)</label>
                                                     <div className="relative">
                                                         <input type="text" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg pr-10" placeholder="Enter your trouser length" required />
-                                                        <span className="absolute right-3 top-1/2 border-l-1 border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
+                                                        <span className="absolute right-3 top-1/2 border-l border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
                                                     </div>
                                                 </div>
-                                                <div className="col-span-2 flex justify-between">
-                                                    <button className="bg-gray-400 text-white px-6 py-2 rounded-md">Back</button>
-                                                    <button type="submit" className="bg-purple-600 text-white px-6 py-2 rounded-md">Update Lower Body</button>
+
+                                                <div className="sm:col-span-2 flex flex-col sm:flex-row justify-between gap-4 mt-2">
+                                                    <button className="w-full sm:w-auto bg-gray-400 text-white px-6 py-2">Back</button>
+                                                    <button type="submit" className="w-full sm:w-auto bg-gradient text-white px-6 py-2">Update Lower Body</button>
                                                 </div>
                                             </form>
+
+                                        )}
+                                         {bodyTab === "fullBody" && (
+                                            <form className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                                                <div>
+                                                    <label className="block text-gray-700 mb-4">Full Height</label>
+                                                    <div className="relative">
+                                                        <input type="text" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg pr-10" placeholder="Enter the circumference of your waist" required />
+                                                        <span className="absolute right-3 top-1/2 border-l border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <label className="block text-gray-700 mb-4">Agbada Length</label>
+                                                    <div className="relative">
+                                                        <input type="text" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg pr-10" placeholder="Enter the circumference of your hip" required />
+                                                        <span className="absolute right-3 top-1/2 border-l border-[#CCCCCC] pl-2 transform -translate-y-1/2 text-gray-500">cm</span>
+                                                    </div>
+                                                </div>
+                                                <div className="sm:col-span-2 flex flex-col sm:flex-row justify-between gap-4 mt-2">
+                                                    <button className="w-full sm:w-auto bg-gray-400 text-white px-6 py-2">Back</button>
+                                                    <button type="submit" className="w-full sm:w-auto bg-gradient text-white px-6 py-2">Update Lower Body</button>
+                                                </div>
+                                            </form>
+
                                         )}
                                     </div>
                                 )}
@@ -258,7 +286,7 @@ const Settings = () => {
 
                     {activeSection === "Security" && (
                         <div className="">
-                           <SecuritySettings />
+                            <SecuritySettings />
                         </div>
                     )}
                     {activeSection === "Settings" && <h2 className="text-xl font-medium">General Settings</h2>}

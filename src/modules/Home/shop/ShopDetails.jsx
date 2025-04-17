@@ -186,8 +186,6 @@ export default function ShopDetails() {
                             </div>
                         )}
 
-
-
                         {/* Social Links */}
                         <div className="flex flex-wrap gap-4 md:space-x-6 text-gray-600 mt-6 md:mt-10 text-sm md:text-base items-center">
                             <a href="#" className="flex items-center space-x-1 md:space-x-2 hover:text-purple-600 transition-colors">

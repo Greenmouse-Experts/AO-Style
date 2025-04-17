@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import {
-  FaHome, FaStore, FaSignOutAlt , FaCommentDots , FaBell, FaCreditCard, FaCog
+  FaHome, FaStore, FaSignOutAlt, FaCommentDots, FaBell, FaCreditCard, FaCog
 } from "react-icons/fa";
 import { GiScissors } from "react-icons/gi";
 
@@ -15,7 +15,13 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       >
         {/* Logo */}
         <div className="flex justify-center">
-          <NavLink to="/">
+          <NavLink
+            to="/"
+            onClick={() => {
+              window.scrollTo(0, 0);
+              toggleSidebar();
+            }}
+          >
             <img
               src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1743094475/AoStyle/CARYBIN_TRANSPARENT_crm6rl.png"
               alt="Carybin Logo"
@@ -33,14 +39,15 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
         {/* Sidebar Links */}
         <nav className="flex-1 space-y-2">
-          <SidebarItem to="/sales" icon={<FaHome />} text="Dashboard" />
-          <SidebarItem to="/sales/fabric-vendors" icon={<FaStore />} text="Fabric Vendors" />
-          <SidebarItem to="/sales/fashion-designers" icon={<GiScissors />} text="Fashion Designers" />
-          <SidebarItem to="/sales/inbox" icon={<FaCommentDots />} text="Inbox" />
-          <SidebarItem to="/sales/notifications" icon={<FaBell />} text="Notifications" />
-          <SidebarItem to="/sales/transactions" icon={<FaCreditCard />} text="Transactions" />
-          <SidebarItem to="/sales/settings" icon={<FaCog />} text="Settings" />
+          <SidebarItem to="/sales" icon={<FaHome />} text="Dashboard" toggleSidebar={toggleSidebar} />
+          <SidebarItem to="/sales/fabric-vendors" icon={<FaStore />} text="Fabric Vendors" toggleSidebar={toggleSidebar} />
+          <SidebarItem to="/sales/fashion-designers" icon={<GiScissors />} text="Fashion Designers" toggleSidebar={toggleSidebar} />
+          <SidebarItem to="/sales/inbox" icon={<FaCommentDots />} text="Inbox" toggleSidebar={toggleSidebar} />
+          <SidebarItem to="/sales/notifications" icon={<FaBell />} text="Notifications" toggleSidebar={toggleSidebar} />
+          <SidebarItem to="/sales/transactions" icon={<FaCreditCard />} text="Transactions" toggleSidebar={toggleSidebar} />
+          <SidebarItem to="/sales/settings" icon={<FaCog />} text="Settings" toggleSidebar={toggleSidebar} />
         </nav>
+
         {/* User Profile */}
         <div className="mt-auto border-t border-gray-300 pt-5 flex items-center">
           <img
@@ -59,7 +66,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <FaSignOutAlt className="mr-2" /> Log Out
         </button>
       </div>
-      
 
       {/* Mobile Overlay */}
       {isOpen && (
@@ -72,10 +78,14 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   );
 };
 
-const SidebarItem = ({ to, icon, text }) => (
+const SidebarItem = ({ to, icon, text, toggleSidebar }) => (
   <NavLink
     to={to}
-    end 
+    end
+    onClick={() => {
+      window.scrollTo(0, 0);
+      toggleSidebar();
+    }}
     className={({ isActive }) =>
       `flex items-center py-3 px-3 rounded-md cursor-pointer transition-colors ${
         isActive
@@ -83,11 +93,9 @@ const SidebarItem = ({ to, icon, text }) => (
           : "text-white hover:bg-gray-200 hover:text-[#9847FE]"
       }`
     }
-    
   >
     <span className="mr-3">{icon}</span> {text}
   </NavLink>
 );
-
 
 export default Sidebar;

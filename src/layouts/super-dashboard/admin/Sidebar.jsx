@@ -7,8 +7,14 @@ import {
 import { GiScissors } from "react-icons/gi";
 import { Link } from "react-router-dom";
 
-
 const Sidebar = ({ isOpen, toggleSidebar }) => {
+  const handleClick = () => {
+    window.scrollTo(0, 0);
+    if (window.innerWidth < 768) {
+      toggleSidebar(); 
+    }
+  };
+
   return (
     <div className="relative">
       {/* Sidebar */}
@@ -18,7 +24,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       >
         {/* Logo */}
         <div className="flex justify-center mb-3">
-          <NavLink to="/">
+          <NavLink to="/" onClick={handleClick}>
             <img
               src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1743094475/AoStyle/CARYBIN_TRANSPARENT_crm6rl.png"
               alt="Carybin Logo"
@@ -29,41 +35,45 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
         {/* Sidebar Links */}
         <nav className="flex-1 space-y-2">
-          <SidebarItem to="/admin" icon={<FaHome />} text="Dashboard" />
-          <h3 className="text-xs text-white uppercase  mt-4 mb-2">User Management</h3>
-          <SidebarItem to="/admin/customers" icon={<FaUsers />} text="Customers" />
-          <SidebarItem to="/admin/tailors" icon={<GiScissors />} text="Tailors / Designers" />
-          <SidebarItem to="/admin/fabric-vendor" icon={<FaBox />} text="Fabric Vendor" />
-          <SidebarItem to="/admin/sales-rep" icon={<FaBriefcase />} text="Market Rep" />
-          <SidebarItem to="/admin/logistics" icon={<FaTruck />} text="Logistics" />
-          <SidebarItem to="/admin/sub-admins" icon={<FaUserShield />} text="Admins" />
+          <SidebarItem to="/admin" icon={<FaHome />} text="Dashboard" onClick={handleClick} />
+          <h3 className="text-xs text-white uppercase mt-4 mb-2">User Management</h3>
+          <SidebarItem to="/admin/customers" icon={<FaUsers />} text="Customers" onClick={handleClick} />
+          <SidebarItem to="/admin/tailors" icon={<GiScissors />} text="Tailors / Designers" onClick={handleClick} />
+          <SidebarItem to="/admin/fabric-vendor" icon={<FaBox />} text="Fabric Vendor" onClick={handleClick} />
+          <SidebarItem to="/admin/sales-rep" icon={<FaBriefcase />} text="Market Rep" onClick={handleClick} />
+          <SidebarItem to="/admin/logistics" icon={<FaTruck />} text="Logistics" onClick={handleClick} />
+          <SidebarItem to="/admin/sub-admins" icon={<FaUserShield />} text="Admins" onClick={handleClick} />
+          
           {/* Products Section */}
           <div className="mb-4">
             <h3 className="text-xs text-white uppercase mb-2">Products</h3>
-            <SidebarItem to="/admin/markets" icon={<FaStore />} text="Markets" />
-            <SidebarItem to="/admin/fabrics" icon={<FaTshirt />} text="Fabrics" />
-            <SidebarItem to="/admin/styles" icon={<FaPalette />} text="Styles" />
+            <SidebarItem to="/admin/markets" icon={<FaStore />} text="Markets" onClick={handleClick} />
+            <SidebarItem to="/admin/fabrics" icon={<FaTshirt />} text="Fabrics" onClick={handleClick} />
+            <SidebarItem to="/admin/styles" icon={<FaPalette />} text="Styles" onClick={handleClick} />
           </div>
+
           {/* More Section */}
           <div className="mb-4">
             <h3 className="text-xs text-white uppercase mb-2">More</h3>
-            <SidebarItem to="/admin/orders" icon={<FaShoppingCart />} text="Orders" />
-            <SidebarItem to="/admin/transactions" icon={<FaCreditCard />} text="Payments & Transactions" />
-            <SidebarItem to="/admin/notifications" icon={<FaBell />} text="Notifications" />
+            <SidebarItem to="/admin/orders" icon={<FaShoppingCart />} text="Orders" onClick={handleClick} />
+            <SidebarItem to="/admin/transactions" icon={<FaCreditCard />} text="Payments & Transactions" onClick={handleClick} />
+            <SidebarItem to="/admin/notifications" icon={<FaBell />} text="Notifications" onClick={handleClick} />
             {/* <SidebarItem to="/admin/messages" icon={<FaEnvelope />} text="Messages" />
             <SidebarItem to="/admin/analytics" icon={<FaChartBar />} text="Reports & Analytics" /> */}
-            <SidebarItem to="/admin/settings" icon={<FaCog />} text="Settings & Configuration" />
+            <SidebarItem to="/admin/settings" icon={<FaCog />} text="Settings & Configuration" onClick={handleClick} />
           </div>
+
           {/* Profile Section */}
           <div className="mt-auto bg-gray-100 p-4 rounded-lg text-center">
             <img src="https://randomuser.me/api/portraits/men/10.jpg" alt="Admin" className="w-12 h-12 mx-auto rounded-full mb-2" />
             <p className="text-sm font-semibold">OA Styles</p>
             <p className="text-xs text-gray-500">Super Admin Dashboard</p>
-            <Link to="/admin/settings"><button className="mt-2 text-xs bg-[#172B4D] text-white px-3 py-2 cursor-pointer rounded-md">Go to Profile</button></Link>
+            <Link to="/admin/settings">
+              <button className="mt-2 text-xs bg-[#172B4D] text-white px-3 py-2 cursor-pointer rounded-md">Go to Profile</button>
+            </Link>
           </div>
         </nav>
       </div>
-
 
       {/* Mobile Overlay */}
       {isOpen && (
@@ -76,21 +86,20 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   );
 };
 
-const SidebarItem = ({ to, icon, text }) => (
+const SidebarItem = ({ to, icon, text, onClick }) => (
   <NavLink
     to={to}
     end
+    onClick={onClick}
     className={({ isActive }) =>
       `flex items-center py-3 px-3 rounded-md cursor-pointer transition-colors ${isActive
         ? "text-[#9847FE] bg-[#f3e8ff] font-normal"
         : "text-white hover:bg-gray-200 hover:text-[#9847FE]"
       }`
     }
-
   >
     <span className="mr-3">{icon}</span> {text}
   </NavLink>
 );
-
 
 export default Sidebar;

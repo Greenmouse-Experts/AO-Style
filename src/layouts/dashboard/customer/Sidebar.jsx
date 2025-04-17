@@ -4,6 +4,13 @@ import {
 } from "react-icons/fa";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
+  const handleClick = () => {
+    window.scrollTo(0, 0);
+    if (window.innerWidth < 768) {
+      toggleSidebar();
+    }
+  };
+
   return (
     <div className="relative">
       {/* Sidebar */}
@@ -14,7 +21,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       >
         {/* Logo */}
         <div className="flex justify-center">
-          <NavLink to="/">
+          <NavLink to="/" onClick={handleClick}>
             <img
               src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1743094475/AoStyle/CARYBIN_TRANSPARENT_crm6rl.png"
               alt="Carybin Logo"
@@ -32,15 +39,15 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
         {/* Sidebar Links */}
         <nav className="flex-1 space-y-2">
-          <SidebarItem to="/customer" icon={<FaHome />} text="Dashboard" />
-          <SidebarItem to="/customer/shop-materials" icon={<FaStore />} text="Shop Materials" />
-          {/* <SidebarItem to="/customer/tailor-hiring" icon={<GiScissors />} text="Tailor Hiring" /> */}
-          <SidebarItem to="/customer/orders" icon={<FaShoppingCart />} text="Orders" />
-          <SidebarItem to="/customer/inbox" icon={<FaInbox />} text="Inbox" />
-          <SidebarItem to="/customer/notifications" icon={<FaBell />} text="Notifications" />
-          <SidebarItem to="/customer/transactions" icon={<FaCreditCard />} text="Transactions" />
-          <SidebarItem to="/customer/settings" icon={<FaCog />} text="Settings" />
+          <SidebarItem to="/customer" icon={<FaHome />} text="Dashboard" onClick={handleClick} />
+          <SidebarItem to="/customer/shop-materials" icon={<FaStore />} text="Shop Materials" onClick={handleClick} />
+          <SidebarItem to="/customer/orders" icon={<FaShoppingCart />} text="Orders" onClick={handleClick} />
+          <SidebarItem to="/customer/inbox" icon={<FaInbox />} text="Inbox" onClick={handleClick} />
+          <SidebarItem to="/customer/notifications" icon={<FaBell />} text="Notifications" onClick={handleClick} />
+          <SidebarItem to="/customer/transactions" icon={<FaCreditCard />} text="Transactions" onClick={handleClick} />
+          <SidebarItem to="/customer/settings" icon={<FaCog />} text="Settings" onClick={handleClick} />
         </nav>
+
         {/* User Profile */}
         <div className="mt-auto border-t border-white pt-5 flex items-center">
           <img
@@ -71,21 +78,21 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   );
 };
 
-const SidebarItem = ({ to, icon, text }) => (
+const SidebarItem = ({ to, icon, text, onClick }) => (
   <NavLink
     to={to}
     end
+    onClick={onClick}
     className={({ isActive }) =>
-      `flex items-center py-3 px-3 rounded-md cursor-pointer transition-colors ${isActive
-        ? "text-[#9847FE] bg-[#f3e8ff] font-normal"
-        : "text-white hover:bg-gray-200 hover:text-[#9847FE]"
+      `flex items-center py-3 px-3 rounded-md cursor-pointer transition-colors ${
+        isActive
+          ? "text-[#9847FE] bg-[#f3e8ff] font-normal"
+          : "text-white hover:bg-gray-200 hover:text-[#9847FE]"
       }`
     }
-
   >
     <span className="mr-3">{icon}</span> {text}
   </NavLink>
 );
-
 
 export default Sidebar;

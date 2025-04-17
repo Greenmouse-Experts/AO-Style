@@ -175,7 +175,7 @@ export default function ShopDetails() {
                                         <button
                                             onClick={() => {
                                                 setIsSuccessModalOpen(false);
-                                                setIsModalOpen(true); // Show CheckModal immediately if manually closed
+                                                setIsModalOpen(true);
                                             }}
                                             className="px-4 py-2 bg-gradient text-white rounded hover:bg-purple-700 transition"
                                         >

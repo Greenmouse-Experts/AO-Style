@@ -64,7 +64,7 @@ export default function GetStarted() {
             </div>
 
             <footer className="mt-14 text-[#BEBDBD] text-sm">
-                &copy; 2025 OASTYLES. All rights reserved.
+                &copy; 2025 CARYBIN . All rights reserved.
             </footer>
         </div>
     );

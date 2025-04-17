@@ -51,7 +51,7 @@ export default function TestimonialCarousel() {
   return (
     <div className="overflow-hidden bg-white section">
         <h2 className="text-2xl font-medium mx-auto text-center max-w-lg leading-relaxed px-4">Your convenience and satisfaction is our top priority</h2>
-      <div ref={scrollRef} className="flex space-x-6 overflow-x-auto scrollbar-hide mt-14 px-6">
+      <div ref={scrollRef} className="flex space-x-6 overflow-x-auto custom-scrollbar scrollbar-hide mt-14 px-6">
         {[...testimonials, ...testimonials].map((testimonial, index) => (
           <div key={index} className="flex-shrink-0 w-auto bg-white shadow-sm p-6 rounded-lg">
             <div className="flex gap-1 text-yellow-500">

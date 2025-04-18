@@ -2,7 +2,7 @@ import { useState } from "react";
 import Sidebar from "../customer/Sidebar";
 import Navbar from "../customer/Navbar";
 import { Outlet } from "react-router-dom";
-import ScrollToTop from ".";
+// import ScrollToTop from ".";
 
 
 export default function DashboardLayout() {

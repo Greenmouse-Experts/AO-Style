@@ -68,12 +68,12 @@ const AddFabric = () => {
                         />
                     </div>
 
-                    {/* Weight per units */}
+                    {/* Weight per unit */}
                     <div>
-                        <label className="block text-gray-700 mb-4">Weight per units</label>
+                        <label className="block text-gray-700 mb-4">Weight per unit</label>
                         <input
                             type="text"
-                            placeholder="Enter the weight per units"
+                            placeholder="Enter the weight per unit"
                             className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                         />
                     </div>
@@ -216,14 +216,14 @@ const AddFabric = () => {
                     </div>
                 </div>
 
-                {/* Price per units */}
+                {/* Price per unit */}
                 <div>
-                    <label className="block text-gray-700 mb-4">Price per units</label>
+                    <label className="block text-gray-700 mb-4">Price per unit</label>
                     <div className="flex items-center">
                         <span className="p-5 bg-gray-200 rounded-l-md">₦</span>
                         <input
                             type="number"
-                            placeholder="Enter amount per units"
+                            placeholder="Enter amount per unit"
                             className="w-full p-4 border-t border-r border-b outline-none border-gray-300 rounded-r-md"
                         />
                     </div>

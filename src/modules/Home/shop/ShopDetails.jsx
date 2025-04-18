@@ -109,7 +109,7 @@ export default function ShopDetails() {
                             ))}
                             <span className="text-xs md:text-sm text-gray-500">({product.reviews} Reviews)</span>
                         </div>
-                        <p className="text-lg md:text-xl font-medium text-purple-600 mb-4 mt-4">{product.price} <span className="text-gray-500 text-sm">per units</span></p>
+                        <p className="text-lg md:text-xl font-medium text-purple-600 mb-4 mt-4">{product.price} <span className="text-gray-500 text-sm">per unit</span></p>
 
                         {/* Tags */}
                         <div className="mt-4">
@@ -300,7 +300,7 @@ export default function ShopDetails() {
                             <div key={product.id} className="">
                                 <img src={product.image} alt={product.name} className="w-full h-auto object-cover rounded-md" />
                                 <h4 className="mt-2 md:mt-4 mb-1 md:mb-3 font-medium text-sm md:text-base">{product.name}</h4>
-                                <p className="text-purple-600 text-sm md:text-base">{product.price} per units</p>
+                                <p className="text-purple-600 text-sm md:text-base">{product.price} per unit</p>
                             </div>
                         ))}
                     </div>

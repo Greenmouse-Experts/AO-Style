@@ -99,7 +99,7 @@ export default function ProductSection() {
                             className="w-full object-cover rounded-md"
                         />
                         <h3 className="font-medium text-left mt-4 mb-3">{product.name}</h3>
-                        <p className="text-[#2B21E5]  text-left font-light">{product.price}</p>
+                        <p className="text-[#2B21E5]  text-left font-light">{product.price}  <span className="text-[#8A8A8A] font-medium">per unit</span></p>
                     </Link>
                 ))}
             </div>

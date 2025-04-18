@@ -5,12 +5,12 @@ import { FaEllipsisH } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 const products = [
-    { id: "01", name: "Red Ankara Material", image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741984280/AoStyle/image1_ghkqjm.png", category: "Ankara", price: "N 7000/per units", qty: 120, stockStatus: "In-Stock", status: "Published" },
-    { id: "02", name: "Red Ankara Material", image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741984280/AoStyle/image4_dkiyz7.png", category: "Silk", price: "N 7000/per units", qty: 120, stockStatus: "In-Stock", status: "Published" },
-    { id: "03", name: "Red Ankara Material", image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741984280/AoStyle/image_e4dzqh.png", category: "Chiffon", price: "N 7000/per units", qty: 120, stockStatus: "Out Of Stock", status: "Published" },
-    { id: "04", name: "Red Ankara Material", image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741984280/AoStyle/image1_ghkqjm.png", category: "Ankara", price: "N 7000/per units", qty: 120, stockStatus: "In-Stock", status: "Cancelled" },
-    { id: "05", name: "Red Ankara Material", image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741984280/AoStyle/image4_dkiyz7.png", category: "Silk", price: "N 7000/per units", qty: 120, stockStatus: "In-Stock", status: "Pending" },
-    { id: "06", name: "Red Ankara Material", image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741984280/AoStyle/image1_ghkqjm.png", category: "Ankara", price: "N 7000/per units", qty: 120, stockStatus: "In-Stock", status: "Published" },
+    { id: "01", name: "Red Ankara Material", image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741984280/AoStyle/image1_ghkqjm.png", category: "Ankara", price: "N 7000/per unit", qty: 120, stockStatus: "In-Stock", status: "Published" },
+    { id: "02", name: "Red Ankara Material", image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741984280/AoStyle/image4_dkiyz7.png", category: "Silk", price: "N 7000/per unit", qty: 120, stockStatus: "In-Stock", status: "Published" },
+    { id: "03", name: "Red Ankara Material", image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741984280/AoStyle/image_e4dzqh.png", category: "Chiffon", price: "N 7000/per unit", qty: 120, stockStatus: "Out Of Stock", status: "Published" },
+    { id: "04", name: "Red Ankara Material", image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741984280/AoStyle/image1_ghkqjm.png", category: "Ankara", price: "N 7000/per unit", qty: 120, stockStatus: "In-Stock", status: "Cancelled" },
+    { id: "05", name: "Red Ankara Material", image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741984280/AoStyle/image4_dkiyz7.png", category: "Silk", price: "N 7000/per unit", qty: 120, stockStatus: "In-Stock", status: "Pending" },
+    { id: "06", name: "Red Ankara Material", image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741984280/AoStyle/image1_ghkqjm.png", category: "Ankara", price: "N 7000/per unit", qty: 120, stockStatus: "In-Stock", status: "Published" },
 ];
 
 const ProductPage = () => {

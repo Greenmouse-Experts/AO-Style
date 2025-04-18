@@ -46,7 +46,7 @@ export default function StyleForm() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-gray-700 mb-4">Style Category</label>
+                                <label className="block text-gray-700 mb-4 mt-4">Style Category</label>
                                 <select className="w-full p-4 border border-[#CCCCCC] text-gray-700  outline-none rounded-lg" required>
                                     <option value="">Choose style category</option>
                                     <option value="casual">Casual</option>
@@ -56,7 +56,7 @@ export default function StyleForm() {
                             </div>
 
                             <div>
-                                <label className="block text-gray-700 mb-4">Gender</label>
+                                <label className="block text-gray-700 mb-4 mt-4">Gender</label>
                                 <select className="w-full p-4 border border-[#CCCCCC] text-gray-700  outline-none rounded-lg" required>
                                     <option value="">Choose gender</option>
                                     <option value="male">Male</option>
@@ -105,7 +105,7 @@ export default function StyleForm() {
                         </div>
 
                         <div>
-                            <label className="block text-gray-700 mb-4">Price</label>
+                            <label className="block text-gray-700 mb-4 mt-4">Price</label>
                             <div className="flex items-center gap-2">
                                 <select className="border border-gray-300 rounded-lg px-3 py-2 bg-white outline-none">
                                     <option>NGN</option>
@@ -118,6 +118,15 @@ export default function StyleForm() {
                                     required
                                 />
                             </div>
+                        </div>
+                        <div>
+                            <label className="block text-gray-700 mb-4 mt-4">Location</label>
+                            <input
+                                    type="text"
+                                    placeholder="Enter the location"
+                                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                                    required
+                                />
                         </div>
                         <ModalThanks isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
                         <button type='submit' className="bg-gradient text-white px-6 py-2 rounded w-full md:w-fit mt-4 cursor-pointer" onClick={() => setIsModalOpen(true)} >

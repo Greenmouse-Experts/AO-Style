@@ -164,7 +164,7 @@ export default function AnkaraGownPage() {
                   {/* Measurement Image */}
                   <div className="md:w-2/5">
                     <img
-                      src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1744094425/AoStyle/image_ccvd3c.png"
+                      src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1744902411/WhatsApp_Image_2025-04-17_at_15.09.49_r3aaap.jpg"
                       alt="Body measurement diagram"
                       className="w-full rounded-md border border-gray-300"
                     />

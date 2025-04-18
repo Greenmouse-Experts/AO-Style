@@ -93,7 +93,7 @@ export default function HeroSlider() {
                 <Link to={slides[index].buttonLink}>
                     <motion.button
                         key={`button-${index}`}
-                        className="mt-6 px-8 py-3 bg-white text-purple-600 font-normal rounded-md hover:bg-gray-200 transition"
+                        className="mt-6 px-8 py-3 bg-white text-purple-600 font-normal rounded-md hover:bg-gray-200 cursor-pointer transition"
                         initial={{ x: -20, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
                         exit={{ x: -20, opacity: 0 }}

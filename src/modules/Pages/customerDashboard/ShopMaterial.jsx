@@ -184,11 +184,11 @@ export default function ShopMaterials() {
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         {filteredProducts.length > 0 ? (
                             filteredProducts.map((product, index) => (
-                                <div key={index} className="">
+                                <Link to={`/aostyle-details`}  key={index} className="">
                                     <img src={product.image} alt={product.name} className="w-full object-cover rounded-md" />
                                     <h3 className="font-medium text-left mt-4 mb-3">{product.name}</h3>
                                     <p className="text-[#2B21E5] text-left font-light">₦{product.price.toLocaleString()}</p>
-                                </div>
+                                </Link>
                             ))
                         ) : (
                             <p>No products match the selected filters.</p>

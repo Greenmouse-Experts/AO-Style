@@ -113,7 +113,7 @@ export default function StyleForm() {
                                 </select>
                                 <input
                                     type="number"
-                                    placeholder="Enter amount per yard"
+                                    placeholder="Enter amount per units"
                                     className="flex-1 p-4 border border-[#CCCCCC] rounded-lg px-4 py-2 outline-none"
                                     required
                                 />

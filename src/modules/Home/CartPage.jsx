@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Breadcrumb from "./components/Breadcrumb";
-// import { Link } from "react-router-dom";
 
 const CartPage = () => {
   const [cartItems, setCartItems] = useState([
@@ -47,6 +46,7 @@ const CartPage = () => {
   const [dropdownOpen, setDropdownOpen] = useState(null);
   const [coupon, setCoupon] = useState('');
   const [total, setTotal] = useState(0);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
   useEffect(() => {
     const subtotal = cartItems.reduce((sum, item) => sum + item.total, 0);
@@ -57,6 +57,10 @@ const CartPage = () => {
     const updated = cartItems.filter(item => item.id !== id);
     setCartItems(updated);
     setDropdownOpen(null);
+  };
+
+  const handleCheckout = () => {
+    setShowCheckoutModal(true);
   };
 
   return (
@@ -75,7 +79,6 @@ const CartPage = () => {
           <div className="text-right">TOTAL AMOUNT</div>
           <div className="text-right">ACTION</div>
         </div>
-
 
         <div className="space-y-6">
           {cartItems.map((item) => (
@@ -192,19 +195,193 @@ const CartPage = () => {
               <span className="font-medium">₦0</span>
             </div>
             <div className="flex justify-between w-full max-w-md">
+              <span className="font-light">Estimated Sales Tax (7.5%) :</span>
+              <span className="font-medium">₦{Math.round(total * 0.075).toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between w-full max-w-md">
+              <span className="font-light">Delivery Fee :</span>
+              <span className="font-medium">₦0</span>
+            </div>
+            <div className="flex justify-between w-full max-w-md">
               <span className="font-medium text-lg">Total :</span>
-              <span className="font-medium text-lg">₦{total.toLocaleString()}</span>
+              <span className="font-medium text-lg">
+                ₦{(total + Math.round(total * 0.075)).toLocaleString()}
+              </span>
             </div>
           </div>
 
           {/* Checkout Button */}
           <div className="flex justify-center mt-8">
-            <button className="bg-gradient text-white font-medium px-16 py-3 cursor-pointer">
-              Checkout | ₦{total.toLocaleString()}
+            <button
+              onClick={handleCheckout}
+              className="bg-gradient text-white font-medium px-16 py-3 cursor-pointer"
+            >
+              Checkout | ₦{(total + Math.round(total * 0.075)).toLocaleString()}
             </button>
           </div>
         </div>
 
+        {/* Checkout Modal */}
+        {showCheckoutModal && (
+          <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 pt-20">
+            <div className="bg-white rounded-lg p-6 w-full max-h-[80vh] overflow-y-auto max-w-3xl relative">
+              <button
+                onClick={() => setShowCheckoutModal(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  ></path>
+                </svg>
+              </button>
+              <h2 className="text-xl font-semibold mb-4">Receiver’s Information</h2>
+              <form className="space-y-4">
+                <div>
+                  <label className="block text-sm text-black">
+                    Delivery Option *
+                    <select className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none">
+                      <option>Select an option</option>
+                      <option>Standard Delivery</option>
+                      <option>Express Delivery</option>
+                    </select>
+                  </label>
+                </div>
+                <div>
+                  <label className="block text-sm text-black">
+                    Name *
+                    <input
+                      type="text"
+                      placeholder="Enter contact name"
+                      className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
+                      required
+                    />
+                  </label>
+                </div>
+                <div>
+                  <label className="block text-sm text-black">
+                    Email *
+                    <input
+                      type="email"
+                      placeholder="Enter contact email"
+                      className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
+                      required
+                    />
+                  </label>
+                </div>
+                <div className="flex gap-4">
+                  <div className="w-1/3">
+                    <label className="block text-sm text-black">
+                      Phone Number *
+                      <select className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none">
+                        <option value="+234">🇳🇬 +234</option>
+                        {/* Add more country codes as needed */}
+                      </select>
+                    </label>
+                  </div>
+                  <div className="w-2/3">
+                    <label className="block text-sm text-black">
+                      &nbsp;
+                      <input
+                        type="tel"
+                        placeholder="Enter phone number"
+                        className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
+                        required
+                      />
+                    </label>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm text-black">
+                    Country *
+                    <select className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none">
+                      <option>Select an option</option>
+                      <option>Nigeria</option>
+                      {/* Add more countries as needed */}
+                    </select>
+                  </label>
+                </div>
+                <div className="flex gap-4">
+                  <div className="w-1/2">
+                    <label className="block text-sm text-black">
+                      State *
+                      <select className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none">
+                        <option>Select an option</option>
+                        <option>Lagos</option>
+                        {/* Add more states as needed */}
+                      </select>
+                    </label>
+                  </div>
+                  <div className="w-1/2">
+                    <label className="block text-sm text-black">
+                      Local Government *
+                      <select className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none">
+                        <option>Select an option</option>
+                        <option>Ikeja</option>
+                        {/* Add more local governments as needed */}
+                      </select>
+                    </label>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm text-black">
+                    Deliver Address *
+                    <input
+                      type="text"
+                      placeholder="Enter your delivery address"
+                      className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
+                      required
+                    />
+                  </label>
+                </div>
+                <div>
+                  <label className="block text-sm text-black">
+                    Landmark/nearest bustop *
+                    <input
+                      type="text"
+                      placeholder="Enter your nearest bustop"
+                      className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
+                      required
+                    />
+                  </label>
+                </div>
+                <div className="border-t border-gray-300 pt-4">
+                  <div className="flex justify-between text-sm text-gray-700">
+                    <span>SUBTOTAL</span>
+                    <span>NGN {total.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-700 mt-2">
+                    <span>Estimated sales tax (7.5)</span>
+                    <span>NGN {Math.round(total * 0.075).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-700 mt-2">
+                    <span>DELIVERY FEE</span>
+                    <span>NGN 0</span>
+                  </div>
+                  <div className="flex justify-between text-lg font-medium text-gray-700 mt-2">
+                    <span>TOTAL</span>
+                    <span>NGN {(total + Math.round(total * 0.075)).toLocaleString()}</span>
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  className="w-full mt-6 py-3 bg-gradient text-white hover:from-purple-600 hover:to-pink-600 transition"
+                >
+                  Proceed to Payment
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

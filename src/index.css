@@ -125,6 +125,11 @@ body {
   border: 2px solid #f0f0f0;
 }
 
+.bg-new{
+  background: linear-gradient(94.78deg, rgba(87, 27, 251, 0.85) -3.74%, rgba(127, 35, 218, 0.85) 72.06%);
+
+}
+
 /* Firefox scrollbar */
 .custom-scrollbar {
   scrollbar-color: #EE79AC #f0f0f0;

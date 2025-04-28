@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import ReusableTable from "../components/ReusableTable";
 import { FaEllipsisH } from "react-icons/fa";
+import AddMarketModal from "./AddMarketModal";
 
 const NewlyAddedUsers = () => {
     const [openDropdown, setOpenDropdown] = useState(null);
     const dropdownRef = useRef(null);
     const [searchTerm, setSearchTerm] = useState("");
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // User Data
     const data = [
@@ -50,7 +52,7 @@ const NewlyAddedUsers = () => {
                     {openDropdown === row.id && (
                         <div className="absolute right-0 mt-2 w-40 bg-white rounded-md z-10">
                             <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">View Details</button>
-                            <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">Edit User</button>
+                            <button onClick={() => setIsModalOpen(true)} className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">Add a Market Rep</button>
                             <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">Remove User</button>
                         </div>
                     )}
@@ -104,6 +106,7 @@ const NewlyAddedUsers = () => {
 
             {/* Table */}
             <div className="overflow-x-auto">
+                {/* <AddMarketModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} /> */}
                 <ReusableTable columns={columns} data={filteredData} />
             </div>
         </div>

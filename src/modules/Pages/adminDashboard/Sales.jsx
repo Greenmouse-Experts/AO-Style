@@ -1,10 +1,7 @@
 import Cards from "./components/Cards";
-import WalletPage from "./components/WalletPage";
 import NewApplicants from "./components/NewApplicants";
 import BarChartComponent from "./components/BarChartComponent";
-import UserAnalyticsChart from "./components/UserAnalyticsChart";
 import AddedUser from "./components/AddedUser";
-import ProductInventory from "./components/ProductInventory";
 
 export default function SuperDashboard() {
     return (

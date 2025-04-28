@@ -187,58 +187,81 @@ const AddTailorForm = () => {
 
             {/* KYC Tab */}
             {activeTab === 'kyc' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                    {/* Upload Front */}
-                    <div>
-                        <label className="block mb-2 text-gray-700">Upload Front</label>
-                        <div className="w-full h-40 border border-gray-300 rounded-md flex items-center justify-center bg-white">
-                            <input type="file" className="hidden" id="uploadFront" />
-                            <label htmlFor="uploadFront" className="cursor-pointer text-gray-400">
-                                <svg className="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 5v14m7-7H5" />
-                                </svg>
-                                Upload Front
-                            </label>
-                        </div>
-                    </div>
-
-                    {/* Upload Back */}
-                    <div>
-                        <label className="block mb-2 text-gray-700">Upload Back</label>
-                        <div className="w-full h-40 border border-gray-300 rounded-md flex items-center justify-center bg-white">
-                            <input type="file" className="hidden" id="uploadBack" />
-                            <label htmlFor="uploadBack" className="cursor-pointer text-gray-400">
-                                <svg className="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 5v14m7-7H5" />
-                                </svg>
-                                Upload Back
-                            </label>
-                        </div>
-                    </div>
-
-                    {/* Utility Bill (Proof of Address) */}
-                    <div className="col-span-1 md:col-span-2">
-                        <label className="block mb-2 text-gray-700">Utility Bill (Proof of Address)</label>
-                        <div className="w-full h-40 border border-gray-300 rounded-md flex items-center justify-center bg-white">
-                            <input type="file" className="hidden" id="uploadUtilityBill" />
-                            <label htmlFor="uploadUtilityBill" className="cursor-pointer text-gray-400">
-                                <svg className="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 5v14m7-7H5" />
-                                </svg>
-                                Upload Utility Bill
-                            </label>
-                        </div>
-                    </div>
+                <>
                     <div>
                         <label className="block mb-2 text-gray-700">ID Type</label>
-                        <select className="w-full p-3 border border-gray-300 rounded-md">
+                        <select className="w-full p-3 border border-gray-300 rounded-md mb-6">
                             <option>National ID</option>
                             <option>Driver’s License</option>
                             <option>Passport</option>
                         </select>
                     </div>
-                </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Upload Front */}
+                        <div>
+                            <label className="block mb-2 text-gray-700">Upload Front</label>
+                            <div className="w-full h-40 border border-gray-300 rounded-md flex items-center justify-center bg-white">
+                                <input type="file" className="hidden" id="uploadFront" />
+                                <label htmlFor="uploadFront" className="cursor-pointer text-gray-400">
+                                    <svg className="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 5v14m7-7H5" />
+                                    </svg>
+                                    Upload Front
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Upload Back */}
+                        <div>
+                            <label className="block mb-2 text-gray-700">Upload Back</label>
+                            <div className="w-full h-40 border border-gray-300 rounded-md flex items-center justify-center bg-white">
+                                <input type="file" className="hidden" id="uploadBack" />
+                                <label htmlFor="uploadBack" className="cursor-pointer text-gray-400">
+                                    <svg className="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 5v14m7-7H5" />
+                                    </svg>
+                                    Upload Back
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Utility Bill (Proof of Address) */}
+                        <div className="col-span-1 md:col-span-2">
+                            <label className="block mb-2 text-gray-700">Utility Bill (Proof of Address)</label>
+                            <div className="w-full h-40 border border-gray-300 rounded-md flex items-center justify-center bg-white">
+                                <input type="file" className="hidden" id="uploadUtilityBill" />
+                                <label htmlFor="uploadUtilityBill" className="cursor-pointer text-gray-400">
+                                    <svg className="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 5v14m7-7H5" />
+                                    </svg>
+                                    Upload Utility Bill
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Location */}
+                        <div>
+                            <label className="block text-gray-700 mb-4">Location</label>
+                            <input
+                                type="text"
+                                placeholder="Enter the location"
+                                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                                required
+                            />
+                        </div>
+
+                         {/* Address */}
+                         <div>
+                            <label className="block text-gray-700 mb-4">Address</label>
+                            <input
+                                type="text"
+                                placeholder="Enter the Address"
+                                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                                required
+                            />
+                        </div>
+                    </div>
+                </>
             )}
 
 

@@ -114,8 +114,19 @@ export default function SignInAsCustomer() {
                                 <label className="block text-gray-700">Business Name</label>
                                 <input type="text" placeholder="Business Name" className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg" required />
 
-                                <label className="block text-gray-700">Business Type</label>
-                                <input type="text" placeholder="Business Type" className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg" required />
+                                <label className="block text-gray-700 mb-3">Business Type</label>
+                                <select
+                                    className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg text-gray-500"
+                                    required
+                                >
+                                    <option value="" disabled selected>Select your business type</option>
+                                    <option value="sole-proprietorship">Sole Proprietorship</option>
+                                    <option value="partnership">Partnership</option>
+                                    <option value="llc">Limited Liability Company (LLC)</option>
+                                    <option value="corporation">Corporation (C Corp & S Corp)</option>
+                                    <option value="nonprofit">Nonprofit Organization</option>
+                                    <option value="franchise">Franchise</option>
+                                </select>
 
                                 <label className="block text-gray-700">Business Address</label>
                                 <input type="text" placeholder="Enter your business address" className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg" required />

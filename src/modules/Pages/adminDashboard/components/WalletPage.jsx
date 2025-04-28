@@ -51,11 +51,11 @@ const WalletPage = () => {
             </div>
 
             {/* Withdraw Button */}
-            <div className="mt-6 text-center">
+            {/* <div className="mt-6 text-center">
                 <button className="border border-purple-600 w-full text-purple-600 px-6 py-4 rounded-lg font-light cursor-pointer">
                     Withdraw
                 </button>
-            </div>
+            </div> */}
 
             {/* Recent Transactions */}
             <div className="mt-6">

@@ -3,11 +3,30 @@ import { Link } from "react-router-dom";
 
 const AddProduct = () => {
     const [colorCount, setColorCount] = useState(1);
+     const [tags, setTags] = useState([]);
+        const [tagInput, setTagInput] = useState('');
 
     const increaseColorCount = () => setColorCount(colorCount + 1);
     const decreaseColorCount = () => {
         if (colorCount > 1) setColorCount(colorCount - 1);
     };
+
+    const handleTagInput = (e) => {
+        setTagInput(e.target.value);
+    };
+
+    const handleTagAdd = (e) => {
+        if (e.key === 'Enter' && tagInput.trim() && tags.length < 5) {
+            e.preventDefault();
+            setTags([...tags, tagInput.trim()]);
+            setTagInput('');
+        }
+    };
+
+    const handleTagRemove = (tagToRemove) => {
+        setTags(tags.filter(tag => tag !== tagToRemove));
+    };
+
 
     return (
         <>
@@ -224,15 +243,49 @@ const AddProduct = () => {
                     </div>
 
                     {/* Price per unit */}
-                    <div>
-                        <label className="block text-gray-700 mb-4">Price per unit</label>
-                        <div className="flex items-center">
-                            <span className="p-5 bg-gray-200 rounded-l-md">₦</span>
-                            <input
-                                type="number"
-                                placeholder="Enter amount per unit"
-                                className="w-full p-4 border-t border-r border-b outline-none border-gray-300 rounded-r-md"
-                            />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-gray-700 mb-4">Price per unit</label>
+                            <div className="flex items-center">
+                                <span className="p-5 bg-gray-200 rounded-l-md">₦</span>
+                                <input
+                                    type="number"
+                                    placeholder="Enter amount per unit"
+                                    className="w-full p-4 border-t border-r border-b outline-none border-gray-300 rounded-r-md"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Tags */}
+                        <div>
+                            <label className="block text-gray-700 mb-3">Tags (max 5)</label>
+                            <div className="flex flex-wrap gap-2 mb-2">
+                                {tags.map((tag, index) => (
+                                    <div
+                                        key={index}
+                                        className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center"
+                                    >
+                                        {tag}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleTagRemove(tag)}
+                                            className="ml-2 text-blue-800 hover:text-blue-900"
+                                        >
+                                            &times;
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                            {tags.length < 5 && (
+                                <input
+                                    type="text"
+                                    placeholder="Add a tag and press Enter (max 5)"
+                                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                                    value={tagInput}
+                                    onChange={handleTagInput}
+                                    onKeyDown={handleTagAdd}
+                                />
+                            )}
                         </div>
                     </div>
 

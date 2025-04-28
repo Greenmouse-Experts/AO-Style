@@ -11,7 +11,7 @@ export default function SignInAsCustomer() {
             {/* Left Section */}
             <div className="hidden md:flex w-1/2 relative h-full">
                 <img
-                    src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1744099132/AoStyle/image_1_lfxhm5.jpg"
+                    src="https://res.cloudinary.com/diqa0sakr/image/upload/v1745811955/image_1_wfjpsw.jpg"
                     alt="Sign In"
                     className="w-full h-full object-cover"
                 />

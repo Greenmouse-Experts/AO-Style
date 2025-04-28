@@ -18,16 +18,18 @@ const CheckModal = ({ isOpen, onClose }) => {
                     <div className="space-y-3">
                         <div>
                             <h2 className="text-base font-meduim mb-3">Do you need a Tailor/Fashion Designer ?</h2>
-                           <p className='text-sm leading-loose text-gray-500'>
-                            Choose a style from the catalog of the tailors/fashion designers and have it made for you with your bought material
-                           </p>
+                            <p className='text-sm leading-loose text-gray-500'>
+                                Choose a style from the catalog of the tailors/fashion designers and have it made for you with your bought material
+                            </p>
                         </div>
-                        
+
                         {/* Buttons */}
                         <div className="flex justify-between pt-4">
-                            <button onClick={onClose} className="border px-6 py-3 border-[#CCCCCC] text-gray-400 cursor-pointer">
-                            No, go to checkout
-                            </button>
+                            <Link to="/view-cart">
+                                <button onClick={onClose} className="border px-6 py-3 border-[#CCCCCC] text-gray-400 cursor-pointer">
+                                    No, go to checkout
+                                </button>
+                            </Link>
                             <Link to="/pickastyle">
                                 <button className="bg-gradient text-white px-6 py-3 cursor-pointer">
                                     Proceed to OA-Style

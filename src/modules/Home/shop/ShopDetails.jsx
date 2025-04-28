@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ShoppingCart } from "lucide-react";
 import { Facebook, Twitter, Instagram, Star, Music2 } from "lucide-react";
 import CheckModal from "../components/CheckModal";
+import { Link } from "react-router-dom";
 
 const product = {
     name: "Luxury Embellished Lace Fabrics",
@@ -297,11 +298,11 @@ export default function ShopDetails() {
                     <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">You might also like</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
                         {relatedProducts.map(product => (
-                            <div key={product.id} className="">
+                            <Link key={product.id} className="" to={`/inner-marketplace`}>
                                 <img src={product.image} alt={product.name} className="w-full h-auto object-cover rounded-md" />
                                 <h4 className="mt-2 md:mt-4 mb-1 md:mb-3 font-medium text-sm md:text-base">{product.name}</h4>
                                 <p className="text-purple-600 text-sm md:text-base">{product.price} per unit</p>
-                            </div>
+                            </Link>
                         ))}
                     </div>
                 </div>

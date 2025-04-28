@@ -251,7 +251,7 @@ const AddTailorForm = () => {
                         </div>
 
                          {/* Address */}
-                         <div>
+                         {/* <div>
                             <label className="block text-gray-700 mb-4">Address</label>
                             <input
                                 type="text"
@@ -259,7 +259,7 @@ const AddTailorForm = () => {
                                 className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                                 required
                             />
-                        </div>
+                        </div> */}
                     </div>
                 </>
             )}

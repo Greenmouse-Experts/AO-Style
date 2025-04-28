@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
+import HowDidYouHearAboutUs from "../Auth/components/HowDidYouHearAboutUs";
 
 export default function SignInAsCustomer() {
     const [showPassword, setShowPassword] = useState(false);
@@ -51,6 +52,9 @@ export default function SignInAsCustomer() {
                         <label className="block text-black">Phone Number</label>
                         <input type="tel" placeholder="Phone Number" className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg" required />
 
+                        <label className="block text-black">Alternative Phone Number <small className="text-[#CCCCCC]">(Optional)</small></label>
+                        <input type="tel" placeholder="Alternative Phone Number" className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg"/>
+
                         <label className="block text-black">Years of Experience in Sales</label>
                         <select className="w-full p-4 border border-[#CCCCCC] text-gray-500 outline-none mb-3 rounded-lg" required>
                             <option value="">Choose your years of experience</option>
@@ -61,6 +65,8 @@ export default function SignInAsCustomer() {
 
                         <label className="block text-black">Address</label>
                         <input type="text" placeholder="Enter your home address" className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg" required />
+
+                        <div><HowDidYouHearAboutUs /></div>
 
                         <label className="block text-black">Password</label>
                         <div className="relative">

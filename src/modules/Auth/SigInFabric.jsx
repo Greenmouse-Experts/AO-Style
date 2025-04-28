@@ -77,6 +77,9 @@ export default function SignInAsCustomer() {
                                     <label className="block text-black">Phone Number</label>
                                     <input type="tel" placeholder="Phone Number" className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg" required />
 
+                                    <label className="block text-black">Alternative Phone Number <small className="text-[#CCCCCC]">(Optional)</small></label>
+                                    <input type="tel" placeholder="Alternative Phone Number" className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg"/>
+
                                     <label className="block text-black">Password</label>
                                     <div className="relative">
                                         <input

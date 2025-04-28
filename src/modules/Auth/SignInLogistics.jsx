@@ -87,6 +87,16 @@ export default function SignUpAsLogisticsAgent() {
                         </div>
 
                         <div>
+                            <label className="block text-gray-700 mb-1">Alternative Phone Number <small className="text-[#CCCCCC]">(Optional)</small></label>
+                            <input
+                                type="tel"
+                                placeholder="Enter your alternative phone number"
+                                className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
+                                
+                            />
+                        </div>
+
+                        <div>
                             <label className="block text-gray-700 mb-1">Address</label>
                             <input
                                 type="text"

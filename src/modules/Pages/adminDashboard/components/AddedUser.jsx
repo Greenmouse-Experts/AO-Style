@@ -101,12 +101,15 @@ const NewlyAddedUsers = () => {
                     <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
                         Sort: Newest First ▾
                     </button>
+                    <button onClick={() => setIsModalOpen(true)} className="bg-[#9847FE] text-white px-4 py-2 text-sm cursor-pointer rounded-md">
+                        + Add a Market Rep
+                    </button>
                 </div>
             </div>
 
             {/* Table */}
             <div className="overflow-x-auto">
-                {/* <AddMarketModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} /> */}
+                <AddMarketModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
                 <ReusableTable columns={columns} data={filteredData} />
             </div>
         </div>

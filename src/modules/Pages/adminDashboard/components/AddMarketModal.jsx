@@ -10,12 +10,11 @@ const AddMarketModal = ({ isOpen, onClose }) => {
     console.log("Form submitted");
     onClose();
   };
-
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex justify-center items-center z-[1000] bg-black bg-opacity-50 backdrop-blur-sm">
-      <div className="bg-white p-6 rounded-lg w-[90%] sm:w-[400px]">
+    <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm">
+      <div className="bg-white rounded-lg p-6 w-full max-h-[80vh] overflow-y-auto max-w-3xl relative">
         {/* Header */}
         <div className="flex justify-between items-center border-b border-[#CCCCCC] pb-3 mb-4">
           <h2 className="text-lg font-semibold">Add a Market Rep</h2>
@@ -129,7 +128,7 @@ const AddMarketModal = ({ isOpen, onClose }) => {
           </div>
 
           <button
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-500 cursor-pointer text-white py-4 rounded-lg font-normal"
+            className="w-full bg-gradient cursor-pointer text-white py-4 rounded-lg font-normal"
             type="submit"
           >
             Sign Up As A Market Rep

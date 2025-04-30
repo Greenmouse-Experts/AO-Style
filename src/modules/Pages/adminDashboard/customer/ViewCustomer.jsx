@@ -63,35 +63,52 @@ const ViewCustomer = () => {
     return (
         <div>
             {/* Customer Info Section */}
-            <div className="rounded-lg mb-6 flex justify-between items-center">
-                <h2 className="text-lg font-medium">View Customer : <span className="text-purple-600 font-medium">Chukka Uzo</span></h2>
-                <p className="text-sm font-medium text-gray-600">KYC: <span className="text-green-600 font-medium">Approved</span></p>
-            </div>
-            <div className="bg-white rounded-lg mb-6">
-                <table className="w-full text-sm  border-collapse">
-                    <thead>
-                        <tr className="border-b border-gray-200 font-medium text-gray-700 rounded-lg mb-4 p-4">
-                            <th className="text-left p-4">Full Name</th>
-                            <th className="text-left p-4">KYC</th>
-                            <th className="text-left p-4">Email Address</th>
-                            <th className="text-left p-4">Phone Number</th>
-                            <th className="text-left p-4">Address</th>
-                            <th className="text-left p-4">Total Orders</th>
-                            <th className="text-left p-4">Date Joined</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td className="p-4">Emeka Okafor</td>
-                            <td className="p-4 text-purple-600 cursor-pointer">See KYC</td>
-                            <td className="p-4">testmail@gmail.com</td>
-                            <td className="p-4">+234 803 456 7890</td>
-                            <td className="p-4">12, Allen Avenue, Ikeja, Lagos</td>
-                            <td className="p-4">72</td>
-                            <td className="p-4">22/5/2009</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div className="mb-6">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg text-gray-800">
+                        View Customer: <span className="text-purple-600">Chukka Uzo</span>
+                    </h2>
+                    <p className="text-sm text-gray-600">
+                        KYC: <span className="text-green-600">Approved</span>
+                    </p>
+                </div>
+                <div className="bg-white rounded-lg">
+                    <table className="w-full text-sm">
+                        <thead>
+                            <tr className="text-gray-700 border-b border-gray-200">
+                                <th className="text-left p-4 font-medium text-gray-600">Full Name </th>
+                                <th className="text-left p-4 font-medium text-gray-600">KYC</th>
+                                <th className="text-left p-4 font-medium text-gray-600">Email Address</th>
+                                <th className="text-left p-4 font-medium text-gray-600">Phone Number</th>
+                                <th className="text-left p-4 font-medium text-gray-600">Address</th>
+                                <th className="text-left p-4 font-medium text-gray-600">Total Orders</th>
+                                <th className="text-left p-4 font-medium text-gray-600">Date Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr className="text-gray-600">
+                                <td className="p-4 flex items-center gap-3">
+                                    <img
+                                        src="https://randomuser.me/api/portraits/thumb/men/1.jpg"
+                                        alt="profile"
+                                        className="w-10 h-10 rounded-full"
+                                    />
+                                    <span>Emeka Okafor</span>
+                                </td>
+                                <td className="p-4">
+                                    <span className="text-purple-600 cursor-pointer hover:underline">
+                                        See KYC
+                                    </span>
+                                </td>
+                                <td className="p-4">testmail@gmail.com</td>
+                                <td className="p-4">+234 803 456 7890</td>
+                                <td className="p-4">12, Allen Avenue, Ikeja, Lagos</td>
+                                <td className="p-4">72</td>
+                                <td className="p-4">22/5/2009</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div className="bg-white p-4 rounded-lg">

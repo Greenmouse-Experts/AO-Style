@@ -1,12 +1,12 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import ReusableTable from "../components/ReusableTable";
 import AddCustomerModal from "../components/AddCustomerModal";
 import { FaEllipsisH } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const CustomersTable = () => {
     const [openDropdown, setOpenDropdown] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const dropdownRef = useRef(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -25,7 +25,11 @@ const CustomersTable = () => {
 
     // Table Columns
     const columns = [
-        { label: "Profile", key: "profile", render: (_, row) => <img src={row.profile} alt="profile" className="w-8 h-8 rounded-full" /> },
+        { 
+            label: "Profile", 
+            key: "profile", 
+            render: (_, row) => <img src={row.profile} alt="profile" className="w-8 h-8 rounded-full" /> 
+        },
         { label: "User ID", key: "userId" },
         { label: "Phone Number", key: "phone" },
         { label: "Email Address", key: "email" },
@@ -35,7 +39,7 @@ const CustomersTable = () => {
             label: "Action",
             key: "action",
             render: (_, row) => (
-                <div className="relative" ref={dropdownRef}>
+                <div className="relative">
                     <button
                         className="bg-gray-100 text-gray-500 px-3 py-1 rounded-md"
                         onClick={() => toggleDropdown(row.id)}
@@ -43,10 +47,19 @@ const CustomersTable = () => {
                         <FaEllipsisH />
                     </button>
                     {openDropdown === row.id && (
-                        <div className="absolute right-0 mt-2 w-40 bg-white rounded-md z-10">
-                            <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">View Details</button>
-                            <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">Edit User</button>
-                            <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">Remove User</button>
+                        <div className="dropdown-menu absolute right-0 mt-2 w-50 bg-white rounded-md z-10 border-gray-200">
+                            <Link
+                                to={`/admin/view-customers`}
+                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+                            >
+                                View Customer Details
+                            </Link>
+                            <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
+                                Edit User
+                            </button>
+                            <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center">
+                                Remove User
+                            </button>
                         </div>
                     )}
                 </div>
@@ -60,7 +73,7 @@ const CustomersTable = () => {
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+            if (!event.target.closest('.dropdown-menu')) {
                 setOpenDropdown(null);
             }
         };
@@ -94,14 +107,13 @@ const CustomersTable = () => {
 
     const handleItemsPerPageChange = (e) => {
         setItemsPerPage(Number(e.target.value));
-        setCurrentPage(1); // Reset to page 1 when items per page changes
+        setCurrentPage(1);
     };
 
     return (
         <div className="bg-white p-6 rounded-xl overflow-x-auto">
             <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
                 <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-
                     <h2 className="text-lg font-semibold">Customers</h2>
                 </div>
                 <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
@@ -118,7 +130,10 @@ const CustomersTable = () => {
                     <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
                         Sort: Newest First ▾
                     </button>
-                    <button onClick={() => setIsModalOpen(true)} className="bg-[#9847FE] text-white px-4 py-2 text-sm rounded-md">
+                    <button 
+                        onClick={() => setIsModalOpen(true)} 
+                        className="bg-[#9847FE] text-white px-4 py-2 text-sm rounded-md"
+                    >
                         + Add New Customer
                     </button>
                 </div>
@@ -143,8 +158,20 @@ const CustomersTable = () => {
                     </select>
                 </div>
                 <div className="flex gap-1">
-                    <button onClick={handlePreviousPage} disabled={currentPage === 1} className="px-3 py-1 rounded-md bg-gray-200">&#9664;</button>
-                    <button onClick={handleNextPage} disabled={currentPage === totalPages} className="px-3 py-1 rounded-md bg-gray-200">&#9654;</button>
+                    <button 
+                        onClick={handlePreviousPage} 
+                        disabled={currentPage === 1} 
+                        className="px-3 py-1 rounded-md bg-gray-200"
+                    >
+                        ◀
+                    </button>
+                    <button 
+                        onClick={handleNextPage} 
+                        disabled={currentPage === totalPages} 
+                        className="px-3 py-1 rounded-md bg-gray-200"
+                    >
+                        ▶
+                    </button>
                 </div>
             </div>
         </div>

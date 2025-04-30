@@ -6,10 +6,9 @@ import { Link } from "react-router-dom";
 const CustomersTable = () => {
     const [openDropdown, setOpenDropdown] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const dropdownRef = useRef(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(10); 
+    const [itemsPerPage, setItemsPerPage] = useState(10);
 
     // Dummy Tailors/Designers Data
     const data = Array.from({ length: 30 }, (_, i) => ({
@@ -35,7 +34,7 @@ const CustomersTable = () => {
             label: "Action",
             key: "action",
             render: (_, row) => (
-                <div className="relative" ref={dropdownRef}>
+                <div className="relative">
                     <button
                         className="bg-gray-100 text-gray-500 px-3 py-1 rounded-md"
                         onClick={() => toggleDropdown(row.id)}
@@ -43,10 +42,18 @@ const CustomersTable = () => {
                         <FaEllipsisH />
                     </button>
                     {openDropdown === row.id && (
-                        <div className="absolute right-0 mt-2 w-40 bg-white rounded-md z-10 shadow-lg">
-                            <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">View Details</button>
-                            <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">Edit Tailor</button>
-                            <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">Remove Tailor</button>
+                        <div className="dropdown-menu absolute right-0 mt-2 w-50 bg-white rounded-md z-10 border-gray-200">
+                            <Link to={`/admin/tailor/view-tailor`}>
+                                <button className="block w-full text-center px-4 py-2 text-gray-700  hover:bg-gray-100">
+                                    View Details
+                                </button>
+                            </Link>
+                            <button className="block w-full text-center px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                Edit Tailor
+                            </button>
+                            <button className="block w-full text-center px-4 py-2 text-red-500 hover:bg-red-100">
+                                Remove Tailor
+                            </button>
                         </div>
                     )}
                 </div>
@@ -118,7 +125,7 @@ const CustomersTable = () => {
                         Sort: Newest First ▾
                     </button>
                     <Link to="/admin/tailor/add-tailor">
-                        <button className="bg-[#9847FE] text-white px-4 py-2 text-sm rounded-md">
+                        <button className="bg-purple-600 text-white px-4 py-2 text-sm rounded-md">
                             + Add a New Tailor/Designer
                         </button>
                     </Link>
@@ -143,8 +150,8 @@ const CustomersTable = () => {
                     </select>
                 </div>
                 <div className="flex gap-1">
-                    <button onClick={handlePreviousPage} disabled={currentPage === 1} className="px-3 py-1 rounded-md bg-gray-200">&#9664;</button>
-                    <button onClick={handleNextPage} disabled={currentPage === totalPages} className="px-3 py-1 rounded-md bg-gray-200">&#9654;</button>
+                    <button onClick={handlePreviousPage} disabled={currentPage === 1} className="px-3 py-1 rounded-md bg-gray-200">◀</button>
+                    <button onClick={handleNextPage} disabled={currentPage === totalPages} className="px-3 py-1 rounded-md bg-gray-200">▶</button>
                 </div>
             </div>
         </div>

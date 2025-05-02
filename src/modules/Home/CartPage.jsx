@@ -195,7 +195,7 @@ const CartPage = () => {
               <span className="font-medium">₦0</span>
             </div>
             <div className="flex justify-between w-full max-w-md">
-              <span className="font-light">Estimated Sales Tax (7.5%) :</span>
+              <span className="font-light">Estimated Sales VAT (7.5%) :</span>
               <span className="font-medium">₦{Math.round(total * 0.075).toLocaleString()}</span>
             </div>
             <div className="flex justify-between w-full max-w-md">

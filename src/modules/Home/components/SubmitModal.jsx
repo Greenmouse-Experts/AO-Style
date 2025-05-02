@@ -17,7 +17,7 @@ const SubmitModal = ({ isOpen, onClose }) => {
                     {/* Form */}
                     <div className="space-y-3">
                         <div>
-                            <h2 className="text-base font-meduim mb-3">You have a successfully added a Style  </h2>
+                            <h2 className="text-base font-meduim mb-3">You have successfully added a Style  </h2>
                            <p className='text-sm leading-loose text-gray-500'>
                            You have added a style and a material to your order, you can proceed to checkout or keep shopping
                            </p>

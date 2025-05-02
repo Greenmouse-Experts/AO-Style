@@ -16,11 +16,35 @@ const ViewCustomer = () => {
     const [filter, setFilter] = useState("all");
     const [searchTerm, setSearchTerm] = useState("");
     const [openDropdown, setOpenDropdown] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(5);
 
     const filteredOrders = orders.filter(order =>
         (filter === "all" || order.status.toLowerCase() === filter) &&
         order.orderId.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+
+    const handlePreviousPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+        }
+    };
+
+    const handleNextPage = () => {
+        if (currentPage < totalPages) {
+            setCurrentPage(currentPage + 1);
+        }
+    };
+
+    const handleItemsPerPageChange = (e) => {
+        setItemsPerPage(Number(e.target.value));
+        setCurrentPage(1);
+    };
 
     const columns = [
         { label: "#", key: "id" },
@@ -144,7 +168,28 @@ const ViewCustomer = () => {
                 </div>
 
                 {/* Table Section */}
-                <ReusableTable columns={columns} data={filteredOrders} />
+                <ReusableTable columns={columns} data={currentItems} />
+
+                {/* Pagination */}
+                <div className="flex justify-between items-center mt-4">
+                    <div className="flex">
+                        <p className="text-sm text-gray-600">Page {currentPage} of {totalPages}</p>
+                        <select
+                            value={itemsPerPage}
+                            onChange={handleItemsPerPageChange}
+                            className="py-2 px-3 border border-gray-200 ml-4 rounded-md outline-none text-sm w-auto"
+                        >
+                            <option value={5}>5</option>
+                            <option value={10}>10</option>
+                            <option value={15}>15</option>
+                            <option value={20}>20</option>
+                        </select>
+                    </div>
+                    <div className="flex gap-1">
+                        <button onClick={handlePreviousPage} disabled={currentPage === 1} className="px-3 py-1 rounded-md bg-gray-200">◀</button>
+                        <button onClick={handleNextPage} disabled={currentPage === totalPages} className="px-3 py-1 rounded-md bg-gray-200">▶</button>
+                    </div>
+                </div>
             </div>
         </div>
     );

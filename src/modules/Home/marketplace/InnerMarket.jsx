@@ -2,25 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import { Link } from "react-router-dom";
-
-const Breadcrumb = ({ title, subtitle, just, backgroundImage }) => {
-    return (
-        <div
-            className="bg-cover bg-center h-92 flex items-center justify-center text-white"
-            style={{ backgroundImage: `url(${backgroundImage})` }}
-        >
-            <div className="Resizer Push">
-                <div className=" text-white">
-                    <h1 className="text-4xl font-semibold mb-2">{title}</h1>
-                    <div className="">
-                        <span>{subtitle}</span>
-                        <span className="mx-2">{just}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
+import Breadcrumb from "../components/Breadcrumb";
 
 const allProducts = [
     {
@@ -132,7 +114,7 @@ export default function MarketplacePage() {
         <>
             <Breadcrumb
                 title="Shop"
-                subtitle="Home > Marketplace > "
+                subtitle="Marketplace "
                 just="Onitsha Main Market"
                 backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741604351/AoStyle/image_ugfmjr.jpg"
             />

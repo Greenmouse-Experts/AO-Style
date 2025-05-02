@@ -3,6 +3,7 @@ import { ShoppingCart } from "lucide-react";
 import { Facebook, Twitter, Instagram, Star, Music2 } from "lucide-react";
 import CheckModal from "../components/CheckModal";
 import { Link } from "react-router-dom";
+import Breadcrumb from "../components/Breadcrumb";
 
 const product = {
     name: "Luxury Embellished Lace Fabrics",
@@ -17,25 +18,6 @@ const product = {
     tags: ["Red", "Silk", "New"],
     colors: ["#c11c28", "#3b82f6", "#22c55e", "#facc15", "#a855f7"],
     reviews: 5
-};
-
-const Breadcrumb = ({ title, subtitle, just, backgroundImage }) => {
-    return (
-        <div
-            className="bg-cover bg-center h-92 flex items-center justify-center text-white"
-            style={{ backgroundImage: `url(${backgroundImage})` }}
-        >
-            <div className="Resizer Push">
-                <div className="text-white px-4">
-                    <h1 className="text-3xl md:text-4xl font-semibold mb-2">{title}</h1>
-                    <div className="text-sm md:text-base">
-                        <span>{subtitle}</span>
-                        <span className="mx-2">{just}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
 };
 
 const relatedProducts = [
@@ -73,8 +55,8 @@ export default function ShopDetails() {
         <>
             <Breadcrumb
                 title="Shop Details"
-                subtitle="Home > Shop > "
-                just="Shop Details >  Enjoy a wide selection of Materials & Designs"
+                subtitle="Shop"
+                just="Enjoy a wide selection of Materials & Designs"
                 backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741604351/AoStyle/image_ugfmjr.jpg"
             />
             <section className="Resizer section px-4">

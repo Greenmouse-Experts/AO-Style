@@ -1,30 +1,13 @@
 import React, { Component } from 'react'
 import Details from "../components/Details";
+import Breadcrumb from "../components/Breadcrumb";
 export default class PickaStyle extends Component {
     render() {
-        const Breadcrumb = ({ title, subtitle, just, backgroundImage }) => {
-            return (
-                <div
-                    className="bg-cover bg-center h-92 flex items-center justify-center text-white"
-                    style={{ backgroundImage: `url(${backgroundImage})` }}
-                >
-                    <div className="Resizer Push">
-                        <div className=" text-white">
-                            <h1 className="text-4xl font-semibold mb-2">{title}</h1>
-                            <div className="">
-                                <span>{subtitle}</span>
-                                <span className="mx-2">{just}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
         return (
             <>
                 <Breadcrumb
                     title="Pick A Style "
-                    subtitle="Home > Oshodi Market >  Luxury Linen >"
+                    subtitle="Luxury Linen"
                     just="Pick A Style"
                     backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1744156885/AoStyle/image_1_v4nyzx.jpg"
                 />

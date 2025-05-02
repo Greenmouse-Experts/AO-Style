@@ -1,26 +1,7 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import SavedMeasurementsDisplay from "../components/SavedMeasurementsDisplay";
-
-// Breadcrumb Component
-const Breadcrumb = ({ title, subtitle, just, backgroundImage }) => {
-  return (
-    <div
-      className="bg-cover bg-center h-92 flex items-center justify-center text-white"
-      style={{ backgroundImage: `url(${backgroundImage})` }}
-    >
-      <div className="Resizer Push">
-        <div className=" text-white">
-          <h1 className="text-4xl font-semibold mb-2">{title}</h1>
-          <div className="">
-            <span>{subtitle}</span>
-            <span className="mx-2">{just}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+import Breadcrumb from "../components/Breadcrumb";
 
 export default function AnkaraGownPage() {
   const [selectedImage, setSelectedImage] = useState(0);
@@ -85,7 +66,7 @@ export default function AnkaraGownPage() {
       <Breadcrumb
         title="OAStyles"
         subtitle="Products"
-        just="> OAStyles Details"
+        just="OAStyles Details"
         backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1743712882/AoStyle/image_lslmok.png"
       />
       <section className="Resizer section px-4">

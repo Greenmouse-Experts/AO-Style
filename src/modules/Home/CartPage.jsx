@@ -248,9 +248,9 @@ const CartPage = () => {
               <form className="space-y-4">
                 <div>
                   <label className="block text-sm text-black">
-                    Delivery Option *
+                  Delivery Address Option *
                     <select className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none">
-                      <option>Select an option</option>
+                      <option>Chose from previously used address</option>
                       <option>Standard Delivery</option>
                       <option>Express Delivery</option>
                     </select>
@@ -360,7 +360,7 @@ const CartPage = () => {
                     <span>NGN {total.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm text-gray-700 mt-2">
-                    <span>Estimated sales tax (7.5)</span>
+                    <span>Estimated sales VAT (7.5)</span>
                     <span>NGN {Math.round(total * 0.075).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm text-gray-700 mt-2">

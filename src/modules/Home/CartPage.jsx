@@ -8,7 +8,7 @@ const CartPage = () => {
       style: {
         name: 'Ankara Gown',
         qty: '1 Piece',
-        price: 24000,
+        price: 25000,
         image: 'https://res.cloudinary.com/greenmouse-tech/image/upload/v1741334130/AoStyle/image10_wtqzuf.png',
       },
       fabric: {

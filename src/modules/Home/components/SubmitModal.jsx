@@ -31,7 +31,7 @@ const SubmitModal = ({ isOpen, onClose }) => {
                                 </button>
                             </Link>
                             <Link to="/view-cart">
-                                <button onClick={handleModalClose} className="bg-gradient text-white border px-6 py-3 ">
+                                <button onClick={onClose} className="bg-gradient text-white border px-6 py-3 ">
                                     No, go to checkout
                                 </button>
                             </Link>

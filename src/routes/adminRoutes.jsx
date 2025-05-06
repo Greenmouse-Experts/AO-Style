@@ -11,6 +11,8 @@ import ViewTailor from "../modules/Pages/adminDashboard/tailor/ViewTailor";
 import FabricVendor from "../modules/Pages/adminDashboard/fabric/Fabric";
 import AddFabric from "../modules/Pages/adminDashboard/fabric/AddFabric";
 import AddFabricVendor from "../modules/Pages/adminDashboard/fabric/AddFabricVendor";
+// MESSAGE COMPONENTS
+import InboxPage from "../modules/Pages/adminDashboard/messages/Inbox";
 import SalesRep from "../modules/Pages/adminDashboard/Sales";
 import Logistics from "../modules/Pages/adminDashboard/Logistics";
 import SubAdmin from "../modules/Pages/adminDashboard/SubAdmin";
@@ -58,6 +60,15 @@ export const adminRoutes = [
         path: '/admin/fabric-vendor',
         element: <FabricVendor />,
       },
+
+      // Message Routes
+      {
+        path: '/admin/messages',
+        element: <InboxPage />,
+      },
+
+      // Add More Routes Here
+
       {
         path: '/admin/fabric/add-fabric-vendor',
         element: <AddFabricVendor />,

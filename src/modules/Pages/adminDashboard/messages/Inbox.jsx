@@ -1,4 +1,4 @@
-import InboxPage from "./components/InboxPage";
+import InboxPage from "../components/InboxPage";
 export default function InboxPages() {
     return (
         <>

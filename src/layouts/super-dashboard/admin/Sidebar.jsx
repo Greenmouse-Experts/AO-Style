@@ -58,8 +58,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             <SidebarItem to="/admin/orders" icon={<FaShoppingCart />} text="Orders" onClick={handleClick} />
             <SidebarItem to="/admin/transactions" icon={<FaCreditCard />} text="Payments & Transactions" onClick={handleClick} />
             <SidebarItem to="/admin/notifications" icon={<FaBell />} text="Notifications" onClick={handleClick} />
-            {/* <SidebarItem to="/admin/messages" icon={<FaEnvelope />} text="Messages" />
-            <SidebarItem to="/admin/analytics" icon={<FaChartBar />} text="Reports & Analytics" /> */}
+            <SidebarItem to="/admin/messages" icon={<FaEnvelope />} text="Messages" />
+            <SidebarItem to="/admin/analytics" icon={<FaChartBar />} text="Reports & Analytics" />
             <SidebarItem to="/admin/settings" icon={<FaCog />} text="Settings & Configuration" onClick={handleClick} />
           </div>
 

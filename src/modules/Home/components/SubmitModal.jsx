@@ -9,7 +9,7 @@ const SubmitModal = ({ isOpen, onClose }) => {
                 <div className="bg-white p-6 rounded-lg w-[100%] sm:w-[500px]">
                     {/* Header */}
                     <div className="flex justify-between items-center border-b border-[#CCCCCC] outline-none pb-3  mb-4">
-                        <h2 className='text-lg font-meduim'></h2>
+                        <h2 className='text-lg font-meduim'>Continue Shopping</h2>
                         <button onClick={onClose} className="text-gray-500 hover:text-black">
                             ✕
                         </button>

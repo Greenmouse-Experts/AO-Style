@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import ReusableTable from "./components/ReusableTable";
+import ReusableTable from "../components/ReusableTable";
+import OrdersSummary from "../components/OrdersSummary";
 import { FaEllipsisH } from "react-icons/fa";
 
 const OrdersTable = () => {
@@ -110,49 +111,52 @@ const OrdersTable = () => {
     };
 
     return (
-        <div className="bg-white p-6 rounded-xl overflow-x-auto">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Orders</h2>
-                <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
-                    <input
-                        type="text"
-                        placeholder="Search market..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
-                    />
-                    <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-                        Export As ▾
-                    </button>
-                    <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-                        Sort: Newest First ▾
-                    </button>
-                    {/* <button className="bg-[#9847FE] text-white px-4 py-2 text-sm rounded-md">
+        <>
+            <OrdersSummary />
+            <div className="bg-white p-6 rounded-xl overflow-x-auto">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-semibold">Orders</h2>
+                    <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
+                        <input
+                            type="text"
+                            placeholder="Search market..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
+                        />
+                        <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
+                            Export As ▾
+                        </button>
+                        <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
+                            Sort: Newest First ▾
+                        </button>
+                        {/* <button className="bg-[#9847FE] text-white px-4 py-2 text-sm rounded-md">
                         + Add New Order
                     </button> */}
+                    </div>
+                </div>
+                <ReusableTable columns={columns} data={currentItems} />
+                <div className="flex justify-between items-center mt-4">
+                    <div className="flex">
+                        <p className="text-sm text-gray-600">Page {currentPage} of {totalPages}</p>
+                        <select
+                            value={itemsPerPage}
+                            onChange={handleItemsPerPageChange}
+                            className="py-2 px-3 border border-gray-200 ml-4 rounded-md outline-none text-sm w-auto"
+                        >
+                            <option value={5}>5</option>
+                            <option value={10}>10</option>
+                            <option value={15}>15</option>
+                            <option value={20}>20</option>
+                        </select>
+                    </div>
+                    <div className="flex gap-1">
+                        <button onClick={handlePreviousPage} disabled={currentPage === 1} className="px-3 py-1 rounded-md bg-gray-200">&#9664;</button>
+                        <button onClick={handleNextPage} disabled={currentPage === totalPages} className="px-3 py-1 rounded-md bg-gray-200">&#9654;</button>
+                    </div>
                 </div>
             </div>
-            <ReusableTable columns={columns} data={currentItems} />
-            <div className="flex justify-between items-center mt-4">
-                <div className="flex">
-                    <p className="text-sm text-gray-600">Page {currentPage} of {totalPages}</p>
-                    <select
-                        value={itemsPerPage}
-                        onChange={handleItemsPerPageChange}
-                        className="py-2 px-3 border border-gray-200 ml-4 rounded-md outline-none text-sm w-auto"
-                    >
-                        <option value={5}>5</option>
-                        <option value={10}>10</option>
-                        <option value={15}>15</option>
-                        <option value={20}>20</option>
-                    </select>
-                </div>
-                <div className="flex gap-1">
-                    <button onClick={handlePreviousPage} disabled={currentPage === 1} className="px-3 py-1 rounded-md bg-gray-200">&#9664;</button>
-                    <button onClick={handleNextPage} disabled={currentPage === totalPages} className="px-3 py-1 rounded-md bg-gray-200">&#9654;</button>
-                </div>
-            </div>
-        </div>
+        </>
     );
 };
 

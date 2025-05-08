@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom";
 import {
   FaHome, FaUsers, FaStore, FaBox, FaBriefcase, FaTruck, FaUserShield,
   FaTshirt, FaPalette, FaShoppingCart, FaCreditCard, FaBell, FaEnvelope,
-  FaChartBar, FaCog, FaSignOutAlt
+  FaChartBar, FaCog, FaSignOutAlt , 
 } from "react-icons/fa";
 import { GiScissors } from "react-icons/gi";
 import { Link } from "react-router-dom";
@@ -56,6 +56,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <div className="mb-4">
             <h3 className="text-xs text-white uppercase mb-2">More</h3>
             <SidebarItem to="/admin/orders" icon={<FaShoppingCart />} text="Orders" onClick={handleClick} />
+            <SidebarItem to="/admin/subscription" icon={<FaStore />} text="Subscription" onClick={handleClick} />
             <SidebarItem to="/admin/transactions" icon={<FaCreditCard />} text="Payments & Transactions" onClick={handleClick} />
             <SidebarItem to="/admin/notifications" icon={<FaBell />} text="Notifications" onClick={handleClick} />
             <SidebarItem to="/admin/messages" icon={<FaEnvelope />} text="Messages" />

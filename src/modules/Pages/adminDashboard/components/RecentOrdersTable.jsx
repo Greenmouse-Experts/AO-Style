@@ -100,8 +100,8 @@ const RecentOrdersTable = () => {
         setCurrentPage(1); // Reset to page 1 when items per page changes
     };
     return (
-        <div className="bg-white p-6 rounded-xl overflow-x-auto  mt-6">
-            <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
+        <div className="bg-white p-6 rounded-xl overflow-x-auto mt-6">
+            <div className="flex flex-wrap justify-between items-center pb-3gap-4">
                 <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                     <h2 className="text-lg font-semibold">Recent Orders</h2>
                 </div>

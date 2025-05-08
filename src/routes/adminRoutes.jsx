@@ -21,7 +21,12 @@ import SubAdmin from "../modules/Pages/adminDashboard/SubAdmin";
 import Market from "../modules/Pages/adminDashboard/market/Market";
 import FabricCategory from "../modules/Pages/adminDashboard/FabricCategory";
 import StyleCategories from "../modules/Pages/adminDashboard/StyleCategories";
+// import OrderDetailsContent from "../modules/Pages/adminDashboard/order/OrderDetailsContent";
+// ORDERS COMPONENTS
 import Orders from "../modules/Pages/adminDashboard/order/Orders";
+import OrderDetailsPage from "../modules/Pages/adminDashboard/order/OrderDetails";
+// Subscriptions COMPONENTS
+import Subscriptionpage from "../modules/Pages/adminDashboard/subscription/Subscriptions";
 import PaymentTransaction from "../modules/Pages/adminDashboard/Transactions";
 import NotificationPage from "../modules/Pages/adminDashboard/NotificationPage";
 import Settings from "../modules/Pages/adminDashboard/Settings";
@@ -73,7 +78,7 @@ export const adminRoutes = [
       {
         path: '/admin/analytics',
         element: <AnalyticsPage />,
-    },
+      },
       // Add More Routes Here
 
       {
@@ -108,9 +113,23 @@ export const adminRoutes = [
         path: '/admin/styles',
         element: <StyleCategories />,
       },
+      // Orders Routes
       {
         path: '/admin/orders',
         element: <Orders />,
+      },
+      {
+        path: '/admin/orders-details',
+        element: <OrderDetailsPage />,
+      },
+      {
+        path: '/admin/orders-details',
+        element: <OrderDetailsPage />,
+      },
+      // Subscription Routes
+      {
+        path: '/admin/subscription',
+        element: <Subscriptionpage />,
       },
       {
         path: '/admin/transactions',
@@ -124,8 +143,7 @@ export const adminRoutes = [
         path: '/admin/settings',
         element: <Settings />,
       },
-      
-      
+
       // Add other admin dashboard routes here
     ],
   },

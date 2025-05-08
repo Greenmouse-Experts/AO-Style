@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import ReusableTable from "../components/ReusableTable";
 import OrdersSummary from "../components/OrdersSummary";
-import { FaEllipsisH } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const OrdersTable = () => {
     const [openDropdown, setOpenDropdown] = useState(null);
@@ -12,11 +12,13 @@ const OrdersTable = () => {
 
     const data = Array.from({ length: 100 }, (_, i) => ({
         id: i + 1,
-        orderNumber: `ORD-${1000 + i}`,
-        customerName: `Customer ${i + 1}`,
-        totalAmount: `₦${(Math.random() * 1000).toFixed(2)}`,
-        dateOrdered: `02/04/25`,
-        status: i % 2 === 0 ? "Completed" : "Pending",
+        customerName: ["Samuel Johnson", "Francis Doe", "Christian Dior", "Janet Adebayo"][i % 4],
+        orderDate: "12 Aug 2022 - 12:25 am",
+        product: "Red Fabric",
+        trackingId: `9348f7${i % 3}`,
+        orderTotal: "₦25,000.00",
+        action: "View Order",
+        status: ["In Progress", "Pending", "Completed"][i % 3],
     }));
 
     const toggleDropdown = (rowId) => {
@@ -34,55 +36,48 @@ const OrdersTable = () => {
     }, []);
 
     const columns = [
-        { label: "S/N", key: "id" },
-        { label: "Order Number", key: "orderNumber" },
-        { label: "Customer Name", key: "customerName" },
-        { label: "Total Amount", key: "totalAmount" },
-        { label: "Date Ordered", key: "dateOrdered" },
+        {
+            label: "Customer Name",
+            key: "customerName",
+            render: (_, row) => (
+                <div className="flex items-center">
+                    <input type="checkbox" className="mr-2" />
+                    {row.customerName}
+                </div>
+            ),
+        },
+        { label: "Order Date", key: "orderDate" },
+        { label: "Product", key: "product" },
+        { label: "Tracking ID", key: "trackingId" },
+        { label: "Order Total", key: "orderTotal" },
+        {
+            label: "Action",
+            key: "action",
+            render: (_, row) => (
+                <Link to={`/admin/orders-details`}>
+                    <button className="text-purple-500 text-sm hover:underline">{row.action}</button>
+                </Link>
+            ),
+        },
         {
             label: "Status",
             key: "status",
             render: (status) => (
                 <span
-                    className={`px-3 py-1 text-sm rounded-full ${status === "Ongoing"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : status === "Cancelled"
-                            ? "bg-red-100 text-red-700"
-                            : status === "Pending"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : "bg-green-100 text-green-700"
-                        }`}
+                    className={`text-sm ${
+                        status === "In Progress" ? "text-blue-500" :
+                        status === "Pending" ? "text-yellow-500" :
+                        "text-green-500"
+                    }`}
                 >
                     {status}
                 </span>
             ),
         },
-
-        {
-            label: "Action",
-            key: "action",
-            render: (_, row) => (
-                <div className="relative" ref={dropdownRef}>
-                    <button
-                        className="bg-gray-100 text-gray-500 px-3 py-1 rounded-md"
-                        onClick={() => toggleDropdown(row.id)}
-                    >
-                        <FaEllipsisH />
-                    </button>
-                    {openDropdown === row.id && (
-                        <div className="absolute right-0 mt-2 w-40 bg-white rounded-md z-10 shadow-lg">
-                            <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">View Details</button>
-                            <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">Edit Market</button>
-                            <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">Remove Market</button>
-                        </div>
-                    )}
-                </div>
-            ),
-        },
     ];
 
-    const filteredData = data.filter((market) =>
-        Object.values(market).some((value) =>
+    const filteredData = data.filter((order) =>
+        Object.values(order).some((value) =>
             typeof value === "string" && value.toLowerCase().includes(searchTerm.toLowerCase())
         )
     );
@@ -90,7 +85,6 @@ const OrdersTable = () => {
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
-
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
     const handlePreviousPage = () => {
@@ -106,53 +100,57 @@ const OrdersTable = () => {
     };
 
     const handleItemsPerPageChange = (e) => {
-        setItemsPerPage(Number(e.target.value)); // Update items per page
-        setCurrentPage(1); // Reset to the first page whenever the items per page is changed
+        setItemsPerPage(Number(e.target.value));
+        setCurrentPage(1);
     };
 
     return (
         <>
             <OrdersSummary />
             <div className="bg-white p-6 rounded-xl overflow-x-auto">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-semibold">Orders</h2>
+                <div className="flex flex-wrap justify-between items-center pb-3 gap-4">
+                    <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                        <h2 className="text-lg font-semibold">Customer Orders</h2>
+                    </div>
                     <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
                         <input
                             type="text"
-                            placeholder="Search market..."
+                            placeholder="Search..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
                         />
-                        <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-                            Export As ▾
-                        </button>
-                        <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-                            Sort: Newest First ▾
-                        </button>
-                        {/* <button className="bg-[#9847FE] text-white px-4 py-2 text-sm rounded-md">
-                        + Add New Order
-                    </button> */}
+                        <select className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-auto">
+                            <option>Filter</option>
+                        </select>
+                        <select className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-auto">
+                            <option>Bulk Action</option>
+                        </select>
                     </div>
                 </div>
                 <ReusableTable columns={columns} data={currentItems} />
                 <div className="flex justify-between items-center mt-4">
-                    <div className="flex">
-                        <p className="text-sm text-gray-600">Page {currentPage} of {totalPages}</p>
+                    <div className="flex items-center">
+                        <p className="text-sm text-gray-600">Items per page: </p>
                         <select
                             value={itemsPerPage}
                             onChange={handleItemsPerPageChange}
-                            className="py-2 px-3 border border-gray-200 ml-4 rounded-md outline-none text-sm w-auto"
+                            className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
                         >
                             <option value={5}>5</option>
                             <option value={10}>10</option>
                             <option value={15}>15</option>
                             <option value={20}>20</option>
                         </select>
+                        <p className="text-sm text-gray-600 ml-4">{indexOfFirstItem + 1}-{indexOfLastItem > filteredData.length ? filteredData.length : indexOfLastItem} of {filteredData.length} items</p>
                     </div>
                     <div className="flex gap-1">
-                        <button onClick={handlePreviousPage} disabled={currentPage === 1} className="px-3 py-1 rounded-md bg-gray-200">&#9664;</button>
-                        <button onClick={handleNextPage} disabled={currentPage === totalPages} className="px-3 py-1 rounded-md bg-gray-200">&#9654;</button>
+                        <button onClick={handlePreviousPage} disabled={currentPage === 1} className="px-3 py-1 rounded-md bg-gray-200">
+                            ◀
+                        </button>
+                        <button onClick={handleNextPage} disabled={currentPage === totalPages} className="px-3 py-1 rounded-md bg-gray-200">
+                            ▶
+                        </button>
                     </div>
                 </div>
             </div>

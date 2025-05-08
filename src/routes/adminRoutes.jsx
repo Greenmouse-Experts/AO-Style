@@ -18,6 +18,7 @@ import InboxPage from "../modules/Pages/adminDashboard/messages/Inbox";
 import SalesRep from "../modules/Pages/adminDashboard/Sales";
 import Logistics from "../modules/Pages/adminDashboard/Logistics";
 import SubAdmin from "../modules/Pages/adminDashboard/SubAdmin";
+import AdminRole from "../modules/Pages/adminDashboard/AdminRole";
 import Market from "../modules/Pages/adminDashboard/market/Market";
 import FabricCategory from "../modules/Pages/adminDashboard/FabricCategory";
 import StyleCategories from "../modules/Pages/adminDashboard/StyleCategories";
@@ -146,6 +147,10 @@ export const adminRoutes = [
       {
         path: '/admin/settings',
         element: <Settings />,
+      },
+      {
+        path: '/admin/roles',
+        element: <AdminRole />,
       },
 
       // Add other admin dashboard routes here

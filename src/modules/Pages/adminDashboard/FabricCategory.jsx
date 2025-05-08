@@ -9,13 +9,16 @@ const FabricCategoryTable = () => {
     const dropdownRef = useRef(null);
     const [openDropdown, setOpenDropdown] = useState(null);
     const [itemsPerPage, setItemsPerPage] = useState(10);
-
-    const data = Array.from({ length: 150 }, (_, i) => ({
-        id: i + 1,
-        categoryName: `Category ${i + 1}`,
-        totalFabrics: Math.floor(Math.random() * 1000) + " Fabrics",
-        dateAdded: `01/04/25`,
-    }));
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [newCategory, setNewCategory] = useState("");
+    const [data, setData] = useState(
+        Array.from({ length: 150 }, (_, i) => ({
+            id: i + 1,
+            categoryName: `Category ${i + 1}`,
+            totalFabrics: Math.floor(Math.random() * 1000) + " Fabrics",
+            dateAdded: `01/04/25`,
+        }))
+    );
 
     const toggleDropdown = (rowId) => {
         setOpenDropdown(openDropdown === rowId ? null : rowId);
@@ -84,8 +87,21 @@ const FabricCategoryTable = () => {
     };
 
     const handleItemsPerPageChange = (e) => {
-        setItemsPerPage(Number(e.target.value)); // Update items per page
-        setCurrentPage(1); // Reset to the first page whenever the items per page is changed
+        setItemsPerPage(Number(e.target.value));
+        setCurrentPage(1);
+    };
+
+    const handleAddCategory = () => {
+        if (!newCategory.trim()) return; // Prevent adding empty categories
+        const newCategoryData = {
+            id: data.length + 1,
+            categoryName: newCategory,
+            totalFabrics: "0 Fabrics",
+            dateAdded: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "2-digit" }),
+        };
+        setData([...data, newCategoryData]);
+        setNewCategory("");
+        setIsAddModalOpen(false);
     };
 
     return (
@@ -106,9 +122,12 @@ const FabricCategoryTable = () => {
                     <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
                         Sort: Newest First ▾
                     </button>
-                    {/* <button className="bg-[#9847FE] text-white px-4 py-2 text-sm rounded-md">
-                     + Add a Fabric Category
-                    </button> */}
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="bg-gradient text-white px-4 py-2 text-sm rounded-md"
+                    >
+                        + Add a Fabric Category
+                    </button>
                 </div>
             </div>
             <ReusableTable columns={columns} data={currentItems} />
@@ -127,10 +146,59 @@ const FabricCategoryTable = () => {
                     </select>
                 </div>
                 <div className="flex gap-1">
-                    <button onClick={handlePreviousPage} disabled={currentPage === 1} className="px-3 py-1 rounded-md bg-gray-200">&#9664;</button>
-                    <button onClick={handleNextPage} disabled={currentPage === totalPages} className="px-3 py-1 rounded-md bg-gray-200">&#9654;</button>
+                    <button onClick={handlePreviousPage} disabled={currentPage === 1} className="px-3 py-1 rounded-md bg-gray-200">◀</button>
+                    <button onClick={handleNextPage} disabled={currentPage === totalPages} className="px-3 py-1 rounded-md bg-gray-200">▶</button>
                 </div>
             </div>
+
+            {/* Add Fabric Category Modal */}
+            {isAddModalOpen && (
+                <div
+                    className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
+                    onClick={() => setIsAddModalOpen(false)}
+                >
+                    <div
+                        className="bg-white rounded-xl p-6 w-full max-w-lg"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex justify-between items-center border-b border-gray-200 pb-4 mb-4">
+                            <h2 className="text-lg font-semibold text-gray-800">Add a Fabric Category</h2>
+                            <button
+                                onClick={() => setIsAddModalOpen(false)}
+                                className="text-gray-500 hover:text-gray-700 text-2xl"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-4">Category Name</label>
+                                <input
+                                    type="text"
+                                    value={newCategory}
+                                    onChange={(e) => setNewCategory(e.target.value)}
+                                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                                    placeholder="Enter the category name"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex justify-between mt-6 space-x-4">
+                            <button
+                                onClick={() => setIsAddModalOpen(false)}
+                                className="w-full bg-purple-400 text-white px-4 py-2 rounded-md text-sm font-medium"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleAddCategory}
+                                className="w-full bg-gradient text-white px-4 py-4 rounded-md text-sm font-medium"
+                            >
+                                Add Fabric Category
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

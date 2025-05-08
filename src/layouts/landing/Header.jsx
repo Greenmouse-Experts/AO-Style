@@ -94,10 +94,11 @@ export default function Navbar() {
       </div>
 
       {/* Mobile Menu - Flyout */}
+      {isOpen && (
       <div
-        ref={menuRef}
-        className={`fixed inset-y-0 right-0 w-74 bg-white transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "translate-x-full"}`}
-        onMouseLeave={() => setIsOpen(false)}
+      ref={menuRef}
+      className="fixed inset-y-0 right-0 w-74 bg-white transform transition-transform duration-300 ease-in-out translate-x-0"
+      onMouseLeave={() => setIsOpen(false)}
       >
         <div className="p-6">
           <button className="absolute top-4 right-4" onClick={() => setIsOpen(false)}>
@@ -172,6 +173,7 @@ export default function Navbar() {
           </div>
         </div>
       </div>
+      )}
     </nav>
   );
 }

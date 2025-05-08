@@ -21,13 +21,13 @@ import SubAdmin from "../modules/Pages/adminDashboard/SubAdmin";
 import Market from "../modules/Pages/adminDashboard/market/Market";
 import FabricCategory from "../modules/Pages/adminDashboard/FabricCategory";
 import StyleCategories from "../modules/Pages/adminDashboard/StyleCategories";
-// import OrderDetailsContent from "../modules/Pages/adminDashboard/order/OrderDetailsContent";
 // ORDERS COMPONENTS
 import Orders from "../modules/Pages/adminDashboard/order/Orders";
 import OrderDetailsPage from "../modules/Pages/adminDashboard/order/OrderDetails";
 // Subscriptions COMPONENTS
 import Subscriptionpage from "../modules/Pages/adminDashboard/subscription/Subscriptions";
 import PaymentTransaction from "../modules/Pages/adminDashboard/Transactions";
+import Announcements from "../modules/Pages/adminDashboard/Announcements";
 import NotificationPage from "../modules/Pages/adminDashboard/NotificationPage";
 import Settings from "../modules/Pages/adminDashboard/Settings";
 
@@ -138,6 +138,10 @@ export const adminRoutes = [
       {
         path: '/admin/notifications',
         element: <NotificationPage />,
+      },
+      {
+        path: '/admin/announcements',
+        element: <Announcements />,
       },
       {
         path: '/admin/settings',

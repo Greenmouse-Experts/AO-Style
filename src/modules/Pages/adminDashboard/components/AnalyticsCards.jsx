@@ -36,7 +36,7 @@ export default function AnalyticsCards() {
                 <div key={index} className="flex items-center justify-between bg-white p-4 rounded-md">
                     <div className="flex-1">
                         <div className="flex items-baseline gap-2">
-                            <p className="text-lg font-semibold text-gray-800">{stat.value}</p>
+                            <p className="text-lg font-meduim text-gray-800">{stat.value}</p>
                             <p className="text-sm text-gray-500">{stat.subtext}</p>
                         </div>
                         <p className="text-gray-600 mt-1">{stat.label}</p>

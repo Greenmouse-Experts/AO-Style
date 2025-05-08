@@ -21,6 +21,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       <div
         className={`fixed md:relative top-0 left-0 h-screen bg-gradient p-5 flex flex-col transition-transform duration-300 z-40 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 ${isOpen ? "translate-x-0" : "-translate-x-full"
           } md:translate-x-0 md:w-72 w-64`}
+          style={{ WebkitOverflowScrolling: "touch" }} 
       >
         {/* Logo */}
         <div className="flex justify-center mb-3">

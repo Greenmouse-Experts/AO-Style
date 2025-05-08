@@ -1,7 +1,15 @@
 @import "tailwindcss";
 
-* {
-  box-sizing: inherit;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.sticky {
+  position: sticky;
+  top: 0;
+  z-index: 50;
 }
 
 body {
@@ -12,7 +20,9 @@ body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
 }
+
 
 @layer components {
   .Resizer {

@@ -11,7 +11,7 @@ export default function DashboardLayout() {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null; 
+  if (!mounted) return null; // prevent Safari/Xcode early render bugs
 
   return (
     <div className="flex h-screen overflow-hidden">

@@ -56,11 +56,11 @@ export const adminRoutes = [
         element: <Tailors />,
       },
       {
-        path: '/admin/tailor/add-tailor',
+        path: '/admin/tailors/add-tailor',
         element: <AddTailor />,
       },
       {
-        path: '/admin/tailor/view-tailor',
+        path: '/admin/tailors/view-tailor',
         element: <ViewTailor />,
       },
       // Fabric Routes

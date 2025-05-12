@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import ReusableTable from "../components/ReusableTable";
 import { FaEllipsisH } from "react-icons/fa";
 import AddMarketModal from "./AddMarketModal";
+import { Link } from "react-router-dom";
+
 
 const NewlyAddedUsers = () => {
     const [openDropdown, setOpenDropdown] = useState(null);
@@ -41,19 +43,27 @@ const NewlyAddedUsers = () => {
             label: "Action",
             key: "action",
             render: (_, row) => (
-                <div className="relative" ref={dropdownRef}>
+                <div className="relative">
                     <button
                         className="bg-gray-100 text-gray-500 px-3 py-1 rounded-md"
                         onClick={() => toggleDropdown(row.id)}
                     >
                         <FaEllipsisH />
                     </button>
-
                     {openDropdown === row.id && (
-                        <div className="absolute right-0 mt-2 w-40 bg-white rounded-md z-10">
-                            <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">View Details</button>
-                            <button onClick={() => setIsModalOpen(true)} className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">Add a Market Rep</button>
-                            <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">Remove User</button>
+                        <div className="dropdown-menu absolute right-0 mt-2 w-50 bg-white rounded-md z-10 border-gray-200">
+                            <Link
+                                to={`/admin/tailors/view-tailor`}
+                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+                            >
+                                View Market Rep 
+                            </Link>
+                            <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
+                                Edit User
+                            </button>
+                            <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center">
+                                Remove User
+                            </button>
                         </div>
                     )}
                 </div>

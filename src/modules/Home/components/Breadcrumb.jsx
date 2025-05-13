@@ -10,6 +10,7 @@ const Breadcrumb = ({ title, subtitle, just, backgroundImage }) => {
         "PickaStyle": "/pickastyle",
         "Pick A Style": "/pickastyle",
         "About us": "/about",
+        "All Jobs": "/jobs",
         "Contact us": "/contact",
         "Frequently Asked Questions": "/faqs",
         "Policy Statement": "/policy-statement",

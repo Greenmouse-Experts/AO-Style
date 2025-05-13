@@ -286,17 +286,17 @@ export default function AnkaraGownPage() {
       {cameFromAoStyleDetails && isModalOpen && (
         <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm">
           <div className="bg-white p-6 rounded-lg w-[100%] sm:w-[500px]">
-          <div className="flex justify-between items-center border-b border-[#CCCCCC] outline-none pb-3  mb-4">
-                        <h2 className='text-lg font-meduim'>.</h2>
-                        <button onClick={closeModal} className="text-gray-500 hover:text-black">
-                            ✕
-                        </button>
-                    </div>
+            <div className="flex justify-between items-center border-b border-[#CCCCCC] outline-none pb-3  mb-4">
+              <h2 className='text-lg font-meduim'>.</h2>
+              <button onClick={closeModal} className="text-gray-500 hover:text-black">
+                ✕
+              </button>
+            </div>
             <div className="space-y-3">
               <div>
                 <h2 className="text-base font-meduim mb-3">You have a successfully added a Style  </h2>
                 <p className='text-sm leading-loose text-gray-500'>
-                You have added a style and a material to your order, you can proceed to checkout or keep shopping
+                  You have added a style and a material to your order, you can proceed to checkout or keep shopping
                 </p>
               </div>
 
@@ -304,12 +304,12 @@ export default function AnkaraGownPage() {
               <div className="flex justify-between pt-4">
                 <Link to="/shop">
                   <button onClick={closeModal} className="border px-6 py-3 border-[#CCCCCC] text-gray-400 cursor-pointer">
-                  Back to Shop
+                    Back to Shop
                   </button>
                 </Link>
                 <Link to="/view-cart">
                   <button className="bg-gradient text-white px-6 py-3 cursor-pointer">
-                  Proceed to View Cart
+                    Proceed to View Cart
                   </button>
                 </Link>
               </div>

@@ -14,7 +14,7 @@ export default function GetStarted() {
             </div>
             <div className="text-center md:mb-10 mb-8">
                 <h1 className="md:text-3xl text-2xl font-normal text-black mb-4">Choose A User Type :</h1>
-                <p className="text-gray-600 mt-2">Select a user type to start enjoying the perks of the platform</p>
+                <p className="text-black mt-2">Select a user type to start enjoying the perks of the platform</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:mt-8 mt-1">
@@ -55,7 +55,7 @@ export default function GetStarted() {
                             className="w-full h-auto -mt-2 sm:-mt-14 object-cover rounded-md"
                         />
                         <h2 className="text-lg font-medium mt-5">{user.title}</h2>
-                        <p className="text-[#949292] text-sm mt-3 leading-loose">{user.description}</p>
+                        <p className="text-black text-sm mt-3 leading-loose">{user.description}</p>
                         <Link to={user.link} className="mt-5 inline-block bg-gradient text-white py-3 px-6 rounded-md hover:opacity-80 transition">
                             {user.btnText}
                         </Link>
@@ -63,7 +63,7 @@ export default function GetStarted() {
                 ))}
             </div>
 
-            <footer className="mt-14 text-[#BEBDBD] text-sm">
+            <footer className="mt-14 text-black text-sm">
                 &copy; 2025 CARYBIN . All rights reserved.
             </footer>
         </div>

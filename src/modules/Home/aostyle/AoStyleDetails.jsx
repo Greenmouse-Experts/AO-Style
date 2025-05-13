@@ -1,13 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
 import SavedMeasurementsDisplay from "../components/SavedMeasurementsDisplay";
 import Breadcrumb from "../components/Breadcrumb";
+import { useLocation } from 'react-router-dom';
+import { Link } from "react-router-dom";
 
 export default function AnkaraGownPage() {
+  const location = useLocation();
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedTab, setSelectedTab] = useState('Upper Body');
   const [measurementUnit, setMeasurementUnit] = useState('cm');
   const [measurementsSubmitted, setMeasurementsSubmitted] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const images = [
     'https://res.cloudinary.com/greenmouse-tech/image/upload/v1744094281/AoStyle/image_ijkebh.png',
@@ -61,6 +65,20 @@ export default function AnkaraGownPage() {
 
   const unitOptions = ['cm', 'in', 'm'];
 
+  // Check if the user came from /aostyle-details
+  const cameFromAoStyleDetails = location.state?.from === "/aostyle-details" || location.pathname === "/aostyle-details";
+
+  // Automatically open the modal if the user came from /aostyle-details
+  useEffect(() => {
+    if (cameFromAoStyleDetails) {
+      setIsModalOpen(true);
+    }
+  }, [cameFromAoStyleDetails]);
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
   return (
     <>
       <Breadcrumb
@@ -72,6 +90,27 @@ export default function AnkaraGownPage() {
       <section className="Resizer section px-4">
         <div>
           <div className="p-6">
+            {/* Conditionally render the Fabric section */}
+            {cameFromAoStyleDetails && (
+              <div className="bg-[#FFF2FF] p-4 rounded-lg mb-6">
+                <h2 className="text-sm font-medium text-gray-500 mb-4">FABRIC</h2>
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <img
+                      src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214604/AoStyle/image3_ebun7q.png"
+                      alt="product"
+                      className="w-20 h-20 rounded object-cover"
+                    />
+                  </div>
+                  <div className="ml-4 flex-1">
+                    <h3 className="font-medium">Luxury Embellished Lace Fabrics</h3>
+                    <p className="mt-1 text-sm">X 2 Yards</p>
+                    <p className="mt-1 text-[#2B21E5] text-sm">N 24,000</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-col md:flex-row gap-8">
               {/* Image Gallery */}
               <div className="flex md:w-1/1">
@@ -138,7 +177,6 @@ export default function AnkaraGownPage() {
                       setSelectedTab('Upper Body');
                     }}
                   />
-
                 </div>
               ) : (
                 <div className="flex flex-col md:flex-row gap-8">
@@ -240,10 +278,45 @@ export default function AnkaraGownPage() {
                 </div>
               )}
             </div>
-
           </div>
         </div>
       </section>
+
+      {/* Modal */}
+      {cameFromAoStyleDetails && isModalOpen && (
+        <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm">
+          <div className="bg-white p-6 rounded-lg w-[100%] sm:w-[500px]">
+          <div className="flex justify-between items-center border-b border-[#CCCCCC] outline-none pb-3  mb-4">
+                        <h2 className='text-lg font-meduim'>.</h2>
+                        <button onClick={closeModal} className="text-gray-500 hover:text-black">
+                            ✕
+                        </button>
+                    </div>
+            <div className="space-y-3">
+              <div>
+                <h2 className="text-base font-meduim mb-3">You have a successfully added a Style  </h2>
+                <p className='text-sm leading-loose text-gray-500'>
+                You have added a style and a material to your order, you can proceed to checkout or keep shopping
+                </p>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex justify-between pt-4">
+                <Link to="/shop">
+                  <button onClick={closeModal} className="border px-6 py-3 border-[#CCCCCC] text-gray-400 cursor-pointer">
+                  Back to Shop
+                  </button>
+                </Link>
+                <Link to="/view-cart">
+                  <button className="bg-gradient text-white px-6 py-3 cursor-pointer">
+                  Proceed to View Cart
+                  </button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

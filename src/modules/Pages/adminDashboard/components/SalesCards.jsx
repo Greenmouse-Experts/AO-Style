@@ -1,4 +1,4 @@
-export default function StatsCard() {
+export default function StatsCards() {
     const stats = [
       {
         image: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1742827212/AoStyle/Group_38685_lvqmtr.png",

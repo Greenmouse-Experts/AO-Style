@@ -31,27 +31,6 @@ const CustomersTable = () => {
         { label: "Email Address", key: "email" },
         { label: "Location", key: "location" },
         { label: "Date Joined", key: "dateJoined" },
-        {
-            label: "Action",
-            key: "action",
-            render: (_, row) => (
-                <div className="relative" ref={dropdownRef}>
-                    <button
-                        className="bg-gray-100 text-gray-500 px-3 py-1 rounded-md"
-                        onClick={() => toggleDropdown(row.id)}
-                    >
-                        <FaEllipsisH />
-                    </button>
-                    {openDropdown === row.id && (
-                        <div className="absolute right-0 mt-2 w-40 bg-white rounded-md z-10 shadow-lg">
-                            <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">View Details</button>
-                            <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">Edit Vendors</button>
-                            <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">Remove Vendors</button>
-                        </div>
-                    )}
-                </div>
-            ),
-        },
     ];
 
     const toggleDropdown = (rowId) => {

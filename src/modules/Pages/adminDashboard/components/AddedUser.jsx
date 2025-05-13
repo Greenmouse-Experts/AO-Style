@@ -53,7 +53,7 @@ const NewlyAddedUsers = () => {
                     {openDropdown === row.id && (
                         <div className="dropdown-menu absolute right-0 mt-2 w-50 bg-white rounded-md z-10 border-gray-200">
                             <Link
-                                to={`/admin/tailors/view-tailor`}
+                                to={`/admin/sales-rep/view-sales`}
                                 className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
                             >
                                 View Market Rep 

@@ -16,6 +16,8 @@ import AnalyticsPage from "../modules/Pages/adminDashboard/reports/Analytics";
 // MESSAGE COMPONENTS
 import InboxPage from "../modules/Pages/adminDashboard/messages/Inbox";
 import SalesRep from "../modules/Pages/adminDashboard/Sales";
+import ViewSales from "../modules/Pages/adminDashboard/sales-rep/ViewSales";
+
 import Logistics from "../modules/Pages/adminDashboard/Logistics";
 import SubAdmin from "../modules/Pages/adminDashboard/SubAdmin";
 import AdminRole from "../modules/Pages/adminDashboard/AdminRole";
@@ -90,10 +92,16 @@ export const adminRoutes = [
         path: '/admin/fabric/add-fabric',
         element: <AddFabric />,
       },
+      // 
       {
         path: '/admin/sales-rep',
         element: <SalesRep />,
       },
+      {
+        path: '/admin/sales-rep/view-sales',
+        element: <ViewSales />,
+      },
+
       {
         path: '/admin/logistics',
         element: <Logistics />,

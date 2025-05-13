@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 export default function GetStarted() {
     return (
         <div className="min-h-screen flex flex-col items-center justify-center Resizer">
-            <div className="mb-5">
+            <div className="md:mt-2 mt-10 mb-5">
                 <Link to="/">
                     <img
                         src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742964300/AoStyle/CARYBIN_TRANSPARENT_1_ujbdei.png"
@@ -12,12 +12,12 @@ export default function GetStarted() {
                     />
                 </Link>
             </div>
-            <div className="text-center justing">
-                <h1 className="text-3xl font-normal text-black mb-4">Choose A User Type :</h1>
+            <div className="text-center md:mb-10 mb-8">
+                <h1 className="md:text-3xl text-2xl font-normal text-black mb-4">Choose A User Type :</h1>
                 <p className="text-gray-600 mt-2">Select a user type to start enjoying the perks of the platform</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:mt-8 mt-1">
                 {[
                     {
                         title: "Customer",

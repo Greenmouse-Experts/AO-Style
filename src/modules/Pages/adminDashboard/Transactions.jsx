@@ -43,14 +43,14 @@ const PaymentTransactionTable = () => {
                 </span>
             ),
         },
-        {
-            label: "Action",
-            key: "action",
-            className: "text-gray-500 font-medium text-sm py-4",
-            render: () => (
-                <span className="text-gray-500">...</span>
-            ),
-        },
+        // {
+        //     label: "Action",
+        //     key: "action",
+        //     className: "text-gray-500 font-medium text-sm py-4",
+        //     render: () => (
+        //         <span className="text-gray-500">...</span>
+        //     ),
+        // },
     ];
 
     const filteredData = data.filter((transaction) => {

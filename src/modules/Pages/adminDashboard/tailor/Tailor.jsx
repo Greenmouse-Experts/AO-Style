@@ -12,6 +12,10 @@ const CustomersTable = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [activeTab, setActiveTab] = useState("table");
 
+    const handleDropdownToggle = (id) => {
+        setOpenDropdown(openDropdown === id ? null : id);
+    };
+
     const dropdownRef = useRef(null);
 
     const data = Array.from({ length: 30 }, (_, i) => ({
@@ -178,8 +182,42 @@ const CustomersTable = () => {
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {currentItems.map((item) => (
-                        <div key={item.id} className="bg-white rounded-lg p-4 border border-gray-100 flex items-center justify-center">
-                            <div className="text-center">
+                        <div
+                            key={item.id}
+                            className="relative bg-white rounded-lg p-4 border border-gray-100 flex justify-between"
+                        >
+                            <div className="absolute top-3 right-3">
+                                <button
+                                    className="bg-gray-100 text-gray-500 px-2 py-1 rounded-md"
+                                    onClick={() => handleDropdownToggle(item.id)}
+                                >
+                                    <FaEllipsisH size={14} />
+                                </button>
+
+                                {openDropdown === item.id && (
+                                    <div className="absolute right-0 mt-2 w-32 bg-white rounded-md z-10 border border-gray-200">
+                                        <Link
+                                            to={`/admin/tailors/view-tailor`}
+                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
+                                        >
+                                            View Details
+                                        </Link>
+                                        <button
+                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
+                                            onClick={() => console.log("Edit user", item.id)}
+                                        >
+                                            Edit User
+                                        </button>
+                                        <button
+                                            className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full text-left"
+                                            onClick={() => console.log("Remove user", item.id)}
+                                        >
+                                            Remove User
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="text-center mx-auto">
                                 <img src={item.profile} alt={item.name} className="mx-auto w-16 h-16 rounded-full mb-2" />
                                 <h3 className="text-dark-blue font-medium mb-1 mt-2">{item.name}</h3>
                                 <p className="text-gray-500 text-sm mt-1">{item.business}</p>

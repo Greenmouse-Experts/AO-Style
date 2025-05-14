@@ -13,6 +13,10 @@ const CustomersTable = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [activeTab, setActiveTab] = useState("table");
 
+    const handleDropdownToggle = (id) => {
+        setOpenDropdown(openDropdown === id ? null : id);
+    };
+
     // Dummy Sub-Admins Data
     const data = Array.from({ length: 30 }, (_, i) => ({
         id: i + 1,
@@ -41,6 +45,35 @@ const CustomersTable = () => {
         { label: "Email Address", key: "email" },
         { label: "Location", key: "location" },
         { label: "Date Joined", key: "dateJoined" },
+        {
+                    label: "Action",
+                    key: "action",
+                    render: (_, row) => (
+                        <div className="relative">
+                            <button
+                                className="bg-gray-100 text-gray-500 px-3 py-1 rounded-md"
+                                onClick={() => toggleDropdown(row.id)}
+                            >
+                                <FaEllipsisH />
+                            </button>
+                            {openDropdown === row.id && (
+                                <div className="dropdown-menu absolute right-0 mt-2 w-50 bg-white rounded-md z-10 border-gray-200">
+                                    <button
+                                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+                                    >
+                                        View Details
+                                    </button>
+                                    <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
+                                        Edit User
+                                    </button>
+                                    <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center">
+                                        Remove User
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ),
+                },
     ];
 
     const toggleDropdown = (rowId) => {
@@ -152,22 +185,66 @@ const CustomersTable = () => {
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {currentItems.map((item) => (
-                        <div key={item.id} className="bg-white rounded-lg p-4 border border-gray-100 flex items-center justify-center">
-                            <div className="text-center">
-                                <img src={item.profile} alt={item.name} className="mx-auto w-16 h-16 rounded-full mb-2" />
-                                <h3 className="text-[#1E293B] font-medium">{item.name}</h3>
-                                <p className="text-gray-500 text-sm">{item.role}</p>
-                                <div className="flex items-center justify-center space-x-2 mt-1">
-                                    <FaPhone className="text-[#9847FE]" size={14} />
-                                    <span className="text-gray-600 text-sm">{item.phone}</span>
-                                </div>
-                                <div className="flex items-center justify-center space-x-2 mt-1">
-                                    <FaEnvelope className="text-[#9847FE]" size={14} />
-                                    <span className="text-[#9847FE] text-sm">{item.email}</span>
-                                </div>
-                                <p className="text-gray-500 text-sm mt-1">{item.dateJoined}</p>
-                            </div>
-                        </div>
+                        <div
+                                                    key={item.id}
+                                                    className="relative bg-white rounded-lg p-4 border border-gray-100 flex justify-between"
+                                                >
+                                                    <div className="absolute top-3 right-3">
+                                                        <button
+                                                            className="bg-gray-100 text-gray-500 px-2 py-1 rounded-md"
+                                                            onClick={() => handleDropdownToggle(item.id)}
+                                                        >
+                                                            <FaEllipsisH size={14} />
+                                                        </button>
+                        
+                                                        {openDropdown === item.id && (
+                                                            <div className="absolute right-0 mt-2 w-32 bg-white rounded-md z-10 border border-gray-200">
+                                                                <Link
+                                                                    to={`.`}
+                                                                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
+                                                                >
+                                                                    View Details
+                                                                </Link>
+                                                                <button
+                                                                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
+                                                                    onClick={() => console.log("Edit user", item.id)}
+                                                                >
+                                                                    Edit User
+                                                                </button>
+                                                                <button
+                                                                    className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full text-left"
+                                                                    onClick={() => console.log("Remove user", item.id)}
+                                                                >
+                                                                    Remove User
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                        
+                                                    <div className="text-center mx-auto">
+                                                        <img
+                                                            src={item.profile}
+                                                            alt={item.name}
+                                                            className="mx-auto w-16 h-16 rounded-full mb-3"
+                                                        />
+                                                        <h3 className="text-[#1E293B] font-medium mb-1">{item.name}</h3>
+                                                        <p className="text-gray-500 text-sm mb-2">{item.userId}</p>
+                                                        <div className="flex items-center justify-center space-x-2 mt-1">
+                                                            <FaPhone className="text-[#9847FE]" size={14} />
+                                                            <span className="text-gray-600 text-sm">{item.phone}</span>
+                                                        </div>
+                                                        <div className="flex items-center justify-center space-x-2 mt-1">
+                                                            <FaEnvelope className="text-[#9847FE]" size={14} />
+                                                            <span className="text-[#9847FE] text-sm">{item.email}</span>
+                                                        </div>
+                                                        <p className="text-gray-500 text-sm mt-1">{item.location}</p>
+                                                        <p className="text-gray-500 text-sm mt-1">{item.dateJoined}</p>
+                                                        <button className="bg-[#9847FE] text-white mt-3 px-4 py-2 text-sm rounded-md">
+                                                Send a Message
+                                                </button>
+                                                    </div>
+                                                </div>
+                                               
                     ))}
                 </div>
             )}

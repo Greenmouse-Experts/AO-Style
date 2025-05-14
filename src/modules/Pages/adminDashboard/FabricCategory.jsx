@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import ReusableTable from "./components/ReusableTable";
-import { FaEllipsisH } from "react-icons/fa";
+import { FaEllipsisH, FaBars, FaTh, FaLayerGroup, FaCalendarAlt } from "react-icons/fa";
 import { AiOutlineSearch } from "react-icons/ai";
 
 const FabricCategoryTable = () => {
@@ -19,9 +19,14 @@ const FabricCategoryTable = () => {
             dateAdded: `01/04/25`,
         }))
     );
+    const [activeTab, setActiveTab] = useState("table");
 
     const toggleDropdown = (rowId) => {
         setOpenDropdown(openDropdown === rowId ? null : rowId);
+    };
+
+    const handleDropdownToggle = (id) => {
+        setOpenDropdown(openDropdown === id ? null : id);
     };
 
     useEffect(() => {
@@ -106,9 +111,25 @@ const FabricCategoryTable = () => {
 
     return (
         <div className="bg-white p-6 rounded-xl overflow-x-auto">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Fabric Categories</h2>
+            <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
+                <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                    <h2 className="text-lg font-semibold">Fabric Categories</h2>
+                </div>
                 <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
+                    <div className="flex items-center space-x-2 border border-gray-200 rounded-md p-1">
+                        <button
+                            className={`p-2 rounded ${activeTab === "table" ? "text-[#9847FE]" : "text-gray-600"}`}
+                            onClick={() => setActiveTab("table")}
+                        >
+                            <FaBars size={16} />
+                        </button>
+                        <button
+                            className={`p-2 rounded ${activeTab === "grid" ? "text-[#9847FE]" : "text-gray-600"}`}
+                            onClick={() => setActiveTab("grid")}
+                        >
+                            <FaTh size={16} />
+                        </button>
+                    </div>
                     <input
                         type="text"
                         placeholder="Search fabrics categories..."
@@ -130,26 +151,106 @@ const FabricCategoryTable = () => {
                     </button>
                 </div>
             </div>
-            <ReusableTable columns={columns} data={currentItems} />
-            <div className="flex justify-between items-center mt-4">
-                <div className="flex">
-                    <p className="text-sm text-gray-600">Page {currentPage} of {totalPages}</p>
-                    <select
-                        value={itemsPerPage}
-                        onChange={handleItemsPerPageChange}
-                        className="py-2 px-3 border border-gray-200 ml-4 rounded-md outline-none text-sm w-auto"
-                    >
-                        <option value={5}>5</option>
-                        <option value={10}>10</option>
-                        <option value={15}>15</option>
-                        <option value={20}>20</option>
-                    </select>
+
+            {activeTab === "table" ? (
+                <>
+                    <ReusableTable columns={columns} data={currentItems} />
+                    <div className="flex justify-between items-center mt-4">
+                        <div className="flex">
+                            <p className="text-sm text-gray-600">Page {currentPage} of {totalPages}</p>
+                            <select
+                                value={itemsPerPage}
+                                onChange={handleItemsPerPageChange}
+                                className="py-2 px-3 border border-gray-200 ml-4 rounded-md outline-none text-sm w-auto"
+                            >
+                                <option value={5}>5</option>
+                                <option value={10}>10</option>
+                                <option value={15}>15</option>
+                                <option value={20}>20</option>
+                            </select>
+                        </div>
+                        <div className="flex gap-1">
+                            <button onClick={handlePreviousPage} disabled={currentPage === 1} className="px-3 py-1 rounded-md bg-gray-200">◀</button>
+                            <button onClick={handleNextPage} disabled={currentPage === totalPages} className="px-3 py-1 rounded-md bg-gray-200">▶</button>
+                        </div>
+                    </div>
+                </>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {currentItems.map((item) => (
+                        <div
+                            key={item.id}
+                            className="relative bg-white rounded-lg p-4 border border-gray-100 flex justify-between"
+                        >
+                            <div className="absolute top-3 right-3">
+                                <button
+                                    className="bg-gray-100 text-gray-500 px-2 py-1 rounded-md"
+                                    onClick={() => handleDropdownToggle(item.id)}
+                                >
+                                    <FaEllipsisH size={14} />
+                                </button>
+
+                                {openDropdown === item.id && (
+                                    <div className="absolute right-0 mt-2 w-32 bg-white rounded-md z-10 border border-gray-200">
+                                        <button
+                                            to={`.`}
+                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
+                                        >
+                                            View Details
+                                        </button>
+                                        <button
+                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
+                                            onClick={() => console.log("Edit user", item.id)}
+                                        >
+                                            Edit User
+                                        </button>
+                                        <button
+                                            className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full text-left"
+                                            onClick={() => console.log("Remove user", item.id)}
+                                        >
+                                            Remove User
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="text-center mx-auto">
+                                <h3 className="text-[#1E293B] font-medium mb-2">{item.categoryName}</h3>
+                                <div className="flex items-center justify-center space-x-2 mt-2">
+                                    <FaLayerGroup className="text-[#9847FE]" size={14} />
+                                    <span className="text-gray-600 text-sm">{item.totalFabrics}</span>
+                                </div>
+                                <div className="flex items-center justify-center space-x-2 mt-2">
+                                    <FaCalendarAlt className="text-[#9847FE]" size={14} />
+                                    <span className="text-gray-600 text-sm">{item.dateAdded}</span>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
-                <div className="flex gap-1">
-                    <button onClick={handlePreviousPage} disabled={currentPage === 1} className="px-3 py-1 rounded-md bg-gray-200">◀</button>
-                    <button onClick={handleNextPage} disabled={currentPage === totalPages} className="px-3 py-1 rounded-md bg-gray-200">▶</button>
+            )}
+
+            {activeTab === "grid" && (
+                <div className="flex justify-between items-center mt-4">
+                    <div className="flex">
+                        <p className="text-sm text-gray-600">Page {currentPage} of {totalPages}</p>
+                        <select
+                            value={itemsPerPage}
+                            onChange={handleItemsPerPageChange}
+                            className="py-2 px-3 border border-gray-200 ml-4 rounded-md outline-none text-sm w-auto"
+                        >
+                            <option value={5}>5</option>
+                            <option value={10}>10</option>
+                            <option value={15}>15</option>
+                            <option value={20}>20</option>
+                        </select>
+                    </div>
+                    <div className="flex gap-1">
+                        <button onClick={handlePreviousPage} disabled={currentPage === 1} className="px-3 py-1 rounded-md bg-gray-200">◀</button>
+                        <button onClick={handleNextPage} disabled={currentPage === totalPages} className="px-3 py-1 rounded-md bg-gray-200">▶</button>
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Add Fabric Category Modal */}
             {isAddModalOpen && (

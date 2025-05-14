@@ -197,30 +197,37 @@ export default function InboxPage() {
             {showModal && (
                 <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm">
                     <div className="bg-white p-6 rounded-lg w-full max-w-lg">
-                        <h2 className="text-xl font-medium mb-4">Send Message</h2>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-gray-700 mb-4">User Type</label>
-                                <select className="w-full p-4 border border-[#CCCCCC] text-gray-700 outline-none rounded-lg">
-                                    <option value="">Choose user type</option>
-                                    <option>Customer</option>
-                                    <option>Tailor</option>
-                                    <option>Fabric</option>
-                                    <option>Market Rep</option>
-                                    <option>Logistics</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-gray-700 mb-4">User Email</label>
-                                <input type="email" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg" placeholder="greenmouse@gmail.com" />
-                            </div>
-                            <div>
-                                <label className="block text-gray-700 mb-4">Message</label>
-                                <textarea className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg" placeholder="Type in your message" rows="6"></textarea>
-                            </div>
-                            <button className="bg-gradient text-white px-4 py-3 rounded" onClick={() => setShowModal(false)}>
-                                Send Message
+                        <div className="flex justify-between items-center outline-none pb-3 mb-4">
+                            <h2 className="text-lg font-semibold">Send Message</h2>
+                            <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-black">
+                                ✕
                             </button>
+                        </div>
+                        <div className="space-y-4">
+                            <form action="">
+                                <div>
+                                    <label className="block text-gray-700 mb-4">User Type</label>
+                                    <select className="w-full p-4 border border-[#CCCCCC] text-gray-700 outline-none rounded-lg" required>
+                                        <option value="">Choose user type</option>
+                                        <option>Customer</option>
+                                        <option>Tailor</option>
+                                        <option>Fabric</option>
+                                        <option>Market Rep</option>
+                                        <option>Logistics</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-gray-700 mb-4 mt-4">User Email</label>
+                                    <input type="email" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg" placeholder="greenmouse@gmail.com" required />
+                                </div>
+                                <div>
+                                    <label className="block text-gray-700 mb-4 mt-4">Message</label>
+                                    <textarea className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg" placeholder="Type in your message" rows="6" required></textarea>
+                                </div>
+                                <button className="bg-gradient text-white px-4 py-3 mt-4 rounded" type="submit">
+                                    Send Message
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>

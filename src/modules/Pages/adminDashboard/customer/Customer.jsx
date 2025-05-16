@@ -109,7 +109,6 @@ const CustomersTable = () => {
         setItemsPerPage(Number(e.target.value));
         setCurrentPage(1);
     };
-
     return (
         <div className="bg-white p-6 rounded-xl overflow-x-auto">
             <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">

@@ -1,4 +1,3 @@
-// Description: This file contains the PaymentTransactionTable component which displays a table of payment transactions with various functionalities such as filtering, searching, and pagination.
 import { useState, useRef, useEffect } from "react";
 import ReusableTable from "./components/ReusableTable";
 import TransactionPayment from "./components/TransactionPayment";

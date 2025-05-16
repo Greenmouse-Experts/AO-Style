@@ -21,6 +21,7 @@ body {
   padding: 0;
   box-sizing: border-box;
   -webkit-overflow-scrolling: touch;
+  overflow-x: hidden !important;
 }
 
 
@@ -89,6 +90,7 @@ body {
 
   .justing {
     padding: 0px 0px 60px 0px;
+    
   }
 
   .Push {

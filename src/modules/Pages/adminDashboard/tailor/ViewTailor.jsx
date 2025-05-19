@@ -146,10 +146,16 @@ const ViewCustomer = () => {
             )
         },
         {
-            label: "KYC", key: "kyc", render: (kyc) => (
+            label: "KYC",
+            key: "kyc",
+            render: (kyc) => (
+              <Link to={`/admin/tailors/add-tailor?tab=kyc`}>
                 <span className="text-purple-600 cursor-pointer hover:underline">{kyc}</span>
+              </Link>
             )
-        },
+          },
+          
+          
         { label: "EMAIL ADDRESS", key: "email" },
         { label: "PHONE NUMBER", key: "phone" },
         { label: "ADDRESS", key: "address" },

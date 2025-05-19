@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState , useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 const AddTailorForm = () => {
-    const [activeTab, setActiveTab] = useState('personal');
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+    const initialTab = queryParams.get('tab') || 'personal';
+
+    const [activeTab, setActiveTab] = useState(initialTab);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
 
     const togglePassword = () => setShowPassword(!showPassword);
     const toggleConfirmPassword = () => setShowConfirmPassword(!showConfirmPassword);
@@ -12,6 +18,10 @@ const AddTailorForm = () => {
         if (activeTab === 'personal') setActiveTab('business');
         else if (activeTab === 'business') setActiveTab('kyc');
     };
+
+    useEffect(() => {
+        setActiveTab(initialTab);
+    }, [initialTab]);
 
     const handleBack = () => {
         if (activeTab === 'business') setActiveTab('personal');

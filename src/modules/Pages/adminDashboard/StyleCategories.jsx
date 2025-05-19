@@ -22,7 +22,7 @@ const StyleCategoriesTable = () => {
         Array.from({ length: 200 }, (_, i) => ({
             id: i + 1,
             styleName: `Style Category ${i + 1}`,
-            totalFabrics: `${Math.floor(Math.random() * 1000) + 1} Fabrics`,
+            totalFabrics: `${Math.floor(Math.random() * 1000) + 1} Style`,
             dateAdded: "01/04/25",
         }))
     );

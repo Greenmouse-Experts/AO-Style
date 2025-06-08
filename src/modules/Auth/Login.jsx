@@ -11,7 +11,7 @@ export default function SignInCustomer() {
                 <div className="flex justify-center mb-6">
                     <Link to="/">
                         <img
-                            src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742964300/AoStyle/CARYBIN_TRANSPARENT_1_ujbdei.png"
+                            src="https://res.cloudinary.com/ddj0k8gdw/image/upload/v1749385530/Payvidence-Images/logo_rkfmu6.png"
                             alt="OAStyles Logo"
                             className="h-20"
                         />

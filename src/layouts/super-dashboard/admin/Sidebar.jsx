@@ -1,27 +1,45 @@
 import { NavLink } from "react-router-dom";
 import {
-  FaHome, FaUsers, FaStore, FaBox, FaBriefcase, FaTruck, FaUserShield,
-  FaTshirt, FaPalette, FaShoppingCart, FaCreditCard, FaBell, FaEnvelope,
-  FaChartBar, FaCog, FaSignOutAlt , 
+  FaHome,
+  FaUsers,
+  FaStore,
+  FaBox,
+  FaBriefcase,
+  FaTruck,
+  FaUserShield,
+  FaTshirt,
+  FaPalette,
+  FaShoppingCart,
+  FaCreditCard,
+  FaBell,
+  FaEnvelope,
+  FaChartBar,
+  FaCog,
+  FaSignOutAlt,
 } from "react-icons/fa";
 import { GiScissors } from "react-icons/gi";
 import { Link } from "react-router-dom";
+import { useCarybinUserStore } from "../../../store/carybinUserStore";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const handleClick = () => {
     window.scrollTo(0, 0);
     if (window.innerWidth < 768) {
-      toggleSidebar(); 
+      toggleSidebar();
     }
   };
+
+  const { carybinUser } = useCarybinUserStore();
+
 
   return (
     <div className="relative">
       {/* Sidebar */}
       <div
-        className={`fixed md:relative top-0 left-0 h-screen bg-gradient p-5 flex flex-col transition-transform duration-300 z-40 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 ${isOpen ? "translate-x-0" : "-translate-x-full"
-          } md:translate-x-0 md:w-72 w-64`}
-          style={{ WebkitOverflowScrolling: "touch" }} 
+        className={`fixed md:relative top-0 left-0 h-screen bg-gradient p-5 flex flex-col transition-transform duration-300 z-40 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0 md:w-72 w-64`}
+        style={{ WebkitOverflowScrolling: "touch" }}
       >
         {/* Logo */}
         <div className="flex justify-center mb-3">
@@ -36,43 +54,139 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
         {/* Sidebar Links */}
         <nav className="flex-1 space-y-2">
-          <SidebarItem to="/admin" icon={<FaHome />} text="Dashboard" onClick={handleClick} />
-          <h3 className="text-xs text-white uppercase mt-4 mb-2">User Management</h3>
-          <SidebarItem to="/admin/customers" icon={<FaUsers />} text="Customers" onClick={handleClick} />
-          <SidebarItem to="/admin/tailors" icon={<GiScissors />} text="Tailors / Designers" onClick={handleClick} />
-          <SidebarItem to="/admin/fabric-vendor" icon={<FaBox />} text="Fabric Vendor" onClick={handleClick} />
-          <SidebarItem to="/admin/sales-rep" icon={<FaBriefcase />} text="Market Rep" onClick={handleClick} />
-          <SidebarItem to="/admin/logistics" icon={<FaTruck />} text="Logistics" onClick={handleClick} />
-          <SidebarItem to="/admin/sub-admins" icon={<FaUserShield />} text="Admins" onClick={handleClick} />
-          
+          <SidebarItem
+            to="/admin"
+            icon={<FaHome />}
+            text="Dashboard"
+            onClick={handleClick}
+          />
+          <h3 className="text-xs text-white uppercase mt-4 mb-2">
+            User Management
+          </h3>
+          <SidebarItem
+            to="/admin/customers"
+            icon={<FaUsers />}
+            text="Customers"
+            onClick={handleClick}
+          />
+          <SidebarItem
+            to="/admin/tailors"
+            icon={<GiScissors />}
+            text="Tailors / Designers"
+            onClick={handleClick}
+          />
+          <SidebarItem
+            to="/admin/fabric-vendor"
+            icon={<FaBox />}
+            text="Fabric Vendor"
+            onClick={handleClick}
+          />
+          <SidebarItem
+            to="/admin/sales-rep"
+            icon={<FaBriefcase />}
+            text="Market Rep"
+            onClick={handleClick}
+          />
+          <SidebarItem
+            to="/admin/logistics"
+            icon={<FaTruck />}
+            text="Logistics"
+            onClick={handleClick}
+          />
+          <SidebarItem
+            to="/admin/sub-admins"
+            icon={<FaUserShield />}
+            text="Admins"
+            onClick={handleClick}
+          />
+
           {/* Products Section */}
           <div className="mb-4">
             <h3 className="text-xs text-white uppercase mb-2">Products</h3>
-            <SidebarItem to="/admin/markets" icon={<FaStore />} text="Markets" onClick={handleClick} />
-            <SidebarItem to="/admin/fabrics" icon={<FaTshirt />} text="Fabrics" onClick={handleClick} />
-            <SidebarItem to="/admin/styles" icon={<FaPalette />} text="Styles" onClick={handleClick} />
+            <SidebarItem
+              to="/admin/markets"
+              icon={<FaStore />}
+              text="Markets"
+              onClick={handleClick}
+            />
+            <SidebarItem
+              to="/admin/fabrics"
+              icon={<FaTshirt />}
+              text="Fabrics"
+              onClick={handleClick}
+            />
+            <SidebarItem
+              to="/admin/styles"
+              icon={<FaPalette />}
+              text="Styles"
+              onClick={handleClick}
+            />
           </div>
 
           {/* More Section */}
           <div className="mb-4">
             <h3 className="text-xs text-white uppercase mb-2">More</h3>
-            <SidebarItem to="/admin/orders" icon={<FaShoppingCart />} text="Orders" onClick={handleClick} />
-            <SidebarItem to="/admin/subscription" icon={<FaStore />} text="Subscription" onClick={handleClick} />
-            <SidebarItem to="/admin/transactions" icon={<FaCreditCard />} text="Payments & Transactions" onClick={handleClick} />
-            <SidebarItem to="/admin/notifications" icon={<FaBell />} text="Notifications" onClick={handleClick} />
-            <SidebarItem to="/admin/messages" icon={<FaEnvelope />} text="Messages" />
-            <SidebarItem to="/admin/announcements" icon={<FaBell />} text="Announcements" onClick={handleClick} />
-            <SidebarItem to="/admin/analytics" icon={<FaChartBar />} text="Reports & Analytics" />
-            <SidebarItem to="/admin/settings" icon={<FaCog />} text="Settings & Configuration" onClick={handleClick} />
+            <SidebarItem
+              to="/admin/orders"
+              icon={<FaShoppingCart />}
+              text="Orders"
+              onClick={handleClick}
+            />
+            <SidebarItem
+              to="/admin/subscription"
+              icon={<FaStore />}
+              text="Subscription"
+              onClick={handleClick}
+            />
+            <SidebarItem
+              to="/admin/transactions"
+              icon={<FaCreditCard />}
+              text="Payments & Transactions"
+              onClick={handleClick}
+            />
+            <SidebarItem
+              to="/admin/notifications"
+              icon={<FaBell />}
+              text="Notifications"
+              onClick={handleClick}
+            />
+            <SidebarItem
+              to="/admin/messages"
+              icon={<FaEnvelope />}
+              text="Messages"
+            />
+            <SidebarItem
+              to="/admin/announcements"
+              icon={<FaBell />}
+              text="Announcements"
+              onClick={handleClick}
+            />
+            <SidebarItem
+              to="/admin/analytics"
+              icon={<FaChartBar />}
+              text="Reports & Analytics"
+            />
+            <SidebarItem
+              to="/admin/settings"
+              icon={<FaCog />}
+              text="Settings & Configuration"
+              onClick={handleClick}
+            />
           </div>
 
           {/* Profile Section */}
           <div className="mt-auto bg-gray-100 p-4 rounded-lg text-center">
-            <img src="https://randomuser.me/api/portraits/men/10.jpg" alt="Admin" className="w-12 h-12 mx-auto rounded-full mb-2" />
-            <p className="text-sm font-semibold">OA Styles</p>
+            <img
+              src="https://randomuser.me/api/portraits/men/10.jpg"
+              alt="Admin"
+              className="w-12 h-12 mx-auto rounded-full mb-2"
+            />
+            <p className="text-sm font-semibold">{carybinUser?.name}</p>
             <p className="text-xs text-gray-500">Super Admin Dashboard</p>
             <Link to="/admin/settings">
-              <button className="mt-2 text-xs bg-[#172B4D] text-white px-3 py-2 cursor-pointer rounded-md">Go to Profile</button>
+              <button className="mt-2 text-xs bg-[#172B4D] text-white px-3 py-2 cursor-pointer rounded-md">
+                Go to Profile
+              </button>
             </Link>
           </div>
         </nav>
@@ -95,9 +209,10 @@ const SidebarItem = ({ to, icon, text, onClick }) => (
     end
     onClick={onClick}
     className={({ isActive }) =>
-      `flex items-center py-3 px-3 rounded-md cursor-pointer transition-colors ${isActive
-        ? "text-[#9847FE] bg-[#f3e8ff] font-normal"
-        : "text-white hover:bg-gray-200 hover:text-[#9847FE]"
+      `flex items-center py-3 px-3 rounded-md cursor-pointer transition-colors ${
+        isActive
+          ? "text-[#9847FE] bg-[#f3e8ff] font-normal"
+          : "text-white hover:bg-gray-200 hover:text-[#9847FE]"
       }`
     }
   >

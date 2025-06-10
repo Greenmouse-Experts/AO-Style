@@ -2,16 +2,53 @@ import { useState, useEffect } from "react";
 import Sidebar from "../admin/Sidebar";
 import Navbar from "../admin/Navbar";
 import { Outlet } from "react-router-dom";
+import useGetUserProfile from "../../../modules/Auth/hooks/useGetProfile";
+import Loader from "../../../components/ui/Loader";
+import { useCarybinUserStore } from "../../../store/carybinUserStore";
+import useToast from "../../../hooks/useToast";
+import { useNavigate } from "react-router-dom";
 
 export default function DashboardLayout() {
+  const { toastError } = useToast();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const navigate = useNavigate();
+
+  const { setCaryBinUser, carybinUser, logOut } = useCarybinUserStore();
+
+  const { data, isPending, isSuccess, isError, error } = useGetUserProfile();
+
+  useEffect(() => {
+    if (data && isSuccess) {
+      setCaryBinUser(data);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
+
+  useEffect(() => {
+    if (isError && error?.data?.message === "Unauthorized") {
+      toastError("Unauthorized");
+      logOut();
+      navigate("/admin/login");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error, isError]);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   if (!mounted) return null; // prevent Safari/Xcode early render bugs
+
+  if (isPending) {
+    return (
+      <div className="m-auto flex h-screen items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
+
+  console.log(carybinUser);
 
   return (
     <div className="flex h-screen overflow-hidden">

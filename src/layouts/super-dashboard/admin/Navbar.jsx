@@ -1,9 +1,24 @@
 import { useState } from "react";
 import { Bell, Menu } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useCarybinUserStore } from "../../../store/carybinUserStore";
+import useToast from "../../../hooks/useToast";
+import Cookies from "js-cookie";
 
 export default function Navbar({ toggleSidebar }) {
+  const { toastSuccess } = useToast();
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const { logOut } = useCarybinUserStore();
+
+  const handleSignOut = () => {
+    navigate("/admin/login");
+    toastSuccess("Logout Successfully");
+    logOut();
+    Cookies.remove("token");
+  };
 
   return (
     <nav className="bg-white px-4 py-6 flex items-center justify-between sticky top-0 z-40 w-full">
@@ -45,13 +60,21 @@ export default function Navbar({ toggleSidebar }) {
             <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 shadow-lg rounded-lg z-50">
               <ul className="py-2">
                 <li className="px-4 py-2 hover:bg-gray-100">
-                  <Link to="/admin/settings" className="block text-sm text-gray-700">
+                  <Link
+                    to="/admin/settings"
+                    className="block text-sm text-gray-700"
+                  >
                     Settings
                   </Link>
                 </li>
-                <li className="px-4 py-2 hover:bg-gray-100 text-red-500 text-sm cursor-pointer">
+                <button
+                  onClick={() => {
+                    handleSignOut();
+                  }}
+                  className="px-4 py-2 hover:bg-gray-100 text-red-500 text-sm cursor-pointer"
+                >
                   Logout
-                </li>
+                </button>
               </ul>
             </div>
           )}

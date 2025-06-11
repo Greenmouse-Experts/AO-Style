@@ -5,7 +5,7 @@ import useToast from "../useToast";
 import MediaService from "../../services/api/multimedia";
 
 const useUploadImage = () => {
-  const { toastError, toastSuccess } = useToast();
+  const { toastError } = useToast();
 
   const { isPending, mutate: uploadImageMutate } = useMutation({
     mutationFn: (payload) => MediaService.uploadImage(payload),

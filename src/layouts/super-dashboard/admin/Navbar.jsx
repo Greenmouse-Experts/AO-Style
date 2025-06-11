@@ -71,7 +71,7 @@ export default function Navbar({ toggleSidebar }) {
                   onClick={() => {
                     handleSignOut();
                   }}
-                  className="px-4 py-2 hover:bg-gray-100 text-red-500 text-sm cursor-pointer"
+                  className="px-4 py-2 hover:bg-gray-100 text-red-500 cursor-pointer"
                 >
                   Logout
                 </button>

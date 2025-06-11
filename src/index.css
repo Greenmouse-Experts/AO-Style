@@ -109,6 +109,7 @@ body {
   .bg-gradient {
     background: linear-gradient(92.49deg, #9E4BFA -14.1%, #EE79AC 111.07%);
   }  
+  
   .active-class {
     background-color: #242ef21a;
     border-left: 3px solid #242ef2;

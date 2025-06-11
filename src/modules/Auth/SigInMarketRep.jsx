@@ -100,7 +100,8 @@ export default function SignInAsCustomer() {
                             </button>
                         </div>
 
-                        <button className="w-full bg-gradient cursor-pointer text-white py-4 rounded-lg font-normal" type="submit">
+                        <button                             
+ className="w-full bg-gradient cursor-pointer text-white py-4 rounded-lg font-normal" type="submit">
                             Sign Up As A Market Rep
                         </button>
                     </form>

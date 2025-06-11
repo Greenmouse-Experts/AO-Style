@@ -10,7 +10,7 @@ const useSignIn = () => {
 
   const { isPending, mutate: signinMutate } = useMutation({
     mutationFn: (payload) => AuthService.signinUser(payload),
-    mutationKey: ["admin-login"],
+    mutationKey: ["user-login"],
     onSuccess(data) {
       toastSuccess(data?.data?.message);
       // @ts-ignore

@@ -23,12 +23,10 @@ export default function SignInCustomer() {
     // setFieldError,
   } = useFormik({
     initialValues: initialValues,
-    // validationSchema: signInValidationSchema,
     validateOnChange: false,
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      console.log(val);
       signinMutate(val);
     },
   });

@@ -10,8 +10,8 @@ const useUploadImage = () => {
   const { isPending, mutate: uploadImageMutate } = useMutation({
     mutationFn: (payload) => MediaService.uploadImage(payload),
     mutationKey: ["upload-image"],
-    onSuccess(data) {
-      toastSuccess(data?.data?.message);
+    onSuccess() {
+      // toastSuccess(data?.data?.message);
     },
     onError: (error) => {
       toastError(error?.data?.message);

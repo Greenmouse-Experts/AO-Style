@@ -18,7 +18,7 @@ const Settings = () => {
   const initialValues = {
     name: carybinUser?.name ?? "",
     email: carybinUser?.email ?? "",
-    profile_picture: "",
+    profile_picture: carybinUser?.profile?.profile_picture ?? "",
     address: carybinUser?.profile?.address ?? "",
     country: "",
     state: "",
@@ -29,6 +29,8 @@ const Settings = () => {
 
   const { isPending: updateIsPending, updatePersonalMutate } =
     useUpdateProfile();
+
+  const [profileIsLoading, setProfileIsLoading] = useState(false);
 
   const {
     handleSubmit,
@@ -58,7 +60,19 @@ const Settings = () => {
 
       const formData = new FormData();
       formData.append("image", file);
-      uploadImageMutate(formData);
+      uploadImageMutate(formData, {
+        onSuccess: (data) => {
+          setProfileIsLoading(true);
+          updatePersonalMutate(
+            { ...values, profile_picture: data?.data?.data?.url },
+            {
+              onSuccess: () => {
+                setProfileIsLoading(false);
+              },
+            }
+          );
+        },
+      });
       e.target.value = "";
     }
   };
@@ -105,15 +119,18 @@ const Settings = () => {
               <h2 className="text-xl font-medium mb-4">Profile</h2>
               <div className="mt-6 flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
                 <img
-                  src="https://randomuser.me/api/portraits/women/4.jpg"
+                  src={values.profile_picture}
                   alt="Profile"
                   className="w-24 h-24 rounded-full"
                 />
                 <button
+                  disabled={isPending || profileIsLoading}
                   onClick={handleButtonClick}
                   className="border px-4 py-2 text-purple-600 rounded-lg border-purple-600"
                 >
-                  Change Picture
+                  {isPending || profileIsLoading
+                    ? "Please wait..."
+                    : " Change Picture"}
                 </button>
                 <input
                   type="file"

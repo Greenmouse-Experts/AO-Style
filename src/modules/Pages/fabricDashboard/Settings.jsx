@@ -6,6 +6,7 @@ import KYCVerification from "./components/KYCVerification";
 import { useFormik } from "formik";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useUploadImage from "../../../hooks/multimedia/useUploadImage";
+import useUpdateProfile from "../../../hooks/settings/useUpdateProfile";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("personalDetails");
@@ -18,15 +19,19 @@ const Settings = () => {
     name: carybinUser?.name ?? "",
     email: carybinUser?.email ?? "",
     profile_picture: "",
-    address: "",
+    address: carybinUser?.profile?.address ?? "",
+    country: "",
+    state: "",
+    phone_no: "",
   };
 
   const { isPending, uploadImageMutate } = useUploadImage();
 
+  const { isPending: updateIsPending, updatePersonalMutate } =
+    useUpdateProfile();
+
   const {
     handleSubmit,
-    touched,
-    errors,
     values,
     handleChange,
     resetForm,
@@ -37,11 +42,11 @@ const Settings = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      //   updatePasswordMutate(val, {
-      //     onSuccess: () => {
-      //       resetForm();
-      //     },
-      //   });
+      updatePersonalMutate(val, {
+        onSuccess: () => {
+          resetForm();
+        },
+      });
     },
   });
 
@@ -186,6 +191,9 @@ const Settings = () => {
                         className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                         placeholder="Enter full detailed address"
                         required
+                        name={"address"}
+                        value={values.address}
+                        onChange={handleChange}
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -213,10 +221,11 @@ const Settings = () => {
                       </div>
                     </div>
                     <button
+                      disabled={updateIsPending}
                       type="submit"
-                      className="mt-4 bg-gradient text-white px-6 py-2 rounded-md"
+                      className="mt-4 cursor-pointer bg-gradient text-white px-6 py-2 rounded-md"
                     >
-                      Update
+                      {updateIsPending ? "Please wait..." : "Update"}
                     </button>
                   </form>
                 )}

@@ -6,14 +6,12 @@ const baseURL = import.meta.env.VITE_APP_CaryBin_API_URL;
 const CaryBinApi = axios.create({
   baseURL,
   headers: {
-"Content-Type": "application/json",
+    "Content-Type": "application/json",
     // Accept: "application/vnd.api+json",
   },
 });
 
-const onRequest = (
-  request
-) => {
+const onRequest = (request) => {
   // * get the user data if loggedin to access the token and pass it to the header authorization
   const accessToken = Cookies.get("token");
   request.headers.Authorization = `Bearer ${accessToken || ""}`;

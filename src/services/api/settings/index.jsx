@@ -1,12 +1,16 @@
-import CaryBinApi from '../../CarybinBaseUrl';
+import CaryBinApi from "../../CarybinBaseUrl";
 
-
-export const updatePassword = (payload) => {
+const updatePassword = (payload) => {
   return CaryBinApi.post("/auth/update-password", payload);
 };
 
+const updatePersonalInfo = (payload) => {
+  return CaryBinApi.post("/auth/save-profile-info", payload);
+};
+
 const SettingsService = {
-updatePassword,
+  updatePassword,
+  updatePersonalInfo,
 };
 
 export default SettingsService;

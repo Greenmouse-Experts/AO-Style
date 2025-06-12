@@ -2,10 +2,35 @@ import { Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import HowDidYouHearAboutUs from "../Auth/components/HowDidYouHearAboutUs";
+import { useFormik } from "formik";
+
+const initialValues = {
+  email: "",
+  password: "",
+};
+
 
 export default function SignInAsCustomer() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+      const {
+        handleSubmit,
+        touched,
+        errors,
+        values,
+        handleChange,
+        // setFieldError,
+      } = useFormik({
+        initialValues: initialValues,
+        validateOnChange: false,
+        validateOnBlur: false,
+        enableReinitialize: true,
+        onSubmit: (val) => {
+          signinMutate(val);
+        },
+      });
+    
 
     return (
         <div className="h-screen flex overflow-hidden">

@@ -53,6 +53,7 @@ export default function SignInCustomer() {
           <input
             type="email"
             name={"email"}
+            required
             value={values.email}
             onChange={handleChange}
             placeholder="Enter your email address"
@@ -64,6 +65,7 @@ export default function SignInCustomer() {
             <input
               type={showPassword ? "text" : "password"}
               value={values.password}
+              required
               onChange={handleChange}
               name={"password"}
               placeholder="Enter your password"

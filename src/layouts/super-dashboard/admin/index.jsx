@@ -48,7 +48,6 @@ export default function DashboardLayout() {
     );
   }
 
-  console.log(carybinUser);
 
   return (
     <div className="flex h-screen overflow-hidden">

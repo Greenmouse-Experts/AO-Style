@@ -13,21 +13,19 @@ const NewlyAddedUsers = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const {data: businessData} = useGetBusinessDetails()
+  const { data: businessData } = useGetBusinessDetails();
 
-  
-
-  console.log("Business Data", businessData?.data);
-
-  const { queryParams, updateQueryParams } =
-    useQueryParams({
-      per_page: 10,
-      sortBy: "",
-    });
+  const { queryParams, updateQueryParams } = useQueryParams({
+    per_page: 10,
+    sortBy: "",
+  });
 
   const { data: getAllMarketRepData, isPending } = useGetAllMarketRep({
-   ...queryParams, id: '1234',
+    ...queryParams,
+    id: businessData?.data?.id,
   });
+
+  console.log("getAllMarketRepData", getAllMarketRepData?.data);
 
   // User Data
   const data = [
@@ -184,7 +182,7 @@ const NewlyAddedUsers = () => {
       {/* Table */}
       <div className="overflow-x-auto">
         <AddMarketModal
-        businessId={businessData?.data?.id}
+          businessId={businessData?.data?.id}
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
         />

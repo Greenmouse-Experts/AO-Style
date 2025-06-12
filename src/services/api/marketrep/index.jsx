@@ -8,7 +8,6 @@ const addMarketRep = (payload) => {
   return CaryBinApi.post(`/contact/invite`, payload);
 };
 
-
 const MarketRepService = {
 GetMarketRep,
 addMarketRep

@@ -8,10 +8,16 @@ export const getBusinessInfo = () => {
   return CaryBinApi.get(`/onboard/fetch-platform-details`);
 };
 
+const updatePersonalInfo = (payload) => {
+  return CaryBinApi.post("/auth/save-profile-info", payload);
+};
+
+
 
 const SettingsService = {
 updatePassword,
-getBusinessInfo
+getBusinessInfo,
+updatePersonalInfo
 };
 
 export default SettingsService;

@@ -15,6 +15,7 @@ const Settings = () => {
 
   const { carybinUser } = useCarybinUserStore();
 
+
   const initialValues = {
     name: carybinUser?.name ?? "",
     email: carybinUser?.email ?? "",

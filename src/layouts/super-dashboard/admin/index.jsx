@@ -17,7 +17,7 @@ export default function DashboardLayout() {
   const { setCaryBinUser, logOut } = useCarybinUserStore();
 
   const { data, isPending, isSuccess, isError, error } = useGetUserProfile();
-
+  
   useEffect(() => {
     if (data && isSuccess) {
       setCaryBinUser(data);

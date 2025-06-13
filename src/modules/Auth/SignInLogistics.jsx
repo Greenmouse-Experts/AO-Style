@@ -42,15 +42,21 @@ export default function SignUpAsLogisticsAgent() {
           ? {
               ...val,
               role: "logistics-agent",
+              alternative_phone:
+                val?.alternative_phone === ""
+                  ? undefined
+                  : val?.alternative_phone,
               allowOtp: true,
-              location: val.location,
               location: val.location,
             }
           : {
               ...val,
               role: "logistics-agent",
+              alternative_phone:
+                val?.alternative_phone === ""
+                  ? undefined
+                  : val?.alternative_phone,
               allowOtp: true,
-              location: val.location,
               business: {
                 business_name: val.business_name,
                 business_type: val.business_type,

@@ -12,7 +12,7 @@ export default function Navbar({ toggleSidebar }) {
 
   const navigate = useNavigate();
 
-  const { logOut } = useCarybinUserStore();
+  const { carybinUser, logOut } = useCarybinUserStore();
 
   const handleSignOut = () => {
     navigate("/login");
@@ -45,7 +45,7 @@ export default function Navbar({ toggleSidebar }) {
         {/* Profile Section */}
         <div className="relative">
           <img
-            src="https://randomuser.me/api/portraits/women/2.jpg"
+            src={carybinUser?.profile?.profile_picture ?? ""}
             alt="User"
             className="w-8 h-8 rounded-full cursor-pointer"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -58,7 +58,10 @@ export default function Navbar({ toggleSidebar }) {
                 {/* <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
                   Profile
                 </li> */}
-                <Link to="/customer/settings">
+                <Link
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  to="/customer/settings"
+                >
                   <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
                     Settings
                   </li>
@@ -66,6 +69,7 @@ export default function Navbar({ toggleSidebar }) {
                 <button
                   onClick={() => {
                     handleSignOut();
+                    setIsDropdownOpen(!isDropdownOpen);
                   }}
                   className="px-4 py-2 hover:bg-gray-100 text-red-500 cursor-pointer"
                 >

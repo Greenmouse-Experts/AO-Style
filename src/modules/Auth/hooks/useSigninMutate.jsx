@@ -31,6 +31,9 @@ const useSignIn = () => {
       if (data?.data?.data?.role === "user") {
         navigate("/customer");
       }
+      if (data?.data?.data?.role === "market-representative") {
+        navigate("/sales");
+      }
     },
     onError: (error) => {
       toastError(error?.data?.message);

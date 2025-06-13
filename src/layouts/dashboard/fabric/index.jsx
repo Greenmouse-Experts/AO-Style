@@ -1,16 +1,21 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../fabric/Sidebar";
 import Navbar from "../fabric/Navbar";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useGetUserProfile from "../../../modules/Auth/hooks/useGetProfile";
 import Loader from "../../../components/ui/Loader";
+import useToast from "../../../hooks/useToast";
 
 export default function DashboardLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  const navigate = useNavigate();
+
   const { setCaryBinUser, logOut } = useCarybinUserStore();
+
+  const { toastError } = useToast();
 
   const { data, isPending, isSuccess, isError, error } = useGetUserProfile();
 
@@ -36,14 +41,13 @@ export default function DashboardLayout() {
 
   if (!mounted) return null;
 
-    if (isPending) {
-      return (
-        <div className="m-auto flex h-screen items-center justify-center">
-          <Loader />
-        </div>
-      );
-    }
-  
+  if (isPending) {
+    return (
+      <div className="m-auto flex h-screen items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen overflow-hidden">

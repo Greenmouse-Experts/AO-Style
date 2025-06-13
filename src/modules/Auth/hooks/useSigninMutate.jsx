@@ -28,6 +28,9 @@ const useSignIn = () => {
       if (data?.data?.data?.role === "logistics-agent") {
         navigate("/logistics");
       }
+      if (data?.data?.data?.role === "user") {
+        navigate("/customer");
+      }
     },
     onError: (error) => {
       toastError(error?.data?.message);

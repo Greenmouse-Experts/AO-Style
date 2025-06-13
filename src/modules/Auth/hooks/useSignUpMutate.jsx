@@ -14,9 +14,9 @@ const useRegister = (email, role) => {
     onSuccess(data) {
       toastSuccess(data?.data?.message);
       localStorage.setItem("verifyemail", email);
-      if (role === "market-representative") {
-        return;
-      }
+      // if (role === "market-representative") {
+      //   return;
+      // }
       navigate("/verify-account");
     },
     onError: (error) => {

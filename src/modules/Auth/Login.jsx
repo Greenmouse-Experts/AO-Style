@@ -93,7 +93,7 @@ export default function SignInCustomer() {
           <button
             disabled={isPending}
             type="submit"
-            className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold"
+            className="w-full cursor-pointer bg-purple-600 text-white py-3 rounded-lg font-semibold"
           >
             {isPending ? "Please wait..." : "Login"}
           </button>

@@ -23,7 +23,7 @@ const Settings = () => {
     address: carybinUser?.profile?.address ?? "",
     country: "",
     state: "",
-    phone_no: "",
+    phone: carybinUser?.phone ?? "",
   };
 
   const { isPending, uploadImageMutate } = useUploadImage();
@@ -179,10 +179,13 @@ const Settings = () => {
                           Phone Number
                         </label>
                         <input
-                          type="text"
+                          type="tel"
                           className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                           placeholder="0700 000 0000"
                           required
+                          name={"phone"}
+                          value={values.phone}
+                          onChange={handleChange}
                         />
                       </div>
                       <div>

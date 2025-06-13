@@ -19,6 +19,15 @@ const useSignIn = () => {
       if (data?.data?.data?.role === "owner-super-administrator") {
         navigate("/admin");
       }
+      if (data?.data?.data?.role === "fabric-vendor") {
+        navigate("/fabric");
+      }
+      if (data?.data?.data?.role === "fashion-designer") {
+        navigate("/tailor");
+      }
+      if (data?.data?.data?.role === "logistics-agent") {
+        navigate("/logistics");
+      }
     },
     onError: (error) => {
       toastError(error?.data?.message);

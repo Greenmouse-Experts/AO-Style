@@ -7,7 +7,6 @@ import NotificationPage from "../modules/Pages/logisticsDashboard/NotificationPa
 import InboxPage from "../modules/Pages/logisticsDashboard/Inbox";
 import Settings from "../modules/Pages/logisticsDashboard/Settings";
 
-
 export const logisticsRoutes = [
   {
     path: "/logistics",
@@ -18,27 +17,27 @@ export const logisticsRoutes = [
         element: <LogisticsDashboard />,
       },
       {
-        path: '/logistics/orders',
+        path: "/logistics/orders",
         element: <Orders />,
       },
       {
-        path: '/logistics/order-requests',
+        path: "/logistics/order-requests",
         element: <OrderRequested />,
       },
       {
-        path: '/logistics/transactions',
+        path: "/logistics/transactions",
         element: <TransactionPage />,
       },
       {
-        path: '/logistics/inbox',
+        path: "/logistics/inbox",
         element: <InboxPage />,
       },
       {
-        path: '/logistics/notifications',
+        path: "/logistics/notifications",
         element: <NotificationPage />,
       },
       {
-        path: '/logistics/settings',
+        path: "/logistics/settings",
         element: <Settings />,
       },
       // Add other logistics dashboard routes here

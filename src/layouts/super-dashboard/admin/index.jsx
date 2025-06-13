@@ -14,7 +14,7 @@ export default function DashboardLayout() {
   const [mounted, setMounted] = useState(false);
   const navigate = useNavigate();
 
-  const { setCaryBinUser, carybinUser, logOut } = useCarybinUserStore();
+  const { setCaryBinUser, logOut } = useCarybinUserStore();
 
   const { data, isPending, isSuccess, isError, error } = useGetUserProfile();
 

@@ -3,10 +3,16 @@ import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import HowDidYouHearAboutUs from "../Auth/components/HowDidYouHearAboutUs";
 import { useFormik } from "formik";
+import useRegister from "./hooks/useSignUpMutate";
 
 const initialValues = {
+  name: "",
   email: "",
+  phone: "",
+  alternative_phone: "",
   password: "",
+  password_confirmation: "",
+  referral_source: "",
 };
 
 export default function SignInAsCustomer() {
@@ -26,9 +32,11 @@ export default function SignInAsCustomer() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      signinMutate(val);
+      registerMutate({ ...val, role: "user", allowOtp: true });
     },
   });
+
+  const { isPending, registerMutate } = useRegister(values.email);
 
   return (
     <div className="h-screen flex overflow-hidden">
@@ -69,21 +77,27 @@ export default function SignInAsCustomer() {
             Fill the form below to create an account instantly
           </p>
 
-          <form className="mt-6 space-y-3">
+          <form className="mt-6 space-y-3" onSubmit={handleSubmit}>
             <label className="block text-black">Full Name</label>
             <input
               type="text"
               placeholder="Full Name"
-              className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg"
+              name={"name"}
               required
+              value={values.name}
+              onChange={handleChange}
+              className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg"
             />
 
             <label className="block text-black">Email Address</label>
             <input
               type="email"
+              name={"email"}
+              required
+              value={values.email}
+              onChange={handleChange}
               placeholder="Email Address"
               className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg"
-              required
             />
 
             <label className="block text-black">Phone Number</label>
@@ -91,7 +105,10 @@ export default function SignInAsCustomer() {
               type="tel"
               placeholder="Phone Number"
               className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg"
+              name={"phone"}
               required
+              value={values.phone}
+              onChange={handleChange}
             />
 
             <label className="block text-black">
@@ -100,6 +117,9 @@ export default function SignInAsCustomer() {
             </label>
             <input
               type="tel"
+              name={"alternative_phone"}
+              value={values.alternative_phone}
+              onChange={handleChange}
               placeholder="Alternative Phone Number"
               className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg"
             />
@@ -109,6 +129,10 @@ export default function SignInAsCustomer() {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
+                name={"password"}
+                required
+                value={values.password}
+                onChange={handleChange}
                 className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg pr-10"
               />
               <button
@@ -129,6 +153,10 @@ export default function SignInAsCustomer() {
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="Confirm Password"
+                name={"password_confirmation"}
+                required
+                value={values.password_confirmation}
+                onChange={handleChange}
                 className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg pr-10"
               />
               <button
@@ -144,13 +172,35 @@ export default function SignInAsCustomer() {
               </button>
             </div>
 
-            <HowDidYouHearAboutUs />
+            {/* <HowDidYouHearAboutUs /> */}
+
+            <label className="block text-gray-700 mb-3">
+              {" "}
+              How did you hear about us?
+            </label>
+            <select
+              name={"referral_source"}
+              value={values.referral_source}
+              onChange={handleChange}
+              className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg text-gray-500"
+            >
+              <option value="" disabled selected>
+                Select option
+              </option>
+              <option value="Social Media">Social Media</option>
+              <option value="Radio/ TV Ads">Radio/ TV Ads</option>
+              <option value="Blogs/Articles">Blogs/Articles</option>
+              <option value="Personal Referral">Personal Referral</option>
+              <option value="Just got here">Just got here</option>
+              <option value="Other">Other</option>
+            </select>
 
             <button
+              disabled={isPending}
               className="w-full bg-gradient cursor-pointer text-white py-4 rounded-lg font-normal mt-4"
               type="submit"
             >
-              Sign Up As A Customer
+              {isPending ? "Please wait..." : "Sign Up As A Customer"}
             </button>
           </form>
 

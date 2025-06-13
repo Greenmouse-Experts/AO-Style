@@ -5,12 +5,15 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useGetUserProfile from "../../../modules/Auth/hooks/useGetProfile";
 import Loader from "../../../components/ui/Loader";
+import useToast from "../../../hooks/useToast";
 
 export default function DashboardLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+
+  const { toastError } = useToast();
 
   const { setCaryBinUser, logOut } = useCarybinUserStore();
 

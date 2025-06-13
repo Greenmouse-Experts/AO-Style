@@ -11,7 +11,7 @@ export default function Navbar({ toggleSidebar }) {
 
   const navigate = useNavigate();
 
-  const {carybinUser, logOut } = useCarybinUserStore();
+  const { carybinUser, logOut } = useCarybinUserStore();
 
   const handleSignOut = () => {
     navigate("/login");
@@ -57,7 +57,10 @@ export default function Navbar({ toggleSidebar }) {
                 {/* <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
                   Profile
                 </li> */}
-                <Link to="/fabrics/settings">
+                <Link
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  to="/fabric/settings"
+                >
                   <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
                     Settings
                   </li>
@@ -65,6 +68,7 @@ export default function Navbar({ toggleSidebar }) {
                 <button
                   onClick={() => {
                     handleSignOut();
+                    setIsDropdownOpen(!isDropdownOpen);
                   }}
                   className="px-4 py-2 hover:bg-gray-100 text-red-500 cursor-pointer"
                 >

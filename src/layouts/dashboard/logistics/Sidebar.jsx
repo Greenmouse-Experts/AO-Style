@@ -1,9 +1,19 @@
 import { NavLink } from "react-router-dom";
 import {
-  FaHome, FaStore, FaSignOutAlt, FaShoppingCart, FaCommentDots, FaBell, FaCreditCard, FaCog,
+  FaHome,
+  FaStore,
+  FaSignOutAlt,
+  FaShoppingCart,
+  FaCommentDots,
+  FaBell,
+  FaCreditCard,
+  FaCog,
 } from "react-icons/fa";
+import { useCarybinUserStore } from "../../../store/carybinUserStore";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
+  const { carybinUser, logOut } = useCarybinUserStore();
+
   return (
     <div className="relative">
       {/* Sidebar */}
@@ -14,10 +24,13 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       >
         {/* Logo */}
         <div className="flex justify-center">
-          <NavLink to="/" onClick={() => {
-            window.scrollTo(0, 0);
-            toggleSidebar();
-          }}>
+          <NavLink
+            to="/"
+            onClick={() => {
+              window.scrollTo(0, 0);
+              toggleSidebar();
+            }}
+          >
             <img
               src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1743094475/AoStyle/CARYBIN_TRANSPARENT_crm6rl.png"
               alt="Carybin Logo"
@@ -35,33 +48,70 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
         {/* Sidebar Links */}
         <nav className="flex-1 space-y-2">
-          <SidebarItem to="/logistics" icon={<FaHome />} text="Dashboard" toggleSidebar={toggleSidebar} />
-          <SidebarItem to="/logistics/orders" icon={<FaShoppingCart />} text="Orders" toggleSidebar={toggleSidebar} />
-          <SidebarItem to="/logistics/order-requests" icon={<FaStore />} text="Order Requests" toggleSidebar={toggleSidebar} />
-          <SidebarItem to="/logistics/inbox" icon={<FaCommentDots />} text="Inbox" toggleSidebar={toggleSidebar} />
-          <SidebarItem to="/logistics/notifications" icon={<FaBell />} text="Notifications" toggleSidebar={toggleSidebar} />
-          <SidebarItem to="/logistics/transactions" icon={<FaCreditCard />} text="Transactions" toggleSidebar={toggleSidebar} />
+          <SidebarItem
+            to="/logistics"
+            icon={<FaHome />}
+            text="Dashboard"
+            toggleSidebar={toggleSidebar}
+          />
+          <SidebarItem
+            to="/logistics/orders"
+            icon={<FaShoppingCart />}
+            text="Orders"
+            toggleSidebar={toggleSidebar}
+          />
+          <SidebarItem
+            to="/logistics/order-requests"
+            icon={<FaStore />}
+            text="Order Requests"
+            toggleSidebar={toggleSidebar}
+          />
+          <SidebarItem
+            to="/logistics/inbox"
+            icon={<FaCommentDots />}
+            text="Inbox"
+            toggleSidebar={toggleSidebar}
+          />
+          <SidebarItem
+            to="/logistics/notifications"
+            icon={<FaBell />}
+            text="Notifications"
+            toggleSidebar={toggleSidebar}
+          />
+          <SidebarItem
+            to="/logistics/transactions"
+            icon={<FaCreditCard />}
+            text="Transactions"
+            toggleSidebar={toggleSidebar}
+          />
 
           {/* Settings Section */}
           <p className="text-white text-xs font-semibold mt-3 mb-3">Settings</p>
-          <SidebarItem to="/logistics/settings" icon={<FaCog />} text="Settings" toggleSidebar={toggleSidebar} />
+          <SidebarItem
+            to="/logistics/settings"
+            icon={<FaCog />}
+            text="Settings"
+            toggleSidebar={toggleSidebar}
+          />
         </nav>
 
         {/* User Profile */}
         <div className="mt-auto border-t border-gray-300 pt-5 flex items-center">
           <img
-            src="https://randomuser.me/api/portraits/men/1.jpg"
+            src={carybinUser?.profile?.profile_picture ?? ""}
             alt="User"
             className="w-10 h-10 rounded-full mr-3"
           />
           <div>
-            <p className="text-sm font-semibold leading-loose text-white">Chukka Uzo</p>
+            <p className="text-sm font-semibold leading-loose text-white">
+              {carybinUser?.name}
+            </p>
             <p className="text-xs text-white">Account settings</p>
           </div>
         </div>
 
         {/* Logout Button */}
-        <button className="mt-6 bg-gradient-to-r from-[#A056FE] to-[#E44ED8] text-white py-3 px-4 rounded-md w-full flex items-center justify-center">
+        <button className="mt-6 cursor-pointer bg-gradient-to-r from-[#A056FE] to-[#E44ED8] text-white py-3 px-4 rounded-md w-full flex items-center justify-center">
           <FaSignOutAlt className="mr-2" /> Log Out
         </button>
       </div>
@@ -83,7 +133,7 @@ const SidebarItem = ({ to, icon, text, toggleSidebar }) => (
     end
     onClick={() => {
       window.scrollTo(0, 0);
-      toggleSidebar(); 
+      toggleSidebar();
     }}
     className={({ isActive }) =>
       `flex items-center py-3 px-3 rounded-md cursor-pointer transition-colors ${

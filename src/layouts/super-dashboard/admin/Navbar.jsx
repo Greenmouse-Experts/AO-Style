@@ -10,7 +10,7 @@ export default function Navbar({ toggleSidebar }) {
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-    const { carybinUser } = useCarybinUserStore();
+  const { carybinUser } = useCarybinUserStore();
 
   const navigate = useNavigate();
 
@@ -53,7 +53,7 @@ export default function Navbar({ toggleSidebar }) {
         {/* Profile Avatar & Dropdown */}
         <div className="relative">
           <img
-            src={carybinUser?.profile?.profile_picture ?? ''}
+            src={carybinUser?.profile?.profile_picture ?? ""}
             alt="User"
             className="w-8 h-8 rounded-full cursor-pointer"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -64,6 +64,7 @@ export default function Navbar({ toggleSidebar }) {
               <ul className="py-2">
                 <li className="px-4 py-2 hover:bg-gray-100">
                   <Link
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     to="/admin/settings"
                     className="block text-sm text-gray-700"
                   >
@@ -73,6 +74,7 @@ export default function Navbar({ toggleSidebar }) {
                 <button
                   onClick={() => {
                     handleSignOut();
+                    setIsDropdownOpen(!isDropdownOpen);
                   }}
                   className="px-4 py-2 hover:bg-gray-100 text-red-500 cursor-pointer"
                 >

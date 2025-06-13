@@ -1,7 +1,17 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
-  FaHome, FaStore, FaSignOutAlt, FaShoppingCart, FaInbox, FaBell, FaCreditCard, FaCog
+  FaHome,
+  FaStore,
+  FaSignOutAlt,
+  FaShoppingCart,
+  FaInbox,
+  FaBell,
+  FaCreditCard,
+  FaCog,
 } from "react-icons/fa";
+import { useCarybinUserStore } from "../../../store/carybinUserStore";
+import useToast from "../../../hooks/useToast";
+import Cookies from "js-cookie";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const handleClick = () => {
@@ -9,6 +19,19 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     if (window.innerWidth < 768) {
       toggleSidebar();
     }
+  };
+
+  const navigate = useNavigate();
+
+  const { carybinUser, logOut } = useCarybinUserStore();
+
+  const { toastSuccess } = useToast();
+
+  const handleSignOut = () => {
+    navigate("/login");
+    toastSuccess("Logout Successfully");
+    logOut();
+    Cookies.remove("token");
   };
 
   return (
@@ -39,30 +62,72 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
         {/* Sidebar Links */}
         <nav className="flex-1 space-y-2">
-          <SidebarItem to="/customer" icon={<FaHome />} text="Dashboard" onClick={handleClick} />
-          <SidebarItem to="/customer/shop-materials" icon={<FaStore />} text="Shop Materials" onClick={handleClick} />
-          <SidebarItem to="/customer/orders" icon={<FaShoppingCart />} text="Orders" onClick={handleClick} />
-          <SidebarItem to="/customer/inbox" icon={<FaInbox />} text="Inbox" onClick={handleClick} />
-          <SidebarItem to="/customer/notifications" icon={<FaBell />} text="Notifications" onClick={handleClick} />
-          <SidebarItem to="/customer/transactions" icon={<FaCreditCard />} text="Transactions" onClick={handleClick} />
-          <SidebarItem to="/customer/settings" icon={<FaCog />} text="Settings" onClick={handleClick} />
+          <SidebarItem
+            to="/customer"
+            icon={<FaHome />}
+            text="Dashboard"
+            onClick={handleClick}
+          />
+          <SidebarItem
+            to="/customer/shop-materials"
+            icon={<FaStore />}
+            text="Shop Materials"
+            onClick={handleClick}
+          />
+          <SidebarItem
+            to="/customer/orders"
+            icon={<FaShoppingCart />}
+            text="Orders"
+            onClick={handleClick}
+          />
+          <SidebarItem
+            to="/customer/inbox"
+            icon={<FaInbox />}
+            text="Inbox"
+            onClick={handleClick}
+          />
+          <SidebarItem
+            to="/customer/notifications"
+            icon={<FaBell />}
+            text="Notifications"
+            onClick={handleClick}
+          />
+          <SidebarItem
+            to="/customer/transactions"
+            icon={<FaCreditCard />}
+            text="Transactions"
+            onClick={handleClick}
+          />
+          <SidebarItem
+            to="/customer/settings"
+            icon={<FaCog />}
+            text="Settings"
+            onClick={handleClick}
+          />
         </nav>
 
         {/* User Profile */}
         <div className="mt-auto border-t border-white pt-5 flex items-center">
           <img
-            src="https://randomuser.me/api/portraits/men/1.jpg"
+            src={carybinUser?.profile?.profile_picture ?? ""}
             alt="User"
             className="w-12 h-12 rounded-full mr-3"
           />
           <div>
-            <p className="text-sm font-semibold leading-loose text-white">Chukka Uzo</p>
+            <p className="text-sm font-semibold leading-loose text-white">
+              {carybinUser?.name}
+            </p>
             <p className="text-xs text-white">Account settings</p>
           </div>
         </div>
 
         {/* Logout Button */}
-        <button className="mt-6 bg-gradient text-white py-3 px-4 rounded-md w-full flex items-center justify-center">
+        <button
+          onClick={() => {
+            handleSignOut();
+          }}
+          className="mt-6 cursor-pointer bg-gradient text-white py-3 px-4 rounded-md w-full flex items-center justify-center"
+        >
           <FaSignOutAlt className="mr-2" /> Log Out
         </button>
       </div>

@@ -1,4 +1,5 @@
 import React from "react";
+import { useCarybinUserStore } from "../../../../store/carybinUserStore";
 
 export default function HeaderCard() {
   const today = new Date().toLocaleDateString("en-US", {
@@ -6,6 +7,8 @@ export default function HeaderCard() {
     day: "numeric",
     year: "numeric",
   });
+
+  const { carybinUser } = useCarybinUserStore();
 
   return (
     <div
@@ -24,7 +27,10 @@ export default function HeaderCard() {
         />
         <span>{today}</span>
       </div>
-      <h2 className="text-2xl font-medium mt-10">Welcome, Hamzat Abdulazeez 👋</h2>
+      <h2 className="text-2xl font-medium mt-10">
+        {" "}
+        Welcome back, {carybinUser?.name} 👋
+      </h2>
       <p className="text-sm text-white/80">Have a great day!</p>
     </div>
   );

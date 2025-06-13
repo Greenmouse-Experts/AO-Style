@@ -32,7 +32,13 @@ export default function SignInAsCustomer() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      registerMutate({ ...val, role: "user", allowOtp: true });
+      registerMutate({
+        ...val,
+        role: "user",
+        alternative_phone:
+          val?.alternative_phone === "" ? undefined : val?.alternative_phone,
+        allowOtp: true,
+      });
     },
   });
 

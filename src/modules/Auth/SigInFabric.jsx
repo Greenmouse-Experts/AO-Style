@@ -44,6 +44,8 @@ export default function SignInAsCustomer() {
       registerMutate({
         ...val,
         role: "fabric-vendor",
+        alternative_phone:
+          val?.alternative_phone === "" ? undefined : val?.alternative_phone,
         allowOtp: true,
         business: {
           business_name: val.business_name,

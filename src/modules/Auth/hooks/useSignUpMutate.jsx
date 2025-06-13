@@ -4,7 +4,7 @@ import Cookies from "js-cookie";
 import AuthService from "../../../services/api/auth";
 import useToast from "../../../hooks/useToast";
 
-const useRegister = (email) => {
+const useRegister = (email, role) => {
   const { toastError, toastSuccess } = useToast();
   const navigate = useNavigate();
 
@@ -13,8 +13,11 @@ const useRegister = (email) => {
     mutationKey: ["register-user"],
     onSuccess(data) {
       toastSuccess(data?.data?.message);
-      navigate("/verify-account");
       localStorage.setItem("verifyemail", email);
+      if (role === "market-representative") {
+        return;
+      }
+      navigate("/verify-account");
     },
     onError: (error) => {
       if (Array.isArray(error?.data?.message)) {

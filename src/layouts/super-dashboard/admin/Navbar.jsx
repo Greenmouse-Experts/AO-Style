@@ -9,6 +9,9 @@ export default function Navbar({ toggleSidebar }) {
   const { toastSuccess } = useToast();
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    const { carybinUser } = useCarybinUserStore();
+
   const navigate = useNavigate();
 
   const { logOut } = useCarybinUserStore();
@@ -50,7 +53,7 @@ export default function Navbar({ toggleSidebar }) {
         {/* Profile Avatar & Dropdown */}
         <div className="relative">
           <img
-            src="https://randomuser.me/api/portraits/women/6.jpg"
+            src={carybinUser?.profile?.profile_picture ?? ''}
             alt="User"
             className="w-8 h-8 rounded-full cursor-pointer"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}

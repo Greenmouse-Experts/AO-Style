@@ -1,7 +1,17 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
-  FaHome, FaStar, FaSignOutAlt, FaCommentDots, FaClipboardList, FaBell, FaCreditCard, FaCog,
+  FaHome,
+  FaStar,
+  FaSignOutAlt,
+  FaCommentDots,
+  FaClipboardList,
+  FaBell,
+  FaCreditCard,
+  FaCog,
 } from "react-icons/fa";
+import { useCarybinUserStore } from "../../../store/carybinUserStore";
+import useToast from "../../../hooks/useToast";
+import Cookies from "js-cookie";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const handleClick = () => {
@@ -11,12 +21,26 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     }
   };
 
+  const navigate = useNavigate();
+
+  const { toastSuccess } = useToast();
+
+  const { carybinUser, logOut } = useCarybinUserStore();
+
+  const handleSignOut = () => {
+    navigate("/login");
+    toastSuccess("Logout Successfully");
+    logOut();
+    Cookies.remove("token");
+  };
+
   return (
     <div className="relative">
       {/* Sidebar */}
       <div
-        className={`fixed md:relative top-0 left-0 h-screen bg-gradient p-5 flex flex-col transition-transform duration-300 z-40 ${isOpen ? "translate-x-0" : "-translate-x-full"
-          } md:translate-x-0 md:w-72 w-64`}
+        className={`fixed md:relative top-0 left-0 h-screen bg-gradient p-5 flex flex-col transition-transform duration-300 z-40 ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0 md:w-72 w-64`}
       >
         {/* Logo */}
         <div className="flex justify-center">
@@ -31,30 +55,72 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
         {/* Sidebar Links */}
         <nav className="flex-1 space-y-2">
-          <SidebarItem to="/tailor" icon={<FaHome />} text="Dashboard" onClick={handleClick} />
-          <SidebarItem to="/tailor/catalog" icon={<FaStar />} text="My Catalog" onClick={handleClick} />
-          <SidebarItem to="/tailor/orders" icon={<FaClipboardList />} text="Orders" onClick={handleClick} />
-          <SidebarItem to="/tailor/inbox" icon={<FaCommentDots />} text="Inbox" onClick={handleClick} />
-          <SidebarItem to="/tailor/notifications" icon={<FaBell />} text="Notifications" onClick={handleClick} />
-          <SidebarItem to="/tailor/transactions" icon={<FaCreditCard />} text="Transactions" onClick={handleClick} />
-          <SidebarItem to="/tailor/settings" icon={<FaCog />} text="Settings" onClick={handleClick} />
+          <SidebarItem
+            to="/tailor"
+            icon={<FaHome />}
+            text="Dashboard"
+            onClick={handleClick}
+          />
+          <SidebarItem
+            to="/tailor/catalog"
+            icon={<FaStar />}
+            text="My Catalog"
+            onClick={handleClick}
+          />
+          <SidebarItem
+            to="/tailor/orders"
+            icon={<FaClipboardList />}
+            text="Orders"
+            onClick={handleClick}
+          />
+          <SidebarItem
+            to="/tailor/inbox"
+            icon={<FaCommentDots />}
+            text="Inbox"
+            onClick={handleClick}
+          />
+          <SidebarItem
+            to="/tailor/notifications"
+            icon={<FaBell />}
+            text="Notifications"
+            onClick={handleClick}
+          />
+          <SidebarItem
+            to="/tailor/transactions"
+            icon={<FaCreditCard />}
+            text="Transactions"
+            onClick={handleClick}
+          />
+          <SidebarItem
+            to="/tailor/settings"
+            icon={<FaCog />}
+            text="Settings"
+            onClick={handleClick}
+          />
         </nav>
 
         {/* User Profile */}
         <div className="mt-auto border-t border-white pt-5 flex items-center">
           <img
-            src="https://randomuser.me/api/portraits/men/2.jpg"
+            src={carybinUser?.profile?.profile_picture ?? ""}
             alt="User"
             className="w-12 h-12 rounded-full mr-3"
           />
           <div>
-            <p className="text-sm font-semibold text-white leading-loose">Hamzat Adeleke</p>
+            <p className="text-sm font-semibold text-white leading-loose">
+              {carybinUser?.name}
+            </p>
             <p className="text-xs text-white">Account settings</p>
           </div>
         </div>
 
         {/* Logout Button */}
-        <button className="mt-6 bg-gradient text-white py-3 px-4 rounded-md w-full flex items-center justify-center">
+        <button
+          onClick={() => {
+            handleSignOut();
+          }}
+          className="mt-6 bg-gradient text-white py-3 cursor-pointer px-4 rounded-md w-full flex items-center justify-center"
+        >
           <FaSignOutAlt className="mr-2" /> Log Out
         </button>
       </div>
@@ -76,9 +142,10 @@ const SidebarItem = ({ to, icon, text, onClick }) => (
     end
     onClick={onClick}
     className={({ isActive }) =>
-      `flex items-center py-3 px-3 rounded-md cursor-pointer transition-colors ${isActive
-        ? "text-[#9847FE] bg-[#f3e8ff] font-normal"
-        : "text-white hover:bg-gray-200 hover:text-[#9847FE]"
+      `flex items-center py-3 px-3 rounded-md cursor-pointer transition-colors ${
+        isActive
+          ? "text-[#9847FE] bg-[#f3e8ff] font-normal"
+          : "text-white hover:bg-gray-200 hover:text-[#9847FE]"
       }`
     }
   >

@@ -2,16 +2,48 @@ import { useState, useEffect } from "react";
 import Sidebar from "../fabric/Sidebar";
 import Navbar from "../fabric/Navbar";
 import { Outlet } from "react-router-dom";
+import { useCarybinUserStore } from "../../../store/carybinUserStore";
+import useGetUserProfile from "../../../modules/Auth/hooks/useGetProfile";
+import Loader from "../../../components/ui/Loader";
 
 export default function DashboardLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  const { setCaryBinUser, logOut } = useCarybinUserStore();
+
+  const { data, isPending, isSuccess, isError, error } = useGetUserProfile();
+
+  useEffect(() => {
+    if (data && isSuccess) {
+      setCaryBinUser(data);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
+
+  useEffect(() => {
+    if (isError && error?.data?.message === "Unauthorized") {
+      toastError("Unauthorized");
+      logOut();
+      navigate("/login");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error, isError]);
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null; 
+  if (!mounted) return null;
+
+    if (isPending) {
+      return (
+        <div className="m-auto flex h-screen items-center justify-center">
+          <Loader />
+        </div>
+      );
+    }
+  
 
   return (
     <div className="flex h-screen overflow-hidden">

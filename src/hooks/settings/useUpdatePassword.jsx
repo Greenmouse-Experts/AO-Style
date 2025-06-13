@@ -12,7 +12,11 @@ const useUpdatePassword = () => {
       toastSuccess(data?.data?.message);
     },
     onError: (error) => {
-      toastError(error?.data?.message);
+      if (Array.isArray(error?.data?.message)) {
+        toastError(error?.data?.message[0]);
+      } else {
+        toastError(error?.data?.message);
+      }
     },
   });
   return { isPending, updatePasswordMutate };

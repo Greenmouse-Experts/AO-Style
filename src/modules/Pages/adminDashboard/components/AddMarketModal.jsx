@@ -1,15 +1,43 @@
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react"; 
+import { Eye, EyeOff } from "lucide-react";
+import { useFormik } from "formik";
+import useAddMarketRep from "../../../../hooks/marketRep/useAddMarketRep";
 
-const AddMarketModal = ({ isOpen, onClose }) => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+const initialValues = {
+  email: "",
+  name: "",
+};
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Form submitted");
-    onClose();
-  };
+const AddMarketModal = ({ isOpen, onClose, businessId }) => {
+  // const [showPassword, setShowPassword] = useState(false);
+  // const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const { isPending, addMarketRepMutate } = useAddMarketRep();
+
+  const {
+    handleSubmit,
+    touched,
+    errors,
+    values,
+    handleChange,
+    // setFieldError,
+  } = useFormik({
+    initialValues: initialValues,
+    validateOnChange: false,
+    validateOnBlur: false,
+    enableReinitialize: true,
+    onSubmit: (val) => {
+      addMarketRepMutate(
+        { ...val, business_id: businessId },
+        {
+          onSuccess: () => {
+            onClose();
+          },
+        }
+      );
+    },
+  });
+
   if (!isOpen) return null;
 
   return (
@@ -31,7 +59,10 @@ const AddMarketModal = ({ isOpen, onClose }) => {
               type="text"
               placeholder="Full Name"
               className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
+              name={"name"}
               required
+              value={values.name}
+              onChange={handleChange}
             />
           </div>
 
@@ -39,13 +70,16 @@ const AddMarketModal = ({ isOpen, onClose }) => {
             <label className="block text-black">Email Address</label>
             <input
               type="email"
+              name={"email"}
+              required
+              value={values.email}
+              onChange={handleChange}
               placeholder="Email Address"
               className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
-              required
             />
           </div>
 
-          <div>
+          {/* <div>
             <label className="block text-black">Phone Number</label>
             <input
               type="tel"
@@ -125,13 +159,14 @@ const AddMarketModal = ({ isOpen, onClose }) => {
                 {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
-          </div>
+          </div> */}
 
           <button
+            disabled={isPending}
             className="w-full bg-gradient cursor-pointer text-white py-4 rounded-lg font-normal"
             type="submit"
           >
-            Sign Up As A Market Rep
+            {isPending ? "Please wait..." : " Sign Up As A Market Rep"}
           </button>
         </form>
       </div>

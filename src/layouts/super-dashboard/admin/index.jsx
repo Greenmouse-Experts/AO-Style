@@ -14,7 +14,7 @@ export default function DashboardLayout() {
   const [mounted, setMounted] = useState(false);
   const navigate = useNavigate();
 
-  const { setCaryBinUser, carybinUser, logOut } = useCarybinUserStore();
+  const { setCaryBinUser, logOut } = useCarybinUserStore();
 
   const { data, isPending, isSuccess, isError, error } = useGetUserProfile();
 
@@ -48,7 +48,6 @@ export default function DashboardLayout() {
     );
   }
 
-  console.log(carybinUser);
 
   return (
     <div className="flex h-screen overflow-hidden">

@@ -11,7 +11,7 @@ export default function Navbar({ toggleSidebar }) {
 
   const navigate = useNavigate();
 
-  const { logOut } = useCarybinUserStore();
+  const {carybinUser, logOut } = useCarybinUserStore();
 
   const handleSignOut = () => {
     navigate("/login");
@@ -44,7 +44,7 @@ export default function Navbar({ toggleSidebar }) {
         {/* Profile Section */}
         <div className="relative">
           <img
-            src="https://randomuser.me/api/portraits/women/5.jpg"
+            src={carybinUser?.profile?.profile_picture ?? ""}
             alt="User"
             className="w-8 h-8 rounded-full cursor-pointer"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}

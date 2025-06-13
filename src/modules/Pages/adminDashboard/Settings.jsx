@@ -21,7 +21,7 @@ const Settings = () => {
     address: carybinUser?.profile?.address ?? "",
     country: "",
     state: "",
-    phone_no: "",
+    phone: carybinUser?.phone ?? "",
   };
 
   const [profileIsLoading, setProfileIsLoading] = useState(false);
@@ -176,12 +176,12 @@ const Settings = () => {
                           Phone Number
                         </label>
                         <input
-                          type="text"
+                          type="tel"
                           className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                           placeholder="0700 000 0000"
                           required
-                          name={"phone_no"}
-                          value={values.phone_no}
+                          name={"phone"}
+                          value={values.phone}
                           onChange={handleChange}
                         />
                       </div>

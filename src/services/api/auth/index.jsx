@@ -1,8 +1,19 @@
-import CaryBinApi from '../../CarybinBaseUrl';
-
+import CaryBinApi from "../../CarybinBaseUrl";
 
 const signinUser = (payload) => {
   return CaryBinApi.post(`/auth/login`, payload);
+};
+
+const registerUser = (payload) => {
+  return CaryBinApi.post(`/auth/register`, payload);
+};
+
+const forgotPassword = (payload) => {
+  return CaryBinApi.post(`/auth/request-password-reset`, payload);
+};
+
+const verifyEmail = (payload) => {
+  return CaryBinApi.post(`/auth/verify-email`, payload);
 };
 
 export const GetUser = () => {
@@ -10,8 +21,11 @@ export const GetUser = () => {
 };
 
 const AuthService = {
-signinUser,
-GetUser
+  signinUser,
+  GetUser,
+  forgotPassword,
+  registerUser,
+  verifyEmail,
 };
 
 export default AuthService;

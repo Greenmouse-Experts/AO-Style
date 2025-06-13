@@ -37,7 +37,7 @@ export default function SignInCustomer() {
         <div className="flex justify-center mb-6">
           <Link to="/">
             <img
-              src="https://res.cloudinary.com/ddj0k8gdw/image/upload/v1749385530/Payvidence-Images/logo_rkfmu6.png"
+              src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742964300/AoStyle/CARYBIN_TRANSPARENT_1_ujbdei.png"
               alt="OAStyles Logo"
               className="h-20"
             />
@@ -53,6 +53,7 @@ export default function SignInCustomer() {
           <input
             type="email"
             name={"email"}
+            required
             value={values.email}
             onChange={handleChange}
             placeholder="Enter your email address"
@@ -64,6 +65,7 @@ export default function SignInCustomer() {
             <input
               type={showPassword ? "text" : "password"}
               value={values.password}
+              required
               onChange={handleChange}
               name={"password"}
               placeholder="Enter your password"
@@ -91,7 +93,7 @@ export default function SignInCustomer() {
           <button
             disabled={isPending}
             type="submit"
-            className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold"
+            className="w-full cursor-pointer bg-purple-600 text-white py-3 rounded-lg font-semibold"
           >
             {isPending ? "Please wait..." : "Login"}
           </button>

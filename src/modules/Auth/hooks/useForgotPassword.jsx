@@ -6,16 +6,15 @@ import AuthService from "../../../services/api/auth";
 
 const useForgotPassword = () => {
   const { toastError, toastSuccess } = useToast();
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const { isPending, mutate: forgotPasswordMutate } = useMutation({
     mutationFn: (payload) => AuthService.forgotPassword(payload),
     mutationKey: ["forgot-password"],
     onSuccess(data) {
       toastSuccess(data?.data?.message);
-      // @ts-ignore
 
-      // navigate("/admin");
+      navigate("/auth/change-password");
     },
     onError: (error) => {
       toastError(error?.data?.message);

@@ -62,7 +62,7 @@ export default function SignInCustomer() {
 
           <button
             type="submit"
-            className="w-full bg-gradient text-white py-3 rounded-lg font-semibold"
+            className="w-full bg-gradient cursor-pointer text-white py-3 rounded-lg font-semibold"
           >
             {isPending ? "Please wait..." : "Get Reset Link"}
           </button>

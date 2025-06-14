@@ -12,6 +12,10 @@ const forgotPassword = (payload) => {
   return CaryBinApi.post(`/auth/request-password-reset`, payload);
 };
 
+const changePassword = (payload) => {
+  return CaryBinApi.post(`/auth/reset-password`, payload);
+};
+
 const verifyEmail = (payload) => {
   return CaryBinApi.post(`/auth/verify-email`, payload);
 };
@@ -26,6 +30,7 @@ const AuthService = {
   forgotPassword,
   registerUser,
   verifyEmail,
+  changePassword,
 };
 
 export default AuthService;

@@ -4,6 +4,9 @@ import { useState } from "react";
 import HowDidYouHearAboutUs from "../Auth/components/HowDidYouHearAboutUs";
 import useRegister from "./hooks/useSignUpMutate";
 import { useFormik } from "formik";
+import useGetInviteInfo from "../../hooks/marketRep/useGetInviteInfo";
+
+import NotFoundPage from "../../components/ui/NotFoundPage";
 
 const initialValues = {
   name: "",
@@ -20,6 +23,15 @@ const initialValues = {
 export default function MarketRepInvite() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const {
+    data: getAllMarketRepData,
+    isPending: inviteInfoIsPending,
+    error,
+    isError,
+  } = useGetInviteInfo();
+
+  console.log(getAllMarketRepData);
 
   const {
     handleSubmit,
@@ -55,6 +67,17 @@ export default function MarketRepInvite() {
     "market-representative"
   );
 
+  if (inviteInfoIsPending) {
+    return (
+      <div className="m-auto flex h-screen items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
+
+  if (isError || error) {
+    return <NotFoundPage />;
+  }
   return (
     <div className="h-screen w-full flex overflow-hidden">
       {/* Left Section */}

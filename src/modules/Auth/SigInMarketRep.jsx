@@ -121,7 +121,7 @@ export default function SignInAsCustomer() {
             <label className="block text-black">Phone Number</label>
             <input
               type="tel"
-              placeholder="Phone Number"
+              placeholder=""
               className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg"
               name={"phone"}
               required

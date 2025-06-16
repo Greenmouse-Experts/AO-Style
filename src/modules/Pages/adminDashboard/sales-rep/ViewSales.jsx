@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ReusableTable from "../components/ReusableTable";
 import SalesCards from "../components/SalesCards";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   Search,
   ChevronLeft,
@@ -90,6 +90,9 @@ const ordersData = [
 ];
 
 const ViewCustomer = () => {
+  const { state } = useLocation();
+  const marketRepoInfo = state?.info;
+
   const [catalogFilter, setCatalogFilter] = useState("all");
   const [ordersFilter, setOrdersFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -276,12 +279,19 @@ const ViewCustomer = () => {
           {openDropdown === `customer-${row.id}` && (
             <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
               <Link to={`/admin/view-customers/${row.id}`}>
-                <button className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+                <button className="block cursor-pointer w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
                   View Details
                 </button>
               </Link>
-              <button className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+              <button className="block w-full cursor-pointer text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
                 Edit User
+              </button>
+
+              <button className="block w-full cursor-pointer text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+                Approve
+              </button>
+              <button className="block w-full cursor-pointer text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+                Reject
               </button>
             </div>
           )}
@@ -290,19 +300,22 @@ const ViewCustomer = () => {
     },
   ];
 
-  const customerData = [
-    {
-      id: "1",
-      fullName: "Emeka Okafor",
-      profile: "https://randomuser.me/api/portraits/thumb/men/1.jpg",
-      kyc: "See KYC",
-      email: "testmail@gmail.com",
-      phone: "+234 803 456 7890",
-      address: "12, Allen Avenue, Ikeja, Lagos",
-      onboarded: "240 Users",
-      dateJoined: "22/5/2025",
-    },
-  ];
+  const customerData = React.useMemo(
+    () => [
+      {
+        id: marketRepoInfo?.id ?? "",
+        fullName: marketRepoInfo?.name ?? "",
+        profile: marketRepoInfo?.user?.profile?.profile_picture ?? null,
+        kyc: "See KYC",
+        email: marketRepoInfo?.email ?? "",
+        phone: "+234 803 456 7890",
+        address: marketRepoInfo?.user?.profile?.address ?? "",
+        onboarded: "240 Users",
+        dateJoined: marketRepoInfo?.created_at ?? "",
+      },
+    ],
+    []
+  );
 
   // Pagination for Catalog
   const catalogTotalPages = Math.ceil(filteredCatalog.length / itemsPerPage);
@@ -348,7 +361,9 @@ const ViewCustomer = () => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-medium text-gray-800">
               View Market Rep :{" "}
-              <span className="text-purple-600 font-medium">Hamzat Abdul</span>
+              <span className="text-purple-600 font-medium">
+                {marketRepoInfo?.name}
+              </span>
             </h2>
             <p className="text-sm font-medium text-gray-600">
               KYC: <span className="text-green-600 font-medium">Approved</span>

@@ -1,7 +1,10 @@
 import CaryBinApi from "../../CarybinBaseUrl";
 
 export const GetMarketRep = (params) => {
-  return CaryBinApi.get(`/contact/invites/${params.id}`, params);
+  console.log("params", params);
+  return CaryBinApi.get(`/contact/invites/${params.id}`, {
+    params,
+  });
 };
 
 const addMarketRep = (payload) => {
@@ -9,9 +12,8 @@ const addMarketRep = (payload) => {
 };
 
 const MarketRepService = {
-GetMarketRep,
-addMarketRep
+  GetMarketRep,
+  addMarketRep,
 };
 
 export default MarketRepService;
-

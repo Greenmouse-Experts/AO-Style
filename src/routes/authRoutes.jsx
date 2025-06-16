@@ -9,6 +9,7 @@ import Forgot from "../modules/Auth/Forgot";
 import VerifyEmail from "../modules/Auth/VerifyEmail";
 import AdminLogin from "../modules/Auth/AdminLogin";
 import ChangePassword from "../modules/Auth/ChangePassword";
+import MarketRepInvite from "../modules/Auth/MarketRepInvite";
 export const authRoutes = [
   {
     path: "/login",
@@ -26,6 +27,11 @@ export const authRoutes = [
     path: "/sign-in-as-market-rep",
     element: <SigInMarketRep />,
   },
+  {
+    path: "/invitation/join",
+    element: <MarketRepInvite />,
+  },
+
   {
     path: "/sign-in-as-tailor-designer",
     element: <SignInTailorDesigner />,

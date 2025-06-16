@@ -17,6 +17,7 @@ export default function SignInCustomer() {
     errors,
     values,
     handleChange,
+    resetForm,
     // setFieldError,
   } = useFormik({
     initialValues: initialValues,
@@ -24,7 +25,11 @@ export default function SignInCustomer() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      forgotPasswordMutate(val);
+      forgotPasswordMutate(val, {
+        onSuccess: () => {
+          resetForm();
+        },
+      });
     },
   });
 

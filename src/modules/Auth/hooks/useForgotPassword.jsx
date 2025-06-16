@@ -14,7 +14,7 @@ const useForgotPassword = () => {
     onSuccess(data) {
       toastSuccess(data?.data?.message);
 
-      navigate("/auth/change-password");
+      // navigate("/auth/change-password");
     },
     onError: (error) => {
       toastError(error?.data?.message);

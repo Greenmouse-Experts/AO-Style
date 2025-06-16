@@ -109,7 +109,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         {/* User Profile */}
         <div className="mt-auto border-t border-white pt-5 flex items-center">
           <img
-            src={carybinUser?.profile?.profile_picture ?? ""}
+            src={carybinUser?.profile?.profile_picture ?? null}
             alt="User"
             className="w-12 h-12 rounded-full mr-3"
           />

@@ -44,7 +44,7 @@ export default function Navbar({ toggleSidebar }) {
         {/* Profile Section */}
         <div className="relative">
           <img
-            src={carybinUser?.profile?.profile_picture ?? ""}
+            src={carybinUser?.profile?.profile_picture ?? null}
             alt="User"
             className="w-8 h-8 rounded-full cursor-pointer"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}

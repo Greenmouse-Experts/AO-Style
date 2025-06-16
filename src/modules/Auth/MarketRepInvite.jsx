@@ -2,9 +2,8 @@ import { Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import HowDidYouHearAboutUs from "../Auth/components/HowDidYouHearAboutUs";
-import { useFormik } from "formik";
 import useRegister from "./hooks/useSignUpMutate";
-import ReCAPTCHA from "react-google-recaptcha";
+import { useFormik } from "formik";
 
 const initialValues = {
   name: "",
@@ -14,19 +13,19 @@ const initialValues = {
   password: "",
   password_confirmation: "",
   referral_source: "",
+  location: "",
+  years_of_experience: "",
 };
 
-export default function SignInAsCustomer() {
-  const [handleRecaptch, setHandleRecaptch] = useState("");
+export default function MarketRepInvite() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     handleSubmit,
-    touched,
-    errors,
     values,
     handleChange,
+    resetForm,
     // setFieldError,
   } = useFormik({
     initialValues: initialValues,
@@ -34,36 +33,40 @@ export default function SignInAsCustomer() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      registerMutate({
-        ...val,
-        role: "user",
-        alternative_phone:
-          val?.alternative_phone === "" ? undefined : val?.alternative_phone,
-        allowOtp: true,
-      });
+      registerMutate(
+        {
+          ...val,
+          role: "market-representative",
+          alternative_phone:
+            val?.alternative_phone === "" ? undefined : val?.alternative_phone,
+          allowOtp: true,
+        },
+        {
+          onSuccess: () => {
+            resetForm();
+          },
+        }
+      );
     },
   });
 
-  const { isPending, registerMutate } = useRegister(values.email);
-
-  const onChange = (val) => {
-    // Handle reCAPTCHA verification here
-    setHandleRecaptch(val);
-  };
+  const { isPending, registerMutate } = useRegister(
+    values.email,
+    "market-representative"
+  );
 
   return (
-    <div className="h-screen flex overflow-hidden">
-      {/* Left Section - Banner */}
-      <div className="hidden md:flex w-1/2 relative">
+    <div className="h-screen w-full flex overflow-hidden">
+      {/* Left Section */}
+      <div className="hidden md:flex w-1/2 relative h-full">
         <img
-          src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741611518/AoStyle/image_1_m2fv4b.png"
+          src="https://res.cloudinary.com/diqa0sakr/image/upload/v1745811955/image_1_wfjpsw.jpg"
           alt="Sign In"
           className="w-full h-full object-cover"
         />
         <div className="absolute bottom-3 left-0 p-8 text-white w-full">
           <h2 className="text-xl font-medium">
-            Connecting customers to Material Vendors
-            <br /> and the best Tailors/Fashion Designers
+            Earn Money by onboarding Fabric Vendors and Fashion Designers!
           </h2>
           <p className="text-sm mt-2">
             Welcome to OAStyles, a platform that simplifies tailoring processes;{" "}
@@ -73,24 +76,26 @@ export default function SignInAsCustomer() {
         </div>
       </div>
 
-      {/* Right Section - Scrollable Form */}
+      {/* Right Section - Sign In Form */}
       <div className="w-full md:w-1/2 h-full overflow-y-auto p-4 sm:p-8">
         <div className="max-w-2xl mx-auto">
-          <Link to="/">
-            <img
-              src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742964300/AoStyle/CARYBIN_TRANSPARENT_1_ujbdei.png"
-              alt="OA Styles"
-              className="h-20 w-auto mx-auto"
-            />
-          </Link>
+          <div className="mb-6">
+            <Link to="/">
+              <img
+                src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742964300/AoStyle/CARYBIN_TRANSPARENT_1_ujbdei.png"
+                alt="OA Styles"
+                className="h-20 w-auto mx-auto"
+              />
+            </Link>
+          </div>
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-            Sign Up As A <span className="text-[#2B21E5]">Customer</span>
+            The Market Representatives Directory
           </h2>
           <p className="text-gray-500 text-sm mt-1">
-            Fill the form below to create an account instantly
+            Fill the form become a Market rep on OAStyles
           </p>
 
-          <form className="mt-6 space-y-3" onSubmit={handleSubmit}>
+          <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             <label className="block text-black">Full Name</label>
             <input
               type="text"
@@ -99,7 +104,7 @@ export default function SignInAsCustomer() {
               required
               value={values.name}
               onChange={handleChange}
-              className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg"
+              className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
             />
 
             <label className="block text-black">Email Address</label>
@@ -110,7 +115,7 @@ export default function SignInAsCustomer() {
               value={values.email}
               onChange={handleChange}
               placeholder="Email Address"
-              className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg"
+              className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
             />
 
             <label className="block text-black">Phone Number</label>
@@ -136,6 +141,58 @@ export default function SignInAsCustomer() {
               placeholder="Alternative Phone Number"
               className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg"
             />
+
+            <label className="block text-black">
+              Years of Experience in Sales
+            </label>
+            <select
+              className="w-full p-4 border border-[#CCCCCC] text-gray-500 outline-none mb-3 rounded-lg"
+              name={"years_of_experience"}
+              value={values.years_of_experience}
+              onChange={handleChange}
+            >
+              <option value="">Choose your years of experience</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+
+            <label className="block text-black">Address</label>
+            <input
+              type="text"
+              name={"location"}
+              value={values.location}
+              onChange={handleChange}
+              placeholder="Enter your home address"
+              className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
+              required
+            />
+
+            {/* <div>
+              <HowDidYouHearAboutUs />
+            </div> */}
+
+            <label className="block text-gray-700 mb-3">
+              How did you hear about us?
+            </label>
+            <select
+              name={"referral_source"}
+              value={values.referral_source}
+              onChange={handleChange}
+              className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg text-gray-500"
+            >
+              <option value="" disabled selected>
+                Select option
+              </option>
+              <option value="Social Media">Social Media</option>
+              <option value="Radio/TV Ads">Radio / TV Ads</option>
+              <option value="Blogs/Articles">Blogs/Articles</option>
+              <option value="Personal Referral">Personal Referral</option>
+              <option value="Just got here">Just got here</option>
+              <option value="Other">Other</option>
+            </select>
 
             <label className="block text-black">Password</label>
             <div className="relative">
@@ -185,44 +242,15 @@ export default function SignInAsCustomer() {
               </button>
             </div>
 
-            {/* <HowDidYouHearAboutUs /> */}
-
-            <label className="block text-gray-700 mb-3">
-              {" "}
-              How did you hear about us?
-            </label>
-            <select
-              name={"referral_source"}
-              value={values.referral_source}
-              onChange={handleChange}
-              className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg text-gray-500"
-            >
-              <option value="" disabled selected>
-                Select option
-              </option>
-              <option value="Social Media">Social Media</option>
-              <option value="Radio/ TV Ads">Radio/ TV Ads</option>
-              <option value="Blogs/Articles">Blogs/Articles</option>
-              <option value="Personal Referral">Personal Referral</option>
-              <option value="Just got here">Just got here</option>
-              <option value="Other">Other</option>
-            </select>
-
-            {/* <ReCAPTCHA sitekey="Your client site key" onChange={onChange} /> */}
-            {/* {handleRecaptch === "" && (
-              <p className="text-red-500 text-sm">
-                Please verify that you are not a robot.
-              </p>
-            )} */}
-
             <button
               disabled={isPending}
-              className="w-full bg-gradient cursor-pointer text-white py-4 rounded-lg font-normal mt-4"
+              className="w-full bg-gradient cursor-pointer text-white py-4 rounded-lg font-normal"
               type="submit"
             >
-              {isPending ? "Please wait..." : "Sign Up As A Customer"}
+              {isPending ? "Please wait..." : "Sign Up As A Market Rep"}
             </button>
           </form>
+
           <p className="text-center text-gray-600 text-sm mt-4">
             Already have an account?{" "}
             <Link to="/login" className="text-purple-600">

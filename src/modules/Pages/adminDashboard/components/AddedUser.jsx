@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import ReusableTable from "../components/ReusableTable";
 import { FaEllipsisH } from "react-icons/fa";
 import AddMarketModal from "./AddMarketModal";
@@ -8,6 +8,7 @@ import useQueryParams from "../../../../hooks/useQueryParams";
 import useGetBusinessDetails from "../../../../hooks/settings/useGetBusinessDetails";
 import { useMemo } from "react";
 import { formatDateStr } from "../../../../lib/helper";
+import useGetAllUsersByRole from "../../../../hooks/admin/useGetAllUserByRole";
 
 const NewlyAddedUsers = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -24,10 +25,16 @@ const NewlyAddedUsers = () => {
     "pagination[page]": 1,
   });
 
-  const { data: getAllMarketRepData, isPending } = useGetAllMarketRep({
+  const { data: getAllMarketRepData, isPending } = useGetAllUsersByRole({
     ...queryParams,
-    id: businessData?.data?.id,
+    role: "market-representative",
   });
+
+  const totalPages = Math.ceil(
+    getAllMarketRepData?.count / queryParams["pagination[limit]"]
+  );
+
+  console.log(getAllMarketRepData?.data);
 
   const MarketRepData = useMemo(
     () =>
@@ -36,7 +43,7 @@ const NewlyAddedUsers = () => {
             return {
               ...details,
               name: `${details?.name}`,
-              userType: `${details?.user?.role?.name ?? ""}`,
+              userType: `${details?.role?.name ?? ""}`,
               created_at: `${
                 details?.created_at
                   ? formatDateStr(details?.created_at.split(".").shift())
@@ -49,9 +56,9 @@ const NewlyAddedUsers = () => {
   );
 
   // Toggle dropdown function
-  const toggleDropdown = (rowId) => {
-    setOpenDropdown(openDropdown === rowId ? null : rowId);
-  };
+  const toggleDropdown = useCallback((rowId) => {
+    setOpenDropdown((prev) => (prev === rowId ? null : rowId));
+  }, []);
 
   // Table Columns
   const columns = useMemo(
@@ -85,7 +92,6 @@ const NewlyAddedUsers = () => {
               className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
               onClick={() => {
                 toggleDropdown(row.id);
-                console.log("row", row);
               }}
             >
               <FaEllipsisH />
@@ -99,7 +105,10 @@ const NewlyAddedUsers = () => {
                 >
                   View Market Rep
                 </Link>
-                <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
+                <button
+                  onClick={() => {}}
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+                >
                   Edit User
                 </button>
                 <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center">
@@ -191,30 +200,31 @@ const NewlyAddedUsers = () => {
                 <option value={15}>15</option>
                 <option value={20}>20</option>
               </select>
-              {/* <p className="text-sm text-gray-600 ml-4">
-            {indexOfFirstItem + 1}-
-            {indexOfLastItem > filteredData.length
-              ? filteredData.length
-              : indexOfLastItem}{" "}
-            of {filteredData.length} items
-          </p> */}
             </div>
-            {/* <div className="flex gap-1">
-            <button
-              onClick={handlePreviousPage}
-              disabled={currentPage === 1}
-              className="px-3 py-1 rounded-md bg-gray-200"
-            >
-              ◀
-            </button>
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 rounded-md bg-gray-200"
-            >
-              ▶
-            </button>
-          </div> */}
+            <div className="flex gap-1">
+              <button
+                onClick={() => {
+                  updateQueryParams({
+                    "pagination[page]": queryParams["pagination[page]"] - 1,
+                  });
+                }}
+                disabled={queryParams["pagination[page]"] == 1}
+                className="px-3 py-1 rounded-md bg-gray-200"
+              >
+                ◀
+              </button>
+              <button
+                onClick={() => {
+                  updateQueryParams({
+                    "pagination[page]": queryParams["pagination[page]"] + 1,
+                  });
+                }}
+                disabled={queryParams["pagination[page]"] == totalPages}
+                className="px-3 py-1 rounded-md bg-gray-200"
+              >
+                ▶
+              </button>
+            </div>
           </div>
         )}
       </div>

@@ -10,6 +10,9 @@ import {
   Shirt,
   Wallet,
 } from "lucide-react";
+import useApproveMarketRep from "../../../../hooks/marketRep/useApproveMarketRep";
+import { useModalState } from "../../../../hooks/useModalState";
+import RejectModal from "./RejectModal";
 
 const catalogData = [
   {
@@ -90,6 +93,12 @@ const ordersData = [
 ];
 
 const ViewCustomer = () => {
+  const { isPending, approveMarketRepMutate } = useApproveMarketRep();
+
+  const [id, setId] = useState(null);
+
+  const { isOpen, closeModal, openModal } = useModalState();
+
   const { state } = useLocation();
   const marketRepoInfo = state?.info;
 
@@ -263,15 +272,16 @@ const ViewCustomer = () => {
       label: "ACTION",
       key: "action",
       render: (_, row) => (
-        <div className="relative">
+        <div className="relative dropdown-menu" /* Add this class */>
           <button
-            onClick={() =>
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent event bubbling
               setOpenDropdown(
                 openDropdown === `customer-${row.id}`
                   ? null
                   : `customer-${row.id}`
-              )
-            }
+              );
+            }}
             className="px-2 py-1 cursor-pointer rounded-md text-gray-600"
           >
             •••
@@ -286,13 +296,40 @@ const ViewCustomer = () => {
               <button className="block w-full cursor-pointer text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
                 Edit User
               </button>
-
-              <button className="block w-full cursor-pointer text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
-                Approve
-              </button>
-              <button className="block w-full cursor-pointer text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
-                Reject
-              </button>
+              {row?.status === "pending" ? (
+                <>
+                  <button
+                    disabled={isPending}
+                    onClick={() => {
+                      approveMarketRepMutate(
+                        {
+                          user_id: row.id,
+                          approved: true,
+                        },
+                        {
+                          onSuccess: () => {
+                            setOpenDropdown(null);
+                          },
+                        }
+                      );
+                    }}
+                    className="block w-full cursor-pointer text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                  >
+                    {isPending ? "Please wait..." : "Approve"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setId(row.id);
+                      openModal();
+                    }}
+                    className="block w-full cursor-pointer text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                  >
+                    Reject
+                  </button>
+                </>
+              ) : (
+                <></>
+              )}
             </div>
           )}
         </div>
@@ -303,14 +340,15 @@ const ViewCustomer = () => {
   const customerData = React.useMemo(
     () => [
       {
+        ...marketRepoInfo,
         id: marketRepoInfo?.id ?? "",
         fullName: marketRepoInfo?.name ?? "",
         profile: marketRepoInfo?.user?.profile?.profile_picture ?? null,
         kyc: "See KYC",
         email: marketRepoInfo?.email ?? "",
-        phone: "+234 803 456 7890",
+        phone: marketRepoInfo?.phone ?? "",
         address: marketRepoInfo?.user?.profile?.address ?? "",
-        onboarded: "240 Users",
+        onboarded: "",
         dateJoined: marketRepoInfo?.created_at ?? "",
       },
     ],
@@ -354,7 +392,7 @@ const ViewCustomer = () => {
   }, []);
 
   return (
-    <>
+    <React.Fragment>
       <div className="">
         {/* Customer Info Section */}
         <div className="mb-6">
@@ -460,7 +498,9 @@ const ViewCustomer = () => {
           </div>
         </div>
       </div>
-    </>
+
+      <RejectModal id={id} isOpen={isOpen} onClose={closeModal} />
+    </React.Fragment>
   );
 };
 

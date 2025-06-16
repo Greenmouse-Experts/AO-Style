@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import ReusableTable from "../components/ReusableTable";
 import { FaEllipsisH } from "react-icons/fa";
 import AddMarketModal from "./AddMarketModal";
@@ -49,9 +49,9 @@ const NewlyAddedUsers = () => {
   );
 
   // Toggle dropdown function
-  const toggleDropdown = (rowId) => {
-    setOpenDropdown(openDropdown === rowId ? null : rowId);
-  };
+  const toggleDropdown = useCallback((rowId) => {
+    setOpenDropdown((prev) => (prev === rowId ? null : rowId));
+  }, []);
 
   // Table Columns
   const columns = useMemo(
@@ -85,7 +85,6 @@ const NewlyAddedUsers = () => {
               className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
               onClick={() => {
                 toggleDropdown(row.id);
-                console.log("row", row);
               }}
             >
               <FaEllipsisH />
@@ -99,7 +98,10 @@ const NewlyAddedUsers = () => {
                 >
                   View Market Rep
                 </Link>
-                <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
+                <button
+                  onClick={() => {}}
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+                >
                   Edit User
                 </button>
                 <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center">

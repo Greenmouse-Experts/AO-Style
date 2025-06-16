@@ -14,10 +14,15 @@ const addMarketRep = (payload) => {
   return CaryBinApi.post(`/contact/invite`, payload);
 };
 
+const approveMarketRep = (payload) => {
+  return CaryBinApi.patch(`/auth/users/approve`, payload);
+};
+
 const MarketRepService = {
   GetMarketRep,
   addMarketRep,
   getInviteInfo,
+  approveMarketRep,
 };
 
 export default MarketRepService;

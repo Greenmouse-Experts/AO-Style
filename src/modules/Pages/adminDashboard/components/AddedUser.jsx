@@ -186,7 +186,7 @@ const NewlyAddedUsers = () => {
                 }
                 className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
               >
-                <option value={2}>5</option>
+                <option value={5}>5</option>
                 <option value={10}>10</option>
                 <option value={15}>15</option>
                 <option value={20}>20</option>

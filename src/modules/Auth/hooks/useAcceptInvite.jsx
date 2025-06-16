@@ -4,17 +4,19 @@ import Cookies from "js-cookie";
 import AuthService from "../../../services/api/auth";
 import useToast from "../../../hooks/useToast";
 
-const useRegister = (email) => {
+const useAcceptInvite = () => {
   const { toastError, toastSuccess } = useToast();
   const navigate = useNavigate();
 
-  const { isPending, mutate: registerMutate } = useMutation({
-    mutationFn: (payload) => AuthService.registerUser(payload),
-    mutationKey: ["register-user"],
+  const { isPending, mutate: acceptInviteMutate } = useMutation({
+    mutationFn: (payload) => AuthService.acceptInvite(payload),
+    mutationKey: ["accept-invite"],
     onSuccess(data) {
       toastSuccess(data?.data?.message);
-      localStorage.setItem("verifyemail", email);
-      navigate("/verify-account");
+      // if (role === "market-representative") {
+      //   return;
+      // }
+      navigate("/login");
     },
     onError: (error) => {
       if (Array.isArray(error?.data?.message)) {
@@ -24,7 +26,7 @@ const useRegister = (email) => {
       }
     },
   });
-  return { isPending, registerMutate };
+  return { isPending, acceptInviteMutate };
 };
 
-export default useRegister;
+export default useAcceptInvite;

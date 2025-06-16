@@ -17,6 +17,7 @@ export default function SignInCustomer() {
     errors,
     values,
     handleChange,
+    resetForm,
     // setFieldError,
   } = useFormik({
     initialValues: initialValues,
@@ -24,7 +25,11 @@ export default function SignInCustomer() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      forgotPasswordMutate(val);
+      forgotPasswordMutate(val, {
+        onSuccess: () => {
+          resetForm();
+        },
+      });
     },
   });
 
@@ -62,7 +67,7 @@ export default function SignInCustomer() {
 
           <button
             type="submit"
-            className="w-full bg-gradient text-white py-3 rounded-lg font-semibold"
+            className="w-full bg-gradient cursor-pointer text-white py-3 rounded-lg font-semibold"
           >
             {isPending ? "Please wait..." : "Get Reset Link"}
           </button>

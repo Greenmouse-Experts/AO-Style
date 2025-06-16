@@ -8,8 +8,16 @@ const registerUser = (payload) => {
   return CaryBinApi.post(`/auth/register`, payload);
 };
 
+const resendCode = (payload) => {
+  return CaryBinApi.post(`/auth/resend-email`, payload);
+};
+
 const forgotPassword = (payload) => {
   return CaryBinApi.post(`/auth/request-password-reset`, payload);
+};
+
+const changePassword = (payload) => {
+  return CaryBinApi.post(`/auth/reset-password`, payload);
 };
 
 const verifyEmail = (payload) => {
@@ -26,6 +34,8 @@ const AuthService = {
   forgotPassword,
   registerUser,
   verifyEmail,
+  changePassword,
+  resendCode,
 };
 
 export default AuthService;

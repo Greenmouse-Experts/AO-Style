@@ -31,7 +31,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
   const { carybinUser } = useCarybinUserStore();
 
-
   return (
     <div className="relative">
       {/* Sidebar */}
@@ -177,7 +176,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           {/* Profile Section */}
           <div className="mt-auto bg-gray-100 p-4 rounded-lg text-center">
             <img
-              src={carybinUser?.profile?.profile_picture ?? ""}
+              src={carybinUser?.profile?.profile_picture ?? null}
               alt="Admin"
               className="w-12 h-12 mx-auto rounded-full mb-2"
             />

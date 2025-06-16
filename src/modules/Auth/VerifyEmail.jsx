@@ -1,12 +1,18 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import useVerifyEmail from "./hooks/useVerifyEmail";
 import { useFormik } from "formik";
 import { maskEmail } from "../../lib/helper";
+import useResendCode from "./hooks/useResendOtp";
+import { useTriggerResend } from "../../hooks/useTriggerResend";
 
 export default function SignInCustomer() {
   const { isPending, verifyEmailMutate } = useVerifyEmail();
 
+  const { isPending: resendCodeIsPending, resendCodeMutate } = useResendCode();
+
   const savedEmail = localStorage.getItem("verifyemail");
+
+  const { canResend, countdown, triggerResend } = useTriggerResend(60);
 
   const {
     handleSubmit,
@@ -27,6 +33,10 @@ export default function SignInCustomer() {
     },
   });
 
+  if (!savedEmail) {
+    return <Navigate to="/login" replace />;
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F3E3FF]">
       <div className="max-w-lg w-full bg-white rounded-lg p-8">
@@ -43,8 +53,8 @@ export default function SignInCustomer() {
           Verify your Email
         </h2>
         <p className="text-gray-500 text-sm mb-6">
-          Enter the code that was sent to <span>{maskEmail(savedEmail ?? "")}</span> to verify your
-          email
+          Enter the code that was sent to{" "}
+          <span>{maskEmail(savedEmail ?? "")}</span> to verify your email
         </p>
 
         <form className="mt-6 space-y-3" onSubmit={handleSubmit}>
@@ -67,6 +77,34 @@ export default function SignInCustomer() {
             {isPending ? "Please wait..." : "Verify Email"}
           </button>
         </form>
+        <p className="text-center text-sm mt-4">
+          {canResend ? (
+            <button
+              disabled={resendCodeIsPending}
+              className="text-purple-600 cursor-pointer"
+              onClick={() => {
+                resendCodeMutate(
+                  {
+                    email: savedEmail,
+                    allowOtp: true,
+                  },
+                  {
+                    onSuccess: () => {
+                      triggerResend();
+                    },
+                  }
+                );
+              }}
+            >
+              {resendCodeIsPending ? "Please wait..." : "Resend Code"}
+            </button>
+          ) : (
+            <p className="text-purple-600">
+              You can resend code in {Math.floor(countdown / 60)}:
+              {(countdown % 60).toString().padStart(2, "0")}
+            </p>
+          )}
+        </p>
       </div>
     </div>
   );

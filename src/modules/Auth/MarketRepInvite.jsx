@@ -3,35 +3,40 @@ import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import HowDidYouHearAboutUs from "../Auth/components/HowDidYouHearAboutUs";
 import useRegister from "./hooks/useSignUpMutate";
-import { useFormik } from "formik";
 import useGetInviteInfo from "../../hooks/marketRep/useGetInviteInfo";
 
 import NotFoundPage from "../../components/ui/NotFoundPage";
-
-const initialValues = {
-  name: "",
-  email: "",
-  phone: "",
-  alternative_phone: "",
-  password: "",
-  password_confirmation: "",
-  referral_source: "",
-  location: "",
-  years_of_experience: "",
-};
+import Loader from "../../components/ui/Loader";
+import { useFormik } from "formik";
+import useAcceptInvite from "./hooks/useAcceptInvite";
 
 export default function MarketRepInvite() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const token = new URLSearchParams(window.location.search).get("token");
 
   const {
     data: getAllMarketRepData,
     isPending: inviteInfoIsPending,
     error,
     isError,
-  } = useGetInviteInfo();
-
+  } = useGetInviteInfo(token);
   console.log(getAllMarketRepData);
+
+  const initialValues = {
+    name: getAllMarketRepData?.name ?? "",
+    email: getAllMarketRepData?.email ?? "",
+    phone: "",
+    alternative_phone: "",
+    password: "",
+    password_confirmation: "",
+    referral_source: "",
+    location: "",
+    years_of_experience: "",
+  };
+
+  const { isPending, acceptInviteMutate } = useAcceptInvite();
 
   const {
     handleSubmit,
@@ -45,13 +50,13 @@ export default function MarketRepInvite() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      registerMutate(
+      acceptInviteMutate(
         {
           ...val,
+          token,
           role: "market-representative",
           alternative_phone:
             val?.alternative_phone === "" ? undefined : val?.alternative_phone,
-          allowOtp: true,
         },
         {
           onSuccess: () => {
@@ -61,11 +66,6 @@ export default function MarketRepInvite() {
       );
     },
   });
-
-  const { isPending, registerMutate } = useRegister(
-    values.email,
-    "market-representative"
-  );
 
   if (inviteInfoIsPending) {
     return (
@@ -112,7 +112,7 @@ export default function MarketRepInvite() {
             </Link>
           </div>
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-            The Market Representatives Directory
+            Become a Market Rep
           </h2>
           <p className="text-gray-500 text-sm mt-1">
             Fill the form become a Market rep on OAStyles

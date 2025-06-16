@@ -4,6 +4,7 @@ import { useState } from "react";
 import HowDidYouHearAboutUs from "../Auth/components/HowDidYouHearAboutUs";
 import { useFormik } from "formik";
 import useRegister from "./hooks/useSignUpMutate";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const initialValues = {
   name: "",
@@ -16,7 +17,7 @@ const initialValues = {
 };
 
 export default function SignInAsCustomer() {
-  // const [handleRecaptch, setHandleRecaptch] = useState("");
+  const [handleRecaptch, setHandleRecaptch] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 

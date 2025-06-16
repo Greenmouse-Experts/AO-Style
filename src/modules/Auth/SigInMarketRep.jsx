@@ -50,10 +50,7 @@ export default function SignInAsCustomer() {
     },
   });
 
-  const { isPending, registerMutate } = useRegister(
-    values.email,
-    "market-representative"
-  );
+  const { isPending, registerMutate } = useRegister(values.email);
 
   return (
     <div className="h-screen w-full flex overflow-hidden">

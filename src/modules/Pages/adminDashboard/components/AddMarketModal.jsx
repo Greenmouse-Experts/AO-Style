@@ -19,6 +19,7 @@ const AddMarketModal = ({ isOpen, onClose, businessId }) => {
     touched,
     errors,
     values,
+    resetForm,
     handleChange,
     // setFieldError,
   } = useFormik({
@@ -32,6 +33,7 @@ const AddMarketModal = ({ isOpen, onClose, businessId }) => {
         {
           onSuccess: () => {
             onClose();
+            resetForm();
           },
         }
       );

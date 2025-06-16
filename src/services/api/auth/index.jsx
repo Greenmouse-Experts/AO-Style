@@ -28,6 +28,10 @@ export const GetUser = () => {
   return CaryBinApi.get("/auth/view-profile");
 };
 
+const acceptInvite = (payload) => {
+  return CaryBinApi.post(`/contact/accept-invite`, payload);
+};
+
 const AuthService = {
   signinUser,
   GetUser,
@@ -36,6 +40,7 @@ const AuthService = {
   verifyEmail,
   changePassword,
   resendCode,
+  acceptInvite,
 };
 
 export default AuthService;

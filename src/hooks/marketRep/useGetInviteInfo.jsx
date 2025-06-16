@@ -11,7 +11,7 @@ function useGetInviteInfo(token) {
   return {
     isLoading,
     isFetching,
-    data: data?.data,
+    data: data?.data?.data,
     isError,
     isPending,
     refetch,

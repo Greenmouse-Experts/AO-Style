@@ -8,6 +8,7 @@ import useQueryParams from "../../../../hooks/useQueryParams";
 import useGetBusinessDetails from "../../../../hooks/settings/useGetBusinessDetails";
 import { useMemo } from "react";
 import { formatDateStr } from "../../../../lib/helper";
+import useGetAllUsersByRole from "../../../../hooks/admin/useGetAllUserByRole";
 
 const NewlyAddedUsers = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -24,10 +25,16 @@ const NewlyAddedUsers = () => {
     "pagination[page]": 1,
   });
 
-  const { data: getAllMarketRepData, isPending } = useGetAllMarketRep({
+  const { data: getAllMarketRepData, isPending } = useGetAllUsersByRole({
     ...queryParams,
-    id: businessData?.data?.id,
+    role: "market-representative",
   });
+
+  const totalPages = Math.ceil(
+    getAllMarketRepData?.count / queryParams["pagination[limit]"]
+  );
+
+  console.log(getAllMarketRepData?.data);
 
   const MarketRepData = useMemo(
     () =>
@@ -36,7 +43,7 @@ const NewlyAddedUsers = () => {
             return {
               ...details,
               name: `${details?.name}`,
-              userType: `${details?.user?.role?.name ?? ""}`,
+              userType: `${details?.role?.name ?? ""}`,
               created_at: `${
                 details?.created_at
                   ? formatDateStr(details?.created_at.split(".").shift())
@@ -193,30 +200,31 @@ const NewlyAddedUsers = () => {
                 <option value={15}>15</option>
                 <option value={20}>20</option>
               </select>
-              {/* <p className="text-sm text-gray-600 ml-4">
-            {indexOfFirstItem + 1}-
-            {indexOfLastItem > filteredData.length
-              ? filteredData.length
-              : indexOfLastItem}{" "}
-            of {filteredData.length} items
-          </p> */}
             </div>
-            {/* <div className="flex gap-1">
-            <button
-              onClick={handlePreviousPage}
-              disabled={currentPage === 1}
-              className="px-3 py-1 rounded-md bg-gray-200"
-            >
-              ◀
-            </button>
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 rounded-md bg-gray-200"
-            >
-              ▶
-            </button>
-          </div> */}
+            <div className="flex gap-1">
+              <button
+                onClick={() => {
+                  updateQueryParams({
+                    "pagination[page]": queryParams["pagination[page]"] - 1,
+                  });
+                }}
+                disabled={queryParams["pagination[page]"] == 1}
+                className="px-3 py-1 rounded-md bg-gray-200"
+              >
+                ◀
+              </button>
+              <button
+                onClick={() => {
+                  updateQueryParams({
+                    "pagination[page]": queryParams["pagination[page]"] + 1,
+                  });
+                }}
+                disabled={queryParams["pagination[page]"] == totalPages}
+                className="px-3 py-1 rounded-md bg-gray-200"
+              >
+                ▶
+              </button>
+            </div>
           </div>
         )}
       </div>

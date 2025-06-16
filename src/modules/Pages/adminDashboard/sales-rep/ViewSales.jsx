@@ -102,6 +102,8 @@ const ViewCustomer = () => {
   const { state } = useLocation();
   const marketRepoInfo = state?.info;
 
+  console.log(marketRepoInfo);
+
   const [catalogFilter, setCatalogFilter] = useState("all");
   const [ordersFilter, setOrdersFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -343,11 +345,11 @@ const ViewCustomer = () => {
         ...marketRepoInfo,
         id: marketRepoInfo?.id ?? "",
         fullName: marketRepoInfo?.name ?? "",
-        profile: marketRepoInfo?.user?.profile?.profile_picture ?? null,
+        profile: marketRepoInfo?.profile?.profile_picture ?? null,
         kyc: "See KYC",
         email: marketRepoInfo?.email ?? "",
         phone: marketRepoInfo?.phone ?? "",
-        address: marketRepoInfo?.user?.profile?.address ?? "",
+        address: marketRepoInfo?.profile?.address ?? "",
         onboarded: "",
         dateJoined: marketRepoInfo?.created_at ?? "",
       },

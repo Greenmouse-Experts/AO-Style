@@ -4,27 +4,30 @@ export default function useQueryParams(initialQueryParams) {
   const [searchParams, setSearchParams] = useSearchParams(initialQueryParams);
 
   const updateQueryParams = (key, value, replacePrevious) => {
-    setSearchParams((prevParams) => {
-      if (typeof key !== "string") {
-        const params = { ...Object.fromEntries(prevParams), ...key };
+    setSearchParams(
+      (prevParams) => {
+        if (typeof key !== "string") {
+          const params = { ...Object.fromEntries(prevParams), ...key };
 
-        Object.keys(params).forEach((k) => {
-          if (params[k] === null || params[k] === undefined) {
-            delete params[k];
-          }
-        });
+          Object.keys(params).forEach((k) => {
+            if (params[k] === null || params[k] === undefined) {
+              delete params[k];
+            }
+          });
 
-        return params;
-      } else {
-        if (value === null || value === undefined) {
-          prevParams.delete(key);
+          return params;
         } else {
-          prevParams.set(key, value);
+          if (value === null || value === undefined) {
+            prevParams.delete(key);
+          } else {
+            prevParams.set(key, value);
+          }
         }
-      }
 
-      return prevParams;
-    }, { replace: replacePrevious });
+        return prevParams;
+      },
+      { replace: replacePrevious }
+    );
   };
 
   const clearAllFilters = () => setSearchParams(initialQueryParams);

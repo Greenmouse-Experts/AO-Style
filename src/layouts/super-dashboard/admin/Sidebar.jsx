@@ -175,11 +175,20 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
           {/* Profile Section */}
           <div className="mt-auto bg-gray-100 p-4 rounded-lg text-center">
-            <img
-              src={carybinUser?.profile?.profile_picture ?? null}
-              alt="Admin"
-              className="w-12 h-12 mx-auto rounded-full mb-2"
-            />
+            {carybinUser?.profile?.profile_picture ? (
+              <img
+                src={carybinUser?.profile?.profile_picture ?? null}
+                alt="Admin"
+                className="w-12 h-12 mx-auto rounded-full mb-2"
+              />
+            ) : (
+              <>
+                {" "}
+                <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white">
+                  {carybinUser?.name?.charAt(0).toUpperCase() || "?"}
+                </div>
+              </>
+            )}
             <p className="text-sm font-semibold">{carybinUser?.name}</p>
             <p className="text-xs text-gray-500">Super Admin Dashboard</p>
             <Link to="/admin/settings">

@@ -118,11 +118,19 @@ const Settings = () => {
             <div>
               <h2 className="text-xl font-medium mb-4">Profile</h2>
               <div className="mt-6 flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
-                <img
-                  src={values.profile_picture}
-                  alt="Profile"
-                  className="w-24 h-24 rounded-full"
-                />
+                {values.profile_picture ? (
+                  <img
+                    src={values.profile_picture}
+                    alt="Profile"
+                    className="w-24 h-24 rounded-full"
+                  />
+                ) : (
+                  <>
+                    <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white">
+                      {values?.name?.charAt(0).toUpperCase() || "?"}
+                    </div>
+                  </>
+                )}
                 <button
                   disabled={isPending || profileIsLoading}
                   onClick={handleButtonClick}

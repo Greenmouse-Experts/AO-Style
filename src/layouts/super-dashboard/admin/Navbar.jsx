@@ -52,12 +52,22 @@ export default function Navbar({ toggleSidebar }) {
 
         {/* Profile Avatar & Dropdown */}
         <div className="relative">
-          <img
-            src={carybinUser?.profile?.profile_picture ?? null}
-            alt="User"
-            className="w-8 h-8 rounded-full cursor-pointer"
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          />
+          {carybinUser?.profile?.profile_picture ? (
+            <img
+              src={carybinUser?.profile?.profile_picture ?? null}
+              alt="User"
+              className="w-8 h-8 rounded-full cursor-pointer"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            />
+          ) : (
+            <div
+              role="button"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="w-8 h-8 cursor-pointer rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white"
+            >
+              {carybinUser?.name?.charAt(0).toUpperCase() || "?"}
+            </div>
+          )}
 
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 shadow-lg rounded-lg z-50">

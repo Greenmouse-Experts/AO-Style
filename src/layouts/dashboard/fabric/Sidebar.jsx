@@ -106,11 +106,20 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
         {/* User Profile */}
         <div className="mt-auto border-t border-white text-white pt-5 flex items-center">
-          <img
-            src={carybinUser?.profile?.profile_picture ?? null}
-            alt="User"
-            className="w-12 h-12 rounded-full mr-3"
-          />
+          {carybinUser?.profile?.profile_picture ? (
+            <img
+              src={carybinUser?.profile?.profile_picture ?? null}
+              alt="User"
+              className="w-12 h-12 rounded-full mr-3"
+            />
+          ) : (
+            <>
+              {" "}
+              <div className="w-12 h-12 mr-3 cursor-pointer rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white">
+                {carybinUser?.name?.charAt(0).toUpperCase() || "?"}
+              </div>
+            </>
+          )}
           <div>
             <p className="text-sm font-semibold leading-loose">
               {carybinUser?.name}

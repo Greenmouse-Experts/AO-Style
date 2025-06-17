@@ -247,11 +247,17 @@ const ViewCustomer = () => {
       key: "fullName",
       render: (_, row) => (
         <div className="flex items-center gap-3">
-          <img
-            src={row.profile}
-            alt="profile"
-            className="w-10 h-10 rounded-full"
-          />
+          {row.profile ? (
+            <img
+              src={row.profile}
+              alt="profile"
+              className="w-10 h-10 rounded-full"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white">
+              {row?.fullName?.charAt(0).toUpperCase() || "?"}
+            </div>
+          )}
           <span>{row.fullName}</span>
         </div>
       ),

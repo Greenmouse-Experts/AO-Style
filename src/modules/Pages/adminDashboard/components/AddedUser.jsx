@@ -9,6 +9,8 @@ import useGetBusinessDetails from "../../../../hooks/settings/useGetBusinessDeta
 import { useMemo } from "react";
 import { formatDateStr } from "../../../../lib/helper";
 import useGetAllUsersByRole from "../../../../hooks/admin/useGetAllUserByRole";
+import useDebounce from "../../../../hooks/useDebounce";
+import useUpdatedEffect from "../../../../hooks/useUpdatedEffect";
 
 const NewlyAddedUsers = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -30,11 +32,23 @@ const NewlyAddedUsers = () => {
     role: "market-representative",
   });
 
+  const [queryString, setQueryString] = useState(queryParams.q);
+
+  const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
+
+  useUpdatedEffect(() => {
+    // update search params with undefined if debouncedSearchTerm is an empty string
+    updateQueryParams({
+      q: debouncedSearchTerm.trim() || undefined,
+      "pagination[page]": 1,
+    });
+  }, [debouncedSearchTerm]);
+
   const totalPages = Math.ceil(
-    getAllMarketRepData?.count / queryParams["pagination[limit]"]
+    getAllMarketRepData?.count / (queryParams["pagination[limit]"] ?? 10)
   );
 
-  console.log(getAllMarketRepData?.data);
+  console.log((queryParams["pagination[page]"] ?? 10) == totalPages);
 
   const MarketRepData = useMemo(
     () =>
@@ -122,14 +136,6 @@ const NewlyAddedUsers = () => {
     ],
     [toggleDropdown, openDropdown]
   );
-  const filteredData = MarketRepData?.filter((order) =>
-    Object.values(order).some(
-      (value) =>
-        typeof value === "string" &&
-        value.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
-
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -149,8 +155,10 @@ const NewlyAddedUsers = () => {
           <input
             type="text"
             placeholder="Search"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={queryString}
+            onChange={(evt) =>
+              setQueryString(evt.target.value ? evt.target.value : undefined)
+            }
             className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
           />
           <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
@@ -181,8 +189,8 @@ const NewlyAddedUsers = () => {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
         />
-        <ReusableTable columns={columns} data={filteredData} />
-        {filteredData?.length > 0 && (
+        <ReusableTable columns={columns} data={MarketRepData} />
+        {MarketRepData?.length > 0 && (
           <div className="flex justify-between items-center mt-4">
             <div className="flex items-center">
               <p className="text-sm text-gray-600">Items per page: </p>
@@ -205,10 +213,10 @@ const NewlyAddedUsers = () => {
               <button
                 onClick={() => {
                   updateQueryParams({
-                    "pagination[page]": queryParams["pagination[page]"] - 1,
+                    "pagination[page]": +queryParams["pagination[page]"] - 1,
                   });
                 }}
-                disabled={queryParams["pagination[page]"] == 1}
+                disabled={(queryParams["pagination[page]"] ?? 1) == 1}
                 className="px-3 py-1 rounded-md bg-gray-200"
               >
                 ◀
@@ -216,10 +224,10 @@ const NewlyAddedUsers = () => {
               <button
                 onClick={() => {
                   updateQueryParams({
-                    "pagination[page]": queryParams["pagination[page]"] + 1,
+                    "pagination[page]": +queryParams["pagination[page]"] + 1,
                   });
                 }}
-                disabled={queryParams["pagination[page]"] == totalPages}
+                disabled={(queryParams["pagination[page]"] ?? 1) == totalPages}
                 className="px-3 py-1 rounded-md bg-gray-200"
               >
                 ▶

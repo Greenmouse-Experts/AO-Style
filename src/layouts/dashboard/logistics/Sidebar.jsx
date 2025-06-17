@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   FaHome,
   FaStore,
@@ -10,9 +10,20 @@ import {
   FaCog,
 } from "react-icons/fa";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
+import useToast from "../../../hooks/useToast";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { carybinUser, logOut } = useCarybinUserStore();
+
+  const navigate = useNavigate();
+  const { toastSuccess } = useToast();
+
+  const handleSignOut = () => {
+    navigate("/login");
+    toastSuccess("Logout Successfully");
+    logOut();
+    Cookies.remove("token");
+  };
 
   return (
     <div className="relative">
@@ -97,11 +108,20 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
         {/* User Profile */}
         <div className="mt-auto border-t border-gray-300 pt-5 flex items-center">
-          <img
-            src={carybinUser?.profile?.profile_picture ?? null}
-            alt="User"
-            className="w-10 h-10 rounded-full mr-3"
-          />
+          {carybinUser?.profile?.profile_picture ? (
+            <img
+              src={carybinUser?.profile?.profile_picture ?? null}
+              alt="User"
+              className="w-10 h-10 rounded-full mr-3"
+            />
+          ) : (
+            <>
+              {" "}
+              <div className="w-10 h-10 mr-3 cursor-pointer rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white">
+                {carybinUser?.name?.charAt(0).toUpperCase() || "?"}
+              </div>
+            </>
+          )}
           <div>
             <p className="text-sm font-semibold leading-loose text-white">
               {carybinUser?.name}
@@ -111,7 +131,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         </div>
 
         {/* Logout Button */}
-        <button className="mt-6 cursor-pointer bg-gradient-to-r from-[#A056FE] to-[#E44ED8] text-white py-3 px-4 rounded-md w-full flex items-center justify-center">
+        <button
+          onClick={() => {
+            handleSignOut();
+          }}
+          className="mt-6 cursor-pointer bg-gradient-to-r from-[#A056FE] to-[#E44ED8] text-white py-3 px-4 rounded-md w-full flex items-center justify-center"
+        >
           <FaSignOutAlt className="mr-2" /> Log Out
         </button>
       </div>

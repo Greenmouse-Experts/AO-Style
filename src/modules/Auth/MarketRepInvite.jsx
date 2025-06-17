@@ -43,6 +43,7 @@ export default function MarketRepInvite() {
     values,
     handleChange,
     resetForm,
+    setFieldValue,
     // setFieldError,
   } = useFormik({
     initialValues: initialValues,
@@ -168,19 +169,19 @@ export default function MarketRepInvite() {
             <label className="block text-black">
               Years of Experience in Sales
             </label>
-            <select
-              className="w-full p-4 border border-[#CCCCCC] text-gray-500 outline-none mb-3 rounded-lg"
+
+            <input
+              type="numeric"
               name={"years_of_experience"}
+              required
               value={values.years_of_experience}
-              onChange={handleChange}
-            >
-              <option value="">Choose your years of experience</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-            </select>
+              onChange={(e) => {
+                const onlyNums = e.target.value.replace(/\D/g, "");
+                setFieldValue("years_of_experience", onlyNums);
+              }}
+              placeholder="Years of experience"
+              className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+            />
 
             <label className="block text-black">Address</label>
             <input

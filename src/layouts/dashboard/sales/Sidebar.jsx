@@ -1,10 +1,30 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
-  FaHome, FaStore, FaSignOutAlt, FaCommentDots, FaBell, FaCreditCard, FaCog
+  FaHome,
+  FaStore,
+  FaSignOutAlt,
+  FaCommentDots,
+  FaBell,
+  FaCreditCard,
+  FaCog,
 } from "react-icons/fa";
 import { GiScissors } from "react-icons/gi";
+import { useCarybinUserStore } from "../../../store/carybinUserStore";
+import useToast from "../../../hooks/useToast";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
+  const { carybinUser, logOut } = useCarybinUserStore();
+
+  const navigate = useNavigate();
+  const { toastSuccess } = useToast();
+
+  const handleSignOut = () => {
+    navigate("/login");
+    toastSuccess("Logout Successfully");
+    logOut();
+    Cookies.remove("token");
+  };
+
   return (
     <div className="relative">
       {/* Sidebar */}
@@ -39,13 +59,48 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
         {/* Sidebar Links */}
         <nav className="flex-1 space-y-2">
-          <SidebarItem to="/sales" icon={<FaHome />} text="Dashboard" toggleSidebar={toggleSidebar} />
-          <SidebarItem to="/sales/fabric-vendors" icon={<FaStore />} text="Fabric Vendors" toggleSidebar={toggleSidebar} />
-          <SidebarItem to="/sales/fashion-designers" icon={<GiScissors />} text="Fashion Designers" toggleSidebar={toggleSidebar} />
-          <SidebarItem to="/sales/inbox" icon={<FaCommentDots />} text="Inbox" toggleSidebar={toggleSidebar} />
-          <SidebarItem to="/sales/notifications" icon={<FaBell />} text="Notifications" toggleSidebar={toggleSidebar} />
-          <SidebarItem to="/sales/transactions" icon={<FaCreditCard />} text="Transactions" toggleSidebar={toggleSidebar} />
-          <SidebarItem to="/sales/settings" icon={<FaCog />} text="Settings" toggleSidebar={toggleSidebar} />
+          <SidebarItem
+            to="/sales"
+            icon={<FaHome />}
+            text="Dashboard"
+            toggleSidebar={toggleSidebar}
+          />
+          <SidebarItem
+            to="/sales/fabric-vendors"
+            icon={<FaStore />}
+            text="Fabric Vendors"
+            toggleSidebar={toggleSidebar}
+          />
+          <SidebarItem
+            to="/sales/fashion-designers"
+            icon={<GiScissors />}
+            text="Fashion Designers"
+            toggleSidebar={toggleSidebar}
+          />
+          <SidebarItem
+            to="/sales/inbox"
+            icon={<FaCommentDots />}
+            text="Inbox"
+            toggleSidebar={toggleSidebar}
+          />
+          <SidebarItem
+            to="/sales/notifications"
+            icon={<FaBell />}
+            text="Notifications"
+            toggleSidebar={toggleSidebar}
+          />
+          <SidebarItem
+            to="/sales/transactions"
+            icon={<FaCreditCard />}
+            text="Transactions"
+            toggleSidebar={toggleSidebar}
+          />
+          <SidebarItem
+            to="/sales/settings"
+            icon={<FaCog />}
+            text="Settings"
+            toggleSidebar={toggleSidebar}
+          />
         </nav>
 
         {/* User Profile */}
@@ -56,13 +111,20 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             className="w-12 h-12 rounded-full mr-3"
           />
           <div>
-            <p className="text-sm text-white font-semibold leading-loose">Chukka Uzo</p>
+            <p className="text-sm text-white font-semibold leading-loose">
+              {carybinUser?.name}
+            </p>
             <p className="text-xs text-white">Account settings</p>
           </div>
         </div>
 
         {/* Logout Button */}
-        <button className="mt-6 bg-gradient text-white py-3 px-4 rounded-md w-full flex items-center justify-center">
+        <button
+          onClick={() => {
+            handleSignOut();
+          }}
+          className="mt-6 bg-gradient text-white py-3 px-4 rounded-md w-full flex items-center justify-center"
+        >
           <FaSignOutAlt className="mr-2" /> Log Out
         </button>
       </div>

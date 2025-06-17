@@ -44,20 +44,27 @@ export default function Navbar({ toggleSidebar }) {
 
         {/* Profile Section */}
         <div className="relative">
-          <img
-            src={carybinUser?.profile?.profile_picture ?? null}
-            alt="User"
-            className="w-8 h-8 rounded-full cursor-pointer"
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          />
+          {carybinUser?.profile?.profile_picture ? (
+            <img
+              src={carybinUser?.profile?.profile_picture ?? null}
+              alt="User"
+              className="w-8 h-8 rounded-full cursor-pointer"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            />
+          ) : (
+            <div
+              role="button"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="w-8 h-8 cursor-pointer rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white"
+            >
+              {carybinUser?.name?.charAt(0).toUpperCase() || "?"}
+            </div>
+          )}
 
           {/* Dropdown */}
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg z-50">
               <ul className="py-2">
-                <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                  Profile
-                </li>
                 <Link
                   onClick={() => {
                     setIsDropdownOpen(!isDropdownOpen);

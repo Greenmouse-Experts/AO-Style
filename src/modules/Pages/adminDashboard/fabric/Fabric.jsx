@@ -72,13 +72,22 @@ const CustomersTable = () => {
       {
         label: "Profile",
         key: "profile",
-        render: (_, row) => (
-          <img
-            src={row.profile?.profile_picture}
-            alt="profile"
-            className="w-8 h-8 rounded-full"
-          />
-        ),
+        render: (_, row) => {
+          const profilePic = row.profile?.profile_picture;
+          const initial = row.name?.charAt(0).toUpperCase() || "?";
+
+          return profilePic ? (
+            <img
+              src={profilePic}
+              alt="profile"
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white">
+              {initial}
+            </div>
+          );
+        },
       },
       { label: "Name", key: "name" },
       { label: "Phone Number", key: "phone" },
@@ -275,11 +284,19 @@ const CustomersTable = () => {
               </div>
 
               <div className="text-center mx-auto">
-                <img
-                  src={item.profile?.profile_picture ?? null}
-                  alt={item.name}
-                  className="mx-auto w-16 h-16 rounded-full mb-2"
-                />
+                {item.profile?.profile_picture ? (
+                  <img
+                    src={item.profile?.profile_picture ?? null}
+                    alt={item.name}
+                    className="mx-auto w-16 h-16 rounded-full mb-2"
+                  />
+                ) : (
+                  <>
+                    <div className="mx-auto w-16 h-16 mb-2 cursor-pointer rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white">
+                      {item?.name?.charAt(0).toUpperCase() || "?"}
+                    </div>
+                  </>
+                )}
 
                 <h3 className="text-dark-blue font-medium mb-1 mt-2">
                   {item.name}

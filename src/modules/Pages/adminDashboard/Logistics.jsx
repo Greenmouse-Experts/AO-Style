@@ -73,13 +73,22 @@ const CustomersTable = () => {
       {
         label: "Profile",
         key: "profile",
-        render: (_, row) => (
-          <img
-            src={row.profile?.profile_picture}
-            alt="profile"
-            className="w-8 h-8 rounded-full"
-          />
-        ),
+        render: (_, row) => {
+          const profilePic = row.profile?.profile_picture;
+          const initial = row.name?.charAt(0).toUpperCase() || "?";
+
+          return profilePic ? (
+            <img
+              src={profilePic}
+              alt="profile"
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white">
+              {initial}
+            </div>
+          );
+        },
       },
       { label: "Name", key: "name" },
       { label: "Phone Number", key: "phone" },

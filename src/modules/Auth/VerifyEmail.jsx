@@ -20,6 +20,7 @@ export default function SignInCustomer() {
     errors,
     values,
     handleChange,
+    setFieldValue,
     // setFieldError,
   } = useFormik({
     initialValues: {
@@ -60,11 +61,14 @@ export default function SignInCustomer() {
         <form className="mt-6 space-y-3" onSubmit={handleSubmit}>
           <label className="block text-gray-700">Verification Code</label>
           <input
-            type="text"
+            type="numeric"
             name={"token"}
             required
             value={values.token}
-            onChange={handleChange}
+            onChange={(e) => {
+              const onlyNums = e.target.value.replace(/\D/g, "");
+              setFieldValue("token", onlyNums);
+            }}
             placeholder="Enter verification code"
             className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
           />

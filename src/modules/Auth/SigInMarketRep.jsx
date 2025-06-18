@@ -4,6 +4,9 @@ import { useState } from "react";
 import HowDidYouHearAboutUs from "../Auth/components/HowDidYouHearAboutUs";
 import { useFormik } from "formik";
 import useRegister from "./hooks/useSignUpMutate";
+import { countryCodes } from "../../constant";
+
+import Select from "react-select";
 
 const initialValues = {
   name: "",
@@ -15,11 +18,17 @@ const initialValues = {
   referral_source: "",
   location: "",
   years_of_experience: "",
+  phoneCode: "+234",
 };
 
 export default function SignInAsCustomer() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const options = countryCodes.map((code) => ({
+    label: code,
+    value: code,
+  }));
 
   const {
     handleSubmit,
@@ -34,12 +43,15 @@ export default function SignInAsCustomer() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      const phoneno = `${val.phoneCode + val.phone}`;
+      const altno = `${val.altCode + val.alternative_phone}`;
+
       registerMutate(
         {
           ...val,
           role: "market-representative",
-          alternative_phone:
-            val?.alternative_phone === "" ? undefined : val?.alternative_phone,
+          phone: phoneno,
+          alternative_phone: val?.alternative_phone === "" ? undefined : altno,
           allowOtp: true,
         },
         {
@@ -116,29 +128,100 @@ export default function SignInAsCustomer() {
               className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
             />
 
-            <label className="block text-black">Phone Number</label>
-            <input
-              type="tel"
-              placeholder=""
-              className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg"
-              name={"phone"}
-              required
-              value={values.phone}
-              onChange={handleChange}
-            />
+            <div className="mb-3">
+              <label className="block text-black mb-2">Phone Number</label>
 
-            <label className="block text-black">
-              Alternative Phone Number{" "}
-              <small className="text-[#CCCCCC]">(Optional)</small>
-            </label>
-            <input
-              type="tel"
-              name={"alternative_phone"}
-              value={values.alternative_phone}
-              onChange={handleChange}
-              placeholder="Alternative Phone Number"
-              className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg"
-            />
+              <div className="flex items-center gap-2 ">
+                {/* Country Code Dropdown */}
+                <Select
+                  options={options}
+                  name="phoneCode"
+                  value={options.find((opt) => opt.value === values.phoneCode)}
+                  onChange={(selectedOption) =>
+                    setFieldValue("phoneCode", selectedOption.value)
+                  }
+                  placeholder="Select"
+                  className="p-2 w-28 border border-[#CCCCCC] outline-none rounded-lg text-gray-500"
+                  styles={{
+                    control: (base, state) => ({
+                      ...base,
+                      border: "none",
+                      boxShadow: "none",
+                      outline: "none",
+                      backgroundColor: "#fff",
+                      "&:hover": {
+                        border: "none",
+                      },
+                    }),
+                    indicatorSeparator: () => ({
+                      display: "none",
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      zIndex: 9999,
+                    }),
+                  }}
+                />{" "}
+                {/* Phone Input */}
+                <input
+                  type="tel"
+                  name="phone"
+                  placeholder="Phone Number"
+                  className="flex-1 p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                  value={values.phone}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <label className="block text-black mb-2">
+                Alternative Phone Number{" "}
+                <small className="text-[#CCCCCC]">(Optional)</small>
+              </label>
+
+              <div className="flex items-center gap-2 ">
+                {/* Country Code Dropdown */}
+                <Select
+                  options={options}
+                  name="altCode"
+                  value={options.find((opt) => opt.value === values.altCode)}
+                  onChange={(selectedOption) =>
+                    setFieldValue("altCode", selectedOption.value)
+                  }
+                  placeholder="Select"
+                  className="p-2 w-34 border border-[#CCCCCC] outline-none rounded-lg text-gray-500"
+                  styles={{
+                    control: (base, state) => ({
+                      ...base,
+                      border: "none",
+                      boxShadow: "none",
+                      outline: "none",
+                      backgroundColor: "#fff",
+                      "&:hover": {
+                        border: "none",
+                      },
+                    }),
+                    indicatorSeparator: () => ({
+                      display: "none",
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      zIndex: 9999,
+                    }),
+                  }}
+                />{" "}
+                <input
+                  type="tel"
+                  name={"alternative_phone"}
+                  value={values.alternative_phone}
+                  onChange={handleChange}
+                  placeholder="Alternative Phone Number"
+                  className="w-full p-4 border border-[#CCCCCC] outline-none  rounded-lg"
+                />
+              </div>
+            </div>
 
             <label className="block text-black">
               Years of Experience in Sales

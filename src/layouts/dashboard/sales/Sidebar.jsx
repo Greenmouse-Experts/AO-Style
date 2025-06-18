@@ -11,6 +11,7 @@ import {
 import { GiScissors } from "react-icons/gi";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useToast from "../../../hooks/useToast";
+import Cookies from "js-cookie";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { carybinUser, logOut } = useCarybinUserStore();

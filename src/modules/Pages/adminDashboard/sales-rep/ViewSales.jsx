@@ -304,7 +304,7 @@ const ViewCustomer = () => {
               <button className="block w-full cursor-pointer text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
                 Edit User
               </button>
-              {row?.status === "pending" ? (
+              {row?.profile?.approved_by_admin == null ? (
                 <>
                   <button
                     disabled={isPending}

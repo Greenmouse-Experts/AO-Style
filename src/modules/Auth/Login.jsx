@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import useSignIn from "./hooks/useSigninMutate";
 import { useFormik } from "formik";
+import useResendCode from "./hooks/useResendOtp";
 
 const initialValues = {
   email: "",
@@ -12,7 +13,7 @@ const initialValues = {
 export default function SignInCustomer() {
   const [showPassword, setShowPassword] = useState(false);
 
-  const { isPending, signinMutate } = useSignIn();
+  const { isPending: resendCodeIsPending, resendCodeMutate } = useResendCode();
 
   const {
     handleSubmit,
@@ -30,6 +31,8 @@ export default function SignInCustomer() {
       signinMutate(val);
     },
   });
+
+  const { isPending, signinMutate } = useSignIn(values.email, resendCodeMutate);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient">
@@ -91,11 +94,11 @@ export default function SignInCustomer() {
           </div>
 
           <button
-            disabled={isPending}
+            disabled={isPending || resendCodeIsPending}
             type="submit"
             className="w-full cursor-pointer bg-purple-600 text-white py-3 rounded-lg font-semibold"
           >
-            {isPending ? "Please wait..." : "Login"}
+            {isPending || resendCodeIsPending ? "Please wait..." : "Login"}
           </button>
 
           <div className="text-center text-sm text-gray-600">

@@ -4,7 +4,7 @@ import Cookies from "js-cookie";
 import AuthService from "../../../services/api/auth";
 import useToast from "../../../hooks/useToast";
 
-const useSignIn = () => {
+const useSignIn = (email, resendCodeMutate) => {
   const { toastError, toastSuccess } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -15,8 +15,6 @@ const useSignIn = () => {
     mutationKey: ["user-login"],
     onSuccess(data) {
       console.log(currentPath);
-
-      console.log(data?.data?.data);
 
       if (
         data?.data?.data?.role === "owner-super-administrator" &&
@@ -79,6 +77,20 @@ const useSignIn = () => {
     },
     onError: (error) => {
       toastError(error?.data?.message);
+      if (error?.data?.message === "Your email address has not been verified") {
+        resendCodeMutate(
+          {
+            email: email,
+            allowOtp: true,
+          },
+          {
+            onSuccess: () => {
+              localStorage.setItem("verifyemail", email);
+              navigate("/verify-account");
+            },
+          }
+        );
+      }
     },
   });
   return { isPending, signinMutate };

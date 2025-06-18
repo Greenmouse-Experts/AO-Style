@@ -5,6 +5,7 @@ import HowDidYouHearAboutUs from "../Auth/components/HowDidYouHearAboutUs";
 import { useFormik } from "formik";
 import useRegister from "./hooks/useSignUpMutate";
 import ReCAPTCHA from "react-google-recaptcha";
+import useToast from "../../hooks/useToast";
 
 const initialValues = {
   name: "",
@@ -17,6 +18,8 @@ const initialValues = {
 };
 
 export default function SignInAsCustomer() {
+  const { toastError } = useToast();
+
   const [handleRecaptch, setHandleRecaptch] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -34,6 +37,9 @@ export default function SignInAsCustomer() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (values.password_confirmation !== values.password) {
+        return toastError("Password must match");
+      }
       registerMutate({
         ...val,
         role: "user",

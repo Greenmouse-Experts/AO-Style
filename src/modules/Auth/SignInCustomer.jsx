@@ -1,11 +1,15 @@
 import { Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import HowDidYouHearAboutUs from "../Auth/components/HowDidYouHearAboutUs";
 import { useFormik } from "formik";
 import useRegister from "./hooks/useSignUpMutate";
 import ReCAPTCHA from "react-google-recaptcha";
 import useToast from "../../hooks/useToast";
+
+import { countryCodes } from "../../constant";
+
+import Select from "react-select";
 
 const initialValues = {
   name: "",
@@ -15,10 +19,18 @@ const initialValues = {
   password: "",
   password_confirmation: "",
   referral_source: "",
+  phoneCode: "+234",
 };
 
 export default function SignInAsCustomer() {
   const { toastError } = useToast();
+
+  const [value, setValue] = useState("");
+
+  const options = countryCodes.map((code) => ({
+    label: code,
+    value: code,
+  }));
 
   const [handleRecaptch, setHandleRecaptch] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -30,6 +42,7 @@ export default function SignInAsCustomer() {
     errors,
     values,
     handleChange,
+    setFieldValue,
     // setFieldError,
   } = useFormik({
     initialValues: initialValues,
@@ -37,14 +50,17 @@ export default function SignInAsCustomer() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      const phoneno = `${val.phoneCode + val.phone}`;
+      const altno = `${val.altCode + val.alternative_phone}`;
+
       if (values.password_confirmation !== values.password) {
         return toastError("Password must match");
       }
       registerMutate({
         ...val,
         role: "user",
-        alternative_phone:
-          val?.alternative_phone === "" ? undefined : val?.alternative_phone,
+        phone: phoneno,
+        alternative_phone: val?.alternative_phone === "" ? undefined : altno,
         allowOtp: true,
       });
     },
@@ -55,6 +71,10 @@ export default function SignInAsCustomer() {
   const onChange = (val) => {
     // Handle reCAPTCHA verification here
     setHandleRecaptch(val);
+  };
+
+  const changeHandler = (value) => {
+    setValue(value);
   };
 
   return (
@@ -107,7 +127,6 @@ export default function SignInAsCustomer() {
               onChange={handleChange}
               className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg"
             />
-
             <label className="block text-black">Email Address</label>
             <input
               type="email"
@@ -118,31 +137,105 @@ export default function SignInAsCustomer() {
               placeholder="Email Address"
               className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg"
             />
+            <div className="mb-3">
+              <label className="block text-black mb-2">Phone Number</label>
 
-            <label className="block text-black">Phone Number</label>
-            <input
-              type="tel"
-              placeholder="Phone Number"
-              className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg"
-              name={"phone"}
-              required
-              value={values.phone}
-              onChange={handleChange}
-            />
+              <div className="flex items-center gap-2 ">
+                {/* Country Code Dropdown */}
+                <Select
+                  options={options}
+                  name="phoneCode"
+                  value={options.find((opt) => opt.value === values.phoneCode)}
+                  onChange={(selectedOption) =>
+                    setFieldValue("phoneCode", selectedOption.value)
+                  }
+                  placeholder="Select"
+                  className="p-2 w-28 border border-[#CCCCCC] outline-none rounded-lg text-gray-500"
+                  styles={{
+                    control: (base, state) => ({
+                      ...base,
+                      border: "none",
+                      boxShadow: "none",
+                      outline: "none",
+                      backgroundColor: "#fff",
+                      "&:hover": {
+                        border: "none",
+                      },
+                    }),
+                    indicatorSeparator: () => ({
+                      display: "none",
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      zIndex: 9999,
+                    }),
+                  }}
+                />{" "}
+                {/* Phone Input */}
+                <input
+                  type="tel"
+                  name="phone"
+                  placeholder="Phone Number"
+                  className="flex-1 p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                  value={values.phone}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+            {/* <select
+                options={options}
+                value={value}
+                onChange={changeHandler}
+              /> */}
 
-            <label className="block text-black">
-              Alternative Phone Number{" "}
-              <small className="text-[#CCCCCC]">(Optional)</small>
-            </label>
-            <input
-              type="tel"
-              name={"alternative_phone"}
-              value={values.alternative_phone}
-              onChange={handleChange}
-              placeholder="Alternative Phone Number"
-              className="w-full p-4 border border-[#CCCCCC] outline-none  mb-3 rounded-lg"
-            />
+            <div className="mb-3">
+              <label className="block text-black mb-2">
+                Alternative Phone Number{" "}
+                <small className="text-[#CCCCCC]">(Optional)</small>
+              </label>
 
+              <div className="flex items-center gap-2 ">
+                {/* Country Code Dropdown */}
+                <Select
+                  options={options}
+                  name="altCode"
+                  value={options.find((opt) => opt.value === values.altCode)}
+                  onChange={(selectedOption) =>
+                    setFieldValue("altCode", selectedOption.value)
+                  }
+                  placeholder="Select"
+                  className="p-2 w-34 border border-[#CCCCCC] outline-none rounded-lg text-gray-500"
+                  styles={{
+                    control: (base, state) => ({
+                      ...base,
+                      border: "none",
+                      boxShadow: "none",
+                      outline: "none",
+                      backgroundColor: "#fff",
+                      "&:hover": {
+                        border: "none",
+                      },
+                    }),
+                    indicatorSeparator: () => ({
+                      display: "none",
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      zIndex: 9999,
+                    }),
+                  }}
+                />{" "}
+                <input
+                  type="tel"
+                  name={"alternative_phone"}
+                  value={values.alternative_phone}
+                  onChange={handleChange}
+                  placeholder="Alternative Phone Number"
+                  className="w-full p-4 border border-[#CCCCCC] outline-none  rounded-lg"
+                />
+              </div>
+            </div>
             <label className="block text-black">Password</label>
             <div className="relative">
               <input
@@ -166,7 +259,6 @@ export default function SignInAsCustomer() {
                 )}
               </button>
             </div>
-
             <label className="block text-black">Confirm Password</label>
             <div className="relative">
               <input
@@ -190,9 +282,7 @@ export default function SignInAsCustomer() {
                 )}
               </button>
             </div>
-
             {/* <HowDidYouHearAboutUs /> */}
-
             <label className="block text-gray-700 mb-3">
               {" "}
               How did you hear about us?
@@ -213,14 +303,12 @@ export default function SignInAsCustomer() {
               <option value="Just got here">Just got here</option>
               <option value="Other">Other</option>
             </select>
-
             {/* <ReCAPTCHA sitekey="Your client site key" onChange={onChange} /> */}
             {/* {handleRecaptch === "" && (
               <p className="text-red-500 text-sm">
                 Please verify that you are not a robot.
               </p>
             )} */}
-
             <button
               disabled={isPending}
               className="w-full bg-gradient cursor-pointer text-white py-4 rounded-lg font-normal mt-4"

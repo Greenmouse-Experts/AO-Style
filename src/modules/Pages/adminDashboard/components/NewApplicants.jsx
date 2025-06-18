@@ -48,7 +48,7 @@ const NewApplicants = () => {
     ? getAllMarketRepData.data.slice(0, 5)
     : applicants.slice(0, 5);
 
-  console.log(applicantsToShow);
+  console.log(applicantsToShow, "all");
 
   return (
     <div className="bg-white rounded-lg p-6 w-full max-w-md">
@@ -76,10 +76,12 @@ const NewApplicants = () => {
               <div>
                 <p className="font-medium text-gray-900">{applicant?.name}</p>
                 <p className="text-sm text-gray-500">
-                  {formatDateStr(
-                    applicant?.created_at.split(".").shift(),
-                    "DD - MM - YY"
-                  )}
+                  {applicant?.created_at
+                    ? formatDateStr(
+                        applicant?.created_at?.split(".").shift(),
+                        "DD - MM - YY"
+                      )
+                    : ""}
                 </p>
               </div>
             </div>

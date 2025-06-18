@@ -26,8 +26,14 @@ const UserAnalyticsChart = () => {
       {/* Legend */}
       <div className="flex flex-wrap gap-3 mb-4">
         {data.map((item) => (
-          <div key={item.name} className="flex items-center text-sm text-gray-600">
-            <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: item.color }}></span>
+          <div
+            key={item.name}
+            className="flex items-center text-sm text-gray-600"
+          >
+            <span
+              className="w-3 h-3 rounded-full mr-2"
+              style={{ backgroundColor: item.color }}
+            ></span>
             {item.name}
           </div>
         ))}

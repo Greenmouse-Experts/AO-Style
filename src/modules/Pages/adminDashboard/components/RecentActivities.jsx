@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import ReusableTable from "../components/ReusableTable";
 import { FaEllipsisH } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import ReusableTable from "./ReusableTable";
 
-const RecentOrdersTable = () => {
+const RecentActivitiesTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -13,61 +13,58 @@ const RecentOrdersTable = () => {
   const data = Array.from({ length: 200 }, (_, i) => ({
     id: i + 1,
     customerName: [
-      "Samuel Johnson",
-      "Francis Doe",
-      "Christian Dior",
-      "Janet Adebayo",
+      "Red Ankara Fabric",
+      "Red Ankara Fabric",
+      "Red Ankara Fabric",
+      "Red Ankara Fabric",
     ][i % 4],
     orderDate: "12 Aug 2022 - 12:25 am",
-    product: "Red Fabric",
+    location: "Jabi, Abuja",
     trackingId: `9348f7${i % 3}`,
     orderTotal: "₦25,000.00",
     action: "View Order",
-    status: ["In Progress", "Pending", "Completed"][i % 3],
+    status: ["Ongoing", "Cancelled", "Completed"][i % 3],
   }));
 
   // Table Columns
   const columns = [
     {
-      label: "Customer Name",
+      label: "Product Name",
       key: "customerName",
-      render: (_, row) => (
-        <div className="flex items-center">
-          <input type="checkbox" className="mr-2" />
-          {row.customerName}
-        </div>
-      ),
     },
     { label: "Order Date", key: "orderDate" },
-    { label: "Product", key: "product" },
-    { label: "Tracking ID", key: "trackingId" },
-    { label: "Order Total", key: "orderTotal" },
-    {
-      label: "Action",
-      key: "action",
-      render: (_, row) => (
-        <Link to={`/admin/order/${row.id}`}>
-          <button className="text-purple-500 text-sm hover:underline">
-            {row.action}
-          </button>
-        </Link>
-      ),
-    },
+    { label: "Location", key: "location" },
     {
       label: "Status",
       key: "status",
       render: (_, row) => (
         <span
-          className={`text-sm ${
-            row.status === "In Progress"
-              ? "text-blue-500"
-              : row.status === "Pending"
-              ? "text-yellow-500"
-              : "text-green-500"
+          className={`px-3 py-1 text-sm capitalize rounded-md ${
+            row?.status === "Completed"
+              ? "bg-green-100 text-green-600"
+              : row?.status === "Ongoing"
+              ? "bg-yellow-100 text-yellow-600"
+              : "bg-red-100 text-red-600"
           }`}
         >
-          {row.status}
+          {row?.status}
         </span>
+      ),
+    },
+    {
+      label: "Action",
+      key: "action",
+      render: (_, row) => (
+        <div className="relative">
+          <button
+            className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
+            onClick={() => {
+              toggleDropdown(row.id);
+            }}
+          >
+            <FaEllipsisH />
+          </button>
+        </div>
       ),
     },
   ];
@@ -120,7 +117,7 @@ const RecentOrdersTable = () => {
     <div className="bg-white p-6 rounded-xl overflow-x-auto mt-6">
       <div className="flex flex-wrap justify-between items-center pb-3gap-4">
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          <h2 className="text-lg font-semibold">Recent Orders</h2>
+          <h2 className="text-lg font-semibold">Recent Activities</h2>
         </div>
         <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
           <input
@@ -139,7 +136,7 @@ const RecentOrdersTable = () => {
         </div>
       </div>
       <ReusableTable columns={columns} data={currentItems} />
-      <div className="flex justify-between items-center mt-4">
+      {/* <div className="flex justify-between items-center mt-4">
         <div className="flex items-center">
           <p className="text-sm text-gray-600">Items per page: </p>
           <select
@@ -176,9 +173,9 @@ const RecentOrdersTable = () => {
             ▶
           </button>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };
 
-export default RecentOrdersTable;
+export default RecentActivitiesTable;

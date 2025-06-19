@@ -13,7 +13,7 @@ import useDebounce from "../../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../../hooks/useUpdatedEffect";
 
 const NewlyAddedUsers = () => {
-  const [currView, setCurrView] = useState("all");
+  const [currView, setCurrView] = useState("approved");
 
   const [val, setVal] = useState("pending");
 
@@ -24,13 +24,12 @@ const NewlyAddedUsers = () => {
 
   const { data: businessData } = useGetBusinessDetails();
 
-  const { queryParams, updateQueryParams } = useQueryParams({
-    newly_onboarded: true,
-  });
+  const { queryParams, updateQueryParams } = useQueryParams({});
 
   const { data: getAllMarketRepData, isPending } = useGetAllUsersByRole({
     ...queryParams,
     role: "market-representative",
+    approved: true,
   });
 
   const { data: getAllInviteData, isPending: allInviteIsPending } =
@@ -40,8 +39,6 @@ const NewlyAddedUsers = () => {
       "pagination[limit]": queryParams["pagination[limit]"],
       id: businessData?.data?.id,
     });
-
-  console.log(getAllInviteData, "all-invite");
 
   const [queryString, setQueryString] = useState(queryParams.q);
 
@@ -131,7 +128,7 @@ const NewlyAddedUsers = () => {
               ? "Pending"
               : row.profile?.approved_by_admin
               ? "Approved"
-              : ""}
+              : "Rejected"}
           </span>
         ),
       },
@@ -270,53 +267,6 @@ const NewlyAddedUsers = () => {
             Export As ▾
           </button>
 
-          {currView === "all" ? (
-            <select
-              value={val}
-              onChange={(e) => {
-                setVal(e.target.value);
-                if (e.target.value === "pending") {
-                  return updateQueryParams({
-                    newly_onboarded: e.target.value == "pending" ? true : "",
-                    approved: null,
-                  });
-                }
-                if (e.target.value === "approved") {
-                  return updateQueryParams({
-                    newly_onboarded: null,
-                    approved: true,
-                  });
-                }
-                if (e.target.value === "rejected") {
-                  return updateQueryParams({
-                    newly_onboarded: null,
-                    approved: false,
-                  });
-                }
-              }}
-              className="bg-gray-100 text-gray-700 px-3 w-auto outline-none apperance-none text-sm rounded-md whitespace-nowrap "
-            >
-              {/* <option value="">Sort: All </option> */}
-              <option value="pending">Sort: Pending</option>
-              <option value="approved">Sort: Approved</option>
-              <option value="rejected">Sort: Rejected</option>
-            </select>
-          ) : (
-            <select
-              value={queryParams?.status}
-              onChange={(e) => {
-                updateQueryParams({
-                  status: e.target.value,
-                });
-              }}
-              className="bg-gray-100 text-gray-700 px-3 w-auto outline-none apperance-none text-sm rounded-md whitespace-nowrap "
-            >
-              <option value="">Sort: All </option>
-              <option value="active">Sort: Active</option>
-              <option value="pending">Sort: Pending</option>
-              <option value="expired">Sort: Expired</option>
-            </select>
-          )}
           <button
             onClick={() => setIsModalOpen(true)}
             className="bg-[#9847FE] text-white px-4 py-2 text-sm cursor-pointer rounded-md"
@@ -327,10 +277,30 @@ const NewlyAddedUsers = () => {
       </div>
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pb-3 mb-4 gap-4">
         <div className="flex flex-wrap justify-center sm:justify-start gap-3 text-gray-600 text-sm font-medium">
-          {["all", "Invites"].map((tab) => (
+          {["approved", "pending", "rejected", "invites"].map((tab) => (
             <button
               key={tab}
-              onClick={() => setCurrView(tab)}
+              onClick={() => {
+                setCurrView(tab);
+                if (tab == "pending") {
+                  return updateQueryParams({
+                    newly_onboarded: true,
+                    approved: null,
+                  });
+                }
+                if (tab == "approved") {
+                  return updateQueryParams({
+                    newly_onboarded: null,
+                    approved: true,
+                  });
+                }
+                if (tab == "rejected") {
+                  return updateQueryParams({
+                    newly_onboarded: null,
+                    approved: false,
+                  });
+                }
+              }}
               className={`font-medium capitalize px-3 py-1 ${
                 currView === tab
                   ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
@@ -351,10 +321,10 @@ const NewlyAddedUsers = () => {
           onClose={() => setIsModalOpen(false)}
         />
         <ReusableTable
-          columns={currView == "all" ? columns : inviteRepColumn}
-          data={currView == "all" ? MarketRepData : InviteData}
+          columns={currView == "invites" ? inviteRepColumn : columns}
+          data={currView == "invites" ? InviteData : MarketRepData}
         />
-        {(currView == "all" ? MarketRepData : InviteData)?.length > 0 && (
+        {(currView == "invites" ? InviteData : MarketRepData)?.length > 0 && (
           <div className="flex justify-between items-center mt-4">
             <div className="flex items-center">
               <p className="text-sm text-gray-600">Items per page: </p>

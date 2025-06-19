@@ -22,7 +22,6 @@ const CustomersTable = () => {
   };
 
   const { queryParams, updateQueryParams } = useQueryParams({
-    per_page: 10,
     status: "",
     "pagination[limit]": 10,
     "pagination[page]": 1,
@@ -32,8 +31,6 @@ const CustomersTable = () => {
     ...queryParams,
     role: "user",
   });
-
-  console.log(getAllCustomerRepData);
 
   const [queryString, setQueryString] = useState(queryParams.q);
 

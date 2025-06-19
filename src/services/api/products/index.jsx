@@ -14,10 +14,15 @@ const editProduct = (payload) => {
   return CaryBinApi.patch(`/product-category/${payload.id}`, payload);
 };
 
+const deleteProduct = (payload) => {
+  return CaryBinApi.delete(`/product-category/${payload.id}`, payload);
+};
+
 const ProductService = {
   getAllProducts,
   createProduct,
   editProduct,
+  deleteProduct,
 };
 
 export default ProductService;

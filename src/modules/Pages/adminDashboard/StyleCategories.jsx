@@ -15,6 +15,7 @@ import useDebounce from "../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 import { formatDateStr } from "../../../lib/helper";
 import useEditProduct from "../../../hooks/product/useEditProduct";
+import useDeleteProduct from "../../../hooks/product/useDeleteProduct";
 
 const StyleCategoriesTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -26,10 +27,15 @@ const StyleCategoriesTable = () => {
   const [activeTab, setActiveTab] = useState("table");
   const dropdownRef = useRef(null);
 
+  const [type, setType] = useState("Add");
+
   const { isPending: createIsPending, createProductMutate } =
     useCreateProduct();
 
   const { isPending: editIsPending, editProductMutate } = useEditProduct();
+
+  const { isPending: deleteIsPending, deleteProductMutate } =
+    useDeleteProduct();
 
   const initialValues = {
     name: newStyleCategory?.name ?? "",
@@ -49,7 +55,7 @@ const StyleCategoriesTable = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      if (newStyleCategory?.id) {
+      if (type == "Edit") {
         // If editing an existing style category
         editProductMutate(
           { ...val, id: newStyleCategory.id },
@@ -60,12 +66,23 @@ const StyleCategoriesTable = () => {
             },
           }
         );
-      } else {
+      } else if (type == "Add") {
         createProductMutate(
           { ...val, type: "style" },
           {
             onSuccess: () => {
               setIsAddModalOpen(false);
+              setNewStyleCategory(null);
+            },
+          }
+        );
+      } else {
+        deleteProductMutate(
+          { ...val, id: newStyleCategory?.id },
+          {
+            onSuccess: () => {
+              setIsAddModalOpen(false);
+              setNewStyleCategory(null);
             },
           }
         );
@@ -158,12 +175,21 @@ const StyleCategoriesTable = () => {
                     setIsAddModalOpen(true);
                     handleDropdownToggle(null);
                     setNewStyleCategory(row);
+                    setType("Edit");
                   }}
                   className="block px-4 cursor-pointer py-2 text-gray-700 hover:bg-gray-100 w-full"
                 >
                   Edit Style
                 </button>
-                <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">
+                <button
+                  onClick={() => {
+                    setIsAddModalOpen(true);
+                    handleDropdownToggle(null);
+                    setNewStyleCategory(row);
+                    setType("Remove");
+                  }}
+                  className="block px-4 cursor-pointer py-2 text-red-500 hover:bg-red-100 w-full"
+                >
                   Remove Style
                 </button>
               </div>
@@ -178,6 +204,8 @@ const StyleCategoriesTable = () => {
   const totalPages = Math.ceil(
     data?.count / (queryParams["pagination[limit]"] ?? 10)
   );
+
+  const actionText = `${type} Style Category`;
 
   return (
     <div className="bg-white p-6 rounded-xl overflow-x-auto">
@@ -338,6 +366,7 @@ const StyleCategoriesTable = () => {
           onClick={() => {
             setIsAddModalOpen(false);
             resetForm();
+            setType("Add");
           }}
         >
           <div
@@ -346,43 +375,49 @@ const StyleCategoriesTable = () => {
           >
             <div className="flex justify-between items-center border-b border-gray-200 pb-4 mb-4">
               <h2 className="text-lg font-semibold text-gray-800">
-                {newStyleCategory
-                  ? "Edit Style Category"
-                  : "Add a Style Category"}
+                {actionText}
               </h2>
               <button
                 onClick={() => {
                   setIsAddModalOpen(false);
                   resetForm();
+                  setType("Add");
                 }}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                className="text-gray-500 cursor-pointer hover:text-gray-700 text-2xl"
               >
                 ✕
               </button>
             </div>
 
             <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-4">
-                    Category Name
-                  </label>
-                  <input
-                    type="text"
-                    name={"name"}
-                    required
-                    value={values.name}
-                    onChange={handleChange}
-                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                    placeholder="Enter the category name"
-                  />
+              {type == "Remove" ? (
+                <label className="block text-sm font-medium text-gray-700 mb-4">
+                  Are you sure you want to delete {newStyleCategory?.name}
+                </label>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-4">
+                      Category Name
+                    </label>
+                    <input
+                      type="text"
+                      name={"name"}
+                      required
+                      value={values.name}
+                      onChange={handleChange}
+                      className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                      placeholder="Enter the category name"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
               <div className="flex justify-between mt-6 space-x-4">
                 <button
                   onClick={() => {
                     setIsAddModalOpen(false);
                     resetForm();
+                    setType("Add");
                   }}
                   className="w-full bg-purple-400 text-white px-4 py-2 rounded-md text-sm font-medium"
                 >
@@ -390,14 +425,12 @@ const StyleCategoriesTable = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={createIsPending || editIsPending}
+                  disabled={createIsPending || editIsPending || deleteIsPending}
                   className="w-full cursor-pointer bg-gradient text-white px-4 py-4 rounded-md text-sm font-medium"
                 >
-                  {createIsPending || editIsPending
+                  {createIsPending || editIsPending || deleteIsPending
                     ? "Please wait..."
-                    : newStyleCategory
-                    ? "Edit Style Category"
-                    : "Add Style Category"}
+                    : actionText}
                 </button>
               </div>
             </form>

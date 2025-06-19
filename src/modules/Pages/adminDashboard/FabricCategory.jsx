@@ -16,12 +16,15 @@ import { formatDateStr } from "../../../lib/helper";
 import { useFormik } from "formik";
 import useCreateProduct from "../../../hooks/product/useCreateProduct";
 import useEditProduct from "../../../hooks/product/useEditProduct";
+import useDeleteProduct from "../../../hooks/product/useDeleteProduct";
 
 const FabricCategoryTable = () => {
   const dropdownRef = useRef(null);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newCategory, setNewCategory] = useState();
+
+  const [type, setType] = useState("Add");
 
   const initialValues = {
     name: newCategory?.name ?? "",
@@ -33,6 +36,9 @@ const FabricCategoryTable = () => {
     useCreateProduct();
 
   const { isPending: editIsPending, editProductMutate } = useEditProduct();
+
+  const { isPending: deleteIsPending, deleteProductMutate } =
+    useDeleteProduct();
 
   const {
     handleSubmit,
@@ -48,7 +54,7 @@ const FabricCategoryTable = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      if (newCategory) {
+      if (type == "Edit") {
         editProductMutate(
           { ...val, id: newCategory?.id },
           {
@@ -58,12 +64,23 @@ const FabricCategoryTable = () => {
             },
           }
         );
-      } else {
+      } else if (type == "Add") {
         createProductMutate(
           { ...val, type: "fabric" },
           {
             onSuccess: () => {
               setIsAddModalOpen(false);
+              setNewCategory(null);
+            },
+          }
+        );
+      } else {
+        deleteProductMutate(
+          { ...val, id: newCategory?.id },
+          {
+            onSuccess: () => {
+              setIsAddModalOpen(false);
+              setNewCategory(null);
             },
           }
         );
@@ -141,13 +158,13 @@ const FabricCategoryTable = () => {
         render: (_, row) => (
           <div className="relative">
             <button
-              className="bg-gray-100 text-gray-500 px-3 py-1 rounded-md"
+              className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
               onClick={() => toggleDropdown(row.id)}
             >
               <FaEllipsisH />
             </button>
             {openDropdown === row.id && (
-              <div className="absolute right-0 mt-2 w-40 bg-white rounded-md z-10 shadow-lg">
+              <div className="absolute right-0  mt-2 w-40 bg-white rounded-md z-50 shadow-lg">
                 <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
                   View Details
                 </button>
@@ -156,13 +173,22 @@ const FabricCategoryTable = () => {
                     setIsAddModalOpen(true);
                     handleDropdownToggle(null);
                     setNewCategory(row);
+                    setType("Edit");
                   }}
                   className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
                 >
                   Edit Fabric
                 </button>
-                <button className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full">
-                  Remove Market
+                <button
+                  onClick={() => {
+                    setIsAddModalOpen(true);
+                    handleDropdownToggle(null);
+                    setNewCategory(row);
+                    setType("Remove");
+                  }}
+                  className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full"
+                >
+                  Remove Fabric
                 </button>
               </div>
             )}
@@ -176,6 +202,8 @@ const FabricCategoryTable = () => {
   const totalPages = Math.ceil(
     data?.count / (queryParams["pagination[limit]"] ?? 10)
   );
+
+  const actionText = `${type} Fabric Category`;
 
   return (
     <div className="bg-white p-6 rounded-xl overflow-x-auto">
@@ -219,7 +247,7 @@ const FabricCategoryTable = () => {
           </button>
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="bg-gradient text-white px-4 py-2 text-sm rounded-md"
+            className="bg-gradient cursor-pointer text-white px-4 py-2 text-sm rounded-md"
           >
             + Add a Fabric Category
           </button>
@@ -342,6 +370,7 @@ const FabricCategoryTable = () => {
           onClick={() => {
             setIsAddModalOpen(false);
             resetForm();
+            setType("Add");
           }}
         >
           <div
@@ -350,40 +379,49 @@ const FabricCategoryTable = () => {
           >
             <div className="flex justify-between items-center border-b border-gray-200 pb-4 mb-4">
               <h2 className="text-lg font-semibold text-gray-800">
-                {newCategory ? "Edit Fabric Category" : "Add a Fabric Category"}
+                {actionText}
               </h2>
               <button
                 onClick={() => {
                   setIsAddModalOpen(false);
                   resetForm();
+                  setType("Add");
                 }}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                className="text-gray-500 cursor-pointer hover:text-gray-700 text-2xl"
               >
                 ✕
               </button>
             </div>
             <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-4">
-                    Category Name
-                  </label>
-                  <input
-                    type="text"
-                    name={"name"}
-                    required
-                    value={values.name}
-                    onChange={handleChange}
-                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                    placeholder="Enter the category name"
-                  />
+              {type == "Remove" ? (
+                <label className="block text-sm font-medium text-gray-700 mb-4">
+                  Are you sure you want to delete {newCategory?.name}
+                </label>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-4">
+                      Category Name
+                    </label>
+                    <input
+                      type="text"
+                      name={"name"}
+                      required
+                      value={values.name}
+                      onChange={handleChange}
+                      className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                      placeholder="Enter the category name"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
+
               <div className="flex justify-between mt-6 space-x-4">
                 <button
                   onClick={() => {
                     setIsAddModalOpen(false);
                     resetForm();
+                    setType("Add");
                   }}
                   className="w-full bg-purple-400 text-white px-4 py-2 rounded-md text-sm font-medium"
                 >
@@ -391,14 +429,12 @@ const FabricCategoryTable = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={createIsPending || editIsPending}
+                  disabled={createIsPending || editIsPending || deleteIsPending}
                   className="w-full cursor-pointer bg-gradient text-white px-4 py-4 rounded-md text-sm font-medium"
                 >
-                  {createIsPending || editIsPending
+                  {createIsPending || editIsPending || deleteIsPending
                     ? "Please wait..."
-                    : newCategory
-                    ? "Edit Fabric Category"
-                    : "Add Fabric Category"}
+                    : actionText}
                 </button>
               </div>
             </form>

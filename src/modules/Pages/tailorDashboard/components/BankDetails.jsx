@@ -7,26 +7,32 @@ import useSaveWithdrawal from "../../../../hooks/settings/useSaveWithdrawal";
 import useGetBusinessDetails from "../../../../hooks/settings/useGetBusinessDetails";
 
 const BankDetailsUpdate = () => {
-  const initialValues = {
-    account_number: "",
-    account_type: "",
-    bank_name: "",
-    bank_code: "",
-    account_name: "",
-  };
-
-  const { data } = useFetchBank();
-
   const { data: businessDetails } = useGetBusinessDetails();
 
-  const { resolveAccountMutate } = useResolveAccount();
+  const businessInfo = businessDetails?.data;
 
-  const { isPending, saveWithdrawalMutate } = useSaveWithdrawal();
+  const { data } = useFetchBank();
 
   const options = data?.data.map((code) => ({
     label: code?.name,
     value: code?.code,
   }));
+
+  const selectedBank = options?.find(
+    (bank) => bank.label === businessInfo?.withdrawal_account?.bank_name
+  );
+
+  const initialValues = {
+    account_number: businessInfo?.withdrawal_account?.account_number ?? "",
+    account_type: businessInfo?.withdrawal_account?.account_type ?? "",
+    bank_name: selectedBank?.label ?? "",
+    bank_code: "076",
+    account_name: "",
+  };
+
+  const { resolveAccountMutate } = useResolveAccount();
+
+  const { isPending, saveWithdrawalMutate } = useSaveWithdrawal();
 
   const {
     handleSubmit,
@@ -47,6 +53,7 @@ const BankDetailsUpdate = () => {
   });
 
   useEffect(() => {
+    console.log(values.bank_code, "here");
     if (values.account_number?.length == 10 && values.bank_code) {
       resolveAccountMutate(
         {
@@ -97,7 +104,7 @@ const BankDetailsUpdate = () => {
             <Select
               options={options}
               name="bank_name"
-              value={options?.find((opt) => opt.value === values.bank_name)}
+              value={options?.find((opt) => opt.value === values.bank_code)}
               onChange={(selectedOption) => {
                 setFieldValue("bank_code", selectedOption.value);
 

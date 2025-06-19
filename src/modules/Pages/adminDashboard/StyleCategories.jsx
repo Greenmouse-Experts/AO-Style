@@ -219,7 +219,10 @@ const StyleCategoriesTable = () => {
               className={`p-2 rounded ${
                 activeTab === "table" ? "text-[#9847FE]" : "text-gray-600"
               }`}
-              onClick={() => setActiveTab("table")}
+              onClick={() => {
+                setActiveTab("table");
+                setType("Add");
+              }}
             >
               <FaBars size={16} />
             </button>
@@ -227,7 +230,10 @@ const StyleCategoriesTable = () => {
               className={`p-2 rounded ${
                 activeTab === "grid" ? "text-[#9847FE]" : "text-gray-600"
               }`}
-              onClick={() => setActiveTab("grid")}
+              onClick={() => {
+                setActiveTab("grid");
+                setType("Add");
+              }}
             >
               <FaTh size={16} />
             </button>
@@ -235,8 +241,10 @@ const StyleCategoriesTable = () => {
           <input
             type="text"
             placeholder="Search style categories..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={queryString}
+            onChange={(evt) =>
+              setQueryString(evt.target.value ? evt.target.value : undefined)
+            }
             className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
           />
           <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
@@ -267,7 +275,7 @@ const StyleCategoriesTable = () => {
             >
               <div className="absolute top-3 right-3">
                 <button
-                  className="bg-gray-100 text-gray-500 px-2 py-1 rounded-md"
+                  className="bg-gray-100 cursor-pointer text-gray-500 px-2 py-1 rounded-md"
                   onClick={() => handleDropdownToggle(item.id)}
                 >
                   <FaEllipsisH size={14} />
@@ -275,20 +283,30 @@ const StyleCategoriesTable = () => {
 
                 {openDropdown === item.id && (
                   <div className="absolute right-0 mt-2 w-32 bg-white rounded-md z-10 border border-gray-200">
-                    <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left">
+                    <button className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left">
                       View Details
                     </button>
                     <button
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
-                      onClick={() => console.log("Edit user", item.id)}
+                      className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
+                      onClick={() => {
+                        setIsAddModalOpen(true);
+                        handleDropdownToggle(null);
+                        setNewStyleCategory(item);
+                        setType("Edit");
+                      }}
                     >
-                      Edit User
+                      Edit Style
                     </button>
                     <button
-                      className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full text-left"
-                      onClick={() => console.log("Remove user", item.id)}
+                      className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-left"
+                      onClick={() => {
+                        setIsAddModalOpen(true);
+                        handleDropdownToggle(null);
+                        setNewStyleCategory(item);
+                        setType("Remove");
+                      }}
                     >
-                      Remove User
+                      Remove Style
                     </button>
                   </div>
                 )}
@@ -366,6 +384,8 @@ const StyleCategoriesTable = () => {
           onClick={() => {
             setIsAddModalOpen(false);
             resetForm();
+            setNewStyleCategory(null);
+
             setType("Add");
           }}
         >
@@ -381,6 +401,8 @@ const StyleCategoriesTable = () => {
                 onClick={() => {
                   setIsAddModalOpen(false);
                   resetForm();
+                  setNewStyleCategory(null);
+
                   setType("Add");
                 }}
                 className="text-gray-500 cursor-pointer hover:text-gray-700 text-2xl"
@@ -418,6 +440,7 @@ const StyleCategoriesTable = () => {
                     setIsAddModalOpen(false);
                     resetForm();
                     setType("Add");
+                    setNewStyleCategory(null);
                   }}
                   className="w-full bg-purple-400 text-white px-4 py-2 rounded-md text-sm font-medium"
                 >

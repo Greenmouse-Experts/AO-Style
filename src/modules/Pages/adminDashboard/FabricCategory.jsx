@@ -217,7 +217,10 @@ const FabricCategoryTable = () => {
               className={`p-2 rounded ${
                 activeTab === "table" ? "text-[#9847FE]" : "text-gray-600"
               }`}
-              onClick={() => setActiveTab("table")}
+              onClick={() => {
+                setActiveTab("table");
+                setType("Add");
+              }}
             >
               <FaBars size={16} />
             </button>
@@ -225,7 +228,10 @@ const FabricCategoryTable = () => {
               className={`p-2 rounded ${
                 activeTab === "grid" ? "text-[#9847FE]" : "text-gray-600"
               }`}
-              onClick={() => setActiveTab("grid")}
+              onClick={() => {
+                setActiveTab("grid");
+                setType("Add");
+              }}
             >
               <FaTh size={16} />
             </button>
@@ -267,7 +273,7 @@ const FabricCategoryTable = () => {
             >
               <div className="absolute top-3 right-3">
                 <button
-                  className="bg-gray-100 text-gray-500 px-2 py-1 rounded-md"
+                  className="bg-gray-100 cursor-pointer text-gray-500 px-2 py-1 rounded-md"
                   onClick={() => handleDropdownToggle(item.id)}
                 >
                   <FaEllipsisH size={14} />
@@ -282,16 +288,26 @@ const FabricCategoryTable = () => {
                       View Details
                     </button>
                     <button
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
-                      onClick={() => console.log("Edit user", item.id)}
+                      className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
+                      onClick={() => {
+                        setIsAddModalOpen(true);
+                        handleDropdownToggle(null);
+                        setNewCategory(item);
+                        setType("Edit");
+                      }}
                     >
-                      Edit User
+                      Edit Fabric
                     </button>
                     <button
-                      className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full text-left"
-                      onClick={() => console.log("Remove user", item.id)}
+                      className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-left"
+                      onClick={() => {
+                        setIsAddModalOpen(true);
+                        handleDropdownToggle(null);
+                        setNewCategory(item);
+                        setType("Remove");
+                      }}
                     >
-                      Remove User
+                      Remove Fabric
                     </button>
                   </div>
                 )}
@@ -370,6 +386,8 @@ const FabricCategoryTable = () => {
           onClick={() => {
             setIsAddModalOpen(false);
             resetForm();
+            setNewCategory(null);
+
             setType("Add");
           }}
         >
@@ -385,6 +403,8 @@ const FabricCategoryTable = () => {
                 onClick={() => {
                   setIsAddModalOpen(false);
                   resetForm();
+                  setNewCategory(null);
+
                   setType("Add");
                 }}
                 className="text-gray-500 cursor-pointer hover:text-gray-700 text-2xl"
@@ -421,6 +441,8 @@ const FabricCategoryTable = () => {
                   onClick={() => {
                     setIsAddModalOpen(false);
                     resetForm();
+                    setNewCategory(null);
+
                     setType("Add");
                   }}
                   className="w-full bg-purple-400 text-white px-4 py-2 rounded-md text-sm font-medium"

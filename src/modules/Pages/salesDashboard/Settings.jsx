@@ -7,6 +7,7 @@ import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import { useFormik } from "formik";
 import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 import useUpdateProfile from "../../../hooks/settings/useUpdateProfile";
+import BankDetailsUpdate from "../tailorDashboard/components/BankDetails";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("personalDetails");
@@ -267,7 +268,7 @@ const Settings = () => {
 
           {activeSection === "Bank Details" && (
             <div className="">
-              <BankDetails />
+              <BankDetailsUpdate />
             </div>
           )}
 

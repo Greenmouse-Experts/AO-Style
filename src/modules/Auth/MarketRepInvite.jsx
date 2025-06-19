@@ -161,7 +161,7 @@ export default function MarketRepInvite() {
                 <Select
                   options={options}
                   name="phoneCode"
-                  value={options.find((opt) => opt.value === values.phoneCode)}
+                  value={options?.find((opt) => opt.value === values.phoneCode)}
                   onChange={(selectedOption) =>
                     setFieldValue("phoneCode", selectedOption.value)
                   }
@@ -211,7 +211,7 @@ export default function MarketRepInvite() {
                 <Select
                   options={options}
                   name="altCode"
-                  value={options.find((opt) => opt.value === values.altCode)}
+                  value={options?.find((opt) => opt.value === values.altCode)}
                   onChange={(selectedOption) =>
                     setFieldValue("altCode", selectedOption.value)
                   }

@@ -6,7 +6,9 @@ const ReusableTable = ({ columns, data }) => {
         <thead>
           <tr className="text-left text-gray-600">
             {columns.map((col, index) => (
-              <th key={index} className="py-6 px-4 font-medium">{col.label}</th>
+              <th key={index} className="py-6 px-4 font-medium">
+                {col.label}
+              </th>
             ))}
           </tr>
         </thead>
@@ -33,11 +35,19 @@ const ReusableTable = ({ columns, data }) => {
       {/* Mobile View: Stacked Layout */}
       <div className="block sm:hidden">
         {data.map((row, rowIndex) => (
-          <div key={rowIndex} className="border border-gray-200 rounded-lg mb-4 p-4 bg-white">
+          <div
+            key={rowIndex}
+            className="border border-gray-200 rounded-lg mb-4 p-4 bg-white"
+          >
             {columns.map((col, colIndex) => (
-              <div key={colIndex} className="flex justify-between py-3 last:border-none">
+              <div
+                key={colIndex}
+                className="flex justify-between py-3 last:border-none"
+              >
                 <span className="font-medium text-gray-700">{col.label}:</span>
-                <span className="text-gray-600">{col.render ? col.render(row[col.key], row) : row[col.key]}</span>
+                <span className="text-gray-600">
+                  {col.render ? col.render(row[col.key], row) : row[col.key]}
+                </span>
               </div>
             ))}
           </div>

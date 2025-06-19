@@ -184,7 +184,7 @@ export default function SignInAsCustomer() {
                       <Select
                         options={options}
                         name="phoneCode"
-                        value={options.find(
+                        value={options?.find(
                           (opt) => opt.value === values.phoneCode
                         )}
                         onChange={(selectedOption) =>

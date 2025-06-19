@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import SettingsService from "../../services/api/settings";
 
-function useGetBusinessDetails() {
+function useGetBusinessInfo() {
   const { isLoading, isFetching, data, isError, refetch, isPending } = useQuery(
     {
-      queryKey: ["get-business-details"],
-      queryFn: () => SettingsService.getBusinessDetails(),
+      queryKey: ["get-business-info"],
+      queryFn: () => SettingsService.getBusinessInfo(),
     }
   );
 
@@ -19,4 +19,4 @@ function useGetBusinessDetails() {
   };
 }
 
-export default useGetBusinessDetails;
+export default useGetBusinessInfo;

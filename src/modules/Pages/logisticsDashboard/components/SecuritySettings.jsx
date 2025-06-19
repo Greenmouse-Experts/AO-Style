@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import useUpdatePassword from "../../../../hooks/settings/useUpdatePassword";
 import { useFormik } from "formik";
+import useToast from "../../../../hooks/useToast";
 
 const initialValues = {
   current_password: "",
@@ -22,10 +23,10 @@ const SecuritySettings = () => {
 
   const { isPending, updatePasswordMutate } = useUpdatePassword();
 
+  const { toastError } = useToast();
+
   const {
     handleSubmit,
-    touched,
-    errors,
     values,
     handleChange,
     resetForm,
@@ -36,6 +37,10 @@ const SecuritySettings = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (values.new_password !== values.confirm_password) {
+        return toastError("Password must match");
+      }
+
       updatePasswordMutate(val, {
         onSuccess: () => {
           resetForm();

@@ -26,7 +26,7 @@ const BankDetailsUpdate = () => {
     account_number: businessInfo?.withdrawal_account?.account_number ?? "",
     account_type: businessInfo?.withdrawal_account?.account_type ?? "",
     bank_name: selectedBank?.label ?? "",
-    bank_code: "076",
+    bank_code: "",
     account_name: "",
   };
 

@@ -4,6 +4,10 @@ const updatePassword = (payload) => {
   return CaryBinApi.post("/auth/update-password", payload);
 };
 
+const sendKyc = (payload) => {
+  return CaryBinApi.post("/onboard/kyc", payload);
+};
+
 const getBusinessInfo = () => {
   return CaryBinApi.get(`/onboard/fetch-platform-details`);
 };
@@ -36,6 +40,7 @@ const SettingsService = {
   saveWithdrawal,
   getBusinessDetails,
   getFetchBank,
+  sendKyc,
 };
 
 export default SettingsService;

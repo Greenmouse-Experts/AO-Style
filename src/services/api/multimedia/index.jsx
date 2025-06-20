@@ -8,8 +8,17 @@ const uploadImage = (payload) => {
   });
 };
 
+const uploadDocument = (payload) => {
+  return CaryBinApi.post(`/multimedia-upload/documents`, payload, {
+    headers: {
+      "Content-Type": undefined,
+    },
+  });
+};
+
 const MediaService = {
   uploadImage,
+  uploadDocument,
 };
 
 export default MediaService;

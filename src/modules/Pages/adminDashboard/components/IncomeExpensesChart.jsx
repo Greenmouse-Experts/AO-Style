@@ -50,8 +50,6 @@ const IncomeExpensesChart = (dataVal) => {
       month: months[idx],
       income,
     }));
-
-    console.log("Chart Data:", chartData);
   }
   return (
     <div className="bg-white p-6 rounded-xl">

@@ -8,6 +8,7 @@ import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 import useUpdateProfile from "../../../hooks/settings/useUpdateProfile";
 import BankDetailsUpdate from "../tailorDashboard/components/BankDetails";
+import KYCVerificationUpdate from "../adminDashboard/components/KYCVerification";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("personalDetails");
@@ -264,7 +265,7 @@ const Settings = () => {
 
           {activeSection === "KYC" && (
             <div className="">
-              <KYCVerification />
+              <KYCVerificationUpdate />
             </div>
           )}
 

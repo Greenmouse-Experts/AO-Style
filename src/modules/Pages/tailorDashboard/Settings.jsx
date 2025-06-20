@@ -7,6 +7,7 @@ import { useFormik } from "formik";
 import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useUpdateProfile from "../../../hooks/settings/useUpdateProfile";
+import KYCVerificationUpdate from "../adminDashboard/components/KYCVerification";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("personalDetails");
@@ -264,7 +265,7 @@ const Settings = () => {
 
           {activeSection === "KYC" && (
             <div className="">
-              <KYCVerification />
+              <KYCVerificationUpdate />
             </div>
           )}
 

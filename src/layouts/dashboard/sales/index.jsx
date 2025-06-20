@@ -41,13 +41,13 @@ export default function DashboardLayout() {
 
   if (!mounted) return null;
 
-  if (isPending) {
-    return (
-      <div className="m-auto flex h-screen items-center justify-center">
-        <Loader />
-      </div>
-    );
-  }
+  // if (isPending) {
+  //   return (
+  //     <div className="m-auto flex h-screen items-center justify-center">
+  //       <Loader />
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="flex h-screen overflow-hidden">

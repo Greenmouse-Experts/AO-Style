@@ -3,7 +3,8 @@ import { FaEllipsisH } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import ReusableTable from "./ReusableTable";
 
-const RecentActivitiesTable = () => {
+const RecentActivitiesTable = (dataVal) => {
+  console.log("dataVal", dataVal?.dataVal?.recentOrders);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -117,7 +118,7 @@ const RecentActivitiesTable = () => {
     <div className="bg-white p-6 rounded-xl overflow-x-auto mt-6">
       <div className="flex flex-wrap justify-between items-center pb-3gap-4">
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          <h2 className="text-lg font-semibold">Recent Activities</h2>
+          <h2 className="text-lg font-semibold">Recent Orders</h2>
         </div>
         <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
           <input
@@ -135,7 +136,16 @@ const RecentActivitiesTable = () => {
           </select>
         </div>
       </div>
-      <ReusableTable columns={columns} data={currentItems} />
+      {dataVal?.dataVal?.recentOrders?.length ? (
+        <ReusableTable
+          columns={columns}
+          data={dataVal?.dataVal?.recentOrders}
+        />
+      ) : (
+        <p className="text-gray-500 text-sm text-center mt-8">
+          No recent order
+        </p>
+      )}
       {/* <div className="flex justify-between items-center mt-4">
         <div className="flex items-center">
           <p className="text-sm text-gray-600">Items per page: </p>

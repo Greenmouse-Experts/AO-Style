@@ -79,13 +79,13 @@ export default function MarketRepInvite() {
     },
   });
 
-  if (inviteInfoIsPending) {
-    return (
-      <div className="m-auto flex h-screen items-center justify-center">
-        <Loader />
-      </div>
-    );
-  }
+  // if (inviteInfoIsPending) {
+  //   return (
+  //     <div className="m-auto flex h-screen items-center justify-center">
+  //       <Loader />
+  //     </div>
+  //   );
+  // }
 
   if (isError || error) {
     return <NotFoundPage />;

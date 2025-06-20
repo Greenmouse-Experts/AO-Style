@@ -82,10 +82,31 @@ const KYCVerificationUpdate = () => {
         {" "}
         <h2 className="text-xl font-medium mb-4">KYC Verification</h2>
         {/* ID Upload Section */}
+        <div>
+          <label className="block mb-2 text-gray-700">ID Type</label>
+          <select
+            name="id_type"
+            value={values.id_type}
+            onChange={handleChange}
+            className="w-full p-4 border border-gray-300 rounded-md mb-6"
+            required
+          >
+            <option value="" disabled>
+              Select
+            </option>
+            <option value={"national id"}>National ID</option>
+            <option value={"driver’s license"}>Driver’s License</option>
+            <option value={"passport"}>Passport</option>
+          </select>
+        </div>
         <div className="mb-6">
-          <label className="block text-gray-700 mb-4">
-            National ID / Driver’s License / Passport
-          </label>
+          {/* <label className="block text-gray-700 mb-4">
+            {values?.id_type == "driver’s license"
+              ? "Driver’s License"
+              : values?.id_type == "national id"
+              ? "National ID"
+              : "Passport"}{" "}
+          </label> */}
           <div className="mt-2 flex flex-col sm:flex-row gap-4">
             <label
               htmlFor="front"
@@ -274,23 +295,6 @@ const KYCVerificationUpdate = () => {
               placeholder="address"
             />
           </div>
-        </div>
-        <div>
-          <label className="block mb-2 text-gray-700">ID Type</label>
-          <select
-            name="id_type"
-            value={values.id_type}
-            onChange={handleChange}
-            className="w-full p-4 border border-gray-300 rounded-md mb-6"
-            required
-          >
-            <option value="" disabled>
-              Select
-            </option>
-            <option value={"national id"}>National ID</option>
-            <option value={"driver’s license"}>Driver’s License</option>
-            <option value={"passport"}>Passport</option>
-          </select>
         </div>
         {/* Buttons */}
         <div className="flex flex-col sm:flex-row gap-4">

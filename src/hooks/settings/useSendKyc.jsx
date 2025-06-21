@@ -1,8 +1,10 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useToast from "../useToast";
 import SettingsService from "../../services/api/settings";
 
 const useSendKyc = () => {
+  const queryClient = useQueryClient();
+
   const { toastError, toastSuccess } = useToast();
 
   const { isPending, mutate: sendKycMutate } = useMutation({
@@ -10,6 +12,9 @@ const useSendKyc = () => {
     mutationKey: ["send-kyc"],
     onSuccess(data) {
       toastSuccess(data?.data?.message);
+      queryClient.invalidateQueries({
+        queryKey: ["get-kyc-info"],
+      });
     },
     onError: (error) => {
       if (Array.isArray(error?.data?.message)) {

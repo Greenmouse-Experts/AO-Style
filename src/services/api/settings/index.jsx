@@ -32,6 +32,10 @@ const getFetchBank = () => {
   return CaryBinApi.get(`/auth/fetch-banks`);
 };
 
+const getKycInfo = (payload) => {
+  return CaryBinApi.get("/onboard/kyc", payload);
+};
+
 const SettingsService = {
   updatePassword,
   getBusinessInfo,
@@ -41,6 +45,7 @@ const SettingsService = {
   getBusinessDetails,
   getFetchBank,
   sendKyc,
+  getKycInfo,
 };
 
 export default SettingsService;

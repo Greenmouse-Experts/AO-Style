@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   FaHome,
   FaStore,
@@ -107,7 +107,10 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         </nav>
 
         {/* User Profile */}
-        <div className="mt-auto border-t border-gray-300 pt-5 flex items-center">
+        <Link
+          to="/logistics/settings"
+          className="mt-auto border-t border-gray-300 pt-5 flex items-center"
+        >
           {carybinUser?.profile?.profile_picture ? (
             <img
               src={carybinUser?.profile?.profile_picture ?? null}
@@ -128,7 +131,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             </p>
             <p className="text-xs text-white">Account settings</p>
           </div>
-        </div>
+        </Link>
 
         {/* Logout Button */}
         <button

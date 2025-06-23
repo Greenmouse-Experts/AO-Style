@@ -326,7 +326,7 @@ const ViewCustomer = () => {
         id: userData?.id ?? "",
         fullName: userData?.name ?? "",
         profile: userData?.profile?.profile_picture ?? null,
-        kyc: businessData?.kyc ? "See KYC" : null,
+        kyc: "See KYC",
         email: userData?.email ?? "",
         phone: userData?.phone ?? "",
         address: userData?.profile?.address ?? "",

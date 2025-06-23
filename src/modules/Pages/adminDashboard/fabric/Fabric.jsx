@@ -97,18 +97,23 @@ const CustomersTable = () => {
         label: "Action",
         key: "action",
         render: (_, row) => (
-          <div className="relative">
+          <div className=" z-[9999]">
             <button
-              className="bg-gray-100 text-gray-500 px-3 py-1 rounded-md"
+              className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
               onClick={() => toggleDropdown(row.id)}
             >
               <FaEllipsisH />
             </button>
             {openDropdown === row.id && (
-              <div className="dropdown-menu absolute right-0 mt-2 w-50 bg-white rounded-md z-10 border-gray-200">
-                <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
-                  View Details
-                </button>
+              <div className="dropdown-menu absolute z-[99999] right-2 rounded mt-2 w-50 bg-white rounded-md border-gray-200">
+                <Link
+                  state={{ info: row.id }}
+                  to={`/admin/fabric-vendor/view?tab=personal`}
+                >
+                  <button className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
+                    View Details
+                  </button>
+                </Link>
                 <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
                   Edit User
                 </button>
@@ -185,7 +190,7 @@ const CustomersTable = () => {
             Sort: Newest First ▾
           </button>
           <Link to="/admin/fabric/add-fabric-vendor">
-            <button className="bg-[#9847FE] text-white px-4 py-2 text-sm rounded-md">
+            <button className="bg-[#9847FE] cursor-pointer text-white px-4 py-2 text-sm rounded-md">
               + Add a New Vendor
             </button>
           </Link>
@@ -252,7 +257,7 @@ const CustomersTable = () => {
             >
               <div className="absolute top-3 right-3">
                 <button
-                  className="bg-gray-100 text-gray-500 px-2 py-1 rounded-md"
+                  className="bg-gray-100 cursor-pointer text-gray-500 px-2 py-1 rounded-md"
                   onClick={() => handleDropdownToggle(item.id)}
                 >
                   <FaEllipsisH size={14} />
@@ -261,8 +266,9 @@ const CustomersTable = () => {
                 {openDropdown === item.id && (
                   <div className="absolute right-0 mt-2 w-32 bg-white rounded-md z-10 border border-gray-200">
                     <Link
-                      to={`.`}
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
+                      state={{ info: item.id }}
+                      to={`/admin/fabric-vendor/view?tab=personal`}
+                      className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
                     >
                       View Details
                     </Link>
@@ -291,25 +297,25 @@ const CustomersTable = () => {
                   />
                 ) : (
                   <>
-                    <div className="mx-auto w-16 h-16 mb-2 cursor-pointer rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white">
+                    <div className="mx-auto w-16 h-16 mb-2 cursor-pointer rounded-full bg-gray-300 flex items-center justify-center text-xl font-medium text-white">
                       {item?.name?.charAt(0).toUpperCase() || "?"}
                     </div>
                   </>
                 )}
 
                 <h3 className="text-dark-blue font-medium mb-1 mt-2">
-                  {item.name}
+                  {item?.name}
                 </h3>
                 <div className="flex items-center justify-center space-x-2 mt-1">
                   <FaPhone className="text-[#9847FE]" size={14} />
-                  <span className="text-gray-600 text-sm">{item.phone}</span>
+                  <span className="text-gray-600 text-sm">{item?.phone}</span>
                 </div>
                 <div className="flex items-center justify-center space-x-2 mt-1">
                   <FaEnvelope className="text-[#9847FE]" size={14} />
-                  <span className="text-[#9847FE] text-sm">{item.email}</span>
+                  <span className="text-[#9847FE] text-sm">{item?.email}</span>
                 </div>
-                <p className="text-gray-500 text-sm mt-1">{item.location}</p>
-                <p className="text-gray-500 text-sm mt-1">{item.dateJoined}</p>
+                <p className="text-gray-500 text-sm mt-1">{item?.location}</p>
+                <p className="text-gray-500 text-sm mt-1">{item?.dateJoined}</p>
               </div>
             </div>
           ))}

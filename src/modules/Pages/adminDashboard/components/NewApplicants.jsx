@@ -86,8 +86,8 @@ const NewApplicants = () => {
               </div>
             </div>
             <Link
-              to={`/admin/sales-rep/view-sales`}
-              state={{ info: applicant }}
+              to={`/admin/sales-rep/view-sales/${applicant.id}`}
+              // state={{ info: applicant }}
               className="border border-[#A14DF6] text-[#A14DF6] px-4 py-2 rounded-lg text-sm hover:bg-purple-100"
             >
               VIEW

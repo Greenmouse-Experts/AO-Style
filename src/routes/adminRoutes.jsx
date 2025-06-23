@@ -33,6 +33,10 @@ import PaymentTransaction from "../modules/Pages/adminDashboard/Transactions";
 import Announcements from "../modules/Pages/adminDashboard/Announcements";
 import NotificationPage from "../modules/Pages/adminDashboard/NotificationPage";
 import Settings from "../modules/Pages/adminDashboard/Settings";
+import ViewTailorDetails from "../modules/Pages/adminDashboard/tailor/ViewTailorDetails";
+import ViewMarketDetails from "../modules/Pages/adminDashboard/sales-rep/ViewMarketRep";
+import ViewFabricDetails from "../modules/Pages/adminDashboard/fabric/ViewFabricDetails";
+import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
 
 export const adminRoutes = [
   {
@@ -45,119 +49,136 @@ export const adminRoutes = [
       },
       // Customer Routes
       {
-        path: '/admin/customers',
+        path: "/admin/customers",
         element: <Customers />,
       },
       {
-        path: '/admin/view-customers',
+        path: "/admin/view-customers",
         element: <ViewCustomer />,
       },
       // Tailor Routes
       {
-        path: '/admin/tailors',
+        path: "/admin/tailors",
         element: <Tailors />,
       },
       {
-        path: '/admin/tailors/add-tailor',
+        path: "/admin/tailors/add-tailor",
         element: <AddTailor />,
       },
       {
-        path: '/admin/tailors/view-tailor',
+        path: "/admin/tailors/view",
+        element: <ViewTailorDetails />,
+      },
+
+      {
+        path: "/admin/tailors/view-tailor/:tailorId",
         element: <ViewTailor />,
       },
       // Fabric Routes
       {
-        path: '/admin/fabric-vendor',
+        path: "/admin/fabric-vendor",
         element: <FabricVendor />,
       },
 
       // Message Routes
       {
-        path: '/admin/messages',
+        path: "/admin/messages",
         element: <InboxPage />,
       },
 
       // Analytics Routes
       {
-        path: '/admin/analytics',
+        path: "/admin/analytics",
         element: <AnalyticsPage />,
       },
       // Add More Routes Here
 
       {
-        path: '/admin/fabric/add-fabric-vendor',
+        path: "/admin/fabric/add-fabric-vendor",
         element: <AddFabricVendor />,
       },
       {
-        path: '/admin/fabric/add-fabric',
+        path: "/admin/fabric/add-fabric",
         element: <AddFabric />,
       },
-      // 
       {
-        path: '/admin/sales-rep',
+        path: "/admin/fabric-vendor/view",
+        element: <ViewFabricDetails />,
+      },
+      //
+      {
+        path: "/admin/sales-rep",
         element: <SalesRep />,
       },
       {
-        path: '/admin/sales-rep/view-sales',
+        path: "/admin/sales-rep/view-sales/:salesId",
         element: <ViewSales />,
       },
 
       {
-        path: '/admin/logistics',
+        path: "/admin/sales-rep/view",
+        element: <ViewMarketDetails />,
+      },
+      {
+        path: "/admin/logistics",
         element: <Logistics />,
       },
       {
-        path: '/admin/sub-admins',
+        path: "/admin/logistics/view",
+        element: <ViewFabricDetails />,
+      },
+      {
+        path: "/admin/sub-admins",
         element: <SubAdmin />,
       },
       {
-        path: '/admin/markets',
+        path: "/admin/markets",
         element: <Market />,
       },
       {
-        path: '/admin/fabrics',
+        path: "/admin/fabrics",
         element: <FabricCategory />,
       },
       {
-        path: '/admin/styles',
+        path: "/admin/styles",
         element: <StyleCategories />,
       },
       // Orders Routes
       {
-        path: '/admin/orders',
+        path: "/admin/orders",
         element: <Orders />,
       },
       {
-        path: '/admin/orders-details',
+        path: "/admin/orders-details",
         element: <OrderDetailsPage />,
       },
       {
-        path: '/admin/orders-details',
+        path: "/admin/orders-details",
         element: <OrderDetailsPage />,
       },
       // Subscription Routes
       {
-        path: '/admin/subscription',
+        path: "/admin/subscription",
         element: <Subscriptionpage />,
       },
       {
-        path: '/admin/transactions',
+        path: "/admin/transactions",
         element: <PaymentTransaction />,
       },
       {
-        path: '/admin/notifications',
-        element: <NotificationPage />,
+        path: "/admin/notifications",
+        element: <NotificationPageUpdate />,
       },
       {
-        path: '/admin/announcements',
+        path: "/admin/announcements",
         element: <Announcements />,
       },
       {
-        path: '/admin/settings',
+        path: "/admin/settings",
         element: <Settings />,
       },
       {
-        path: '/admin/roles',
+        path: "/admin/roles",
         element: <AdminRole />,
       },
 

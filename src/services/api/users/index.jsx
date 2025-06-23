@@ -6,8 +6,21 @@ const getUsersByRole = (params) => {
   });
 };
 
+const getUser = (id) => {
+  return CaryBinApi.get(`/auth/user-details/${id}`);
+};
+
+const approveUserKyc = (payload) => {
+  return CaryBinApi.patch(
+    `/onboard/review-kyc/${payload.business_id}`,
+    payload
+  );
+};
+
 const UserService = {
   getUsersByRole,
+  getUser,
+  approveUserKyc,
 };
 
 export default UserService;

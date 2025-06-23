@@ -207,17 +207,17 @@ const CustomersTable = () => {
             >
               <div className="absolute top-3 right-3">
                 <button
-                  className="bg-gray-100 text-gray-500 px-2 py-1 rounded-md"
+                  className="bg-gray-100 cursor-pointer text-gray-500 px-2 py-1 rounded-md"
                   onClick={() => handleDropdownToggle(item.id)}
                 >
                   <FaEllipsisH size={14} />
                 </button>
 
                 {openDropdown === item.id && (
-                  <div className="absolute right-0 mt-2 w-32 bg-white rounded-md z-10 border border-gray-200">
+                  <div className="absolute dropdown-menu right-0 mt-2 w-32 bg-white rounded-md z-10 border border-gray-200">
                     <Link
                       to={`/admin/view-customers`}
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
+                      className="block px-4 py-2 cursor-pointer text-gray-700 hover:bg-gray-100 w-full text-left"
                     >
                       View Details
                     </Link>
@@ -246,7 +246,7 @@ const CustomersTable = () => {
                 ) : (
                   <>
                     {" "}
-                    <div className="w-16 h-16 mx-auto mb-2 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white">
+                    <div className="w-16 h-16 mx-auto mb-2 rounded-full bg-gray-300 flex items-center justify-center text-xl font-medium text-white">
                       {item?.name?.charAt(0).toUpperCase() || "?"}
                     </div>
                   </>

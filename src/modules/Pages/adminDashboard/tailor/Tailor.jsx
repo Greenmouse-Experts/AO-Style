@@ -96,23 +96,25 @@ const CustomersTable = () => {
         render: (_, row) => (
           <div className="relative">
             <button
-              className="bg-gray-100 text-gray-500 px-3 py-1 rounded-md"
-              onClick={() => toggleDropdown(row.id)}
+              className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
+              onClick={() => {
+                toggleDropdown(row.id);
+              }}
             >
               <FaEllipsisH />
             </button>
             {openDropdown === row.id && (
-              <div className="dropdown-menu absolute right-0 mt-2 w-50 bg-white rounded-md z-10 border-gray-200">
+              <div className="dropdown-menu absolute z-[99999] right-2 rounded mt-2 w-50 bg-white rounded-md border-gray-200">
                 <Link
-                  to={`/admin/tailors/view-tailor`}
-                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+                  to={`/admin/tailors/view-tailor/${row.id}`}
+                  className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
                 >
                   View Tailors Details
                 </Link>
-                <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
+                <button className="block cursor-pointer px-4 cursor-pointer py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
                   Edit User
                 </button>
-                <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center">
+                <button className="block cursor-pointer px-4 cursor-pointer py-2 text-red-500 hover:bg-red-100 w-full text-center">
                   Remove User
                 </button>
               </div>
@@ -183,7 +185,7 @@ const CustomersTable = () => {
             Bulk Action
           </button>
           <Link to="/admin/tailors/add-tailor">
-            <button className="bg-purple-600 text-white px-4 py-2 text-sm rounded-md">
+            <button className="bg-purple-600 cursor-pointer text-white px-4 py-2 text-sm rounded-md">
               + Add a New Tailor/Designer
             </button>
           </Link>
@@ -250,7 +252,7 @@ const CustomersTable = () => {
             >
               <div className="absolute top-3 right-3">
                 <button
-                  className="bg-gray-100 text-gray-500 px-2 py-1 rounded-md"
+                  className="bg-gray-100 cursor-pointer text-gray-500 px-2 py-1 rounded-md"
                   onClick={() => handleDropdownToggle(item.id)}
                 >
                   <FaEllipsisH size={14} />
@@ -259,8 +261,8 @@ const CustomersTable = () => {
                 {openDropdown === item.id && (
                   <div className="absolute right-0 mt-2 w-32 bg-white rounded-md z-10 border border-gray-200">
                     <Link
-                      to={`/admin/tailors/view-tailor`}
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
+                      to={`/admin/tailors/view-tailor/${item.id}`}
+                      className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
                     >
                       View Details
                     </Link>
@@ -288,7 +290,7 @@ const CustomersTable = () => {
                   />
                 ) : (
                   <>
-                    <div className="w-16 h-16 mx-auto mb-2 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white">
+                    <div className="w-16 h-16 mx-auto mb-2 rounded-full bg-gray-300 flex items-center justify-center text-xl font-medium text-white">
                       {item?.name?.charAt(0).toUpperCase() || "?"}
                     </div>
                   </>

@@ -17,6 +17,8 @@ const ViewMarketDetails = () => {
 
   const tailorInfo = location?.state?.info;
 
+  console.log(tailorInfo);
+
   const queryParams = new URLSearchParams(location.search);
   const initialTab = queryParams.get("tab") || "personal";
 
@@ -34,7 +36,7 @@ const ViewMarketDetails = () => {
       // Handle KYC approval logic here
       approveKycMutate(
         {
-          business_id: tailorInfo?.kyc?.business_id,
+          business_id: tailorInfo?.kyc?.id,
           is_approved: true,
         },
         {
@@ -51,8 +53,6 @@ const ViewMarketDetails = () => {
   const handleBack = () => {
     if (activeTab === "kyc") setActiveTab("personal");
   };
-
-  console.log("Tailor Info:", tailorInfo);
 
   const urlContainsTailors = location.pathname.includes("tailors");
 
@@ -154,7 +154,7 @@ const ViewMarketDetails = () => {
                     className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                   />
                 </div>
-                <div className="relative">
+                {/* <div className="relative">
                   <label className="block text-gray-700 mb-4">Password</label>
                   <input
                     type={showPassword ? "text" : "password"}
@@ -183,7 +183,7 @@ const ViewMarketDetails = () => {
                   >
                     {showConfirmPassword ? "🙈" : "👁️"}
                   </span>
-                </div>
+                </div> */}
               </div>
             </div>
 
@@ -544,8 +544,60 @@ const ViewMarketDetails = () => {
           </>
         )}
 
-        {/* Navigation Buttons */}
         <div className="mt-8 flex justify-between">
+          {activeTab !== "personal" && (
+            <button
+              onClick={handleBack}
+              className="bg-gray-300 cursor-pointer text-gray-700 py-3 px-6 rounded-md hover:opacity-90"
+            >
+              Back
+            </button>
+          )}
+
+          {activeTab === "personal" && (
+            <button
+              onClick={handleProceed}
+              className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
+            >
+              Proceed to KYC
+            </button>
+          )}
+          {activeTab === "kyc" && tailorInfo?.kyc?.is_approved ? (
+            <button className="bg-gradient text-white cursor-not-allowed py-3 px-6 rounded-md hover:opacity-90">
+              Approved{" "}
+            </button>
+          ) : activeTab == "kyc" && tailorInfo?.kyc == null ? (
+            <>
+              <button className="bg-gradient text-white cursor-not-allowed py-3 px-6 rounded-md hover:opacity-90">
+                Awaiting Submission{" "}
+              </button>
+            </>
+          ) : activeTab == "kyc" && tailorInfo?.kyc ? (
+            <div className="flex space-x-4">
+              <button
+                disabled={isPending}
+                onClick={handleProceed}
+                className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
+              >
+                {isPending ? "Please wait..." : "Approve"}
+              </button>
+
+              <button
+                onClick={() => {
+                  openModal();
+                }}
+                className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
+              >
+                {"Reject"}
+              </button>
+            </div>
+          ) : (
+            <></>
+          )}
+        </div>
+
+        {/* Navigation Buttons */}
+        {/* <div className="mt-8 flex justify-between">
           {activeTab !== "personal" && (
             <button
               onClick={handleBack}
@@ -564,7 +616,7 @@ const ViewMarketDetails = () => {
               </>
             ) : (
               <>
-                {" "}
+                {}{" "}
                 {activeTab === "kyc" && tailorInfo?.kyc ? (
                   <button
                     onClick={() => {
@@ -606,7 +658,7 @@ const ViewMarketDetails = () => {
                 ) : (
                   <></>
                 )}
-                {/* <button
+                <button
                   disabled={isPending}
                   onClick={handleProceed}
                   className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
@@ -618,14 +670,14 @@ const ViewMarketDetails = () => {
                     : activeTab === "business"
                     ? "Proceed to KYC"
                     : "Proceed to Business Info"}
-                </button> */}
+                </button>
               </>
             )}
           </div>
-        </div>
+        </div> */}
       </div>
       <RejectKycModal
-        id={tailorInfo?.kyc?.business_id}
+        id={tailorInfo?.kyc?.id}
         isOpen={isOpen}
         onClose={closeModal}
       />

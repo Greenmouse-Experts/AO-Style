@@ -107,7 +107,7 @@ export const adminRoutes = [
       },
       //
       {
-        path: "/admin/sales-rep",
+        path: `/admin/sales-rep`,
         element: <SalesRep />,
       },
       {

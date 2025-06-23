@@ -259,7 +259,7 @@ const ViewCustomer = () => {
         ),
       },
       {
-        label: businessData?.kyc ? "KYC" : "",
+        label: "KYC",
         key: "kyc",
         render: (kyc) => (
           <Link

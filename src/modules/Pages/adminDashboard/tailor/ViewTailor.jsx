@@ -99,6 +99,8 @@ const ViewCustomer = () => {
 
   const businessData = data?.data?.business;
 
+  console.log(businessData);
+
   const [catalogFilter, setCatalogFilter] = useState("all");
   const [ordersFilter, setOrdersFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");

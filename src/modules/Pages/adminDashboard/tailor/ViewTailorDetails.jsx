@@ -54,8 +54,6 @@ const ViewTailorDetails = () => {
     else if (activeTab === "kyc") setActiveTab("business");
   };
 
-  console.log("Tailor Info:", tailorInfo);
-
   const urlContainsTailors = location.pathname.includes("tailors");
 
   const headerName = urlContainsTailors
@@ -158,7 +156,7 @@ const ViewTailorDetails = () => {
                     className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                   />
                 </div>
-                <div className="relative">
+                {/* <div className="relative">
                   <label className="block text-gray-700 mb-4">Password</label>
                   <input
                     type={showPassword ? "text" : "password"}
@@ -187,7 +185,7 @@ const ViewTailorDetails = () => {
                   >
                     {showConfirmPassword ? "🙈" : "👁️"}
                   </span>
-                </div>
+                </div> */}
               </div>
             </div>
 
@@ -548,8 +546,69 @@ const ViewTailorDetails = () => {
           </>
         )}
 
-        {/* Navigation Buttons */}
         <div className="mt-8 flex justify-between">
+          {activeTab !== "personal" && (
+            <button
+              onClick={handleBack}
+              className="bg-gray-300 cursor-pointer text-gray-700 py-3 px-6 rounded-md hover:opacity-90"
+            >
+              Back
+            </button>
+          )}
+          {activeTab === "personal" && (
+            <button
+              onClick={handleProceed}
+              className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
+            >
+              Proceed to Business Info
+            </button>
+          )}
+          {activeTab === "business" && (
+            <button
+              onClick={handleProceed}
+              className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
+            >
+              Proceed to KYC
+            </button>
+          )}
+          {activeTab === "kyc" && tailorInfo?.kyc?.is_approved ? (
+            <button
+              // onClick={handleProceed}
+              className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
+            >
+              Approved{" "}
+            </button>
+          ) : activeTab == "kyc" && tailorInfo?.kyc == null ? (
+            <>
+              <button className="bg-gradient text-white cursor-not-allowed py-3 px-6 rounded-md hover:opacity-90">
+                Awaiting Submission{" "}
+              </button>
+            </>
+          ) : activeTab == "kyc" && tailorInfo?.kyc ? (
+            <div className="flex space-x-4">
+              <button
+                onClick={() => {
+                  openModal();
+                }}
+                className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
+              >
+                {"Reject"}
+              </button>
+
+              <button
+                disabled={isPending}
+                onClick={handleProceed}
+                className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
+              >
+                {isPending ? "Please wait..." : "Approve"}
+              </button>
+            </div>
+          ) : (
+            <></>
+          )}
+        </div>
+        {/* Navigation Buttons */}
+        {/* <div className="mt-8 flex justify-between">
           {activeTab !== "personal" && (
             <button
               onClick={handleBack}
@@ -610,7 +669,7 @@ const ViewTailorDetails = () => {
                 ) : (
                   <></>
                 )}
-                {/* <button
+                <button
                   disabled={isPending}
                   onClick={handleProceed}
                   className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
@@ -622,11 +681,11 @@ const ViewTailorDetails = () => {
                     : activeTab === "business"
                     ? "Proceed to KYC"
                     : "Proceed to Business Info"}
-                </button> */}
+                </button>
               </>
             )}
           </div>
-        </div>
+        </div> */}
       </div>
       <RejectKycModal
         id={tailorInfo?.kyc?.business_id}

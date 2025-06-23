@@ -17,8 +17,6 @@ const ViewMarketDetails = () => {
 
   const tailorInfo = location?.state?.info;
 
-  console.log(tailorInfo);
-
   const queryParams = new URLSearchParams(location.search);
   const initialTab = queryParams.get("tab") || "personal";
 

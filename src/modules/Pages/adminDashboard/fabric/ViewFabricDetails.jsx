@@ -159,7 +159,7 @@ const ViewFabricDetails = () => {
                     className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                   />
                 </div>
-                <div className="relative">
+                {/* <div className="relative">
                   <label className="block text-gray-700 mb-4">Password</label>
                   <input
                     type={showPassword ? "text" : "password"}
@@ -188,7 +188,7 @@ const ViewFabricDetails = () => {
                   >
                     {showConfirmPassword ? "🙈" : "👁️"}
                   </span>
-                </div>
+                </div> */}
               </div>
             </div>
 
@@ -559,74 +559,57 @@ const ViewFabricDetails = () => {
               Back
             </button>
           )}
-          <div className="flex space-x-4">
-            {tailorInfo?.kyc?.is_approved ? (
-              <>
-                {" "}
-                <button className="bg-gradient text-white cursor-not-allowed py-3 px-6 rounded-md hover:opacity-90">
-                  Approved{" "}
-                </button>
-              </>
-            ) : (
-              <>
-                {" "}
-                {activeTab === "kyc" && tailorInfo?.kyc ? (
-                  <button
-                    onClick={() => {
-                      openModal();
-                    }}
-                    className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
-                  >
-                    {activeTab === "kyc"
-                      ? "Reject"
-                      : activeTab === "business"
-                      ? "Proceed to KYC"
-                      : "Proceed to Business Info"}
-                  </button>
-                ) : (
-                  <></>
-                )}
-                {activeTab === "kyc" && tailorInfo?.kyc ? (
-                  <button
-                    disabled={isPending}
-                    onClick={handleProceed}
-                    className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
-                  >
-                    {isPending ? "Please wait..." : "Approve"}
-                  </button>
-                ) : activeTab !== "kyc" ? (
-                  <button
-                    disabled={isPending}
-                    onClick={handleProceed}
-                    className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
-                  >
-                    {isPending
-                      ? "Please wait..."
-                      : activeTab === "kyc"
-                      ? "Approve"
-                      : activeTab === "business"
-                      ? "Proceed to KYC"
-                      : "Proceed to Business Info"}
-                  </button>
-                ) : (
-                  <></>
-                )}
-                {/* <button
-                  disabled={isPending}
-                  onClick={handleProceed}
-                  className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
-                >
-                  {isPending
-                    ? "Please wait..."
-                    : activeTab === "kyc"
-                    ? "Approve"
-                    : activeTab === "business"
-                    ? "Proceed to KYC"
-                    : "Proceed to Business Info"}
-                </button> */}
-              </>
-            )}
-          </div>
+          {activeTab === "personal" && (
+            <button
+              onClick={handleProceed}
+              className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
+            >
+              Proceed to Business Info
+            </button>
+          )}
+          {activeTab === "business" && (
+            <button
+              onClick={handleProceed}
+              className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
+            >
+              Proceed to KYC
+            </button>
+          )}
+          {activeTab === "kyc" && tailorInfo?.kyc?.is_approved ? (
+            <button
+              // onClick={handleProceed}
+              className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
+            >
+              Approved{" "}
+            </button>
+          ) : activeTab == "kyc" && tailorInfo?.kyc == null ? (
+            <>
+              <button className="bg-gradient text-white cursor-not-allowed py-3 px-6 rounded-md hover:opacity-90">
+                Awaiting Submission{" "}
+              </button>
+            </>
+          ) : activeTab == "kyc" && tailorInfo?.kyc ? (
+            <div className="flex space-x-4">
+              <button
+                onClick={() => {
+                  openModal();
+                }}
+                className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
+              >
+                {"Reject"}
+              </button>
+
+              <button
+                disabled={isPending}
+                onClick={handleProceed}
+                className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
+              >
+                {isPending ? "Please wait..." : "Approve"}
+              </button>
+            </div>
+          ) : (
+            <></>
+          )}
         </div>
       </div>
       <RejectKycModal

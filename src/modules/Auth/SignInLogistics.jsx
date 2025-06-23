@@ -40,6 +40,7 @@ export default function SignUpAsLogisticsAgent() {
     touched,
     errors,
     values,
+    setFieldValue,
     handleChange,
     // setFieldError,
   } = useFormik({
@@ -383,7 +384,7 @@ export default function SignUpAsLogisticsAgent() {
             <button
               type="submit"
               disabled={isPending}
-              className="w-full bg-gradient cursoor-pointer text-white py-3 rounded-lg font-medium mt-4 transition-colors"
+              className="w-full bg-gradient cursor-pointer text-white py-3 rounded-lg font-medium mt-4 transition-colors"
             >
               {isPending ? "Please wait..." : "Sign Up As A Logistics Agent"}
             </button>

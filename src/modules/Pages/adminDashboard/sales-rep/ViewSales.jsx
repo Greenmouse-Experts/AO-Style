@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ReusableTable from "../components/ReusableTable";
 import SalesCards from "../components/SalesCards";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import {
   Search,
   ChevronLeft,
@@ -13,6 +13,8 @@ import {
 import useApproveMarketRep from "../../../../hooks/marketRep/useApproveMarketRep";
 import { useModalState } from "../../../../hooks/useModalState";
 import RejectModal from "./RejectModal";
+import Loader from "../../../../components/ui/Loader";
+import useGetUser from "../../../../hooks/user/useGetSingleUser";
 
 const catalogData = [
   {
@@ -93,16 +95,21 @@ const ordersData = [
 ];
 
 const ViewCustomer = () => {
+  const { salesId } = useParams();
+
   const { isPending, approveMarketRepMutate } = useApproveMarketRep();
+
+  const { isPending: userIsPending, data } = useGetUser(salesId);
+
+  const userData = data?.data?.user;
+
+  const businessData = data?.data?.business;
+
+  console.log(userData);
 
   const [id, setId] = useState(null);
 
   const { isOpen, closeModal, openModal } = useModalState();
-
-  const { state } = useLocation();
-  const marketRepoInfo = state?.info;
-
-  console.log(marketRepoInfo);
 
   const [catalogFilter, setCatalogFilter] = useState("all");
   const [ordersFilter, setOrdersFilter] = useState("all");
@@ -241,126 +248,102 @@ const ViewCustomer = () => {
     },
   ];
 
-  const customerColumns = [
-    {
-      label: "Full Name",
-      key: "fullName",
-      render: (_, row) => (
-        <div className="flex items-center gap-3">
-          {row.profile ? (
-            <img
-              src={row.profile}
-              alt="profile"
-              className="w-10 h-10 rounded-full"
-            />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white">
-              {row?.fullName?.charAt(0).toUpperCase() || "?"}
-            </div>
-          )}
-          <span>{row.fullName}</span>
-        </div>
-      ),
-    },
-    {
-      label: "KYC",
-      key: "kyc",
-      render: (kyc) => (
-        <span className="text-purple-600 cursor-pointer hover:underline">
-          {kyc}
-        </span>
-      ),
-    },
-    { label: "Email Address", key: "email" },
-    { label: "Phone Number", key: "phone" },
-    { label: "Address", key: "address" },
-    { label: "Total Onboarded", key: "onboarded" },
-    { label: "DATE JOINED", key: "dateJoined" },
-    {
-      label: "ACTION",
-      key: "action",
-      render: (_, row) => (
-        <div className="relative dropdown-menu" /* Add this class */>
-          <button
-            onClick={(e) => {
-              e.stopPropagation(); // Prevent event bubbling
-              setOpenDropdown(
-                openDropdown === `customer-${row.id}`
-                  ? null
-                  : `customer-${row.id}`
-              );
-            }}
-            className="px-2 py-1 cursor-pointer rounded-md text-gray-600"
+  const customerColumns = React.useMemo(
+    (val) => [
+      {
+        label: "FULL NAME",
+        key: "fullName",
+        render: (_, row) => (
+          <div className="flex items-center gap-3">
+            {row.profile ? (
+              <img
+                src={row.profile}
+                alt="profile"
+                className="w-10 h-10 rounded-full"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-lg font-medium text-white">
+                {row?.fullName?.charAt(0).toUpperCase() || "?"}
+              </div>
+            )}
+            <span>{row.fullName}</span>
+          </div>
+        ),
+      },
+      {
+        label: businessData?.kyc ? "KYC" : "",
+        key: "kyc",
+        render: (kyc) => (
+          <Link
+            state={{ info: { ...businessData, ...userData } }}
+            to={`/admin/sales-rep/view?tab=kyc`}
           >
-            •••
-          </button>
-          {openDropdown === `customer-${row.id}` && (
-            <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
-              <Link to={`/admin/view-customers/${row.id}`}>
-                <button className="block cursor-pointer w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
-                  View Details
+            <span className="text-purple-600 cursor-pointer hover:underline">
+              {kyc}
+            </span>
+          </Link>
+        ),
+      },
+
+      { label: "EMAIL ADDRESS", key: "email" },
+      { label: "PHONE NUMBER", key: "phone" },
+      { label: "ADDRESS", key: "address" },
+      { label: "DATE JOINED", key: "dateJoined" },
+      {
+        label: "ACTION",
+        key: "action",
+        render: (_, row) => (
+          <div className="dropdown-menu">
+            <button
+              onClick={() =>
+                setOpenDropdown(
+                  openDropdown === `customer-${row.id}`
+                    ? null
+                    : `customer-${row.id}`
+                )
+              }
+              className="px-2 py-1 z-[9999] cursor-pointer rounded-md text-gray-600"
+            >
+              •••
+            </button>
+            {openDropdown === `customer-${row.id}` && (
+              <div className="absolute right-2 mt-2 w-40 bg-white shadow-md rounded-md z-10">
+                <Link
+                  state={{ info: { ...businessData, ...userData } }}
+                  to={`/admin/sales-rep/view?tab=personal`}
+                >
+                  <button className="block cursor-pointer w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+                    View Details
+                  </button>
+                </Link>
+                <button className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+                  Edit User
                 </button>
-              </Link>
-              <button className="block w-full cursor-pointer text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
-                Edit User
-              </button>
-              {row?.profile?.approved_by_admin == null ? (
-                <>
-                  <button
-                    disabled={isPending}
-                    onClick={() => {
-                      approveMarketRepMutate(
-                        {
-                          user_id: row.id,
-                          approved: true,
-                        },
-                        {
-                          onSuccess: () => {
-                            setOpenDropdown(null);
-                          },
-                        }
-                      );
-                    }}
-                    className="block w-full cursor-pointer text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  >
-                    {isPending ? "Please wait..." : "Approve"}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setId(row.id);
-                      openModal();
-                    }}
-                    className="block w-full cursor-pointer text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  >
-                    Reject
-                  </button>
-                </>
-              ) : (
-                <></>
-              )}
-            </div>
-          )}
-        </div>
-      ),
-    },
-  ];
+              </div>
+            )}
+          </div>
+        ),
+      },
+    ],
+    [openDropdown, businessData]
+  );
 
   const customerData = React.useMemo(
     () => [
       {
-        ...marketRepoInfo,
-        id: marketRepoInfo?.id ?? "",
-        fullName: marketRepoInfo?.name ?? "",
-        profile: marketRepoInfo?.profile?.profile_picture ?? null,
-        kyc: "See KYC",
-        email: marketRepoInfo?.email ?? "",
-        phone: marketRepoInfo?.phone ?? "",
-        address: marketRepoInfo?.profile?.address ?? "",
-        onboarded: "",
-        dateJoined: marketRepoInfo?.created_at ?? "",
+        ...userData,
+        ...businessData,
+        id: userData?.id ?? "",
+        fullName: userData?.name ?? "",
+        profile: userData?.profile?.profile_picture ?? null,
+        kyc: businessData?.kyc ? "See KYC" : null,
+        email: userData?.email ?? "",
+        phone: userData?.phone ?? "",
+        address: userData?.profile?.address ?? "",
+        dateJoined: userData?.created_at ?? "",
       },
     ],
-    []
+    [userData, businessData]
   );
 
   // Pagination for Catalog
@@ -399,6 +382,14 @@ const ViewCustomer = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  if (userIsPending) {
+    return (
+      <div className="m-auto flex h-[80vh] items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
+
   return (
     <React.Fragment>
       <div className="">
@@ -408,12 +399,17 @@ const ViewCustomer = () => {
             <h2 className="text-lg font-medium text-gray-800">
               View Market Rep :{" "}
               <span className="text-purple-600 font-medium">
-                {marketRepoInfo?.name}
+                {userData?.name}
               </span>
             </h2>
-            <p className="text-sm font-medium text-gray-600">
-              KYC: <span className="text-green-600 font-medium">Approved</span>
-            </p>
+            {businessData?.kyc?.is_approved ? (
+              <p className="text-sm font-medium text-gray-600">
+                KYC:{" "}
+                <span className="text-green-600 font-medium">Approved</span>
+              </p>
+            ) : (
+              <></>
+            )}
           </div>
           <SalesCards />
           <div className="bg-white rounded-lg">

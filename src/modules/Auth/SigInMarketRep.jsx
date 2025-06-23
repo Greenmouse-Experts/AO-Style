@@ -7,6 +7,7 @@ import useRegister from "./hooks/useSignUpMutate";
 import { countryCodes } from "../../constant";
 
 import Select from "react-select";
+import useToast from "../../hooks/useToast";
 
 const initialValues = {
   name: "",
@@ -22,6 +23,8 @@ const initialValues = {
 };
 
 export default function SignInAsCustomer() {
+  const { toastError } = useToast();
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -45,6 +48,10 @@ export default function SignInAsCustomer() {
     onSubmit: (val) => {
       const phoneno = `${val.phoneCode + val.phone}`;
       const altno = `${val.altCode + val.alternative_phone}`;
+
+      if (values.password_confirmation !== values.password) {
+        return toastError("Password must match");
+      }
 
       registerMutate(
         {

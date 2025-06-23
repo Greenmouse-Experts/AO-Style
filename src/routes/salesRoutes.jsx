@@ -8,6 +8,7 @@ import TransactionPages from "../modules/Pages/salesDashboard/TransactionPage";
 import NotificationPages from "../modules/Pages/salesDashboard/NotificationPage";
 import SettingPages from "../modules/Pages/salesDashboard/Settings";
 import InboxPage from "../modules/Pages/salesDashboard/Inbox";
+import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
 
 export const salesRoutes = [
   {
@@ -19,35 +20,35 @@ export const salesRoutes = [
         element: <SalesDashboard />,
       },
       {
-        path: '/sales/fabric-vendors',
+        path: "/sales/fabric-vendors",
         element: <FabricVendorPage />,
       },
       {
-        path: '/sales/add-fabric-vendors',
+        path: "/sales/add-fabric-vendors",
         element: <AddFabricVendorPage />,
       },
       {
-        path: '/sales/fashion-designers',
+        path: "/sales/fashion-designers",
         element: <FashionDesigners />,
       },
       {
-        path: '/sales/inbox',
+        path: "/sales/inbox",
         element: <InboxPage />,
       },
       {
-        path: '/sales/add-fashion-designers',
+        path: "/sales/add-fashion-designers",
         element: <AddTailorDesigners />,
       },
       {
-        path: '/sales/transactions',
+        path: "/sales/transactions",
         element: <TransactionPages />,
       },
       {
-        path: '/sales/notifications',
-        element: <NotificationPages />,
+        path: "/sales/notifications",
+        element: <NotificationPageUpdate />,
       },
       {
-        path: '/sales/settings',
+        path: "/sales/settings",
         element: <SettingPages />,
       },
       // Add other sales dashboard routes here

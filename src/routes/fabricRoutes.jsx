@@ -9,6 +9,7 @@ import NotificationPage from "../modules/Pages/fabricDashboard/NotificationPage"
 import TransactionPage from "../modules/Pages/fabricDashboard/TransactionPage";
 import Settings from "../modules/Pages/fabricDashboard/Settings";
 import InboxPage from "../modules/Pages/fabricDashboard/Inbox";
+import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
 
 export const fabricRoutes = [
   {
@@ -20,42 +21,42 @@ export const fabricRoutes = [
         element: <FabricDashboard />,
       },
       {
-        path: '/fabric/products',
+        path: "/fabric/products",
         element: <MyProducts />,
       },
       {
-        path: '/fabric/product/add-product',
+        path: "/fabric/product/add-product",
         element: <AddNewProduct />,
       },
       {
-        path: '/fabric/orders',
+        path: "/fabric/orders",
         element: <Orders />,
       },
       {
-        path: '/fabric/shop-materials',
+        path: "/fabric/shop-materials",
         element: <ShopMaterial />,
       },
       {
-        path: '/fabric/orders/orders-details',
+        path: "/fabric/orders/orders-details",
         element: <OrdersDetails />,
       },
       {
-        path: '/fabric/notifications',
-        element: <NotificationPage />,
+        path: "/fabric/notifications",
+        element: <NotificationPageUpdate />,
       },
       {
-        path: '/fabric/inbox',
+        path: "/fabric/inbox",
         element: <InboxPage />,
       },
       {
-        path: '/fabric/transactions',
+        path: "/fabric/transactions",
         element: <TransactionPage />,
       },
       {
-        path: '/fabric/settings',
+        path: "/fabric/settings",
         element: <Settings />,
       },
-    
+
       // Add other fabric dashboard routes here
     ],
   },

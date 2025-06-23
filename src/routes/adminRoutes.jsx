@@ -36,6 +36,7 @@ import Settings from "../modules/Pages/adminDashboard/Settings";
 import ViewTailorDetails from "../modules/Pages/adminDashboard/tailor/ViewTailorDetails";
 import ViewMarketDetails from "../modules/Pages/adminDashboard/sales-rep/ViewMarketRep";
 import ViewFabricDetails from "../modules/Pages/adminDashboard/fabric/ViewFabricDetails";
+import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
 
 export const adminRoutes = [
   {
@@ -166,7 +167,7 @@ export const adminRoutes = [
       },
       {
         path: "/admin/notifications",
-        element: <NotificationPage />,
+        element: <NotificationPageUpdate />,
       },
       {
         path: "/admin/announcements",

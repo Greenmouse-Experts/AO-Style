@@ -6,6 +6,7 @@ import TransactionPage from "../modules/Pages/logisticsDashboard/TransactionPage
 import NotificationPage from "../modules/Pages/logisticsDashboard/NotificationPage";
 import InboxPage from "../modules/Pages/logisticsDashboard/Inbox";
 import Settings from "../modules/Pages/logisticsDashboard/Settings";
+import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
 
 export const logisticsRoutes = [
   {
@@ -34,7 +35,7 @@ export const logisticsRoutes = [
       },
       {
         path: "/logistics/notifications",
-        element: <NotificationPage />,
+        element: <NotificationPageUpdate />,
       },
       {
         path: "/logistics/settings",

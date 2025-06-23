@@ -199,7 +199,11 @@ const CustomersTable = () => {
 
       {activeTab === "table" ? (
         <>
-          <ReusableTable columns={columns} data={FabricData} />
+          <ReusableTable
+            loading={isPending}
+            columns={columns}
+            data={FabricData}
+          />
           {FabricData?.length > 0 && (
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center">

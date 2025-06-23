@@ -194,7 +194,11 @@ const CustomersTable = () => {
 
       {activeTab === "table" ? (
         <>
-          <ReusableTable columns={columns} data={TailorData} />
+          <ReusableTable
+            columns={columns}
+            data={TailorData}
+            loading={isPending}
+          />
           {TailorData?.length > 0 && (
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center">

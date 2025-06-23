@@ -15,6 +15,7 @@ import { useModalState } from "../../../../hooks/useModalState";
 import RejectModal from "./RejectModal";
 import Loader from "../../../../components/ui/Loader";
 import useGetUser from "../../../../hooks/user/useGetSingleUser";
+import { formatDateStr } from "../../../../lib/helper";
 
 const catalogData = [
   {
@@ -102,10 +103,11 @@ const ViewCustomer = () => {
   const { isPending: userIsPending, data } = useGetUser(salesId);
 
   const userData = data?.data?.user;
+  const kycData = data?.data?.kyc;
 
   const businessData = data?.data?.business;
 
-  console.log(userData);
+  console.log(data?.data?.kyc?.is_approved);
 
   const [id, setId] = useState(null);
 
@@ -271,11 +273,18 @@ const ViewCustomer = () => {
         ),
       },
       {
-        label: businessData?.kyc ? "KYC" : "",
+        label: "KYC",
         key: "kyc",
         render: (kyc) => (
           <Link
-            state={{ info: { ...businessData, ...userData } }}
+            state={{
+              info: {
+                ...businessData,
+                ...userData,
+                ...kycData,
+                kyc: kycData ?? null,
+              },
+            }}
             to={`/admin/sales-rep/view?tab=kyc`}
           >
             <span className="text-purple-600 cursor-pointer hover:underline">
@@ -309,13 +318,46 @@ const ViewCustomer = () => {
             {openDropdown === `customer-${row.id}` && (
               <div className="absolute right-2 mt-2 w-40 bg-white shadow-md rounded-md z-10">
                 <Link
-                  state={{ info: { ...businessData, ...userData } }}
+                  state={{
+                    info: {
+                      ...businessData,
+                      ...userData,
+                      kyc: kycData ?? null,
+                    },
+                  }}
                   to={`/admin/sales-rep/view?tab=personal`}
                 >
                   <button className="block cursor-pointer w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
                     View Details
                   </button>
                 </Link>
+                {userData?.profile?.approved_by_admin == null ? (
+                  <>
+                    {" "}
+                    <button
+                      onClick={() => {
+                        approveMarketRepMutate({
+                          user_id: userData?.id,
+                          approved: true,
+                        });
+                      }}
+                      className="block cursor-pointer w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    >
+                      {isPending ? "Please wait..." : "Approve"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        openModal();
+                      }}
+                      className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    >
+                      Reject
+                    </button>
+                  </>
+                ) : (
+                  <></>
+                )}
+
                 <button className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
                   Edit User
                 </button>
@@ -325,7 +367,7 @@ const ViewCustomer = () => {
         ),
       },
     ],
-    [openDropdown, businessData]
+    [openDropdown, businessData, isPending]
   );
 
   const customerData = React.useMemo(
@@ -336,11 +378,13 @@ const ViewCustomer = () => {
         id: userData?.id ?? "",
         fullName: userData?.name ?? "",
         profile: userData?.profile?.profile_picture ?? null,
-        kyc: businessData?.kyc ? "See KYC" : null,
+        kyc: "See KYC",
         email: userData?.email ?? "",
         phone: userData?.phone ?? "",
         address: userData?.profile?.address ?? "",
-        dateJoined: userData?.created_at ?? "",
+        dateJoined: userData?.created_at
+          ? formatDateStr(userData?.created_at.split(".").shift())
+          : "",
       },
     ],
     [userData, businessData]
@@ -402,7 +446,7 @@ const ViewCustomer = () => {
                 {userData?.name}
               </span>
             </h2>
-            {businessData?.kyc?.is_approved ? (
+            {data?.data?.kyc?.is_approved ? (
               <p className="text-sm font-medium text-gray-600">
                 KYC:{" "}
                 <span className="text-green-600 font-medium">Approved</span>
@@ -503,7 +547,7 @@ const ViewCustomer = () => {
         </div>
       </div>
 
-      <RejectModal id={id} isOpen={isOpen} onClose={closeModal} />
+      <RejectModal id={userData?.id} isOpen={isOpen} onClose={closeModal} />
     </React.Fragment>
   );
 };

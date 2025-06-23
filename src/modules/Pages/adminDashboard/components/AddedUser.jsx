@@ -24,13 +24,22 @@ const NewlyAddedUsers = () => {
 
   const { data: businessData } = useGetBusinessDetails();
 
-  const { queryParams, updateQueryParams } = useQueryParams({});
+  const { queryParams, updateQueryParams, clearAllFilters } = useQueryParams({
+    approved: true,
+    "pagination[page]": 1,
+    "pagination[limit]": 10,
+  });
 
   const { data: getAllMarketRepData, isPending } = useGetAllUsersByRole({
     ...queryParams,
     role: "market-representative",
-    approved: true,
   });
+
+  useEffect(() => {
+    updateQueryParams({
+      approved: true,
+    });
+  }, []);
 
   const { data: getAllInviteData, isPending: allInviteIsPending } =
     useGetAllMarketRep({
@@ -60,7 +69,8 @@ const NewlyAddedUsers = () => {
     getAllInviteData?.count / (queryParams["pagination[limit]"] ?? 10)
   );
 
-  const totalPageCount = currView === "all" ? totalPages : totalallInvitePages;
+  const totalPageCount =
+    currView === "invites" ? totalallInvitePages : totalPages;
 
   const MarketRepData = useMemo(
     () =>
@@ -149,6 +159,9 @@ const NewlyAddedUsers = () => {
               <div className="dropdown-menu absolute right-0 mt-2 w-50 bg-white rounded-md z-10 border-gray-200">
                 <Link
                   to={`/admin/sales-rep/view-sales/${row.id}`}
+                  onClick={() => {
+                    clearAllFilters();
+                  }}
                   className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
                 >
                   View Market Rep
@@ -213,7 +226,7 @@ const NewlyAddedUsers = () => {
             {openDropdown === row.id && (
               <div className="dropdown-menu absolute right-0 mt-2 w-50 bg-white rounded-md z-10 border-gray-200">
                 <Link
-                  to={`/admin/sales-rep/view-sales${row.id}`}
+                  to={`/admin/sales-rep/view-sales/${row.id}`}
                   className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
                 >
                   View Market Rep
@@ -281,21 +294,31 @@ const NewlyAddedUsers = () => {
               onClick={() => {
                 setCurrView(tab);
                 if (tab == "pending") {
-                  return updateQueryParams({
+                  updateQueryParams({
+                    ...queryParams,
                     newly_onboarded: true,
                     approved: null,
                   });
                 }
                 if (tab == "approved") {
                   return updateQueryParams({
+                    ...queryParams,
                     newly_onboarded: null,
                     approved: true,
                   });
                 }
                 if (tab == "rejected") {
                   return updateQueryParams({
+                    ...queryParams,
                     newly_onboarded: null,
                     approved: false,
+                  });
+                }
+                if (tab == "invites") {
+                  return updateQueryParams({
+                    ...queryParams,
+                    newly_onboarded: undefined,
+                    approved: undefined,
                   });
                 }
               }}
@@ -319,56 +342,55 @@ const NewlyAddedUsers = () => {
           onClose={() => setIsModalOpen(false)}
         />
         <ReusableTable
+          loading={isPending || allInviteIsPending}
           columns={currView == "invites" ? inviteRepColumn : columns}
           data={currView == "invites" ? InviteData : MarketRepData}
         />
-        {(currView == "invites" ? InviteData : MarketRepData)?.length > 0 && (
-          <div className="flex justify-between items-center mt-4">
-            <div className="flex items-center">
-              <p className="text-sm text-gray-600">Items per page: </p>
-              <select
-                value={queryParams["pagination[limit]"] || 10}
-                onChange={(e) =>
-                  updateQueryParams({
-                    "pagination[limit]": +e.target.value,
-                  })
-                }
-                className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={15}>15</option>
-                <option value={20}>20</option>
-              </select>
-            </div>
-            <div className="flex gap-1">
-              <button
-                onClick={() => {
-                  updateQueryParams({
-                    "pagination[page]": +queryParams["pagination[page]"] - 1,
-                  });
-                }}
-                disabled={(queryParams["pagination[page]"] ?? 1) == 1}
-                className="px-3 py-1 rounded-md bg-gray-200"
-              >
-                ◀
-              </button>
-              <button
-                onClick={() => {
-                  updateQueryParams({
-                    "pagination[page]": +queryParams["pagination[page]"] + 1,
-                  });
-                }}
-                disabled={
-                  (queryParams["pagination[page]"] ?? 1) == totalPageCount
-                }
-                className="px-3 py-1 rounded-md bg-gray-200"
-              >
-                ▶
-              </button>
-            </div>
+        <div className="flex justify-between items-center mt-4">
+          <div className="flex items-center">
+            <p className="text-sm text-gray-600">Items per page: </p>
+            <select
+              value={queryParams["pagination[limit]"] || 10}
+              onChange={(e) =>
+                updateQueryParams({
+                  "pagination[limit]": +e.target.value,
+                })
+              }
+              className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={20}>20</option>
+            </select>
           </div>
-        )}
+          <div className="flex gap-1">
+            <button
+              onClick={() => {
+                updateQueryParams({
+                  "pagination[page]": +queryParams["pagination[page]"] - 1,
+                });
+              }}
+              disabled={(queryParams["pagination[page]"] ?? 1) == 1}
+              className="px-3 py-1 rounded-md bg-gray-200"
+            >
+              ◀
+            </button>
+            <button
+              onClick={() => {
+                updateQueryParams({
+                  "pagination[page]": +queryParams["pagination[page]"] + 1,
+                });
+              }}
+              disabled={
+                (queryParams["pagination[page]"] ?? 1) == totalPageCount
+              }
+              className="px-3 py-1 rounded-md bg-gray-200"
+            >
+              ▶
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

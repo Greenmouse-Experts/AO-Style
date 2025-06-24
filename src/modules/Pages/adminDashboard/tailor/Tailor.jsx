@@ -8,6 +8,7 @@ import useGetAllUsersByRole from "../../../../hooks/admin/useGetAllUserByRole";
 import { formatDateStr } from "../../../../lib/helper";
 import useDebounce from "../../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../../hooks/useUpdatedEffect";
+import Loader from "../../../../components/ui/Loader";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -247,6 +248,10 @@ const CustomersTable = () => {
             </div>
           )}
         </>
+      ) : isPending ? (
+        <div className=" flex !w-full items-center justify-center">
+          <Loader />
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {TailorData?.map((item) => (

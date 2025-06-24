@@ -11,6 +11,8 @@ const BankDetailsUpdate = () => {
 
   const businessInfo = businessDetails?.data;
 
+  console.log(businessInfo);
+
   const { data } = useFetchBank();
 
   const options = data?.data.map((code) => ({
@@ -22,11 +24,13 @@ const BankDetailsUpdate = () => {
     (bank) => bank.label === businessInfo?.withdrawal_account?.bank_name
   );
 
+  console.log(selectedBank?.label);
+
   const initialValues = {
     account_number: businessInfo?.withdrawal_account?.account_number ?? "",
     account_type: businessInfo?.withdrawal_account?.account_type ?? "",
     bank_name: selectedBank?.label ?? "",
-    bank_code: "",
+    bank_code: selectedBank?.value ?? "",
     account_name: "",
   };
 
@@ -47,13 +51,11 @@ const BankDetailsUpdate = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      console.log(val);
       saveWithdrawalMutate({ ...val, business_id: businessDetails?.data?.id });
     },
   });
 
   useEffect(() => {
-    console.log(values.bank_code, "here");
     if (values.account_number?.length == 10 && values.bank_code) {
       resolveAccountMutate(
         {
@@ -107,7 +109,6 @@ const BankDetailsUpdate = () => {
               value={options?.find((opt) => opt.value === values.bank_code)}
               onChange={(selectedOption) => {
                 setFieldValue("bank_code", selectedOption.value);
-
                 setFieldValue("bank_name", selectedOption.label);
               }}
               placeholder="Select"

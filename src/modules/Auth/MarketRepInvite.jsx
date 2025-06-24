@@ -163,7 +163,7 @@ export default function MarketRepInvite() {
             <div className="mb-3">
               <label className="block text-black mb-2">Phone Number</label>
 
-              <div className="flex items-center gap-2 ">
+              <div className="flex flex-col md:flex-row md:items-center gap-2 ">
                 {/* Country Code Dropdown */}
                 <Select
                   options={options}
@@ -173,7 +173,7 @@ export default function MarketRepInvite() {
                     setFieldValue("phoneCode", selectedOption.value)
                   }
                   placeholder="Select"
-                  className="p-2 w-28 border border-[#CCCCCC] outline-none rounded-lg text-gray-500"
+                  className="p-2 md:w-28 border border-[#CCCCCC] outline-none rounded-lg text-gray-500"
                   styles={{
                     control: (base, state) => ({
                       ...base,
@@ -213,7 +213,7 @@ export default function MarketRepInvite() {
                 <small className="text-[#CCCCCC]">(Optional)</small>
               </label>
 
-              <div className="flex items-center gap-2 ">
+              <div className="flex flex-col md:flex-row md:items-center gap-2 ">
                 {/* Country Code Dropdown */}
                 <Select
                   options={options}
@@ -223,7 +223,7 @@ export default function MarketRepInvite() {
                     setFieldValue("altCode", selectedOption.value)
                   }
                   placeholder="Select"
-                  className="p-2 w-34 border border-[#CCCCCC] outline-none rounded-lg text-gray-500"
+                  className="p-2 md:w-34 border border-[#CCCCCC] outline-none rounded-lg text-gray-500"
                   styles={{
                     control: (base, state) => ({
                       ...base,
@@ -353,6 +353,39 @@ export default function MarketRepInvite() {
                   <Eye className="h-5 w-5" />
                 )}
               </button>
+            </div>
+
+            {/* Terms and Policies Agreement */}
+            <div className="flex items-center mt-2 mb-2">
+              <input
+                value={values.checked}
+                onChange={handleChange}
+                type="checkbox"
+                id="agree"
+                required
+                className="mr-2"
+              />
+              <label htmlFor="agree" className="text-sm text-gray-700">
+                I agree to the{" "}
+                <a
+                  href="https://carybin.netlify.app/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gradient underline"
+                >
+                  Terms
+                </a>{" "}
+                and{" "}
+                <a
+                  href="https://carybin.netlify.app/privacy-policy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gradient underline"
+                >
+                  Policies
+                </a>{" "}
+                from Carybin
+              </label>
             </div>
 
             <button

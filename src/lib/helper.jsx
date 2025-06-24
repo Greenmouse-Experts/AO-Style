@@ -1,4 +1,7 @@
 import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(relativeTime);
 
 export const maskEmail = (email) => {
   const [localPart, domain] = email.split("@");
@@ -12,5 +15,9 @@ export const maskEmail = (email) => {
 };
 
 export const formatDateStr = (dateStr, format) => {
+  if (format === "relative") {
+    return dayjs(dateStr).fromNow(); // e.g. "2 hours ago"
+  }
+
   return dayjs(dateStr).format(format || "D/M/YYYY");
 };

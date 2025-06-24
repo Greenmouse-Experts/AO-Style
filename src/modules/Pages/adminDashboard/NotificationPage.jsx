@@ -4,6 +4,10 @@ import { Link } from "react-router-dom";
 
 import useQueryParams from "../../../hooks/useQueryParams";
 import useGetNotification from "../../../hooks/notification/useGetNotification";
+import Loader from "../../../components/ui/Loader";
+import useDebounce from "../../../hooks/useDebounce";
+import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
+import { formatDateStr } from "../../../lib/helper";
 
 const notifications = [
   {
@@ -62,7 +66,19 @@ export default function NotificationPageUpdate() {
     ...queryParams,
   });
 
-  console.log(data?.data);
+  const [queryString, setQueryString] = useState(queryParams.q);
+
+  const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
+
+  useUpdatedEffect(() => {
+    // update search params with undefined if debouncedSearchTerm is an empty string
+    updateQueryParams({
+      q: debouncedSearchTerm.trim() || undefined,
+      "pagination[page]": 1,
+    });
+  }, [debouncedSearchTerm]);
+
+  console.log(data?.data?.length);
 
   return (
     <div className="">
@@ -80,34 +96,55 @@ export default function NotificationPageUpdate() {
         <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
           <div className="flex flex-wrap space-x-6 text-gray-600 text-sm font-medium">
             <button
-              onClick={() => setFilter("all")}
+              onClick={() => {
+                setFilter("all");
+                updateQueryParams({
+                  read: undefined,
+                  "pagination[page]": 1,
+                });
+              }}
               className={`font-medium ${
                 filter === "all"
                   ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
                   : "text-gray-500"
               }`}
             >
-              All Notification
+              All Notification{" "}
+              {filter === "all" && data?.count ? `(${data?.count})` : <></>}
             </button>
             <button
-              onClick={() => setFilter("read")}
+              onClick={() => {
+                setFilter("read");
+                updateQueryParams({
+                  read: true,
+                  "pagination[page]": 1,
+                });
+              }}
               className={`font-medium ${
                 filter === "read"
                   ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
                   : "text-gray-500"
               }`}
             >
-              All Read (30)
+              All Read{" "}
+              {filter === "read" && data?.count ? `(${data?.count})` : <></>}
             </button>
             <button
-              onClick={() => setFilter("unread")}
+              onClick={() => {
+                setFilter("unread");
+                updateQueryParams({
+                  read: false,
+                  "pagination[page]": 1,
+                });
+              }}
               className={`font-medium ${
                 filter === "unread"
                   ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
                   : "text-gray-500"
               }`}
             >
-              All Unread (60)
+              All Unread{" "}
+              {filter === "unread" && data?.count ? `(${data?.count})` : <></>}
             </button>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -120,8 +157,12 @@ export default function NotificationPageUpdate() {
                 type="text"
                 placeholder="Search"
                 className="pl-10 pr-4 py-2 border border-gray-200 rounded-md outline-none"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={queryString}
+                onChange={(evt) =>
+                  setQueryString(
+                    evt.target.value ? evt.target.value : undefined
+                  )
+                }
               />
             </div>
             <button className="px-4 py-2 bg-gray-200 rounded-md">
@@ -133,29 +174,54 @@ export default function NotificationPageUpdate() {
           </div>
         </div>
 
-        <div>
-          {filteredNotifications.map((notification) => (
-            <div
-              key={notification.id}
-              className={`flex flex-wrap items-center p-5 gap-3 ${
-                notification.unread ? "bg-purple-100" : ""
-              }`}
-            >
-              <img
-                src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741985895/AoStyle/image_cuxdyt.png"
-                className="w-14 h-14"
-                alt="icon"
-              />
-              <p className="flex-1 text-sm md:text-sm">{notification.text}</p>
-              <span className="text-gray-500 text-xs md:text-sm">
-                {notification.time}
-              </span>
-              {notification.unread && (
-                <span className="ml-2 h-2 w-2 bg-[#A14DF6] rounded-full"></span>
-              )}
-            </div>
-          ))}
-        </div>
+        {isPending ? (
+          <div className=" flex !w-full items-center justify-center">
+            <Loader />
+          </div>
+        ) : (
+          <div>
+            {data?.data?.length ? (
+              data?.data?.map((notification) => (
+                <div
+                  key={notification?.id}
+                  className={`flex flex-wrap  items-center p-5 gap-3 ${
+                    !notification?.read ? "bg-purple-100 cursor-pointer" : ""
+                  }`}
+                >
+                  <img
+                    src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741985895/AoStyle/image_cuxdyt.png"
+                    className="w-14 h-14"
+                    alt="icon"
+                  />
+                  <div className="flex-1">
+                    {" "}
+                    <p className="flex-1 text-sm md:text-sm">
+                      {notification.title}
+                    </p>
+                    <p className="flex-1 text-[12px] text-gray-500">
+                      {notification.message}
+                    </p>
+                  </div>
+                  <span className="text-gray-600 text-sm md:text-sm">
+                    {notification?.created_at
+                      ? formatDateStr(
+                          notification?.created_at.split(".").shift(),
+                          "relative"
+                        )
+                      : ""}
+                  </span>
+                  {!notification.read && (
+                    <span className="ml-2 h-2 w-2 bg-[#A14DF6] rounded-full"></span>
+                  )}
+                </div>
+              ))
+            ) : (
+              <p className="flex-1 text-center text-sm md:text-sm">
+                No notifications found.
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

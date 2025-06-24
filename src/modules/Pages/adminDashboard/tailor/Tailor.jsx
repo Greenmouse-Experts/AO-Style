@@ -112,11 +112,11 @@ const CustomersTable = () => {
                 >
                   View Tailors Details
                 </Link>
-                <button className="block cursor-pointer px-4 cursor-pointer py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
+                {/* <button className="block cursor-pointer px-4 cursor-pointer py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
                   Edit User
-                </button>
+                </button> */}
                 <button className="block cursor-pointer px-4 cursor-pointer py-2 text-red-500 hover:bg-red-100 w-full text-center">
-                  Remove User
+                  Suspend User
                 </button>
               </div>
             )}

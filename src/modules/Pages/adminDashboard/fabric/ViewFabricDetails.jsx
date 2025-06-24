@@ -40,7 +40,7 @@ const ViewFabricDetails = () => {
       // Handle KYC approval logic here
       approveKycMutate(
         {
-          business_id: tailorInfo?.kyc?.business_id,
+          business_id: tailorInfo?.kyc?.id,
           is_approved: true,
         },
         {
@@ -613,7 +613,7 @@ const ViewFabricDetails = () => {
         </div>
       </div>
       <RejectKycModal
-        id={tailorInfo?.kyc?.business_id}
+        id={tailorInfo?.kyc?.id}
         isOpen={isOpen}
         onClose={closeModal}
       />

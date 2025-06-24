@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useToast from "../../../hooks/useToast";
 import Cookies from "js-cookie";
+import useGetNotification from "../../../hooks/notification/useGetNotification";
 
 export default function Navbar({ toggleSidebar }) {
   const { toastSuccess } = useToast();
@@ -22,6 +23,12 @@ export default function Navbar({ toggleSidebar }) {
     logOut();
     Cookies.remove("token");
   };
+
+  const { data, isPending } = useGetNotification({
+    read: false,
+  });
+
+  const unreadNotificationsCount = data?.count || 0;
 
   return (
     <nav className="bg-white px-4 py-6 flex items-center justify-between sticky top-0 z-40 w-full">
@@ -45,9 +52,13 @@ export default function Navbar({ toggleSidebar }) {
           <div className="bg-purple-100 p-2 rounded-full">
             <Bell size={20} className="text-purple-600" />
           </div>
-          <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
-            6
-          </span>
+          {unreadNotificationsCount > 0 ? (
+            <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
+              {unreadNotificationsCount}
+            </span>
+          ) : (
+            <></>
+          )}
         </div>
 
         {/* Profile Avatar & Dropdown */}

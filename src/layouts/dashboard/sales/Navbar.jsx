@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import useToast from "../../../hooks/useToast";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import Cookies from "js-cookie";
+import useGetNotification from "../../../hooks/notification/useGetNotification";
 
 export default function Navbar({ toggleSidebar }) {
   const { toastSuccess } = useToast();
@@ -21,6 +22,12 @@ export default function Navbar({ toggleSidebar }) {
     Cookies.remove("token");
   };
 
+  const { data } = useGetNotification({
+    read: false,
+  });
+
+  const unreadNotificationsCount = data?.count || 0;
+
   return (
     <nav className="bg-white shadow-md p-6 flex items-center justify-between">
       {/* Sidebar Toggle Button (Only on Mobile) */}
@@ -35,12 +42,19 @@ export default function Navbar({ toggleSidebar }) {
 
       {/* Right: Notification & Profile */}
       <div className="flex items-center space-x-6">
-        <div className="relative bg-purple-100 p-2 rounded-full">
+        <Link
+          to="/sales/notifications"
+          className="relative bg-purple-100 p-2 rounded-full"
+        >
           <Bell size={20} className="text-purple-600" />
-          <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
-            6
-          </span>
-        </div>
+          {unreadNotificationsCount > 0 ? (
+            <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
+              {unreadNotificationsCount}
+            </span>
+          ) : (
+            <></>
+          )}
+        </Link>
 
         {/* Profile Section */}
         <div className="relative">

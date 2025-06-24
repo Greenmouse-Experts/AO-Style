@@ -80,6 +80,10 @@ export default function NotificationPageUpdate() {
 
   console.log(data?.data?.length);
 
+  const totalPages = Math.ceil(
+    data?.count / (queryParams["pagination[limit]"] ?? 10)
+  );
+
   return (
     <div className="">
       <div className="bg-white px-6 py-4 mb-6">
@@ -220,6 +224,52 @@ export default function NotificationPageUpdate() {
                 No notifications found.
               </p>
             )}
+          </div>
+        )}
+
+        {data?.data?.length > 0 && (
+          <div className="flex justify-between items-center mt-4">
+            <div className="flex items-center">
+              <p className="text-sm text-gray-600">Items per page: </p>
+              <select
+                value={queryParams["pagination[limit]"] || 10}
+                onChange={(e) =>
+                  updateQueryParams({
+                    "pagination[limit]": +e.target.value,
+                  })
+                }
+                className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={20}>20</option>
+              </select>
+            </div>
+            <div className="flex gap-1">
+              <button
+                onClick={() => {
+                  updateQueryParams({
+                    "pagination[page]": +queryParams["pagination[page]"] - 1,
+                  });
+                }}
+                disabled={(queryParams["pagination[page]"] ?? 1) == 1}
+                className="px-3 py-1 rounded-md bg-gray-200"
+              >
+                ◀
+              </button>
+              <button
+                onClick={() => {
+                  updateQueryParams({
+                    "pagination[page]": +queryParams["pagination[page]"] + 1,
+                  });
+                }}
+                disabled={(queryParams["pagination[page]"] ?? 1) == totalPages}
+                className="px-3 py-1 rounded-md bg-gray-200"
+              >
+                ▶
+              </button>
+            </div>
           </div>
         )}
       </div>

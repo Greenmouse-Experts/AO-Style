@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import ReusableTable from "../components/ReusableTable";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Search } from "lucide-react";
+import useGetUser from "../../../../hooks/user/useGetSingleUser";
+import Loader from "../../../../components/ui/Loader";
+import { formatDateStr } from "../../../../lib/helper";
 
 const orders = [
   {
@@ -61,6 +64,10 @@ const orders = [
 ];
 
 const ViewCustomer = () => {
+  const { id } = useParams();
+
+  const { isPending: getUserIsPending, data } = useGetUser(id);
+
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -149,17 +156,32 @@ const ViewCustomer = () => {
     },
   ];
 
+  if (getUserIsPending) {
+    return (
+      <div className="m-auto flex h-[80vh] items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
+
+  console.log(data);
+
+  const customer = data?.data?.user;
+
+  console.log(customer);
+
   return (
     <div>
       {/* Customer Info Section */}
       <div className="mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg text-gray-800">
-            View Customer: <span className="text-purple-600">Chukka Uzo</span>
+            View Customer:{" "}
+            <span className="text-purple-600">{data?.data?.user?.name}</span>
           </h2>
-          <p className="text-sm text-gray-600">
+          {/* <p className="text-sm text-gray-600">
             KYC: <span className="text-green-600">Approved</span>
-          </p>
+          </p> */}
         </div>
         <div className="bg-white rounded-lg">
           <table className="w-full text-sm">
@@ -168,7 +190,7 @@ const ViewCustomer = () => {
                 <th className="text-left p-4 font-medium text-gray-600">
                   Full Name{" "}
                 </th>
-                <th className="text-left p-4 font-medium text-gray-600">KYC</th>
+                {/* <th className="text-left p-4 font-medium text-gray-600">KYC</th> */}
                 <th className="text-left p-4 font-medium text-gray-600">
                   Email Address
                 </th>
@@ -178,9 +200,9 @@ const ViewCustomer = () => {
                 <th className="text-left p-4 font-medium text-gray-600">
                   Address
                 </th>
-                <th className="text-left p-4 font-medium text-gray-600">
+                {/* <th className="text-left p-4 font-medium text-gray-600">
                   Total Orders
-                </th>
+                </th> */}
                 <th className="text-left p-4 font-medium text-gray-600">
                   Date Joined
                 </th>
@@ -194,18 +216,24 @@ const ViewCustomer = () => {
                     alt="profile"
                     className="w-10 h-10 rounded-full"
                   />
-                  <span>Emeka Okafor</span>
+                  <span>{data?.data?.user?.name}</span>
                 </td>
-                <td className="p-4">
+                {/* <td className="p-4">
                   <span className="text-purple-600 cursor-pointer hover:underline">
                     See KYC
                   </span>
+                </td> */}
+                <td className="p-4">{data?.data?.user?.email}</td>
+                <td className="p-4">{data?.data?.user?.phone}</td>
+                <td className="p-4">{data?.data?.user?.profile?.address}</td>
+                {/* <td className="p-4">72</td> */}
+                <td className="p-4">
+                  {data?.data?.user?.created_at
+                    ? formatDateStr(
+                        data?.data?.user?.created_at.split(".").shift()
+                      )
+                    : ""}
                 </td>
-                <td className="p-4">testmail@gmail.com</td>
-                <td className="p-4">+234 803 456 7890</td>
-                <td className="p-4">12, Allen Avenue, Ikeja, Lagos</td>
-                <td className="p-4">72</td>
-                <td className="p-4">22/5/2009</td>
               </tr>
             </tbody>
           </table>

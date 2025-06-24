@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import useGetUser from "../../../../hooks/user/useGetSingleUser";
 import Loader from "../../../../components/ui/Loader";
+import { formatDateStr } from "../../../../lib/helper";
 
 const catalogData = [
   {
@@ -330,7 +331,9 @@ const ViewCustomer = () => {
         email: userData?.email ?? "",
         phone: userData?.phone ?? "",
         address: userData?.profile?.address ?? "",
-        dateJoined: userData?.created_at ?? "",
+        dateJoined: userData?.created_at
+          ? formatDateStr(userData?.created_at.split(".").shift())
+          : "",
       },
     ],
     [userData, businessData]

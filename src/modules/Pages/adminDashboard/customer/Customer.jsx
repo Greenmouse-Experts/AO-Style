@@ -18,6 +18,10 @@ const CustomersTable = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [activeTab, setActiveTab] = useState("table");
 
+  const toggleDropdown = (rowId) => {
+    setOpenDropdown(openDropdown === rowId ? null : rowId);
+  };
+
   const handleDropdownToggle = (id) => {
     setOpenDropdown(openDropdown === id ? null : id);
   };
@@ -99,18 +103,20 @@ const CustomersTable = () => {
         render: (_, row) => (
           <div className="relative">
             <button
-              className="bg-gray-100 text-gray-500 px-3 py-1 rounded-md"
-              onClick={() => toggleDropdown(row.id)}
+              className="bg-gray-10 cursor-pointer alert text-gray-500 px-3 py-1 rounded-md"
+              onClick={() => {
+                toggleDropdown(row.id);
+              }}
             >
               <FaEllipsisH />
             </button>
             {openDropdown === row.id && (
               <div className="dropdown-menu absolute right-0 mt-2 w-50 bg-white rounded-md z-10 border-gray-200">
                 <Link
-                  to={`/admin/tailors/view-tailor`}
+                  to={`/admin/view-customers/${row.id}`}
                   className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
                 >
-                  View Tailors Details
+                  View User
                 </Link>
                 <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
                   Edit User
@@ -225,7 +231,7 @@ const CustomersTable = () => {
                 {openDropdown === item.id && (
                   <div className="absolute dropdown-menu right-0 mt-2 w-32 bg-white rounded-md z-10 border border-gray-200">
                     <Link
-                      to={`/admin/view-customers`}
+                      to={`/admin/view-customers/${item.id}`}
                       className="block px-4 py-2 cursor-pointer text-gray-700 hover:bg-gray-100 w-full text-left"
                     >
                       View Details

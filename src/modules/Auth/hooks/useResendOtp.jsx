@@ -1,6 +1,4 @@
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
-import Cookies from "js-cookie";
 import AuthService from "../../../services/api/auth";
 import useToast from "../../../hooks/useToast";
 

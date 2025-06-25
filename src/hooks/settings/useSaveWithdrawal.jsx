@@ -17,6 +17,11 @@ const useSaveWithdrawal = () => {
       });
     },
     onError: (error) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
+
       // @ts-ignore
       toastError(error?.data?.message);
     },

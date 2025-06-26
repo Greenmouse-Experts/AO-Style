@@ -2,13 +2,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useToast from "../useToast";
 import FabricService from "../../services/api/fabric";
 
-const useCreateFabricProduct = () => {
+const useCreateFabricProduct = (business_id) => {
   const queryClient = useQueryClient();
 
   const { toastError, toastSuccess } = useToast();
 
   const { isPending, mutate: createFabricProductMutate } = useMutation({
-    mutationFn: (payload) => FabricService.createFabricProduct(payload),
+    mutationFn: (payload) =>
+      FabricService.createFabricProduct(payload, business_id),
     mutationKey: ["create-fabric-product"],
     onSuccess(data) {
       toastSuccess(data?.data?.message);

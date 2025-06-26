@@ -549,8 +549,9 @@ const AddProduct = () => {
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
+                    name={"available_colors"}
                     value={values.available_colors}
-                    readOnly
+                    onChange={handleChange}
                     className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                   />
                   <button

@@ -76,6 +76,10 @@ const useSignIn = (email, resendCodeMutate) => {
       // }
     },
     onError: (error) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       toastError(error?.data?.message);
       if (error?.data?.message === "Your email address has not been verified") {
         resendCodeMutate(

@@ -1,20 +1,20 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import ProductService from "../../services/api/products";
 import useToast from "../useToast";
-import MarketService from "../../services/api/market";
+import FabricService from "../../services/api/fabric";
 
-const useCreateMarket = () => {
+const useCreateFabricProduct = (business_id) => {
   const queryClient = useQueryClient();
 
   const { toastError, toastSuccess } = useToast();
 
-  const { isPending, mutate: createMarketMutate } = useMutation({
-    mutationFn: (payload) => MarketService.createMarket(payload),
-    mutationKey: ["create-market"],
+  const { isPending, mutate: createFabricProductMutate } = useMutation({
+    mutationFn: (payload) =>
+      FabricService.createFabricProduct(payload, business_id),
+    mutationKey: ["create-fabric-product"],
     onSuccess(data) {
       toastSuccess(data?.data?.message);
       queryClient.invalidateQueries({
-        queryKey: ["get-market"],
+        queryKey: ["get-fabric-products"],
       });
     },
     onError: (error) => {
@@ -26,7 +26,7 @@ const useCreateMarket = () => {
       toastError(error?.data?.message);
     },
   });
-  return { isPending, createMarketMutate };
+  return { isPending, createFabricProductMutate };
 };
 
-export default useCreateMarket;
+export default useCreateFabricProduct;

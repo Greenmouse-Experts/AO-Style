@@ -18,6 +18,11 @@ const useEditProduct = () => {
       });
     },
     onError: (error) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
+
       toastError(error?.data?.message);
     },
   });

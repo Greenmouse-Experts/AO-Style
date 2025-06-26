@@ -4,12 +4,12 @@ import SettingsService from "../../services/api/settings";
 import useToast from "../useToast";
 import MediaService from "../../services/api/multimedia";
 
-const useUploadImage = () => {
+const useUploadVideo = () => {
   const { toastError } = useToast();
 
-  const { isPending, mutate: uploadImageMutate } = useMutation({
-    mutationFn: (payload) => MediaService.uploadImage(payload),
-    mutationKey: ["upload-image"],
+  const { isPending, mutate: uploadVideoMutate } = useMutation({
+    mutationFn: (payload) => MediaService.uploadVideo(payload),
+    mutationKey: ["upload-video"],
     onSuccess() {
       // toastSuccess(data?.data?.message);
     },
@@ -22,7 +22,7 @@ const useUploadImage = () => {
       toastError(error?.data?.message);
     },
   });
-  return { isPending, uploadImageMutate };
+  return { isPending, uploadVideoMutate };
 };
 
-export default useUploadImage;
+export default useUploadVideo;

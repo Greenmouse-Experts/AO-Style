@@ -217,7 +217,6 @@ const MarketsTable = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      console.log(val);
       if (type == "Edit") {
         if (val.multimedia_url) {
           editMarketMutate(

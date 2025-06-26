@@ -19,6 +19,11 @@ const useAcceptInvite = () => {
       navigate("/login");
     },
     onError: (error) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
+
       if (Array.isArray(error?.data?.message)) {
         toastError(error?.data?.message[0]);
       } else {

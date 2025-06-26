@@ -1,15 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
-import Cookies from "js-cookie";
-import SettingsService from "../../services/api/settings";
 import useToast from "../useToast";
 import MediaService from "../../services/api/multimedia";
 
-const useUploadImage = () => {
+const useUploadImages = () => {
   const { toastError } = useToast();
 
-  const { isPending, mutate: uploadImageMutate } = useMutation({
-    mutationFn: (payload) => MediaService.uploadImage(payload),
-    mutationKey: ["upload-image"],
+  const { isPending, mutate: uploadImagesMutate } = useMutation({
+    mutationFn: (payload) => MediaService.uploadImages(payload),
+    mutationKey: ["upload-images"],
     onSuccess() {
       // toastSuccess(data?.data?.message);
     },
@@ -22,7 +20,7 @@ const useUploadImage = () => {
       toastError(error?.data?.message);
     },
   });
-  return { isPending, uploadImageMutate };
+  return { isPending, uploadImagesMutate };
 };
 
-export default useUploadImage;
+export default useUploadImages;

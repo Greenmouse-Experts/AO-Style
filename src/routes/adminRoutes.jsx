@@ -53,7 +53,7 @@ export const adminRoutes = [
         element: <Customers />,
       },
       {
-        path: "/admin/view-customers",
+        path: "/admin/view-customers/:id",
         element: <ViewCustomer />,
       },
       // Tailor Routes

@@ -7,8 +7,11 @@ import {
 } from "./notifications/firebase.js";
 import { onMessage } from "firebase/messaging";
 import { useEffect } from "react";
+import useToast from "./hooks/useToast.jsx";
 
 const App = () => {
+  const { toastError, toastSuccess, toastInfo, toastWarning } = useToast();
+
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -19,8 +22,10 @@ const App = () => {
       return;
     }
     requestNotificationPermission();
+
     onMessage(messaging, (payload) => {
-      console.log(payload, "onoMessage");
+      toastSuccess(payload?.notification?.body);
+
       new Notification(payload.notification?.title || "New Notification", {
         body: payload.notification?.body || "",
         icon:

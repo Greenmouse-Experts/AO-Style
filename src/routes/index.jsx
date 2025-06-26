@@ -10,19 +10,19 @@ import NotFoundPage from "../components/ui/NotFoundPage";
 import { adminRoutes } from "./adminRoutes";
 // Admin Routes Ends
 export const routes = [
-    // Other Dashboard Routes
-    ...landingRooutes,
-    ...authRoutes,
-    ...customerRoutes,
-    ...logisticsRoutes,
-    ...salesRoutes,
-    ...tailorRoute,
-    ...fabricRoutes,
-    // Admin Routes
-    ...adminRoutes,
-    // Catch-All 404 Route
-    {
-        path: "*",
-        element: <NotFoundPage />,
-    },
+  // Other Dashboard Routes
+  ...landingRooutes,
+  ...authRoutes,
+  ...customerRoutes,
+  ...logisticsRoutes,
+  ...salesRoutes,
+  ...tailorRoute,
+  ...fabricRoutes,
+  // Admin Routes
+  ...adminRoutes,
+  // Catch-All 404 Route
+  {
+    path: "*",
+    element: <NotFoundPage />,
+  },
 ];

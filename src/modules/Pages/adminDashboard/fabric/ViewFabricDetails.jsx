@@ -588,7 +588,7 @@ const ViewFabricDetails = () => {
                 Awaiting Submission{" "}
               </button>
             </>
-          ) : activeTab == "kyc" && tailorInfo?.kyc ? (
+          ) : activeTab == "kyc" && tailorInfo?.kyc?.reviewed_by == null ? (
             <div className="flex space-x-4">
               <button
                 onClick={() => {

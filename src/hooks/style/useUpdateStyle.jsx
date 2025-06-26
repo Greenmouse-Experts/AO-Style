@@ -1,17 +1,16 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import useToast from "../useToast";
-import ProductService from "../../services/api/products";
-import MarketService from "../../services/api/market";
 import FabricService from "../../services/api/fabric";
+import useToast from "../useToast";
+import StyleService from "../../services/api/style";
 
-const useUpdateFabric = () => {
+const useUpdateStyle = () => {
   const queryClient = useQueryClient();
 
   const { toastError, toastSuccess } = useToast();
 
-  const { isPending, mutate: updateFabricMutate } = useMutation({
-    mutationFn: (payload) => FabricService.updateFabricProduct(payload),
-    mutationKey: ["update-fabric-product"],
+  const { isPending, mutate: updateStyleMutate } = useMutation({
+    mutationFn: (payload) => StyleService.updateStyleProduct(payload),
+    mutationKey: ["update-style-product"],
     onSuccess(data) {
       toastSuccess(data?.data?.message);
       queryClient.invalidateQueries({
@@ -27,7 +26,7 @@ const useUpdateFabric = () => {
       toastError(error?.data?.message);
     },
   });
-  return { isPending, updateFabricMutate };
+  return { isPending, updateStyleMutate };
 };
 
-export default useUpdateFabric;
+export default useUpdateStyle;

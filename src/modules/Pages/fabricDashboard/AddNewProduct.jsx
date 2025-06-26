@@ -127,7 +127,6 @@ const AddProduct = () => {
       uploadImagesMutate(formData, {
         onSuccess: (data) => {
           const urls = data?.data?.data?.map((item) => item.url) ?? [];
-          console.log(urls);
           createFabricProductMutate(
             {
               product: {
@@ -139,6 +138,7 @@ const AddProduct = () => {
                 gender: val.gender,
                 tags: val.tags,
                 price: val.price?.toString(),
+                original_price: val.price?.toString(),
               },
               fabric: {
                 market_id: val.market_id,
@@ -738,6 +738,11 @@ const AddProduct = () => {
                     const file = e.target.files[0];
                     console.log(file);
                     if (file) {
+                      if (file.size > 10 * 1024 * 1024) {
+                        alert("File size exceeds 10MB limit");
+                        return;
+                      }
+
                       const formData = new FormData();
                       formData.append("video", file);
                       uploadVideoMutate(formData, {

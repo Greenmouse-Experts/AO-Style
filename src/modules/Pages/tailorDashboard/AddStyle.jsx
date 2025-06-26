@@ -1,15 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { UploadCloud } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ModalThanks from "./components/ModalThanks";
 import { useFormik } from "formik";
+import Select from "react-select";
+import { usePlacesWidget } from "react-google-autocomplete";
 
 import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails";
 
 import useCreateStyleProduct from "../../../hooks/style/useCreateStyle";
+import useUploadVideo from "../../../hooks/multimedia/useUploadVideo";
 
 import useGetProducts from "../../../hooks/product/useGetProduct";
-import Select from "react-select";
+
+import useUploadImage from "../../../hooks/multimedia/useUploadImage";
+
+import useToast from "../../../hooks/useToast";
 
 const initialValues = {
   type: "STYLE",
@@ -38,13 +44,8 @@ const initialValues = {
 };
 
 export default function StyleForm() {
-  const [stylePhotos, setStylePhotos] = useState({
-    front: null,
-    back: null,
-    right: null,
-    left: null,
-  });
-  const [styleVideo, setStyleVideo] = useState(null);
+  const { toastError } = useToast();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState("");
@@ -56,6 +57,31 @@ export default function StyleForm() {
   const { isPending, createStyleProductMutate } = useCreateStyleProduct(
     businessDetails?.data?.id
   );
+
+  const navigate = useNavigate();
+
+  const { isPending: uploadVideoIsPending, uploadVideoMutate } =
+    useUploadVideo();
+
+  const {
+    isPending: uploadFrontIsPending,
+    uploadImageMutate: uploadFrontMutate,
+  } = useUploadImage();
+
+  const {
+    isPending: uploadBackIsPending,
+    uploadImageMutate: uploadBackMutate,
+  } = useUploadImage();
+
+  const {
+    isPending: uploadRightIsPending,
+    uploadImageMutate: uploadRightMutate,
+  } = useUploadImage();
+
+  const {
+    isPending: uploadLeftIsPending,
+    uploadImageMutate: uploadLeftMutate,
+  } = useUploadImage();
 
   const {
     handleSubmit,
@@ -72,56 +98,47 @@ export default function StyleForm() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      const formData = new FormData();
-      Object.entries(photoFiles).forEach(([label, file]) => {
-        formData.append("images", file);
-      });
-      uploadImagesMutate(formData, {
-        onSuccess: (data) => {
-          const urls = data?.data?.data?.map((item) => item.url) ?? [];
-          console.log(urls);
-          useCreateStyleProduct(
-            {
-              product: {
-                type: val.type,
-                name: val.name,
-                category_id: val.category_id,
-                sku: val.sku,
-                description: val.description,
-                gender: val.gender,
-                tags: val.tags,
-                price: val.price?.toString(),
-              },
-              fabric: {
-                market_id: val.market_id,
-                weight_per_unit: val.weight_per_unit,
-                location: {
-                  latitude: "1.2343444",
-                  longitude: "1.500332",
-                },
-                local_name: val.local_name,
-                manufacturer_name: val.manufacturer_name,
-                material_type: val.material_type,
-                alternative_names: val.alternative_names,
-                fabric_texture: val.fabric_texture,
-                feel_a_like: val.feel_a_like,
-                quantity: val.quantity,
-                minimum_yards: val.minimum_yards?.toString(),
-                available_colors: val.available_colors?.toString(),
-                fabric_colors: val.fabric_colors,
-                photos: urls,
-                video_url: val.video_url,
-              },
+      if (
+        !values.front_url ||
+        !values.back_url ||
+        !values.left_url ||
+        !values.right_url ||
+        !val.video_url
+      ) {
+        toastError("Please upload all required images.");
+        return;
+      }
+      createStyleProductMutate(
+        {
+          product: {
+            type: val.type,
+            name: val.name,
+            category_id: val.category_id,
+            sku: val.sku,
+            description: val.description,
+            gender: val.gender,
+            tags: val.tags,
+            price: val.price?.toString(),
+            original_price: val.price?.toString(),
+          },
+          style: {
+            estimated_sewing_time: val.estimated_sewing_time,
+            minimum_fabric_qty: val.minimum_fabric_qty,
+            photos: [val.front_url, val.back_url, val.right_url, val.left_url],
+            location: {
+              latitude: "1.2343444",
+              longitude: "1.500332",
             },
-            {
-              onSuccess: () => {
-                resetForm();
-                navigate(-1);
-              },
-            }
-          );
+            video_url: val.video_url,
+          },
         },
-      });
+        {
+          onSuccess: () => {
+            resetForm();
+            navigate(-1);
+          },
+        }
+      );
     },
   });
 
@@ -135,37 +152,6 @@ export default function StyleForm() {
     setSewingTime(sewingTimes[selectedCategory] || "");
   }, [selectedCategory]);
 
-  const handlePhotoUpload = (side, e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert("File size exceeds 5MB limit");
-        return;
-      }
-      setStylePhotos((prev) => ({ ...prev, [side]: file }));
-    }
-  };
-
-  const handleVideoUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        alert("File size exceeds 10MB limit");
-        return;
-      }
-      const videoElement = document.createElement("video");
-      videoElement.src = URL.createObjectURL(file);
-      videoElement.onloadedmetadata = () => {
-        if (videoElement.duration > 10) {
-          alert("Video exceeds 10 seconds limit");
-          e.target.value = null;
-          return;
-        }
-        setStyleVideo(file);
-      };
-    }
-  };
-
   const handleTagInput = (e) => {
     setTagInput(e.target.value);
   };
@@ -174,12 +160,18 @@ export default function StyleForm() {
     if (e.key === "Enter" && tagInput.trim() && tags.length < 5) {
       e.preventDefault();
       setTags([...tags, tagInput.trim()]);
+      setFieldValue("tags", [...tags, tagInput.trim()]);
+
       setTagInput("");
     }
   };
 
   const handleTagRemove = (tagToRemove) => {
     setTags(tags.filter((tag) => tag !== tagToRemove));
+    setFieldValue(
+      "tags",
+      tags.filter((tag) => tag !== tagToRemove)
+    );
   };
 
   const { data: styleCategory } = useGetProducts({
@@ -193,6 +185,19 @@ export default function StyleForm() {
         value: c.id,
       }))
     : [];
+
+  const { ref } = usePlacesWidget({
+    apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
+    onPlaceSelected: (place) => {
+      setFieldValue("location", place.formatted_address);
+      setFieldValue("latitude", place.geometry?.location?.lat().toString());
+      setFieldValue("longitude", place.geometry?.location?.lng().toString());
+    },
+    options: {
+      componentRestrictions: { country: "ng" },
+      types: [],
+    },
+  });
 
   return (
     <>
@@ -225,7 +230,6 @@ export default function StyleForm() {
                 required
               />
             </div>
-
             {/* SKU (Disabled) */}
             <div>
               <label className="block text-gray-700 mb-4 mt-4">SKU</label>
@@ -239,7 +243,6 @@ export default function StyleForm() {
                 className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
               />
             </div>
-
             {/* Style Description */}
             <div>
               <label className="block text-gray-700 mb-4 mt-4">
@@ -254,7 +257,6 @@ export default function StyleForm() {
                 onChange={handleChange}
               />
             </div>
-
             {/* Style Category and Estimated Sewing Time */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -301,34 +303,69 @@ export default function StyleForm() {
                 </label>
                 <input
                   type="number"
-                  placeholder="Fetched based on category"
-                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg bg-gray-100 text-gray-500"
-                  value={sewingTime}
+                  name={"estimated_sewing_time"}
+                  required
+                  min={0}
+                  value={values.estimated_sewing_time}
+                  onChange={handleChange}
+                  placeholder="Estimated sewing time"
+                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 />
               </div>
             </div>
-
             {/* Gender */}
             <div>
               <label className="block text-gray-700 mb-4 mt-4">Gender</label>
-              <select
-                className="w-full p-4 border border-[#CCCCCC] text-gray-700 outline-none rounded-lg"
+              <Select
+                options={[
+                  { label: "Male", value: "male" },
+                  { label: "Female", value: "female" },
+                  { label: "Unisex", value: "unisex" },
+                ]}
+                name="gender"
+                isSearchable={false}
+                value={[
+                  { label: "Male", value: "male" },
+                  { label: "Female", value: "female" },
+                  { label: "Unisex", value: "unisex" },
+                ]?.find((opt) => opt.value === values.gender)}
+                onChange={(selectedOption) => {
+                  setFieldValue("gender", selectedOption.value);
+                }}
                 required
-              >
-                <option value="">Choose gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="unisex">Unisex</option>
-              </select>
+                placeholder="Choose suitability gender"
+                className="w-full p-2 border border-[#CCCCCC] outline-none rounded-lg"
+                styles={{
+                  control: (base, state) => ({
+                    ...base,
+                    border: "none",
+                    boxShadow: "none",
+                    outline: "none",
+                    backgroundColor: "#fff",
+                    "&:hover": {
+                      border: "none",
+                    },
+                  }),
+                  indicatorSeparator: () => ({
+                    display: "none",
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    zIndex: 9999,
+                  }),
+                }}
+              />{" "}
             </div>
-
             {/* Photo Uploads */}
             <div>
               <label className="block text-gray-700 mb-4 mt-4">
                 Upload Style Photos
               </label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer">
+                <div
+                  onClick={() => document.getElementById("front").click()}
+                  className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer"
+                >
                   <UploadCloud
                     className="mx-auto text-gray-400 mb-4"
                     size={32}
@@ -340,18 +377,48 @@ export default function StyleForm() {
                   </p>
                   <input
                     type="file"
+                    id="front"
                     accept="image/*"
-                    className="mt-2 w-full"
-                    onChange={(e) => handlePhotoUpload("front", e)}
-                    required
+                    className="mt-2 w-full hidden"
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        if (e.target.files[0].size > 5 * 1024 * 1024) {
+                          alert("File size exceeds 5MB limit");
+                          return;
+                        }
+                        const file = e.target.files[0];
+                        const formData = new FormData();
+                        formData.append("image", file);
+                        uploadFrontMutate(formData, {
+                          onSuccess: (data) => {
+                            setFieldValue("front_url", data?.data?.data?.url);
+                          },
+                        });
+                        e.target.value = "";
+                      }
+                    }}
                   />
-                  {stylePhotos.front && (
-                    <p className="text-xs text-gray-500 mt-2">
-                      {stylePhotos.front.name}
+                  {uploadFrontIsPending ? (
+                    <p className="cursor-pointer text-gray-400">
+                      please wait...{" "}
                     </p>
+                  ) : values.front_url ? (
+                    <a
+                      href={values.front_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-purple-600 flex justify-center cursor-pointer hover:underline"
+                    >
+                      View file upload
+                    </a>
+                  ) : (
+                    <></>
                   )}
                 </div>
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer">
+                <div
+                  onClick={() => document.getElementById("back").click()}
+                  className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer"
+                >
                   <UploadCloud
                     className="mx-auto text-gray-400 mb-4"
                     size={32}
@@ -363,18 +430,48 @@ export default function StyleForm() {
                   </p>
                   <input
                     type="file"
+                    id="back"
                     accept="image/*"
-                    className="mt-2 w-full"
-                    onChange={(e) => handlePhotoUpload("back", e)}
-                    required
+                    className="mt-2 w-full hidden"
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        if (e.target.files[0].size > 5 * 1024 * 1024) {
+                          alert("File size exceeds 5MB limit");
+                          return;
+                        }
+                        const file = e.target.files[0];
+                        const formData = new FormData();
+                        formData.append("image", file);
+                        uploadBackMutate(formData, {
+                          onSuccess: (data) => {
+                            setFieldValue("back_url", data?.data?.data?.url);
+                          },
+                        });
+                        e.target.value = "";
+                      }
+                    }}
                   />
-                  {stylePhotos.back && (
-                    <p className="text-xs text-gray-500 mt-2">
-                      {stylePhotos.back.name}
+                  {uploadBackIsPending ? (
+                    <p className="cursor-pointer text-gray-400">
+                      please wait...{" "}
                     </p>
+                  ) : values.back_url ? (
+                    <a
+                      href={values.back_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-purple-600 flex justify-center cursor-pointer hover:underline"
+                    >
+                      View file upload
+                    </a>
+                  ) : (
+                    <></>
                   )}
                 </div>
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer">
+                <div
+                  onClick={() => document.getElementById("right").click()}
+                  className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer"
+                >
                   <UploadCloud
                     className="mx-auto text-gray-400 mb-4"
                     size={32}
@@ -386,18 +483,48 @@ export default function StyleForm() {
                   </p>
                   <input
                     type="file"
+                    id="right"
                     accept="image/*"
-                    className="mt-2 w-full"
-                    onChange={(e) => handlePhotoUpload("right", e)}
-                    required
+                    className="mt-2 w-full hidden"
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        if (e.target.files[0].size > 5 * 1024 * 1024) {
+                          alert("File size exceeds 5MB limit");
+                          return;
+                        }
+                        const file = e.target.files[0];
+                        const formData = new FormData();
+                        formData.append("image", file);
+                        uploadRightMutate(formData, {
+                          onSuccess: (data) => {
+                            setFieldValue("right_url", data?.data?.data?.url);
+                          },
+                        });
+                        e.target.value = "";
+                      }
+                    }}
                   />
-                  {stylePhotos.right && (
-                    <p className="text-xs text-gray-500 mt-2">
-                      {stylePhotos.right.name}
+                  {uploadRightIsPending ? (
+                    <p className="cursor-pointer text-gray-400">
+                      please wait...{" "}
                     </p>
+                  ) : values.right_url ? (
+                    <a
+                      href={values.right_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-purple-600 flex justify-center cursor-pointer hover:underline"
+                    >
+                      View file upload
+                    </a>
+                  ) : (
+                    <></>
                   )}
                 </div>
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer">
+                <div
+                  onClick={() => document.getElementById("left").click()}
+                  className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer"
+                >
                   <UploadCloud
                     className="mx-auto text-gray-400 mb-4"
                     size={32}
@@ -409,56 +536,121 @@ export default function StyleForm() {
                   </p>
                   <input
                     type="file"
+                    id="left"
                     accept="image/*"
-                    className="mt-2 w-full"
-                    onChange={(e) => handlePhotoUpload("left", e)}
-                    required
+                    className="mt-2 w-full hidden"
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        if (e.target.files[0].size > 5 * 1024 * 1024) {
+                          alert("File size exceeds 5MB limit");
+                          return;
+                        }
+                        const file = e.target.files[0];
+                        const formData = new FormData();
+                        formData.append("image", file);
+                        uploadLeftMutate(formData, {
+                          onSuccess: (data) => {
+                            setFieldValue("left_url", data?.data?.data?.url);
+                          },
+                        });
+                        e.target.value = "";
+                      }
+                    }}
                   />
-                  {stylePhotos.left && (
-                    <p className="text-xs text-gray-500 mt-2">
-                      {stylePhotos.left.name}
+                  {uploadLeftIsPending ? (
+                    <p className="cursor-pointer text-gray-400">
+                      please wait...{" "}
                     </p>
+                  ) : values.left_url ? (
+                    <a
+                      href={values.left_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-purple-600 flex justify-center cursor-pointer hover:underline"
+                    >
+                      View file upload
+                    </a>
+                  ) : (
+                    <></>
                   )}
                 </div>
               </div>
             </div>
-
-            {/* Video Upload */}
             <div>
               <label className="block text-gray-700 mb-4 mt-4">
                 Upload a video of the style (max length of 10secs)
               </label>
+
               <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer">
-                <UploadCloud className="mx-auto text-gray-400 mb-4" size={32} />
-                <p className="text-xs mb-2">Upload video (Less than 10MB)</p>
+                {/* Only this triggers file upload */}
+                <div
+                  //   onClick={() => document.getElementById("uploadVideo").click()}
+                  className="flex flex-col items-center"
+                >
+                  <UploadCloud
+                    className="mx-auto text-gray-400 mb-4"
+                    size={32}
+                  />
+                  <label
+                    htmlFor="uploadVideo"
+                    className="text-xs mb-2 cursor-pointer"
+                  >
+                    Upload video (Less than 10MB)
+                  </label>
+                </div>
+
                 <input
                   type="file"
+                  id="uploadVideo"
                   accept="video/*"
-                  className="mt-2 w-full"
-                  onChange={handleVideoUpload}
-                  required
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      if (file.size > 10 * 1024 * 1024) {
+                        alert("File size exceeds 10MB limit");
+                        return;
+                      }
+                      const formData = new FormData();
+                      formData.append("video", file);
+                      uploadVideoMutate(formData, {
+                        onSuccess: (data) => {
+                          setFieldValue("video_url", data?.data?.data?.url);
+                          e.target.value = "";
+                        },
+                      });
+                    }
+                  }}
                 />
-                {styleVideo && (
-                  <p className="text-xs text-gray-500 mt-2">
-                    {styleVideo.name}
-                  </p>
-                )}
+
+                {uploadVideoIsPending ? (
+                  <p className="text-gray-400 mt-2">please wait...</p>
+                ) : values.video_url ? (
+                  <a
+                    href={values.video_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-purple-600 mt-2 block hover:underline"
+                  >
+                    View file upload
+                  </a>
+                ) : null}
               </div>
             </div>
-
-            {/* Minimum Fabric Quantity */}
             <div>
               <label className="block text-gray-700 mb-4 mt-4">
                 Minimum Fabric Quantity Required (Yards)
               </label>
               <input
                 type="number"
+                name={"minimum_fabric_qty"}
+                value={values.minimum_fabric_qty}
+                onChange={handleChange}
                 placeholder="Enter the minimum fabric required for this style"
                 className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 required
               />
             </div>
-
             {/* Tags */}
             <div>
               <label className="block text-gray-700 mb-4 mt-4">
@@ -492,7 +684,6 @@ export default function StyleForm() {
                 />
               )}
             </div>
-
             {/* Price */}
             <div>
               <label className="block text-gray-700 mb-4 mt-4">Price</label>
@@ -502,34 +693,53 @@ export default function StyleForm() {
                 </span>
                 <input
                   type="number"
+                  name={"price"}
+                  min={0}
+                  value={values.price}
+                  onChange={handleChange}
                   placeholder="Enter amount per unit"
                   className="flex-1 p-4 border border-[#CCCCCC] rounded-lg px-4 py-2 outline-none"
                   required
                 />
               </div>
             </div>
-
             {/* Location */}
             <div>
               <label className="block text-gray-700 mb-4 mt-4">Location</label>
               <input
                 type="text"
-                placeholder="Enter the location"
+                ref={(c) => {
+                  if (c) ref.current = c.input;
+                }}
+                value={values.location}
+                name="location"
+                onChange={(val) => {
+                  setFieldValue("location", val.currentTarget.value);
+                  setFieldValue("latitude", "");
+                  setFieldValue("longitude", "");
+                }}
+                placeholder="Enter the coordinates of the shop"
                 className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                required
               />
             </div>
-
             {/* Modal and Submit Button */}
             <ModalThanks
               isOpen={isModalOpen}
               onClose={() => setIsModalOpen(false)}
             />
             <button
+              disabled={
+                isPending ||
+                uploadVideoIsPending ||
+                uploadFrontIsPending ||
+                uploadBackIsPending ||
+                uploadRightIsPending ||
+                uploadLeftIsPending
+              }
               type="submit"
               className="bg-gradient text-white px-6 py-2 rounded w-full md:w-fit mt-4 cursor-pointer"
             >
-              Submit Style
+              {isPending ? "Please wait..." : "Submit Style"}
             </button>
           </form>
         </div>

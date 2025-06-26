@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useToast from "../useToast";
 import FabricService from "../../services/api/fabric";
+import StyleService from "../../services/api/style";
 
 const useCreateStyleProduct = (business_id) => {
   const queryClient = useQueryClient();
@@ -9,12 +10,15 @@ const useCreateStyleProduct = (business_id) => {
 
   const { isPending, mutate: createStyleProductMutate } = useMutation({
     mutationFn: (payload) =>
-      FabricService.createFabricProduct(payload, business_id),
+      StyleService.createStyleProduct(payload, business_id),
     mutationKey: ["create-style-product"],
     onSuccess(data) {
       toastSuccess(data?.data?.message);
       queryClient.invalidateQueries({
         queryKey: ["get-style-products"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["get-fabric-product"],
       });
     },
     onError: (error) => {

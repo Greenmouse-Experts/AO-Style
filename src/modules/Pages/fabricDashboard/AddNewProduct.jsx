@@ -371,7 +371,7 @@ const AddProduct = () => {
                   Weight per unit
                 </label>
                 <input
-                  type="text"
+                  type="number"
                   name={"weight_per_unit"}
                   required
                   value={values.weight_per_unit}

@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { UploadCloud } from "lucide-react";
 import { Link } from "react-router-dom";
 import ModalThanks from "./components/ModalThanks";
+import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails";
+
+import useCreateStyleProduct from "../../../hooks/style/useCreateStyle";
 
 export default function StyleForm() {
   const [stylePhotos, setStylePhotos] = useState({
@@ -16,6 +19,12 @@ export default function StyleForm() {
   const [tagInput, setTagInput] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [sewingTime, setSewingTime] = useState("");
+
+  const { data: businessDetails } = useGetBusinessDetails();
+
+  const { isPending, createStyleProductMutate } = useCreateStyleProduct(
+    businessDetails?.data?.id
+  );
 
   // Mock function to fetch sewing time based on category
   useEffect(() => {

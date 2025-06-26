@@ -164,7 +164,7 @@ const AddProduct = () => {
             {
               onSuccess: () => {
                 resetForm();
-                navigate("/login");
+                navigate(-1);
               },
             }
           );

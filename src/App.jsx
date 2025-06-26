@@ -38,15 +38,7 @@ const App = () => {
     });
   }, []);
 
-  return (
-    <Router>
-      <Routes>
-        {routes.map((route, index) => (
-          <Route key={index} path={route.path} element={route.element} />
-        ))}
-      </Routes>
-    </Router>
-  );
+  return <></>;
 };
 
 export default App;

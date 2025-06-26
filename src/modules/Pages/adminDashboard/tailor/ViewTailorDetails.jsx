@@ -578,6 +578,13 @@ const ViewTailorDetails = () => {
             >
               Approved{" "}
             </button>
+          ) : activeTab === "kyc" && tailorInfo?.kyc?.is_approved == false ? (
+            <button
+              // onClick={handleProceed}
+              className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
+            >
+              Rejected{" "}
+            </button>
           ) : activeTab == "kyc" && tailorInfo?.kyc == null ? (
             <>
               <button className="bg-gradient text-white cursor-not-allowed py-3 px-6 rounded-md hover:opacity-90">

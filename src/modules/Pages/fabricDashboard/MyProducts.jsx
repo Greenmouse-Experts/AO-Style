@@ -313,7 +313,6 @@ const ProductPage = () => {
               <button
                 key={tab}
                 onClick={() => {
-                  console.log(tab);
                   setFilter(tab);
                   if (tab === "all") {
                     updateQueryParams({
@@ -385,51 +384,53 @@ const ProductPage = () => {
           </p>
         )}
       </div>
-
-      <div className="flex  justify-between items-center mt-4">
-        <div className="flex items-center">
-          <p className="text-sm text-gray-600">Items per page: </p>
-          <select
-            value={queryParams["pagination[limit]"] || 10}
-            onChange={(e) =>
-              updateQueryParams({
-                "pagination[limit]": +e.target.value,
-              })
-            }
-            className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
-          >
-            <option value={5}>5</option>
-            <option value={10}>10</option>
-            <option value={15}>15</option>
-            <option value={20}>20</option>
-          </select>
+      {FabricData?.length ? (
+        <div className="flex  justify-between items-center mt-4">
+          <div className="flex items-center">
+            <p className="text-sm text-gray-600">Items per page: </p>
+            <select
+              value={queryParams["pagination[limit]"] || 10}
+              onChange={(e) =>
+                updateQueryParams({
+                  "pagination[limit]": +e.target.value,
+                })
+              }
+              className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={20}>20</option>
+            </select>
+          </div>
+          <div className="flex gap-1">
+            <button
+              onClick={() => {
+                updateQueryParams({
+                  "pagination[page]": +queryParams["pagination[page]"] - 1,
+                });
+              }}
+              disabled={(queryParams["pagination[page]"] ?? 1) == 1}
+              className="px-3 py-1 rounded-md bg-gray-200"
+            >
+              ◀
+            </button>
+            <button
+              onClick={() => {
+                updateQueryParams({
+                  "pagination[page]": +queryParams["pagination[page]"] + 1,
+                });
+              }}
+              disabled={(queryParams["pagination[page]"] ?? 1) == totalPages}
+              className="px-3 py-1 rounded-md bg-gray-200"
+            >
+              ▶
+            </button>
+          </div>
         </div>
-        <div className="flex gap-1">
-          <button
-            onClick={() => {
-              updateQueryParams({
-                "pagination[page]": +queryParams["pagination[page]"] - 1,
-              });
-            }}
-            disabled={(queryParams["pagination[page]"] ?? 1) == 1}
-            className="px-3 py-1 rounded-md bg-gray-200"
-          >
-            ◀
-          </button>
-          <button
-            onClick={() => {
-              updateQueryParams({
-                "pagination[page]": +queryParams["pagination[page]"] + 1,
-              });
-            }}
-            disabled={(queryParams["pagination[page]"] ?? 1) == totalPages}
-            className="px-3 py-1 rounded-md bg-gray-200"
-          >
-            ▶
-          </button>
-        </div>
-      </div>
-
+      ) : (
+        <></>
+      )}
       {isAddModalOpen && (
         <div
           className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"

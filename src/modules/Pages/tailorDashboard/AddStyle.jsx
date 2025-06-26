@@ -8,6 +8,9 @@ import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails
 
 import useCreateStyleProduct from "../../../hooks/style/useCreateStyle";
 
+import useGetProducts from "../../../hooks/product/useGetProduct";
+import Select from "react-select";
+
 const initialValues = {
   type: "STYLE",
   name: "",
@@ -179,6 +182,18 @@ export default function StyleForm() {
     setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
+  const { data: styleCategory } = useGetProducts({
+    "pagination[limit]": 10000,
+    type: "style",
+  });
+
+  const categoryList = styleCategory?.data
+    ? styleCategory?.data?.map((c) => ({
+        label: c.name,
+        value: c.id,
+      }))
+    : [];
+
   return (
     <>
       <div className="bg-white p-6 mb-6 rounded-lg">
@@ -216,9 +231,12 @@ export default function StyleForm() {
               <label className="block text-gray-700 mb-4 mt-4">SKU</label>
               <input
                 type="text"
-                placeholder="SKU will be generated automatically"
-                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg bg-gray-100 text-gray-500"
-                disabled
+                required
+                name="sku"
+                value={values.sku}
+                onChange={handleChange}
+                placeholder="Enter the unique identifier"
+                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
               />
             </div>
 
@@ -230,7 +248,10 @@ export default function StyleForm() {
               <textarea
                 placeholder="Enter the style description"
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 h-32 outline-none"
-                required
+                type="text"
+                name={"description"}
+                value={values.description}
+                onChange={handleChange}
               />
             </div>
 
@@ -240,16 +261,38 @@ export default function StyleForm() {
                 <label className="block text-gray-700 mb-4 mt-4">
                   Style Category
                 </label>
-                <select
-                  className="w-full p-4 border border-[#CCCCCC] text-gray-700 outline-none rounded-lg"
+                <Select
+                  options={categoryList}
+                  name="category_id"
+                  value={categoryList?.find(
+                    (opt) => opt.value === values.category_id
+                  )}
+                  onChange={(selectedOption) => {
+                    setFieldValue("category_id", selectedOption.value);
+                  }}
                   required
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                >
-                  <option value="">Choose style category</option>
-                  <option value="casual">Casual</option>
-                  <option value="formal">Formal</option>
-                  <option value="traditional">Traditional</option>
-                </select>
+                  placeholder="Choose style"
+                  className="w-full p-2 border border-[#CCCCCC] outline-none rounded-lg"
+                  styles={{
+                    control: (base, state) => ({
+                      ...base,
+                      border: "none",
+                      boxShadow: "none",
+                      outline: "none",
+                      backgroundColor: "#fff",
+                      "&:hover": {
+                        border: "none",
+                      },
+                    }),
+                    indicatorSeparator: () => ({
+                      display: "none",
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      zIndex: 9999,
+                    }),
+                  }}
+                />{" "}
               </div>
 
               <div>
@@ -261,7 +304,6 @@ export default function StyleForm() {
                   placeholder="Fetched based on category"
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg bg-gray-100 text-gray-500"
                   value={sewingTime}
-                  disabled
                 />
               </div>
             </div>

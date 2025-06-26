@@ -142,7 +142,7 @@ const AddProduct = () => {
               },
               fabric: {
                 market_id: val.market_id,
-                weight_per_unit: val.weight_per_unit,
+                weight_per_unit: val?.weight_per_unit?.toString(),
                 location: {
                   latitude: "1.2343444",
                   longitude: "1.500332",
@@ -187,8 +187,9 @@ const AddProduct = () => {
     };
 
     setPhotoFiles(updated);
-    onChange?.(updated); // notify parent
+    onChange?.(updated);
   };
+
   const enableGooglePlaces =
     import.meta.env.VITE_ENABLE_GOOGLE_PLACES === "true";
 
@@ -364,8 +365,6 @@ const AddProduct = () => {
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 />
               </div> */}
-
-              {/* Weight per unit */}
               <div>
                 <label className="block text-gray-700 mb-4">
                   Weight per unit
@@ -374,13 +373,13 @@ const AddProduct = () => {
                   type="number"
                   name={"weight_per_unit"}
                   required
+                  min={0}
                   value={values.weight_per_unit}
                   onChange={handleChange}
-                  placeholder="Enter the weight per unit"
+                  placeholder="Enter the weight per unit (minimum 0)"
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 />
               </div>
-
               <div>
                 <label className="block text-gray-700 mb-4">
                   Location Coordinate

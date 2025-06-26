@@ -10,7 +10,7 @@ import { useEffect } from "react";
 import useToast from "./hooks/useToast.jsx";
 
 const App = () => {
-  const { toastError, toastSuccess, toastInfo, toastWarning } = useToast();
+  const { toastSuccess } = useToast();
 
   const queryClient = useQueryClient();
 

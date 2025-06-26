@@ -25,10 +25,10 @@ const deleteStyleProduct = (payload) => {
   });
 };
 
-const FabricService = {
+const StyleService = {
   createStyleProduct,
   updateStyleProduct,
   deleteStyleProduct,
 };
 
-export default FabricService;
+export default StyleService;

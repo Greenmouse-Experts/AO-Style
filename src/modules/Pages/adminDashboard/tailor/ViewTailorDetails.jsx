@@ -60,6 +60,8 @@ const ViewTailorDetails = () => {
     ? "Tailor/Fashion Designers"
     : "Fabric Vendor";
 
+  console.log(tailorInfo);
+
   return (
     <React.Fragment>
       {" "}
@@ -578,7 +580,9 @@ const ViewTailorDetails = () => {
             >
               Approved{" "}
             </button>
-          ) : activeTab === "kyc" && tailorInfo?.kyc?.is_approved == false ? (
+          ) : activeTab === "kyc" &&
+            tailorInfo?.kyc?.is_approved == false &&
+            tailorInfo?.kyc?.reviewed_by !== null ? (
             <button
               // onClick={handleProceed}
               className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
@@ -591,7 +595,7 @@ const ViewTailorDetails = () => {
                 Awaiting Submission{" "}
               </button>
             </>
-          ) : activeTab == "kyc" && tailorInfo?.kyc ? (
+          ) : activeTab == "kyc" && tailorInfo?.kyc?.reviewed_by == null ? (
             <div className="flex space-x-4">
               <button
                 onClick={() => {

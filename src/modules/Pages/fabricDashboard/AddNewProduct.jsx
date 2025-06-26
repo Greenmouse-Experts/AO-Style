@@ -636,47 +636,63 @@ const AddProduct = () => {
                 )}
               </div>
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-gray-700 mb-4">
+                  Product Description
+                </label>
+                <textarea
+                  placeholder="Enter the style description"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 h-32 outline-none"
+                  required
+                  type="text"
+                  name={"description"}
+                  value={values.description}
+                  onChange={handleChange}
+                />
+              </div>
 
-            {/* Market */}
-            <div>
-              <label className="block text-gray-700 mb-4">Category</label>
-              {/* <select className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg">
+              {/* Market */}
+              <div>
+                <label className="block text-gray-700 mb-4">Category</label>
+                {/* <select className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg">
                   <option>Choose market</option>
                   <option>Local Market</option>
                   <option>Online Market</option>
                 </select> */}
-              <Select
-                options={categoryList}
-                name="category_id"
-                value={categoryList?.find(
-                  (opt) => opt.value === values.category_id
-                )}
-                onChange={(selectedOption) => {
-                  setFieldValue("category_id", selectedOption.value);
-                }}
-                required
-                placeholder="Choose market"
-                className="w-full p-2 border border-[#CCCCCC] outline-none rounded-lg"
-                styles={{
-                  control: (base, state) => ({
-                    ...base,
-                    border: "none",
-                    boxShadow: "none",
-                    outline: "none",
-                    backgroundColor: "#fff",
-                    "&:hover": {
+                <Select
+                  options={categoryList}
+                  name="category_id"
+                  value={categoryList?.find(
+                    (opt) => opt.value === values.category_id
+                  )}
+                  onChange={(selectedOption) => {
+                    setFieldValue("category_id", selectedOption.value);
+                  }}
+                  required
+                  placeholder="Choose market"
+                  className="w-full p-2 border border-[#CCCCCC] outline-none rounded-lg"
+                  styles={{
+                    control: (base, state) => ({
+                      ...base,
                       border: "none",
-                    },
-                  }),
-                  indicatorSeparator: () => ({
-                    display: "none",
-                  }),
-                  menu: (base) => ({
-                    ...base,
-                    zIndex: 9999,
-                  }),
-                }}
-              />{" "}
+                      boxShadow: "none",
+                      outline: "none",
+                      backgroundColor: "#fff",
+                      "&:hover": {
+                        border: "none",
+                      },
+                    }),
+                    indicatorSeparator: () => ({
+                      display: "none",
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      zIndex: 9999,
+                    }),
+                  }}
+                />{" "}
+              </div>
             </div>
 
             {/* Upload Photos */}

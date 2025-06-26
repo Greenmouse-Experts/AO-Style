@@ -2,9 +2,37 @@ import React, { useState, useEffect } from "react";
 import { UploadCloud } from "lucide-react";
 import { Link } from "react-router-dom";
 import ModalThanks from "./components/ModalThanks";
+import { useFormik } from "formik";
+
 import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails";
 
 import useCreateStyleProduct from "../../../hooks/style/useCreateStyle";
+
+const initialValues = {
+  type: "STYLE",
+  name: "",
+  category_id: "",
+  description: "",
+  gender: "",
+  tags: [],
+  price: "",
+  weight_per_unit: "",
+  local_name: "",
+  manufacturer_name: "",
+  material_type: "",
+  alternative_names: "",
+  fabric_texture: "",
+  feel_a_like: "",
+  quantity: "",
+  minimum_yards: "",
+  available_colors: "",
+  fabric_colors: "",
+  photos: [],
+  video_url: "",
+  original_price: "",
+  sku: "",
+  multimedia_url: "",
+};
 
 export default function StyleForm() {
   const [stylePhotos, setStylePhotos] = useState({
@@ -25,6 +53,74 @@ export default function StyleForm() {
   const { isPending, createStyleProductMutate } = useCreateStyleProduct(
     businessDetails?.data?.id
   );
+
+  const {
+    handleSubmit,
+    touched,
+    errors,
+    values,
+    handleChange,
+    resetForm,
+    setFieldValue,
+    // setFieldError,
+  } = useFormik({
+    initialValues: initialValues,
+    validateOnChange: false,
+    validateOnBlur: false,
+    enableReinitialize: true,
+    onSubmit: (val) => {
+      const formData = new FormData();
+      Object.entries(photoFiles).forEach(([label, file]) => {
+        formData.append("images", file);
+      });
+      uploadImagesMutate(formData, {
+        onSuccess: (data) => {
+          const urls = data?.data?.data?.map((item) => item.url) ?? [];
+          console.log(urls);
+          useCreateStyleProduct(
+            {
+              product: {
+                type: val.type,
+                name: val.name,
+                category_id: val.category_id,
+                sku: val.sku,
+                description: val.description,
+                gender: val.gender,
+                tags: val.tags,
+                price: val.price?.toString(),
+              },
+              fabric: {
+                market_id: val.market_id,
+                weight_per_unit: val.weight_per_unit,
+                location: {
+                  latitude: "1.2343444",
+                  longitude: "1.500332",
+                },
+                local_name: val.local_name,
+                manufacturer_name: val.manufacturer_name,
+                material_type: val.material_type,
+                alternative_names: val.alternative_names,
+                fabric_texture: val.fabric_texture,
+                feel_a_like: val.feel_a_like,
+                quantity: val.quantity,
+                minimum_yards: val.minimum_yards?.toString(),
+                available_colors: val.available_colors?.toString(),
+                fabric_colors: val.fabric_colors,
+                photos: urls,
+                video_url: val.video_url,
+              },
+            },
+            {
+              onSuccess: () => {
+                resetForm();
+                navigate(-1);
+              },
+            }
+          );
+        },
+      });
+    },
+  });
 
   // Mock function to fetch sewing time based on category
   useEffect(() => {
@@ -83,12 +179,6 @@ export default function StyleForm() {
     setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Here you would typically handle the form submission, e.g., send data to the server
-    setIsModalOpen(true);
-  };
-
   return (
     <>
       <div className="bg-white p-6 mb-6 rounded-lg">
@@ -112,6 +202,9 @@ export default function StyleForm() {
               <label className="block text-gray-700 mb-4">Style Name</label>
               <input
                 type="text"
+                name={"name"}
+                value={values.name}
+                onChange={handleChange}
                 placeholder="Enter the name of style"
                 className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 required

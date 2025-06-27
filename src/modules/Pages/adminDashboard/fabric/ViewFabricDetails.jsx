@@ -18,9 +18,15 @@ const ViewFabricDetails = () => {
 
   const id = location?.state?.info;
 
+  console.log(id);
+
   const { isPending: userIsPending, data } = useGetUser(id);
 
-  const tailorInfo = { ...data?.data?.business, ...data?.data?.user };
+  const tailorInfo = {
+    ...data?.data?.business,
+    ...data?.data?.user,
+    kyc: { ...data?.data?.kyc },
+  };
 
   const queryParams = new URLSearchParams(location.search);
   const initialTab = queryParams.get("tab") || "personal";

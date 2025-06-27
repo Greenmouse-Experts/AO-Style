@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import MarketRepService from "../../services/api/marketrep";
 
-function useGetAllMarketRepVendor(params) {
+function useGetAllMarketRepVendor(params, role) {
   const { isLoading, isFetching, data, isError, refetch, isPending } = useQuery(
     {
       queryKey: ["get-market-rep-vendor", params],
-      queryFn: () => MarketRepService.GetMarketRepVendor(params),
+      queryFn: () => MarketRepService.GetMarketRepVendor(params, role),
     }
   );
 

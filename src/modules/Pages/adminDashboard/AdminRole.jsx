@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import ReusableTable from "./components/ReusableTable";
 import { FaEllipsisH } from "react-icons/fa";
+import AdminRoleService from "../../../services/api/adminRole";
+import { formatDateStr } from "../../../lib/helper";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -9,33 +11,48 @@ const CustomersTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [adminRoles, setAdminRoles] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [posting, setPosting] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editRoleId, setEditRoleId] = useState(null);
+  const [editRole, setEditRole] = useState({ roleName: "", assignedRoles: [] });
+  const [editLoading, setEditLoading] = useState(false);
+  const [editPosting, setEditPosting] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
-  // Dummy Sub-Admins Data
-  const data = Array.from({ length: 30 }, (_, i) => ({
-    id: i + 1,
-    profile: `https://randomuser.me/api/portraits/thumb/men/${i % 10}.jpg`,
-    name: `Admin ${i + 1}`,
-    role: [
-      "Vendor Manager",
-      "Tailor Manager",
-      "Delivery Manager",
-      "Customer Support",
-      "Payment & Finance",
-      "Marketing & Promotions",
-      "Content & Moderation",
-    ][i % 7],
-    phone: `+234 80${Math.floor(10000000 + Math.random() * 90000000)}`,
-    email: `admin${i + 1}@email.com`,
-    location: `Location ${i + 1}`,
-    dateJoined: `01/04/25`,
-  }));
+  // Fetch admin roles from API
+  const fetchAdminRoles = async () => {
+    setLoading(true);
+    try {
+      const res = await AdminRoleService.getAdminRoles();
+      setAdminRoles(res?.data?.data || []);
+    } catch (err) {
+      // Optionally handle error
+      setAdminRoles([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAdminRoles();
+  }, []);
 
   // Table Columns
   const columns = [
-    { label: "S/N", key: "id" },
-    { label: "Admin Role Name", key: "name" },
-    { label: "Roles Assigned", key: "role" },
-    { label: "Date Added", key: "dateJoined" },
+    { label: "S/N", key: "sn" },
+    { label: "Admin Role Name", key: "title" },
+    {
+      label: "Roles Assigned",
+      key: "role",
+      render: (_, row) => (Array.isArray(row.role) ? row.role.join(", ") : ""),
+    },
+    {
+      label: "Date Added",
+      key: "createdAt",
+      render: (_, row) => (row.createdAt ? formatDateStr(row.createdAt) : "-"),
+    },
     {
       label: "Action",
       key: "action",
@@ -43,20 +60,79 @@ const CustomersTable = () => {
         <div className="relative" ref={dropdownRef}>
           <button
             className="bg-gray-100 text-gray-500 px-3 py-1 rounded-md"
-            onClick={() => toggleDropdown(row.id)}
+            onClick={() => toggleDropdown(row._id)}
           >
             <FaEllipsisH />
           </button>
-          {openDropdown === row.id && (
+          {openDropdown === row._id && (
             <div className="absolute right-0 mt-2 w-40 bg-white rounded-md z-10 shadow-lg">
               <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
                 View Details
               </button>
-              <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
+              <button
+                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
+                onClick={async () => {
+                  setEditRoleId(row._id);
+                  setEditModalOpen(true);
+                  setEditLoading(true);
+                  try {
+                    const res = await AdminRoleService.getAdminRoleById(
+                      row._id
+                    );
+                    const data = res?.data?.data;
+                    setEditRole({
+                      roleName: data?.title || "",
+                      assignedRoles: Array.isArray(data?.role)
+                        ? data.role.map((r) => {
+                            switch (r) {
+                              case "fabric-vendor":
+                                return "Fabric Vendor Dashboard";
+                              case "customer":
+                                return "Customer Dashboard";
+                              case "fashion-designer":
+                                return "Tailor/Designer Dashboard";
+                              case "market-representative":
+                                return "Market Rep Dashboard";
+                              case "logistics-agent":
+                                return "Logistics";
+                              default:
+                                return r;
+                            }
+                          })
+                        : [],
+                    });
+                  } catch (err) {
+                    setEditRole({ roleName: "", assignedRoles: [] });
+                  } finally {
+                    setEditLoading(false);
+                  }
+                }}
+              >
                 Edit Admin
               </button>
-              <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">
-                Remove Admin
+              <button
+                className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full"
+                onClick={async () => {
+                  if (
+                    window.confirm(
+                      "Are you sure you want to delete this admin role?"
+                    )
+                  ) {
+                    setDeletingId(row._id);
+                    try {
+                      await AdminRoleService.deleteAdminRole(row._id);
+                      fetchAdminRoles();
+                    } catch (err) {
+                      // Optionally handle error
+                    } finally {
+                      setDeletingId(null);
+                      setOpenDropdown(null);
+                    }
+                  }
+                }}
+                disabled={deletingId === row._id}
+              >
+                {deletingId === row._id ? "Removing..." : "Remove Admin"}
               </button>
             </div>
           )}
@@ -79,18 +155,26 @@ const CustomersTable = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredData = data.filter((market) =>
-    Object.values(market).some(
-      (value) =>
-        typeof value === "string" &&
-        value.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
+  // Filtered and paginated data
+  const filteredData = adminRoles.filter((role, idx) => {
+    // Add S/N for table
+    role.sn = idx + 1;
+    return (
+      Object.values(role).some(
+        (value) =>
+          typeof value === "string" &&
+          value.toLowerCase().includes(searchTerm.toLowerCase())
+      ) ||
+      (Array.isArray(role.role) &&
+        role.role.some((r) =>
+          r.toLowerCase().includes(searchTerm.toLowerCase())
+        ))
+    );
+  });
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
-
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
   const handlePreviousPage = () => {
@@ -106,8 +190,8 @@ const CustomersTable = () => {
   };
 
   const handleItemsPerPageChange = (e) => {
-    setItemsPerPage(Number(e.target.value)); // Update items per page
-    setCurrentPage(1); // Reset to the first page whenever the items per page is changed
+    setItemsPerPage(Number(e.target.value));
+    setCurrentPage(1);
   };
 
   const [newRole, setNewRole] = useState({
@@ -139,9 +223,82 @@ const CustomersTable = () => {
     }));
   };
 
-  const handleSave = () => {
-    console.log("New Role Data:", newRole);
-    onClose();
+  // POST new admin role
+  const handleSave = async () => {
+    setPosting(true);
+    try {
+      await AdminRoleService.createAdminRole({
+        title: newRole.roleName,
+        role: newRole.assignedRoles.map((r) => {
+          // Map UI values to API values
+          switch (r) {
+            case "Fabric Vendor Dashboard":
+              return "fabric-vendor";
+            case "Customer Dashboard":
+              return "customer";
+            case "Tailor/Designer Dashboard":
+              return "fashion-designer";
+            case "Market Rep Dashboard":
+              return "market-representative";
+            case "Logistics":
+              return "logistics-agent";
+            default:
+              return r;
+          }
+        }),
+      });
+      setIsModalOpen(false);
+      fetchAdminRoles();
+    } catch (err) {
+      // Optionally handle error
+    } finally {
+      setPosting(false);
+    }
+  };
+
+  // Edit modal handlers
+  const handleEditInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditRole((prev) => ({ ...prev, [name]: value }));
+  };
+  const handleEditCheckboxChange = (e) => {
+    const { value, checked } = e.target;
+    setEditRole((prev) => ({
+      ...prev,
+      assignedRoles: checked
+        ? [...prev.assignedRoles, value]
+        : prev.assignedRoles.filter((role) => role !== value),
+    }));
+  };
+  const handleEditSave = async () => {
+    setEditPosting(true);
+    try {
+      await AdminRoleService.updateAdminRole(editRoleId, {
+        title: editRole.roleName,
+        role: editRole.assignedRoles.map((r) => {
+          switch (r) {
+            case "Fabric Vendor Dashboard":
+              return "fabric-vendor";
+            case "Customer Dashboard":
+              return "customer";
+            case "Tailor/Designer Dashboard":
+              return "fashion-designer";
+            case "Market Rep Dashboard":
+              return "market-representative";
+            case "Logistics":
+              return "logistics-agent";
+            default:
+              return r;
+          }
+        }),
+      });
+      setEditModalOpen(false);
+      fetchAdminRoles();
+    } catch (err) {
+      // Optionally handle error
+    } finally {
+      setEditPosting(false);
+    }
   };
 
   return (
@@ -228,6 +385,7 @@ const CustomersTable = () => {
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="text-gray-500 hover:text-gray-700 text-2xl"
+                disabled={posting}
               >
                 ×
               </button>
@@ -247,6 +405,7 @@ const CustomersTable = () => {
                   onChange={handleInputChange}
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                   placeholder="Enter the admin role name"
+                  disabled={posting}
                 />
               </div>
               <div>
@@ -263,6 +422,7 @@ const CustomersTable = () => {
                       )}
                       onChange={handleCheckboxChange}
                       className="mr-2"
+                      disabled={posting}
                     />
                     Fabric Vendor Dashboard
                   </label>
@@ -275,6 +435,7 @@ const CustomersTable = () => {
                       )}
                       onChange={handleCheckboxChange}
                       className="mr-2"
+                      disabled={posting}
                     />
                     Customer Dashboard
                   </label>
@@ -287,6 +448,7 @@ const CustomersTable = () => {
                       )}
                       onChange={handleCheckboxChange}
                       className="mr-2"
+                      disabled={posting}
                     />
                     Tailor/Designer Dashboard
                   </label>
@@ -299,6 +461,7 @@ const CustomersTable = () => {
                       )}
                       onChange={handleCheckboxChange}
                       className="mr-2"
+                      disabled={posting}
                     />
                     Market Rep Dashboard
                   </label>
@@ -309,6 +472,7 @@ const CustomersTable = () => {
                       checked={newRole.assignedRoles.includes("Logistics")}
                       onChange={handleCheckboxChange}
                       className="mr-2"
+                      disabled={posting}
                     />
                     Logistics
                   </label>
@@ -316,13 +480,133 @@ const CustomersTable = () => {
               </div>
             </div>
             <button
-              onClick={() => {
-                handleSave();
-                setIsModalOpen(false);
-              }}
+              onClick={handleSave}
               className="mt-6 w-full bg-gradient text-white px-6 py-3 text-sm rounded-md"
+              disabled={posting}
             >
-              Add Admin Role
+              {posting ? "Adding..." : "Add Admin Role"}
+            </button>
+          </div>
+        </div>
+      )}
+      {/* Edit Admin Modal */}
+      {editModalOpen && (
+        <div
+          className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
+          onClick={() => setEditModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-lg p-6 w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-end">
+              <button
+                onClick={() => setEditModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl"
+                disabled={editPosting}
+              >
+                ×
+              </button>
+            </div>
+            <h3 className="text-lg font-semibold mb-6 -mt-7">
+              Edit Admin Role
+            </h3>
+            {editLoading ? (
+              <div className="text-center py-8">Loading...</div>
+            ) : (
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-4">
+                    Admin Role Name
+                  </label>
+                  <input
+                    type="text"
+                    name="roleName"
+                    value={editRole.roleName}
+                    onChange={handleEditInputChange}
+                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                    placeholder="Enter the admin role name"
+                    disabled={editPosting}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-4">
+                    Roles Assigned
+                  </label>
+                  <div className="space-y-4">
+                    <label className="flex items-center text-sm text-gray-700">
+                      <input
+                        type="checkbox"
+                        value="Fabric Vendor Dashboard"
+                        checked={editRole.assignedRoles.includes(
+                          "Fabric Vendor Dashboard"
+                        )}
+                        onChange={handleEditCheckboxChange}
+                        className="mr-2"
+                        disabled={editPosting}
+                      />
+                      Fabric Vendor Dashboard
+                    </label>
+                    <label className="flex items-center text-sm text-gray-700">
+                      <input
+                        type="checkbox"
+                        value="Customer Dashboard"
+                        checked={editRole.assignedRoles.includes(
+                          "Customer Dashboard"
+                        )}
+                        onChange={handleEditCheckboxChange}
+                        className="mr-2"
+                        disabled={editPosting}
+                      />
+                      Customer Dashboard
+                    </label>
+                    <label className="flex items-center text-sm text-gray-700">
+                      <input
+                        type="checkbox"
+                        value="Tailor/Designer Dashboard"
+                        checked={editRole.assignedRoles.includes(
+                          "Tailor/Designer Dashboard"
+                        )}
+                        onChange={handleEditCheckboxChange}
+                        className="mr-2"
+                        disabled={editPosting}
+                      />
+                      Tailor/Designer Dashboard
+                    </label>
+                    <label className="flex items-center text-sm text-gray-700">
+                      <input
+                        type="checkbox"
+                        value="Market Rep Dashboard"
+                        checked={editRole.assignedRoles.includes(
+                          "Market Rep Dashboard"
+                        )}
+                        onChange={handleEditCheckboxChange}
+                        className="mr-2"
+                        disabled={editPosting}
+                      />
+                      Market Rep Dashboard
+                    </label>
+                    <label className="flex items-center text-sm text-gray-700">
+                      <input
+                        type="checkbox"
+                        value="Logistics"
+                        checked={editRole.assignedRoles.includes("Logistics")}
+                        onChange={handleEditCheckboxChange}
+                        className="mr-2"
+                        disabled={editPosting}
+                      />
+                      Logistics
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
+            <button
+              onClick={handleEditSave}
+              className="mt-6 w-full bg-gradient text-white px-6 py-3 text-sm rounded-md"
+              disabled={editPosting || editLoading}
+            >
+              {editPosting ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </div>

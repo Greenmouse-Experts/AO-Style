@@ -6,8 +6,8 @@ export const GetMarketRep = (params) => {
   });
 };
 
-export const GetMarketRepVendor = (params) => {
-  return CaryBinApi.get(`/auth/vendors?role=${params?.role}`, {
+export const GetMarketRepVendor = (params, role) => {
+  return CaryBinApi.get(`/auth/vendors?role=${role}`, {
     params,
   });
 };

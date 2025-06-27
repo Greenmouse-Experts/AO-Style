@@ -27,7 +27,7 @@ const AddFabricForm = () => {
       {/* Tabs */}
       <div className="flex space-x-6 border-b border-gray-300 mb-6">
         <button
-          onClick={() => setActiveTab("personal")}
+          // onClick={() => setActiveTab("personal")}
           className={`py-2 px-4 ${
             activeTab === "personal"
               ? "text-purple-600 border-b-2 border-purple-600"
@@ -37,7 +37,7 @@ const AddFabricForm = () => {
           Personal Info
         </button>
         <button
-          onClick={() => setActiveTab("business")}
+          // onClick={() => setActiveTab("business")}
           className={`py-2 px-4 ${
             activeTab === "business"
               ? "text-purple-600 border-b-2 border-purple-600"
@@ -47,7 +47,7 @@ const AddFabricForm = () => {
           Business Info
         </button>
         <button
-          onClick={() => setActiveTab("kyc")}
+          // onClick={() => setActiveTab("kyc")}
           className={`py-2 px-4 ${
             activeTab === "kyc"
               ? "text-purple-600 border-b-2 border-purple-600"

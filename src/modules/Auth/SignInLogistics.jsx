@@ -293,6 +293,35 @@ export default function SignUpAsLogisticsAgent() {
               </div>
             )}
 
+            {agentType === "organization" && (
+              <div>
+                <label className="block text-gray-700 mb-1">
+                  Business Type
+                </label>
+                <select
+                  name={"business_type"}
+                  value={values.business_type}
+                  onChange={handleChange}
+                  className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg text-gray-500"
+                  required
+                >
+                  <option value="" disabled selected>
+                    Select your business type
+                  </option>
+                  <option value="sole-proprietorship">
+                    Sole Proprietorship
+                  </option>
+                  <option value="partnership">Partnership</option>
+                  <option value="llc">Limited Liability Company (LLC)</option>
+                  <option value="corporation">
+                    Corporation (C Corp & S Corp)
+                  </option>
+                  <option value="nonprofit">Nonprofit Organization</option>
+                  <option value="franchise">Franchise</option>
+                </select>
+              </div>
+            )}
+
             <div>
               <label className="block text-gray-700 mb-1">Email Address</label>
               <input

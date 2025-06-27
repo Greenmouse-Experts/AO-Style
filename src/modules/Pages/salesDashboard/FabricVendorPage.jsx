@@ -3,6 +3,11 @@ import { Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { FaEllipsisH } from "react-icons/fa";
 import ReusableTable from "../salesDashboard/components/ReusableTable";
+import useGetAllMarketRepVendor from "../../../hooks/marketRep/useGetAllReps";
+import useQueryParams from "../../../hooks/useQueryParams";
+import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
+
+import useDebounce from "../../../hooks/useDebounce";
 
 const vendors = [
   {
@@ -66,6 +71,31 @@ export default function FabricVendorPage() {
   const [filter, setFilter] = useState("All Fabric Vendors");
   const dropdownRef = useRef(null);
   const [openDropdown, setOpenDropdown] = useState(null);
+
+  const { queryParams, updateQueryParams, clearAllFilters } = useQueryParams({
+    "pagination[page]": 1,
+    "pagination[limit]": 10,
+  });
+
+  const { data: getAllFabVendorData, isPending: allInviteIsPending } =
+    useGetAllMarketRepVendor({
+      ...queryParams,
+      role: "fabric-vendor",
+    });
+
+  const [queryString, setQueryString] = useState(queryParams.q);
+
+  const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
+
+  useUpdatedEffect(() => {
+    // update search params with undefined if debouncedSearchTerm is an empty string
+    updateQueryParams({
+      q: debouncedSearchTerm.trim() || undefined,
+      "pagination[page]": 1,
+    });
+  }, [debouncedSearchTerm]);
+
+  console.log(getAllFabVendorData);
 
   const columns = [
     { key: "id", label: "#" },
@@ -186,8 +216,12 @@ export default function FabricVendorPage() {
                 type="text"
                 placeholder="Search"
                 className="pl-10 pr-4 py-2 border border-gray-200 rounded-md outline-none w-full sm:w-64"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={queryString}
+                onChange={(evt) =>
+                  setQueryString(
+                    evt.target.value ? evt.target.value : undefined
+                  )
+                }
               />
             </div>
             <button className="px-4 py-2 bg-gray-200 rounded-md whitespace-nowrap">

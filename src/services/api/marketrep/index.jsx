@@ -6,6 +6,12 @@ export const GetMarketRep = (params) => {
   });
 };
 
+export const GetMarketRepVendor = (params) => {
+  return CaryBinApi.get(`/auth/vendors?role=${params?.role}`, {
+    params,
+  });
+};
+
 const getInviteInfo = (id) => {
   return CaryBinApi.get(`/contact/invite/${id}`);
 };
@@ -18,11 +24,17 @@ const approveMarketRep = (payload) => {
   return CaryBinApi.patch(`/auth/users/approve`, payload);
 };
 
+const addMarketRepFabric = (payload) => {
+  return CaryBinApi.post(`/auth/register-vendor`, payload);
+};
+
 const MarketRepService = {
   GetMarketRep,
   addMarketRep,
   getInviteInfo,
   approveMarketRep,
+  addMarketRepFabric,
+  GetMarketRepVendor,
 };
 
 export default MarketRepService;

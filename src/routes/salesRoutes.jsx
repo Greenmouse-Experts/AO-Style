@@ -37,7 +37,7 @@ export const salesRoutes = [
       },
       {
         path: "/sales/add-fashion-designers",
-        element: <AddTailorDesigners />,
+        element: <AddFabricVendorPage />,
       },
       {
         path: "/sales/transactions",

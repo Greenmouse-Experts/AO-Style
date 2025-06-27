@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Eye, EyeOff, Upload } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import Select from "react-select";
 
@@ -41,6 +41,9 @@ const initialValues = {
 };
 
 export default function AddFabricVendorPage() {
+  const location = useLocation();
+  const currentPath = location.pathname;
+
   const [step, setStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -77,6 +80,8 @@ export default function AddFabricVendorPage() {
 
   const { isPending, addMarketRepFabricVendorMutate } = useAddFabricVendor();
 
+  const isExact = currentPath === "/sales/add-fashion-designers";
+
   const {
     handleSubmit,
     touched,
@@ -105,7 +110,7 @@ export default function AddFabricVendorPage() {
       if (step == 3) {
         addMarketRepFabricVendorMutate(
           {
-            role: "fabric-vendor",
+            role: isExact ? "fashion-designer" : "fabric-vendor",
             profile: {
               name: val?.name,
               email: val?.email,
@@ -148,12 +153,15 @@ export default function AddFabricVendorPage() {
   return (
     <div className="">
       <div className="bg-white px-6 py-4 mb-6 relative">
-        <h1 className="text-2xl font-medium mb-3">Add Fabric Vendor</h1>
+        <h1 className="text-2xl font-medium mb-3">
+          Add {isExact ? "Add Tailor/Fashion Designers" : "Fabric Vendor"}
+        </h1>
         <p className="text-gray-500">
           <Link to="/sales" className="text-blue-500 hover:underline">
             Dashboard
           </Link>{" "}
-          &gt; Fabric Vendors &gt; Add Fabric Vendor
+          &gt; {isExact ? "Fashion Designers" : "Fabric Vendors"} &gt; Add
+          {isExact ? "Fashion Designers" : "Fabric Vendors"}{" "}
         </p>
       </div>
 

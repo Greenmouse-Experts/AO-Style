@@ -20,6 +20,7 @@ const CustomersTable = () => {
   const [editLoading, setEditLoading] = useState(false);
   const [editPosting, setEditPosting] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [formError, setFormError] = useState("");
 
   // Fetch admin roles from API
   const fetchAdminRoles = async () => {
@@ -225,6 +226,15 @@ const CustomersTable = () => {
 
   // POST new admin role
   const handleSave = async () => {
+    setFormError("");
+    if (!newRole.roleName.trim()) {
+      setFormError("Admin role name is required.");
+      return;
+    }
+    if (newRole.assignedRoles.length === 0) {
+      setFormError("At least one role must be assigned.");
+      return;
+    }
     setPosting(true);
     try {
       await AdminRoleService.createAdminRole({
@@ -250,7 +260,7 @@ const CustomersTable = () => {
       setIsModalOpen(false);
       fetchAdminRoles();
     } catch (err) {
-      // Optionally handle error
+      setFormError("Failed to add admin role. Please try again.");
     } finally {
       setPosting(false);
     }
@@ -481,11 +491,26 @@ const CustomersTable = () => {
             </div>
             <button
               onClick={handleSave}
-              className="mt-6 w-full bg-gradient text-white px-6 py-3 text-sm rounded-md"
-              disabled={posting}
+              className={`mt-6 w-full px-6 py-3 text-sm rounded-md ${
+                posting ||
+                !newRole.roleName.trim() ||
+                newRole.assignedRoles.length === 0
+                  ? "bg-gray-300 text-gray-400 cursor-not-allowed"
+                  : "bg-gradient text-white"
+              }`}
+              disabled={
+                posting ||
+                !newRole.roleName.trim() ||
+                newRole.assignedRoles.length === 0
+              }
             >
               {posting ? "Adding..." : "Add Admin Role"}
             </button>
+            {formError && (
+              <div className="mt-2 text-red-500 text-sm text-center">
+                {formError}
+              </div>
+            )}
           </div>
         </div>
       )}

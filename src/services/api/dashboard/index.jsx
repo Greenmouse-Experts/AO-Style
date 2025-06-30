@@ -18,10 +18,22 @@ const getMarketPlaceFabric = (params) => {
   });
 };
 
+const getProductCategory = (params) => {
+  return CaryBinApi.get(`/product-category/public?type=${params?.type}`);
+};
+
+const getProductGeneral = (params, type) => {
+  return CaryBinApi.get(`/product-general/public?type=${type}`, {
+    params,
+  });
+};
+
 const DashboardService = {
   getTrendingFabric,
   getMarketPlacesPublic,
   getMarketPlaceFabric,
+  getProductCategory,
+  getProductGeneral,
 };
 
 export default DashboardService;

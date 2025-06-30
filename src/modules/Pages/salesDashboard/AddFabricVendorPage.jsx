@@ -145,7 +145,6 @@ export default function AddFabricVendorPage() {
             },
           }
         );
-        console.log(val);
       }
     },
   });

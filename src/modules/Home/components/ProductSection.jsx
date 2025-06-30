@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import useProductCategoryGeneral from "../../../hooks/dashboard/useGetProductPublic";
+import LoaderComponent from "../../../components/BeatLoader";
+import useProductGeneral from "../../../hooks/dashboard/useGetProductGeneral";
 
 const categories = [
   "All Products",
@@ -82,12 +85,33 @@ const products = [
 ];
 
 export default function ProductSection() {
-  const [selectedCategory, setSelectedCategory] = useState("All Products");
+  const [selectedCategory, setSelectedCategory] = useState("1");
 
   const filteredProducts =
     selectedCategory === "All Products"
       ? products
       : products.filter((product) => product.category === selectedCategory);
+
+  const { data: getStyleProductGeneralData, isPending } =
+    useProductCategoryGeneral({
+      "pagination[limit]": 10,
+      "pagination[page]": 1,
+      type: "style",
+    });
+
+  const { data: getStyleProductData, isPending: productIsPending } =
+    useProductGeneral(
+      {
+        "pagination[limit]": 10,
+        "pagination[page]": 1,
+        category_id: selectedCategory == "1" ? undefined : selectedCategory,
+      },
+      "STYLE"
+    );
+
+  console.log(getStyleProductData?.data);
+
+  const styleData = getStyleProductGeneralData?.data;
 
   return (
     <section className="Resizer section">
@@ -101,36 +125,61 @@ export default function ProductSection() {
         outfit
       </h2>
       <div className="flex space-x-4 overflow-x-auto mb-10 px-4">
-        {categories.map((category) => (
-          <button
-            key={category}
-            onClick={() => setSelectedCategory(category)}
-            className={`px-4 py-2 ${
-              selectedCategory === category
-                ? "text-[#AB52EE] border-b-1 border-[#AB52EE] font-medium cursor-pointer"
-                : "text-[#4B4A4A] font-light cursor-pointer"
-            }`}
-          >
-            {category}
-          </button>
-        ))}
+        <div className="flex space-x-4 overflow-x-auto mb-10 px-4 whitespace-nowrap">
+          {styleData
+            ? [
+                {
+                  id: "1",
+                  name: "All Products",
+                  type: "style",
+                },
+                ...styleData,
+              ].map((category) => (
+                <button
+                  style={{
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    display: "block",
+                  }}
+                  title={category.name}
+                  key={category.name}
+                  onClick={() => setSelectedCategory(category?.id)}
+                  className={`px-4 py-2 truncate overflow-hidden whitespace-nowrap max-w-[120px] rounded-md shrink-0 text-sm ${
+                    selectedCategory === category?.id
+                      ? "text-[#AB52EE] border-b-2 border-[#AB52EE] font-medium"
+                      : "text-[#4B4A4A] font-light"
+                  }`}
+                >
+                  {category?.name}
+                </button>
+              ))
+            : null}
+        </div>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4">
-        {filteredProducts.map((product) => (
-          <Link to={`/aostyle-details`} key={product.id} className="">
-            <img
-              src={product.image}
-              alt={product.name}
-              className="w-full object-cover rounded-md"
-            />
-            <h3 className="font-medium text-left mt-4 mb-3">{product.name}</h3>
-            <p className="text-[#2B21E5]  text-left font-light">
-              {product.price}{" "}
-              <span className="text-[#8A8A8A] font-medium">per unit</span>
-            </p>
-          </Link>
-        ))}
-      </div>
+      {productIsPending ? (
+        <LoaderComponent />
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4">
+          {getStyleProductData?.data?.map((product) => (
+            <Link to={`/aostyle-details`} key={product.id} className="">
+              <img
+                src={product?.style?.photos[0]}
+                alt={product.name}
+                className="w-full h-[200px] object-cover rounded-md"
+              />
+              <h3 className="font-medium text-left mt-4 mb-3">
+                {product?.name}
+              </h3>
+              <p className="text-[#2B21E5]  text-left font-light">
+                {product?.price}{" "}
+                <span className="text-[#8A8A8A] font-medium">per unit</span>
+              </p>
+            </Link>
+          ))}
+        </div>
+      )}
+
       <div className="flex justify-center mt-14">
         <Link to="/products">
           <button className="bg-gradient text-white px-10 py-3 w-full md:w-auto cursor-pointer">

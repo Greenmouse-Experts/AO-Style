@@ -8,99 +8,6 @@ import LoaderComponent from "../../../components/BeatLoader";
 import useDebounce from "../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 
-const allProducts = [
-  {
-    id: 1,
-    name: "Plaid Colourful Fabric",
-    type: "Plaid",
-    color: "Multicolour",
-    price: 12000,
-    image:
-      "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214605/AoStyle/image4_p4lpek.png",
-  },
-  {
-    id: 2,
-    name: "Yellow Cashmere",
-    type: "Cashmere",
-    color: "Yellow",
-    price: 12000,
-    image:
-      "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214577/AoStyle/image2_dqzhpz.png",
-  },
-  {
-    id: 3,
-    name: "100% Cotton Material",
-    type: "Cotton",
-    color: "Cream",
-    price: 12000,
-    image:
-      "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214577/AoStyle/image2_dqzhpz.png",
-  },
-  {
-    id: 4,
-    name: "Red Ankara Fabric",
-    type: "Ankara",
-    color: "Red",
-    price: 12000,
-    image:
-      "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214549/AoStyle/image_exywgk.png",
-  },
-  {
-    id: 5,
-    name: "Red Ankara Fabric",
-    type: "Ankara",
-    color: "Red",
-    price: 12000,
-    image:
-      "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214549/AoStyle/image_exywgk.png",
-  },
-  {
-    id: 6,
-    name: "Plaid Colourful Fabric",
-    type: "Plaid",
-    color: "Multicolour",
-    price: 12000,
-    image:
-      "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214605/AoStyle/image4_p4lpek.png",
-  },
-  {
-    id: 7,
-    name: "Yellow Cashmere",
-    type: "Cashmere",
-    color: "Yellow",
-    price: 12000,
-    image:
-      "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214604/AoStyle/image3_ebun7q.png",
-  },
-  {
-    id: 8,
-    name: "100% Cotton Material",
-    type: "Cotton",
-    color: "Cream",
-    price: 12000,
-    image:
-      "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214604/AoStyle/image3_ebun7q.png",
-  },
-  {
-    id: 9,
-    name: "Plaid Colourful Fabric",
-    type: "Plaid",
-    color: "Multicolour",
-    price: 12000,
-    image:
-      "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214605/AoStyle/image4_p4lpek.png",
-  },
-  {
-    id: 10,
-    name: "Red Ankara Fabric",
-    type: "Ankara",
-    color: "Red",
-    price: 12000,
-    image:
-      "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214549/AoStyle/image_exywgk.png",
-  },
-];
-
 export default function MarketplacePage() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
@@ -135,29 +42,8 @@ export default function MarketplacePage() {
     q: debounceSearch,
   });
 
-  const totalPages = Math.ceil(getMarketPlaceFabricData?.count / 10);
-
-  const isShowMoreBtn = (page ?? 1) == totalPages;
-
-  console.log(isShowMoreBtn);
-
-  const filteredProducts = allProducts.filter((product) => {
-    const matchesSearch = product.name
-      .toLowerCase()
-      .includes(search.toLowerCase());
-    const matchesType = typeFilter ? product.type === typeFilter : true;
-    const matchesColor = colorFilter ? product.color === colorFilter : true;
-    const matchesPrice =
-      priceFilter === "low"
-        ? product.price <= 10000
-        : priceFilter === "mid"
-        ? product.price > 10000 && product.price <= 15000
-        : priceFilter === "high"
-        ? product.price > 15000
-        : true;
-
-    return matchesSearch && matchesType && matchesColor && matchesPrice;
-  });
+  const isShowMoreBtn =
+    getMarketPlaceFabricData?.data?.length == getMarketPlaceFabricData?.count;
 
   return (
     <>

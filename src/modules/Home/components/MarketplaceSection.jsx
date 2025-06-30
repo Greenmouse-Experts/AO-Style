@@ -85,7 +85,7 @@ export default function MarketplaceSection() {
     "pagination[limit]": 10,
   });
 
-  const marketPlacePublic = getMarketPlacePublicData?.data || [];
+  const marketPlacePublic = getMarketPlacePublicData?.data;
 
   const [index, setIndex] = useState(0);
 
@@ -107,8 +107,6 @@ export default function MarketplaceSection() {
     const interval = setInterval(nextSlide, 3000); // Change slide every 3 seconds
     return () => clearInterval(interval); // Cleanup interval on unmount
   }, [index, maxIndex]);
-
-  console.log(marketPlacePublic);
 
   return (
     <section className="Resizer just px-4">

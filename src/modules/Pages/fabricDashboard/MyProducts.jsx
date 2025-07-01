@@ -76,8 +76,6 @@ const ProductPage = () => {
 
   const { isPending: deleteIsPending, deleteFabricMutate } = useDeleteFabric();
 
-  console.log(FabricData);
-
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const columns = useMemo(

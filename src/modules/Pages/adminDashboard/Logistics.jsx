@@ -306,7 +306,7 @@ const CustomersTable = () => {
               </div>
 
               <div className="text-center mx-auto">
-                {item.profile?.profile_picture ? (
+                {item?.profile?.profile_picture ? (
                   <img
                     src={item.profile?.profile_picture ?? null}
                     alt={item.name}

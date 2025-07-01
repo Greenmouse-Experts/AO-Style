@@ -8,6 +8,10 @@ const createAdminRole = (payload) => {
   return CaryBinApi.post(`/admin-role`, payload);
 };
 
+const createSubAdminRole = (payload) => {
+  return CaryBinApi.post(`/admin-role`, payload);
+};
+
 const getAdminRoleById = (id) => {
   return CaryBinApi.get(`/admin-role/${id}`);
 };
@@ -26,6 +30,7 @@ const AdminRoleService = {
   getAdminRoleById,
   updateAdminRole,
   deleteAdminRole,
+  createSubAdminRole,
 };
 
 export default AdminRoleService;

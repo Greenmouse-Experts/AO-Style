@@ -1,8 +1,26 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import ReusableTable from "./components/ReusableTable";
 import { FaEllipsisH } from "react-icons/fa";
 import AdminRoleService from "../../../services/api/adminRole";
 import { formatDateStr } from "../../../lib/helper";
+import useGetAdminRoles from "../../../hooks/admin/useGetAdminRoles";
+import useQueryParams from "../../../hooks/useQueryParams";
+import useDebounce from "../../../hooks/useDebounce";
+import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
+import { useFormik } from "formik";
+import useCreateAdminRole from "../../../hooks/admin/useCreateAdminRole";
+import { useModalState } from "../../../hooks/useModalState";
+import useDeleteAdminRole from "../../../hooks/admin/useDeleteAdminRole";
+import useToast from "../../../hooks/useToast";
+import useUpdateFabric from "../../../hooks/fabric/useUpdateFabric";
+
+const roleOptions = [
+  { label: "Fabric Vendor Dashboard", value: "fabric-vendor" },
+  { label: "Customer Dashboard", value: "user" },
+  { label: "Tailor/Designer Dashboard", value: "fashion-designer" },
+  { label: "Market Rep Dashboard", value: "market-representative" },
+  { label: "Logistics", value: "logistics-agent" },
+];
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -12,134 +30,129 @@ const CustomersTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [adminRoles, setAdminRoles] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [posting, setPosting] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editRoleId, setEditRoleId] = useState(null);
-  const [editRole, setEditRole] = useState({ roleName: "", assignedRoles: [] });
-  const [editLoading, setEditLoading] = useState(false);
-  const [editPosting, setEditPosting] = useState(false);
-  const [deletingId, setDeletingId] = useState(null);
 
-  // Fetch admin roles from API
-  const fetchAdminRoles = async () => {
-    setLoading(true);
-    try {
-      const res = await AdminRoleService.getAdminRoles();
-      setAdminRoles(res?.data?.data || []);
-    } catch (err) {
-      // Optionally handle error
-      setAdminRoles([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { queryParams, updateQueryParams } = useQueryParams({
+    "pagination[limit]": 10,
+    "pagination[page]": 1,
+  });
+
+  const { data, isPending } = useGetAdminRoles({
+    ...queryParams,
+  });
+
+  const { isPending: deleteIsPending, deleteAdminRoleMutate } =
+    useDeleteAdminRole();
+
+  const [queryString, setQueryString] = useState(queryParams.q);
+
+  const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
+
+  useUpdatedEffect(() => {
+    // update search params with undefined if debouncedSearchTerm is an empty string
+    updateQueryParams({
+      q: debouncedSearchTerm.trim() || undefined,
+      "pagination[page]": 1,
+    });
+  }, [debouncedSearchTerm]);
+
+  const [newCategory, setNewCategory] = useState();
+
+  const AdminRoleData = useMemo(
+    () =>
+      data?.data
+        ? data?.data.map((details) => {
+            return {
+              ...details,
+              name: `${details?.name}`,
+              roles: ` ${
+                details?.role.length > 4
+                  ? [details?.role].join(" ,").substring(0, 20) + "..."
+                  : [details?.role].join(" ,")
+              }`,
+              dateAdded: `${
+                details?.created_at
+                  ? formatDateStr(details?.created_at.split(".").shift())
+                  : ""
+              }`,
+            };
+          })
+        : [],
+    [data?.data]
+  );
 
   useEffect(() => {
-    fetchAdminRoles();
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenDropdown(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   // Table Columns
-  const columns = [
-    { label: "S/N", key: "sn" },
-    { label: "Admin Role Name", key: "title" },
-    {
-      label: "Roles Assigned",
-      key: "role",
-      render: (_, row) => (Array.isArray(row.role) ? row.role.join(", ") : ""),
-    },
-    {
-      label: "Date Added",
-      key: "createdAt",
-      render: (_, row) => (row.createdAt ? formatDateStr(row.createdAt) : "-"),
-    },
-    {
-      label: "Action",
-      key: "action",
-      render: (_, row) => (
-        <div className="relative" ref={dropdownRef}>
-          <button
-            className="bg-gray-100 text-gray-500 px-3 py-1 rounded-md"
-            onClick={() => toggleDropdown(row._id)}
-          >
-            <FaEllipsisH />
-          </button>
-          {openDropdown === row._id && (
-            <div className="absolute right-0 mt-2 w-40 bg-white rounded-md z-10 shadow-lg">
-              <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
-                View Details
-              </button>
-              <button
-                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
-                onClick={async () => {
-                  setEditRoleId(row._id);
-                  setEditModalOpen(true);
-                  setEditLoading(true);
-                  try {
-                    const res = await AdminRoleService.getAdminRoleById(
-                      row._id
-                    );
-                    const data = res?.data?.data;
-                    setEditRole({
-                      roleName: data?.title || "",
-                      assignedRoles: Array.isArray(data?.role)
-                        ? data.role.map((r) => {
-                            switch (r) {
-                              case "fabric-vendor":
-                                return "Fabric Vendor Dashboard";
-                              case "customer":
-                                return "Customer Dashboard";
-                              case "fashion-designer":
-                                return "Tailor/Designer Dashboard";
-                              case "market-representative":
-                                return "Market Rep Dashboard";
-                              case "logistics-agent":
-                                return "Logistics";
-                              default:
-                                return r;
-                            }
-                          })
-                        : [],
-                    });
-                  } catch (err) {
-                    setEditRole({ roleName: "", assignedRoles: [] });
-                  } finally {
-                    setEditLoading(false);
-                  }
-                }}
-              >
-                Edit Admin
-              </button>
-              <button
-                className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full"
-                onClick={async () => {
-                  if (
-                    window.confirm(
-                      "Are you sure you want to delete this admin role?"
-                    )
-                  ) {
-                    setDeletingId(row._id);
-                    try {
-                      await AdminRoleService.deleteAdminRole(row._id);
-                      fetchAdminRoles();
-                    } catch (err) {
-                      // Optionally handle error
-                    } finally {
-                      setDeletingId(null);
-                      setOpenDropdown(null);
-                    }
-                  }
-                }}
-                disabled={deletingId === row._id}
-              >
-                {deletingId === row._id ? "Removing..." : "Remove Admin"}
-              </button>
-            </div>
-          )}
-        </div>
-      ),
-    },
-  ];
+  const columns = useMemo(
+    () => [
+      // { label: "S/N", key: "sn" },
+      { label: "Admin Role Name", key: "title" },
+      {
+        label: "Roles Assigned",
+        key: "role",
+        render: (_, row) =>
+          Array.isArray(row.role) ? row.role.join(", ") : "",
+      },
+      {
+        label: "Date Added",
+        key: "dateAdded",
+      },
+      {
+        label: "Action",
+        key: "action",
+        render: (_, row) => (
+          <div className="relative">
+            <button
+              className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
+              onClick={() => {
+                toggleDropdown(row.id);
+              }}
+            >
+              <FaEllipsisH />
+            </button>
+            {openDropdown === row.id && (
+              <div className="absolute right-0 mt-2 w-40 bg-white rounded-md z-10 shadow-lg">
+                <button className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
+                  View Role
+                </button>
+                <button
+                  className="block px-4 cursor-pointer py-2 text-gray-700 hover:bg-gray-100 w-full"
+                  onClick={() => {
+                    setIsModalOpen(true);
+                    toggleDropdown(null);
+
+                    setNewCategory(row);
+                  }}
+                >
+                  Edit Role
+                </button>
+                <button
+                  className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full"
+                  onClick={() => {
+                    openModal();
+                    toggleDropdown(null);
+                    setNewCategory(row);
+                  }}
+                >
+                  {"Remove Role"}
+                </button>
+              </div>
+            )}
+          </div>
+        ),
+      },
+    ],
+    [openDropdown]
+  );
 
   const toggleDropdown = (rowId) => {
     setOpenDropdown(openDropdown === rowId ? null : rowId);
@@ -151,6 +164,7 @@ const CustomersTable = () => {
         setOpenDropdown(null);
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -175,24 +189,6 @@ const CustomersTable = () => {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const handleItemsPerPageChange = (e) => {
-    setItemsPerPage(Number(e.target.value));
-    setCurrentPage(1);
-  };
 
   const [newRole, setNewRole] = useState({
     roleName: "",
@@ -208,97 +204,69 @@ const CustomersTable = () => {
     }
   }, [isModalOpen]);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewRole((prev) => ({ ...prev, [name]: value }));
+  const initialValues = {
+    title: newCategory?.title ?? "",
+    role: newCategory?.role ?? [],
   };
 
-  const handleCheckboxChange = (e) => {
-    const { value, checked } = e.target;
-    setNewRole((prev) => ({
-      ...prev,
-      assignedRoles: checked
-        ? [...prev.assignedRoles, value]
-        : prev.assignedRoles.filter((role) => role !== value),
-    }));
-  };
+  const totalPages = Math.ceil(
+    data?.count / (queryParams["pagination[limit]"] ?? 10)
+  );
+  const { isPending: createIsPending, createAdminRoleMutate } =
+    useCreateAdminRole();
 
-  // POST new admin role
-  const handleSave = async () => {
-    setPosting(true);
-    try {
-      await AdminRoleService.createAdminRole({
-        title: newRole.roleName,
-        role: newRole.assignedRoles.map((r) => {
-          // Map UI values to API values
-          switch (r) {
-            case "Fabric Vendor Dashboard":
-              return "fabric-vendor";
-            case "Customer Dashboard":
-              return "customer";
-            case "Tailor/Designer Dashboard":
-              return "fashion-designer";
-            case "Market Rep Dashboard":
-              return "market-representative";
-            case "Logistics":
-              return "logistics-agent";
-            default:
-              return r;
+  const { isOpen, closeModal, openModal } = useModalState();
+  const { toastError } = useToast();
+
+  const { isPending: updateIsPending, updateFabricMutate } = useUpdateFabric();
+
+  const {
+    handleSubmit,
+    values,
+    handleChange,
+    resetForm,
+    setFieldValue,
+    // setFieldError,
+  } = useFormik({
+    initialValues: initialValues,
+    validateOnChange: false,
+    validateOnBlur: false,
+    enableReinitialize: true,
+    onSubmit: (val) => {
+      if (!val?.role?.length) {
+        return toastError("Select a role");
+      }
+
+      if (newCategory) {
+        updateFabricMutate(
+          { ...val, id: newCategory?.id },
+          {
+            onSuccess: () => {
+              resetForm();
+              setIsModalOpen(false);
+            },
           }
-        }),
-      });
-      setIsModalOpen(false);
-      fetchAdminRoles();
-    } catch (err) {
-      // Optionally handle error
-    } finally {
-      setPosting(false);
-    }
-  };
+        );
+      } else {
+        createAdminRoleMutate(val, {
+          onSuccess: () => {
+            resetForm();
+            setIsModalOpen(false);
+          },
+        });
+      }
+    },
+  });
 
-  // Edit modal handlers
-  const handleEditInputChange = (e) => {
-    const { name, value } = e.target;
-    setEditRole((prev) => ({ ...prev, [name]: value }));
-  };
-  const handleEditCheckboxChange = (e) => {
-    const { value, checked } = e.target;
-    setEditRole((prev) => ({
-      ...prev,
-      assignedRoles: checked
-        ? [...prev.assignedRoles, value]
-        : prev.assignedRoles.filter((role) => role !== value),
-    }));
-  };
-  const handleEditSave = async () => {
-    setEditPosting(true);
-    try {
-      await AdminRoleService.updateAdminRole(editRoleId, {
-        title: editRole.roleName,
-        role: editRole.assignedRoles.map((r) => {
-          switch (r) {
-            case "Fabric Vendor Dashboard":
-              return "fabric-vendor";
-            case "Customer Dashboard":
-              return "customer";
-            case "Tailor/Designer Dashboard":
-              return "fashion-designer";
-            case "Market Rep Dashboard":
-              return "market-representative";
-            case "Logistics":
-              return "logistics-agent";
-            default:
-              return r;
-          }
-        }),
-      });
-      setEditModalOpen(false);
-      fetchAdminRoles();
-    } catch (err) {
-      // Optionally handle error
-    } finally {
-      setEditPosting(false);
-    }
+  const handleCheckboxChange = (value) => {
+    const current = values.role;
+    const isSelected = current.includes(value);
+
+    const updated = isSelected
+      ? current.filter((v) => v !== value)
+      : [...current, value];
+
+    setFieldValue("role", updated);
   };
 
   return (
@@ -312,8 +280,10 @@ const CustomersTable = () => {
           <input
             type="text"
             placeholder="Search..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={queryString}
+            onChange={(evt) =>
+              setQueryString(evt.target.value ? evt.target.value : undefined)
+            }
             className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
           />
           <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
@@ -324,58 +294,72 @@ const CustomersTable = () => {
           </button>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-[#9847FE] text-white px-4 py-2 text-sm rounded-md"
+            className="bg-[#9847FE] text-white cursor-pointer px-4 py-2 text-sm rounded-md"
           >
             + Add New Role
           </button>
         </div>
       </div>
-      <ReusableTable columns={columns} data={currentItems} />
-      <div className="flex justify-between items-center mt-4">
-        <div className="flex items-center gap-2">
-          <select
-            value={itemsPerPage}
-            onChange={handleItemsPerPageChange}
-            className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-auto"
-          >
-            <option value={5}>5</option>
-            <option value={10}>10</option>
-            <option value={15}>15</option>
-            <option value={20}>20</option>
-          </select>
-          <span className="text-sm text-gray-600">
-            {indexOfFirstItem + 1}-
-            {indexOfLastItem > filteredData.length
-              ? filteredData.length
-              : indexOfLastItem}{" "}
-            of {filteredData.length} items
-          </span>
+      <ReusableTable
+        loading={isPending}
+        columns={columns}
+        data={AdminRoleData}
+      />
+      {AdminRoleData?.length > 0 && (
+        <div className="flex justify-between items-center mt-4">
+          <div className="flex items-center">
+            <p className="text-sm text-gray-600">Items per page: </p>
+            <select
+              value={queryParams["pagination[limit]"] || 10}
+              onChange={(e) =>
+                updateQueryParams({
+                  "pagination[limit]": +e.target.value,
+                })
+              }
+              className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={20}>20</option>
+            </select>
+          </div>
+          <div className="flex gap-1">
+            <button
+              onClick={() => {
+                updateQueryParams({
+                  "pagination[page]": +queryParams["pagination[page]"] - 1,
+                });
+              }}
+              disabled={(queryParams["pagination[page]"] ?? 1) == 1}
+              className="px-3 py-1 rounded-md bg-gray-200"
+            >
+              ◀
+            </button>
+            <button
+              onClick={() => {
+                updateQueryParams({
+                  "pagination[page]": +queryParams["pagination[page]"] + 1,
+                });
+              }}
+              disabled={(queryParams["pagination[page]"] ?? 1) == totalPages}
+              className="px-3 py-1 rounded-md bg-gray-200"
+            >
+              ▶
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            onClick={handlePreviousPage}
-            disabled={currentPage === 1}
-            className="px-2 py-1 rounded-md bg-gray-200 disabled:opacity-50"
-          >
-            ◀
-          </button>
-          <button
-            onClick={handleNextPage}
-            disabled={currentPage === totalPages}
-            className="px-2 py-1 rounded-md bg-gray-200 disabled:opacity-50"
-          >
-            ▶
-          </button>
-        </div>
-      </div>
+      )}
 
       {isModalOpen && (
         <div
           className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
-          onClick={() => setIsModalOpen(false)}
+          onClick={() => {
+            setIsModalOpen(false);
+            resetForm();
+
+            setNewCategory(null);
+          }}
         >
           <div
             className="bg-white rounded-lg p-6 w-full max-w-md"
@@ -383,137 +367,23 @@ const CustomersTable = () => {
           >
             <div className="flex justify-end">
               <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                onClick={() => {
+                  setIsModalOpen(false);
+                  resetForm();
+                  setNewCategory(null);
+                }}
+                className="text-gray-500 cursor-pointer hover:text-gray-700 text-2xl"
                 disabled={posting}
               >
                 ×
               </button>
             </div>
+
             <h3 className="text-lg font-semibold mb-6 -mt-7">
-              Add New Admin Roles
+              {newCategory ? `Edit Admin Role` : "Add New Admin Role"}
             </h3>
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-4">
-                  Admin Role Name
-                </label>
-                <input
-                  type="text"
-                  name="roleName"
-                  value={newRole.roleName}
-                  onChange={handleInputChange}
-                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                  placeholder="Enter the admin role name"
-                  disabled={posting}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-4">
-                  Roles Assigned
-                </label>
-                <div className="space-y-4">
-                  <label className="flex items-center text-sm text-gray-700">
-                    <input
-                      type="checkbox"
-                      value="Fabric Vendor Dashboard"
-                      checked={newRole.assignedRoles.includes(
-                        "Fabric Vendor Dashboard"
-                      )}
-                      onChange={handleCheckboxChange}
-                      className="mr-2"
-                      disabled={posting}
-                    />
-                    Fabric Vendor Dashboard
-                  </label>
-                  <label className="flex items-center text-sm text-gray-700">
-                    <input
-                      type="checkbox"
-                      value="Customer Dashboard"
-                      checked={newRole.assignedRoles.includes(
-                        "Customer Dashboard"
-                      )}
-                      onChange={handleCheckboxChange}
-                      className="mr-2"
-                      disabled={posting}
-                    />
-                    Customer Dashboard
-                  </label>
-                  <label className="flex items-center text-sm text-gray-700">
-                    <input
-                      type="checkbox"
-                      value="Tailor/Designer Dashboard"
-                      checked={newRole.assignedRoles.includes(
-                        "Tailor/Designer Dashboard"
-                      )}
-                      onChange={handleCheckboxChange}
-                      className="mr-2"
-                      disabled={posting}
-                    />
-                    Tailor/Designer Dashboard
-                  </label>
-                  <label className="flex items-center text-sm text-gray-700">
-                    <input
-                      type="checkbox"
-                      value="Market Rep Dashboard"
-                      checked={newRole.assignedRoles.includes(
-                        "Market Rep Dashboard"
-                      )}
-                      onChange={handleCheckboxChange}
-                      className="mr-2"
-                      disabled={posting}
-                    />
-                    Market Rep Dashboard
-                  </label>
-                  <label className="flex items-center text-sm text-gray-700">
-                    <input
-                      type="checkbox"
-                      value="Logistics"
-                      checked={newRole.assignedRoles.includes("Logistics")}
-                      onChange={handleCheckboxChange}
-                      className="mr-2"
-                      disabled={posting}
-                    />
-                    Logistics
-                  </label>
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={handleSave}
-              className="mt-6 w-full bg-gradient text-white px-6 py-3 text-sm rounded-md"
-              disabled={posting}
-            >
-              {posting ? "Adding..." : "Add Admin Role"}
-            </button>
-          </div>
-        </div>
-      )}
-      {/* Edit Admin Modal */}
-      {editModalOpen && (
-        <div
-          className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
-          onClick={() => setEditModalOpen(false)}
-        >
-          <div
-            className="bg-white rounded-lg p-6 w-full max-w-md"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-end">
-              <button
-                onClick={() => setEditModalOpen(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
-                disabled={editPosting}
-              >
-                ×
-              </button>
-            </div>
-            <h3 className="text-lg font-semibold mb-6 -mt-7">
-              Edit Admin Role
-            </h3>
-            {editLoading ? (
-              <div className="text-center py-8">Loading...</div>
-            ) : (
+
+            <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-4">
@@ -521,93 +391,122 @@ const CustomersTable = () => {
                   </label>
                   <input
                     type="text"
-                    name="roleName"
-                    value={editRole.roleName}
-                    onChange={handleEditInputChange}
-                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                    name={"title"}
+                    required
+                    value={values.title}
+                    onChange={handleChange}
+                    className="w-full p-4 border  border-[#CCCCCC] outline-none rounded-lg"
                     placeholder="Enter the admin role name"
-                    disabled={editPosting}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-4">
+                  <label className="block  text-sm font-medium text-gray-700 mb-4">
                     Roles Assigned
                   </label>
                   <div className="space-y-4">
-                    <label className="flex items-center text-sm text-gray-700">
-                      <input
-                        type="checkbox"
-                        value="Fabric Vendor Dashboard"
-                        checked={editRole.assignedRoles.includes(
-                          "Fabric Vendor Dashboard"
-                        )}
-                        onChange={handleEditCheckboxChange}
-                        className="mr-2"
-                        disabled={editPosting}
-                      />
-                      Fabric Vendor Dashboard
-                    </label>
-                    <label className="flex items-center text-sm text-gray-700">
-                      <input
-                        type="checkbox"
-                        value="Customer Dashboard"
-                        checked={editRole.assignedRoles.includes(
-                          "Customer Dashboard"
-                        )}
-                        onChange={handleEditCheckboxChange}
-                        className="mr-2"
-                        disabled={editPosting}
-                      />
-                      Customer Dashboard
-                    </label>
-                    <label className="flex items-center text-sm text-gray-700">
-                      <input
-                        type="checkbox"
-                        value="Tailor/Designer Dashboard"
-                        checked={editRole.assignedRoles.includes(
-                          "Tailor/Designer Dashboard"
-                        )}
-                        onChange={handleEditCheckboxChange}
-                        className="mr-2"
-                        disabled={editPosting}
-                      />
-                      Tailor/Designer Dashboard
-                    </label>
-                    <label className="flex items-center text-sm text-gray-700">
-                      <input
-                        type="checkbox"
-                        value="Market Rep Dashboard"
-                        checked={editRole.assignedRoles.includes(
-                          "Market Rep Dashboard"
-                        )}
-                        onChange={handleEditCheckboxChange}
-                        className="mr-2"
-                        disabled={editPosting}
-                      />
-                      Market Rep Dashboard
-                    </label>
-                    <label className="flex items-center text-sm text-gray-700">
-                      <input
-                        type="checkbox"
-                        value="Logistics"
-                        checked={editRole.assignedRoles.includes("Logistics")}
-                        onChange={handleEditCheckboxChange}
-                        className="mr-2"
-                        disabled={editPosting}
-                      />
-                      Logistics
-                    </label>
+                    {roleOptions.map(({ label, value }) => (
+                      <label
+                        key={value}
+                        className="flex cursor-pointer items-center text-sm text-gray-700"
+                      >
+                        <input
+                          type="checkbox"
+                          value={value}
+                          checked={values.role.includes(value)}
+                          onChange={() => handleCheckboxChange(value)}
+                          className="mr-2"
+                        />
+                        {label}
+                      </label>
+                    ))}{" "}
                   </div>
                 </div>
               </div>
-            )}
-            <button
-              onClick={handleEditSave}
-              className="mt-6 w-full bg-gradient text-white px-6 py-3 text-sm rounded-md"
-              disabled={editPosting || editLoading}
+
+              <button
+                disabled={createIsPending || updateIsPending}
+                type="submit"
+                className="mt-6 w-full cursor-pointer bg-gradient text-white px-6 py-3 text-sm rounded-md"
+              >
+                {createIsPending || updateIsPending
+                  ? "Please wait..."
+                  : newCategory
+                  ? "Edit Admin Role"
+                  : "Add Admin Role"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isOpen && (
+        <div
+          className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
+          onClick={() => {
+            closeModal();
+            resetForm();
+            setNewCategory(null);
+          }}
+        >
+          <div
+            className="bg-white rounded-lg p-6 w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-end">
+              <button
+                onClick={() => {
+                  closeModal();
+                  resetForm();
+                  setNewCategory(null);
+                }}
+                className="text-gray-500 cursor-pointer hover:text-gray-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <h3 className="text-lg font-semibold mb-4 -mt-7">
+              {"Delete Role"}
+            </h3>
+            <form
+              className="mt-6 space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                deleteAdminRoleMutate(
+                  {
+                    id: newCategory?.id,
+                  },
+                  {
+                    onSuccess: () => {
+                      closeModal();
+                      setNewCategory(null);
+                    },
+                  }
+                );
+              }}
             >
-              {editPosting ? "Saving..." : "Save Changes"}
-            </button>
+              <label className="block text-sm font-medium text-gray-700 mb-4">
+                Are you sure you want to delete {newCategory?.title}
+              </label>
+              <div className="flex w-full justify-end gap-4 mt-6">
+                <button
+                  className="mt-6 cursor-pointer w-full bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-3 text-sm rounded-md"
+                  //   className="bg-gray-300 hover:bg-gray-400 text-gray-800 w-full rounded-md"
+                  onClick={() => {
+                    closeModal();
+                    setNewCategory(null);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={deleteIsPending}
+                  type="submit"
+                  className="mt-6 cursor-pointer w-full bg-gradient text-white px-4 py-3 text-sm rounded-md"
+                >
+                  {deleteIsPending ? "Please wait..." : "Delete Role"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

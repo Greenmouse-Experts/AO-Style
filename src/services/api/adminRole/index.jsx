@@ -1,6 +1,6 @@
 import CaryBinApi from "../../CarybinBaseUrl";
 
-const getAdminRoles = () => {
+const getAdminRoles = (params) => {
   return CaryBinApi.get(`/admin-role`);
 };
 
@@ -12,12 +12,12 @@ const getAdminRoleById = (id) => {
   return CaryBinApi.get(`/admin-role/${id}`);
 };
 
-const updateAdminRole = (id, payload) => {
-  return CaryBinApi.patch(`/admin-role/${id}`, payload);
+const updateAdminRole = (payload) => {
+  return CaryBinApi.patch(`/admin-role/${payload.id}`, payload);
 };
 
-const deleteAdminRole = (id) => {
-  return CaryBinApi.delete(`/admin-role/${id}`);
+const deleteAdminRole = (payload) => {
+  return CaryBinApi.delete(`/admin-role/${payload.id}`);
 };
 
 const AdminRoleService = {

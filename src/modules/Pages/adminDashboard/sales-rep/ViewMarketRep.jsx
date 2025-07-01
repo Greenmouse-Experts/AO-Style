@@ -572,7 +572,7 @@ const ViewMarketDetails = () => {
             </>
           ) : activeTab == "kyc" &&
             (tailorInfo?.kyc?.reviewed_by == null ||
-              !tailorInfo?.kyc?.reviewed_by) ? (
+              !tailorInfo?.kyc?.is_approved) ? (
             <div className="flex space-x-4">
               <button
                 disabled={isPending}

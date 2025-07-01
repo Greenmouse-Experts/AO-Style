@@ -22,7 +22,11 @@ const useDeleteProduct = () => {
         return;
       }
 
-      toastError(error?.data?.message);
+      if (Array.isArray(error?.data?.message)) {
+        toastError(error?.data?.message[0]);
+      } else {
+        toastError(error?.data?.message);
+      }
     },
   });
   return { isPending, deleteProductMutate };

@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { routes } from "./routes";
 import { useQueryClient } from "@tanstack/react-query";
+import "react-phone-input-2/lib/style.css";
 import {
   messaging,
   requestNotificationPermission,

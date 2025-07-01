@@ -25,7 +25,7 @@ const ViewFabricDetails = () => {
   const tailorInfo = {
     ...data?.data?.business,
     ...data?.data?.user,
-    kyc: { ...data?.data?.kyc },
+    kyc: data?.data?.kyc ? { ...data?.data?.kyc } : null,
   };
 
   const queryParams = new URLSearchParams(location.search);
@@ -65,7 +65,7 @@ const ViewFabricDetails = () => {
     else if (activeTab === "kyc") setActiveTab("business");
   };
 
-  console.log("Tailor Info:", data?.data);
+  console.log("Tailor Info:", tailorInfo);
 
   const urlContainsTailors = location.pathname.includes("logistics")
     ? "View  Logistics"

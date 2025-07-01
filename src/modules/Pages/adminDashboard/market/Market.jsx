@@ -364,8 +364,16 @@ const MarketsTable = () => {
 
       {activeTab === "table" ? (
         <>
-          <ReusableTable columns={columns} data={MarketData} />
+          <ReusableTable
+            loading={isPending}
+            columns={columns}
+            data={MarketData}
+          />
         </>
+      ) : isPending ? (
+        <div className=" flex !w-full items-center justify-center">
+          <Loader />
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {MarketData?.map((item) => (

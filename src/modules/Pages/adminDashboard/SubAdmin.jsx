@@ -115,7 +115,14 @@ const CustomersTable = () => {
               <button className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
                 View Details
               </button>
-              <button className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
+              <button
+                onClick={() => {
+                  setIsModalOpen(true);
+                  setNewCategory(row);
+                  setOpenDropdown(null);
+                }}
+                className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+              >
                 Edit Admin
               </button>
               <button
@@ -212,7 +219,11 @@ const CustomersTable = () => {
         </div>
         <SubAdminModal
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          newCategory={newCategory}
+          onClose={() => {
+            setIsModalOpen(false);
+            setNewCategory(null);
+          }}
         />
 
         {activeTab === "table" ? (

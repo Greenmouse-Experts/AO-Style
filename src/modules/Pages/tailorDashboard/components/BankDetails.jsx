@@ -24,8 +24,6 @@ const BankDetailsUpdate = () => {
     (bank) => bank.label === businessInfo?.withdrawal_account?.bank_name
   );
 
-  console.log(selectedBank?.label);
-
   const initialValues = {
     account_number: businessInfo?.withdrawal_account?.account_number ?? "",
     account_type: businessInfo?.withdrawal_account?.account_type ?? "",

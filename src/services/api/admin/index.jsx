@@ -4,8 +4,8 @@ const createSubAdmin = (payload) => {
   return CaryBinApi.post(`/auth/register-admin`, payload);
 };
 
-const updateAdmin = (payload) => {
-  return CaryBinApi.patch(`/admin-role/${payload.id}`, payload);
+const updateAdminRole = (payload) => {
+  return CaryBinApi.patch(`/auth/users/update-admin-role`, payload);
 };
 
 const deleteSubAdmin = (payload) => {
@@ -15,6 +15,7 @@ const deleteSubAdmin = (payload) => {
 const AdminService = {
   createSubAdmin,
   deleteSubAdmin,
+  updateAdminRole,
 };
 
 export default AdminService;

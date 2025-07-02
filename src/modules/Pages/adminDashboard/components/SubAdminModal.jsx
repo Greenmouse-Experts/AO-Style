@@ -6,10 +6,14 @@ import { Eye, EyeOff } from "lucide-react";
 import PhoneInput from "react-phone-input-2";
 import useGetAdminRoles from "../../../../hooks/admin/useGetAdminRoles";
 import Select from "react-select";
+import useEditAdminRole from "../../../../hooks/admin/useEditAdminRole";
 
-const SubAdminModal = ({ isOpen, onClose }) => {
+const SubAdminModal = ({ isOpen, onClose, newCategory }) => {
+  console.log(newCategory);
   const { isPending: createIsPending, createSubAdminMutate } =
     useCreateSubAdmin();
+
+  const { isPending: editIsPending, editAdminRoleMutate } = useEditAdminRole();
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -24,11 +28,11 @@ const SubAdminModal = ({ isOpen, onClose }) => {
   }));
 
   const initialValues = {
-    name: "",
-    email: "",
+    name: newCategory?.name ?? "",
+    email: newCategory?.email ?? "",
     password: "",
     confirm_password: "",
-    phone: "",
+    phone: newCategory?.phone ?? "",
     admin_role_id: "",
     role: "owner-administrator",
   };
@@ -46,12 +50,24 @@ const SubAdminModal = ({ isOpen, onClose }) => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      createSubAdminMutate(val, {
-        onSuccess: () => {
-          resetForm();
-          onClose();
-        },
-      });
+      if (newCategory) {
+        editAdminRoleMutate(
+          { user_id: newCategory?.id, admin_role_id: val.admin_role_id },
+          {
+            onSuccess: () => {
+              resetForm();
+              onClose();
+            },
+          }
+        );
+      } else {
+        createSubAdminMutate(val, {
+          onSuccess: () => {
+            resetForm();
+            onClose();
+          },
+        });
+      }
     },
   });
 
@@ -71,14 +87,14 @@ const SubAdminModal = ({ isOpen, onClose }) => {
       >
         <div className="flex justify-between items-center border-b border-gray-200 pb-4 mb-4">
           <h2 className="text-lg font-semibold text-gray-800">
-            Add a New Admin
+            {newCategory ? "Edit" : "Add a New"} Admin
           </h2>
           <button
             onClick={() => {
               onClose();
               resetForm();
             }}
-            className="text-gray-500 hover:text-gray-700 text-2xl"
+            className="text-gray-500 cursor-pointer hover:text-gray-700 text-2xl"
           >
             ✕
           </button>
@@ -97,9 +113,10 @@ const SubAdminModal = ({ isOpen, onClose }) => {
                 <input
                   type="text"
                   name="name"
+                  disabled={newCategory ? true : false}
                   value={values.name}
                   onChange={handleChange}
-                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                  className="w-full p-4 border disabled:bg-gray-100 border-[#CCCCCC] outline-none rounded-lg"
                   placeholder="Enter the admin name"
                 />
               </div>
@@ -108,11 +125,12 @@ const SubAdminModal = ({ isOpen, onClose }) => {
                   Admin Email
                 </label>
                 <input
+                  disabled={newCategory ? true : false}
                   type="email"
                   name="email"
                   value={values.email}
                   onChange={handleChange}
-                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                  className="w-full p-4 border disabled:bg-gray-100 border-[#CCCCCC] outline-none rounded-lg"
                   placeholder="Enter the admin email"
                 />
               </div>
@@ -147,6 +165,7 @@ const SubAdminModal = ({ isOpen, onClose }) => {
 
                 <PhoneInput
                   country={"ng"}
+                  disabled={newCategory ? true : false}
                   value={values.phone}
                   inputProps={{
                     name: "phone",
@@ -159,10 +178,10 @@ const SubAdminModal = ({ isOpen, onClose }) => {
                     }
                     setFieldValue("phone", value);
                   }}
-                  containerClass="w-full"
-                  dropdownClass="flex flex-col gap-2 text-black"
-                  buttonClass="!bg-gray-100 !border !border-gray-100 hover:!bg-gray-100"
-                  inputClass="!w-full px-4 font-sans !h-[54px] !py-4 border border-gray-300 !rounded-md focus:outline-none"
+                  containerClass="w-full disabled:bg-gray-100"
+                  dropdownClass="flex flex-col gap-2 text-black disabled:bg-gray-100"
+                  buttonClass="bg-gray-100 !border !border-gray-100 hover:!bg-gray-100 disabled:bg-gray-100"
+                  inputClass="!w-full px-4 font-sans disabled:bg-gray-100  !h-[54px] !py-4 border border-gray-300 !rounded-md focus:outline-none"
                 />
                 {/* <div className="flex items-center border border-gray-300 rounded-md">
                   <select
@@ -238,12 +257,14 @@ const SubAdminModal = ({ isOpen, onClose }) => {
               </button>
               <button
                 type="submit"
-                disabled={createIsPending}
+                disabled={createIsPending || editIsPending}
                 className="w-full bg-gradient cursor-pointer text-white px-4 py-2 rounded-md text-sm font-medium"
               >
-                {createIsPending
+                {createIsPending || editIsPending
                   ? "Please wait..."
-                  : "                Add Admin"}
+                  : newCategory
+                  ? "Edit "
+                  : "Add Admin"}
               </button>
             </div>
           </form>

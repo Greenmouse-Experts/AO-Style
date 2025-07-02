@@ -4,9 +4,9 @@ import Navbar from "../admin/Navbar";
 import { Outlet } from "react-router-dom";
 import useGetUserProfile from "../../../modules/Auth/hooks/useGetProfile";
 import Loader from "../../../components/ui/Loader";
-import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useToast from "../../../hooks/useToast";
 import { useNavigate } from "react-router-dom";
+import { useCarybinAdminUserStore } from "../../../store/carybinAdminUserStore";
 
 export default function DashboardLayout() {
   const { toastError } = useToast();
@@ -14,13 +14,13 @@ export default function DashboardLayout() {
   const [mounted, setMounted] = useState(false);
   const navigate = useNavigate();
 
-  const { setCaryBinUser, logOut } = useCarybinUserStore();
+  const { setCaryBinAdminUser, logOut } = useCarybinAdminUserStore();
 
   const { data, isPending, isSuccess, isError, error } = useGetUserProfile();
 
   useEffect(() => {
     if (data && isSuccess) {
-      setCaryBinUser(data);
+      setCaryBinAdminUser(data);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);

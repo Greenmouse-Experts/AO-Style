@@ -1,27 +1,27 @@
 import { useState } from "react";
 import { Bell, Menu } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useToast from "../../../hooks/useToast";
 import Cookies from "js-cookie";
 import useGetNotification from "../../../hooks/notification/useGetNotification";
+import { useCarybinAdminUserStore } from "../../../store/carybinAdminUserStore";
 
 export default function Navbar({ toggleSidebar }) {
   const { toastSuccess } = useToast();
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const { carybinUser } = useCarybinUserStore();
+  const { carybinAdminUser } = useCarybinAdminUserStore();
 
   const navigate = useNavigate();
 
-  const { logOut } = useCarybinUserStore();
+  const { logOut } = useCarybinAdminUserStore();
 
   const handleSignOut = () => {
     navigate("/admin/login");
     toastSuccess("Logout Successfully");
     logOut();
-    Cookies.remove("token");
+    Cookies.remove("adminToken");
   };
 
   const { data, isPending } = useGetNotification({
@@ -63,9 +63,9 @@ export default function Navbar({ toggleSidebar }) {
 
         {/* Profile Avatar & Dropdown */}
         <div className="relative">
-          {carybinUser?.profile?.profile_picture ? (
+          {carybinAdminUser?.profile?.profile_picture ? (
             <img
-              src={carybinUser?.profile?.profile_picture ?? null}
+              src={carybinAdminUser?.profile?.profile_picture ?? null}
               alt="User"
               className="w-8 h-8 rounded-full cursor-pointer"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -76,7 +76,7 @@ export default function Navbar({ toggleSidebar }) {
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="w-8 h-8 cursor-pointer rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white"
             >
-              {carybinUser?.name?.charAt(0).toUpperCase() || "?"}
+              {carybinAdminUser?.name?.charAt(0).toUpperCase() || "?"}
             </div>
           )}
 

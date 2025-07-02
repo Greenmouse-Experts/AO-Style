@@ -14,14 +14,15 @@ const useSignIn = (email, resendCodeMutate) => {
     mutationFn: (payload) => AuthService.signinUser(payload),
     mutationKey: ["user-login"],
     onSuccess(data) {
-      console.log(currentPath);
-
       if (
-        data?.data?.data?.role === "owner-super-administrator" &&
+        (data?.data?.data?.role === "owner-super-administrator" ||
+          data?.data?.data?.role === "owner-administrator") &&
         currentPath == "/admin/login"
       ) {
         toastSuccess(data?.data?.message);
-        Cookies.set("token", data?.data?.accessToken);
+        // Cookies.set("token", data?.data?.accessToken);
+        Cookies.set("adminToken", data?.data?.accessToken);
+
         navigate("/admin");
       } else if (
         data?.data?.data?.role !== "owner-super-administrator" &&
@@ -36,18 +37,23 @@ const useSignIn = (email, resendCodeMutate) => {
         Cookies.set("token", data?.data?.accessToken);
         if (data?.data?.data?.role === "fabric-vendor") {
           navigate("/fabric");
+          Cookies.set("currUserUrl", "fabric");
         }
         if (data?.data?.data?.role === "fashion-designer") {
           navigate("/tailor");
+          Cookies.set("currUserUrl", "tailor");
         }
         if (data?.data?.data?.role === "logistics-agent") {
           navigate("/logistics");
+          Cookies.set("currUserUrl", "logistics");
         }
         if (data?.data?.data?.role === "user") {
           navigate("/customer");
+          Cookies.set("currUserUrl", "customer");
         }
         if (data?.data?.data?.role === "market-representative") {
           navigate("/sales");
+          Cookies.set("currUserUrl", "sales");
         }
       } else {
         navigate("/admin/login");

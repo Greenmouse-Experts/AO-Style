@@ -13,7 +13,11 @@ const CaryBinApi = axios.create({
 
 const onRequest = (request) => {
   // * get the user data if loggedin to access the token and pass it to the header authorization
-  const accessToken = Cookies.get("token");
+
+  const isAdminRoute = window.location.pathname.includes("/admin");
+  const accessToken = isAdminRoute
+    ? Cookies.get("adminToken")
+    : Cookies.get("token");
   request.headers.Authorization = `Bearer ${accessToken || ""}`;
   return request;
 };

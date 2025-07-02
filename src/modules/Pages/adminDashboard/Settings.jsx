@@ -4,24 +4,24 @@ import SecuritySettings from "./components/SecuritySettings";
 import BankDetails from "./components/BankDetails";
 import KYCVerification from "./components/KYCVerification";
 import { useFormik } from "formik";
-import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 import useUpdateProfile from "../../../hooks/settings/useUpdateProfile";
+import { useCarybinAdminUserStore } from "../../../store/carybinAdminUserStore";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("personalDetails");
   const [activeSection, setActiveSection] = useState("Profile");
 
-  const { carybinUser } = useCarybinUserStore();
+  const { carybinAdminUser } = useCarybinAdminUserStore();
 
   const initialValues = {
-    name: carybinUser?.name ?? "",
-    email: carybinUser?.email ?? "",
-    profile_picture: carybinUser?.profile?.profile_picture ?? null,
-    address: carybinUser?.profile?.address ?? "",
+    name: carybinAdminUser?.name ?? "",
+    email: carybinAdminUser?.email ?? "",
+    profile_picture: carybinAdminUser?.profile?.profile_picture ?? null,
+    address: carybinAdminUser?.profile?.address ?? "",
     country: "",
     state: "",
-    phone: carybinUser?.phone ?? "",
+    phone: carybinAdminUser?.phone ?? "",
   };
 
   const [profileIsLoading, setProfileIsLoading] = useState(false);

@@ -13,6 +13,7 @@ import { useModalState } from "../../../hooks/useModalState";
 import useDeleteAdminRole from "../../../hooks/admin/useDeleteAdminRole";
 import useToast from "../../../hooks/useToast";
 import useUpdateFabric from "../../../hooks/fabric/useUpdateFabric";
+import useUpdateAdminRole from "../../../hooks/admin/useUpdateAdminRole";
 
 const roleOptions = [
   { label: "Fabric Vendor Dashboard", value: "fabric-vendor" },
@@ -218,7 +219,7 @@ const CustomersTable = () => {
   const { isOpen, closeModal, openModal } = useModalState();
   const { toastError } = useToast();
 
-  const { isPending: updateIsPending, updateFabricMutate } = useUpdateFabric();
+  const { isPending: updateIsPending, updateRoleMutate } = useUpdateAdminRole();
 
   const {
     handleSubmit,
@@ -238,7 +239,7 @@ const CustomersTable = () => {
       }
 
       if (newCategory) {
-        updateFabricMutate(
+        updateRoleMutate(
           { ...val, id: newCategory?.id },
           {
             onSuccess: () => {

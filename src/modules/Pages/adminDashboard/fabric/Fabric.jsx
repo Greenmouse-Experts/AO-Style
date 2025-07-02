@@ -98,7 +98,7 @@ const CustomersTable = () => {
         label: "Action",
         key: "action",
         render: (_, row) => (
-          <div className=" z-[9999]">
+          <div className=" relative">
             <button
               className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
               onClick={() => toggleDropdown(row.id)}

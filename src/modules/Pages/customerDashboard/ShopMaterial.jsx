@@ -1,9 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 import Filters from "./components/Filters";
 import HeaderCard from "./components/HeaderCard";
 import { Link } from "react-router-dom";
 import { FaFilter } from "react-icons/fa";
+import useGetMarketPlaces from "../../../hooks/dashboard/useGetMarketPlaces";
+import useGetTrendingProduct from "../../../hooks/dashboard/useGetTrendingProduct";
+
+import { motion } from "framer-motion";
 
 const marketplaces = [
   {
@@ -154,7 +158,18 @@ const products = [
 export default function ShopMaterials() {
   const [index, setIndex] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [itemsPerPage, setItemsPerPage] = useState(10); // Default for large screens
+  const [itemsPerPage, setItemsPerPage] = useState(5); // Default for large screens
+
+  const { data: getMarketPlacePublicData, isPending } = useGetMarketPlaces({
+    "pagination[limit]": 10000,
+  });
+
+  const marketPlacePublic = getMarketPlacePublicData?.data;
+
+  const maxIndex = useMemo(
+    () => marketPlacePublic?.length - itemsPerPage,
+    [marketPlacePublic]
+  );
 
   useEffect(() => {
     const updateItemsPerPage = () => {
@@ -171,8 +186,6 @@ export default function ShopMaterials() {
     window.addEventListener("resize", updateItemsPerPage);
     return () => window.removeEventListener("resize", updateItemsPerPage);
   }, []);
-
-  const maxIndex = Math.max(0, marketplaces.length - itemsPerPage);
 
   // Ensure nextSlide stops at last full slide
   const nextSlide = () => {
@@ -217,6 +230,11 @@ export default function ShopMaterials() {
       (!filters.marketplace || product.marketplace === filters.marketplace)
     );
   });
+
+  const { data: getTrendingData, isPending: trendingisPending } =
+    useGetTrendingProduct({});
+
+  const trendingProducts = getTrendingData?.data || [];
 
   return (
     <>
@@ -300,24 +318,37 @@ export default function ShopMaterials() {
                   }%)`,
                 }}
               >
-                {marketplaces.map((market) => (
-                  <div
+                {marketPlacePublic?.map((market) => (
+                  <Link
+                    to={`/inner-marketplace`}
+                    state={{ info: market }}
                     key={market.id}
                     className="flex-shrink-0 px-2"
                     style={{ width: `${100 / itemsPerPage}%` }}
                   >
                     <img
-                      src={market.image}
+                      src={market?.multimedia_url}
                       alt={market.name}
-                      className="w-20 h-20 sm:w-24 sm:h-24 md:w-38 md:h-38 rounded-full object-cover mx-auto"
+                      className="w-20 h-20 sm:w-24 sm:h-24 md:w-48 md:h-48 rounded-full object-cover mx-auto"
                     />
-                    <h3 className="font-medium mt-6 mb-2 text-center">
+
+                    <h3
+                      className="font-medium mt-6 mb-2 truncate"
+                      style={{
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        width: "100%",
+                        display: "block",
+                      }}
+                      title={market.name}
+                    >
                       {market.name}
                     </h3>
                     <p className="text-[#2B21E5] text-sm flex items-center justify-center font-light">
-                      <MapPin size={14} className="mr-1" /> {market.location}
+                      <MapPin size={14} className="mr-1" /> {market.state}
                     </p>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -332,27 +363,41 @@ export default function ShopMaterials() {
 
           {/* Filtered Products */}
           <h2 className="text-lg font-semibold mt-8 mb-5">Trending Products</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {filteredProducts.length > 0 ? (
-              filteredProducts.map((product, index) => (
-                <Link to={`/aostyle-details`} key={index} className="">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full object-cover rounded-md"
-                  />
-                  <h3 className="font-medium text-left mt-4 mb-3">
-                    {product.name}
-                  </h3>
-                  <p className="text-[#2B21E5] text-left font-light">
-                    ₦{product.price.toLocaleString()}
-                  </p>
+          {trendingisPending ? (
+            <>
+              <LoaderComponent />
+            </>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {trendingProducts?.map((product, index) => (
+                <Link to={`/shop-details`} key={product.id}>
+                  <motion.div
+                    className="text-center"
+                    initial={{ opacity: 0, y: 50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                  >
+                    <motion.img
+                      src={product?.fabric?.photos[0]}
+                      alt={product.name}
+                      className="w-full h-56 object-cover rounded-md"
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ duration: 0.3 }}
+                    />
+                    <h3 className="font-medium text-left mt-4 mb-3">
+                      {product?.name}
+                    </h3>
+                    <p className="text-[#2B21E5] text-left font-light">
+                      ₦{product.price}{" "}
+                      <span className="text-[#8A8A8A] font-medium">
+                        per unit
+                      </span>
+                    </p>
+                  </motion.div>
                 </Link>
-              ))
-            ) : (
-              <p>No products match the selected filters.</p>
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </>

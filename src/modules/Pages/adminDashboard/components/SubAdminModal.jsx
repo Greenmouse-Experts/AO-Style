@@ -9,7 +9,7 @@ import Select from "react-select";
 import useEditAdminRole from "../../../../hooks/admin/useEditAdminRole";
 
 const SubAdminModal = ({ isOpen, onClose, newCategory }) => {
-  console.log(newCategory);
+  console.log(newCategory?.admin_role?.id);
   const { isPending: createIsPending, createSubAdminMutate } =
     useCreateSubAdmin();
 
@@ -33,7 +33,7 @@ const SubAdminModal = ({ isOpen, onClose, newCategory }) => {
     password: "",
     confirm_password: "",
     phone: newCategory?.phone ?? "",
-    admin_role_id: "",
+    admin_role_id: newCategory?.admin_role?.id ?? "",
     role: "owner-administrator",
   };
 

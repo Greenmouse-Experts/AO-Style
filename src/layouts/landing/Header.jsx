@@ -79,7 +79,7 @@ export default function Navbar() {
               )}
             </div>
             <ShoppingCartIcon className="h-5 w-5 text-gray-800 cursor-pointer" />
-            {token ? (
+            {token && currUrl ? (
               <Link
                 to={`/${currUrl}`}
                 className="bg-gradient text-white px-5 lg:px-6 py-2 lg:py-3 hover:bg-purple-600 transition"

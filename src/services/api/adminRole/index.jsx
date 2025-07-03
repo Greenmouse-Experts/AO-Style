@@ -12,6 +12,13 @@ const createSubAdminRole = (payload) => {
   return CaryBinApi.post(`/admin-role`, payload);
 };
 
+const suspendOwner = (payload) => {
+  return CaryBinApi.post(
+    `/onboard/suspend-business-owner/${payload?.user_id}`,
+    payload
+  );
+};
+
 const getAdminRoleById = (id) => {
   return CaryBinApi.get(`/admin-role/${id}`);
 };
@@ -31,6 +38,7 @@ const AdminRoleService = {
   updateAdminRole,
   deleteAdminRole,
   createSubAdminRole,
+  suspendOwner,
 };
 
 export default AdminRoleService;

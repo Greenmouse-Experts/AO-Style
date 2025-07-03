@@ -11,17 +11,20 @@ import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 import Loader from "../../../components/ui/Loader";
 import { formatDateStr } from "../../../lib/helper";
 import useDeleteSubAdmin from "../../../hooks/admin/useDeleteSubAdmin";
+import useSuspendOwner from "../../../hooks/admin/useSuspendOwner";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [reason, setReason] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [activeTab, setActiveTab] = useState("table");
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  const [suspendModalOpen, setSuspendModalOpen] = useState(false);
 
   const handleDropdownToggle = (id) => {
     setOpenDropdown(openDropdown === id ? null : id);
@@ -70,7 +73,11 @@ const CustomersTable = () => {
     [getAllAdminData?.data]
   );
 
+  console.log(getAllAdminData?.data);
+
   const [newCategory, setNewCategory] = useState();
+
+  const { isPending: suspendIsPending, suspendOwnerMutate } = useSuspendOwner();
 
   // Table Columns
   const columns = [
@@ -97,21 +104,21 @@ const CustomersTable = () => {
     { label: "Name", key: "name" },
     { label: "Phone Number", key: "phone" },
     { label: "Email Address", key: "email" },
-    { label: "Location", key: "location" },
+    // { label: "Location", key: "location" },
     { label: "Date Joined", key: "dateJoined" },
     {
       label: "Action",
       key: "action",
       render: (_, row) => (
-        <div className="relative">
+        <div className="relative z-[9999]">
           <button
-            className="bg-gray-100 cursor-pointer cursor-pointer text-gray-500 px-3 py-1 rounded-md"
+            className="bg-gray-100  cursor-pointer cursor-pointer text-gray-500 px-3 py-1 rounded-md"
             onClick={() => toggleDropdown(row.id)}
           >
             <FaEllipsisH />
           </button>
           {openDropdown === row.id && (
-            <div className="dropdown-menu absolute right-0 mt-2 w-50 bg-white rounded-md z-10 border-gray-200">
+            <div className="absolute right-0 mt-2 w-40 bg-white rounded-md z-10 shadow-lg">
               <button className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
                 View Details
               </button>
@@ -125,6 +132,18 @@ const CustomersTable = () => {
               >
                 Edit Admin
               </button>
+
+              {/* <button
+                onClick={() => {
+                  setSuspendModalOpen(true);
+                  setNewCategory(row);
+                  setOpenDropdown(null);
+                }}
+                className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+              >
+                {"Suspend Admin"}
+              </button> */}
+
               <button
                 onClick={() => {
                   setNewCategory(row);
@@ -425,6 +444,77 @@ const CustomersTable = () => {
                   {deleteIsPending ? "Please wait..." : "Delete Admin"}
                 </button>
               </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {suspendModalOpen && (
+        <div
+          className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
+          onClick={() => {
+            setSuspendModalOpen(false);
+            setReason("");
+          }}
+        >
+          <div
+            className="bg-white rounded-lg p-6 w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-end">
+              <button
+                onClick={() => {
+                  setSuspendModalOpen(false);
+                  setReason("");
+                }}
+                className="text-gray-500 cursor-pointer hover:text-gray-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <h3 className="text-lg font-semibold mb-4 -mt-7">
+              {"Suspend Admin"}
+            </h3>
+            <form
+              className="mt-6 space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                suspendOwnerMutate(
+                  {
+                    user_id: newCategory?.id,
+                    suspension_reason: reason,
+                  },
+                  {
+                    onSuccess: () => {
+                      setSuspendModalOpen(false);
+                      setNewCategory(null);
+                    },
+                  }
+                );
+              }}
+            >
+              <div>
+                <label className="block text-black mb-2">
+                  Reasons for suspending
+                </label>
+                <textarea
+                  placeholder="Reasons"
+                  className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg resize-none"
+                  name="reason"
+                  required
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  rows={3}
+                />
+              </div>
+
+              <button
+                disabled={suspendIsPending}
+                className="w-full bg-gradient cursor-pointer text-white py-4 rounded-lg font-normal"
+                type="submit"
+              >
+                {suspendIsPending ? "Please wait..." : "Suspend"}
+              </button>
             </form>
           </div>
         </div>

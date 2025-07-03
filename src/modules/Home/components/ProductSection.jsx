@@ -109,8 +109,6 @@ export default function ProductSection() {
       "STYLE"
     );
 
-  console.log(getStyleProductData?.data);
-
   const styleData = getStyleProductGeneralData?.data;
 
   return (

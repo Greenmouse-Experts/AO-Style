@@ -2,6 +2,11 @@ import { useState } from "react";
 import { Search, Filter, SortDesc, X } from "lucide-react";
 import Breadcrumb from "../components/Breadcrumb";
 import { Link } from "react-router-dom";
+import useProductCategoryGeneral from "../../../hooks/dashboard/useGetProductPublic";
+import useProductGeneral from "../../../hooks/dashboard/useGetProductGeneral";
+import LoaderComponent from "../../../components/BeatLoader";
+import useDebounce from "../../../hooks/useDebounce";
+import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 
 const categories = ["All Styles", "Male Styles", "Female Styles", "Bubu"];
 
@@ -75,7 +80,7 @@ const initialProducts = [
 export default function MarketplaceSection() {
   const [products, setProducts] = useState(initialProducts);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All Styles");
+  const [selectedCategory, setSelectedCategory] = useState("1");
   const [sortBy, setSortBy] = useState("Default");
   const [showFilter, setShowFilter] = useState(false);
   const [priceRange, setPriceRange] = useState([5000, 20000]);
@@ -135,6 +140,42 @@ export default function MarketplaceSection() {
     return 0;
   });
 
+  const [page, setPage] = useState(10);
+
+  const [queryString, setQueryString] = useState("");
+
+  const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
+
+  const [debounceSearch, setDebounceSearch] = useState("");
+
+  useUpdatedEffect(() => {
+    // update search params with undefined if debouncedSearchTerm is an empty string
+    setDebounceSearch(debouncedSearchTerm.trim() || undefined);
+    setPage(1);
+  }, [debouncedSearchTerm]);
+
+  const { data: getStyleProductGeneralData, isPending } =
+    useProductCategoryGeneral({
+      "pagination[limit]": page,
+      "pagination[page]": 1,
+      type: "style",
+    });
+
+  const { data: getStyleProductData, isPending: productIsPending } =
+    useProductGeneral(
+      {
+        "pagination[limit]": 10,
+        "pagination[page]": 1,
+        category_id: selectedCategory == "1" ? undefined : selectedCategory,
+        q: debounceSearch,
+      },
+      "STYLE"
+    );
+
+  const styleData = getStyleProductGeneralData?.data;
+
+  const isShowMoreBtn = styleData?.length == getStyleProductGeneralData?.count;
+
   return (
     <>
       <Breadcrumb
@@ -160,8 +201,10 @@ export default function MarketplaceSection() {
               type="text"
               placeholder="Search by keyword"
               className="w-full border border-gray-300 rounded-full pl-4 pr-10 py-2 focus:outline-none"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={queryString}
+              onChange={(evt) =>
+                setQueryString(evt.target.value ? evt.target.value : undefined)
+              }
             />
             <Search
               size={18}
@@ -171,20 +214,36 @@ export default function MarketplaceSection() {
         </div>
 
         <div className="flex justify-between items-center mb-6">
-          <div className="flex space-x-4 overflow-x-auto px-4">
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 ${
-                  selectedCategory === category
-                    ? "text-[#AB52EE] border-b-1 border-[#AB52EE] font-medium cursor-pointer"
-                    : "text-[#4B4A4A] font-light cursor-pointer"
-                }`}
-              >
-                {category}
-              </button>
-            ))}
+          <div className="flex space-x-4 overflow-x-auto  px-4 w-[1000px] whitespace-nowrap">
+            {styleData
+              ? [
+                  {
+                    id: "1",
+                    name: "All Products",
+                    type: "style",
+                  },
+                  ...styleData,
+                ].map((category) => (
+                  <button
+                    style={{
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      display: "block",
+                    }}
+                    title={category.name}
+                    key={category.name}
+                    onClick={() => setSelectedCategory(category?.id)}
+                    className={`px-4 py-2 truncate overflow-hidden whitespace-nowrap max-w-[120px] rounded-md shrink-0 text-sm ${
+                      selectedCategory === category?.id
+                        ? "text-[#AB52EE] border-b-2 border-[#AB52EE] font-medium"
+                        : "text-[#4B4A4A] font-light"
+                    }`}
+                  >
+                    {category?.name}
+                  </button>
+                ))
+              : null}
           </div>
           <div className="flex space-x-4">
             <select
@@ -235,38 +294,56 @@ export default function MarketplaceSection() {
         )}
 
         {/* Product Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {sortedProducts.map((product) => (
-            <Link
-              to={`/aostyle-details`}
-              key={product.id}
-              className="text-center"
-            >
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-full object-cover rounded-md"
-              />
-              <h3 className="font-medium text-left mt-4 mb-3">
-                {product.name}
-              </h3>
-              <p className="text-[#2B21E5] text-left font-light">
-                {product.price}{" "}
-                <span className="text-[#8A8A8A] font-medium">per unit</span>
-              </p>
-            </Link>
-          ))}
-        </div>
+        {productIsPending ? (
+          <LoaderComponent />
+        ) : getStyleProductData?.data?.length > 0 ? (
+          <div className="grid mt-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4">
+            {getStyleProductData?.data?.map((product) => (
+              <Link to={`/aostyle-details`} key={product.id} className="">
+                <img
+                  src={product?.style?.photos[0]}
+                  alt={product.name}
+                  className="w-full h-[200px] object-cover rounded-md"
+                />
+                <h3 className="font-medium text-left mt-4 mb-3">
+                  {product?.name}
+                </h3>
+                <p className="text-[#2B21E5]  text-left font-light">
+                  {product?.price}{" "}
+                  <span className="text-[#8A8A8A] font-medium">per unit</span>
+                </p>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <>
+            {" "}
+            <div className="text-center py-20">
+              <p className="text-gray-500">No products match your filters.</p>
+            </div>
+          </>
+        )}
 
         {/* Load More Button */}
-        <div className="flex justify-center mt-16">
-          <button
-            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 cursor-pointer"
-            onClick={handleLoadMore}
-          >
-            Load More Products
-          </button>
-        </div>
+
+        {getStyleProductData?.data?.length ? (
+          isShowMoreBtn ? (
+            <></>
+          ) : (
+            <div className="flex justify-center mt-16">
+              <button
+                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 cursor-pointer"
+                onClick={() => {
+                  setPage((prev) => prev + 10);
+                }}
+              >
+                Load More Products
+              </button>
+            </div>
+          )
+        ) : (
+          <></>
+        )}
       </section>
     </>
   );

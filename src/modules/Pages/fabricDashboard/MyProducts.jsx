@@ -171,7 +171,7 @@ const ProductPage = () => {
                             name: row?.name,
                             sku: row?.sku,
                             category_id: row?.category_id,
-                            status: "DRAFT",
+                            status: "PUBLISHED",
                           },
                         },
                         {
@@ -186,6 +186,14 @@ const ProductPage = () => {
                     {updateIsPending ? "Please wait" : "Draft Product"}
                   </button>
                 ) : null}
+
+                <Link
+                  state={{ info: row }}
+                  to={`/fabric/product/add-product`}
+                  className="block cursor-pointer text-center px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
+                >
+                  {"Edit Product"}
+                </Link>
 
                 <button
                   onClick={() => {

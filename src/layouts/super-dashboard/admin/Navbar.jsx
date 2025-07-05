@@ -48,11 +48,10 @@ export default function Navbar({ toggleSidebar }) {
       {/* Notification & Profile */}
       <div className="flex items-center space-x-5 relative">
         {/* Notification Bell */}
-        <Link
-          to="/admin/notifications"
-          className="relative bg-purple-100 p-2 rounded-full"
-        >
-          <Bell size={20} className="text-purple-600" />
+        <div className="relative">
+          <div className="bg-purple-100 p-2 rounded-full">
+            <Bell size={20} className="text-purple-600" />
+          </div>
           {unreadNotificationsCount > 0 ? (
             <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
               {unreadNotificationsCount}
@@ -60,7 +59,7 @@ export default function Navbar({ toggleSidebar }) {
           ) : (
             <></>
           )}
-        </Link>
+        </div>
 
         {/* Profile Avatar & Dropdown */}
         <div className="relative">

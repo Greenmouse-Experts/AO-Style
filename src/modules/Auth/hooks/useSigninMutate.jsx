@@ -35,6 +35,8 @@ const useSignIn = (email, resendCodeMutate) => {
       ) {
         toastSuccess(data?.data?.message);
         Cookies.set("token", data?.data?.accessToken);
+        console.log(data);
+        // Cookies.set("userId", data?.data?.data?.profile?.id);
         if (data?.data?.data?.role === "fabric-vendor") {
           navigate("/fabric");
           Cookies.set("currUserUrl", "fabric");
@@ -98,7 +100,7 @@ const useSignIn = (email, resendCodeMutate) => {
               localStorage.setItem("verifyemail", email);
               navigate("/verify-account");
             },
-          }
+          },
         );
       }
     },

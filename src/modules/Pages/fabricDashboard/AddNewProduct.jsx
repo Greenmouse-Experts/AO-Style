@@ -18,8 +18,6 @@ const AddProduct = () => {
 
   const productInfo = location?.state?.info;
 
-  console.log(productInfo);
-
   const initialValues = {
     type: "FABRIC",
     name: productInfo?.name ?? "",

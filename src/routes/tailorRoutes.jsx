@@ -28,6 +28,11 @@ export const tailorRoute = [
         element: <AddStyle />,
       },
       {
+        path: "/tailor/catalog-edit-style",
+        element: <AddStyle />,
+      },
+
+      {
         path: "/tailor/orders",
         element: <OrdersTable />,
       },

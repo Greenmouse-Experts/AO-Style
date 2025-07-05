@@ -153,7 +153,6 @@ export default function MarketplaceSection() {
                   to={`/inner-marketplace`}
                   state={{ info: market }}
                   key={market.id}
-                  onClick={() => {}}
                   className="flex-shrink-0 px-2 w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/6 text-center"
                 >
                   <img

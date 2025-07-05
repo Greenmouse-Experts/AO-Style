@@ -8,7 +8,6 @@ import Loader from "../../../components/ui/Loader";
 import useDebounce from "../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 import { formatDateStr } from "../../../lib/helper";
-import useMarkReadNotification from "../../../hooks/notification/useMarkReadNotification";
 
 const notifications = [
   {
@@ -66,9 +65,6 @@ export default function NotificationPageUpdate() {
   const { data, isPending } = useGetNotification({
     ...queryParams,
   });
-
-  const { isPending: markReadIsPending, markReadNotificationMutate } =
-    useMarkReadNotification();
 
   const [queryString, setQueryString] = useState(queryParams.q);
 
@@ -191,12 +187,6 @@ export default function NotificationPageUpdate() {
             {data?.data?.length ? (
               data?.data?.map((notification) => (
                 <div
-                  role="button"
-                  onClick={() => {
-                    if (!notification?.read) {
-                      markReadNotificationMutate({ id: notification?.id });
-                    }
-                  }}
                   key={notification?.id}
                   className={`flex flex-wrap  items-center p-5 gap-3 ${
                     !notification?.read ? "bg-purple-100 cursor-pointer" : ""

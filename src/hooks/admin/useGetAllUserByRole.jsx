@@ -7,7 +7,8 @@ function useGetAllUsersByRole(params) {
     {
       queryKey: ["get-all-userby-role", params],
       queryFn: () => UserService.getUsersByRole(params),
-    }
+      enabled: !!params?.role, // Only fetch when role is provided
+    },
   );
 
   return {

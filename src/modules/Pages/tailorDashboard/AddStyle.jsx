@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { UploadCloud } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ModalThanks from "./components/ModalThanks";
 import { useFormik } from "formik";
 import Select from "react-select";
@@ -16,48 +16,35 @@ import useGetProducts from "../../../hooks/product/useGetProduct";
 import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 
 import useToast from "../../../hooks/useToast";
-import useUpdateStyle from "../../../hooks/style/useUpdateStyle";
+
+const initialValues = {
+  type: "STYLE",
+  name: "",
+  category_id: "",
+  description: "",
+  gender: "",
+  tags: [],
+  price: "",
+  weight_per_unit: "",
+  local_name: "",
+  manufacturer_name: "",
+  material_type: "",
+  alternative_names: "",
+  fabric_texture: "",
+  feel_a_like: "",
+  quantity: "",
+  minimum_yards: "",
+  available_colors: "",
+  fabric_colors: "",
+  photos: [],
+  video_url: "",
+  original_price: "",
+  sku: "",
+  multimedia_url: "",
+};
 
 export default function StyleForm() {
   const { toastError } = useToast();
-
-  const location = useLocation();
-
-  const styleInfo = location?.state?.info;
-
-  console.log(styleInfo?.status);
-
-  const initialValues = {
-    type: "STYLE",
-    name: styleInfo?.name ?? "",
-    category_id: styleInfo?.category?.id ?? "",
-    description: styleInfo?.description ?? "",
-    gender: styleInfo?.gender ?? "",
-    tags: styleInfo?.tags ?? "",
-    price: styleInfo?.price ?? "",
-    weight_per_unit: "",
-    local_name: "",
-    manufacturer_name: "",
-    material_type: "",
-    alternative_names: "",
-    fabric_texture: "",
-    feel_a_like: "",
-    quantity: "",
-    minimum_yards: "",
-    minimum_fabric_qty: styleInfo?.style?.minimum_fabric_qty ?? "",
-    available_colors: "",
-    fabric_colors: "",
-    photos: [],
-    video_url: styleInfo?.style?.video_url ?? "",
-    original_price: "",
-    sku: styleInfo?.sku ?? "",
-    multimedia_url: "",
-    estimated_sewing_time: styleInfo?.style?.estimated_sewing_time ?? "",
-    front_url: styleInfo?.style?.photos[0] ?? "",
-    back_url: styleInfo?.style?.photos[1] ?? "",
-    right_url: styleInfo?.style?.photos[2] ?? "",
-    left_url: styleInfo?.style?.photos[3] ?? "",
-  };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tags, setTags] = useState([]);
@@ -96,8 +83,6 @@ export default function StyleForm() {
     uploadImageMutate: uploadLeftMutate,
   } = useUploadImage();
 
-  const { isPending: updateIsPending, updateStyleMutate } = useUpdateStyle();
-
   const {
     handleSubmit,
     touched,
@@ -123,84 +108,37 @@ export default function StyleForm() {
         toastError("Please upload all required images.");
         return;
       }
-      if (styleInfo) {
-        updateStyleMutate(
-          {
-            id: styleInfo?.id,
-            business_id: businessDetails?.data?.id,
-            product: {
-              type: val.type,
-              name: val.name,
-              category_id: val.category_id,
-              sku: val.sku,
-              description: val.description,
-              gender: val.gender,
-              tags: val.tags,
-              price: val.price?.toString(),
-              original_price: val.price?.toString(),
-              status: styleInfo?.status,
-            },
-            style: {
-              estimated_sewing_time: val.estimated_sewing_time,
-              minimum_fabric_qty: val.minimum_fabric_qty,
-              photos: [
-                val.front_url,
-                val.back_url,
-                val.right_url,
-                val.left_url,
-              ],
-              location: {
-                latitude: "1.2343444",
-                longitude: "1.500332",
-              },
-              video_url: val.video_url,
-            },
+      createStyleProductMutate(
+        {
+          product: {
+            type: val.type,
+            name: val.name,
+            category_id: val.category_id,
+            sku: val.sku,
+            description: val.description,
+            gender: val.gender,
+            tags: val.tags,
+            price: val.price?.toString(),
+            original_price: val.price?.toString(),
           },
-          {
-            onSuccess: () => {
-              resetForm();
-              navigate(-1);
+          style: {
+            estimated_sewing_time: val.estimated_sewing_time,
+            minimum_fabric_qty: val.minimum_fabric_qty,
+            photos: [val.front_url, val.back_url, val.right_url, val.left_url],
+            location: {
+              latitude: "1.2343444",
+              longitude: "1.500332",
             },
-          }
-        );
-      } else {
-        createStyleProductMutate(
-          {
-            product: {
-              type: val.type,
-              name: val.name,
-              category_id: val.category_id,
-              sku: val.sku,
-              description: val.description,
-              gender: val.gender,
-              tags: val.tags,
-              price: val.price?.toString(),
-              original_price: val.price?.toString(),
-            },
-            style: {
-              estimated_sewing_time: val.estimated_sewing_time,
-              minimum_fabric_qty: val.minimum_fabric_qty,
-              photos: [
-                val.front_url,
-                val.back_url,
-                val.right_url,
-                val.left_url,
-              ],
-              location: {
-                latitude: "1.2343444",
-                longitude: "1.500332",
-              },
-              video_url: val.video_url,
-            },
+            video_url: val.video_url,
           },
-          {
-            onSuccess: () => {
-              resetForm();
-              navigate(-1);
-            },
-          }
-        );
-      }
+        },
+        {
+          onSuccess: () => {
+            resetForm();
+            navigate(-1);
+          },
+        }
+      );
     },
   });
 
@@ -264,9 +202,7 @@ export default function StyleForm() {
   return (
     <>
       <div className="bg-white p-6 mb-6 rounded-lg">
-        <h1 className="text-xl md:text-2xl font-medium mb-3">
-          {styleInfo ? "Edit" : "Add"} Styles
-        </h1>
+        <h1 className="text-xl md:text-2xl font-medium mb-3">All Styles</h1>
         <p className="text-gray-500 text-sm">
           <Link to="/tailor" className="text-blue-500 hover:underline">
             Dashboard
@@ -276,7 +212,7 @@ export default function StyleForm() {
       </div>
       <div className="bg-white p-6 rounded-lg max-w-2xl">
         <h1 className="text-lg font-semibold text-black mb-4">
-          {styleInfo ? "Edit" : "Submit New"} Style
+          Submit New Style
         </h1>
 
         <div className="space-y-4">
@@ -331,7 +267,7 @@ export default function StyleForm() {
                   options={categoryList}
                   name="category_id"
                   value={categoryList?.find(
-                    (opt) => opt.value == values.category_id
+                    (opt) => opt.value === values.category_id
                   )}
                   onChange={(selectedOption) => {
                     setFieldValue("category_id", selectedOption.value);
@@ -721,7 +657,7 @@ export default function StyleForm() {
                 Tags (max 5)
               </label>
               <div className="flex flex-wrap gap-2 mb-2">
-                {values?.tags.map((tag, index) => (
+                {tags.map((tag, index) => (
                   <div
                     key={index}
                     className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center"
@@ -798,17 +734,12 @@ export default function StyleForm() {
                 uploadFrontIsPending ||
                 uploadBackIsPending ||
                 uploadRightIsPending ||
-                uploadLeftIsPending ||
-                updateIsPending
+                uploadLeftIsPending
               }
               type="submit"
               className="bg-gradient text-white px-6 py-2 rounded w-full md:w-fit mt-4 cursor-pointer"
             >
-              {isPending || updateIsPending
-                ? "Please wait..."
-                : styleInfo
-                ? "Edit Style"
-                : "Submit Style"}
+              {isPending ? "Please wait..." : "Submit Style"}
             </button>
           </form>
         </div>

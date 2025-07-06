@@ -12,9 +12,14 @@ import useGetProducts from "../../../hooks/product/useGetProduct";
 import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails";
 import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 import useUpdateFabric from "../../../hooks/fabric/useUpdateFabric";
+import useCreateAdminFabricProduct from "../../../hooks/fabric/useCreateAdminFabricProduct";
+import useUpdateAdminFabric from "../../../hooks/fabric/useUpdateAdminFabric";
 
 const AddProduct = () => {
   const location = useLocation();
+
+  const isAdminAddFabricRoute =
+    location.pathname === "/admin/fabric/add-product";
 
   const productInfo = location?.state?.info;
 
@@ -45,7 +50,6 @@ const AddProduct = () => {
     market_id: productInfo?.fabric?.market_id ?? "",
     multimedia_url: "",
     closeup_url: productInfo?.fabric?.photos[0] ?? undefined,
-
     spreadout_url: productInfo?.fabric?.photos[1] ?? "",
     manufacturers_url: productInfo?.fabric?.photos[2] ?? "",
     fabric_url: productInfo?.fabric?.photos[3] ?? "",
@@ -70,6 +74,9 @@ const AddProduct = () => {
   const { isPending, createFabricProductMutate } = useCreateFabricProduct(
     businessDetails?.data?.id
   );
+
+  const { isPending: createAdminIsPending, createAdminFabricProductMutate } =
+    useCreateAdminFabricProduct();
 
   const { data } = useGetMarket({
     "pagination[limit]": 10000,
@@ -99,6 +106,9 @@ const AddProduct = () => {
   };
 
   const { isPending: updateIsPending, updateFabricMutate } = useUpdateFabric();
+
+  const { isPending: updateAdminIsPending, updateAdminFabricMutate } =
+    useUpdateAdminFabric();
 
   const handleTagAdd = (e) => {
     if (e.key === "Enter" && tagInput.trim() && tags.length < 5) {
@@ -137,101 +147,200 @@ const AddProduct = () => {
     enableReinitialize: true,
     onSubmit: (val) => {
       if (productInfo) {
-        updateFabricMutate(
-          {
-            id: productInfo?.id,
-            business_id: businessDetails?.data?.id,
-            product: {
-              type: val.type,
-              name: val.name,
-              category_id: val.category_id,
-              sku: val.sku,
-              description: val.description,
-              gender: val.gender,
-              tags: val.tags,
-              price: val.price?.toString(),
-              original_price: val.price?.toString(),
-              status: productInfo?.status,
-            },
-            fabric: {
-              market_id: val.market_id,
-              weight_per_unit: val?.weight_per_unit?.toString(),
-              location: {
-                latitude: "1.2343444",
-                longitude: "1.500332",
+        if (isAdminAddFabricRoute) {
+          updateAdminFabricMutate(
+            {
+              id: productInfo?.id,
+              product: {
+                type: val.type,
+                name: val.name,
+                category_id: val.category_id,
+                sku: val.sku,
+                description: val.description,
+                gender: val.gender,
+                tags: val.tags,
+                price: val.price?.toString(),
+                original_price: val.price?.toString(),
+                status: productInfo?.status,
               },
-              local_name: val.local_name,
-              manufacturer_name: val.manufacturer_name,
-              material_type: val.material_type,
-              alternative_names: val.alternative_names,
-              fabric_texture: val.fabric_texture,
-              feel_a_like: val.feel_a_like,
-              quantity: val.quantity,
-              minimum_yards: val.minimum_yards?.toString(),
-              available_colors: val.available_colors?.toString(),
-              fabric_colors: val?.fabric_colors?.join(","),
-              photos: [
-                val.closeup_url,
-                val.spreadout_url,
-                val.manufacturers_url,
-                val.fabric_url,
-              ],
-              video_url: val.video_url,
+              fabric: {
+                market_id: val.market_id,
+                weight_per_unit: val?.weight_per_unit?.toString(),
+                location: {
+                  latitude: "1.2343444",
+                  longitude: "1.500332",
+                },
+                local_name: val.local_name,
+                manufacturer_name: val.manufacturer_name,
+                material_type: val.material_type,
+                alternative_names: val.alternative_names,
+                fabric_texture: val.fabric_texture,
+                feel_a_like: val.feel_a_like,
+                quantity: val.quantity,
+                minimum_yards: val.minimum_yards?.toString(),
+                available_colors: val.available_colors?.toString(),
+                fabric_colors: val?.fabric_colors?.join(","),
+                photos: [
+                  val.closeup_url,
+                  val.spreadout_url,
+                  val.manufacturers_url,
+                  val.fabric_url,
+                ],
+                video_url: val.video_url,
+              },
             },
-          },
-          {
-            onSuccess: () => {
-              navigate(-1);
+            {
+              onSuccess: () => {
+                navigate(-1);
+              },
+            }
+          );
+        } else {
+          updateFabricMutate(
+            {
+              id: productInfo?.id,
+              business_id: businessDetails?.data?.id,
+              product: {
+                type: val.type,
+                name: val.name,
+                category_id: val.category_id,
+                sku: val.sku,
+                description: val.description,
+                gender: val.gender,
+                tags: val.tags,
+                price: val.price?.toString(),
+                original_price: val.price?.toString(),
+                status: productInfo?.status,
+              },
+              fabric: {
+                market_id: val.market_id,
+                weight_per_unit: val?.weight_per_unit?.toString(),
+                location: {
+                  latitude: "1.2343444",
+                  longitude: "1.500332",
+                },
+                local_name: val.local_name,
+                manufacturer_name: val.manufacturer_name,
+                material_type: val.material_type,
+                alternative_names: val.alternative_names,
+                fabric_texture: val.fabric_texture,
+                feel_a_like: val.feel_a_like,
+                quantity: val.quantity,
+                minimum_yards: val.minimum_yards?.toString(),
+                available_colors: val.available_colors?.toString(),
+                fabric_colors: val?.fabric_colors?.join(","),
+                photos: [
+                  val.closeup_url,
+                  val.spreadout_url,
+                  val.manufacturers_url,
+                  val.fabric_url,
+                ],
+                video_url: val.video_url,
+              },
             },
-          }
-        );
+            {
+              onSuccess: () => {
+                navigate(-1);
+              },
+            }
+          );
+        }
       } else {
-        createFabricProductMutate(
-          {
-            product: {
-              type: val.type,
-              name: val.name,
-              category_id: val.category_id,
-              sku: val.sku,
-              description: val.description,
-              gender: val.gender,
-              tags: val.tags,
-              price: val.price?.toString(),
-              original_price: val.price?.toString(),
-            },
-            fabric: {
-              market_id: val.market_id,
-              weight_per_unit: val?.weight_per_unit?.toString(),
-              location: {
-                latitude: "1.2343444",
-                longitude: "1.500332",
+        if (isAdminAddFabricRoute) {
+          createAdminFabricProductMutate(
+            {
+              product: {
+                type: val.type,
+                name: val.name,
+                category_id: val.category_id,
+                sku: val.sku,
+                description: val.description,
+                gender: val.gender,
+                tags: val.tags,
+                price: val.price?.toString(),
+                original_price: val.price?.toString(),
               },
-              local_name: val.local_name,
-              manufacturer_name: val.manufacturer_name,
-              material_type: val.material_type,
-              alternative_names: val.alternative_names,
-              fabric_texture: val.fabric_texture,
-              feel_a_like: val.feel_a_like,
-              quantity: val.quantity,
-              minimum_yards: val.minimum_yards?.toString(),
-              available_colors: val.available_colors?.toString(),
-              fabric_colors: val?.fabric_colors?.join(","),
-              photos: [
-                val.closeup_url,
-                val.spreadout_url,
-                val.manufacturers_url,
-                val.fabric_url,
-              ],
-              video_url: val.video_url,
+              fabric: {
+                market_id: val.market_id,
+                weight_per_unit: val?.weight_per_unit?.toString(),
+                location: {
+                  latitude: "1.2343444",
+                  longitude: "1.500332",
+                },
+                local_name: val.local_name,
+                manufacturer_name: val.manufacturer_name,
+                material_type: val.material_type,
+                alternative_names: val.alternative_names,
+                fabric_texture: val.fabric_texture,
+                feel_a_like: val.feel_a_like,
+                quantity: val.quantity,
+                minimum_yards: val.minimum_yards?.toString(),
+                available_colors: val.available_colors?.toString(),
+                fabric_colors: val?.fabric_colors?.join(","),
+                photos: [
+                  val.closeup_url,
+                  val.spreadout_url,
+                  val.manufacturers_url,
+                  val.fabric_url,
+                ],
+                video_url: val.video_url,
+              },
             },
-          },
-          {
-            onSuccess: () => {
-              resetForm();
-              navigate(-1);
+            {
+              onSuccess: () => {
+                resetForm();
+                navigate(-1);
+              },
+            }
+          );
+        } else {
+          createFabricProductMutate(
+            {
+              product: {
+                type: val.type,
+                name: val.name,
+                category_id: val.category_id,
+                sku: val.sku,
+                description: val.description,
+                gender: val.gender,
+                tags: val.tags,
+                price: val.price?.toString(),
+                original_price: val.price?.toString(),
+              },
+              fabric: {
+                market_id: val.market_id,
+                weight_per_unit: val?.weight_per_unit?.toString(),
+                location: {
+                  latitude: "1.2343444",
+                  longitude: "1.500332",
+                },
+                local_name: val.local_name,
+                manufacturer_name: val.manufacturer_name,
+                material_type: val.material_type,
+                alternative_names: val.alternative_names,
+                fabric_texture: val.fabric_texture,
+                feel_a_like: val.feel_a_like,
+                quantity: val.quantity,
+                minimum_yards: val.minimum_yards?.toString(),
+                available_colors: val.available_colors?.toString(),
+                fabric_colors: val?.fabric_colors?.join(","),
+                photos: [
+                  val.closeup_url,
+                  val.spreadout_url,
+                  val.manufacturers_url,
+                  val.fabric_url,
+                ],
+                video_url: val.video_url,
+              },
             },
-          }
-        );
+            {
+              onSuccess: () => {
+                resetForm();
+                navigate(-1);
+              },
+            }
+          );
+        }
       }
     },
   });
@@ -1077,7 +1186,9 @@ const AddProduct = () => {
                 closeUpViewIsPending ||
                 spreadOutViewIsPending ||
                 manufacturersIsPending ||
-                fabricIsPending
+                fabricIsPending ||
+                createAdminIsPending ||
+                updateAdminIsPending
               }
               className="mt-6 w-full cursor-pointer py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-md hover:opacity-90"
             >
@@ -1086,7 +1197,9 @@ const AddProduct = () => {
               closeUpViewIsPending ||
               spreadOutViewIsPending ||
               manufacturersIsPending ||
-              fabricIsPending
+              fabricIsPending ||
+              createAdminIsPending ||
+              updateAdminIsPending
                 ? "Please wait..."
                 : productInfo
                 ? "Update Fabric"

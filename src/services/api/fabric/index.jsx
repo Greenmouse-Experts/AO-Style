@@ -8,6 +8,10 @@ const createFabricProduct = (payload, business_id) => {
   });
 };
 
+const createAdminFabricProduct = (payload) => {
+  return CaryBinApi.post(`/manage-fabric/create`, payload, {});
+};
+
 const getFabricProduct = (params) => {
   return CaryBinApi.get(`/product-general`, {
     params,
@@ -68,6 +72,7 @@ const FabricService = {
   getAdminFabricProduct,
   updateAdminFabricProduct,
   deleteAdminFabricProduct,
+  createAdminFabricProduct,
 };
 
 export default FabricService;

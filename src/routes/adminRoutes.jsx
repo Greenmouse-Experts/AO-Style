@@ -38,6 +38,7 @@ import ViewMarketDetails from "../modules/Pages/adminDashboard/sales-rep/ViewMar
 import ViewFabricDetails from "../modules/Pages/adminDashboard/fabric/ViewFabricDetails";
 import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
 import MyProducts from "../modules/Pages/fabricDashboard/MyProducts";
+import AddNewProduct from "../modules/Pages/fabricDashboard/AddNewProduct";
 
 export const adminRoutes = [
   {
@@ -143,6 +144,10 @@ export const adminRoutes = [
       {
         path: "/admin/fabrics-products",
         element: <MyProducts />,
+      },
+      {
+        path: "/admin/fabric/add-product",
+        element: <AddNewProduct />,
       },
 
       {

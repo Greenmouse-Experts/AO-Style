@@ -72,8 +72,6 @@ const ProductPage = () => {
     ? getAllAdminFabricData
     : getAllFabricData;
 
-  console.log(getAllAdminFabricData);
-
   const FabricData = useMemo(
     () =>
       updatedData?.data
@@ -258,7 +256,11 @@ const ProductPage = () => {
 
                 <Link
                   state={{ info: row }}
-                  to={`/fabric/product/edit-product`}
+                  to={
+                    isAdminFabricRoute
+                      ? "/admin/fabric/edit-product"
+                      : "/fabric/product/edit-product"
+                  }
                   className="block cursor-pointer text-center px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
                 >
                   {"Edit Product"}

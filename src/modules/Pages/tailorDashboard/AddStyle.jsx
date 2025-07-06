@@ -17,15 +17,19 @@ import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 
 import useToast from "../../../hooks/useToast";
 import useUpdateStyle from "../../../hooks/style/useUpdateStyle";
+import useUpdateAdminStyle from "../../../hooks/style/useUpdateAdminStyle";
+import useCreateAdminStyle from "../../../hooks/style/useCreateAdminStyle";
 
 export default function StyleForm() {
   const { toastError } = useToast();
 
   const location = useLocation();
 
-  const styleInfo = location?.state?.info;
+  const isAdminAddRoute = location.pathname === "/admin/style/add-product";
 
-  console.log(styleInfo?.status);
+  const isAdminEditRoute = location.pathname === "/admin/style/edit-product";
+
+  const styleInfo = location?.state?.info;
 
   const initialValues = {
     type: "STYLE",
@@ -33,7 +37,7 @@ export default function StyleForm() {
     category_id: styleInfo?.category?.id ?? "",
     description: styleInfo?.description ?? "",
     gender: styleInfo?.gender ?? "",
-    tags: styleInfo?.tags ?? "",
+    tags: styleInfo?.tags ?? [],
     price: styleInfo?.price ?? "",
     weight_per_unit: "",
     local_name: "",
@@ -71,6 +75,9 @@ export default function StyleForm() {
     businessDetails?.data?.id
   );
 
+  const { isPending: createIsPending, createAdminStyleProductMutate } =
+    useCreateAdminStyle();
+
   const navigate = useNavigate();
 
   const { isPending: uploadVideoIsPending, uploadVideoMutate } =
@@ -98,6 +105,9 @@ export default function StyleForm() {
 
   const { isPending: updateIsPending, updateStyleMutate } = useUpdateStyle();
 
+  const { isPending: updateAdminIsPending, updateAdminStyleMutate } =
+    useUpdateAdminStyle();
+
   const {
     handleSubmit,
     touched,
@@ -124,82 +134,162 @@ export default function StyleForm() {
         return;
       }
       if (styleInfo) {
-        updateStyleMutate(
-          {
-            id: styleInfo?.id,
-            business_id: businessDetails?.data?.id,
-            product: {
-              type: val.type,
-              name: val.name,
-              category_id: val.category_id,
-              sku: val.sku,
-              description: val.description,
-              gender: val.gender,
-              tags: val.tags,
-              price: val.price?.toString(),
-              original_price: val.price?.toString(),
-              status: styleInfo?.status,
-            },
-            style: {
-              estimated_sewing_time: val.estimated_sewing_time,
-              minimum_fabric_qty: val.minimum_fabric_qty,
-              photos: [
-                val.front_url,
-                val.back_url,
-                val.right_url,
-                val.left_url,
-              ],
-              location: {
-                latitude: "1.2343444",
-                longitude: "1.500332",
+        if (isAdminEditRoute) {
+          updateAdminStyleMutate(
+            {
+              id: styleInfo?.id,
+              product: {
+                type: val.type,
+                name: val.name,
+                category_id: val.category_id,
+                sku: val.sku,
+                description: val.description,
+                gender: val.gender,
+                tags: val.tags,
+                price: val.price?.toString(),
+                original_price: val.price?.toString(),
+                status: styleInfo?.status,
               },
-              video_url: val.video_url,
+              style: {
+                estimated_sewing_time: val.estimated_sewing_time,
+                minimum_fabric_qty: val.minimum_fabric_qty,
+                photos: [
+                  val.front_url,
+                  val.back_url,
+                  val.right_url,
+                  val.left_url,
+                ],
+                location: {
+                  latitude: "1.2343444",
+                  longitude: "1.500332",
+                },
+                video_url: val.video_url,
+              },
             },
-          },
-          {
-            onSuccess: () => {
-              resetForm();
-              navigate(-1);
+            {
+              onSuccess: () => {
+                resetForm();
+                navigate(-1);
+              },
+            }
+          );
+        } else {
+          updateStyleMutate(
+            {
+              id: styleInfo?.id,
+              business_id: businessDetails?.data?.id,
+              product: {
+                type: val.type,
+                name: val.name,
+                category_id: val.category_id,
+                sku: val.sku,
+                description: val.description,
+                gender: val.gender,
+                tags: val.tags,
+                price: val.price?.toString(),
+                original_price: val.price?.toString(),
+                status: styleInfo?.status,
+              },
+              style: {
+                estimated_sewing_time: val.estimated_sewing_time,
+                minimum_fabric_qty: val.minimum_fabric_qty,
+                photos: [
+                  val.front_url,
+                  val.back_url,
+                  val.right_url,
+                  val.left_url,
+                ],
+                location: {
+                  latitude: "1.2343444",
+                  longitude: "1.500332",
+                },
+                video_url: val.video_url,
+              },
             },
-          }
-        );
+            {
+              onSuccess: () => {
+                resetForm();
+                navigate(-1);
+              },
+            }
+          );
+        }
       } else {
-        createStyleProductMutate(
-          {
-            product: {
-              type: val.type,
-              name: val.name,
-              category_id: val.category_id,
-              sku: val.sku,
-              description: val.description,
-              gender: val.gender,
-              tags: val.tags,
-              price: val.price?.toString(),
-              original_price: val.price?.toString(),
-            },
-            style: {
-              estimated_sewing_time: val.estimated_sewing_time,
-              minimum_fabric_qty: val.minimum_fabric_qty,
-              photos: [
-                val.front_url,
-                val.back_url,
-                val.right_url,
-                val.left_url,
-              ],
-              location: {
-                latitude: "1.2343444",
-                longitude: "1.500332",
+        if (isAdminAddRoute) {
+          createAdminStyleProductMutate(
+            {
+              product: {
+                type: val.type,
+                name: val.name,
+                category_id: val.category_id,
+                sku: val.sku,
+                description: val.description,
+                gender: val.gender,
+                tags: val.tags,
+                price: val.price?.toString(),
+                original_price: val.price?.toString(),
               },
-              video_url: val.video_url,
+              style: {
+                estimated_sewing_time: val.estimated_sewing_time,
+                minimum_fabric_qty: val.minimum_fabric_qty,
+                photos: [
+                  val.front_url,
+                  val.back_url,
+                  val.right_url,
+                  val.left_url,
+                ],
+                location: {
+                  latitude: "1.2343444",
+                  longitude: "1.500332",
+                },
+                video_url: val.video_url,
+              },
             },
-          },
-          {
-            onSuccess: () => {
-              resetForm();
-              navigate(-1);
+            {
+              onSuccess: () => {
+                resetForm();
+                navigate(-1);
+              },
+            }
+          );
+        } else {
+          createStyleProductMutate(
+            {
+              product: {
+                type: val.type,
+                name: val.name,
+                category_id: val.category_id,
+                sku: val.sku,
+                description: val.description,
+                gender: val.gender,
+                tags: val.tags,
+                price: val.price?.toString(),
+                original_price: val.price?.toString(),
+              },
+              style: {
+                estimated_sewing_time: val.estimated_sewing_time,
+                minimum_fabric_qty: val.minimum_fabric_qty,
+                photos: [
+                  val.front_url,
+                  val.back_url,
+                  val.right_url,
+                  val.left_url,
+                ],
+                location: {
+                  latitude: "1.2343444",
+                  longitude: "1.500332",
+                },
+                video_url: val.video_url,
+              },
             },
-          }
-        );
+            {
+              onSuccess: () => {
+                resetForm();
+                navigate(-1);
+              },
+            }
+          );
+        }
       }
     },
   });
@@ -426,58 +516,71 @@ export default function StyleForm() {
                 Upload Style Photos
               </label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div
-                  onClick={() => document.getElementById("front").click()}
-                  className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer"
-                >
-                  <UploadCloud
-                    className="mx-auto text-gray-400 mb-4"
-                    size={32}
-                  />
-                  <p className="text-xs mb-2">
-                    Front Side Style
-                    <br />
-                    (Less than 5MB)
-                  </p>
-                  <input
-                    type="file"
-                    id="front"
-                    accept="image/*"
-                    className="mt-2 w-full hidden"
-                    onChange={(e) => {
-                      if (e.target.files) {
-                        if (e.target.files[0].size > 5 * 1024 * 1024) {
-                          alert("File size exceeds 5MB limit");
-                          return;
-                        }
-                        const file = e.target.files[0];
-                        const formData = new FormData();
-                        formData.append("image", file);
-                        uploadFrontMutate(formData, {
-                          onSuccess: (data) => {
-                            setFieldValue("front_url", data?.data?.data?.url);
-                          },
-                        });
-                        e.target.value = "";
-                      }
-                    }}
-                  />
-                  {uploadFrontIsPending ? (
-                    <p className="cursor-pointer text-gray-400">
-                      please wait...{" "}
+                <div className="relative">
+                  {/* ⓘ Icon with tooltip */}
+                  <div className="absolute top-2 right-2 group">
+                    <div className="text-gray-500 text-sm cursor-pointer">
+                      ⓘ
+                    </div>
+                    <div className="absolute -top-8 right-0 bg-black text-white text-xs px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20 whitespace-nowrap">
+                      Note: This is the first Style to appear on home page
+                    </div>
+                  </div>
+
+                  {/* Upload Box */}
+                  <div
+                    onClick={() => document.getElementById("front").click()}
+                    className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer"
+                  >
+                    <UploadCloud
+                      className="mx-auto text-gray-400 mb-4"
+                      size={32}
+                    />
+                    <p className="text-xs mb-2">
+                      Front Side Style
+                      <br />
+                      (Less than 5MB)
                     </p>
-                  ) : values.front_url ? (
-                    <a
-                      href={values.front_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-purple-600 flex justify-center cursor-pointer hover:underline"
-                    >
-                      View file upload
-                    </a>
-                  ) : (
-                    <></>
-                  )}
+
+                    <input
+                      type="file"
+                      id="front"
+                      accept="image/*"
+                      className="mt-2 w-full hidden"
+                      onChange={(e) => {
+                        if (e.target.files) {
+                          if (e.target.files[0].size > 5 * 1024 * 1024) {
+                            alert("File size exceeds 5MB limit");
+                            return;
+                          }
+                          const file = e.target.files[0];
+                          const formData = new FormData();
+                          formData.append("image", file);
+                          uploadFrontMutate(formData, {
+                            onSuccess: (data) => {
+                              setFieldValue("front_url", data?.data?.data?.url);
+                            },
+                          });
+                          e.target.value = "";
+                        }
+                      }}
+                    />
+
+                    {uploadFrontIsPending ? (
+                      <p className="cursor-pointer text-gray-400">
+                        please wait...{" "}
+                      </p>
+                    ) : values.front_url ? (
+                      <a
+                        href={values.front_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-purple-600 flex justify-center cursor-pointer hover:underline"
+                      >
+                        View file upload
+                      </a>
+                    ) : null}
+                  </div>
                 </div>
                 <div
                   onClick={() => document.getElementById("back").click()}
@@ -799,12 +902,17 @@ export default function StyleForm() {
                 uploadBackIsPending ||
                 uploadRightIsPending ||
                 uploadLeftIsPending ||
-                updateIsPending
+                updateIsPending ||
+                updateAdminIsPending ||
+                createIsPending
               }
               type="submit"
               className="bg-gradient text-white px-6 py-2 rounded w-full md:w-fit mt-4 cursor-pointer"
             >
-              {isPending || updateIsPending
+              {isPending ||
+              updateIsPending ||
+              updateAdminIsPending ||
+              createIsPending
                 ? "Please wait..."
                 : styleInfo
                 ? "Edit Style"

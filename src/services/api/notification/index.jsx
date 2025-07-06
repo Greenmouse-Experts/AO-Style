@@ -6,8 +6,16 @@ const getNotification = (params) => {
   });
 };
 
+const markkReadNotification = (payload) => {
+  return CaryBinApi.patch(
+    `/notification-track/mark-read/${payload?.id}`,
+    payload
+  );
+};
+
 const NotificationService = {
   getNotification,
+  markkReadNotification,
 };
 
 export default NotificationService;

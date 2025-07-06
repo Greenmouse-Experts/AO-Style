@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import useCreateFabricProduct from "../../../hooks/fabric/useCreateFabricProduct";
 import useGetMarket from "../../../hooks/market/useGetMarket";
@@ -10,34 +10,47 @@ import useUploadImages from "../../../hooks/multimedia/useUploadImages";
 import useGetProducts from "../../../hooks/product/useGetProduct";
 
 import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails";
-
-const initialValues = {
-  type: "FABRIC",
-  name: "",
-  category_id: "",
-  description: "",
-  gender: "",
-  tags: [],
-  price: "",
-  weight_per_unit: "",
-  local_name: "",
-  manufacturer_name: "",
-  material_type: "",
-  alternative_names: "",
-  fabric_texture: "",
-  feel_a_like: "",
-  quantity: "",
-  minimum_yards: "",
-  available_colors: "",
-  fabric_colors: "",
-  photos: [],
-  video_url: "",
-  original_price: "",
-  sku: "",
-  multimedia_url: "",
-};
+import useUploadImage from "../../../hooks/multimedia/useUploadImage";
+import useUpdateFabric from "../../../hooks/fabric/useUpdateFabric";
 
 const AddProduct = () => {
+  const location = useLocation();
+
+  const productInfo = location?.state?.info;
+
+  const initialValues = {
+    type: "FABRIC",
+    name: productInfo?.name ?? "",
+    category_id: productInfo?.category_id ?? "",
+    description: productInfo?.description ?? "",
+    gender: productInfo?.gender ?? "",
+    tags: productInfo?.tags ?? [],
+    price: productInfo?.price ?? "",
+    weight_per_unit: productInfo?.fabric?.weight_per_unit ?? "",
+    local_name: productInfo?.fabric?.local_name ?? "",
+    manufacturer_name: productInfo?.fabric?.manufacturer_name ?? "",
+    material_type: productInfo?.fabric?.material_type ?? "",
+    alternative_names: productInfo?.fabric?.material_type ?? "",
+    fabric_texture: productInfo?.fabric?.fabric_texture ?? "",
+    feel_a_like: productInfo?.fabric?.feel_a_like ?? "",
+    quantity: productInfo?.fabric?.quantity ?? "",
+    minimum_yards: productInfo?.fabric?.minimum_yards ?? "",
+    available_colors: productInfo?.fabric?.available_colors ?? "",
+    fabric_colors: productInfo?.fabric?.fabric_colors
+      ?.split(",")
+      ?.map((color) => color.trim()) ?? [""],
+    video_url: productInfo?.fabric?.video_url ?? "",
+    original_price: "",
+    sku: productInfo?.sku ?? "",
+    market_id: productInfo?.fabric?.market_id ?? "",
+    multimedia_url: "",
+    closeup_url: productInfo?.fabric?.photos[0] ?? undefined,
+
+    spreadout_url: productInfo?.fabric?.photos[1] ?? "",
+    manufacturers_url: productInfo?.fabric?.photos[2] ?? "",
+    fabric_url: productInfo?.fabric?.photos[3] ?? "",
+  };
+
   const [colorCount, setColorCount] = useState(1);
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState("");
@@ -84,6 +97,8 @@ const AddProduct = () => {
     setTagInput(e.target.value);
   };
 
+  const { isPending: updateIsPending, updateFabricMutate } = useUpdateFabric();
+
   const handleTagAdd = (e) => {
     if (e.key === "Enter" && tagInput.trim() && tags.length < 5) {
       e.preventDefault();
@@ -120,65 +135,133 @@ const AddProduct = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      const formData = new FormData();
-      Object.entries(photoFiles).forEach(([label, file]) => {
-        formData.append("images", file);
-      });
-      uploadImagesMutate(formData, {
-        onSuccess: (data) => {
-          const urls = data?.data?.data?.map((item) => item.url) ?? [];
-          createFabricProductMutate(
-            {
-              product: {
-                type: val.type,
-                name: val.name,
-                category_id: val.category_id,
-                sku: val.sku,
-                description: val.description,
-                gender: val.gender,
-                tags: val.tags,
-                price: val.price?.toString(),
-                original_price: val.price?.toString(),
-              },
-              fabric: {
-                market_id: val.market_id,
-                weight_per_unit: val?.weight_per_unit?.toString(),
-                location: {
-                  latitude: "1.2343444",
-                  longitude: "1.500332",
-                },
-                local_name: val.local_name,
-                manufacturer_name: val.manufacturer_name,
-                material_type: val.material_type,
-                alternative_names: val.alternative_names,
-                fabric_texture: val.fabric_texture,
-                feel_a_like: val.feel_a_like,
-                quantity: val.quantity,
-                minimum_yards: val.minimum_yards?.toString(),
-                available_colors: val.available_colors?.toString(),
-                fabric_colors: val.fabric_colors,
-                photos: urls,
-                video_url: val.video_url,
-              },
+      if (productInfo) {
+        updateFabricMutate(
+          {
+            id: productInfo?.id,
+            business_id: businessDetails?.data?.id,
+            product: {
+              type: val.type,
+              name: val.name,
+              category_id: val.category_id,
+              sku: val.sku,
+              description: val.description,
+              gender: val.gender,
+              tags: val.tags,
+              price: val.price?.toString(),
+              original_price: val.price?.toString(),
+              status: productInfo?.status,
             },
-            {
-              onSuccess: () => {
-                resetForm();
-                navigate(-1);
+            fabric: {
+              market_id: val.market_id,
+              weight_per_unit: val?.weight_per_unit?.toString(),
+              location: {
+                latitude: "1.2343444",
+                longitude: "1.500332",
               },
-            }
-          );
-        },
-      });
+
+              local_name: val.local_name,
+              manufacturer_name: val.manufacturer_name,
+              material_type: val.material_type,
+              alternative_names: val.alternative_names,
+              fabric_texture: val.fabric_texture,
+              feel_a_like: val.feel_a_like,
+              quantity: val.quantity,
+              minimum_yards: val.minimum_yards?.toString(),
+              available_colors: val.available_colors?.toString(),
+              fabric_colors: val.fabric_colors,
+              photos: urls,
+              video_url: val.video_url,
+            },
+          },
+          {
+            onSuccess: () => {
+              navigate(-1);
+            },
+          }
+        );
+      } else {
+        createFabricProductMutate(
+          {
+            product: {
+              type: val.type,
+              name: val.name,
+              category_id: val.category_id,
+              sku: val.sku,
+              description: val.description,
+              gender: val.gender,
+              tags: val.tags,
+              price: val.price?.toString(),
+              original_price: val.price?.toString(),
+            },
+            fabric: {
+              market_id: val.market_id,
+              weight_per_unit: val?.weight_per_unit?.toString(),
+              location: {
+                latitude: "1.2343444",
+                longitude: "1.500332",
+              },
+              local_name: val.local_name,
+              manufacturer_name: val.manufacturer_name,
+              material_type: val.material_type,
+              alternative_names: val.alternative_names,
+              fabric_texture: val.fabric_texture,
+              feel_a_like: val.feel_a_like,
+              quantity: val.quantity,
+              minimum_yards: val.minimum_yards?.toString(),
+              available_colors: val.available_colors?.toString(),
+              fabric_colors: val?.fabric_colors?.join(","),
+              photos: [
+                val.closeup_url,
+                val.spreadout_url,
+                val.manufacturers_url,
+                val.fabric_url,
+              ],
+              video_url: val.video_url,
+            },
+          },
+          {
+            onSuccess: () => {
+              resetForm();
+              navigate(-1);
+            },
+          }
+        );
+      }
     },
   });
 
-  const photoLabels = [
-    "Close Up View",
-    "Spread Out View",
-    "Manufacturer's Label",
-    "Fabric's Name",
-  ];
+  useEffect(() => {
+    const current = values.fabric_colors;
+    if (values.available_colors > current.length) {
+      const updated = [
+        ...current,
+        ...Array(values.available_colors - current.length).fill("#000000"),
+      ];
+      setFieldValue("fabric_colors", updated);
+    } else if (values.available_colors < current.length) {
+      const trimmed = current.slice(0, values.available_colors);
+      setFieldValue("fabric_colors", trimmed);
+    }
+  }, [values.available_colors]);
+
+  const {
+    isPending: closeUpViewIsPending,
+    uploadImageMutate: closeUpViewMutate,
+  } = useUploadImage();
+
+  const {
+    isPending: spreadOutViewIsPending,
+    uploadImageMutate: spreadOutViewMutate,
+  } = useUploadImage();
+
+  const {
+    isPending: manufacturersIsPending,
+    uploadImageMutate: manufacturersViewMutate,
+  } = useUploadImage();
+
+  const { isPending: fabricIsPending, uploadImageMutate: fabricViewMutate } =
+    useUploadImage();
 
   const handleFileChange = (label, file) => {
     const updated = {
@@ -215,16 +298,20 @@ const AddProduct = () => {
   return (
     <>
       <div className="bg-white px-6 py-4 mb-6 relative">
-        <h1 className="text-2xl font-medium mb-3">Add Product</h1>
+        <h1 className="text-2xl font-medium mb-3">
+          {productInfo ? "Edit" : "Add"} Product
+        </h1>
         <p className="text-gray-500">
           <Link to="/fabric" className="text-blue-500 hover:underline">
             Dashboard
           </Link>{" "}
-          &gt; My Product &gt; Add Product
+          &gt; My Product &gt; {productInfo ? "Edit" : "Add"} Product
         </p>
       </div>
       <div className="bg-white p-6 rounded-xl overflow-x-auto">
-        <h2 className="text-lg font-semibold mb-6">Add Product</h2>
+        <h2 className="text-lg font-semibold mb-6">
+          {productInfo ? "Edit" : "Add"} Product
+        </h2>
 
         <form className="" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 gap-6">
@@ -554,12 +641,14 @@ const AddProduct = () => {
                     className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                   />
                   <button
+                    type="button"
                     onClick={increaseColorCount}
                     className="p-2 bg-gray-200 rounded-md hover:bg-gray-300"
                   >
                     +
                   </button>
                   <button
+                    type="button"
                     onClick={decreaseColorCount}
                     className="p-2 bg-gray-200 rounded-md hover:bg-gray-300"
                   >
@@ -567,21 +656,22 @@ const AddProduct = () => {
                   </button>
                 </div>
               </div>
-
-              {/* Color Picker */}
-              <div>
-                <label className="block text-gray-700 mb-4">
-                  Pick Available Fabric Colours
-                </label>
-                <input
-                  type="color"
-                  name={"fabric_colors"}
-                  required
-                  value={values.fabric_colors}
-                  onChange={handleChange}
-                  className="w-full h-14 border border-gray-300  outline-none  rounded-lg cursor-pointer"
-                />
-              </div>
+              {/* Color Pickers */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8">
+                {values?.fabric_colors?.map((color, index) => (
+                  <input
+                    key={index}
+                    type="color"
+                    value={color}
+                    onChange={(e) => {
+                      const updated = [...values.fabric_colors];
+                      updated[index] = e.target.value;
+                      setFieldValue("fabric_colors", updated);
+                    }}
+                    className="w-full h-14 border border-gray-300 rounded-lg cursor-pointer"
+                  />
+                ))}
+              </div>{" "}
             </div>
 
             {/* Price per unit */}
@@ -699,29 +789,215 @@ const AddProduct = () => {
             <div>
               <label className="block text-gray-700 mb-4">Upload Photos</label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {photoLabels.map((label) => (
-                  <div
-                    key={label}
-                    className="w-full h-40 border border-gray-300 rounded-md flex items-center justify-center cursor-pointer"
-                  >
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      id={label}
-                      onChange={(e) => {
-                        handleFileChange(label, e.target.files[0]);
+                <div
+                  onClick={() => document.getElementById("closeup_url").click()}
+                  className="w-full flex flex-col gap-2 h-40 border border-gray-300 rounded-md flex items-center justify-center cursor-pointer"
+                >
+                  <label className="text-gray-400 cursor-pointer text-center text-sm">
+                    {`Close Up View (click to upload)`}
+                  </label>
+                  <input
+                    type="file"
+                    id="closeup_url"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        if (e.target.files[0].size > 5 * 1024 * 1024) {
+                          alert("File size exceeds 5MB limit");
+                          return;
+                        }
+                        const file = e.target.files[0];
+                        const formData = new FormData();
+                        formData.append("image", file);
+                        closeUpViewMutate(formData, {
+                          onSuccess: (data) => {
+                            setFieldValue("closeup_url", data?.data?.data?.url);
+                          },
+                        });
                         e.target.value = "";
-                      }}
-                    />
-                    <label
-                      htmlFor={label}
-                      className="text-gray-400 cursor-pointer text-center text-sm"
+                      }
+                    }}
+                  />
+
+                  {closeUpViewIsPending ? (
+                    <p className="cursor-pointer text-gray-400">
+                      please wait...{" "}
+                    </p>
+                  ) : values.closeup_url ? (
+                    <a
+                      onClick={(e) => e.stopPropagation()}
+                      href={values.closeup_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-purple-600 flex justify-center cursor-pointer hover:underline"
                     >
-                      {photoFiles[label]?.name || `${label} (click to upload)`}
-                    </label>
-                  </div>
-                ))}
+                      View file upload
+                    </a>
+                  ) : (
+                    <></>
+                  )}
+                </div>
+
+                <div
+                  onClick={() =>
+                    document.getElementById("spreadout_url").click()
+                  }
+                  className="w-full flex flex-col gap-2 h-40 border border-gray-300 rounded-md flex items-center justify-center cursor-pointer"
+                >
+                  <label className="text-gray-400 cursor-pointer text-center text-sm">
+                    {`Spread Out View (click to upload)`}
+                  </label>
+                  <input
+                    type="file"
+                    id="spreadout_url"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        if (e.target.files[0].size > 5 * 1024 * 1024) {
+                          alert("File size exceeds 5MB limit");
+                          return;
+                        }
+                        const file = e.target.files[0];
+                        const formData = new FormData();
+                        formData.append("image", file);
+                        spreadOutViewMutate(formData, {
+                          onSuccess: (data) => {
+                            setFieldValue(
+                              "spreadout_url",
+                              data?.data?.data?.url
+                            );
+                          },
+                        });
+                        e.target.value = "";
+                      }
+                    }}
+                  />
+
+                  {spreadOutViewIsPending ? (
+                    <p className="cursor-pointer text-gray-400">
+                      please wait...{" "}
+                    </p>
+                  ) : values.spreadout_url ? (
+                    <a
+                      onClick={(e) => e.stopPropagation()}
+                      href={values.spreadout_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-purple-600 flex justify-center cursor-pointer hover:underline"
+                    >
+                      View file upload
+                    </a>
+                  ) : (
+                    <></>
+                  )}
+                </div>
+
+                <div
+                  onClick={() =>
+                    document.getElementById("manufacturers_url").click()
+                  }
+                  className="w-full flex flex-col gap-2 h-40 border border-gray-300 rounded-md flex items-center justify-center cursor-pointer"
+                >
+                  <label className="text-gray-400 cursor-pointer text-center text-sm">
+                    {`Manufacturer's Label (click to upload)`}
+                  </label>
+                  <input
+                    type="file"
+                    id="manufacturers_url"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        if (e.target.files[0].size > 5 * 1024 * 1024) {
+                          alert("File size exceeds 5MB limit");
+                          return;
+                        }
+                        const file = e.target.files[0];
+                        const formData = new FormData();
+                        formData.append("image", file);
+                        manufacturersViewMutate(formData, {
+                          onSuccess: (data) => {
+                            setFieldValue(
+                              "manufacturers_url",
+                              data?.data?.data?.url
+                            );
+                          },
+                        });
+                        e.target.value = "";
+                      }
+                    }}
+                  />
+
+                  {manufacturersIsPending ? (
+                    <p className="cursor-pointer text-gray-400">
+                      please wait...{" "}
+                    </p>
+                  ) : values.manufacturers_url ? (
+                    <a
+                      onClick={(e) => e.stopPropagation()}
+                      href={values.manufacturers_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-purple-600 flex justify-center cursor-pointer hover:underline"
+                    >
+                      View file upload
+                    </a>
+                  ) : (
+                    <></>
+                  )}
+                </div>
+
+                <div
+                  onClick={() => document.getElementById("fabric_url").click()}
+                  className="w-full flex flex-col gap-2 h-40 border border-gray-300 rounded-md flex items-center justify-center cursor-pointer"
+                >
+                  <label className="text-gray-400 cursor-pointer text-center text-sm">
+                    {`Fabric's Name (click to upload)`}
+                  </label>
+                  <input
+                    type="file"
+                    id="fabric_url"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        if (e.target.files[0].size > 5 * 1024 * 1024) {
+                          alert("File size exceeds 5MB limit");
+                          return;
+                        }
+                        const file = e.target.files[0];
+                        const formData = new FormData();
+                        formData.append("image", file);
+                        fabricViewMutate(formData, {
+                          onSuccess: (data) => {
+                            setFieldValue("fabric_url", data?.data?.data?.url);
+                          },
+                        });
+                        e.target.value = "";
+                      }
+                    }}
+                  />
+
+                  {fabricIsPending ? (
+                    <p className="cursor-pointer text-gray-400">
+                      please wait...{" "}
+                    </p>
+                  ) : values.fabric_url ? (
+                    <a
+                      onClick={(e) => e.stopPropagation()}
+                      href={values.fabric_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-purple-600 flex justify-center cursor-pointer hover:underline"
+                    >
+                      View file upload
+                    </a>
+                  ) : (
+                    <></>
+                  )}
+                </div>
               </div>{" "}
             </div>
 
@@ -789,13 +1065,26 @@ const AddProduct = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={
-                isPending || uploadVideoIsPending || uploadImagesIsPending
+               disabled={
+                isPending ||
+                uploadVideoIsPending ||
+                updateIsPending ||
+                closeUpViewIsPending ||
+                spreadOutViewIsPending ||
+                manufacturersIsPending ||
+                fabricIsPending
               }
               className="mt-6 w-full cursor-pointer py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-md hover:opacity-90"
             >
-              {isPending || uploadImagesIsPending
+              {isPending ||
+              updateIsPending ||
+              closeUpViewIsPending ||
+              spreadOutViewIsPending ||
+              manufacturersIsPending ||
+              fabricIsPending
                 ? "Please wait..."
+                : productInfo
+                ? "Update Fabric"
                 : "Upload Fabric"}
             </button>
           </div>

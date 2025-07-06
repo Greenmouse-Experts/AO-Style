@@ -29,6 +29,10 @@ export const fabricRoutes = [
         element: <AddNewProduct />,
       },
       {
+        path: "/fabric/product/edit-product",
+        element: <AddNewProduct />,
+      },
+      {
         path: "/fabric/orders",
         element: <Orders />,
       },

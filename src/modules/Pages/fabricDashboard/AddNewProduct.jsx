@@ -14,6 +14,7 @@ import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 import useUpdateFabric from "../../../hooks/fabric/useUpdateFabric";
 import useCreateAdminFabricProduct from "../../../hooks/fabric/useCreateAdminFabricProduct";
 import useUpdateAdminFabric from "../../../hooks/fabric/useUpdateAdminFabric";
+import useToast from "../../../hooks/useToast";
 
 const AddProduct = () => {
   const location = useLocation();
@@ -134,6 +135,8 @@ const AddProduct = () => {
 
   const navigate = useNavigate();
 
+  const { toastError } = useToast();
+
   const {
     handleSubmit,
     touched,
@@ -149,6 +152,15 @@ const AddProduct = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (
+        !values.closeup_url ||
+        !values.spreadout_url ||
+        !values.manufacturers_url ||
+        !values.fabric_url
+      ) {
+        toastError("Please upload all required images.");
+        return;
+      }
       if (productInfo) {
         if (isAdminEditFabricRoute) {
           updateAdminFabricMutate(

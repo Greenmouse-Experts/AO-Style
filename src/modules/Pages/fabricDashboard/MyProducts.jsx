@@ -265,7 +265,7 @@ const ProductPage = () => {
                 >
                   {"Edit Product"}
                 </Link>
-
+                
                 <button
                   onClick={() => {
                     setNewCategory(row);

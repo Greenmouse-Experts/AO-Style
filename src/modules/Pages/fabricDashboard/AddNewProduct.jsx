@@ -69,7 +69,6 @@ const AddProduct = () => {
     setColorCount(colorCount + 1);
     setFieldValue("available_colors", colorCount + 1);
   };
-
   const decreaseColorCount = () => {
     if (colorCount > 1) setColorCount(colorCount - 1);
     setFieldValue("available_colors", colorCount - 1);

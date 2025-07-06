@@ -31,7 +31,6 @@ export const tailorRoute = [
         path: "/tailor/catalog-edit-style",
         element: <AddStyle />,
       },
-
       {
         path: "/tailor/orders",
         element: <OrdersTable />,

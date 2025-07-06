@@ -122,11 +122,11 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             />
           </div>
 
-          {/* categories Section */}
+          {/* products Section */}
           <div className="mb-4">
             <h3 className="text-xs text-white uppercase mb-2">Products</h3>
             <SidebarItem
-              to="/admin/fabrics"
+              to="/admin/fabrics-products"
               icon={<FaTshirt />}
               text="Fabrics"
               onClick={handleClick}

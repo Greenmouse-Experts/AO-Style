@@ -12,6 +12,8 @@ const KYCVerificationUpdate = () => {
 
   const kycInfo = data?.data;
 
+  console.log(kycInfo);
+
   const initialValues = {
     doc_front: kycInfo?.doc_front ?? null,
     front_upload: null,
@@ -376,7 +378,7 @@ const KYCVerificationUpdate = () => {
           </div>
 
           <div>
-            <label className="block text-gray-700 mb-2">Address</label>
+            <label className="block text-gray-700 mb-2">Business Address</label>
             <input
               type="text"
               name={"location"}

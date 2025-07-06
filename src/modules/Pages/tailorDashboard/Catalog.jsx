@@ -10,9 +10,14 @@ import { formatDateStr } from "../../../lib/helper";
 import useUpdateStyle from "../../../hooks/style/useUpdateStyle";
 import Loader from "../../../components/ui/Loader";
 import useDeleteStyle from "../../../hooks/style/useDeleteFabric";
+import useGetAdminFabricProduct from "../../../hooks/fabric/useGetAdminFabricProduct";
+import useUpdateAdminStyle from "../../../hooks/style/useUpdateAdminStyle";
+import useDeleteAdminStyle from "../../../hooks/style/useDeleteAdminStyle";
 
 export default function StylesTable() {
   const [newCategory, setNewCategory] = useState();
+
+  const isAdminStyleRoute = location.pathname === "/admin/styles-products";
 
   const [filter, setFilter] = useState("all");
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -32,9 +37,22 @@ export default function StylesTable() {
     ...queryParams,
   });
 
+  const { data: getAllAdminStylesData, isPending: adminProductIsPending } =
+    useGetAdminFabricProduct({
+      type: "STYLE",
+      id: businessDetails?.data?.id,
+      ...queryParams,
+    });
+
   const { isPending: updateIsPending, updateStyleMutate } = useUpdateStyle();
 
+  const { isPending: updateAdminIsPending, updateAdminStyleMutate } =
+    useUpdateAdminStyle();
+
   const { isPending: deleteIsPending, deleteStyleMutate } = useDeleteStyle();
+
+  const { isPending: deleteAdminIsPending, deleteAdminStyleMutate } =
+    useDeleteAdminStyle();
 
   const [queryString, setQueryString] = useState(queryParams.q);
 
@@ -48,16 +66,29 @@ export default function StylesTable() {
     });
   }, [debouncedSearchTerm]);
 
+  const updatedData = isAdminStyleRoute
+    ? getAllAdminStylesData
+    : getAllStylesData;
+
   const totalPages = Math.ceil(
-    getAllStylesData?.count / (queryParams["pagination[limit]"] ?? 10)
+    updatedData?.count / (queryParams["pagination[limit]"] ?? 10)
   );
+
+  console.log(updatedData, "updated");
 
   return (
     <>
       <div className="bg-white px-4 sm:px-6 py-4 mb-6 relative">
         <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center space-y-3 sm:space-y-0">
           <h1 className="text-xl sm:text-2xl font-medium">All Styles</h1>
-          <Link to="/tailor/catalog-add-style" className="w-full sm:w-auto">
+          <Link
+            to={
+              isAdminStyleRoute
+                ? "/admin/style/add-product"
+                : "/tailor/catalog-add-style"
+            }
+            className="w-full sm:w-auto"
+          >
             <button className="bg-gradient text-white px-6 sm:px-8 py-3 sm:py-3 cursor-pointer rounded-md hover:bg-purple-600 transition w-full sm:w-auto">
               + Add Styles
             </button>
@@ -159,7 +190,7 @@ export default function StylesTable() {
         </div>
 
         {/* Table - Responsive */}
-        {isPending ? (
+        {(isAdminStyleRoute ? adminProductIsPending : isPending) ? (
           <>
             {" "}
             <div className=" flex !w-full items-center justify-center">
@@ -184,7 +215,7 @@ export default function StylesTable() {
                 </thead>
 
                 <tbody>
-                  {getAllStylesData?.data?.map((style) => (
+                  {updatedData?.data?.map((style) => (
                     <tr
                       key={style.id}
                       className="border-b border-gray-200 text-sm"
@@ -250,7 +281,11 @@ export default function StylesTable() {
                         {openDropdown === style.id && (
                           <div className="absolute cursor-pointer right-0 mt-2 bg-white shadow-md rounded-md py-2 w-32 z-50">
                             <Link
-                              to="/tailor/catalog-edit-style"
+                              to={
+                                isAdminStyleRoute
+                                  ? "/admin/style/edit-product"
+                                  : "/tailor/catalog-edit-style"
+                              }
                               state={{ info: style }}
                               className="block  cursor-pointer w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
                             >
@@ -259,27 +294,47 @@ export default function StylesTable() {
                             {style?.status === "DRAFT" ? (
                               <button
                                 onClick={() => {
-                                  updateStyleMutate(
-                                    {
-                                      id: style?.id,
-                                      business_id: businessDetails?.data?.id,
-                                      product: {
-                                        name: style?.name,
-                                        sku: style?.sku,
-                                        category_id: style?.category_id,
-                                        status: "PUBLISHED",
+                                  if (isAdminStyleRoute) {
+                                    updateAdminStyleMutate(
+                                      {
+                                        id: style?.id,
+                                        product: {
+                                          name: style?.name,
+                                          sku: style?.sku,
+                                          category_id: style?.category_id,
+                                          status: "PUBLISHED",
+                                          approval_status: "PUBLISHED",
+                                        },
                                       },
-                                    },
-                                    {
-                                      onSuccess: () => {
-                                        setOpenDropdown(null);
+                                      {
+                                        onSuccess: () => {
+                                          setOpenDropdown(null);
+                                        },
+                                      }
+                                    );
+                                  } else {
+                                    updateStyleMutate(
+                                      {
+                                        id: style?.id,
+                                        business_id: businessDetails?.data?.id,
+                                        product: {
+                                          name: style?.name,
+                                          sku: style?.sku,
+                                          category_id: style?.category_id,
+                                          status: "PUBLISHED",
+                                        },
                                       },
-                                    }
-                                  );
+                                      {
+                                        onSuccess: () => {
+                                          setOpenDropdown(null);
+                                        },
+                                      }
+                                    );
+                                  }
                                 }}
                                 className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
                               >
-                                {updateIsPending
+                                {updateIsPending || updateAdminIsPending
                                   ? "Please wait..."
                                   : "Publish Style"}
                               </button>
@@ -288,27 +343,47 @@ export default function StylesTable() {
                             {style?.status === "PUBLISHED" ? (
                               <button
                                 onClick={() => {
-                                  updateStyleMutate(
-                                    {
-                                      id: style?.id,
-                                      business_id: businessDetails?.data?.id,
-                                      product: {
-                                        name: style?.name,
-                                        sku: style?.sku,
-                                        category_id: style?.category_id,
-                                        status: "DRAFT",
+                                  if (isAdminStyleRoute) {
+                                    updateAdminStyleMutate(
+                                      {
+                                        id: style?.id,
+                                        product: {
+                                          name: style?.name,
+                                          sku: style?.sku,
+                                          category_id: style?.category_id,
+                                          status: "DRAFT",
+                                          approval_status: "DRAFT",
+                                        },
                                       },
-                                    },
-                                    {
-                                      onSuccess: () => {
-                                        setOpenDropdown(null);
+                                      {
+                                        onSuccess: () => {
+                                          setOpenDropdown(null);
+                                        },
+                                      }
+                                    );
+                                  } else {
+                                    updateStyleMutate(
+                                      {
+                                        id: style?.id,
+                                        business_id: businessDetails?.data?.id,
+                                        product: {
+                                          name: style?.name,
+                                          sku: style?.sku,
+                                          category_id: style?.category_id,
+                                          status: "DRAFT",
+                                        },
                                       },
-                                    }
-                                  );
+                                      {
+                                        onSuccess: () => {
+                                          setOpenDropdown(null);
+                                        },
+                                      }
+                                    );
+                                  }
                                 }}
                                 className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
                               >
-                                {updateIsPending
+                                {updateIsPending || updateAdminIsPending
                                   ? "Please wait..."
                                   : "Draft Style"}
                               </button>
@@ -335,7 +410,7 @@ export default function StylesTable() {
                 </tbody>
               </table>
             </div>
-            {getAllStylesData?.data?.length ? (
+            {updatedData?.data?.length ? (
               <div className="flex  justify-between items-center mt-4">
                 <div className="flex items-center">
                   <p className="text-sm text-gray-600">Items per page: </p>
@@ -423,18 +498,32 @@ export default function StylesTable() {
               className="mt-6 space-y-4"
               onSubmit={(e) => {
                 e.preventDefault();
-                deleteStyleMutate(
-                  {
-                    id: newCategory?.id,
-                    business_id: businessDetails?.data?.id,
-                  },
-                  {
-                    onSuccess: () => {
-                      setIsAddModalOpen(false);
-                      setNewCategory(null);
+                if (isAdminStyleRoute) {
+                  deleteAdminStyleMutate(
+                    {
+                      id: newCategory?.id,
                     },
-                  }
-                );
+                    {
+                      onSuccess: () => {
+                        setIsAddModalOpen(false);
+                        setNewCategory(null);
+                      },
+                    }
+                  );
+                } else {
+                  deleteStyleMutate(
+                    {
+                      id: newCategory?.id,
+                      business_id: businessDetails?.data?.id,
+                    },
+                    {
+                      onSuccess: () => {
+                        setIsAddModalOpen(false);
+                        setNewCategory(null);
+                      },
+                    }
+                  );
+                }
               }}
             >
               <label className="block text-sm font-medium text-gray-700 mb-4">
@@ -452,10 +541,12 @@ export default function StylesTable() {
                 </button>
                 <button
                   type="submit"
-                  disabled={deleteIsPending}
+                  disabled={deleteIsPending || deleteAdminIsPending}
                   className="mt-6 cursor-pointer w-full bg-gradient text-white px-4 py-3 text-sm rounded-md"
                 >
-                  {deleteIsPending ? "Please wait..." : "Delete Style"}
+                  {deleteIsPending || deleteAdminIsPending
+                    ? "Please wait..."
+                    : "Delete Style"}
                 </button>
               </div>
             </form>

@@ -132,7 +132,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               onClick={handleClick}
             />
             <SidebarItem
-              to="/admin/styles"
+              to="/admin/styles-products"
               icon={<FaPalette />}
               text="Styles"
               onClick={handleClick}

@@ -39,6 +39,9 @@ import ViewFabricDetails from "../modules/Pages/adminDashboard/fabric/ViewFabric
 import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
 import MyProducts from "../modules/Pages/fabricDashboard/MyProducts";
 import AddNewProduct from "../modules/Pages/fabricDashboard/AddNewProduct";
+import Cataloging from "../modules/Pages/tailorDashboard/Catalog";
+
+import AddStyle from "../modules/Pages/tailorDashboard/AddStyle";
 
 export const adminRoutes = [
   {
@@ -148,6 +151,24 @@ export const adminRoutes = [
       {
         path: "/admin/fabric/add-product",
         element: <AddNewProduct />,
+      },
+      {
+        path: "/admin/fabric/edit-product",
+        element: <AddNewProduct />,
+      },
+
+      {
+        path: "/admin/styles-products",
+        element: <Cataloging />,
+      },
+
+      {
+        path: "/admin/style/add-product",
+        element: <AddStyle />,
+      },
+      {
+        path: "/admin/style/edit-product",
+        element: <AddStyle />,
       },
 
       {

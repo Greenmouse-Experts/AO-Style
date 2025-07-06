@@ -21,6 +21,9 @@ const AddProduct = () => {
   const isAdminAddFabricRoute =
     location.pathname === "/admin/fabric/add-product";
 
+  const isAdminEditFabricRoute =
+    location.pathname === "/admin/fabric/edit-product";
+
   const productInfo = location?.state?.info;
 
   const initialValues = {
@@ -147,7 +150,7 @@ const AddProduct = () => {
     enableReinitialize: true,
     onSubmit: (val) => {
       if (productInfo) {
-        if (isAdminAddFabricRoute) {
+        if (isAdminEditFabricRoute) {
           updateAdminFabricMutate(
             {
               id: productInfo?.id,

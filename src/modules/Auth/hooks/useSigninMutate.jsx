@@ -98,7 +98,7 @@ const useSignIn = (email, resendCodeMutate) => {
               localStorage.setItem("verifyemail", email);
               navigate("/verify-account");
             },
-          }
+          },
         );
       }
     },

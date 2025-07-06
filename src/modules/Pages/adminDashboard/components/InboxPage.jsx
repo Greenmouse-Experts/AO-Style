@@ -1,237 +1,944 @@
 import { useEffect, useRef, useState } from "react";
-import { FaSearch, FaPaperPlane, FaPlus, FaFile, FaImage, FaMapMarkerAlt, FaBars, FaSmile, FaTimes } from "react-icons/fa";
+import { Plus, Mail, ChevronRight } from "lucide-react";
+import {
+  FaSearch,
+  FaPaperPlane,
+  FaPlus,
+  FaFile,
+  FaImage,
+  FaMapMarkerAlt,
+  FaBars,
+  FaSmile,
+  FaTimes,
+} from "react-icons/fa";
 import EmojiPicker from "emoji-picker-react";
 import { Link } from "react-router-dom";
+import io from "socket.io-client";
+import Cookies from "js-cookie";
+import useGetAllUsersByRole from "../../../../hooks/admin/useGetAllUserByRole";
+import useSendMessage from "../../../../hooks/messaging/useSendMessage";
+import useToast from "../../../../hooks/useToast";
+import { useQuery } from "@tanstack/react-query";
+import CaryBinApi from "../../../../services/CarybinBaseUrl";
 
-const conversations = [
-    { id: 1, name: "Hamzat Adeleke", message: "Hi, I want to make enquiries about...", time: "12:55 am", unread: 2, avatar: "https://i.pravatar.cc/40?img=1" },
-    { id: 2, name: "Janet Adebayo", message: "Can I get more details about the product?", time: "1:10 am", unread: 1, avatar: "https://i.pravatar.cc/40?img=2" },
-    { id: 3, name: "Kunle Adekunle", message: "Is there a discount available?", time: "12:40 am", unread: 3, avatar: "https://i.pravatar.cc/40?img=3" },
-    { id: 4, name: "Daniel Johnson", message: "I need to return my order. Help?", time: "11:30 pm", unread: 0, avatar: "https://i.pravatar.cc/40?img=4" },
-    { id: 5, name: "Sophia Williams", message: "Do you deliver outside Lagos?", time: "10:15 pm", unread: 1, avatar: "https://i.pravatar.cc/40?img=5" },
-    { id: 6, name: "Emeka Okonkwo", message: "What’s the estimated delivery time?", time: "9:50 pm", unread: 0, avatar: "https://i.pravatar.cc/40?img=6" },
-    { id: 7, name: "Fatima Bello", message: "Can I pay on delivery?", time: "8:30 pm", unread: 2, avatar: "https://i.pravatar.cc/40?img=7" },
-    { id: 8, name: "Richard Adams", message: "I want to bulk order, can we discuss?", time: "7:45 pm", unread: 1, avatar: "https://i.pravatar.cc/40?img=8" }
-];
-
-const messages = [
-    { id: 1, sender: "Hamzat Adeleke", text: "I have other gowns that can work for the color you've selected", time: "12:55 am", type: "received" },
-    { id: 2, sender: "You", text: "Alright, can I get a link to those ones?", time: "12:57 am", type: "sent" },
-    { id: 3, sender: "You", text: "Include any other accessory that might work with it as well", time: "12:57 am", type: "sent" },
-    { id: 4, sender: "Jane Doe", text: "Ok, I’ll do that, give me a bit.", time: "12:58 am", type: "received" },
-    { id: 5, sender: "Jane Doe", text: "I just sent you the links now.", time: "1:00 am", type: "received" },
-    { id: 6, sender: "You", text: "Got them, thanks! Do you have them in size 10?", time: "1:02 am", type: "sent" },
-    { id: 7, sender: "Jane Doe", text: "Yes, but only in red and blue.", time: "1:05 am", type: "received" },
-    { id: 8, sender: "You", text: "I’ll take the blue one then.", time: "1:07 am", type: "sent" },
-    { id: 9, sender: "Jane Doe", text: "Great choice! Would you like to add matching shoes?", time: "1:10 am", type: "received" },
-    { id: 10, sender: "You", text: "Yes, what do you have?", time: "1:12 am", type: "sent" },
-    { id: 11, sender: "Jane Doe", text: "I have some options in stock, I’ll send them now.", time: "1:15 am", type: "received" },
-    { id: 12, sender: "Jane Doe", text: "Here are three pairs that would match perfectly.", time: "1:16 am", type: "received" },
-    { id: 13, sender: "You", text: "I love the second pair! Let’s add that to my order.", time: "1:18 am", type: "sent" },
-    { id: 14, sender: "Jane Doe", text: "Perfect! I’ll process it now.", time: "1:20 am", type: "received" }
-];
+// Role mapping for the API
+const roleMapping = {
+  Customer: "user",
+  Tailor: "fashion-designer",
+  Fabric: "fabric-vendor",
+  "Market Rep": "market-representative",
+  Logistics: "logistics-agent",
+};
 
 export default function InboxPage() {
-    const [selectedChat, setSelectedChat] = useState(conversations[0]);
-    const [messageList, setMessageList] = useState(messages);
-    const [newMessage, setNewMessage] = useState("");
-    const [showOptions, setShowOptions] = useState(false);
-    const [showSidebar, setShowSidebar] = useState(false);
-    const [showModal, setShowModal] = useState(false);
-    const dropdownRef = useRef(null);
-    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-    const emojiPickerRef = useRef(null);
+  const [selectedChat, setSelectedChat] = useState(null);
+  const [messageList, setMessageList] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [showOptions, setShowOptions] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-    useEffect(() => {
-        function handleClickOutside(event) {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setShowOptions(false);
-            }
-            if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
-                setShowEmojiPicker(false);
-            }
+  // Socket and messaging states
+  const [socket, setSocket] = useState(null);
+  const [userType, setUserType] = useState("");
+  const [selectedUser, setSelectedUser] = useState("");
+  const [messageText, setMessageText] = useState("");
+  const [isConnected, setIsConnected] = useState(false);
+  const [chats, setChats] = useState([]);
+
+  const dropdownRef = useRef(null);
+  const emojiPickerRef = useRef(null);
+  const messagesEndRef = useRef(null);
+  const selectedChatRef = useRef(selectedChat);
+  const adminToken = Cookies.get("adminToken");
+  const { toastError, toastSuccess } = useToast();
+
+  // Get users by role hook
+  const {
+    data: usersData,
+    isLoading: loadingUsers,
+    refetch: refetchUsers,
+    error: usersError,
+  } = useGetAllUsersByRole({
+    role: userType ? roleMapping[userType] : null,
+  });
+
+  // Debug users data
+  useEffect(() => {
+    if (usersData) {
+      console.log("Users data received:", usersData);
+      console.log("Users array:", users);
+    }
+    if (usersError) {
+      console.error("Error fetching users:", usersError);
+      toastError("Failed to fetch users: " + usersError?.data?.message);
+    }
+  }, [usersData, usersError]);
+
+  // Send message hook
+  const { isPending: sendingMessage, sendMessageMutate } = useSendMessage();
+
+  const users = usersData?.data || [];
+
+  // Keep selectedChatRef in sync
+  useEffect(() => {
+    selectedChatRef.current = selectedChat;
+  }, [selectedChat]);
+
+  // Auto-scroll to bottom when new messages arrive
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messageList]);
+
+  // Fetch chats via Socket.IO on mount
+  useEffect(() => {
+    if (socket && isConnected && adminToken) {
+      console.log("=== FETCHING CHATS VIA SOCKET ===");
+      console.log("Emitting retrieveChats with token:", adminToken);
+      socket.emit("retrieveChats", { token: adminToken });
+      console.log("================================");
+    }
+  }, [socket, isConnected, adminToken]);
+
+  // Fetch messages when chat is selected
+  useEffect(() => {
+    if (socket && isConnected && selectedChat && adminToken) {
+      console.log(selectedChat);
+      console.log("=== FETCHING MESSAGES VIA SOCKET ===");
+      console.log("Chat ID:", selectedChat.id);
+      console.log("Emitting retrieveMessages");
+      socket.emit("retrieveMessages", {
+        token: adminToken,
+        chatBuddy: selectedChat.chat_buddy?.id || selectedChat.id,
+      });
+      console.log("====================================");
+    }
+  }, [socket, isConnected, selectedChat, adminToken]);
+
+  // Initialize Socket.IO connection
+  useEffect(() => {
+    console.log("=== INITIALIZING SOCKET CONNECTION ===");
+    console.log("Admin token:", adminToken);
+    console.log("Socket URL: https://api-carybin.victornwadinobi.com");
+    console.log("======================================");
+
+    if (adminToken) {
+      const socketInstance = io("https://api-carybin.victornwadinobi.com", {
+        auth: { token: adminToken },
+        transports: ["websocket", "polling"],
+        timeout: 20000,
+        forceNew: true,
+      });
+
+      socketInstance.on("connect", () => {
+        console.log("=== SOCKET CONNECTED ===");
+        console.log("Socket ID:", socketInstance.id);
+        console.log("Socket connected:", socketInstance.connected);
+        console.log("========================");
+        setIsConnected(true);
+        toastSuccess("Socket connected successfully");
+      });
+
+      socketInstance.on("disconnect", (reason) => {
+        console.log("=== SOCKET DISCONNECTED ===");
+        console.log("Disconnect reason:", reason);
+        console.log("===========================");
+        setIsConnected(false);
+        toastError("Socket disconnected: " + reason);
+      });
+
+      socketInstance.on("messageSent", (data) => {
+        console.log("🎉 === MESSAGE SENT EVENT RECEIVED === 🎉");
+        console.log("Raw data:", data);
+        // console.log("Formatted data:", JSON.stringify(data, null, 2));
+        // console.log("Status:", data?.status);
+        // console.log("Message:", data?.message);
+        // console.log("Data object:", data?.data);
+        // console.log("Message ID:", data?.data?.id);
+        // console.log("Chat ID:", data?.data?.chat_id);
+        // console.log("Created at:", data?.data?.created_at);
+        console.log("🎉 ===================================== 🎉");
+        toastSuccess(data?.message || "Message delivered successfully");
+      });
+
+      socketInstance.on("chatsRetrieved", (data) => {
+        console.log("=== CHATS RETRIEVED ON LOAD ===");
+        console.log("Full response:", JSON.stringify(data, null, 2));
+        console.log("Status:", data?.status);
+        console.log("Message:", data?.message);
+        console.log("Result array:", data?.data?.result);
+        console.log("==============================");
+
+        // Set chats from the retrieved data
+        if (data?.status === "success" && data?.data?.result) {
+          setChats(data.data.result);
+          // Set first chat as selected if no chat is selected
+          if (!selectedChat && data.data.result.length > 0) {
+            setSelectedChat(data.data.result[0]);
+          }
+          toastSuccess(data?.message || "Chats loaded successfully");
         }
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+      });
 
-    const handleEmojiClick = (emojiObject) => {
-        setNewMessage((prev) => prev + emojiObject.emoji);
+      socketInstance.on("recentChatRetrieved", (data) => {
+        console.log("=== RECENT CHAT RETRIEVED ===");
+        console.log("Chat data:", JSON.stringify(data, null, 2));
+        console.log("============================");
+
+        // Update chats list with new chat data
+        if (data?.data) {
+          setChats((prevChats) => {
+            const existingChatIndex = prevChats.findIndex(
+              (chat) => chat.id === data.data.id,
+            );
+            if (existingChatIndex >= 0) {
+              // Update existing chat
+              const updatedChats = [...prevChats];
+              updatedChats[existingChatIndex] = {
+                ...updatedChats[existingChatIndex],
+                last_message: data.data.last_message,
+                created_at: data.data.created_at,
+              };
+              return updatedChats;
+            } else {
+              // Add new chat
+              return [data.data, ...prevChats];
+            }
+          });
+        }
+      });
+
+      // Listen for messagesRetrieved event (NEW)
+      socketInstance.on("messagesRetrieved", (data) => {
+        console.log("=== MESSAGES RETRIEVED ===");
+        console.log("Full response:", JSON.stringify(data, null, 2));
+        console.log("Status:", data?.status);
+        console.log("Messages array:", data?.data?.result);
+        console.log("Selected chat from ref:", selectedChatRef.current);
+        console.log("==========================");
+
+        if (data?.status === "success" && data?.data?.result) {
+          const currentSelectedChat = selectedChatRef.current;
+          console.log("Current selected chat:", currentSelectedChat);
+
+          const formattedMessages = data.data.result.map((msg) => ({
+            id: msg.id,
+            sender: msg.initiator?.name || "Unknown",
+            text: msg.message,
+            time: new Date(msg.created_at).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            }),
+            type:
+              msg.initiator_id === currentSelectedChat?.chat_buddy?.id
+                ? "received"
+                : "sent",
+            read: msg.read,
+          }));
+
+          console.log("Formatted messages with types:", formattedMessages);
+          setMessageList(formattedMessages);
+        }
+      });
+
+      socketInstance.on("connect_error", (error) => {
+        console.error("=== SOCKET CONNECTION ERROR ===");
+        console.error("Error:", error);
+        console.error("Error message:", error.message);
+        console.error("==============================");
+        toastError("Socket connection failed: " + error.message);
+      });
+
+      // Listen for any socket events for debugging
+      socketInstance.onAny((event, ...args) => {
+        console.log(`🔍 === CUSTOMER SOCKET EVENT: ${event} === 🔍`);
+
+        if (event.includes("chatsRetrieved")) {
+          console.log("Event data:", args);
+          const response = args[0];
+          if (response?.status === "success" && response?.data) {
+            setChats(response.data.result);
+            console.log("Here are the chats:", response.data.result);
+
+            if (
+              !selectedChatRef.current &&
+              response.data.result &&
+              response.data.result.length > 0
+            ) {
+              setSelectedChat(response.data.result[0]);
+            }
+
+            toastSuccess(response?.message || "Chats loaded successfully");
+          }
+        } else if (event.includes("messagesRetrieved")) {
+          console.log("--------MESSAGES RETRIEVED------");
+          console.log("Event data:", args);
+          console.log(
+            "Selected chat from ref in onAny:",
+            selectedChatRef.current,
+          );
+
+          const response = args[0];
+          if (response?.status === "success" && response?.data?.result) {
+            const currentSelectedChat = selectedChatRef.current;
+
+            const formattedMessages = response.data.result.map((msg) => ({
+              id: msg.id,
+              sender: msg.initiator?.name || "Unknown",
+              text: msg.message,
+              time: new Date(msg.created_at).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              }),
+              type:
+                msg.initiator_id === currentSelectedChat?.chat_buddy?.id
+                  ? "received"
+                  : "sent",
+              read: msg.read,
+            }));
+
+            console.log("Formatted messages in onAny:", formattedMessages);
+            setMessageList(formattedMessages);
+          }
+        } else if (event.includes("recentChatRetrieved")) {
+          console.log("Event data:", args);
+          const response = args[0];
+          console.log(response);
+
+          if (response?.status === "success" && response?.data) {
+            setChats((prevChats) => {
+              const existingChatIndex = prevChats.findIndex(
+                (chat) => chat.id === response.data.id,
+              );
+
+              if (existingChatIndex >= 0) {
+                // Update existing chat
+                const updatedChats = [...prevChats];
+                updatedChats[existingChatIndex] = {
+                  ...updatedChats[existingChatIndex],
+                  last_message: response.data.last_message,
+                  created_at: response.data.created_at,
+                  updated_at: response.data.updated_at,
+                };
+                return updatedChats;
+              } else {
+                // Add new chat to the beginning
+                return [response.data, ...prevChats];
+              }
+            });
+
+            toastSuccess(response?.message || "Chat updated successfully");
+          }
+        }
+
+        console.log("🔍 ========================================= 🔍");
+      });
+
+      setSocket(socketInstance);
+
+      return () => {
+        console.log("=== CLEANING UP SOCKET ===");
+        socketInstance.disconnect();
+        console.log("==========================");
+      };
+    } else {
+      console.error("=== NO ADMIN TOKEN ===");
+      console.error("Admin token not found");
+      console.error("======================");
+      toastError("Admin token not found. Please login again.");
+    }
+  }, [adminToken]);
+
+  // Handle user type selection
+  const handleUserTypeChange = (e) => {
+    const selectedType = e.target.value;
+    console.log("Selected user type:", selectedType);
+    console.log("Mapped role:", roleMapping[selectedType]);
+    setUserType(selectedType);
+    setSelectedUser("");
+  };
+
+  // Handle message sending via Socket.IO and API
+  const handleSocketMessage = (e) => {
+    e.preventDefault();
+
+    console.log("Attempting to send message...");
+    console.log("Selected user:", selectedUser);
+    console.log("Message text:", messageText);
+    console.log("Admin token:", adminToken);
+
+    if (!selectedUser || !messageText.trim()) {
+      toastError("Please select a user and enter a message.");
+      return;
+    }
+
+    const messageData = {
+      token: adminToken,
+      chatBuddy: selectedUser,
+      message: messageText.trim(),
     };
 
-    const sendMessage = () => {
-        if (!newMessage.trim()) return;
-        const newMsg = {
-            id: messageList.length + 1,
-            sender: "You",
-            text: newMessage,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
-            type: "sent",
-        };
-        setMessageList([...messageList, newMsg]);
-        setNewMessage("");
-    };
+    console.log("Message data to send:", messageData);
 
-    return (
-        <>
-            <div className="bg-white px-6 py-4 mb-6">
-                <div className="flex justify-between items-start">
-                    <div>
-                        <h1 className="text-2xl font-medium mb-1">Inbox</h1>
-                        <p className="text-gray-500">
-                            <Link to="/admin" className="text-blue-500 hover:underline">Dashboard</Link> &gt; Inbox
+    // Send via Socket.IO only
+    if (socket && isConnected) {
+      console.log("=== SENDING MESSAGE VIA SOCKET ===");
+      console.log("Socket ID:", socket.id);
+      console.log("Message data:", messageData);
+      console.log("Socket connected:", socket.connected);
+      console.log("=================================");
+
+      socket.emit("sendMessage", messageData);
+
+      // Add message to local state immediately
+      const newMsg = {
+        id: Date.now(),
+        sender: "You",
+        text: messageText.trim(),
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        }),
+        type: "sent",
+      };
+      setMessageList((prev) => [...prev, newMsg]);
+
+      // Find or create chat entry for the sent message
+      const targetUser = users.find((user) => user.id === selectedUser);
+      if (targetUser) {
+        setChats((prevChats) => {
+          const existingChatIndex = prevChats.findIndex(
+            (chat) => chat.chat_buddy?.id === selectedUser,
+          );
+
+          if (existingChatIndex >= 0) {
+            // Update existing chat
+            const updatedChats = [...prevChats];
+            updatedChats[existingChatIndex] = {
+              ...updatedChats[existingChatIndex],
+              last_message: messageText.trim(),
+              created_at: new Date().toISOString(),
+            };
+            return updatedChats;
+          } else {
+            // Create new chat entry
+            const newChat = {
+              id: Date.now(),
+              last_message: messageText.trim(),
+              chat_buddy: targetUser,
+              created_at: new Date().toISOString(),
+              unread: 0,
+            };
+            return [newChat, ...prevChats];
+          }
+        });
+      }
+
+      setMessageText("");
+      setShowModal(false);
+      toastSuccess("Message sent successfully!");
+    } else {
+      console.error("=== SOCKET NOT CONNECTED ===");
+      console.error("Socket exists:", !!socket);
+      console.error("Is connected:", isConnected);
+      console.error("Socket state:", socket?.connected);
+      console.error("============================");
+      toastError("Socket not connected. Please check your connection.");
+    }
+  };
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowOptions(false);
+      }
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleEmojiClick = (emojiObject) => {
+    setNewMessage((prev) => prev + emojiObject.emoji);
+  };
+
+  // Unified sendMessage for chat input (Socket.IO)
+  const sendMessage = () => {
+    if (!newMessage.trim() || !selectedChat) return;
+
+    console.log("=== SENDING MESSAGE VIA SOCKET ===");
+    console.log("Socket ID:", socket?.id);
+    console.log("Selected chat:", selectedChat.id);
+    console.log("Message:", newMessage);
+    console.log("Socket connected:", socket?.connected);
+    console.log("==================================");
+
+    if (socket && isConnected) {
+      const messageData = {
+        token: adminToken,
+        chatBuddy: selectedChat.chat_buddy?.id || selectedChat.id,
+        message: newMessage.trim(),
+      };
+
+      console.log("Message data to send:", messageData);
+      socket.emit("sendMessage", messageData);
+
+      // Add message to local state immediately
+      const newMsg = {
+        id: Date.now(),
+        sender: "You",
+        text: newMessage.trim(),
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        }),
+        type: "sent",
+      };
+      setMessageList((prev) => [...prev, newMsg]);
+      setNewMessage("");
+      toastSuccess("Message sent successfully!");
+    } else {
+      console.error("=== SOCKET NOT CONNECTED ===");
+      console.error("Socket exists:", !!socket);
+      console.error("Is connected:", isConnected);
+      console.error("Socket state:", socket?.connected);
+      console.error("============================");
+      toastError("Socket not connected. Please check your connection.");
+    }
+  };
+
+  const handleModalClose = () => {
+    setShowModal(false);
+    setUserType("");
+    setSelectedUser("");
+    setMessageText("");
+  };
+
+  return (
+    <>
+      <div className="bg-white border-b border-gray-200 px-6 py-6 mb-6">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center space-x-4">
+            <div className="p-2 bg-purple-50 rounded-lg">
+              <Mail className="w-6 h-6 text-purple-600" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-1">Inbox</h1>
+              <div className="flex items-center text-sm text-gray-500">
+                <a
+                  href="/admin"
+                  className="text-purple-600 purple:text-purple-800 font-medium transition-colors"
+                >
+                  Dashboard
+                </a>
+                <ChevronRight className="w-4 h-4 mx-2" />
+                <span>Inbox</span>
+              </div>
+            </div>
+          </div>
+
+          <button
+            className="group relative bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-6 py-3 rounded-lg font-medium hover:shadow-xl transition-all duration-200 transform hover:scale-105 active:scale-95"
+            onClick={() => setShowModal(true)}
+          >
+            <div className="flex items-center space-x-2">
+              <Plus className="w-5 h-5" />
+              <span>New Message</span>
+            </div>
+            <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 rounded-lg transition-opacity duration-200"></div>
+          </button>
+        </div>
+      </div>
+
+      <div className="flex h-screen bg-gray-50 overflow-hidden">
+        <div
+          className={`fixed inset-y-0 left-0 bg-white border-r border-gray-200 w-80 transition-transform duration-300 md:relative md:w-1/3 lg:w-1/4 z-30 ${
+            showSidebar ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+          }`}
+        >
+          {/* Sidebar Header */}
+          <div className="p-6 border-b border-gray-100">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Messages</h2>
+              <button
+                className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                onClick={() => setShowSidebar(false)}
+              >
+                <FaTimes size={20} className="text-gray-500" />
+              </button>
+            </div>
+
+            {/* Search Bar */}
+            <div className="relative">
+              <FaSearch
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={16}
+              />
+              <input
+                type="text"
+                placeholder="Search conversations..."
+                className="w-full py-3 pl-10 pr-4 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm focus:border-purple-500 focus:bg-white transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Chat List */}
+          <div className="overflow-auto h-[calc(100vh-140px)]">
+            {chats.length === 0 ? (
+              <div className="text-center text-gray-500 py-12 px-6">
+                <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <FaSearch className="text-gray-400" size={24} />
+                </div>
+                <p className="font-medium mb-2">No conversations yet</p>
+                <p className="text-sm">
+                  Start a new conversation to see chats here
+                </p>
+              </div>
+            ) : (
+              <div className="p-2">
+                {chats.map((chat) => (
+                  <div
+                    key={chat.id}
+                    className={`flex items-center p-3 rounded-xl cursor-pointer transition-all hover:bg-gray-50 ${
+                      selectedChat?.id === chat.id
+                        ? "bg-purple-50 border-l-4 border-purple-500"
+                        : ""
+                    }`}
+                    onClick={() => {
+                      setSelectedChat(chat);
+                      setShowSidebar(false);
+                    }}
+                  >
+                    <div className="relative">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+                        {chat.chat_buddy?.name?.charAt(0).toUpperCase() || "U"}
+                      </div>
+                      {chat.online && (
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                      )}
+                    </div>
+
+                    <div className="flex-1 ml-3 min-w-0">
+                      <div className="flex justify-between items-start mb-1">
+                        <h4 className="font-semibold text-gray-900 truncate text-sm">
+                          {chat.chat_buddy?.name || "Unknown User"}
+                        </h4>
+                        <span className="text-xs text-gray-500 flex-shrink-0">
+                          {new Date(chat.created_at).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          })}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between items-center">
+                        <p className="text-xs text-gray-600 truncate flex-1">
+                          {chat.last_message || "No messages yet"}
                         </p>
+                        {chat.unread > 0 && (
+                          <span className="inline-block bg-purple-500 text-white text-xs rounded-full px-2 py-1 ml-2 flex-shrink-0">
+                            {chat.unread}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <button
-                        className="bg-gradient text-white px-4 py-2 text-sm rounded-md cursor-pointer"
-                        onClick={() => setShowModal(true)}
-                    >
-                        + New Message
-                    </button>
-                </div>
-            </div>
-
-            <div className="flex h-screen bg-gray-100 overflow-x-hidden">
-                <div className={`fixed inset-y-0 left-0 bg-white border-r border-gray-200 p-4 h-full w-56 transition-transform duration-300 md:relative md:w-1/3 ${showSidebar ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}>
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-lg font-semibold">Messages</h2>
-                        <button className="md:hidden text-gray-500" onClick={() => setShowSidebar(false)}>
-                            <FaTimes size={20} />
-                        </button>
-                    </div>
-                    <div className="relative mb-4">
-                        <FaSearch className="absolute left-3 top-4 text-gray-400" size={14} />
-                        <input type="text" placeholder="Search" className="w-full py-3 pl-10 pr-3 border border-gray-200 rounded-md outline-none text-sm" />
-                    </div>
-                    <div className="space-y-3 overflow-auto h-[calc(100vh-150px)]">
-                        {conversations.map((chat) => (
-                            <div
-                                key={chat.id}
-                                className={`flex items-center p-2 rounded-lg cursor-pointer transition ${selectedChat.id === chat.id ? "bg-purple-100" : "hover:bg-gray-100"}`}
-                                onClick={() => {
-                                    setSelectedChat(chat);
-                                    setShowSidebar(false);
-                                }}
-                            >
-                                <img src={chat.avatar} alt={chat.name} className="w-8 h-8 rounded-full mr-2" />
-                                <div className="flex-1">
-                                    <div className="flex justify-between items-center">
-                                        <h4 className="text-sm font-medium truncate">{chat.name}</h4>
-                                        <span className="text-xs text-gray-500">{chat.time}</span>
-                                    </div>
-                                    <p className="text-xs text-gray-500 truncate">{chat.message}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Chat Window */}
-                <div className="flex-1 flex flex-col bg-white h-screen">
-                    <div className="p-3 border-b border-gray-200 flex items-center justify-between">
-                        <div className="flex items-center">
-                            <button className="md:hidden text-gray-500 mr-2" onClick={() => setShowSidebar(true)}>
-                                <FaBars size={18} />
-                            </button>
-                            <img src={selectedChat.avatar} alt={selectedChat.name} className="w-8 h-8 rounded-full mr-2" />
-                            <div>
-                                <h4 className="text-sm font-medium">{selectedChat.name}</h4>
-                                <p className="text-xs text-green-500">Online</p>
-                            </div>
-                        </div>
-                        <button className="text-xs text-purple-500">View Profile</button>
-                    </div>
-
-                    <div className="flex-1 p-3 overflow-auto space-y-3">
-                        {messageList.map((msg) => (
-                            <div key={msg.id} className={`flex ${msg.type === "sent" ? "justify-end" : "justify-start"}`}>
-                                <div className={`px-3 py-2 rounded-lg max-w-[70%] ${msg.type === "sent" ? "bg-purple-500 text-white" : "bg-gray-200 text-gray-800"}`}>
-                                    <p className="text-sm">{msg.text}</p>
-                                    <span className="block text-xs text-right mt-1">{msg.time}</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="p-3 border-t border-gray-200 flex flex-col xs:flex-row items-center relative gap-2">
-                        <div className="flex items-center w-full">
-                            <button onClick={() => setShowOptions(!showOptions)} className="p-2 bg-gray-200 rounded-full">
-                                <FaPlus className="text-gray-500" size={16} />
-                            </button>
-
-                            {showOptions && (
-                                <div className="absolute bottom-20 xs:bottom-14 left-2 w-36 bg-white shadow-sm rounded-lg p-2 space-y-1 z-10">
-                                    <button className="flex items-center w-full px-2 py-1 text-xs text-gray-700 hover:bg-gray-100">
-                                        <FaFile className="mr-2 text-blue-500" size={14} /> Attach File
-                                    </button>
-                                    <button className="flex items-center w-full px-2 py-1 text-xs text-gray-700 hover:bg-gray-100">
-                                        <FaImage className="mr-2 text-green-500" size={14} /> Send Image
-                                    </button>
-                                    <button className="flex items-center w-full px-2 py-1 text-xs text-gray-700 hover:bg-gray-100">
-                                        <FaMapMarkerAlt className="mr-2 text-red-500" size={14} /> Share Location
-                                    </button>
-                                </div>
-                            )}
-
-                            <input type="text" placeholder="Your message" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} onKeyDown={(e) => e.key === "Enter" && sendMessage()} className="flex-1 mx-2 py-3 px-3 border border-gray-200 rounded-md outline-none text-sm" />
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            <button onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="p-2">
-                                <FaSmile className="text-gray-500" size={20} />
-                            </button>
-
-                            {showEmojiPicker && (
-                                <div ref={emojiPickerRef} className="absolute bottom-20 xs:bottom-14 right-2 bg-white shadow-lg rounded-lg z-10">
-                                    <EmojiPicker onEmojiClick={handleEmojiClick} width={250} height={350} />
-                                </div>
-                            )}
-                            <button onClick={sendMessage} className="bg-purple-500 text-white px-3 py-3 rounded-lg">
-                                <FaPaperPlane size={16} />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {showModal && (
-                <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm">
-                    <div className="bg-white p-6 rounded-lg w-full max-w-lg">
-                        <div className="flex justify-between items-center outline-none pb-3 mb-4">
-                            <h2 className="text-lg font-semibold">Send Message</h2>
-                            <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-black">
-                                ✕
-                            </button>
-                        </div>
-                        <div className="space-y-4">
-                            <form action="">
-                                <div>
-                                    <label className="block text-gray-700 mb-4">User Type</label>
-                                    <select className="w-full p-4 border border-[#CCCCCC] text-gray-700 outline-none rounded-lg" required>
-                                        <option value="">Choose user type</option>
-                                        <option>Customer</option>
-                                        <option>Tailor</option>
-                                        <option>Fabric</option>
-                                        <option>Market Rep</option>
-                                        <option>Logistics</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-gray-700 mb-4 mt-4">User Email</label>
-                                    <input type="email" className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg" placeholder="greenmouse@gmail.com" required />
-                                </div>
-                                <div>
-                                    <label className="block text-gray-700 mb-4 mt-4">Message</label>
-                                    <textarea className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg" placeholder="Type in your message" rows="6" required></textarea>
-                                </div>
-                                <button className="bg-gradient text-white px-4 py-3 mt-4 rounded" type="submit">
-                                    Send Message
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+                  </div>
+                ))}
+              </div>
             )}
-        </>
-    );
+          </div>
+        </div>
+
+        {/* Chat Window */}
+        <div className="flex-1 flex flex-col bg-white">
+          {/* Chat Header */}
+          <div className="p-4 border-b border-gray-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <button
+                  className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors mr-2"
+                  onClick={() => setShowSidebar(true)}
+                >
+                  <FaBars size={20} className="text-gray-500" />
+                </button>
+
+                {selectedChat && (
+                  <>
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+                      {selectedChat?.chat_buddy?.name
+                        ?.charAt(0)
+                        .toUpperCase() || "U"}
+                    </div>
+                    <div className="ml-3">
+                      <h4 className="font-semibold text-gray-900">
+                        {selectedChat?.chat_buddy?.name}
+                      </h4>
+                      {/* <p className="text-xs text-green-500">Online</p> */}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100">
+                  <div
+                    className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-500" : "bg-red-500"}`}
+                  ></div>
+                  <span className="text-xs text-gray-600">
+                    {isConnected ? "Connected" : "Disconnected"}
+                  </span>
+                </div>
+
+                {selectedChat && (
+                  <button className="text-sm text-purple-500 hover:text-purple-600 font-medium transition-colors">
+                    View Profile
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Messages Area */}
+          <div className="flex-1 overflow-auto p-4 space-y-4 bg-gray-50">
+            {selectedChat ? (
+              messageList.length === 0 ? (
+                <div className="text-center text-gray-500 py-12">
+                  <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <FaPaperPlane className="text-gray-400" size={24} />
+                  </div>
+                  <p className="font-medium mb-2">No messages yet</p>
+                  <p className="text-sm">Start the conversation!</p>
+                </div>
+              ) : (
+                <>
+                  {messageList.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex ${msg.type === "sent" ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`px-4 py-3 rounded-2xl max-w-[70%] shadow-sm ${
+                          msg.type === "sent"
+                            ? "bg-purple-500 text-white rounded-br-md"
+                            : "bg-white text-gray-800 rounded-bl-md border border-gray-200"
+                        }`}
+                      >
+                        <p className="text-sm leading-relaxed">{msg.text}</p>
+                        <span
+                          className={`block text-xs mt-1 ${
+                            msg.type === "sent"
+                              ? "text-purple-100"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          {msg.time}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={messagesEndRef} />
+                </>
+              )
+            ) : (
+              <div className="text-center text-gray-500 py-12">
+                <div className="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <FaSearch className="text-gray-400" size={28} />
+                </div>
+                <p className="font-medium mb-2 text-lg">
+                  Select a conversation
+                </p>
+                <p className="text-sm">
+                  Choose a chat from the sidebar to start messaging
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Message Input */}
+          <div className="p-4 border-t border-gray-200 bg-white">
+            <div className="flex items-center gap-3">
+              {/* Attachment Button */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowOptions(!showOptions)}
+                  className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                  disabled={!selectedChat}
+                >
+                  <FaPlus size={20} className="text-gray-500" />
+                </button>
+
+                {showOptions && (
+                  <div className="absolute bottom-14 left-0 w-44 bg-white shadow-lg rounded-lg border border-gray-200 py-2 z-20">
+                    <button className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                      <FaFile size={16} className="mr-3 text-purple-500" />{" "}
+                      Attach File
+                    </button>
+                    <button className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                      <FaImage size={16} className="mr-3 text-green-500" /> Send
+                      Image
+                    </button>
+                    <button className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                      <FaMapMarkerAlt size={16} className="mr-3 text-red-500" />{" "}
+                      Share Location
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Message Input */}
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  placeholder="Type your message..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                  className="w-full py-3 px-4 pr-12 bg-gray-50 border border-gray-200 rounded-2xl outline-none text-sm focus:border-purple-500 focus:bg-white transition-all"
+                  disabled={!selectedChat}
+                />
+
+                {/* Emoji Button */}
+                <button
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-gray-200 transition-colors"
+                  disabled={!selectedChat}
+                >
+                  <FaSmile size={20} className="text-gray-500" />
+                </button>
+
+                {showEmojiPicker && (
+                  <div
+                    ref={emojiPickerRef}
+                    className="absolute bottom-14 right-0 bg-white shadow-lg rounded-lg border border-gray-200 z-20"
+                  >
+                    <EmojiPicker
+                      onEmojiClick={handleEmojiClick}
+                      width={280}
+                      height={350}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Send Button */}
+              <button
+                onClick={sendMessage}
+                className="p-3 bg-purple-500 text-white rounded-2xl hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                disabled={!selectedChat}
+              >
+                <FaPaperPlane size={18} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Enhanced Modal with Socket.IO Integration */}
+      {showModal && (
+        <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm">
+          <div className="bg-white p-6 rounded-lg w-full max-w-lg">
+            <div className="flex justify-between items-center outline-none pb-3 mb-4">
+              <h2 className="text-lg font-semibold">Send Message</h2>
+              <button
+                onClick={handleModalClose}
+                className="text-gray-500 hover:text-black"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-4">
+              <form onSubmit={handleSocketMessage}>
+                <div>
+                  <label className="block text-gray-700 mb-4">User Type</label>
+                  <select
+                    className="w-full p-4 border border-[#CCCCCC] text-gray-700 outline-none rounded-lg"
+                    value={userType}
+                    onChange={handleUserTypeChange}
+                    required
+                  >
+                    <option value="">Choose user type</option>
+                    <option value="Customer">Customer</option>
+                    <option value="Tailor">Tailor</option>
+                    <option value="Fabric">Fabric</option>
+                    <option value="Market Rep">Market Rep</option>
+                    <option value="Logistics">Logistics</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 mb-4 mt-4">
+                    Select User
+                  </label>
+                  <select
+                    className="w-full p-4 border border-[#CCCCCC] text-gray-700 outline-none rounded-lg"
+                    value={selectedUser}
+                    onChange={(e) => setSelectedUser(e.target.value)}
+                    required
+                    disabled={!userType || loadingUsers}
+                  >
+                    <option value="">
+                      {loadingUsers ? "Loading users..." : "Choose a user"}
+                    </option>
+                    {users.length > 0
+                      ? users.map((user) => (
+                          <option key={user.id} value={user.id}>
+                            {user.name || user.email || `User ${user.id}`}
+                          </option>
+                        ))
+                      : !loadingUsers &&
+                        userType && (
+                          <option value="" disabled>
+                            No users found for this role
+                          </option>
+                        )}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 mb-4 mt-4">
+                    Message
+                  </label>
+                  <textarea
+                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                    placeholder="Type in your message"
+                    rows="6"
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    className="bg-gradient text-white px-4 py-3 mt-4 rounded disabled:opacity-50 disabled:cursor-not-allowed flex-1"
+                    type="submit"
+                    disabled={
+                      sendingMessage || !selectedUser || !messageText.trim()
+                    }
+                  >
+                    {sendingMessage ? "Sending..." : "Send Message"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }

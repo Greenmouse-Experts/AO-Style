@@ -22,7 +22,6 @@ import useCreateAdminStyle from "../../../hooks/style/useCreateAdminStyle";
 
 export default function StyleForm() {
   const { toastError } = useToast();
-
   const location = useLocation();
 
   const isAdminAddRoute = location.pathname === "/admin/style/add-product";

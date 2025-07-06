@@ -37,6 +37,7 @@ import ViewTailorDetails from "../modules/Pages/adminDashboard/tailor/ViewTailor
 import ViewMarketDetails from "../modules/Pages/adminDashboard/sales-rep/ViewMarketRep";
 import ViewFabricDetails from "../modules/Pages/adminDashboard/fabric/ViewFabricDetails";
 import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
+import MyProducts from "../modules/Pages/fabricDashboard/MyProducts";
 
 export const adminRoutes = [
   {
@@ -139,6 +140,11 @@ export const adminRoutes = [
         path: "/admin/fabrics",
         element: <FabricCategory />,
       },
+      {
+        path: "/admin/fabrics-products",
+        element: <MyProducts />,
+      },
+
       {
         path: "/admin/styles",
         element: <StyleCategories />,

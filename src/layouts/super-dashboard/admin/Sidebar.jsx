@@ -99,9 +99,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             onClick={handleClick}
           />
 
-          {/* Products Section */}
+          {/* categories Section */}
           <div className="mb-4">
-            <h3 className="text-xs text-white uppercase mb-2">Products</h3>
+            <h3 className="text-xs text-white uppercase mb-2">Categories</h3>
             <SidebarItem
               to="/admin/markets"
               icon={<FaStore />}
@@ -110,6 +110,23 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             />
             <SidebarItem
               to="/admin/fabrics"
+              icon={<FaTshirt />}
+              text="Fabrics"
+              onClick={handleClick}
+            />
+            <SidebarItem
+              to="/admin/styles"
+              icon={<FaPalette />}
+              text="Styles"
+              onClick={handleClick}
+            />
+          </div>
+
+          {/* products Section */}
+          <div className="mb-4">
+            <h3 className="text-xs text-white uppercase mb-2">Products</h3>
+            <SidebarItem
+              to="/admin/fabrics-products"
               icon={<FaTshirt />}
               text="Fabrics"
               onClick={handleClick}

@@ -17,6 +17,15 @@ const getFabricProduct = (params) => {
   });
 };
 
+const getAdminFabricProduct = (params) => {
+  return CaryBinApi.get(`/product-general/fetch`, {
+    params,
+    headers: {
+      "Business-id": params.id,
+    },
+  });
+};
+
 const updateFabricProduct = (payload) => {
   return CaryBinApi.patch(`/fabric/${payload.id}`, payload, {
     headers: {
@@ -25,13 +34,29 @@ const updateFabricProduct = (payload) => {
   });
 };
 
+const updateAdminFabricProduct = (payload) => {
+  return CaryBinApi.patch(`/manage-fabric/${payload.id}`, payload, {
+    headers: {
+      "Business-id": payload.business_id,
+    },
+  });
+};
+
 const deleteFabricProduct = (payload) => {
-  console.log(payload);
   return CaryBinApi.delete(`/fabric/${payload.id}`, {
     headers: {
       "Business-id": payload.business_id,
     },
-    data: payload, // Pass payload in the data field for DELETE requests
+    data: payload,
+  });
+};
+
+const deleteAdminFabricProduct = (payload) => {
+  return CaryBinApi.delete(`/manage-fabric/${payload.id}`, {
+    headers: {
+      "Business-id": payload.business_id,
+    },
+    data: payload,
   });
 };
 
@@ -40,6 +65,9 @@ const FabricService = {
   getFabricProduct,
   updateFabricProduct,
   deleteFabricProduct,
+  getAdminFabricProduct,
+  updateAdminFabricProduct,
+  deleteAdminFabricProduct,
 };
 
 export default FabricService;

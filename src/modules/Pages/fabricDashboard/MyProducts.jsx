@@ -2,7 +2,7 @@ import React, { useState, useRef, useMemo } from "react";
 import ReusableTable from "../adminDashboard/components/ReusableTable";
 import { Search } from "lucide-react";
 import { FaEllipsisH } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails";
 
 import useQueryParams from "../../../hooks/useQueryParams";
@@ -15,9 +15,15 @@ import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 import { formatDateStr } from "../../../lib/helper";
 import useUpdateFabric from "../../../hooks/fabric/useUpdateFabric";
 import useDeleteFabric from "../../../hooks/fabric/useDeleteFabric";
+import useGetAdminFabricProduct from "../../../hooks/fabric/useGetAdminFabricProduct";
+import useUpdateAdminFabric from "../../../hooks/fabric/useUpdateAdminFabric";
+import useDeleteAdminFabric from "../../../hooks/fabric/useDeleteAdminFabric";
 
 const ProductPage = () => {
   const { data: businessDetails } = useGetBusinessDetails();
+  const location = useLocation();
+
+  const isAdminFabricRoute = location.pathname === "/admin/fabrics-products";
 
   const { queryParams, updateQueryParams } = useQueryParams({
     "pagination[page]": 1,
@@ -29,6 +35,13 @@ const ProductPage = () => {
     id: businessDetails?.data?.id,
     ...queryParams,
   });
+
+  const { data: getAllAdminFabricData, isPending: adminProductIsPending } =
+    useGetAdminFabricProduct({
+      type: "FABRIC",
+      id: businessDetails?.data?.id,
+      ...queryParams,
+    });
 
   const [queryString, setQueryString] = useState(queryParams.q);
 
@@ -52,10 +65,19 @@ const ProductPage = () => {
 
   const { isPending: updateIsPending, updateFabricMutate } = useUpdateFabric();
 
+  const { isPending: updateAdminIsPending, updateAdminFabricMutate } =
+    useUpdateAdminFabric();
+
+  const updatedData = isAdminFabricRoute
+    ? getAllAdminFabricData
+    : getAllFabricData;
+
+  console.log(getAllAdminFabricData);
+
   const FabricData = useMemo(
     () =>
-      getAllFabricData?.data
-        ? getAllFabricData?.data.map((details) => {
+      updatedData?.data
+        ? updatedData?.data?.map((details) => {
             return {
               ...details,
               category_id: `${details?.category?.id ?? ""}`,
@@ -71,10 +93,13 @@ const ProductPage = () => {
             };
           })
         : [],
-    [getAllFabricData?.data]
+    [updatedData]
   );
 
   const { isPending: deleteIsPending, deleteFabricMutate } = useDeleteFabric();
+
+  const { isPending: deleteAdminIsPending, deleteAdminFabricMutate } =
+    useDeleteAdminFabric();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
@@ -137,53 +162,97 @@ const ProductPage = () => {
                 {row?.status === "DRAFT" ? (
                   <button
                     onClick={() => {
-                      updateFabricMutate(
-                        {
-                          id: row?.id,
-                          business_id: businessDetails?.data?.id,
-                          product: {
-                            name: row?.name,
-                            sku: row?.sku,
-                            category_id: row?.category_id,
-                            status: "PUBLISHED",
+                      if (isAdminFabricRoute) {
+                        updateAdminFabricMutate(
+                          {
+                            id: row?.id,
+                            product: {
+                              name: row?.name,
+                              sku: row?.sku,
+                              category_id: row?.category_id,
+                              status: "PUBLISHED",
+                              approval_status: "PUBLISHED",
+                            },
                           },
-                        },
-                        {
-                          onSuccess: () => {
-                            setOpenDropdown(null);
+                          {
+                            onSuccess: () => {
+                              setOpenDropdown(null);
+                            },
+                          }
+                        );
+                      } else {
+                        updateFabricMutate(
+                          {
+                            id: row?.id,
+                            business_id: businessDetails?.data?.id,
+                            product: {
+                              name: row?.name,
+                              sku: row?.sku,
+                              category_id: row?.category_id,
+                              status: "PUBLISHED",
+                            },
                           },
-                        }
-                      );
+                          {
+                            onSuccess: () => {
+                              setOpenDropdown(null);
+                            },
+                          }
+                        );
+                      }
                     }}
                     className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
                   >
-                    {updateIsPending ? "Please wait" : "Publish Product"}
+                    {updateIsPending || updateAdminIsPending
+                      ? "Please wait"
+                      : "Publish Product"}
                   </button>
                 ) : null}
                 {row?.status === "PUBLISHED" ? (
                   <button
                     onClick={() => {
-                      updateFabricMutate(
-                        {
-                          id: row?.id,
-                          business_id: businessDetails?.data?.id,
-                          product: {
-                            name: row?.name,
-                            sku: row?.sku,
-                            category_id: row?.category_id,
-                            status: "PUBLISHED",
+                      if (isAdminFabricRoute) {
+                        updateAdminFabricMutate(
+                          {
+                            id: row?.id,
+                            product: {
+                              name: row?.name,
+                              sku: row?.sku,
+                              category_id: row?.category_id,
+                              status: "DRAFT",
+                              approval_status: "DRAFT",
+                            },
                           },
-                        },
-                        {
-                          onSuccess: () => {
-                            setOpenDropdown(null);
+                          {
+                            onSuccess: () => {
+                              setOpenDropdown(null);
+                            },
+                          }
+                        );
+                      } else {
+                        updateFabricMutate(
+                          {
+                            id: row?.id,
+                            business_id: businessDetails?.data?.id,
+                            product: {
+                              name: row?.name,
+                              sku: row?.sku,
+                              category_id: row?.category_id,
+                              status: "DRAFT",
+                            },
                           },
-                        }
-                      );
+                          {
+                            onSuccess: () => {
+                              setOpenDropdown(null);
+                            },
+                          }
+                        );
+                      }
                     }}
                     className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
                   >
-                    {updateIsPending ? "Please wait" : "Draft Product"}
+                    {updateIsPending || updateAdminIsPending
+                      ? "Please wait"
+                      : "Draft Product"}
                   </button>
                 ) : null}
 
@@ -217,7 +286,7 @@ const ProductPage = () => {
   const [newCategory, setNewCategory] = useState();
 
   const totalPages = Math.ceil(
-    getAllFabricData?.count / (queryParams["pagination[limit]"] ?? 10)
+    updatedData?.count / (queryParams["pagination[limit]"] ?? 10)
   );
 
   return (
@@ -305,16 +374,18 @@ const ProductPage = () => {
           </div>
         </div>
         {/* Table Section */}
-        {FabricData?.length ? (
-          <ReusableTable
-            columns={columns}
-            loading={isPending}
-            data={FabricData}
-          />
-        ) : (
+        <ReusableTable
+          columns={columns}
+          loading={isAdminFabricRoute ? adminProductIsPending : isPending}
+          data={FabricData}
+        />
+        {!FabricData?.length &&
+        !(isAdminFabricRoute ? adminProductIsPending : isPending) ? (
           <p className="flex-1 text-center text-sm md:text-sm">
             No product found.
           </p>
+        ) : (
+          <></>
         )}
       </div>
       {FabricData?.length ? (
@@ -392,22 +463,32 @@ const ProductPage = () => {
               className="mt-6 space-y-4"
               onSubmit={(e) => {
                 e.preventDefault();
-                console.log({
-                  id: newCategory?.id,
-                  business_id: businessDetails?.data?.id,
-                });
-                deleteFabricMutate(
-                  {
-                    id: newCategory?.id,
-                    business_id: businessDetails?.data?.id,
-                  },
-                  {
-                    onSuccess: () => {
-                      setIsAddModalOpen(false);
-                      setNewCategory(null);
+                if (isAdminFabricRoute) {
+                  deleteAdminFabricMutate(
+                    {
+                      id: newCategory?.id,
                     },
-                  }
-                );
+                    {
+                      onSuccess: () => {
+                        setIsAddModalOpen(false);
+                        setNewCategory(null);
+                      },
+                    }
+                  );
+                } else {
+                  deleteFabricMutate(
+                    {
+                      id: newCategory?.id,
+                      business_id: businessDetails?.data?.id,
+                    },
+                    {
+                      onSuccess: () => {
+                        setIsAddModalOpen(false);
+                        setNewCategory(null);
+                      },
+                    }
+                  );
+                }
               }}
             >
               <label className="block text-sm font-medium text-gray-700 mb-4">
@@ -425,10 +506,12 @@ const ProductPage = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={deleteIsPending}
+                  disabled={deleteIsPending || deleteAdminIsPending}
                   className="mt-6 cursor-pointer w-full bg-gradient text-white px-4 py-3 text-sm rounded-md"
                 >
-                  {deleteIsPending ? "Please wait..." : "Delete Product"}
+                  {deleteIsPending || deleteAdminIsPending
+                    ? "Please wait..."
+                    : "Delete Product"}
                 </button>
               </div>
             </form>

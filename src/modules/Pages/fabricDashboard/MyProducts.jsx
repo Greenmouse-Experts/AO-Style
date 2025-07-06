@@ -294,7 +294,14 @@ const ProductPage = () => {
       <div className="bg-white px-4 sm:px-6 py-4 mb-6 relative">
         <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center space-y-3 sm:space-y-0">
           <h1 className="text-xl sm:text-2xl font-medium">My Products</h1>
-          <Link to="/fabric/product/add-product" className="w-full sm:w-auto">
+          <Link
+            to={
+              isAdminFabricRoute
+                ? "/admin/fabric/add-product"
+                : "/fabric/product/add-product"
+            }
+            className="w-full sm:w-auto"
+          >
             <button className="bg-gradient text-white px-6 sm:px-8 py-3 sm:py-3 cursor-pointer rounded-md hover:bg-purple-600 transition w-full sm:w-auto">
               + Add New Product
             </button>

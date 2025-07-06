@@ -127,8 +127,7 @@ export default function StyleForm() {
         !values.front_url ||
         !values.back_url ||
         !values.left_url ||
-        !values.right_url ||
-        !val.video_url
+        !values.right_url
       ) {
         toastError("Please upload all required images.");
         return;

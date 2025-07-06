@@ -12,7 +12,6 @@ import useCreateAdminRole from "../../../hooks/admin/useCreateAdminRole";
 import { useModalState } from "../../../hooks/useModalState";
 import useDeleteAdminRole from "../../../hooks/admin/useDeleteAdminRole";
 import useToast from "../../../hooks/useToast";
-import useUpdateFabric from "../../../hooks/fabric/useUpdateFabric";
 import useUpdateAdminRole from "../../../hooks/admin/useUpdateAdminRole";
 
 const roleOptions = [

@@ -35,6 +35,7 @@ const useSignIn = (email, resendCodeMutate) => {
       ) {
         toastSuccess(data?.data?.message);
         Cookies.set("token", data?.data?.accessToken);
+        console.log(data);
         if (data?.data?.data?.role === "fabric-vendor") {
           navigate("/fabric");
           Cookies.set("currUserUrl", "fabric");

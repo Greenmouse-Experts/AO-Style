@@ -18,6 +18,7 @@ import Cookies from "js-cookie";
 import useToast from "../../../../hooks/useToast";
 import { useId } from "react";
 import { useCarybinUserStore } from "../../../../store/carybinUserStore";
+import AuthService from "../../../../services/api/auth";
 
 export default function InboxPage() {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -36,9 +37,14 @@ export default function InboxPage() {
   const [isConnected, setIsConnected] = useState(false);
   const [chats, setChats] = useState([]);
 
+  // User profile state
+  const [userProfile, setUserProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+
   const { toastError, toastSuccess } = useToast();
   const userToken = Cookies.get("token");
-  const userId = Cookies.get("user_id");
+  // Use profile ID instead of cookie ID
+  const userId = userProfile?.id || null;
   const selectedChatRef = useRef(selectedChat);
 
   // Auto-scroll to bottom when new messages arrive
@@ -59,12 +65,17 @@ export default function InboxPage() {
   useEffect(() => {
     console.log("=== INITIALIZING CUSTOMER SOCKET CONNECTION ===");
     console.log("User token:", userToken);
+    console.log("User ID from profile:", userId);
+    console.log("Profile loading:", profileLoading);
     console.log("Socket URL: https://api-carybin.victornwadinobi.com");
     console.log("===============================================");
 
-    if (userToken) {
+    // Wait for profile to be loaded before initializing socket
+    if (userToken && userId && !profileLoading) {
       const socketInstance = io("https://api-carybin.victornwadinobi.com", {
-        auth: { token: userToken },
+        auth: { 
+          token: userToken,
+        },
         transports: ["websocket", "polling"],
         timeout: 20000,
         forceNew: true,
@@ -120,6 +131,89 @@ export default function InboxPage() {
           toastSuccess(data?.message || "Chats loaded successfully");
         }
       });
+
+      // Listen for user-specific chat events (as shown in Postman)
+      if (userId) {
+        console.log(`🎯 Setting up user-specific event listeners for user: ${userId}`);
+        console.log(`🎯 Listening for: chatsRetrieved.${userId}`);
+        console.log(`🎯 Listening for: messagesRetrieved.${userId}`);
+        console.log(`🎯 Listening for: recentChatRetrieved.${userId}`);
+        
+        socketInstance.on(`chatsRetrieved:${userId}`, (data) => {
+          console.log(`=== USER-SPECIFIC CHATS RETRIEVED (${userId}) ===`);
+          console.log("Full response:", JSON.stringify(data, null, 2));
+          console.log("Status:", data?.status);
+          console.log("Message:", data?.message);
+          console.log("Result array:", data?.data?.result);
+          console.log("=============================================");
+
+          if (data?.status === "success" && data?.data?.result) {
+            setChats(data.data.result);
+            if (!selectedChat && data.data.result.length > 0) {
+              setSelectedChat(data.data.result[0]);
+            }
+            toastSuccess(data?.message || "Chats loaded successfully");
+          }
+        });
+
+        socketInstance.on(`messagesRetrieved:${userId}`, (data) => {
+          console.log(`=== USER-SPECIFIC MESSAGES RETRIEVED (${userId}) ===`);
+          console.log("Full response:", JSON.stringify(data, null, 2));
+          console.log("Status:", data?.status);
+          console.log("Messages array:", data?.data?.result);
+          console.log("Selected chat from ref:", selectedChatRef.current);
+          console.log("==============================================");
+
+          if (data?.status === "success" && data?.data?.result) {
+            const currentSelectedChat = selectedChatRef.current;
+            console.log("Current selected chat:", currentSelectedChat);
+
+            const formattedMessages = data.data.result.map((msg) => ({
+              id: msg.id,
+              sender: msg.initiator?.name || "Unknown",
+              text: msg.message,
+              time: new Date(msg.created_at).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              }),
+              type:
+                msg.initiator_id === currentSelectedChat?.chat_buddy?.id
+                  ? "received"
+                  : "sent",
+              read: msg.read,
+            }));
+
+            console.log("Formatted messages with types:", formattedMessages);
+            setMessageList(formattedMessages);
+          }
+        });
+
+        socketInstance.on(`recentChatRetrieved:${userId}`, (data) => {
+          console.log(`=== USER-SPECIFIC RECENT CHAT RETRIEVED (${userId}) ===`);
+          console.log("Chat data:", JSON.stringify(data, null, 2));
+          console.log("=============================================");
+
+          if (data?.data) {
+            setChats((prevChats) => {
+              const existingChatIndex = prevChats.findIndex(
+                (chat) => chat.id === data.data.id,
+              );
+              if (existingChatIndex >= 0) {
+                const updatedChats = [...prevChats];
+                updatedChats[existingChatIndex] = {
+                  ...updatedChats[existingChatIndex],
+                  last_message: data.data.last_message,
+                  created_at: data.data.created_at,
+                };
+                return updatedChats;
+              } else {
+                return [data.data, ...prevChats];
+              }
+            });
+          }
+        });
+      }
 
       socketInstance.on("messagesRetrieved", (data) => {
         console.log("=== MESSAGES RETRIEVED ===");
@@ -187,90 +281,90 @@ export default function InboxPage() {
         toastError("Socket connection failed: " + error.message);
       });
 
-      socketInstance.onAny((event, ...args) => {
-        console.log(`🔍 === CUSTOMER SOCKET EVENT: ${event} === 🔍`);
+      // socketInstance.onAny((event, ...args) => {
+      //   console.log(`🔍 === CUSTOMER SOCKET EVENT: ${event} === 🔍`);
 
-        if (event.includes("chatsRetrieved")) {
-          console.log("Event data:", args);
-          const response = args[0];
-          if (response?.status === "success" && response?.data) {
-            setChats(response.data.result);
-            console.log("Here are the chats:", response.data.result);
+      //   if (event.includes("chatsRetrieved")) {
+      //     console.log("Event data:", args);
+      //     const response = args[0];
+      //     if (response?.status === "success" && response?.data) {
+      //       setChats(response.data.result);
+      //       console.log("Here are the chats:", response.data.result);
 
-            if (
-              !selectedChatRef.current &&
-              response.data.result &&
-              response.data.result.length > 0
-            ) {
-              setSelectedChat(response.data.result[0]);
-            }
+      //       if (
+      //         !selectedChatRef.current &&
+      //         response.data.result &&
+      //         response.data.result.length > 0
+      //       ) {
+      //         setSelectedChat(response.data.result[0]);
+      //       }
 
-            toastSuccess(response?.message || "Chats loaded successfully");
-          }
-        } else if (event.includes("messagesRetrieved")) {
-          console.log("--------MESSAGES RETRIEVED------");
-          console.log("Event data:", args);
-          console.log(
-            "Selected chat from ref in onAny:",
-            selectedChatRef.current,
-          );
+      //       toastSuccess(response?.message || "Chats loaded successfully");
+      //     }
+      //   } else if (event.includes("messagesRetrieved")) {
+      //     console.log("--------MESSAGES RETRIEVED------");
+      //     console.log("Event data:", args);
+      //     console.log(
+      //       "Selected chat from ref in onAny:",
+      //       selectedChatRef.current,
+      //     );
 
-          const response = args[0];
-          if (response?.status === "success" && response?.data?.result) {
-            const currentSelectedChat = selectedChatRef.current;
+      //     const response = args[0];
+      //     if (response?.status === "success" && response?.data?.result) {
+      //       const currentSelectedChat = selectedChatRef.current;
 
-            const formattedMessages = response.data.result.map((msg) => ({
-              id: msg.id,
-              sender: msg.initiator?.name || "Unknown",
-              text: msg.message,
-              time: new Date(msg.created_at).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: true,
-              }),
-              type:
-                msg.initiator_id === currentSelectedChat?.chat_buddy?.id
-                  ? "received"
-                  : "sent",
-              read: msg.read,
-            }));
+      //       const formattedMessages = response.data.result.map((msg) => ({
+      //         id: msg.id,
+      //         sender: msg.initiator?.name || "Unknown",
+      //         text: msg.message,
+      //         time: new Date(msg.created_at).toLocaleTimeString([], {
+      //           hour: "2-digit",
+      //           minute: "2-digit",
+      //           hour12: true,
+      //         }),
+      //         type:
+      //           msg.initiator_id === currentSelectedChat?.chat_buddy?.id
+      //             ? "received"
+      //             : "sent",
+      //         read: msg.read,
+      //       }));
 
-            console.log("Formatted messages in onAny:", formattedMessages);
-            setMessageList(formattedMessages);
-          }
-        } else if (event.includes("recentChatRetrieved")) {
-          console.log("Event data:", args);
-          const response = args[0];
-          console.log(response);
+      //       console.log("Formatted messages in onAny:", formattedMessages);
+      //       setMessageList(formattedMessages);
+      //     }
+      //   } else if (event.includes("recentChatRetrieved")) {
+      //     console.log("Event data:", args);
+      //     const response = args[0];
+      //     console.log(response);
 
-          if (response?.status === "success" && response?.data) {
-            setChats((prevChats) => {
-              const existingChatIndex = prevChats.findIndex(
-                (chat) => chat.id === response.data.id,
-              );
+      //     if (response?.status === "success" && response?.data) {
+      //       setChats((prevChats) => {
+      //         const existingChatIndex = prevChats.findIndex(
+      //           (chat) => chat.id === response.data.id,
+      //         );
 
-              if (existingChatIndex >= 0) {
-                // Update existing chat
-                const updatedChats = [...prevChats];
-                updatedChats[existingChatIndex] = {
-                  ...updatedChats[existingChatIndex],
-                  last_message: response.data.last_message,
-                  created_at: response.data.created_at,
-                  updated_at: response.data.updated_at,
-                };
-                return updatedChats;
-              } else {
-                // Add new chat to the beginning
-                return [response.data, ...prevChats];
-              }
-            });
+      //         if (existingChatIndex >= 0) {
+      //           // Update existing chat
+      //           const updatedChats = [...prevChats];
+      //           updatedChats[existingChatIndex] = {
+      //             ...updatedChats[existingChatIndex],
+      //             last_message: response.data.last_message,
+      //             created_at: response.data.created_at,
+      //             updated_at: response.data.updated_at,
+      //           };
+      //           return updatedChats;
+      //         } else {
+      //           // Add new chat to the beginning
+      //           return [response.data, ...prevChats];
+      //         }
+      //       });
 
-            toastSuccess(response?.message || "Chat updated successfully");
-          }
-        }
+      //       toastSuccess(response?.message || "Chat updated successfully");
+      //     }
+      //   }
 
-        console.log("🔍 ========================================= 🔍");
-      });
+      //   console.log("🔍 ========================================= 🔍");
+      // });
 
       setSocket(socketInstance);
 
@@ -279,30 +373,44 @@ export default function InboxPage() {
         socketInstance.disconnect();
         console.log("====================================");
       };
+    } else if (profileLoading) {
+      console.log("=== WAITING FOR PROFILE TO LOAD ===");
+      console.log("Profile loading:", profileLoading);
+      console.log("===================================");
     } else {
-      console.error("=== NO USER TOKEN ===");
-      console.error("User token not found");
-      console.error("=====================");
-      toastError("User token not found. Please login again.");
+      console.error("=== SOCKET INITIALIZATION FAILED ===");
+      console.error("User token:", !!userToken);
+      console.error("User ID:", userId);
+      console.error("Profile loading:", profileLoading);
+      console.error("====================================");
+      if (!userToken) {
+        toastError("User token not found. Please login again.");
+      } else if (!userId) {
+        toastError("User profile not loaded. Please refresh the page.");
+      }
     }
-  }, [userToken]);
+  }, [userToken, userId, profileLoading]);
 
   // Fetch chats via Socket.IO on mount
   useEffect(() => {
-    if (socket && isConnected && userToken) {
+    if (socket && isConnected && userToken && userId) {
       console.log("=== FETCHING CHATS VIA SOCKET ===");
       console.log("Emitting retrieveChats with token:", userToken);
-      socket.emit("retrieveChats", { token: userToken });
+      console.log("User ID:", userId);
+      socket.emit("retrieveChats", { 
+        token: userToken,
+      });
       console.log("================================");
     }
-  }, [socket, isConnected, userToken]);
+  }, [socket, isConnected, userToken, userId]);
 
   // Fetch messages when chat is selected
   useEffect(() => {
-    if (socket && isConnected && selectedChat && userToken) {
+    if (socket && isConnected && selectedChat && userToken && userId) {
       console.log(selectedChat);
       console.log("=== FETCHING MESSAGES VIA SOCKET ===");
       console.log("Chat ID:", selectedChat.id);
+      console.log("User ID:", userId);
       console.log("Emitting retrieveMessages");
       socket.emit("retrieveMessages", {
         token: userToken,
@@ -310,7 +418,42 @@ export default function InboxPage() {
       });
       console.log("====================================");
     }
-  }, [socket, isConnected, selectedChat, userToken]);
+  }, [socket, isConnected, selectedChat, userToken, userId]);
+
+  // Fetch user profile on mount
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!userToken) {
+        console.error("=== NO USER TOKEN FOR PROFILE FETCH ===");
+        setProfileLoading(false);
+        return;
+      }
+
+      try {
+        console.log("=== FETCHING USER PROFILE ===");
+        console.log("User token:", userToken);
+        
+        const response = await AuthService.GetUser();
+        console.log("Profile response:", response.data);
+        
+        if (response.data?.statusCode === 200 && response.data?.data) {
+          setUserProfile(response.data.data);
+          console.log("✅ User profile loaded:", response.data.data);
+          console.log("✅ User ID from profile:", response.data.data.id);
+        } else {
+          console.error("❌ Invalid profile response:", response.data);
+          toastError("Failed to load user profile");
+        }
+      } catch (error) {
+        console.error("❌ Error fetching user profile:", error);
+        toastError("Error loading user profile: " + error.message);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [userToken]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -333,11 +476,12 @@ export default function InboxPage() {
   };
 
   const sendMessage = () => {
-    if (!newMessage.trim() || !selectedChat) return;
+    if (!newMessage.trim() || !selectedChat || !userId) return;
 
     console.log("=== SENDING MESSAGE VIA SOCKET ===");
     console.log("Socket ID:", socket?.id);
     console.log("Selected chat:", selectedChat.id);
+    console.log("User ID:", userId);
     console.log("Message:", newMessage);
     console.log("Socket connected:", socket?.connected);
     console.log("==================================");
@@ -464,9 +608,11 @@ export default function InboxPage() {
                   </p>
                   <button
                     onClick={() => {
-                      if (socket && socket.connected && userToken) {
-                        socket.emit("retrieveChats", { token: userToken });
-                        console.log("Manual retry - retrieveChats sent");
+                      if (socket && socket.connected && userToken && userId) {
+                        socket.emit("retrieveChats", { 
+                          token: userToken,
+                        });
+                        console.log("Manual retry - retrieveChats sent for user:", userId);
                       }
                     }}
                     className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 transition-colors"

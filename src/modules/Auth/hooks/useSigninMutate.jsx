@@ -10,6 +10,12 @@ const useSignIn = (email, resendCodeMutate) => {
   const location = useLocation();
   const currentPath = location.pathname;
 
+  const redirectPath = new URLSearchParams(location.search).get("redirect");
+
+  const pendingProduct = localStorage.getItem("pendingProduct");
+
+  const parsedProduct = JSON.parse(pendingProduct);
+
   const { isPending, mutate: signinMutate } = useMutation({
     mutationFn: (payload) => AuthService.signinUser(payload),
     mutationKey: ["user-login"],
@@ -37,23 +43,33 @@ const useSignIn = (email, resendCodeMutate) => {
         Cookies.set("token", data?.data?.accessToken);
         console.log(data);
         if (data?.data?.data?.role === "fabric-vendor") {
-          navigate("/fabric");
+          navigate(redirectPath ?? "/fabric", {
+            state: { info: parsedProduct },
+          });
           Cookies.set("currUserUrl", "fabric");
         }
         if (data?.data?.data?.role === "fashion-designer") {
-          navigate("/tailor");
+          navigate(redirectPath ?? "/tailor", {
+            state: { info: parsedProduct },
+          });
           Cookies.set("currUserUrl", "tailor");
         }
         if (data?.data?.data?.role === "logistics-agent") {
-          navigate("/logistics");
+          navigate(redirectPath ?? "/logistics", {
+            state: { info: parsedProduct },
+          });
           Cookies.set("currUserUrl", "logistics");
         }
         if (data?.data?.data?.role === "user") {
-          navigate("/customer");
+          navigate(redirectPath ?? "/customer", {
+            state: { info: parsedProduct },
+          });
           Cookies.set("currUserUrl", "customer");
         }
         if (data?.data?.data?.role === "market-representative") {
-          navigate("/sales");
+          navigate(redirectPath ?? "/sales", {
+            state: { info: parsedProduct },
+          });
           Cookies.set("currUserUrl", "sales");
         }
       } else {
@@ -99,7 +115,7 @@ const useSignIn = (email, resendCodeMutate) => {
               localStorage.setItem("verifyemail", email);
               navigate("/verify-account");
             },
-          },
+          }
         );
       }
     },

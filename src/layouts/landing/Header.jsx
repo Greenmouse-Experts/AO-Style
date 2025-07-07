@@ -26,8 +26,6 @@ export default function Navbar() {
 
   const currUrl = Cookies.get("currUserUrl");
 
-  console.log(currUrl);
-
   return (
     <nav className="bg-white fixed w-full z-[95] py-3">
       <div className="Resizer">

@@ -8,6 +8,7 @@ import useGetMarketPlaces from "../../../hooks/dashboard/useGetMarketPlaces";
 import useGetTrendingProduct from "../../../hooks/dashboard/useGetTrendingProduct";
 
 import { motion } from "framer-motion";
+import LoaderComponent from "../../../components/BeatLoader";
 
 const marketplaces = [
   {

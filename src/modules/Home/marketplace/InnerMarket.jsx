@@ -148,7 +148,7 @@ export default function MarketplacePage() {
               {getMarketPlaceFabricData?.data?.map((product, index) => (
                 <Link
                   to={`/shop-details`}
-                  state={{ info: product }}
+                  state={{ info: product?.id }}
                   key={product.id}
                 >
                   <motion.div

@@ -18,7 +18,6 @@ import Cookies from "js-cookie";
 import useToast from "../../../../hooks/useToast";
 import { useId } from "react";
 import { useCarybinUserStore } from "../../../../store/carybinUserStore";
-import AuthService from "../../../../services/api/auth";
 
 export default function InboxPage() {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -37,14 +36,9 @@ export default function InboxPage() {
   const [isConnected, setIsConnected] = useState(false);
   const [chats, setChats] = useState([]);
 
-  // User profile state
-  const [userProfile, setUserProfile] = useState(null);
-  const [profileLoading, setProfileLoading] = useState(true);
-
   const { toastError, toastSuccess } = useToast();
   const userToken = Cookies.get("token");
-  // Use profile ID instead of cookie ID
-  const userId = userProfile?.id || null;
+  const userId = "796cbd9e-4890-4384-b15a-bb0c772c9685";
   const selectedChatRef = useRef(selectedChat);
 
   // Auto-scroll to bottom when new messages arrive
@@ -65,17 +59,12 @@ export default function InboxPage() {
   useEffect(() => {
     console.log("=== INITIALIZING CUSTOMER SOCKET CONNECTION ===");
     console.log("User token:", userToken);
-    console.log("User ID from profile:", userId);
-    console.log("Profile loading:", profileLoading);
     console.log("Socket URL: https://api-carybin.victornwadinobi.com");
     console.log("===============================================");
 
-    // Wait for profile to be loaded before initializing socket
-    if (userToken && userId && !profileLoading) {
+    if (userToken) {
       const socketInstance = io("https://api-carybin.victornwadinobi.com", {
-        auth: { 
-          token: userToken,
-        },
+        auth: { token: userToken },
         transports: ["websocket", "polling"],
         timeout: 20000,
         forceNew: true,
@@ -134,11 +123,13 @@ export default function InboxPage() {
 
       // Listen for user-specific chat events (as shown in Postman)
       if (userId) {
-        console.log(`🎯 Setting up user-specific event listeners for user: ${userId}`);
+        console.log(
+          `🎯 Setting up user-specific event listeners for user: ${userId}`
+        );
         console.log(`🎯 Listening for: chatsRetrieved.${userId}`);
         console.log(`🎯 Listening for: messagesRetrieved.${userId}`);
         console.log(`🎯 Listening for: recentChatRetrieved.${userId}`);
-        
+
         socketInstance.on(`chatsRetrieved:${userId}`, (data) => {
           console.log(`=== USER-SPECIFIC CHATS RETRIEVED (${userId}) ===`);
           console.log("Full response:", JSON.stringify(data, null, 2));
@@ -190,14 +181,16 @@ export default function InboxPage() {
         });
 
         socketInstance.on(`recentChatRetrieved:${userId}`, (data) => {
-          console.log(`=== USER-SPECIFIC RECENT CHAT RETRIEVED (${userId}) ===`);
+          console.log(
+            `=== USER-SPECIFIC RECENT CHAT RETRIEVED (${userId}) ===`
+          );
           console.log("Chat data:", JSON.stringify(data, null, 2));
           console.log("=============================================");
 
           if (data?.data) {
             setChats((prevChats) => {
               const existingChatIndex = prevChats.findIndex(
-                (chat) => chat.id === data.data.id,
+                (chat) => chat.id === data.data.id
               );
               if (existingChatIndex >= 0) {
                 const updatedChats = [...prevChats];
@@ -256,7 +249,7 @@ export default function InboxPage() {
         if (data?.data) {
           setChats((prevChats) => {
             const existingChatIndex = prevChats.findIndex(
-              (chat) => chat.id === data.data.id,
+              (chat) => chat.id === data.data.id
             );
             if (existingChatIndex >= 0) {
               const updatedChats = [...prevChats];
@@ -373,44 +366,30 @@ export default function InboxPage() {
         socketInstance.disconnect();
         console.log("====================================");
       };
-    } else if (profileLoading) {
-      console.log("=== WAITING FOR PROFILE TO LOAD ===");
-      console.log("Profile loading:", profileLoading);
-      console.log("===================================");
     } else {
-      console.error("=== SOCKET INITIALIZATION FAILED ===");
-      console.error("User token:", !!userToken);
-      console.error("User ID:", userId);
-      console.error("Profile loading:", profileLoading);
-      console.error("====================================");
-      if (!userToken) {
-        toastError("User token not found. Please login again.");
-      } else if (!userId) {
-        toastError("User profile not loaded. Please refresh the page.");
-      }
+      console.error("=== NO USER TOKEN ===");
+      console.error("User token not found");
+      console.error("=====================");
+      toastError("User token not found. Please login again.");
     }
-  }, [userToken, userId, profileLoading]);
+  }, [userToken, selectedChat, toastError, toastSuccess]);
 
   // Fetch chats via Socket.IO on mount
   useEffect(() => {
-    if (socket && isConnected && userToken && userId) {
+    if (socket && isConnected && userToken) {
       console.log("=== FETCHING CHATS VIA SOCKET ===");
       console.log("Emitting retrieveChats with token:", userToken);
-      console.log("User ID:", userId);
-      socket.emit("retrieveChats", { 
-        token: userToken,
-      });
+      socket.emit("retrieveChats", { token: userToken });
       console.log("================================");
     }
-  }, [socket, isConnected, userToken, userId]);
+  }, [socket, isConnected, userToken]);
 
   // Fetch messages when chat is selected
   useEffect(() => {
-    if (socket && isConnected && selectedChat && userToken && userId) {
+    if (socket && isConnected && selectedChat && userToken) {
       console.log(selectedChat);
       console.log("=== FETCHING MESSAGES VIA SOCKET ===");
       console.log("Chat ID:", selectedChat.id);
-      console.log("User ID:", userId);
       console.log("Emitting retrieveMessages");
       socket.emit("retrieveMessages", {
         token: userToken,
@@ -418,42 +397,7 @@ export default function InboxPage() {
       });
       console.log("====================================");
     }
-  }, [socket, isConnected, selectedChat, userToken, userId]);
-
-  // Fetch user profile on mount
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (!userToken) {
-        console.error("=== NO USER TOKEN FOR PROFILE FETCH ===");
-        setProfileLoading(false);
-        return;
-      }
-
-      try {
-        console.log("=== FETCHING USER PROFILE ===");
-        console.log("User token:", userToken);
-        
-        const response = await AuthService.GetUser();
-        console.log("Profile response:", response.data);
-        
-        if (response.data?.statusCode === 200 && response.data?.data) {
-          setUserProfile(response.data.data);
-          console.log("✅ User profile loaded:", response.data.data);
-          console.log("✅ User ID from profile:", response.data.data.id);
-        } else {
-          console.error("❌ Invalid profile response:", response.data);
-          toastError("Failed to load user profile");
-        }
-      } catch (error) {
-        console.error("❌ Error fetching user profile:", error);
-        toastError("Error loading user profile: " + error.message);
-      } finally {
-        setProfileLoading(false);
-      }
-    };
-
-    fetchUserProfile();
-  }, [userToken]);
+  }, [socket, isConnected, selectedChat, userToken]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -476,12 +420,11 @@ export default function InboxPage() {
   };
 
   const sendMessage = () => {
-    if (!newMessage.trim() || !selectedChat || !userId) return;
+    if (!newMessage.trim() || !selectedChat) return;
 
     console.log("=== SENDING MESSAGE VIA SOCKET ===");
     console.log("Socket ID:", socket?.id);
     console.log("Selected chat:", selectedChat.id);
-    console.log("User ID:", userId);
     console.log("Message:", newMessage);
     console.log("Socket connected:", socket?.connected);
     console.log("==================================");
@@ -529,9 +472,9 @@ export default function InboxPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm px-6 py-4 border-b border-gray-300">
+    <div className="h-screen flex flex-col bg-gray-50">
+      {/* Fixed Header */}
+      <div className="bg-white shadow-sm px-6 py-4 border-b border-gray-300 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Inbox</h1>
@@ -548,7 +491,11 @@ export default function InboxPage() {
           </div>
           <div className="flex items-center space-x-2">
             <div
-              className={`flex items-center space-x-2 px-3 py-1.5 rounded-full text-sm font-medium ${isConnected ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
+              className={`flex items-center space-x-2 px-3 py-1.5 rounded-full text-sm font-medium ${
+                isConnected
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700"
+              }`}
             >
               <FaCircle size={8} />
               <span>{isConnected ? "Online" : "Offline"}</span>
@@ -557,129 +504,126 @@ export default function InboxPage() {
         </div>
       </div>
 
+      {/* Main Chat Container */}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         <div
-          className={`fixed inset-y-0 left-0 bg-white border-r border-gray-200 shadow-lg z-50 w-80 transition-transform duration-300 ease-in-out md:relative md:shadow-none md:translate-x-0 ${
+          className={`fixed inset-y-0 left-0 bg-white border-r border-gray-200 shadow-lg z-50 w-80 transition-transform duration-300 ease-in-out md:relative md:shadow-none md:translate-x-0 flex flex-col ${
             showSidebar ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          <div className="flex flex-col h-full">
-            {/* Sidebar Header */}
-            <div className="p-4 border-b border-gray-300 bg-purple-300 text-gray-800">
-              <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold">Messages</h2>
+          {/* Fixed Sidebar Header */}
+          <div className="p-4 border-b border-gray-300 bg-purple-300 text-gray-800 flex-shrink-0">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-semibold">Messages</h2>
+              <button
+                className="md:hidden text-white hover:text-gray-200 transition-colors"
+                onClick={() => setShowSidebar(false)}
+              >
+                <FaTimes size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* Search */}
+          <div className="p-4 border-b border-gray-300 bg-white flex-shrink-0">
+            <div className="relative">
+              <FaSearch
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={14}
+              />
+              <input
+                type="text"
+                placeholder="Search conversations..."
+                className="w-full py-2.5 pl-10 pr-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm transition-colors"
+              />
+            </div>
+          </div>
+
+          {/* Scrollable Chat List */}
+          <div className="flex-1 overflow-y-auto">
+            {chats.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                  <FaSmile className="text-purple-600" size={24} />
+                </div>
+                <p className="text-gray-600 font-medium mb-2">
+                  No conversations yet
+                </p>
+                <p className="text-gray-400 text-sm mb-4">
+                  Start a new conversation to get started
+                </p>
                 <button
-                  className="md:hidden text-white hover:text-gray-200 transition-colors"
-                  onClick={() => setShowSidebar(false)}
+                  onClick={() => {
+                    if (socket && socket.connected && userToken) {
+                      socket.emit("retrieveChats", { token: userToken });
+                      console.log("Manual retry - retrieveChats sent");
+                    }
+                  }}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 transition-colors"
                 >
-                  <FaTimes size={20} />
+                  Retry Loading
                 </button>
               </div>
-            </div>
-
-            {/* Search */}
-            <div className="p-4 border-b border-gray-300 bg-white">
-              <div className="relative">
-                <FaSearch
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  size={14}
-                />
-                <input
-                  type="text"
-                  placeholder="Search conversations..."
-                  className="w-full py-2.5 pl-10 pr-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm transition-colors"
-                />
-              </div>
-            </div>
-
-            {/* Chat List */}
-            <div className="flex-1 overflow-y-auto">
-              {chats.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-                    <FaSmile className="text-purple-600" size={24} />
-                  </div>
-                  <p className="text-gray-600 font-medium mb-2">
-                    No conversations yet
-                  </p>
-                  <p className="text-gray-400 text-sm mb-4">
-                    Start a new conversation to get started
-                  </p>
-                  <button
+            ) : (
+              <div className="divide-y divide-gray-100">
+                {chats.map((chat) => (
+                  <div
+                    key={chat.id}
+                    className={`p-4 cursor-pointer transition-all hover:bg-gray-50 ${
+                      selectedChat?.id === chat.id
+                        ? "bg-purple-50 border-r-4 border-purple-500"
+                        : ""
+                    }`}
                     onClick={() => {
-                      if (socket && socket.connected && userToken && userId) {
-                        socket.emit("retrieveChats", { 
-                          token: userToken,
-                        });
-                        console.log("Manual retry - retrieveChats sent for user:", userId);
-                      }
+                      setSelectedChat(chat);
+                      setShowSidebar(false);
                     }}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 transition-colors"
                   >
-                    Retry Loading
-                  </button>
-                </div>
-              ) : (
-                <div className="divide-y divide-gray-100">
-                  {chats.map((chat) => (
-                    <div
-                      key={chat.id}
-                      className={`p-4 cursor-pointer transition-all hover:bg-gray-50 ${
-                        selectedChat?.id === chat.id
-                          ? "bg-purple-50 border-r-4 border-purple-500"
-                          : ""
-                      }`}
-                      onClick={() => {
-                        setSelectedChat(chat);
-                        setShowSidebar(false);
-                      }}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="relative">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white font-semibold text-lg shadow-md">
-                            {chat.chat_buddy?.name?.charAt(0).toUpperCase() ||
-                              "U"}
-                          </div>
-                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                    <div className="flex items-center space-x-3">
+                      <div className="relative">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white font-semibold text-lg shadow-md">
+                          {chat.chat_buddy?.name?.charAt(0).toUpperCase() ||
+                            "U"}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex justify-between items-start">
-                            <h4 className="font-medium text-gray-900 truncate">
-                              {chat.chat_buddy?.name || "Unknown User"}
-                            </h4>
-                            <span className="text-xs text-gray-500 ml-2">
-                              {new Date(
-                                chat.created_at || Date.now(),
-                              ).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: true,
-                              })}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-500 truncate mt-1">
-                            {chat.last_message || "No messages yet"}
-                          </p>
-                          {chat.unread > 0 && (
-                            <span className="inline-flex items-center justify-center w-5 h-5 bg-purple-600 text-white text-xs rounded-full mt-2">
-                              {chat.unread}
-                            </span>
-                          )}
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-medium text-gray-900 truncate">
+                            {chat.chat_buddy?.name || "Unknown User"}
+                          </h4>
+                          <span className="text-xs text-gray-500 ml-2">
+                            {new Date(
+                              chat.created_at || Date.now()
+                            ).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: true,
+                            })}
+                          </span>
                         </div>
+                        <p className="text-sm text-gray-500 truncate mt-1">
+                          {chat.last_message || "No messages yet"}
+                        </p>
+                        {chat.unread > 0 && (
+                          <span className="inline-flex items-center justify-center w-5 h-5 bg-purple-600 text-white text-xs rounded-full mt-2">
+                            {chat.unread}
+                          </span>
+                        )}
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Chat Window */}
+        {/* Main Chat Window */}
         <div className="flex-1 flex flex-col bg-white">
-          {/* Chat Header */}
-          <div className="p-4 border-b border-gray-300 bg-white shadow-sm">
+          {/* Fixed Chat Header */}
+          <div className="p-4 border-b border-gray-300 bg-white shadow-sm flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <button
@@ -721,7 +665,7 @@ export default function InboxPage() {
             </div>
           </div>
 
-          {/* Messages */}
+          {/* Scrollable Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50 to-gray-100">
             {selectedChat ? (
               messageList.length === 0 ? (
@@ -741,7 +685,9 @@ export default function InboxPage() {
                   {messageList.map((msg) => (
                     <div
                       key={msg.id}
-                      className={`flex ${msg.type === "sent" ? "justify-end" : "justify-start"}`}
+                      className={`flex ${
+                        msg.type === "sent" ? "justify-end" : "justify-start"
+                      }`}
                     >
                       <div
                         className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm ${
@@ -752,7 +698,11 @@ export default function InboxPage() {
                       >
                         <p className="text-sm leading-relaxed">{msg.text}</p>
                         <span
-                          className={`block text-xs mt-1 ${msg.type === "sent" ? "text-purple-200" : "text-gray-500"}`}
+                          className={`block text-xs mt-1 ${
+                            msg.type === "sent"
+                              ? "text-purple-200"
+                              : "text-gray-500"
+                          }`}
                         >
                           {msg.time}
                         </span>
@@ -777,10 +727,11 @@ export default function InboxPage() {
             )}
           </div>
 
-          {/* Message Input */}
-          <div className="p-4 bg-white border-t border-gray-300">
+          {/* Fixed Message Input */}
+          <div className="p-4 bg-white border-t border-gray-300 flex-shrink-0">
             <div className="flex items-end space-x-3">
               {/* Attachment Button */}
+
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setShowOptions(!showOptions)}
@@ -796,10 +747,12 @@ export default function InboxPage() {
                       <FaFile className="mr-3 text-blue-500" size={16} />
                       Attach File
                     </button>
+
                     <button className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
                       <FaImage className="mr-3 text-green-500" size={16} />
                       Send Image
                     </button>
+
                     <button className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
                       <FaMapMarkerAlt className="mr-3 text-red-500" size={16} />
                       Share Location
@@ -809,6 +762,7 @@ export default function InboxPage() {
               </div>
 
               {/* Input Field */}
+
               <div className="flex-1 relative">
                 <textarea
                   value={newMessage}
@@ -820,13 +774,16 @@ export default function InboxPage() {
                   disabled={!selectedChat || !isConnected}
                   style={{
                     minHeight: "46px",
+
                     height: "auto",
+
                     lineHeight: "1.5",
                   }}
                 />
               </div>
 
               {/* Emoji Button */}
+
               <div className="relative" ref={emojiPickerRef}>
                 <button
                   onClick={() => setShowEmojiPicker(!showEmojiPicker)}
@@ -848,6 +805,7 @@ export default function InboxPage() {
               </div>
 
               {/* Send Button */}
+
               <button
                 onClick={sendMessage}
                 disabled={!selectedChat || !isConnected || !newMessage.trim()}

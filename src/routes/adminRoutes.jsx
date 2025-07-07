@@ -37,6 +37,7 @@ import ViewTailorDetails from "../modules/Pages/adminDashboard/tailor/ViewTailor
 import ViewMarketDetails from "../modules/Pages/adminDashboard/sales-rep/ViewMarketRep";
 import ViewFabricDetails from "../modules/Pages/adminDashboard/fabric/ViewFabricDetails";
 import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
+import FAQManagementPage from "../modules/Pages/adminDashboard/FAQManagement";
 
 export const adminRoutes = [
   {
@@ -180,6 +181,10 @@ export const adminRoutes = [
       {
         path: "/admin/roles",
         element: <AdminRole />,
+      },
+      {
+        path: "/admin/faq",
+        element: <FAQManagementPage />,
       },
 
       // Add other admin dashboard routes here

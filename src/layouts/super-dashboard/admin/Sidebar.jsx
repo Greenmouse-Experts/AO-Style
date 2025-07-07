@@ -16,6 +16,7 @@ import {
   FaChartBar,
   FaCog,
   FaSignOutAlt,
+  FaQuestionCircle,
 } from "react-icons/fa";
 import { GiScissors } from "react-icons/gi";
 import { Link } from "react-router-dom";
@@ -164,6 +165,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               to="/admin/analytics"
               icon={<FaChartBar />}
               text="Reports & Analytics"
+            />
+            <SidebarItem
+              to="/admin/faq"
+              icon={<FaQuestionCircle />}
+              text="FAQ Management"
+              onClick={handleClick}
             />
             <SidebarItem
               to="/admin/settings"

@@ -28,12 +28,17 @@ const getProductGeneral = (params, type) => {
   });
 };
 
+const getSingleProduct = (type, id) => {
+  return CaryBinApi.get(`/product-general/${type}/${id}?fabric_id=${id}`);
+};
+
 const DashboardService = {
   getTrendingFabric,
   getMarketPlacesPublic,
   getMarketPlaceFabric,
   getProductCategory,
   getProductGeneral,
+  getSingleProduct,
 };
 
 export default DashboardService;

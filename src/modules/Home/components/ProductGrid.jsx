@@ -78,7 +78,11 @@ export default function ProductGrid() {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {trendingProducts?.map((product, index) => (
-            <Link to={`/shop-details`} key={product.id}>
+            <Link
+              to={`/shop-details`}
+              state={{ info: product }}
+              key={product.id}
+            >
               <motion.div
                 className="text-center"
                 initial={{ opacity: 0, y: 50 }}

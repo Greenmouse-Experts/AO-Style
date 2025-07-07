@@ -110,7 +110,7 @@ const CustomersTable = () => {
       label: "Action",
       key: "action",
       render: (_, row) => (
-        <div className="relative z-[9999]">
+        <div className="relative ">
           <button
             className="bg-gray-100  cursor-pointer cursor-pointer text-gray-500 px-3 py-1 rounded-md"
             onClick={() => toggleDropdown(row.id)}
@@ -142,8 +142,8 @@ const CustomersTable = () => {
                 className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
               >
                 {"Suspend Admin"}
-              </button> */}
-
+              </button>
+ */}
               <button
                 onClick={() => {
                   setNewCategory(row);

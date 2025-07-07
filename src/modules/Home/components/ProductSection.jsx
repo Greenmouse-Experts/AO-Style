@@ -105,6 +105,7 @@ export default function ProductSection() {
         "pagination[limit]": 10,
         "pagination[page]": 1,
         category_id: selectedCategory == "1" ? undefined : selectedCategory,
+        status: "PUBLISHED",
       },
       "STYLE"
     );
@@ -160,7 +161,12 @@ export default function ProductSection() {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4">
           {getStyleProductData?.data?.map((product) => (
-            <Link to={`/aostyle-details`} key={product.id} className="">
+            <Link
+              state={{ info: product }}
+              to={`/aostyle-details`}
+              key={product.id}
+              className=""
+            >
               <img
                 src={product?.style?.photos[0]}
                 alt={product.name}

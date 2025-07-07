@@ -168,6 +168,7 @@ export default function MarketplaceSection() {
         "pagination[page]": 1,
         category_id: selectedCategory == "1" ? undefined : selectedCategory,
         q: debounceSearch,
+        status: "PUBLISHED",
       },
       "STYLE"
     );
@@ -299,7 +300,15 @@ export default function MarketplaceSection() {
         ) : getStyleProductData?.data?.length > 0 ? (
           <div className="grid mt-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4">
             {getStyleProductData?.data?.map((product) => (
-              <Link to={`/aostyle-details`} key={product.id} className="">
+              <Link
+                to={`/aostyle-details`}
+                state={{ info: product }}
+                key={product.id}
+                className=""
+                onClick={() => {
+                  console.o;
+                }}
+              >
                 <img
                   src={product?.style?.photos[0]}
                   alt={product.name}

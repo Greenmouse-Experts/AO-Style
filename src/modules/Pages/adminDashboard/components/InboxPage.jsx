@@ -20,6 +20,7 @@ import useSendMessage from "../../../../hooks/messaging/useSendMessage";
 import useToast from "../../../../hooks/useToast";
 import { useQuery } from "@tanstack/react-query";
 import CaryBinApi from "../../../../services/CarybinBaseUrl";
+import AuthService from "../../../../services/api/auth";
 
 // Role mapping for the API
 const roleMapping = {
@@ -47,11 +48,17 @@ export default function InboxPage() {
   const [isConnected, setIsConnected] = useState(false);
   const [chats, setChats] = useState([]);
 
+  // Admin profile state
+  const [adminProfile, setAdminProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+
   const dropdownRef = useRef(null);
   const emojiPickerRef = useRef(null);
   const messagesEndRef = useRef(null);
   const selectedChatRef = useRef(selectedChat);
   const adminToken = Cookies.get("adminToken");
+  // Use profile ID instead of hardcoded ID
+  const adminId = adminProfile?.id || null;
   const { toastError, toastSuccess } = useToast();
 
   // Get users by role hook
@@ -97,49 +104,63 @@ export default function InboxPage() {
 
   // Fetch chats via Socket.IO on mount
   useEffect(() => {
-    if (socket && isConnected && adminToken) {
+    if (socket && isConnected && adminToken && adminId) {
       console.log("=== FETCHING CHATS VIA SOCKET ===");
       console.log("Emitting retrieveChats with token:", adminToken);
-      socket.emit("retrieveChats", { token: adminToken });
+      console.log("Admin ID:", adminId);
+      socket.emit("retrieveChats", { 
+        token: adminToken,
+        userId: adminId 
+      });
       console.log("================================");
     }
-  }, [socket, isConnected, adminToken]);
+  }, [socket, isConnected, adminToken, adminId]);
 
   // Fetch messages when chat is selected
   useEffect(() => {
-    if (socket && isConnected && selectedChat && adminToken) {
+    if (socket && isConnected && selectedChat && adminToken && adminId) {
       console.log(selectedChat);
       console.log("=== FETCHING MESSAGES VIA SOCKET ===");
       console.log("Chat ID:", selectedChat.id);
+      console.log("Admin ID:", adminId);
       console.log("Emitting retrieveMessages");
       socket.emit("retrieveMessages", {
         token: adminToken,
         chatBuddy: selectedChat.chat_buddy?.id || selectedChat.id,
+        userId: adminId,
       });
       console.log("====================================");
     }
-  }, [socket, isConnected, selectedChat, adminToken]);
+  }, [socket, isConnected, selectedChat, adminToken, adminId]);
 
   // Initialize Socket.IO connection
   useEffect(() => {
-    console.log("=== INITIALIZING SOCKET CONNECTION ===");
+    console.log("=== INITIALIZING ADMIN SOCKET CONNECTION ===");
     console.log("Admin token:", adminToken);
+    console.log("Admin ID from profile:", adminId);
+    console.log("Profile loading:", profileLoading);
     console.log("Socket URL: https://api-carybin.victornwadinobi.com");
-    console.log("======================================");
+    console.log("============================================");
 
-    if (adminToken) {
+    // Wait for profile to be loaded before initializing socket
+    if (adminToken && adminId && !profileLoading) {
       const socketInstance = io("https://api-carybin.victornwadinobi.com", {
-        auth: { token: adminToken },
+        auth: { 
+          token: adminToken,
+          userId: adminId,
+          userType: 'admin'
+        },
         transports: ["websocket", "polling"],
         timeout: 20000,
         forceNew: true,
       });
 
       socketInstance.on("connect", () => {
-        console.log("=== SOCKET CONNECTED ===");
+        console.log("=== ADMIN SOCKET CONNECTED ===");
         console.log("Socket ID:", socketInstance.id);
         console.log("Socket connected:", socketInstance.connected);
-        console.log("========================");
+        console.log("Admin ID being used:", adminId);
+        console.log("==============================");
         setIsConnected(true);
         toastSuccess("Socket connected successfully");
       });
@@ -152,27 +173,23 @@ export default function InboxPage() {
         toastError("Socket disconnected: " + reason);
       });
 
-      socketInstance.on("messageSent", (data) => {
-        console.log("🎉 === MESSAGE SENT EVENT RECEIVED === 🎉");
-        console.log("Raw data:", data);
-        // console.log("Formatted data:", JSON.stringify(data, null, 2));
-        // console.log("Status:", data?.status);
-        // console.log("Message:", data?.message);
-        // console.log("Data object:", data?.data);
-        // console.log("Message ID:", data?.data?.id);
-        // console.log("Chat ID:", data?.data?.chat_id);
-        // console.log("Created at:", data?.data?.created_at);
-        console.log("🎉 ===================================== 🎉");
+      // Listen for admin-specific message sent events
+      socketInstance.on(`messageSent:${adminId}`, (data) => {
+        console.log("🎉 === ADMIN MESSAGE SENT EVENT RECEIVED === 🎉");
+        console.log("Admin ID:", adminId);
+        console.log("Event data:", data);
+        console.log("🎉 ========================================= 🎉");
         toastSuccess(data?.message || "Message delivered successfully");
       });
 
-      socketInstance.on("chatsRetrieved", (data) => {
-        console.log("=== CHATS RETRIEVED ON LOAD ===");
-        console.log("Full response:", JSON.stringify(data, null, 2));
+      // Listen for admin-specific chats retrieved events
+      socketInstance.on(`chatsRetrieved:${adminId}`, (data) => {
+        console.log("=== ADMIN CHATS RETRIEVED ===");
+        console.log("Admin ID:", adminId);
+        console.log("Event data:", data);
         console.log("Status:", data?.status);
-        console.log("Message:", data?.message);
-        console.log("Result array:", data?.data?.result);
-        console.log("==============================");
+        console.log("Chats array:", data?.data?.result);
+        console.log("============================");
 
         // Set chats from the retrieved data
         if (data?.status === "success" && data?.data?.result) {
@@ -185,10 +202,12 @@ export default function InboxPage() {
         }
       });
 
-      socketInstance.on("recentChatRetrieved", (data) => {
-        console.log("=== RECENT CHAT RETRIEVED ===");
-        console.log("Chat data:", JSON.stringify(data, null, 2));
-        console.log("============================");
+      // Listen for admin-specific recent chat retrieved events
+      socketInstance.on(`recentChatRetrieved:${adminId}`, (data) => {
+        console.log("=== ADMIN RECENT CHAT RETRIEVED ===");
+        console.log("Admin ID:", adminId);
+        console.log("Event data:", data);
+        console.log("==================================");
 
         // Update chats list with new chat data
         if (data?.data) {
@@ -213,14 +232,15 @@ export default function InboxPage() {
         }
       });
 
-      // Listen for messagesRetrieved event (NEW)
-      socketInstance.on("messagesRetrieved", (data) => {
-        console.log("=== MESSAGES RETRIEVED ===");
-        console.log("Full response:", JSON.stringify(data, null, 2));
+      // Listen for admin-specific messages retrieved events
+      socketInstance.on(`messagesRetrieved:${adminId}`, (data) => {
+        console.log("=== ADMIN MESSAGES RETRIEVED ===");
+        console.log("Admin ID:", adminId);
+        console.log("Event data:", data);
         console.log("Status:", data?.status);
         console.log("Messages array:", data?.data?.result);
         console.log("Selected chat from ref:", selectedChatRef.current);
-        console.log("==========================");
+        console.log("===============================");
 
         if (data?.status === "success" && data?.data?.result) {
           const currentSelectedChat = selectedChatRef.current;
@@ -255,105 +275,60 @@ export default function InboxPage() {
         toastError("Socket connection failed: " + error.message);
       });
 
-      // Listen for any socket events for debugging
-      socketInstance.onAny((event, ...args) => {
-        console.log(`🔍 === CUSTOMER SOCKET EVENT: ${event} === 🔍`);
-
-        if (event.includes("chatsRetrieved")) {
-          console.log("Event data:", args);
-          const response = args[0];
-          if (response?.status === "success" && response?.data) {
-            setChats(response.data.result);
-            console.log("Here are the chats:", response.data.result);
-
-            if (
-              !selectedChatRef.current &&
-              response.data.result &&
-              response.data.result.length > 0
-            ) {
-              setSelectedChat(response.data.result[0]);
-            }
-
-            toastSuccess(response?.message || "Chats loaded successfully");
-          }
-        } else if (event.includes("messagesRetrieved")) {
-          console.log("--------MESSAGES RETRIEVED------");
-          console.log("Event data:", args);
-          console.log(
-            "Selected chat from ref in onAny:",
-            selectedChatRef.current,
-          );
-
-          const response = args[0];
-          if (response?.status === "success" && response?.data?.result) {
-            const currentSelectedChat = selectedChatRef.current;
-
-            const formattedMessages = response.data.result.map((msg) => ({
-              id: msg.id,
-              sender: msg.initiator?.name || "Unknown",
-              text: msg.message,
-              time: new Date(msg.created_at).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: true,
-              }),
-              type:
-                msg.initiator_id === currentSelectedChat?.chat_buddy?.id
-                  ? "received"
-                  : "sent",
-              read: msg.read,
-            }));
-
-            console.log("Formatted messages in onAny:", formattedMessages);
-            setMessageList(formattedMessages);
-          }
-        } else if (event.includes("recentChatRetrieved")) {
-          console.log("Event data:", args);
-          const response = args[0];
-          console.log(response);
-
-          if (response?.status === "success" && response?.data) {
-            setChats((prevChats) => {
-              const existingChatIndex = prevChats.findIndex(
-                (chat) => chat.id === response.data.id,
-              );
-
-              if (existingChatIndex >= 0) {
-                // Update existing chat
-                const updatedChats = [...prevChats];
-                updatedChats[existingChatIndex] = {
-                  ...updatedChats[existingChatIndex],
-                  last_message: response.data.last_message,
-                  created_at: response.data.created_at,
-                  updated_at: response.data.updated_at,
-                };
-                return updatedChats;
-              } else {
-                // Add new chat to the beginning
-                return [response.data, ...prevChats];
-              }
-            });
-
-            toastSuccess(response?.message || "Chat updated successfully");
-          }
-        }
-
-        console.log("🔍 ========================================= 🔍");
-      });
-
       setSocket(socketInstance);
 
       return () => {
-        console.log("=== CLEANING UP SOCKET ===");
+        console.log("=== CLEANING UP ADMIN SOCKET ===");
+        console.log("Admin ID:", adminId);
         socketInstance.disconnect();
-        console.log("==========================");
+        console.log("===============================");
       };
     } else {
-      console.error("=== NO ADMIN TOKEN ===");
-      console.error("Admin token not found");
-      console.error("======================");
-      toastError("Admin token not found. Please login again.");
+      console.log("=== WAITING FOR ADMIN PROFILE OR TOKEN ===");
+      console.log("Admin token exists:", !!adminToken);
+      console.log("Admin ID exists:", !!adminId);
+      console.log("Profile loading:", profileLoading);
+      console.log("==========================================");
+      
+      if (!adminToken) {
+        toastError("Admin token not found. Please login again.");
+      }
     }
+  }, [adminToken, adminId, profileLoading]);
+
+  // Fetch admin profile on mount
+  useEffect(() => {
+    const fetchAdminProfile = async () => {
+      if (!adminToken) {
+        console.error("=== NO ADMIN TOKEN FOR PROFILE FETCH ===");
+        setProfileLoading(false);
+        return;
+      }
+
+      try {
+        console.log("=== FETCHING ADMIN PROFILE ===");
+        console.log("Admin token:", adminToken);
+        
+        const response = await AuthService.GetUser();
+        console.log("Admin profile response:", response.data);
+        
+        if (response.data?.statusCode === 200 && response.data?.data) {
+          setAdminProfile(response.data.data);
+          console.log("✅ Admin profile loaded:", response.data.data);
+          console.log("✅ Admin ID from profile:", response.data.data.id);
+        } else {
+          console.error("❌ Invalid admin profile response:", response.data);
+          toastError("Failed to load admin profile");
+        }
+      } catch (error) {
+        console.error("❌ Error fetching admin profile:", error);
+        toastError("Error loading admin profile: " + error.message);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    fetchAdminProfile();
   }, [adminToken]);
 
   // Handle user type selection
@@ -369,13 +344,20 @@ export default function InboxPage() {
   const handleSocketMessage = (e) => {
     e.preventDefault();
 
-    console.log("Attempting to send message...");
+    console.log("=== ADMIN SENDING MESSAGE ===");
     console.log("Selected user:", selectedUser);
     console.log("Message text:", messageText);
     console.log("Admin token:", adminToken);
+    console.log("Admin ID from profile:", adminId);
+    console.log("============================");
 
     if (!selectedUser || !messageText.trim()) {
       toastError("Please select a user and enter a message.");
+      return;
+    }
+
+    if (!adminId) {
+      toastError("Admin profile not loaded. Please wait and try again.");
       return;
     }
 
@@ -479,12 +461,18 @@ export default function InboxPage() {
   const sendMessage = () => {
     if (!newMessage.trim() || !selectedChat) return;
 
-    console.log("=== SENDING MESSAGE VIA SOCKET ===");
+    console.log("=== ADMIN SENDING MESSAGE VIA SOCKET ===");
     console.log("Socket ID:", socket?.id);
     console.log("Selected chat:", selectedChat.id);
     console.log("Message:", newMessage);
     console.log("Socket connected:", socket?.connected);
-    console.log("==================================");
+    console.log("Admin ID from profile:", adminId);
+    console.log("=======================================");
+
+    if (!adminId) {
+      toastError("Admin profile not loaded. Please wait and try again.");
+      return;
+    }
 
     if (socket && isConnected) {
       const messageData = {

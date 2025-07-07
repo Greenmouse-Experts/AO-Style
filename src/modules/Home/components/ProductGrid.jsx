@@ -80,8 +80,11 @@ export default function ProductGrid() {
           {trendingProducts?.map((product, index) => (
             <Link
               to={`/shop-details`}
-              state={{ info: product }}
+              state={{ info: product?.fabric?.id }}
               key={product.id}
+              onClick={() => {
+                console.log(product);
+              }}
             >
               <motion.div
                 className="text-center"

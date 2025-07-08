@@ -82,8 +82,6 @@ export default function ShopDetails() {
 
   const productInfo = location?.state?.info;
 
-  console.log(productInfo);
-
   const { isPending: addCartPending, addCartMutate } = useAddCart();
 
   const { data: getSingleProductData, isPending: productIsPending } =

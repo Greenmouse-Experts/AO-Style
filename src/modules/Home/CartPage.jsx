@@ -1,81 +1,20 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Breadcrumb from "./components/Breadcrumb";
 import useGetCart from "../../hooks/cart/useGetCart";
 import LoaderComponent from "../../components/BeatLoader";
 import { useNavigate } from "react-router-dom";
 import useDeleteCart from "../../hooks/cart/useDeleteCart";
+import useCreatePayment from "../../hooks/cart/useCreatePayment";
+import { useCarybinUserStore } from "../../store/carybinUserStore";
+import useVerifyPayment from "../../hooks/cart/useVerifyPayment";
 
 const CartPage = () => {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      style: {
-        name: "Ankara Gown",
-        qty: "1 Piece",
-        price: 25000,
-        image:
-          "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741334130/AoStyle/image10_wtqzuf.png",
-      },
-      fabric: {
-        name: "Luxury Embellished Lace Fabrics",
-        qty: "2 Yards",
-        price: 24000,
-        image:
-          "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741334119/AoStyle/image_mn945e.png",
-      },
-      total: 126000,
-    },
-    {
-      id: 2,
-      style: {
-        name: "Ankara Gown",
-        qty: "1 Piece",
-        price: 24000,
-        image:
-          "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741334124/AoStyle/image5_uky9a9.png",
-      },
-      fabric: null,
-      total: 126000,
-    },
-    {
-      id: 3,
-      style: null,
-      fabric: {
-        name: "Luxury Embellished Lace Fabrics",
-        qty: "2 Yards",
-        price: 24000,
-        image:
-          "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741334125/AoStyle/image7_cheqnl.png",
-      },
-      total: 126000,
-    },
-  ]);
-
   const [dropdownOpen, setDropdownOpen] = useState(null);
   const [coupon, setCoupon] = useState("");
   const [total, setTotal] = useState(0);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const subtotal = cartItems.reduce((sum, item) => sum + item.total, 0);
-    setTotal(subtotal);
-  }, [cartItems]);
-
-  const handleRemove = (id) => {
-    const updated = cartItems.filter((item) => item.id !== id);
-    setCartItems(updated);
-    setDropdownOpen(null);
-  };
-
-  const handleCheckout = () => {
-    setShowCheckoutModal(true);
-  };
-
   const { data: cartData, isPending } = useGetCart();
-
-  console.log(cartData?.data?.items);
 
   const totalQuantity = cartData?.data?.items?.reduce(
     (total, item) => total + item.quantity,
@@ -86,9 +25,57 @@ const CartPage = () => {
     return total + item.quantity * item.price_at_time;
   }, 0);
 
-  console.log(totalAmount);
-
   const { isPending: deleteIsPending, deleteCartMutate } = useDeleteCart();
+
+  const { isPending: cartIsPending, createPaymentMutate } = useCreatePayment();
+
+  const { isPending: verifyPending, verifyPaymentMutate } = useVerifyPayment();
+
+  const [verifyPayment, setVerifyPayment] = useState("");
+
+  const { carybinUser } = useCarybinUserStore();
+
+  const navigate = useNavigate();
+
+  const payWithPaystack = ({ amount, payment_id }) => {
+    const handler = window.PaystackPop.setup({
+      key: import.meta.env.VITE_PAYSTACK_API_KEY,
+      email: carybinUser?.email,
+      amount: amount * 100,
+      currency: "NGN",
+      ref: payment_id,
+      // metadata: {
+      //   custom_fields: [
+      //     {
+      //       display_name: carybinUser?.email,
+      //       variable_name: carybinUser?.email,
+      //       value: payment_id,
+      //     },
+      //   ],
+      // },
+      callback: function (response) {
+        // console.log(payment_id);
+        // console.log("Payment complete! Reference:", response.reference);
+        verifyPaymentMutate(
+          {
+            id: response.reference,
+          },
+          {
+            onSuccess: () => {
+              navigate("/customer/orders");
+            },
+          }
+        );
+
+        // 🔁 You can call your backend here to verify & process the payment
+      },
+      onClose: function () {
+        alert("Payment window closed.");
+      },
+    });
+
+    handler.openIframe();
+  };
 
   return (
     <>
@@ -282,10 +269,48 @@ const CartPage = () => {
             {/* Checkout Button */}
             <div className="flex justify-center mt-8">
               <button
-                onClick={handleCheckout}
+                disabled={cartIsPending}
+                onClick={() => {
+                  const updatedCart = cartData?.data?.items?.map((item) => {
+                    return {
+                      purchase_id: item?.product_id,
+                      quantity: item?.quantity,
+                      purchase_type: item?.product_type,
+                    };
+                  });
+
+                  createPaymentMutate(
+                    {
+                      purchases: updatedCart,
+                      amount: totalAmount,
+                      currency: "NGN",
+                      email: carybinUser?.email,
+                    },
+                    {
+                      onSuccess: (data) => {
+                        console.log(data?.data?.data?.payment_id);
+
+                        payWithPaystack({
+                          amount: totalAmount,
+                          payment_id: data?.data?.data?.payment_id,
+                        });
+                      },
+                    }
+                  );
+                  // console.log({
+                  //   purchases: updatedCart,
+                  //   amount: totalAmount + Math.round(totalAmount * 0.075),
+                  //   currency: "NGN",
+                  //   email: carybinUser?.email,
+                  // });
+                }}
                 className="bg-gradient text-white font-medium px-16 py-3 cursor-pointer"
               >
-                Checkout | ₦{totalAmount + Math.round(totalAmount * 0.075)}
+                {cartIsPending
+                  ? "Please wait..."
+                  : `Checkout | ₦${(
+                      totalAmount + Math.round(totalAmount * 0.075)
+                    ).toLocaleString()}`}
               </button>
             </div>
           </div>

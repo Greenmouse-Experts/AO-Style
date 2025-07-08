@@ -41,32 +41,34 @@ const CartPage = () => {
     const handler = window.PaystackPop.setup({
       key: import.meta.env.VITE_PAYSTACK_API_KEY,
       email: carybinUser?.email,
+      id: payment_id,
       amount: amount * 100,
       currency: "NGN",
+      reference: payment_id,
       ref: payment_id,
-      // metadata: {
-      //   custom_fields: [
-      //     {
-      //       display_name: carybinUser?.email,
-      //       variable_name: carybinUser?.email,
-      //       value: payment_id,
-      //     },
-      //   ],
-      // },
+      metadata: {
+        custom_fields: [
+          {
+            display_name: carybinUser?.email,
+            variable_name: carybinUser?.email,
+            value: payment_id,
+          },
+        ],
+      },
       callback: function (response) {
         // console.log(payment_id);
-        // console.log("Payment complete! Reference:", response.reference);
+        setVerifyPayment(response?.reference);
+
         verifyPaymentMutate(
           {
-            id: response.reference,
+            id: response?.reference,
           },
           {
             onSuccess: () => {
-              navigate("/customer/orders");
+              setVerifyPayment("");
             },
           }
         );
-
         // 🔁 You can call your backend here to verify & process the payment
       },
       onClose: function () {
@@ -198,7 +200,6 @@ const CartPage = () => {
                         </button>
                         <button
                           onClick={() => {
-                            console.log(item?.id);
                             deleteCartMutate(
                               {
                                 id: item?.id,
@@ -288,8 +289,6 @@ const CartPage = () => {
                     },
                     {
                       onSuccess: (data) => {
-                        console.log(data?.data?.data?.payment_id);
-
                         payWithPaystack({
                           amount: totalAmount,
                           payment_id: data?.data?.data?.payment_id,

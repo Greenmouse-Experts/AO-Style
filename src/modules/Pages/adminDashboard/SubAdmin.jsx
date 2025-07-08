@@ -13,6 +13,7 @@ import { formatDateStr } from "../../../lib/helper";
 import useDeleteSubAdmin from "../../../hooks/admin/useDeleteSubAdmin";
 import useSuspendOwner from "../../../hooks/admin/useSuspendOwner";
 import useApproveMarketRep from "../../../hooks/marketRep/useApproveMarketRep";
+import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -80,8 +81,6 @@ const CustomersTable = () => {
 
   const { isPending: approoveIsPending, approveMarketRepMutate } =
     useApproveMarketRep();
-
-  console.log(newCategory);
 
   // Table Columns
   const columns = [
@@ -203,6 +202,8 @@ const CustomersTable = () => {
 
   const { isPending: deleteIsPending, deleteSubAdminMutate } =
     useDeleteSubAdmin();
+
+  const { data: businessDetails } = useGetBusinessDetails();
 
   return (
     <>

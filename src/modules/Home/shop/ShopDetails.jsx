@@ -95,17 +95,11 @@ export default function ShopDetails() {
     }
   }, [productVal]);
 
-  console.log(getSingleProductData?.data);
-
   const token = Cookies.get("token");
-
-  console.log(token);
 
   const { toastError, toastSuccess } = useToast();
   const currentPath = location.pathname + location.search;
   const navigate = useNavigate();
-
-  console.log(productVal);
 
   return (
     <>

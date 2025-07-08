@@ -2,15 +2,22 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useToast from "../useToast";
 import FabricService from "../../services/api/fabric";
 import CartService from "../../services/api/cart";
+import { useNavigate } from "react-router-dom";
+import Cookies from "js-cookie";
 
 const useVerifyPayment = () => {
   const { toastError, toastSuccess } = useToast();
+  const navigate = useNavigate();
+
+  const currentUrl = Cookies.get("currUserUrl");
 
   const { isPending, mutate: verifyPaymentMutate } = useMutation({
     mutationFn: (payload) => CartService.verifyPayment(payload),
     mutationKey: ["verify-payment"],
     onSuccess(data) {
       toastSuccess(data?.data?.message);
+      navigate(`/${currentUrl}/orders`);
+
       queryClient.invalidateQueries({
         queryKey: ["get-cart"],
       });

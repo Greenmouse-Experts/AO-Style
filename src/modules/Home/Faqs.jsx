@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { PlusIcon, MinusIcon } from '@heroicons/react/24/solid';
 import Breadcrumb from "./components/Breadcrumb";
 import ShippingInfo from "./components/ShippingInfo";
+import Pagination from "./components/Pagination";
 import useGetPublicFAQs from '../../hooks/faq/useGetPublicFAQs';
 import BeatLoader from '../../components/BeatLoader';
 
@@ -21,10 +22,19 @@ import BeatLoader from '../../components/BeatLoader';
 // Main FAQ component
 export default function FAQsSectionPage() {
   const [openIndex, setOpenIndex] = useState(null);
-  const { data: faqsData, isLoading, error } = useGetPublicFAQs();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10); // FAQs per page
+  
+  const { data: faqsData, isLoading, error, isFetching } = useGetPublicFAQs(currentPage, pageSize);
 
   const toggleFAQ = (index) => {
     setOpenIndex((prevIndex) => (prevIndex === index ? null : index));
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    setOpenIndex(null); // Close any open FAQ when changing page
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top
   };
 
   // Get active FAQs from the API response
@@ -32,8 +42,13 @@ export default function FAQsSectionPage() {
   // The hook returns the full API response, so we access data.data for the FAQs array
   const faqs = faqsData?.data?.filter(faq => faq.is_active) || [];
   
+  // Calculate pagination info
+  const totalCount = faqsData?.count || 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
+  
   console.log("🔍 FAQ Data in component:", faqsData);
   console.log("🔍 Filtered FAQs:", faqs);
+  console.log("🔍 Pagination Info:", { currentPage, totalPages, totalCount, pageSize });
 
   return (
     <>
@@ -61,6 +76,16 @@ export default function FAQsSectionPage() {
               <div className="text-center">
                 <BeatLoader />
                 <p className="mt-4 text-gray-500">Loading FAQs...</p>
+              </div>
+            </div>
+          )}
+
+          {/* Show loading overlay when fetching new page */}
+          {isFetching && !isLoading && (
+            <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-6 text-center">
+                <BeatLoader />
+                <p className="mt-4 text-gray-600">Loading page {currentPage}...</p>
               </div>
             </div>
           )}
@@ -138,9 +163,17 @@ export default function FAQsSectionPage() {
             {/* FAQ Stats */}
             <div className="mt-8 text-center">
               <p className="text-sm text-gray-500">
-                {faqs.length === 1 ? '1 question answered' : `${faqs.length} questions answered`}
+                Showing {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, totalCount)} of {totalCount} questions
               </p>
             </div>
+
+            {/* Pagination */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              isLoading={isFetching}
+            />
           </div>
         )}
         </div>

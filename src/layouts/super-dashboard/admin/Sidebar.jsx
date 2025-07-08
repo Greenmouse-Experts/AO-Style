@@ -32,8 +32,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
   const { carybinAdminUser } = useCarybinAdminUserStore();
 
-  console.log(carybinAdminUser?.role?.role_id);
-
   const superAdmin =
     carybinAdminUser?.role?.role_id == "owner-super-administrator";
 
@@ -232,6 +230,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               to="/admin/faq"
               icon={<FaQuestionCircle />}
               text="FAQ Management"
+              onClick={handleClick}
+            />
+            <SidebarItem
+              to="/admin/jobs"
+              icon={<FaBriefcase />}
+              text="Jobs Management"
               onClick={handleClick}
             />
             <SidebarItem

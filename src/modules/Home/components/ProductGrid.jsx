@@ -82,9 +82,6 @@ export default function ProductGrid() {
               to={`/shop-details`}
               state={{ info: product?.fabric?.id }}
               key={product.id}
-              onClick={() => {
-                console.log(product);
-              }}
             >
               <motion.div
                 className="text-center"

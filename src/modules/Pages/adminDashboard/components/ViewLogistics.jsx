@@ -91,7 +91,7 @@ const ordersData = [
   },
 ];
 
-const ViewFabric = () => {
+const ViewLogistics = () => {
   const { tailorId } = useParams();
 
   const { isPending, data } = useGetUser(tailorId);
@@ -166,7 +166,10 @@ const ViewFabric = () => {
           </button>
           {openDropdown === `catalog-${row.id}` && (
             <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
-              <Link to={`/tailor/catalog/${row.id}`}>
+              <Link
+                state={{ info: row.id }}
+                to={`/admin/logistics/view?tab=personal`}
+              >
                 <button className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
                   View Details
                 </button>
@@ -267,7 +270,7 @@ const ViewFabric = () => {
         render: (kyc, row) => (
           <Link
             state={{ info: row.id }}
-            to={`/admin/fabric-vendor/view?tab=personal`}
+            to={`/admin/logistics/view?tab=personal`}
           >
             <span className="text-purple-600 cursor-pointer hover:underline">
               {kyc}
@@ -301,19 +304,15 @@ const ViewFabric = () => {
               <div className="absolute right-2 mt-2 w-40 bg-white shadow-md rounded-md z-10">
                 <Link
                   state={{ info: row.id }}
-                  to={`/admin/fabric-vendor/view?tab=personal`}
+                  to={`/admin/logistics/view?tab=personal`}
                 >
                   <button className="block cursor-pointer w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
                     View Details
                   </button>
                 </Link>
-                <Link
-                  state={{ info: row.id }}
-                  to={`/admin/fabric-vendor/view?tab=personal`}
-                  className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                >
+                <button className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
                   Edit User
-                </Link>
+                </button>
               </div>
             )}
           </div>
@@ -396,7 +395,7 @@ const ViewFabric = () => {
       <div className="mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-medium text-gray-800">
-            View Fabric Vendor:{" "}
+            View Logistics:{" "}
             <span className="text-purple-600 font-medium">
               {userData?.name}
             </span>
@@ -769,4 +768,4 @@ const ViewFabric = () => {
   );
 };
 
-export default ViewFabric;
+export default ViewLogistics;

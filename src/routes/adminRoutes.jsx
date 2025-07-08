@@ -44,6 +44,7 @@ import Cataloging from "../modules/Pages/tailorDashboard/Catalog";
 import AddStyle from "../modules/Pages/tailorDashboard/AddStyle";
 import FAQManagementPage from "../modules/Pages/adminDashboard/FAQManagement";
 import ViewFabric from "../modules/Pages/adminDashboard/fabric/ViewFabric";
+import ViewLogistics from "../modules/Pages/adminDashboard/components/ViewLogistics";
 
 export const adminRoutes = [
   {
@@ -140,6 +141,12 @@ export const adminRoutes = [
         path: "/admin/logistics/view",
         element: <ViewFabricDetails />,
       },
+
+      {
+        path: "/admin/logistics/view/:tailorId",
+        element: <ViewLogistics />,
+      },
+
       {
         path: "/admin/sub-admins",
         element: <SubAdmin />,

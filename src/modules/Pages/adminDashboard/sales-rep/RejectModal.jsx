@@ -1,11 +1,13 @@
 import { useFormik } from "formik";
 import useApproveMarketRep from "../../../../hooks/marketRep/useApproveMarketRep";
+import { useNavigate } from "react-router-dom";
 
 const initialValues = {
   reason: "",
 };
 
 const RejectModal = ({ isOpen, onClose, id }) => {
+  const navigate = useNavigate();
   const { isPending, approveMarketRepMutate } = useApproveMarketRep();
 
   // const [showPassword, setShowPassword] = useState(false);
@@ -33,6 +35,7 @@ const RejectModal = ({ isOpen, onClose, id }) => {
           onSuccess: () => {
             resetForm();
             onClose();
+            navigate("/admin/sales-rep");
           },
         }
       );

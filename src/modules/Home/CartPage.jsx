@@ -285,8 +285,7 @@ const CartPage = () => {
                 onClick={handleCheckout}
                 className="bg-gradient text-white font-medium px-16 py-3 cursor-pointer"
               >
-                Checkout | ₦
-                {(total + Math.round(total * 0.075)).toLocaleString()}
+                Checkout | ₦{totalAmount + Math.round(totalAmount * 0.075)}
               </button>
             </div>
           </div>

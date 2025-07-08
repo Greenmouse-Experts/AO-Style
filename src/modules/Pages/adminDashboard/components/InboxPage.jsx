@@ -47,6 +47,7 @@ export default function InboxPage() {
   const [messageText, setMessageText] = useState("");
   const [isConnected, setIsConnected] = useState(false);
   const [chats, setChats] = useState([]);
+  const [chatId, setChatId] = useState(null);
 
   // Admin profile state
   const [adminProfile, setAdminProfile] = useState(null);
@@ -88,10 +89,31 @@ export default function InboxPage() {
 
   const users = usersData?.data || [];
 
-  // Keep selectedChatRef in sync
+  // Keep selectedChatRef in sync and set chatId
   useEffect(() => {
     selectedChatRef.current = selectedChat;
+    if (selectedChat) {
+      setChatId(selectedChat.id);
+      console.log("=== CHAT SELECTED ===");
+      console.log("Selected chat:", selectedChat);
+      console.log("Chat ID set to:", selectedChat.id);
+      console.log("====================");
+    } else {
+      setChatId(null);
+      console.log("=== CHAT DESELECTED ===");
+      console.log("Chat ID set to null");
+      console.log("======================");
+    }
   }, [selectedChat]);
+
+  // Debug chatId changes
+  useEffect(() => {
+    console.log("=== CHAT ID CHANGED ===");
+    console.log("New chatId value:", chatId);
+    console.log("Selected chat:", selectedChat);
+    console.log("Admin ID:", adminId);
+    console.log("=====================");
+  }, [chatId]);
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -110,7 +132,6 @@ export default function InboxPage() {
       console.log("Admin ID:", adminId);
       socket.emit("retrieveChats", { 
         token: adminToken,
-        userId: adminId 
       });
       console.log("================================");
     }
@@ -119,19 +140,20 @@ export default function InboxPage() {
   // Fetch messages when chat is selected
   useEffect(() => {
     if (socket && isConnected && selectedChat && adminToken && adminId) {
-      console.log(selectedChat);
       console.log("=== FETCHING MESSAGES VIA SOCKET ===");
-      console.log("Chat ID:", selectedChat.id);
+      console.log("Selected chat object:", selectedChat);
+      console.log("Selected chat ID:", selectedChat.id);
       console.log("Admin ID:", adminId);
-      console.log("Emitting retrieveMessages");
+      console.log("Current chatId state:", chatId);
+      console.log("Chat buddy ID:", selectedChat.chat_buddy?.id);
+      console.log("Emitting retrieveMessages");        
       socket.emit("retrieveMessages", {
         token: adminToken,
         chatBuddy: selectedChat.chat_buddy?.id || selectedChat.id,
-        userId: adminId,
       });
       console.log("====================================");
     }
-  }, [socket, isConnected, selectedChat, adminToken, adminId]);
+  }, [socket, isConnected, selectedChat, adminToken, adminId, chatId]);
 
   // Initialize Socket.IO connection
   useEffect(() => {
@@ -144,11 +166,10 @@ export default function InboxPage() {
 
     // Wait for profile to be loaded before initializing socket
     if (adminToken && adminId && !profileLoading) {
+      console.log(adminToken, adminId);
       const socketInstance = io("https://api-carybin.victornwadinobi.com", {
         auth: { 
           token: adminToken,
-          userId: adminId,
-          userType: 'admin'
         },
         transports: ["websocket", "polling"],
         timeout: 20000,
@@ -195,9 +216,9 @@ export default function InboxPage() {
         if (data?.status === "success" && data?.data?.result) {
           setChats(data.data.result);
           // Set first chat as selected if no chat is selected
-          if (!selectedChat && data.data.result.length > 0) {
-            setSelectedChat(data.data.result[0]);
-          }
+          // if (!selectedChat && data.data.result.length > 0) {
+          //   setSelectedChat(data.data.result[0]);
+          // }
           toastSuccess(data?.message || "Chats loaded successfully");
         }
       });
@@ -206,6 +227,7 @@ export default function InboxPage() {
       socketInstance.on(`recentChatRetrieved:${adminId}`, (data) => {
         console.log("=== ADMIN RECENT CHAT RETRIEVED ===");
         console.log("Admin ID:", adminId);
+        console.log(localStorage.getItem("selectedChatId"));
         console.log("Event data:", data);
         console.log("==================================");
 
@@ -234,13 +256,51 @@ export default function InboxPage() {
 
       // Listen for admin-specific messages retrieved events
       socketInstance.on(`messagesRetrieved:${adminId}`, (data) => {
-        console.log("=== ADMIN MESSAGES RETRIEVED ===");
+        console.log("=== ADMIN MESSAGES RETRIEVED (General) ===");
         console.log("Admin ID:", adminId);
         console.log("Event data:", data);
         console.log("Status:", data?.status);
         console.log("Messages array:", data?.data?.result);
         console.log("Selected chat from ref:", selectedChatRef.current);
         console.log("===============================");
+
+        if (data?.status === "success" && data?.data?.result) {
+          const currentSelectedChat = selectedChatRef.current;
+          console.log("Current selected chat:", currentSelectedChat);
+          setChatId(currentSelectedChat?.id || null);
+          console.log("Chat ID set:", currentSelectedChat.id);
+          const formattedMessages = data.data.result.map((msg) => ({
+            id: msg.id,
+            sender: msg.initiator?.name || "Unknown",
+            text: msg.message,
+            time: new Date(msg.created_at).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            }),
+            type:
+              msg.initiator_id === currentSelectedChat?.chat_buddy?.id
+                ? "received"
+                : "sent",
+            read: msg.read,
+          }));
+
+          console.log("Formatted messages with types:", formattedMessages);
+          setMessageList(formattedMessages);
+        }
+      });
+
+      // Register chat-specific event listener when chatId is available
+
+      socketInstance.on(`messagesRetrieved:${localStorage.getItem("selectedChatId")}:${adminId}`, (data) => {
+        console.log("=== CHAT-SPECIFIC MESSAGES RETRIEVED ===");
+        console.log("Chat ID:", chatId);
+        console.log("Admin ID:", adminId);
+        console.log("Event data:", data);
+        console.log("Status:", data?.status);
+        console.log("Messages array:", data?.data?.result);
+        console.log("Selected chat from ref:", selectedChatRef.current);
+        console.log("=======================================");
 
         if (data?.status === "success" && data?.data?.result) {
           const currentSelectedChat = selectedChatRef.current;
@@ -265,14 +325,6 @@ export default function InboxPage() {
           console.log("Formatted messages with types:", formattedMessages);
           setMessageList(formattedMessages);
         }
-      });
-
-      socketInstance.on("connect_error", (error) => {
-        console.error("=== SOCKET CONNECTION ERROR ===");
-        console.error("Error:", error);
-        console.error("Error message:", error.message);
-        console.error("==============================");
-        toastError("Socket connection failed: " + error.message);
       });
 
       setSocket(socketInstance);
@@ -517,8 +569,9 @@ export default function InboxPage() {
   };
 
   return (
-    <>
-      <div className="bg-white border-b border-gray-200 px-6 py-6 mb-6">
+    <div className="h-screen flex flex-col bg-gray-50">
+      {/* Fixed Header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-6 flex-shrink-0">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-4">
             <div className="p-2 bg-purple-50 rounded-lg">
@@ -552,14 +605,16 @@ export default function InboxPage() {
         </div>
       </div>
 
-      <div className="flex h-screen bg-gray-50 overflow-hidden">
+      {/* Main Chat Container */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar */}
         <div
-          className={`fixed inset-y-0 left-0 bg-white border-r border-gray-200 w-80 transition-transform duration-300 md:relative md:w-1/3 lg:w-1/4 z-30 ${
+          className={`fixed inset-y-0 left-0 bg-white border-r border-gray-200 w-80 transition-transform duration-300 md:relative md:w-1/3 lg:w-1/4 z-30 flex flex-col ${
             showSidebar ? "translate-x-0" : "-translate-x-full md:translate-x-0"
           }`}
         >
-          {/* Sidebar Header */}
-          <div className="p-6 border-b border-gray-100">
+          {/* Fixed Sidebar Header */}
+          <div className="p-6 border-b border-gray-100 flex-shrink-0">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-gray-900">Messages</h2>
               <button
@@ -584,8 +639,8 @@ export default function InboxPage() {
             </div>
           </div>
 
-          {/* Chat List */}
-          <div className="overflow-auto h-[calc(100vh-140px)]">
+          {/* Scrollable Chat List */}
+          <div className="flex-1 overflow-y-auto">
             {chats.length === 0 ? (
               <div className="text-center text-gray-500 py-12 px-6">
                 <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
@@ -608,6 +663,7 @@ export default function InboxPage() {
                     }`}
                     onClick={() => {
                       setSelectedChat(chat);
+                      localStorage.setItem("selectedChatId", chat.id);
                       setShowSidebar(false);
                     }}
                   >
@@ -652,10 +708,10 @@ export default function InboxPage() {
           </div>
         </div>
 
-        {/* Chat Window */}
+        {/* Main Chat Window */}
         <div className="flex-1 flex flex-col bg-white">
-          {/* Chat Header */}
-          <div className="p-4 border-b border-gray-200 bg-white shadow-sm">
+          {/* Fixed Chat Header */}
+          <div className="p-4 border-b border-gray-200 bg-white shadow-sm flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <button
@@ -701,8 +757,8 @@ export default function InboxPage() {
             </div>
           </div>
 
-          {/* Messages Area */}
-          <div className="flex-1 overflow-auto p-4 space-y-4 bg-gray-50">
+          {/* Scrollable Messages Area */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
             {selectedChat ? (
               messageList.length === 0 ? (
                 <div className="text-center text-gray-500 py-12">
@@ -757,8 +813,8 @@ export default function InboxPage() {
             )}
           </div>
 
-          {/* Message Input */}
-          <div className="p-4 border-t border-gray-200 bg-white">
+          {/* Fixed Message Input */}
+          <div className="p-4 border-t border-gray-200 bg-white flex-shrink-0">
             <div className="flex items-center gap-3">
               {/* Attachment Button */}
               <div className="relative">
@@ -927,6 +983,6 @@ export default function InboxPage() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

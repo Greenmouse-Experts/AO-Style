@@ -42,6 +42,7 @@ import AddNewProduct from "../modules/Pages/fabricDashboard/AddNewProduct";
 import Cataloging from "../modules/Pages/tailorDashboard/Catalog";
 
 import AddStyle from "../modules/Pages/tailorDashboard/AddStyle";
+import FAQManagementPage from "../modules/Pages/adminDashboard/FAQManagement";
 
 export const adminRoutes = [
   {
@@ -212,6 +213,10 @@ export const adminRoutes = [
       {
         path: "/admin/roles",
         element: <AdminRole />,
+      },
+      {
+        path: "/admin/faq",
+        element: <FAQManagementPage />,
       },
 
       // Add other admin dashboard routes here

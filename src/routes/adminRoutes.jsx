@@ -38,6 +38,7 @@ import ViewMarketDetails from "../modules/Pages/adminDashboard/sales-rep/ViewMar
 import ViewFabricDetails from "../modules/Pages/adminDashboard/fabric/ViewFabricDetails";
 import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
 import FAQManagementPage from "../modules/Pages/adminDashboard/FAQManagement";
+import JobsManagementPage from "../modules/Pages/adminDashboard/JobsManagement";
 
 export const adminRoutes = [
   {
@@ -185,6 +186,10 @@ export const adminRoutes = [
       {
         path: "/admin/faq",
         element: <FAQManagementPage />,
+      },
+      {
+        path: "/admin/jobs",
+        element: <JobsManagementPage />,
       },
 
       // Add other admin dashboard routes here

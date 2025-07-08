@@ -1,7 +1,7 @@
 import CaryBinApi from "../../CarybinBaseUrl";
 
-const getFAQs = () => {
-  return CaryBinApi.get(`/faqs`);
+const getFAQs = (page = 1, limit = 10) => {
+  return CaryBinApi.get(`/faqs?page=${page}&limit=${limit}`);
 };
 
 const createFAQ = (payload) => {
@@ -16,8 +16,8 @@ const deleteFAQ = (id) => {
   return CaryBinApi.delete(`/faqs/${id}`);
 };
 
-const getPublicFAQs = () => {
-  return CaryBinApi.get(`/faqs/public`);
+const getPublicFAQs = (page = 1, limit = 10) => {
+  return CaryBinApi.get(`/faqs/public?page=${page}&limit=${limit}`);
 };
 
 const FAQService = {

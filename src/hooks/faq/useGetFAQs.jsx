@@ -1,18 +1,25 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import FAQService from "../../services/api/faq";
 
-function useGetFAQs() {
+function useGetFAQs(page = 1, limit = 10) {
   const { isLoading, isFetching, data, isError, refetch, isPending } = useQuery(
     {
-      queryKey: ["get-faqs"],
-      queryFn: () => FAQService.getFAQs(),
+      queryKey: ["get-faqs", page, limit],
+      queryFn: () => FAQService.getFAQs(page, limit),
+      keepPreviousData: true,
     }
   );
+
+  useEffect(() => {
+    console.log("FAQs data:", data);
+  }, [data]);
 
   return {
     isLoading,
     isFetching,
-    data: data?.data?.data, // Fix: The FAQs are at data.data.data
+    data: data?.data?.data,
+    totalCount: data?.data?.count,
     isError,
     isPending,
     refetch,

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ReusableTable from "../components/ReusableTable";
 import SalesCards from "../components/SalesCards";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   Search,
   ChevronLeft,
@@ -107,7 +107,7 @@ const ViewCustomer = () => {
 
   const businessData = data?.data?.business;
 
-  console.log(data?.data?.kyc?.is_approved);
+  const navigate = useNavigate();
 
   const [id, setId] = useState(null);
 
@@ -336,10 +336,17 @@ const ViewCustomer = () => {
                     {" "}
                     <button
                       onClick={() => {
-                        approveMarketRepMutate({
-                          user_id: userData?.id,
-                          approved: true,
-                        });
+                        approveMarketRepMutate(
+                          {
+                            user_id: userData?.id,
+                            approved: true,
+                          },
+                          {
+                            onSuccess: () => {
+                              navigate("/admin/sales-rep");
+                            },
+                          }
+                        );
                       }}
                       className="block cursor-pointer w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
                     >

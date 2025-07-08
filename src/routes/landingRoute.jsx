@@ -18,10 +18,9 @@ import RefundPolicy from "../modules/Home/RefundPolicy";
 import Jobs from "../modules/Home/Jobs";
 import CartPage from "../modules/Home/CartPage";
 
-
 export const landingRooutes = [
   {
-    path: '/',
+    path: "/",
     element: <LandingLayout />,
     children: [
       {
@@ -29,73 +28,73 @@ export const landingRooutes = [
         element: <LandingHomepage />,
       },
       {
-        path: 'about',
+        path: "about",
         element: <AboutUs />,
       },
       {
-        path: 'contact',
+        path: "contact",
         element: <ContactUs />,
       },
       {
-        path: 'faqs',
+        path: "faqs",
         element: <FAQs />,
       },
       {
-        path: 'marketplace',
+        path: "marketplace",
         element: <MarketPlace />,
       },
       {
-        path: 'inner-marketplace',
+        path: "inner-marketplace",
         element: <InnerMarket />,
       },
       {
-        path: 'products',
+        path: "products",
         element: <Product />,
       },
       {
-        path: 'aostyle-details',
+        path: "aostyle-details",
         element: <AoStyleDetails />,
       },
       {
-        path: 'pickastyle',
+        path: "pickastyle",
         element: <PickaStyle />,
       },
       {
-        path: 'shop',
+        path: "shop",
         element: <Shops />,
       },
       {
-        path: 'shop-details',
+        path: "shop-details",
         element: <ShopDetails />,
       },
       {
-        path: 'policy-statement',
-        element: <PolicyStatement />
+        path: "policy-statement",
+        element: <PolicyStatement />,
       },
       {
-        path: 'privacy-policy',
-        element: <PrivacyPolicy />
+        path: "privacy-policy",
+        element: <PrivacyPolicy />,
       },
       {
-        path: 'terms',
-        element: <TermsandConditions />
+        path: "terms",
+        element: <TermsandConditions />,
       },
       {
-        path: 'cookie-policy',
-        element: <CookiePolicy />
+        path: "cookie-policy",
+        element: <CookiePolicy />,
       },
       {
-        path: 'refund-policy',
-        element: <RefundPolicy />
+        path: "refund-policy",
+        element: <RefundPolicy />,
       },
       {
-        path: 'jobs',
-        element: <Jobs />
+        path: "jobs",
+        element: <Jobs />,
       },
       {
-        path: 'view-cart',
-        element: <CartPage />
+        path: "view-cart",
+        element: <CartPage />,
       },
     ],
-  }
+  },
 ];

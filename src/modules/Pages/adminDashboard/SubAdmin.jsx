@@ -12,6 +12,7 @@ import Loader from "../../../components/ui/Loader";
 import { formatDateStr } from "../../../lib/helper";
 import useDeleteSubAdmin from "../../../hooks/admin/useDeleteSubAdmin";
 import useSuspendOwner from "../../../hooks/admin/useSuspendOwner";
+import useApproveMarketRep from "../../../hooks/marketRep/useApproveMarketRep";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -73,11 +74,14 @@ const CustomersTable = () => {
     [getAllAdminData?.data]
   );
 
-  console.log(getAllAdminData?.data);
-
   const [newCategory, setNewCategory] = useState();
 
   const { isPending: suspendIsPending, suspendOwnerMutate } = useSuspendOwner();
+
+  const { isPending: approoveIsPending, approveMarketRepMutate } =
+    useApproveMarketRep();
+
+  console.log(newCategory);
 
   // Table Columns
   const columns = [
@@ -132,18 +136,36 @@ const CustomersTable = () => {
               >
                 Edit Admin
               </button>
+              {row?.profile?.approved_by_admin ? (
+                <>
+                  {" "}
+                  <button
+                    onClick={() => {
+                      setSuspendModalOpen(true);
+                      setNewCategory(row);
+                      setOpenDropdown(null);
+                    }}
+                    className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+                  >
+                    {"Suspend Admin"}
+                  </button>
+                </>
+              ) : (
+                <>
+                  {" "}
+                  <button
+                    onClick={() => {
+                      setSuspendModalOpen(true);
+                      setNewCategory(row);
+                      setOpenDropdown(null);
+                    }}
+                    className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+                  >
+                    {"Unsuspend Admin"}
+                  </button>
+                </>
+              )}
 
-              {/* <button
-                onClick={() => {
-                  setSuspendModalOpen(true);
-                  setNewCategory(row);
-                  setOpenDropdown(null);
-                }}
-                className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
-              >
-                {"Suspend Admin"}
-              </button>
- */}
               <button
                 onClick={() => {
                   setNewCategory(row);
@@ -466,6 +488,7 @@ const CustomersTable = () => {
                 onClick={() => {
                   setSuspendModalOpen(false);
                   setReason("");
+                  setNewCategory(null);
                 }}
                 className="text-gray-500 cursor-pointer hover:text-gray-700 text-2xl"
               >
@@ -473,21 +496,27 @@ const CustomersTable = () => {
               </button>
             </div>
             <h3 className="text-lg font-semibold mb-4 -mt-7">
-              {"Suspend Admin"}
+              {newCategory?.profile?.approved_by_admin
+                ? "suspend Admin"
+                : "Unsuspend Admin"}
             </h3>
             <form
               className="mt-6 space-y-4"
               onSubmit={(e) => {
                 e.preventDefault();
-                suspendOwnerMutate(
+                approveMarketRepMutate(
                   {
                     user_id: newCategory?.id,
                     suspension_reason: reason,
+                    approved: newCategory?.profile?.approved_by_admin
+                      ? false
+                      : true,
                   },
                   {
                     onSuccess: () => {
                       setSuspendModalOpen(false);
                       setNewCategory(null);
+                      setReason("");
                     },
                   }
                 );
@@ -495,7 +524,10 @@ const CustomersTable = () => {
             >
               <div>
                 <label className="block text-black mb-2">
-                  Reasons for suspending
+                  Reasons for{" "}
+                  {newCategory?.profile?.approved_by_admin
+                    ? "unsuspending"
+                    : "suspending"}
                 </label>
                 <textarea
                   placeholder="Reasons"
@@ -509,11 +541,15 @@ const CustomersTable = () => {
               </div>
 
               <button
-                disabled={suspendIsPending}
+                disabled={suspendIsPending || approoveIsPending}
                 className="w-full bg-gradient cursor-pointer text-white py-4 rounded-lg font-normal"
                 type="submit"
               >
-                {suspendIsPending ? "Please wait..." : "Suspend"}
+                {suspendIsPending || approoveIsPending
+                  ? "Please wait..."
+                  : newCategory?.profile?.approved_by_admin
+                  ? "Suspend"
+                  : "Unsuspend"}
               </button>
             </form>
           </div>

@@ -17,7 +17,6 @@ const useApproveMarketRep = () => {
       });
 
       toastSuccess(data?.data?.message);
-      navigate("/admin/sales-rep");
     },
     onError: (error) => {
       if (!navigator.onLine) {

@@ -233,6 +233,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               onClick={handleClick}
             />
             <SidebarItem
+              to="/admin/jobs"
+              icon={<FaBriefcase />}
+              text="Jobs Management"
+              onClick={handleClick}
+            />
+            <SidebarItem
               to="/admin/settings"
               icon={<FaCog />}
               text="Settings & Configuration"

@@ -9,13 +9,15 @@ import BeatLoader from "../../../components/BeatLoader";
 const FAQManagementPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
   const [formData, setFormData] = useState({
     question: "",
     answer: "",
   });
   const dropdownRef = useRef(null);
 
-  const { data: faqs, isLoading, refetch } = useGetFAQs();
+  const { data: faqs, isLoading, refetch, totalCount, isFetching } = useGetFAQs(currentPage, pageSize);
   const { createFAQMutate, isPending: isCreating } = useCreateFAQ();
   const { toggleFAQStatusMutate, isPending: isToggling } = useToggleFAQStatus();
   const { deleteFAQMutate, isPending: isDeleting } = useDeleteFAQ();
@@ -309,6 +311,57 @@ const FAQManagementPage = () => {
                     </tbody>
                   </table>
                 </div>
+
+                {/* Pagination for Admin FAQs */}
+                {totalCount > pageSize && (
+                  <div className="mt-6 border-t border-gray-100 pt-6">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-gray-500">
+                        Showing {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, totalCount || 0)} of {totalCount || 0} FAQs
+                      </div>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                          disabled={currentPage === 1 || isFetching}
+                          className={`px-3 py-1 rounded text-sm ${
+                            currentPage === 1 || isFetching
+                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                              : 'bg-white border border-gray-300 text-gray-700 hover:bg-purple-50'
+                          }`}
+                        >
+                          Previous
+                        </button>
+                        
+                        {Array.from({ length: Math.ceil((totalCount || 0) / pageSize) }, (_, i) => i + 1).map(page => (
+                          <button
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            disabled={isFetching}
+                            className={`px-3 py-1 rounded text-sm ${
+                              page === currentPage
+                                ? 'bg-purple-600 text-white'
+                                : 'bg-white border border-gray-300 text-gray-700 hover:bg-purple-50'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        ))}
+                        
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.min(Math.ceil((totalCount || 0) / pageSize), prev + 1))}
+                          disabled={currentPage === Math.ceil((totalCount || 0) / pageSize) || isFetching}
+                          className={`px-3 py-1 rounded text-sm ${
+                            currentPage === Math.ceil((totalCount || 0) / pageSize) || isFetching
+                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                              : 'bg-white border border-gray-300 text-gray-700 hover:bg-purple-50'
+                          }`}
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ) : (

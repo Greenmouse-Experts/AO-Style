@@ -45,6 +45,7 @@ import AddStyle from "../modules/Pages/tailorDashboard/AddStyle";
 import FAQManagementPage from "../modules/Pages/adminDashboard/FAQManagement";
 import ViewFabric from "../modules/Pages/adminDashboard/fabric/ViewFabric";
 import ViewLogistics from "../modules/Pages/adminDashboard/components/ViewLogistics";
+import JobsManagementPage from "../modules/Pages/adminDashboard/JobsManagement";
 
 export const adminRoutes = [
   {
@@ -231,6 +232,10 @@ export const adminRoutes = [
       {
         path: "/admin/faq",
         element: <FAQManagementPage />,
+      },
+      {
+        path: "/admin/jobs",
+        element: <JobsManagementPage />,
       },
 
       // Add other admin dashboard routes here

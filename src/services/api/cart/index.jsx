@@ -5,7 +5,7 @@ const getCart = () => {
 };
 
 const addCartProduct = (payload) => {
-  return CaryBinApi.post(`cart/add`, payload);
+  return CaryBinApi.post(`/cart/add`, payload);
 };
 
 const editProduct = (payload) => {
@@ -16,10 +16,20 @@ const deleteCart = (payload) => {
   return CaryBinApi.delete(`/cart/item/${payload.id}`, payload);
 };
 
+const createPayment = (payload) => {
+  return CaryBinApi.post(`/payment/create`, payload);
+};
+
+const verifyPayment = (payload) => {
+  return CaryBinApi.post(`/payment/verify/${payload?.id}`);
+};
+
 const CartService = {
   addCartProduct,
   getCart,
   deleteCart,
+  createPayment,
+  verifyPayment,
 };
 
 export default CartService;

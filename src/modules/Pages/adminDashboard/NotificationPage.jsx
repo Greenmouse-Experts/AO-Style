@@ -82,8 +82,6 @@ export default function NotificationPageUpdate() {
     });
   }, [debouncedSearchTerm]);
 
-  console.log(data?.data?.length);
-
   const totalPages = Math.ceil(
     data?.count / (queryParams["pagination[limit]"] ?? 10)
   );

@@ -108,8 +108,8 @@ const CustomersTable = () => {
             {openDropdown === row.id && (
               <div className="dropdown-menu absolute z-[99999] right-2 rounded mt-2 w-50 bg-white rounded-md border-gray-200">
                 <Link
+                  to={`/admin/fabric-vendor/view/${row.id}`}
                   state={{ info: row.id }}
-                  to={`/admin/fabric-vendor/view?tab=personal`}
                 >
                   <button className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
                     View Details

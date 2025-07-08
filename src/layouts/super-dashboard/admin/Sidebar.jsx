@@ -32,8 +32,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
   const { carybinAdminUser } = useCarybinAdminUserStore();
 
-  console.log(carybinAdminUser?.role?.role_id);
-
   const superAdmin =
     carybinAdminUser?.role?.role_id == "owner-super-administrator";
 

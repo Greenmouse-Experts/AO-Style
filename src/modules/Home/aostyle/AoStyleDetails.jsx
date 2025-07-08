@@ -15,8 +15,6 @@ export default function AnkaraGownPage() {
 
   const styleInfo = location?.state?.info;
 
-  console.log(styleInfo, "styleinfo");
-
   const images = [
     "https://res.cloudinary.com/greenmouse-tech/image/upload/v1744094281/AoStyle/image_ijkebh.png",
     "https://res.cloudinary.com/greenmouse-tech/image/upload/v1744094278/AoStyle/image-copy-2_crpdbi.png",

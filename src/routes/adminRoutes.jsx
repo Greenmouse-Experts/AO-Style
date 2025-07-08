@@ -43,6 +43,7 @@ import Cataloging from "../modules/Pages/tailorDashboard/Catalog";
 
 import AddStyle from "../modules/Pages/tailorDashboard/AddStyle";
 import FAQManagementPage from "../modules/Pages/adminDashboard/FAQManagement";
+import ViewFabric from "../modules/Pages/adminDashboard/fabric/ViewFabric";
 
 export const adminRoutes = [
   {
@@ -80,10 +81,16 @@ export const adminRoutes = [
         path: "/admin/tailors/view-tailor/:tailorId",
         element: <ViewTailor />,
       },
+
       // Fabric Routes
       {
         path: "/admin/fabric-vendor",
         element: <FabricVendor />,
+      },
+
+      {
+        path: "/admin/fabric-vendor/view/:tailorId",
+        element: <ViewFabric />,
       },
 
       // Message Routes

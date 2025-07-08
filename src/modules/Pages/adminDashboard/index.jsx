@@ -20,8 +20,6 @@ export default function SuperDashboard() {
     );
   }
 
-  console.log("Dashboard Data:", data?.data);
-
   return (
     <>
       <Cards data={data?.data?.userCounts} />

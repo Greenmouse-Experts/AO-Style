@@ -41,7 +41,6 @@ const useSignIn = (email, resendCodeMutate) => {
       ) {
         toastSuccess(data?.data?.message);
         Cookies.set("token", data?.data?.accessToken);
-        console.log(data);
         if (data?.data?.data?.role === "fabric-vendor") {
           navigate(redirectPath ?? "/fabric", {
             state: { info: parsedProduct },

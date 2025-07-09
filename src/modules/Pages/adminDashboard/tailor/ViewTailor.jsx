@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ReusableTable from "../components/ReusableTable";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   Search,
   ChevronLeft,
@@ -101,6 +101,8 @@ const ViewCustomer = () => {
   const businessData = data?.data?.business;
 
   console.log(businessData);
+
+  const navigate = useNavigate();
 
   const [catalogFilter, setCatalogFilter] = useState("all");
   const [ordersFilter, setOrdersFilter] = useState("all");
@@ -388,6 +390,15 @@ const ViewCustomer = () => {
 
   return (
     <div className="">
+      <button
+        onClick={() => {
+          navigate("/admin/tailors");
+        }}
+        className="bg-gray-100 cursor-pointer text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
+      >
+        ◀ Back
+      </button>
+
       {/* Customer Info Section */}
       <div className="mb-6">
         <div className="flex justify-between items-center mb-4">

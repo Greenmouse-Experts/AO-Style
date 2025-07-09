@@ -122,9 +122,6 @@ const CustomersTable = () => {
           </button>
           {openDropdown === row.id && (
             <div className="absolute right-0 mt-2 w-40 bg-white rounded-md z-10 shadow-lg">
-              <button className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
-                View Details
-              </button>
               <button
                 onClick={() => {
                   setIsModalOpen(true);
@@ -133,7 +130,7 @@ const CustomersTable = () => {
                 }}
                 className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
               >
-                Edit Admin
+                View/Edit Admin
               </button>
               {row?.profile?.approved_by_admin ? (
                 <>

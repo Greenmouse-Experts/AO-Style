@@ -444,6 +444,14 @@ const ViewCustomer = () => {
   return (
     <React.Fragment>
       <div className="">
+        <button
+          onClick={() => {
+            navigate("/admin/sales-rep");
+          }}
+          className="bg-gray-100 cursor-pointer text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
+        >
+          ◀ Back
+        </button>
         {/* Customer Info Section */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-4">

@@ -336,7 +336,6 @@ const PaymentTransactionTable = () => {
                     evt.target.value ? evt.target.value : undefined
                   )
                 }
-                className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
                 className="py-2 pl-10 pr-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
               />
               <AiOutlineSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />

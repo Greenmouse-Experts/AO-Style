@@ -18,7 +18,10 @@ const useUpdateJobCategory = () => {
     },
     onError: (error, variables) => {
       console.error("❌ Failed to update job category:", { error, variables });
-      const message = error?.response?.data?.message || "Failed to update job category";
+      const message = error?.response?.data?.message || 
+                     error?.response?.data?.error?.message || 
+                     error?.message || 
+                     "Failed to update job category";
       toastError(message);
     },
   });

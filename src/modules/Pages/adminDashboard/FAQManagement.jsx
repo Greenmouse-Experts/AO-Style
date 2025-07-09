@@ -1,13 +1,19 @@
 import { useState, useRef, useEffect } from "react";
-import { FaPlus, FaTrash, FaQuestionCircle, FaEllipsisV, FaToggleOn, FaToggleOff } from "react-icons/fa";
+import { FaPlus, FaTrash, FaQuestionCircle, FaEllipsisV, FaToggleOn, FaToggleOff, FaEdit, FaTimes } from "react-icons/fa";
 import useGetFAQs from "../../../hooks/faq/useGetFAQs";
 import useCreateFAQ from "../../../hooks/faq/useCreateFAQ";
+import useUpdateFAQ from "../../../hooks/faq/useUpdateFAQ";
 import useToggleFAQStatus from "../../../hooks/faq/useToggleFAQStatus";
 import useDeleteFAQ from "../../../hooks/faq/useDeleteFAQ";
 import BeatLoader from "../../../components/BeatLoader";
+import ConfirmationModal from "../../../components/ui/ConfirmationModal";
 
 const FAQManagementPage = () => {
   const [showForm, setShowForm] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingFAQ, setDeletingFAQ] = useState(null);
+  const [editingFAQ, setEditingFAQ] = useState(null);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
@@ -17,8 +23,9 @@ const FAQManagementPage = () => {
   });
   const dropdownRef = useRef(null);
 
-  const { data: faqs, isLoading, refetch, totalCount, isFetching } = useGetFAQs(currentPage, pageSize);
+  const { data: faqs, isLoading, totalCount, isFetching } = useGetFAQs(currentPage, pageSize);
   const { createFAQMutate, isPending: isCreating } = useCreateFAQ();
+  const { updateFAQMutate, isPending: isUpdating } = useUpdateFAQ();
   const { toggleFAQStatusMutate, isPending: isToggling } = useToggleFAQStatus();
   const { deleteFAQMutate, isPending: isDeleting } = useDeleteFAQ();
 
@@ -53,6 +60,32 @@ const FAQManagementPage = () => {
     }
   };
 
+  const handleEditSubmit = (e) => {
+    e.preventDefault();
+    if (formData.question.trim() && formData.answer.trim() && editingFAQ) {
+      updateFAQMutate(
+        { id: editingFAQ.id, payload: formData },
+        {
+          onSuccess: () => {
+            setFormData({ question: "", answer: "" });
+            setShowEditModal(false);
+            setEditingFAQ(null);
+          },
+        }
+      );
+    }
+  };
+
+  const handleEdit = (faq) => {
+    setEditingFAQ(faq);
+    setFormData({
+      question: faq.question,
+      answer: faq.answer,
+    });
+    setShowEditModal(true);
+    setActiveDropdown(null);
+  };
+
   const handleToggleStatus = (faq) => {
     const newStatus = !faq.is_active;
     toggleFAQStatusMutate(
@@ -66,15 +99,33 @@ const FAQManagementPage = () => {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this FAQ?")) {
-      deleteFAQMutate(id);
-    }
+    setDeletingFAQ(id);
+    setShowDeleteModal(true);
     setActiveDropdown(null);
+  };
+
+  const confirmDelete = () => {
+    if (deletingFAQ) {
+      deleteFAQMutate(deletingFAQ);
+      setShowDeleteModal(false);
+      setDeletingFAQ(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeletingFAQ(null);
   };
 
   const handleCancel = () => {
     setFormData({ question: "", answer: "" });
     setShowForm(false);
+  };
+
+  const handleEditCancel = () => {
+    setFormData({ question: "", answer: "" });
+    setShowEditModal(false);
+    setEditingFAQ(null);
   };
 
   const toggleDropdown = (faqId) => {
@@ -271,6 +322,16 @@ const FAQManagementPage = () => {
                               {activeDropdown === faq.id && (
                                 <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-lg border border-gray-200 z-10 overflow-hidden">
                                   <button
+                                    onClick={() => handleEdit(faq)}
+                                    className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-all duration-150"
+                                  >
+                                    <div className="p-1.5 bg-blue-100 rounded-lg mr-3">
+                                      <FaEdit className="text-blue-600 text-sm" />
+                                    </div>
+                                    <span className="font-medium">Edit FAQ</span>
+                                  </button>
+                                  <div className="border-t border-gray-100"></div>
+                                  <button
                                     onClick={() => handleToggleStatus(faq)}
                                     disabled={isToggling}
                                     className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-all duration-150 disabled:opacity-50"
@@ -315,7 +376,7 @@ const FAQManagementPage = () => {
                 {/* Pagination for Admin FAQs */}
                 {totalCount > pageSize && (
                   <div className="mt-6 border-t border-gray-100 pt-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
                       <div className="text-sm text-gray-500">
                         Showing {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, totalCount || 0)} of {totalCount || 0} FAQs
                       </div>
@@ -323,37 +384,53 @@ const FAQManagementPage = () => {
                         <button
                           onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                           disabled={currentPage === 1 || isFetching}
-                          className={`px-3 py-1 rounded text-sm ${
+                          className={`px-3 py-1 rounded text-sm transition-all duration-200 ${
                             currentPage === 1 || isFetching
                               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                              : 'bg-white border border-gray-300 text-gray-700 hover:bg-purple-50'
+                              : 'bg-white border border-gray-300 text-gray-700 hover:bg-[#9847FE] hover:text-white hover:border-[#9847FE]'
                           }`}
                         >
                           Previous
                         </button>
                         
-                        {Array.from({ length: Math.ceil((totalCount || 0) / pageSize) }, (_, i) => i + 1).map(page => (
-                          <button
-                            key={page}
-                            onClick={() => setCurrentPage(page)}
-                            disabled={isFetching}
-                            className={`px-3 py-1 rounded text-sm ${
-                              page === currentPage
-                                ? 'bg-purple-600 text-white'
-                                : 'bg-white border border-gray-300 text-gray-700 hover:bg-purple-50'
-                            }`}
-                          >
-                            {page}
-                          </button>
-                        ))}
+                        {(() => {
+                          const totalPages = Math.ceil((totalCount || 0) / pageSize);
+                          const maxVisiblePages = 5;
+                          let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                          let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                          
+                          if (endPage - startPage + 1 < maxVisiblePages) {
+                            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                          }
+                          
+                          const pages = [];
+                          for (let i = startPage; i <= endPage; i++) {
+                            pages.push(i);
+                          }
+                          
+                          return pages.map(page => (
+                            <button
+                              key={page}
+                              onClick={() => setCurrentPage(page)}
+                              disabled={isFetching}
+                              className={`px-3 py-1 rounded text-sm transition-all duration-200 ${
+                                page === currentPage
+                                  ? 'bg-[#9847FE] text-white border border-[#9847FE]'
+                                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-[#9847FE] hover:text-white hover:border-[#9847FE]'
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          ));
+                        })()}
                         
                         <button
                           onClick={() => setCurrentPage(prev => Math.min(Math.ceil((totalCount || 0) / pageSize), prev + 1))}
                           disabled={currentPage === Math.ceil((totalCount || 0) / pageSize) || isFetching}
-                          className={`px-3 py-1 rounded text-sm ${
+                          className={`px-3 py-1 rounded text-sm transition-all duration-200 ${
                             currentPage === Math.ceil((totalCount || 0) / pageSize) || isFetching
                               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                              : 'bg-white border border-gray-300 text-gray-700 hover:bg-purple-50'
+                              : 'bg-white border border-gray-300 text-gray-700 hover:bg-[#9847FE] hover:text-white hover:border-[#9847FE]'
                           }`}
                         >
                           Next
@@ -388,7 +465,101 @@ const FAQManagementPage = () => {
           )}
         </div>
         </div>
+
+        {/* Edit FAQ Modal */}
+        {showEditModal && editingFAQ && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-xl font-bold text-gray-900 flex items-center">
+                    <div className="p-2 bg-[#9847FE]/10 rounded-lg mr-3">
+                      <FaEdit className="text-[#9847FE]" />
+                    </div>
+                    Edit FAQ
+                  </h2>
+                  <button
+                    onClick={handleEditCancel}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <FaTimes className="text-gray-500" />
+                  </button>
+                </div>
+              </div>
+
+              <form onSubmit={handleEditSubmit} className="p-6 space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    Question
+                  </label>
+                  <input
+                    type="text"
+                    name="question"
+                    value={formData.question}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9847FE] focus:border-transparent transition-all duration-200 bg-white shadow-sm"
+                    placeholder="Enter the FAQ question..."
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    Answer
+                  </label>
+                  <textarea
+                    name="answer"
+                    value={formData.answer}
+                    onChange={handleChange}
+                    rows={4}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9847FE] focus:border-transparent transition-all duration-200 bg-white shadow-sm resize-none"
+                    placeholder="Enter the FAQ answer..."
+                    required
+                  />
+                </div>
+                <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 pt-2">
+                  <button
+                    type="submit"
+                    disabled={isUpdating}
+                    className="bg-gradient-to-r from-[#9847FE] to-[#8036D3] text-white px-8 py-3 rounded-lg hover:from-[#8036D3] hover:to-[#6B2BB5] transition-all duration-200 flex items-center justify-center space-x-2 font-semibold shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isUpdating ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                        <span>Updating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FaEdit className="text-sm" />
+                        <span>Update FAQ</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleEditCancel}
+                    className="bg-gray-300 text-gray-700 px-8 py-3 rounded-lg hover:bg-gray-400 transition-all duration-200 font-semibold"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        title="Delete FAQ"
+        message="Are you sure you want to delete this FAQ? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

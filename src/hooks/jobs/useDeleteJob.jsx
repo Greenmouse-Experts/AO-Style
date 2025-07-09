@@ -18,7 +18,10 @@ const useDeleteJob = () => {
     },
     onError: (error, variables) => {
       console.error("❌ Failed to delete job:", { error, jobId: variables });
-      const message = error?.response?.data?.message || "Failed to delete job";
+      const message = error?.response?.data?.message || 
+                     error?.response?.data?.error?.message || 
+                     error?.message || 
+                     "Failed to delete job";
       toastError(message);
     },
   });

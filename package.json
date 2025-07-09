@@ -20,7 +20,7 @@
     "emoji-picker-react": "^4.12.2",
     "firebase": "^11.9.1",
     "formik": "^2.4.6",
-    "framer-motion": "^12.23.0",
+    "framer-motion": "^12.23.1",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.477.0",
     "pusher-js": "^8.4.0",

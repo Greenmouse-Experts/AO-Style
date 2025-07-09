@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   FaPlus,
   FaTrash,
@@ -17,22 +17,41 @@ import {
   FaLink,
   FaCalendarAlt,
   FaBuilding,
+  FaFileAlt,
+  FaDownload,
+  FaUser,
+  FaPhone,
 } from "react-icons/fa";
 import useGetJobs from "../../../hooks/jobs/useGetJobs";
 import useCreateJob from "../../../hooks/jobs/useCreateJob";
+import useUpdateJob from "../../../hooks/jobs/useUpdateJob";
 import useUpdateJobStatus from "../../../hooks/jobs/useUpdateJobStatus";
 import useDeleteJob from "../../../hooks/jobs/useDeleteJob";
 import useGetJobCategories from "../../../hooks/jobs/useGetJobCategories";
 import useCreateJobCategory from "../../../hooks/jobs/useCreateJobCategory";
 import useUpdateJobCategory from "../../../hooks/jobs/useUpdateJobCategory";
 import useDeleteJobCategory from "../../../hooks/jobs/useDeleteJobCategory";
+import { useGetJobApplications } from "../../../hooks/jobs/useGetJobApplications";
+import { useDeleteApplication } from "../../../hooks/jobs/useDeleteApplication";
+import useToast from "../../../hooks/useToast";
 import BeatLoader from "../../../components/BeatLoader";
+import ConfirmationModal from "../../../components/ui/ConfirmationModal";
 
 const JobsManagementPage = () => {
   const [showJobForm, setShowJobForm] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [showJobView, setShowJobView] = useState(false);
+  const [showJobEditForm, setShowJobEditForm] = useState(false);
+  const [showDeleteJobModal, setShowDeleteJobModal] = useState(false);
+  const [showDeleteCategoryModal, setShowDeleteCategoryModal] = useState(false);
+  const [showApplicationsView, setShowApplicationsView] = useState(false);
+  const [showDeleteApplicationModal, setShowDeleteApplicationModal] = useState(false);
+  const [deletingJob, setDeletingJob] = useState(null);
+  const [deletingCategory, setDeletingCategory] = useState(null);
+  const [deletingApplication, setDeletingApplication] = useState(null);
   const [selectedJob, setSelectedJob] = useState(null);
+  const [selectedJobForApplications, setSelectedJobForApplications] = useState(null);
+  const [editingJob, setEditingJob] = useState(null);
   const [editingCategory, setEditingCategory] = useState(null);
   const [activeTab, setActiveTab] = useState("jobs"); // jobs or categories
   const [activeDropdown, setActiveDropdown] = useState(null);
@@ -63,6 +82,7 @@ const JobsManagementPage = () => {
   } = useGetJobCategories();
 
   const { createJobMutate, isPending: isCreatingJob } = useCreateJob();
+  const { updateJobMutate, isPending: isUpdatingJob } = useUpdateJob();
   const { updateJobStatusMutate, isPending: isUpdatingStatus } =
     useUpdateJobStatus();
   const { deleteJobMutate, isPending: isDeletingJob } = useDeleteJob();
@@ -73,6 +93,13 @@ const JobsManagementPage = () => {
     useUpdateJobCategory();
   const { deleteJobCategoryMutate, isPending: isDeletingCategory } =
     useDeleteJobCategory();
+
+  const { data: applicationsData, isLoading: applicationsLoading } = useGetJobApplications(
+    selectedJobForApplications?.id
+  );
+  const { mutate: deleteApplicationMutate, isLoading: isDeletingApplication } = useDeleteApplication();
+
+  const { toastError } = useToast();
 
   const jobs = jobsData?.data || [];
   const categories = categoriesData?.data || [];
@@ -96,12 +123,18 @@ const JobsManagementPage = () => {
       [name]: value,
     }));
 
-    // Auto-generate slug from title
-    if (name === "title") {
-      const slug = value
+    // Auto-generate slug from title only for new jobs (not when editing)
+    if (name === "title" && !editingJob) {
+      const baseSlug = value
         .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "");
+        .replace(/[^a-z0-9\s]/g, "") // Remove special characters except spaces
+        .replace(/\s+/g, "-") // Replace spaces with hyphens
+        .replace(/^-+|-+$/g, ""); // Remove leading/trailing hyphens
+      
+      // Add timestamp to make slug unique
+      const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
+      const slug = baseSlug ? `${baseSlug}-${timestamp}` : timestamp;
+      
       setJobFormData((prev) => ({
         ...prev,
         slug: slug,
@@ -119,23 +152,41 @@ const JobsManagementPage = () => {
 
   const handleJobSubmit = (e) => {
     e.preventDefault();
-    if (jobFormData.title.trim() && jobFormData.description.trim()) {
-      createJobMutate(jobFormData, {
-        onSuccess: () => {
-          setJobFormData({
-            title: "",
-            slug: "",
-            description: "",
-            requirements: "",
-            location: "",
-            type: "Full-time",
-            job_category_id: "",
-            application_url: "",
-          });
-          setShowJobForm(false);
-        },
-      });
+    
+    // Validate required fields
+    if (!jobFormData.title.trim()) {
+      toastError("Job title is required");
+      return;
     }
+    
+    if (!jobFormData.description.trim()) {
+      toastError("Job description is required");
+      return;
+    }
+    
+    // Prepare the payload with proper category ID
+    const payload = {
+      ...jobFormData,
+      job_category_id: jobFormData.job_category_id || null, // Send null if no category selected
+      application_url: jobFormData.application_url || "", // Send empty string if not provided
+      // Ensure all text fields are trimmed
+      title: jobFormData.title.trim(),
+      description: jobFormData.description.trim(),
+      requirements: jobFormData.requirements.trim(),
+      location: jobFormData.location.trim(),
+    };
+    
+    createJobMutate(payload, {
+      onSuccess: () => {
+        resetJobForm();
+        setShowJobForm(false);
+        refetchJobs(); // Refetch jobs after successful creation
+      },
+      onError: (error) => {
+        // Error handling is already done in the hook, but we can add additional logic here if needed
+        console.error("Job creation failed:", error);
+      },
+    });
   };
 
   const handleCategorySubmit = (e) => {
@@ -151,9 +202,22 @@ const JobsManagementPage = () => {
   };
 
   const handleJobDelete = (jobId) => {
-    if (window.confirm("Are you sure you want to delete this job?")) {
-      deleteJobMutate(jobId);
+    setDeletingJob(jobId);
+    setShowDeleteJobModal(true);
+    setActiveDropdown(null);
+  };
+
+  const confirmJobDelete = () => {
+    if (deletingJob) {
+      deleteJobMutate(deletingJob);
+      setShowDeleteJobModal(false);
+      setDeletingJob(null);
     }
+  };
+
+  const cancelJobDelete = () => {
+    setShowDeleteJobModal(false);
+    setDeletingJob(null);
   };
 
   const handleViewJob = (job) => {
@@ -162,10 +226,111 @@ const JobsManagementPage = () => {
     setActiveDropdown(null);
   };
 
-  const handleCategoryDelete = (categoryId) => {
-    if (window.confirm("Are you sure you want to delete this category?")) {
-      deleteJobCategoryMutate(categoryId);
+  const handleEditJob = (job) => {
+    setEditingJob(job);
+    setJobFormData({
+      title: job.title,
+      slug: job.slug,
+      description: job.description,
+      requirements: job.requirements || "",
+      location: job.location || "",
+      type: job.type,
+      job_category_id: job.job_category_id || "",
+      application_url: job.application_url || "",
+    });
+    setShowJobEditForm(true);
+    setActiveDropdown(null);
+  };
+
+  const handleViewApplications = (job) => {
+    setSelectedJobForApplications(job);
+    setShowApplicationsView(true);
+    setActiveDropdown(null);
+  };
+
+  const handleDeleteApplication = (applicationId) => {
+    setDeletingApplication(applicationId);
+    setShowDeleteApplicationModal(true);
+  };
+
+  const confirmDeleteApplication = () => {
+    if (deletingApplication) {
+      deleteApplicationMutate(deletingApplication, {
+        onSuccess: () => {
+          setShowDeleteApplicationModal(false);
+          setDeletingApplication(null);
+        }
+      });
     }
+  };
+
+  const cancelDeleteApplication = () => {
+    setShowDeleteApplicationModal(false);
+    setDeletingApplication(null);
+  };
+
+  const handleDownloadResume = (resumeUrl) => {
+    window.open(resumeUrl, '_blank');
+  };
+
+  const handleJobUpdate = (e) => {
+    e.preventDefault();
+    
+    // Validate required fields
+    if (!jobFormData.title.trim()) {
+      toastError("Job title is required");
+      return;
+    }
+    
+    if (!jobFormData.description.trim()) {
+      toastError("Job description is required");
+      return;
+    }
+    
+    // Prepare the payload with proper category ID
+    const payload = {
+      ...jobFormData,
+      job_category_id: jobFormData.job_category_id || null,
+      application_url: jobFormData.application_url || "", // Send empty string if not provided
+      // Ensure all text fields are trimmed
+      title: jobFormData.title.trim(),
+      description: jobFormData.description.trim(),
+      requirements: jobFormData.requirements.trim(),
+      location: jobFormData.location.trim(),
+    };
+    
+    updateJobMutate(
+      { id: editingJob.id, payload },
+      {
+        onSuccess: () => {
+          resetJobForm();
+          setShowJobEditForm(false);
+          refetchJobs();
+        },
+        onError: (error) => {
+          console.error("Job update failed:", error);
+        },
+      }
+    );
+  };
+
+  const handleCategoryDelete = (categoryId) => {
+    setDeletingCategory(categoryId);
+    setShowDeleteCategoryModal(true);
+    setActiveDropdown(null);
+  };
+
+  const confirmCategoryDelete = () => {
+    if (deletingCategory) {
+      deleteJobCategoryMutate(deletingCategory);
+      setShowDeleteCategoryModal(false);
+      setDeletingCategory(null);
+    }
+  };
+
+  const cancelCategoryDelete = () => {
+    setShowDeleteCategoryModal(false);
+    setDeletingCategory(null);
   };
 
   const handleEditCategory = (category) => {
@@ -205,6 +370,20 @@ const JobsManagementPage = () => {
         });
       }
     }
+  };
+
+  const resetJobForm = () => {
+    setJobFormData({
+      title: "",
+      slug: "",
+      description: "",
+      requirements: "",
+      location: "",
+      type: "Full-time",
+      job_category_id: "",
+      application_url: "",
+    });
+    setEditingJob(null);
   };
 
   const getJobTypeColor = (type) => {
@@ -333,6 +512,20 @@ const JobsManagementPage = () => {
                               >
                                 <FaEye className="text-blue-500" />
                                 <span>View Job</span>
+                              </button>
+                              <button
+                                onClick={() => handleViewApplications(job)}
+                                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-2 text-sm border-t border-gray-100"
+                              >
+                                <FaFileAlt className="text-purple-500" />
+                                <span>View Applications</span>
+                              </button>
+                              <button
+                                onClick={() => handleEditJob(job)}
+                                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-2 text-sm border-t border-gray-100"
+                              >
+                                <FaEdit className="text-green-500" />
+                                <span>Edit Job</span>
                               </button>
                               <button
                                 onClick={() => handleStatusToggle(job)}
@@ -739,6 +932,209 @@ const JobsManagementPage = () => {
           )}
         </AnimatePresence>
 
+        {/* Job Edit Form Modal */}
+        <AnimatePresence>
+          {showJobEditForm && editingJob && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+              onClick={() => {
+                setShowJobEditForm(false);
+                resetJobForm();
+              }}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="bg-white/95 backdrop-blur-md rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="p-6 border-b border-gray-200/50">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-bold text-gray-900">
+                      Edit Job
+                    </h2>
+                    <button
+                      onClick={() => {
+                        setShowJobEditForm(false);
+                        resetJobForm();
+                      }}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <FaTimes className="text-gray-500" />
+                    </button>
+                  </div>
+                </div>
+
+                <form onSubmit={handleJobUpdate} className="p-6 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Job Title *
+                      </label>
+                      <input
+                        type="text"
+                        name="title"
+                        value={jobFormData.title}
+                        onChange={handleJobFormChange}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="e.g. Frontend Developer"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Slug (Auto-generated)
+                      </label>
+                      <input
+                        type="text"
+                        name="slug"
+                        value={jobFormData.slug}
+                        onChange={handleJobFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-50"
+                        placeholder="frontend-developer"
+                        readOnly
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Location
+                      </label>
+                      <input
+                        type="text"
+                        name="location"
+                        value={jobFormData.location}
+                        onChange={handleJobFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="e.g. Lagos, Nigeria"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Job Type
+                      </label>
+                      <select
+                        name="type"
+                        value={jobFormData.type}
+                        onChange={handleJobFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      >
+                        <option value="Full-time">Full-time</option>
+                        <option value="Part-time">Part-time</option>
+                        <option value="Contract">Contract</option>
+                        <option value="Freelance">Freelance</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Category
+                      </label>
+                      <select
+                        name="job_category_id"
+                        value={jobFormData.job_category_id}
+                        onChange={handleJobFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      >
+                        <option value="">Select Category</option>
+                        {categories.map((category) => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Application URL
+                      </label>
+                      <input
+                        type="url"
+                        name="application_url"
+                        value={jobFormData.application_url}
+                        onChange={handleJobFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="https://example.com/apply"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Job Description *
+                    </label>
+                    <textarea
+                      name="description"
+                      value={jobFormData.description}
+                      onChange={handleJobFormChange}
+                      required
+                      rows={4}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="Describe the job role, responsibilities, and what you're looking for..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Requirements
+                    </label>
+                    <textarea
+                      name="requirements"
+                      value={jobFormData.requirements}
+                      onChange={handleJobFormChange}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="List the requirements, skills, and qualifications needed..."
+                    />
+                  </div>
+
+                  <div className="flex justify-end space-x-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowJobEditForm(false);
+                        resetJobForm();
+                      }}
+                      className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isUpdatingJob}
+                      className="px-6 py-2 bg-gradient-to-r from-[#9847FE] to-[#8036D3] text-white rounded-lg hover:from-[#8036D3] hover:to-[#6B2BB5] transition-all duration-200 disabled:opacity-50 flex items-center space-x-2"
+                    >
+                      {isUpdatingJob ? (
+                        <>
+                          <BeatLoader size={4} />
+                          <span>Updating...</span>
+                        </>
+                      ) : (
+                        <>
+                          <FaEdit />
+                          <span>Update Job</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Category Form Modal */}
         <AnimatePresence>
           {showCategoryForm && (
@@ -1060,6 +1456,181 @@ const JobsManagementPage = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Job Applications View Modal */}
+        <AnimatePresence>
+          {showApplicationsView && selectedJobForApplications && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+              onClick={() => setShowApplicationsView(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="p-6 border-b border-gray-200">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-purple-100 rounded-lg">
+                        <FaFileAlt className="text-purple-600" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold text-gray-900">
+                          Applications for {selectedJobForApplications.title}
+                        </h2>
+                        <p className="text-sm text-gray-500">
+                          {selectedJobForApplications.category?.name || 'No category'}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowApplicationsView(false)}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <FaTimes className="text-gray-500" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="p-6">
+                  {applicationsLoading ? (
+                    <div className="flex items-center justify-center py-12">
+                      <BeatLoader />
+                    </div>
+                  ) : (
+                    <>
+                      {applicationsData?.data?.length === 0 ? (
+                        <div className="text-center py-12">
+                          <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                            <FaFileAlt className="h-8 w-8 text-gray-400" />
+                          </div>
+                          <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                            No Applications Yet
+                          </h3>
+                          <p className="text-gray-500">
+                            No one has applied for this position yet.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-gray-800">
+                              {applicationsData?.data?.length || 0} Applications
+                            </h3>
+                          </div>
+                          
+                          {applicationsData?.data?.map((application) => (
+                            <div
+                              key={application.id}
+                              className="bg-gray-50 rounded-lg p-4 border border-gray-200"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center space-x-3 mb-2">
+                                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                      <FaUser className="h-5 w-5 text-purple-600" />
+                                    </div>
+                                    <div>
+                                      <h4 className="font-semibold text-gray-900">
+                                        {application.name}
+                                      </h4>
+                                      <p className="text-sm text-gray-500">
+                                        {application.email}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex items-center space-x-3 text-sm text-gray-600 mt-3">
+                                    <span className="flex items-center space-x-1 bg-gray-50 px-3 py-1 rounded-full border">
+                                      <FaPhone className="h-3 w-3" />
+                                      <span>{application.phone}</span>
+                                    </span>
+                                    <span className="flex items-center space-x-1 bg-gray-50 px-3 py-1 rounded-full border">
+                                      <FaCalendarAlt className="h-3 w-3" />
+                                      <span>
+                                        Applied {new Date(application.created_at).toLocaleDateString()}
+                                      </span>
+                                    </span>
+                                  </div>
+                                </div>
+                                
+                                <div className="flex items-center space-x-2">
+                                  {application.resume && (
+                                    <button
+                                      onClick={() => handleDownloadResume(application.resume)}
+                                      className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center space-x-1 text-sm"
+                                    >
+                                      <FaEye className="h-3 w-3" />
+                                      <span>View Resume</span>
+                                    </button>
+                                  )}
+                                  
+                                  <button
+                                    onClick={() => handleDeleteApplication(application.id)}
+                                    className="px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors flex items-center space-x-1 text-sm"
+                                  >
+                                    <FaTrash className="h-3 w-3" />
+                                    <span>Delete</span>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Delete Application Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showDeleteApplicationModal}
+          onClose={cancelDeleteApplication}
+          onConfirm={confirmDeleteApplication}
+          title="Delete Application"
+          message="Are you sure you want to delete this application? This action cannot be undone."
+          confirmText="Delete"
+          cancelText="Cancel"
+          type="danger"
+          isLoading={isDeletingApplication}
+        />
+
+        {/* Delete Job Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showDeleteJobModal}
+          onClose={cancelJobDelete}
+          onConfirm={confirmJobDelete}
+          title="Delete Job"
+          message="Are you sure you want to delete this job? This action cannot be undone."
+          confirmText="Delete"
+          cancelText="Cancel"
+          type="danger"
+          isLoading={isDeletingJob}
+        />
+
+        {/* Delete Category Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showDeleteCategoryModal}
+          onClose={cancelCategoryDelete}
+          onConfirm={confirmCategoryDelete}
+          title="Delete Category"
+          message="Are you sure you want to delete this category? This action cannot be undone."
+          confirmText="Delete"
+          cancelText="Cancel"
+          type="danger"
+          isLoading={isDeletingCategory}
+        />
       </div>
     </div>
   );

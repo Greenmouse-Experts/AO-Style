@@ -18,7 +18,23 @@ const useCreateJob = () => {
     },
     onError: (error, variables) => {
       console.error("❌ Failed to create job:", { error, variables });
-      const message = error?.response?.data?.message || "Failed to create job";
+      // Extract the correct error message from the response
+      let message = "Failed to create job";
+      
+      if (error?.data?.message && Array.isArray(error.data.message)) {
+        // Handle validation errors that come as an array
+        message = error.data.message[0];
+      } else if (error?.response?.data?.message) {
+        // Handle general error messages
+        message = error.response.data.message;
+      } else if (error?.response?.data?.error?.message) {
+        // Handle nested error messages
+        message = error.response.data.error.message;
+      } else if (error?.message) {
+        // Handle generic error messages
+        message = error.message;
+      }
+      console.log("Error message:", error);
       toastError(message);
     },
   });

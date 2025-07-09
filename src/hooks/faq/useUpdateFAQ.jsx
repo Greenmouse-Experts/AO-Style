@@ -2,16 +2,16 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useToast from "../useToast";
 import FAQService from "../../services/api/faq";
 
-const useToggleFAQStatus = () => {
+const useUpdateFAQ = () => {
   const queryClient = useQueryClient();
 
   const { toastError, toastSuccess } = useToast();
 
-  const { isPending, mutate: toggleFAQStatusMutate } = useMutation({
-    mutationFn: ({ id, payload }) => FAQService.toggleFAQStatus(id, payload),
-    mutationKey: ["toggle-faq-status"],
+  const { isPending, mutate: updateFAQMutate } = useMutation({
+    mutationFn: ({ id, payload }) => FAQService.updateFAQ(id, payload),
+    mutationKey: ["update-faq"],
     onSuccess(data) {
-      toastSuccess(data?.data?.message || "FAQ status updated successfully");
+      toastSuccess(data?.data?.message || "FAQ updated successfully");
       queryClient.invalidateQueries({
         queryKey: ["get-faqs"],
       });
@@ -25,15 +25,15 @@ const useToggleFAQStatus = () => {
       if (Array.isArray(error?.data?.message)) {
         toastError(error?.data?.message[0]);
       } else {
-        toastError(error?.data?.message || "Failed to update FAQ status");
+        toastError(error?.data?.message || "Failed to update FAQ");
       }
     },
   });
 
   return {
     isPending,
-    toggleFAQStatusMutate,
+    updateFAQMutate,
   };
 };
 
-export default useToggleFAQStatus;
+export default useUpdateFAQ;

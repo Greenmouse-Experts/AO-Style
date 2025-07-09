@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ReusableTable from "../components/ReusableTable";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   Search,
   ChevronLeft,
@@ -359,6 +359,8 @@ const ViewFabric = () => {
     ordersStartIndex + itemsPerPage
   );
 
+  const navigate = useNavigate();
+
   // Reset page when filter changes
   useEffect(() => {
     setCatalogPage(1);
@@ -392,6 +394,15 @@ const ViewFabric = () => {
 
   return (
     <div className="">
+      <button
+        onClick={() => {
+          navigate("/admin/fabric-vendor");
+        }}
+        className="bg-gray-100 cursor-pointer text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
+      >
+        ◀ Back
+      </button>
+
       {/* Customer Info Section */}
       <div className="mb-6">
         <div className="flex justify-between items-center mb-4">

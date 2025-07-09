@@ -31,6 +31,12 @@ const deleteAdminRole = (payload) => {
   return CaryBinApi.delete(`/admin-role/${payload.id}`);
 };
 
+const getAllCartTransactions = (params) => {
+  return CaryBinApi.get(`/cart/fetch-all`, {
+    params,
+  });
+};
+
 const AdminRoleService = {
   getAdminRoles,
   createAdminRole,
@@ -39,6 +45,7 @@ const AdminRoleService = {
   deleteAdminRole,
   createSubAdminRole,
   suspendOwner,
+  getAllCartTransactions,
 };
 
 export default AdminRoleService;

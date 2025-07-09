@@ -13,6 +13,7 @@ import { useModalState } from "../../../hooks/useModalState";
 import useDeleteAdminRole from "../../../hooks/admin/useDeleteAdminRole";
 import useToast from "../../../hooks/useToast";
 import useUpdateAdminRole from "../../../hooks/admin/useUpdateAdminRole";
+import { useNavigate } from "react-router-dom";
 
 const roleOptions = [
   { label: "Fabric Vendor Dashboard", value: "fabric-vendor" },
@@ -220,6 +221,8 @@ const CustomersTable = () => {
 
   const { isPending: updateIsPending, updateRoleMutate } = useUpdateAdminRole();
 
+  const navigate = useNavigate();
+
   const {
     handleSubmit,
     values,
@@ -270,247 +273,257 @@ const CustomersTable = () => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl overflow-x-auto">
-      <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          <h2 className="text-lg font-semibold">Admin Roles</h2>
-          <span className="text-sm text-gray-500">All Admin Roles</span>
-        </div>
-        <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
-          <input
-            type="text"
-            placeholder="Search..."
-            value={queryString}
-            onChange={(evt) =>
-              setQueryString(evt.target.value ? evt.target.value : undefined)
-            }
-            className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
-          />
-          <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-            Filter
-          </button>
-          <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-            Bulk Action ▾
-          </button>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-[#9847FE] text-white cursor-pointer px-4 py-2 text-sm rounded-md"
-          >
-            + Add New Role
-          </button>
-        </div>
-      </div>
-      <ReusableTable
-        loading={isPending}
-        columns={columns}
-        data={AdminRoleData}
-      />
-      {AdminRoleData?.length > 0 && (
-        <div className="flex justify-between items-center mt-4">
-          <div className="flex items-center">
-            <p className="text-sm text-gray-600">Items per page: </p>
-            <select
-              value={queryParams["pagination[limit]"] || 10}
-              onChange={(e) =>
-                updateQueryParams({
-                  "pagination[limit]": +e.target.value,
-                })
+    <>
+      <button
+        onClick={() => {
+          navigate("/admin/sub-admins");
+        }}
+        className="bg-gray-100 cursor-pointer text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
+      >
+        ◀ Back
+      </button>
+      <div className="bg-white p-6 rounded-xl overflow-x-auto">
+        <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <h2 className="text-lg font-semibold">Admin Roles</h2>
+            <span className="text-sm text-gray-500">All Admin Roles</span>
+          </div>
+          <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
+            <input
+              type="text"
+              placeholder="Search..."
+              value={queryString}
+              onChange={(evt) =>
+                setQueryString(evt.target.value ? evt.target.value : undefined)
               }
-              className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={15}>15</option>
-              <option value={20}>20</option>
-            </select>
-          </div>
-          <div className="flex gap-1">
-            <button
-              onClick={() => {
-                updateQueryParams({
-                  "pagination[page]": +queryParams["pagination[page]"] - 1,
-                });
-              }}
-              disabled={(queryParams["pagination[page]"] ?? 1) == 1}
-              className="px-3 py-1 rounded-md bg-gray-200"
-            >
-              ◀
+              className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
+            />
+            <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
+              Filter
+            </button>
+            <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
+              Bulk Action ▾
             </button>
             <button
-              onClick={() => {
-                updateQueryParams({
-                  "pagination[page]": +queryParams["pagination[page]"] + 1,
-                });
-              }}
-              disabled={(queryParams["pagination[page]"] ?? 1) == totalPages}
-              className="px-3 py-1 rounded-md bg-gray-200"
+              onClick={() => setIsModalOpen(true)}
+              className="bg-[#9847FE] text-white cursor-pointer px-4 py-2 text-sm rounded-md"
             >
-              ▶
+              + Add New Role
             </button>
           </div>
         </div>
-      )}
-
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
-          onClick={() => {
-            setIsModalOpen(false);
-            resetForm();
-
-            setNewCategory(null);
-          }}
-        >
-          <div
-            className="bg-white rounded-lg p-6 w-full max-w-md"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-end">
+        <ReusableTable
+          loading={isPending}
+          columns={columns}
+          data={AdminRoleData}
+        />
+        {AdminRoleData?.length > 0 && (
+          <div className="flex justify-between items-center mt-4">
+            <div className="flex items-center">
+              <p className="text-sm text-gray-600">Items per page: </p>
+              <select
+                value={queryParams["pagination[limit]"] || 10}
+                onChange={(e) =>
+                  updateQueryParams({
+                    "pagination[limit]": +e.target.value,
+                  })
+                }
+                className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={20}>20</option>
+              </select>
+            </div>
+            <div className="flex gap-1">
               <button
                 onClick={() => {
-                  setIsModalOpen(false);
-                  resetForm();
-                  setNewCategory(null);
+                  updateQueryParams({
+                    "pagination[page]": +queryParams["pagination[page]"] - 1,
+                  });
                 }}
-                className="text-gray-500 cursor-pointer hover:text-gray-700 text-2xl"
-                disabled={posting}
+                disabled={(queryParams["pagination[page]"] ?? 1) == 1}
+                className="px-3 py-1 rounded-md bg-gray-200"
               >
-                ×
+                ◀
+              </button>
+              <button
+                onClick={() => {
+                  updateQueryParams({
+                    "pagination[page]": +queryParams["pagination[page]"] + 1,
+                  });
+                }}
+                disabled={(queryParams["pagination[page]"] ?? 1) == totalPages}
+                className="px-3 py-1 rounded-md bg-gray-200"
+              >
+                ▶
               </button>
             </div>
-
-            <h3 className="text-lg font-semibold mb-6 -mt-7">
-              {newCategory ? `Edit Admin Role` : "Add New Admin Role"}
-            </h3>
-
-            <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-4">
-                    Admin Role Name
-                  </label>
-                  <input
-                    type="text"
-                    name={"title"}
-                    required
-                    value={values.title}
-                    onChange={handleChange}
-                    className="w-full p-4 border  border-[#CCCCCC] outline-none rounded-lg"
-                    placeholder="Enter the admin role name"
-                  />
-                </div>
-                <div>
-                  <label className="block  text-sm font-medium text-gray-700 mb-4">
-                    Roles Assigned
-                  </label>
-                  <div className="space-y-4">
-                    {roleOptions.map(({ label, value }) => (
-                      <label
-                        key={value}
-                        className="flex cursor-pointer items-center text-sm text-gray-700"
-                      >
-                        <input
-                          type="checkbox"
-                          value={value}
-                          checked={values.role.includes(value)}
-                          onChange={() => handleCheckboxChange(value)}
-                          className="mr-2"
-                        />
-                        {label}
-                      </label>
-                    ))}{" "}
-                  </div>
-                </div>
-              </div>
-
-              <button
-                disabled={createIsPending || updateIsPending}
-                type="submit"
-                className="mt-6 w-full cursor-pointer bg-gradient text-white px-6 py-3 text-sm rounded-md"
-              >
-                {createIsPending || updateIsPending
-                  ? "Please wait..."
-                  : newCategory
-                  ? "Edit Admin Role"
-                  : "Add Admin Role"}
-              </button>
-            </form>
           </div>
-        </div>
-      )}
+        )}
 
-      {isOpen && (
-        <div
-          className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
-          onClick={() => {
-            closeModal();
-            resetForm();
-            setNewCategory(null);
-          }}
-        >
+        {isModalOpen && (
           <div
-            className="bg-white rounded-lg p-6 w-full max-w-md"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
+            onClick={() => {
+              setIsModalOpen(false);
+              resetForm();
+
+              setNewCategory(null);
+            }}
           >
-            <div className="flex justify-end">
-              <button
-                onClick={() => {
-                  closeModal();
-                  resetForm();
-                  setNewCategory(null);
-                }}
-                className="text-gray-500 cursor-pointer hover:text-gray-700 text-2xl"
-              >
-                ×
-              </button>
-            </div>
-            <h3 className="text-lg font-semibold mb-4 -mt-7">
-              {"Delete Role"}
-            </h3>
-            <form
-              className="mt-6 space-y-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                deleteAdminRoleMutate(
-                  {
-                    id: newCategory?.id,
-                  },
-                  {
-                    onSuccess: () => {
-                      closeModal();
-                      setNewCategory(null);
-                    },
-                  }
-                );
-              }}
+            <div
+              className="bg-white rounded-lg p-6 w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
             >
-              <label className="block text-sm font-medium text-gray-700 mb-4">
-                Are you sure you want to delete {newCategory?.title}
-              </label>
-              <div className="flex w-full justify-end gap-4 mt-6">
+              <div className="flex justify-end">
                 <button
-                  className="mt-6 cursor-pointer w-full bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-3 text-sm rounded-md"
-                  //   className="bg-gray-300 hover:bg-gray-400 text-gray-800 w-full rounded-md"
                   onClick={() => {
-                    closeModal();
+                    setIsModalOpen(false);
+                    resetForm();
                     setNewCategory(null);
                   }}
+                  className="text-gray-500 cursor-pointer hover:text-gray-700 text-2xl"
+                  disabled={posting}
                 >
-                  Cancel
-                </button>
-                <button
-                  disabled={deleteIsPending}
-                  type="submit"
-                  className="mt-6 cursor-pointer w-full bg-gradient text-white px-4 py-3 text-sm rounded-md"
-                >
-                  {deleteIsPending ? "Please wait..." : "Delete Role"}
+                  ×
                 </button>
               </div>
-            </form>
+
+              <h3 className="text-lg font-semibold mb-6 -mt-7">
+                {newCategory ? `Edit Admin Role` : "Add New Admin Role"}
+              </h3>
+
+              <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-4">
+                      Admin Role Name
+                    </label>
+                    <input
+                      type="text"
+                      name={"title"}
+                      required
+                      value={values.title}
+                      onChange={handleChange}
+                      className="w-full p-4 border  border-[#CCCCCC] outline-none rounded-lg"
+                      placeholder="Enter the admin role name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block  text-sm font-medium text-gray-700 mb-4">
+                      Roles Assigned
+                    </label>
+                    <div className="space-y-4">
+                      {roleOptions.map(({ label, value }) => (
+                        <label
+                          key={value}
+                          className="flex cursor-pointer items-center text-sm text-gray-700"
+                        >
+                          <input
+                            type="checkbox"
+                            value={value}
+                            checked={values.role.includes(value)}
+                            onChange={() => handleCheckboxChange(value)}
+                            className="mr-2"
+                          />
+                          {label}
+                        </label>
+                      ))}{" "}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  disabled={createIsPending || updateIsPending}
+                  type="submit"
+                  className="mt-6 w-full cursor-pointer bg-gradient text-white px-6 py-3 text-sm rounded-md"
+                >
+                  {createIsPending || updateIsPending
+                    ? "Please wait..."
+                    : newCategory
+                    ? "Edit Admin Role"
+                    : "Add Admin Role"}
+                </button>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+
+        {isOpen && (
+          <div
+            className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
+            onClick={() => {
+              closeModal();
+              resetForm();
+              setNewCategory(null);
+            }}
+          >
+            <div
+              className="bg-white rounded-lg p-6 w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-end">
+                <button
+                  onClick={() => {
+                    closeModal();
+                    resetForm();
+                    setNewCategory(null);
+                  }}
+                  className="text-gray-500 cursor-pointer hover:text-gray-700 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+              <h3 className="text-lg font-semibold mb-4 -mt-7">
+                {"Delete Role"}
+              </h3>
+              <form
+                className="mt-6 space-y-4"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  deleteAdminRoleMutate(
+                    {
+                      id: newCategory?.id,
+                    },
+                    {
+                      onSuccess: () => {
+                        closeModal();
+                        setNewCategory(null);
+                      },
+                    }
+                  );
+                }}
+              >
+                <label className="block text-sm font-medium text-gray-700 mb-4">
+                  Are you sure you want to delete {newCategory?.title}
+                </label>
+                <div className="flex w-full justify-end gap-4 mt-6">
+                  <button
+                    className="mt-6 cursor-pointer w-full bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-3 text-sm rounded-md"
+                    //   className="bg-gray-300 hover:bg-gray-400 text-gray-800 w-full rounded-md"
+                    onClick={() => {
+                      closeModal();
+                      setNewCategory(null);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    disabled={deleteIsPending}
+                    type="submit"
+                    className="mt-6 cursor-pointer w-full bg-gradient text-white px-4 py-3 text-sm rounded-md"
+                  >
+                    {deleteIsPending ? "Please wait..." : "Delete Role"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 

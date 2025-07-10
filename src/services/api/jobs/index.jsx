@@ -5,8 +5,16 @@ const getJobs = () => {
   return CaryBinApi.get(`/jobs`);
 };
 
+const getPublicJobs = () => {
+  return CaryBinApi.get(`/jobs/public`);
+};
+
 const createJob = (payload) => {
   return CaryBinApi.post(`/jobs`, payload);
+};
+
+const updateJob = (id, payload) => {
+  return CaryBinApi.patch(`/jobs/${id}`, payload);
 };
 
 const updateJobStatus = (id, payload) => {
@@ -36,7 +44,9 @@ const updateJobCategory = (id, payload) => {
 
 const JobService = {
   getJobs,
+  getPublicJobs,
   createJob,
+  updateJob,
   updateJobStatus,
   deleteJob,
   getJobCategories,

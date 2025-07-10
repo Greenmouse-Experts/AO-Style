@@ -9,7 +9,7 @@ const uploadImage = (payload) => {
 };
 
 const uploadDocument = (payload) => {
-  return CaryBinApi.post(`/multimedia-upload/documents`, payload, {
+  return CaryBinApi.post(`/multimedia-upload/document`, payload, {
     headers: {
       "Content-Type": undefined,
     },

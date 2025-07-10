@@ -23,10 +23,15 @@ const useCreateFAQ = () => {
         return;
       }
 
-      if (Array.isArray(error?.data?.message)) {
-        toastError(error?.data?.message[0]);
+      const message = error?.response?.data?.message || 
+                     error?.response?.data?.error?.message || 
+                     error?.message || 
+                     "Failed to create FAQ";
+      
+      if (Array.isArray(message)) {
+        toastError(message[0]);
       } else {
-        toastError(error?.data?.message || "Failed to create FAQ");
+        toastError(message);
       }
     },
   });

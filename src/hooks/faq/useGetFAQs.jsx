@@ -2,11 +2,11 @@ import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import FAQService from "../../services/api/faq";
 
-function useGetFAQs(page = 1, limit = 10) {
+function useGetFAQs(page = 1, limit = 10, q = "") {
   const { isLoading, isFetching, data, isError, refetch, isPending } = useQuery(
     {
-      queryKey: ["get-faqs", page, limit],
-      queryFn: () => FAQService.getFAQs(page, limit),
+      queryKey: ["get-faqs", page, limit, q],
+      queryFn: () => FAQService.getFAQs(page, limit, q),
       keepPreviousData: true,
     }
   );

@@ -18,7 +18,10 @@ const useCreateJobCategory = () => {
     },
     onError: (error, variables) => {
       console.error("❌ Failed to create job category:", { error, variables });
-      const message = error?.response?.data?.message || "Failed to create job category";
+      const message = error?.response?.data?.message || 
+                     error?.response?.data?.error?.message || 
+                     error?.message || 
+                     "Failed to create job category";
       toastError(message);
     },
   });

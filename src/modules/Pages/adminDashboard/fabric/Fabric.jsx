@@ -8,6 +8,11 @@ import useDebounce from "../../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../../hooks/useUpdatedEffect";
 import { formatDateStr } from "../../../../lib/helper";
 import Loader from "../../../../components/ui/Loader";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import { CSVLink } from "react-csv";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -150,6 +155,51 @@ const CustomersTable = () => {
     getAllFabricRepData?.count / (queryParams["pagination[limit]"] ?? 10)
   );
 
+  const handleExport = (e) => {
+    const value = e.target.value;
+    if (value === "excel") exportToExcel();
+    if (value === "pdf") exportToPDF();
+    if (value === "csv") document.getElementById("csvDownload").click();
+  };
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    autoTable(doc, {
+      head: [
+        ["Name", "Phone Number", "Email Address", "Location", "Date Joined"],
+      ],
+      body: FabricData?.map((row) => [
+        row.name,
+        row.phone,
+        row.email,
+        row.location,
+        row.dateJoined,
+      ]),
+      headStyles: {
+        fillColor: [209, 213, 219],
+        textColor: [0, 0, 0],
+        halign: "center",
+        valign: "middle",
+        fontSize: 10,
+      },
+    });
+    doc.save("vendor(fabric seller).pdf");
+  };
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(FabricData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const blob = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    saveAs(blob, "vendor(fabric seller).xlsx");
+  };
+
   return (
     <div className="bg-white p-6 rounded-xl overflow-x-auto">
       <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
@@ -184,12 +234,32 @@ const CustomersTable = () => {
             }
             className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
           />
-          <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-            Export As ▾
-          </button>
-          <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
+          <select
+            onChange={handleExport}
+            className="bg-gray-100 outline-none text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
+          >
+            <option value="" disabled selected>
+              Export As
+            </option>
+            <option value="csv">Export to CSV</option>{" "}
+            <option value="excel">Export to Excel</option>{" "}
+            <option value="pdf">Export to PDF</option>{" "}
+          </select>
+          <CSVLink
+            id="csvDownload"
+            data={FabricData?.map((row) => ({
+              Name: row.name,
+              "Phone Number": row.phone,
+              "Email Address": row.email,
+              Location: row.location,
+              "Date Joined": row.dateJoined,
+            }))}
+            filename="vendor(fabric seller).csv"
+            className="hidden"
+          />{" "}
+          {/* <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
             Sort: Newest First ▾
-          </button>
+          </button> */}
           <Link to="/admin/fabric/add-fabric-vendor">
             <button className="bg-[#9847FE] cursor-pointer text-white px-4 py-2 text-sm rounded-md">
               + Add a New Vendor

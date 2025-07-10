@@ -17,6 +17,11 @@ import useUpdatedEffect from "../../../../hooks/useUpdatedEffect";
 import useUploadImage from "../../../../hooks/multimedia/useUploadImage";
 import useDeleteMarket from "../../../../hooks/market/useDeleteMarket";
 import useEditMarket from "../../../../hooks/market/useEditMarket";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import { CSVLink } from "react-csv";
 
 const MarketsTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -307,6 +312,49 @@ const MarketsTable = () => {
     data?.count / (queryParams["pagination[limit]"] ?? 10)
   );
 
+  const handleExport = (e) => {
+    const value = e.target.value;
+    if (value === "excel") exportToExcel();
+    if (value === "pdf") exportToPDF();
+    if (value === "csv") document.getElementById("csvDownload").click();
+  };
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    autoTable(doc, {
+      head: [["Market Name", "Market Location", "Date Added"]],
+      body: MarketData?.map((row) => [
+        row.name,
+        row.location,
+        row.dateAdded,
+        // row.location,
+        // row.dateJoined,
+      ]),
+      headStyles: {
+        fillColor: [209, 213, 219],
+        textColor: [0, 0, 0],
+        halign: "center",
+        valign: "middle",
+        fontSize: 10,
+      },
+    });
+    doc.save("Market.pdf");
+  };
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(MarketData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const blob = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    saveAs(blob, "Market.xlsx");
+  };
+
   return (
     <div className="bg-white p-6 rounded-xl overflow-x-auto">
       <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
@@ -347,9 +395,29 @@ const MarketsTable = () => {
             }
             className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
           />
-          <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-            Export As ▾
-          </button>
+          <select
+            onChange={handleExport}
+            className="bg-gray-100 outline-none text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
+          >
+            <option value="" disabled selected>
+              Export As
+            </option>
+            <option value="csv">Export to CSV</option>{" "}
+            <option value="excel">Export to Excel</option>{" "}
+            <option value="pdf">Export to PDF</option>{" "}
+          </select>
+          <CSVLink
+            id="csvDownload"
+            data={MarketData?.map((row) => ({
+              "Market Name": row.name,
+              "Market Location": row.location,
+              "Date Added": row.dateAdded,
+              // Location: row.location,
+              // "Date Joined": row.dateJoined,
+            }))}
+            filename="Market.csv"
+            className="hidden"
+          />{" "}
           <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
             Sort: Newest First ▾
           </button>

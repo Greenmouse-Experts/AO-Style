@@ -271,7 +271,9 @@ const PaymentTransactionTable = () => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const totalPages = Math.ceil(
+    getAllTransactionData?.count / (queryParams["pagination[limit]"] ?? 10)
+  );
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {
@@ -377,43 +379,58 @@ const PaymentTransactionTable = () => {
           rowClassName="border-none text-gray-700 text-sm"
           cellClassName="py-4"
         />
-        <div className="flex justify-between items-center mt-4">
-          <div className="flex items-center gap-4">
-            <p className="text-sm text-gray-600">
-              {indexOfFirstItem + 1}-
-              {indexOfLastItem > filteredData.length
-                ? filteredData.length
-                : indexOfLastItem}{" "}
-              of {filteredData.length} items
-            </p>
-            <select
-              value={itemsPerPage}
-              onChange={handleItemsPerPageChange}
-              className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-auto"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={15}>15</option>
-              <option value={20}>20</option>
-            </select>
-          </div>
-          <div className="flex gap-1">
-            <button
-              onClick={handlePreviousPage}
-              disabled={currentPage === 1}
-              className="px-3 py-1 rounded-md bg-gray-200 text-gray-600 disabled:opacity-50"
-            >
-              ◀
-            </button>
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 rounded-md bg-gray-200 text-gray-600 disabled:opacity-50"
-            >
-              ▶
-            </button>
-          </div>
-        </div>
+
+        {TransactionData?.length > 0 ? (
+          <>
+            <div className="flex justify-between items-center mt-4">
+              <div className="flex items-center">
+                <p className="text-sm text-gray-600">Items per page: </p>
+                <select
+                  value={queryParams["pagination[limit]"] || 10}
+                  onChange={(e) =>
+                    updateQueryParams({
+                      "pagination[limit]": +e.target.value,
+                    })
+                  }
+                  className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={15}>15</option>
+                  <option value={20}>20</option>
+                </select>
+              </div>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => {
+                    updateQueryParams({
+                      "pagination[page]": +queryParams["pagination[page]"] - 1,
+                    });
+                  }}
+                  disabled={(queryParams["pagination[page]"] ?? 1) == 1}
+                  className="px-3 py-1 rounded-md bg-gray-200"
+                >
+                  ◀
+                </button>
+                <button
+                  onClick={() => {
+                    updateQueryParams({
+                      "pagination[page]": +queryParams["pagination[page]"] + 1,
+                    });
+                  }}
+                  disabled={
+                    (queryParams["pagination[page]"] ?? 1) == totalPages
+                  }
+                  className="px-3 py-1 rounded-md bg-gray-200"
+                >
+                  ▶
+                </button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <></>
+        )}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
         <div className="lg:col-span-2 flex flex-col">

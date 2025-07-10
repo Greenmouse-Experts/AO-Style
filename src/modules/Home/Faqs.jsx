@@ -38,8 +38,8 @@ export default function FAQsSectionPage() {
   };
 
   // Get active FAQs from the API response
-  // The API returns: { statusCode: 200, data: [...], count: 1 }
-  // The hook returns the full API response, so we access data.data for the FAQs array
+  // The API returns: { statusCode: 200, data: [...], count: totalCount }
+  // The hook returns the API response data, so we access data.data for the FAQs array
   const faqs = faqsData?.data?.filter(faq => faq.is_active) || [];
   
   // Calculate pagination info

@@ -18,7 +18,10 @@ const useDeleteJobCategory = () => {
     },
     onError: (error, variables) => {
       console.error("❌ Failed to delete job category:", { error, categoryId: variables });
-      const message = error?.response?.data?.message || "Failed to delete job category";
+      const message = error?.response?.data?.message || 
+                     error?.response?.data?.error?.message || 
+                     error?.message || 
+                     "Failed to delete job category";
       toastError(message);
     },
   });

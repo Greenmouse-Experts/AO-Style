@@ -19,6 +19,12 @@ import useGetAdminFabricProduct from "../../../hooks/fabric/useGetAdminFabricPro
 import useUpdateAdminFabric from "../../../hooks/fabric/useUpdateAdminFabric";
 import useDeleteAdminFabric from "../../../hooks/fabric/useDeleteAdminFabric";
 
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import { CSVLink } from "react-csv";
+
 const ProductPage = () => {
   const { data: businessDetails } = useGetBusinessDetails();
   const location = useLocation();
@@ -265,7 +271,7 @@ const ProductPage = () => {
                 >
                   {"Edit Product"}
                 </Link>
-                
+
                 <button
                   onClick={() => {
                     setNewCategory(row);
@@ -290,6 +296,49 @@ const ProductPage = () => {
   const totalPages = Math.ceil(
     updatedData?.count / (queryParams["pagination[limit]"] ?? 10)
   );
+
+  const handleExport = (e) => {
+    const value = e.target.value;
+    if (value === "excel") exportToExcel();
+    if (value === "pdf") exportToPDF();
+    if (value === "csv") document.getElementById("csvDownload").click();
+  };
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(FabricData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const blob = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    saveAs(blob, "MyProducts.xlsx");
+  };
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    autoTable(doc, {
+      head: [["SKU", "Product Name", "Category", "Price", "Qty", "Status"]],
+      body: FabricData?.map((row) => [
+        row.sku,
+        row.name,
+        row.category,
+        row.qty,
+        row.status,
+      ]),
+      headStyles: {
+        fillColor: [209, 213, 219],
+        textColor: [0, 0, 0],
+        halign: "center",
+        valign: "middle",
+        fontSize: 10,
+      },
+    });
+    doc.save("MyProducts.pdf");
+  };
 
   return (
     <>
@@ -374,9 +423,32 @@ const ProductPage = () => {
                 className="pl-10 pr-4 py-2 border border-gray-200 rounded-md outline-none w-full sm:w-64"
               />
             </div>
-            <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
+            {/* <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
               Export As ▾
-            </button>
+            </button> */}
+            <select
+              onChange={handleExport}
+              className="bg-gray-100 outline-none text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
+            >
+              <option value="" disabled selected>
+                Export As
+              </option>
+              <option value="csv">Export to CSV</option>{" "}
+              <option value="excel">Export to Excel</option>{" "}
+              <option value="pdf">Export to PDF</option>{" "}
+            </select>
+            <CSVLink
+              id="csvDownload"
+              data={FabricData?.map((row) => ({
+                SKU: row.sku,
+                "Product Name": row.name,
+                Category: row.category,
+                qty: row.location,
+                Status: row.status,
+              }))}
+              filename="MyProducts.csv"
+              className="hidden"
+            />{" "}
             <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
               Sort: Newest First ▾
             </button>

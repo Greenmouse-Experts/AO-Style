@@ -13,6 +13,7 @@ import {
   UsersIcon,
   ArrowRightIcon,
 } from "@heroicons/react/24/outline";
+import useGetCart from "../../hooks/cart/useGetCart";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,6 +26,13 @@ export default function Navbar() {
   const token = Cookies.get("token");
 
   const currUrl = Cookies.get("currUserUrl");
+
+  const { data: cartData, isPending } = useGetCart();
+
+  const totalQuantity = cartData?.data?.items?.reduce(
+    (total, item) => total + item.quantity,
+    0
+  );
 
   return (
     <nav className="bg-white fixed w-full z-[95] py-3">
@@ -76,7 +84,13 @@ export default function Navbar() {
                 />
               )}
             </div>
-            <ShoppingCartIcon className="h-5 w-5 text-gray-800 cursor-pointer" />
+            <Link to={`/view-cart`} className="transition relative">
+              <ShoppingCartIcon className="h-5 w-5 text-gray-800 cursor-pointer" />
+              <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                {totalQuantity}
+              </span>
+            </Link>
+
             {token && currUrl ? (
               <Link
                 to={`/${currUrl}`}

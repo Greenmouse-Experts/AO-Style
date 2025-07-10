@@ -14,6 +14,11 @@ import useDeleteSubAdmin from "../../../hooks/admin/useDeleteSubAdmin";
 import useSuspendOwner from "../../../hooks/admin/useSuspendOwner";
 import useApproveMarketRep from "../../../hooks/marketRep/useApproveMarketRep";
 import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import { CSVLink } from "react-csv";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -202,6 +207,49 @@ const CustomersTable = () => {
 
   const { data: businessDetails } = useGetBusinessDetails();
 
+  const handleExport = (e) => {
+    const value = e.target.value;
+    if (value === "excel") exportToExcel();
+    if (value === "pdf") exportToPDF();
+    if (value === "csv") document.getElementById("csvDownload").click();
+  };
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    autoTable(doc, {
+      head: [["Name", "Phone Number", "Email Address", "Date Joined"]],
+      body: SubAdminData?.map((row) => [
+        row.name,
+        row.phone,
+        row.email,
+        // row.location,
+        row.dateJoined,
+      ]),
+      headStyles: {
+        fillColor: [209, 213, 219],
+        textColor: [0, 0, 0],
+        halign: "center",
+        valign: "middle",
+        fontSize: 10,
+      },
+    });
+    doc.save("Employees/Admin.pdf");
+  };
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(SubAdminData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const blob = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    saveAs(blob, "Employees/Admin.xlsx");
+  };
+
   return (
     <>
       <div className="bg-white p-6 rounded-xl overflow-x-auto">
@@ -237,9 +285,29 @@ const CustomersTable = () => {
               }
               className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
             />
-            <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-              Export As ▾
-            </button>
+            <select
+              onChange={handleExport}
+              className="bg-gray-100 outline-none text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
+            >
+              <option value="" disabled selected>
+                Export As
+              </option>
+              <option value="csv">Export to CSV</option>{" "}
+              <option value="excel">Export to Excel</option>{" "}
+              <option value="pdf">Export to PDF</option>{" "}
+            </select>
+            <CSVLink
+              id="csvDownload"
+              data={SubAdminData?.map((row) => ({
+                Name: row.name,
+                "Phone Number": row.phone,
+                "Email Address": row.email,
+                // Location: row.location,
+                "Date Joined": row.dateJoined,
+              }))}
+              filename="Employees/Admin.csv"
+              className="hidden"
+            />{" "}
             <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
               Sort: Newest First ▾
             </button>

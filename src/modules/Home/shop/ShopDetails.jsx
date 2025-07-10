@@ -284,7 +284,7 @@ export default function ShopDetails() {
                       {
                         product_id: productVal?.product_id,
                         product_type: "FABRIC",
-                        quantity,
+                        quantity: +quantity,
                       },
                       {
                         onSuccess: () => {

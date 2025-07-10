@@ -86,9 +86,13 @@ export default function Navbar() {
             </div>
             <Link to={`/view-cart`} className="transition relative">
               <ShoppingCartIcon className="h-5 w-5 text-gray-800 cursor-pointer" />
-              <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                {totalQuantity}
-              </span>
+              {totalQuantity > 0 ? (
+                <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                  {totalQuantity}
+                </span>
+              ) : (
+                <></>
+              )}
             </Link>
 
             {token && currUrl ? (

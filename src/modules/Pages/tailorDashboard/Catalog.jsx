@@ -14,6 +14,12 @@ import useGetAdminFabricProduct from "../../../hooks/fabric/useGetAdminFabricPro
 import useUpdateAdminStyle from "../../../hooks/style/useUpdateAdminStyle";
 import useDeleteAdminStyle from "../../../hooks/style/useDeleteAdminStyle";
 
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import { CSVLink } from "react-csv";
+
 export default function StylesTable() {
   const [newCategory, setNewCategory] = useState();
 
@@ -74,7 +80,47 @@ export default function StylesTable() {
     updatedData?.count / (queryParams["pagination[limit]"] ?? 10)
   );
 
-  console.log(updatedData, "updated");
+  const handleExport = (e) => {
+    const value = e.target.value;
+    if (value === "excel") exportToExcel();
+    if (value === "pdf") exportToPDF();
+    if (value === "csv") document.getElementById("csvDownload").click();
+  };
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(updatedData?.data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const blob = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    saveAs(blob, "StylesCatalog.xlsx");
+  };
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    autoTable(doc, {
+      head: [["Style Name", "Price", "Status"]],
+      body: updatedData?.data?.map((row) => [
+        row.name,
+        row.phone,
+        row.email,
+        row.status,
+      ]),
+      headStyles: {
+        fillColor: [209, 213, 219],
+        textColor: [0, 0, 0],
+        halign: "center",
+        valign: "middle",
+        fontSize: 10,
+      },
+    });
+    doc.save("StylesCatalog.pdf");
+  };
 
   return (
     <>
@@ -180,9 +226,31 @@ export default function StylesTable() {
                 }
               />
             </div>
-            <button className="px-4 py-2 bg-gray-200 rounded-md text-sm">
-              Export As ▼
-            </button>
+            <select
+              onChange={handleExport}
+              className="bg-gray-100 outline-none text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
+            >
+              <option value="" disabled selected>
+                Export As
+              </option>
+              <option value="csv">Export to CSV</option>{" "}
+              <option value="excel">Export to Excel</option>{" "}
+              <option value="pdf">Export to PDF</option>{" "}
+            </select>
+            <CSVLink
+              id="csvDownload"
+              data={
+                updatedData?.data
+                  ? updatedData?.data?.map((row) => ({
+                      Style: row.name,
+                      Price: row.phone,
+                      Status: row.status,
+                    }))
+                  : []
+              }
+              filename="StylesCatalog.csv"
+              className="hidden"
+            />{" "}
             <button className="px-4 py-2 bg-gray-200 rounded-md text-sm">
               Sort: Newest ▼
             </button>

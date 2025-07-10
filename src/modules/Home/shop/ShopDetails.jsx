@@ -9,6 +9,7 @@ import useSingleProductGeneral from "../../../hooks/dashboard/useeGetSingleProdu
 import useToast from "../../../hooks/useToast";
 import useAddCart from "../../../hooks/cart/useAddCart";
 import LoaderComponent from "../../../components/BeatLoader";
+import useProductGeneral from "../../../hooks/dashboard/useGetProductGeneral";
 
 const product = {
   name: "Luxury Embellished Lace Fabrics",
@@ -55,6 +56,20 @@ const relatedProducts = [
     image:
       "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214549/AoStyle/image_exywgk.png",
   },
+  {
+    id: 5,
+    name: "Red Ankara Fabric",
+    price: "₦12,000",
+    image:
+      "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214549/AoStyle/image_exywgk.png",
+  },
+  {
+    id: 6,
+    name: "Red Ankara Fabric",
+    price: "₦12,000",
+    image:
+      "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214549/AoStyle/image_exywgk.png",
+  },
 ];
 
 export default function ShopDetails() {
@@ -63,7 +78,26 @@ export default function ShopDetails() {
   const [quantity, setQuantity] = useState(1);
   const ratingStats = [2, 3, 0, 0, 0];
 
-  const incrementQty = () => setQuantity((prev) => prev + 1);
+  const location = useLocation();
+
+  const productInfo = location?.state?.info;
+
+  const { isPending: addCartPending, addCartMutate } = useAddCart();
+
+  const { data: getSingleProductData, isPending: productIsPending } =
+    useSingleProductGeneral("FABRIC", productInfo);
+
+  const productVal = getSingleProductData?.data;
+
+  // useEffect(() => {
+  //   setQuantity(productVal?.minimum_yards);
+  // }, [productVal?.minimum_yards]);
+
+  const incrementQty = () => {
+    setQuantity((prev) =>
+      prev < productVal?.minimum_yards ? prev + 1 : productVal?.minimum_yards
+    );
+  };
   const decrementQty = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -78,17 +112,6 @@ export default function ShopDetails() {
     }, 2500);
   };
 
-  const location = useLocation();
-
-  const productInfo = location?.state?.info;
-
-  const { isPending: addCartPending, addCartMutate } = useAddCart();
-
-  const { data: getSingleProductData, isPending: productIsPending } =
-    useSingleProductGeneral("FABRIC", productInfo);
-
-  const productVal = getSingleProductData?.data;
-
   useEffect(() => {
     if (productVal) {
       setMainImage(productVal?.photos[0]);
@@ -100,6 +123,21 @@ export default function ShopDetails() {
   const { toastError, toastSuccess } = useToast();
   const currentPath = location.pathname + location.search;
   const navigate = useNavigate();
+
+  console.log(productVal?.minimum_yards);
+
+  const { data: getProductPreferenceData, isPending: productGeneralIsPending } =
+    useProductGeneral(
+      {
+        "pagination[limit]": 10,
+        "pagination[page]": 1,
+        category_id: productVal?.product?.category_id,
+        status: "PUBLISHED",
+      },
+      "FABRIC"
+    );
+
+  console.log(getProductPreferenceData, "here");
 
   return (
     <>
@@ -455,22 +493,29 @@ export default function ShopDetails() {
             <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">
               You might also like
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
-              {relatedProducts.map((product) => (
-                <Link key={product.id} className="" to={`/inner-marketplace`}>
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-auto object-cover rounded-md"
-                  />
-                  <h4 className="mt-2 md:mt-4 mb-1 md:mb-3 font-medium text-sm md:text-base">
-                    {product.name}
-                  </h4>
-                  <p className="text-purple-600 text-sm md:text-base">
-                    {product.price} per unit
-                  </p>
-                </Link>
-              ))}
+            <div className="overflow-x-auto">
+              <div className="flex gap-4">
+                {getProductPreferenceData?.data?.map((product) => (
+                  <Link
+                    key={product.id}
+                    to={`/shop-details`}
+                    state={{ info: product?.fabric?.id }}
+                    className="flex-shrink-0 w-48 md:w-64"
+                  >
+                    <img
+                      src={product?.fabric?.photos[0]}
+                      alt={product.name}
+                      className="w-full h-40 object-cover rounded-md"
+                    />
+                    <h4 className="mt-2 font-medium text-sm md:text-base">
+                      {product.name}
+                    </h4>
+                    <p className="text-purple-600 text-sm md:text-base">
+                      {product.price} per unit
+                    </p>
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
         </section>

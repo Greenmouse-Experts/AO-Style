@@ -9,6 +9,7 @@ import Orders from "../modules/Pages/customerDashboard/Orders";
 import OrdersDetails from "../modules/Pages/customerDashboard/OrdersDetails";
 import InboxPage from "../modules/Pages/customerDashboard/Inbox";
 import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
+import ShopStyles from "../modules/Pages/customerDashboard/ShopStyles";
 
 export const customerRoutes = [
   {
@@ -23,6 +24,11 @@ export const customerRoutes = [
         path: "/customer/shop-materials",
         element: <ShopMaterial />,
       },
+      {
+        path: "/customer/shop-styles",
+        element: <ShopStyles />,
+      },
+
       {
         path: "/customer/tailor-hiring",
         element: <HireTailor />,

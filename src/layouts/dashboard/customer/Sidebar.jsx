@@ -75,6 +75,13 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             onClick={handleClick}
           />
           <SidebarItem
+            to="/customer/shop-styles"
+            icon={<FaStore />}
+            text="Shop Styles"
+            onClick={handleClick}
+          />
+
+          <SidebarItem
             to="/customer/orders"
             icon={<FaShoppingCart />}
             text="Orders"

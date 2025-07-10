@@ -21,9 +21,10 @@ const CartPage = () => {
     0
   );
 
-  const totalAmount = cartData?.data?.items?.reduce((total, item) => {
-    return total + item.quantity * item.price_at_time;
-  }, 0);
+  const totalAmount =
+    cartData?.data?.items?.reduce((total, item) => {
+      return total + item.quantity * item.price_at_time;
+    }, 0) ?? 0;
 
   const { isPending: deleteIsPending, deleteCartMutate } = useDeleteCart();
 

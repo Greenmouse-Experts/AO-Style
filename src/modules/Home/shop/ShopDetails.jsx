@@ -76,6 +76,9 @@ export default function ShopDetails() {
   const [mainImage, setMainImage] = useState("");
   const [tab, setTab] = useState("details");
   const [quantity, setQuantity] = useState(1);
+
+  const [selectedColor, setSelectedColor] = useState(null);
+
   const ratingStats = [2, 3, 0, 0, 0];
 
   const location = useLocation();
@@ -92,13 +95,21 @@ export default function ShopDetails() {
   // useEffect(() => {
   //   setQuantity(productVal?.minimum_yards);
   // }, [productVal?.minimum_yards]);
-
   const incrementQty = () => {
+    setQuantity((prev) => prev + 1);
+  };
+
+  const decrementQty = () => {
     setQuantity((prev) =>
-      prev < productVal?.minimum_yards ? prev + 1 : productVal?.minimum_yards
+      prev > productVal?.minimum_yards ? prev - 1 : productVal?.minimum_yards
     );
   };
-  const decrementQty = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+
+  useEffect(() => {
+    if (productVal?.minimum_yards) {
+      setQuantity(+productVal.minimum_yards);
+    }
+  }, [productVal?.minimum_yards]);
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -223,16 +234,20 @@ export default function ShopDetails() {
               {/* Available Colours */}
               <div className="mt-4 md:mt-6">
                 <h3 className="font-medium mb-2 md:mb-4">Available Colours</h3>
-                <div className="flex flex-wrap gap-3 md:space-x-4 mt-2 md:mt-4">
-                  {productVal?.fabric_colors
-                    ?.split(",")
-                    ?.map((color, index) => (
-                      <span
-                        key={index}
-                        className="w-8 h-8 md:w-10 md:h-10 rounded-full cursor-pointer"
-                        style={{ backgroundColor: color }}
-                      ></span>
-                    ))}
+                <div className="flex flex-wrap gap-3 mt-2 md:mt-4">
+                  {productVal?.fabric_colors?.split(",").map((color, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => setSelectedColor(color)}
+                      className={`w-10 h-10 rounded-full border-2 transition duration-200 ${
+                        selectedColor === color
+                          ? "border-purple-600"
+                          : "border-gray-300"
+                      }`}
+                      style={{ backgroundColor: color }}
+                    ></button>
+                  ))}
                 </div>
               </div>
 
@@ -331,7 +346,7 @@ export default function ShopDetails() {
               )}
 
               {/* Social Links */}
-              <div className="flex flex-wrap gap-4 md:space-x-6 text-gray-600 mt-6 md:mt-10 text-sm md:text-base items-center">
+              {/* <div className="flex flex-wrap gap-4 md:space-x-6 text-gray-600 mt-6 md:mt-10 text-sm md:text-base items-center">
                 <a
                   href="#"
                   className="flex items-center space-x-1 md:space-x-2 hover:text-purple-600 transition-colors"
@@ -360,7 +375,7 @@ export default function ShopDetails() {
                   <Instagram size={14} className="md:w-4 md:h-4" />
                   <span>Instagram</span>
                 </a>
-              </div>
+              </div> */}
             </div>
           </div>
 

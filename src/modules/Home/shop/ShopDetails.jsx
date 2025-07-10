@@ -148,7 +148,11 @@ export default function ShopDetails() {
       "FABRIC"
     );
 
-  console.log(getProductPreferenceData, "here");
+  // console.log(getProductPreferenceData?.data, productInfo);
+
+  const filteredData = getProductPreferenceData?.data?.filter(
+    (item) => item.fabric?.id !== productInfo
+  );
 
   return (
     <>
@@ -510,7 +514,7 @@ export default function ShopDetails() {
             </h3>
             <div className="overflow-x-auto">
               <div className="flex gap-4">
-                {getProductPreferenceData?.data?.map((product) => (
+                {filteredData?.map((product) => (
                   <Link
                     key={product.id}
                     to={`/shop-details`}

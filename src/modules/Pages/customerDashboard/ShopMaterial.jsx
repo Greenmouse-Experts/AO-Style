@@ -9,6 +9,8 @@ import useGetTrendingProduct from "../../../hooks/dashboard/useGetTrendingProduc
 
 import { motion } from "framer-motion";
 import LoaderComponent from "../../../components/BeatLoader";
+import useProductGeneral from "../../../hooks/dashboard/useGetProductGeneral";
+import useQueryParams from "../../../hooks/useQueryParams";
 
 const marketplaces = [
   {
@@ -172,6 +174,8 @@ export default function ShopMaterials() {
     [marketPlacePublic]
   );
 
+  console.log(marketPlacePublic);
+
   useEffect(() => {
     const updateItemsPerPage = () => {
       if (window.innerWidth < 640) {
@@ -236,6 +240,24 @@ export default function ShopMaterials() {
     useGetTrendingProduct({});
 
   const trendingProducts = getTrendingData?.data || [];
+
+  const { queryParams, updateQueryParams } = useQueryParams({
+    "pagination[limit]": 10,
+    "pagination[page]": 1,
+  });
+
+  const { data: getProductData, isPending: productIsPending } =
+    useProductGeneral(
+      {
+        ...queryParams,
+        status: "PUBLISHED",
+      },
+      "FABRIC"
+    );
+
+  const totalPages = Math.ceil(
+    getProductData?.count / (queryParams["pagination[limit]"] ?? 10)
+  );
 
   return (
     <>
@@ -302,75 +324,78 @@ export default function ShopMaterials() {
           </div>
 
           {/* Marketplace Carousel */}
-          <div className="relative flex items-center justify-center overflow-hidden">
-            <button
-              className="absolute left-0 p-2 bg-white shadow-md rounded-full z-10"
-              onClick={prevSlide}
-            >
-              <ChevronLeft size={20} />
-            </button>
-
-            <div className="w-full overflow-hidden">
-              <div
-                className="flex space-x-4 transition-transform duration-300 mt-10"
-                style={{
-                  transform: `translateX(-${
-                    (index / marketplaces.length) * 100
-                  }%)`,
-                }}
+          {isPending ? (
+            <></>
+          ) : (
+            <div className="relative flex items-center justify-center overflow-hidden">
+              <button
+                className="absolute left-0 p-2 bg-white shadow-md rounded-full z-10"
+                onClick={prevSlide}
               >
-                {marketPlacePublic?.map((market) => (
-                  <Link
-                    to={`/inner-marketplace`}
-                    state={{ info: market }}
-                    key={market.id}
-                    className="flex-shrink-0 px-2"
-                    style={{ width: `${100 / itemsPerPage}%` }}
-                  >
-                    <img
-                      src={market?.multimedia_url}
-                      alt={market.name}
-                      className="w-20 h-20 sm:w-24 sm:h-24 md:w-48 md:h-48 rounded-full object-cover mx-auto"
-                    />
+                <ChevronLeft size={20} />
+              </button>
 
-                    <h3
-                      className="font-medium mt-6 mb-2 truncate"
-                      style={{
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        width: "100%",
-                        display: "block",
-                      }}
-                      title={market.name}
+              <div className="w-full overflow-hidden ">
+                <div
+                  className="flex space-x-4 transition-transform duration-300 mt-10"
+                  style={{
+                    transform: `translateX(-${
+                      (index / marketPlacePublic.length) * 170
+                    }%)`,
+                  }}
+                >
+                  {marketPlacePublic?.map((market) => (
+                    <Link
+                      to={`/inner-marketplace`}
+                      state={{ info: market }}
+                      key={market.id}
+                      className="flex-shrink-0 px-2"
+                      style={{ width: `${100 / itemsPerPage}%` }}
                     >
-                      {market.name}
-                    </h3>
-                    <p className="text-[#2B21E5] text-sm flex items-center justify-center font-light">
-                      <MapPin size={14} className="mr-1" /> {market.state}
-                    </p>
-                  </Link>
-                ))}
-              </div>
-            </div>
+                      <img
+                        src={market?.multimedia_url}
+                        alt={market.name}
+                        className="w-20 h-20 sm:w-24 sm:h-24 md:w-48 md:h-48 rounded-full object-cover mx-auto"
+                      />
 
-            <button
-              className="absolute right-0 p-2 bg-white shadow-md rounded-full z-10"
-              onClick={nextSlide}
-            >
-              <ChevronRight size={20} />
-            </button>
-          </div>
+                      <h3
+                        className="font-medium mt-6 mb-2 truncate"
+                        style={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          width: "100%",
+                          display: "block",
+                        }}
+                        title={market.name}
+                      >
+                        {market.name}
+                      </h3>
+                      <p className="text-[#2B21E5] text-sm flex items-center justify-center font-light">
+                        <MapPin size={14} className="mr-1" /> {market.state}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                className="absolute right-0 p-2 bg-white shadow-md rounded-full z-10"
+                onClick={nextSlide}
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          )}
 
           {/* Filtered Products */}
-          <h2 className="text-lg font-semibold mt-8 mb-5">Trending Products</h2>
-          {trendingisPending ? (
-            <>
+          {productIsPending ? (
+            <div className="mt-20">
               <LoaderComponent />
-            </>
+            </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {trendingProducts?.map((product, index) => (
+            <div className="grid grid-cols-2 mt-20 mb-5 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {getProductData?.data?.map((product, index) => (
                 <Link to={`/shop-details`} key={product.id}>
                   <motion.div
                     className="text-center"
@@ -398,6 +423,60 @@ export default function ShopMaterials() {
                 </Link>
               ))}
             </div>
+          )}
+
+          {getProductData?.data?.length > 0 ? (
+            <>
+              <div className="flex justify-between px-4 items-center mt-10">
+                <div className="flex items-center">
+                  <p className="text-sm text-gray-600">Items per page: </p>
+                  <select
+                    value={queryParams["pagination[limit]"] || 10}
+                    onChange={(e) =>
+                      updateQueryParams({
+                        "pagination[limit]": +e.target.value,
+                      })
+                    }
+                    className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
+                  >
+                    <option value={5}>5</option>
+                    <option value={10}>10</option>
+                    <option value={15}>15</option>
+                    <option value={20}>20</option>
+                  </select>
+                </div>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => {
+                      updateQueryParams({
+                        "pagination[page]":
+                          +queryParams["pagination[page]"] - 1,
+                      });
+                    }}
+                    disabled={(queryParams["pagination[page]"] ?? 1) == 1}
+                    className="px-3 py-1 rounded-md bg-gray-200"
+                  >
+                    ◀
+                  </button>
+                  <button
+                    onClick={() => {
+                      updateQueryParams({
+                        "pagination[page]":
+                          +queryParams["pagination[page]"] + 1,
+                      });
+                    }}
+                    disabled={
+                      (queryParams["pagination[page]"] ?? 1) == totalPages
+                    }
+                    className="px-3 py-1 rounded-md bg-gray-200"
+                  >
+                    ▶
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <></>
           )}
         </div>
       </div>

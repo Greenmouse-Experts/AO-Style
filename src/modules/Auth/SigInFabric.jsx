@@ -87,7 +87,7 @@ export default function SignInAsCustomer() {
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-full flex overflow-hidden h-screen">
         {/* Left Section - Image & Text */}
-        <div className="hidden md:flex w-1/2 relative h-full">
+        <div className="hidden lg:flex w-1/2 relative h-full">
           <img
             src={step === 1 ? personalImage : businessImage}
             alt="Sign In"
@@ -107,7 +107,7 @@ export default function SignInAsCustomer() {
         </div>
 
         {/* Right Section - Sign In Form */}
-        <div className="w-full md:w-1/2 p-4 sm:p-8 overflow-y-auto">
+        <div className="w-full lg:w-1/2 md:w-1/1 p-4 sm:p-8 overflow-y-auto">
           <div className="max-w-2xl mx-auto">
             <div className="mb-6">
               <Link to="/">
@@ -118,10 +118,10 @@ export default function SignInAsCustomer() {
                 />
               </Link>
             </div>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+            <h2 className="text-2xl font-semibold lg:text-left md:text-center text-gray-800 mb-4">
               Sign Up As A <span className="text-[#2B21E5]">Fabric Vendor</span>
             </h2>
-            <p className="text-gray-500 text-sm mt-1">
+            <p className="text-gray-500 lg:text-left md:text-center text-sm mt-1">
               Fill the form below to create an account instantly
             </p>
 

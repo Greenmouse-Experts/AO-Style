@@ -147,11 +147,10 @@ export default function AnkaraGownPage() {
                   {styleInfo?.style?.photos?.map((image, index) => (
                     <div
                       key={index}
-                      className={`cursor-pointer border-2 ${
-                        selectedImage === index
+                      className={`cursor-pointer border-2 ${selectedImage === index
                           ? "border-purple-500"
                           : "border-gray-200"
-                      }`}
+                        }`}
                       onClick={() => setSelectedImage(index)}
                     >
                       <img
@@ -227,9 +226,9 @@ export default function AnkaraGownPage() {
                   />
                 </div>
               ) : (
-                <div className="flex flex-col md:flex-row gap-8">
+                <div className="flex flex-col md:flex-col lg:flex-row gap-8">
                   {/* Measurement Image */}
-                  <div className="md:w-2/5">
+                  <div className="md:w-full lg:w-2/5">
                     <img
                       src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1744902411/WhatsApp_Image_2025-04-17_at_15.09.49_r3aaap.jpg"
                       alt="Body measurement diagram"
@@ -238,7 +237,7 @@ export default function AnkaraGownPage() {
                   </div>
 
                   {/* Measurement Form */}
-                  <div className="md:w-3/5">
+                  <div className="md:w-full lg:w-3/5">
                     <h2 className="text-xl font-medium max-w-xs text-purple-500 pb-2 border-b-1 border-purple-500 mb-8">
                       Your Measurement
                     </h2>
@@ -255,11 +254,10 @@ export default function AnkaraGownPage() {
                       {tabs.map((tab) => (
                         <button
                           key={tab}
-                          className={`px-8 py-3 font-medium relative ${
-                            selectedTab === tab
+                          className={`px-8 py-3 font-medium relative ${selectedTab === tab
                               ? "text-purple-500"
                               : "text-gray-500"
-                          }`}
+                            }`}
                           onClick={() => setSelectedTab(tab)}
                         >
                           {tab}
@@ -332,8 +330,8 @@ export default function AnkaraGownPage() {
                       {selectedTab === "Upper Body"
                         ? "Proceed to Lower Body"
                         : selectedTab === "Lower Body"
-                        ? "Proceed to Full Body"
-                        : "Submit Measurements"}
+                          ? "Proceed to Full Body"
+                          : "Submit Measurements"}
                     </button>
                   </div>
                 </div>

@@ -85,7 +85,7 @@ export default function SignInAsCustomer() {
   return (
     <div className="flex flex-col md:flex-row h-screen">
       {/* Left Section - Image & Text */}
-      <div className="hidden md:flex w-1/2 h-screen relative">
+      <div className="hidden lg:flex w-1/2 h-screen relative">
         <img
           src={step === 1 ? personalImage : businessImage}
           alt="Sign In"
@@ -104,7 +104,7 @@ export default function SignInAsCustomer() {
       </div>
 
       {/* Right Section - Sign In Form */}
-      <div className="w-full md:w-1/2 h-screen overflow-y-auto p-4 sm:p-8">
+      <div className="w-full lg:w-1/2 md:w-1/1 h-screen overflow-y-auto p-4 sm:p-8">
         <div className="max-w-2xl mx-auto">
           <div className="mb-6">
             <Link to="/">
@@ -116,11 +116,11 @@ export default function SignInAsCustomer() {
             </Link>
           </div>
 
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+          <h2 className="text-2xl font-semibold lg:text-left md:text-center text-gray-800 mb-4">
             Sign Up As A{" "}
             <span className="text-[#2B21E5]">Tailor/Fashion Designer</span>
           </h2>
-          <p className="text-gray-500 text-sm mt-1">
+          <p className="text-gray-500 lg:text-left md:text-center text-sm mt-1">
             Fill the form below to create an account instantly
           </p>
 

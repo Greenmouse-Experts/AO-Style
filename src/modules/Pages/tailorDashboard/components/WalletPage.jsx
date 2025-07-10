@@ -7,7 +7,7 @@ const WalletPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     return (
-        <div className="bg-white p-6 rounded-xl max-w-md mx-auto">
+        <div className="bg-white p-6 rounded-xl lg:max-w-md md:max-w-auto mx-auto">
             {/* Wallet Header */}
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-lg font-semibold">Wallet</h2>

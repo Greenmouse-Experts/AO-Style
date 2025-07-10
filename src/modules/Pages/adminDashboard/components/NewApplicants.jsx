@@ -51,7 +51,7 @@ const NewApplicants = () => {
   console.log(applicantsToShow, "all");
 
   return (
-    <div className="bg-white rounded-lg p-6 w-full max-w-md">
+    <div className="bg-white rounded-lg p-6 w-full lg:max-w-md md:max-w-auto">
       <h2 className="text-lg font-semibold mb-4">New Applicants</h2>
       <div>
         {applicantsToShow?.map((applicant) => (

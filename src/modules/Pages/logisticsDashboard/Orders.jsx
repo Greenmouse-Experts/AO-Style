@@ -125,12 +125,12 @@ const OrderRequests = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full sm:w-64 py-2 px-3 border border-gray-200 rounded-md outline-none text-sm"
                         />
-                        <button className="w-full sm:w-auto bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md">
+                        {/* <button className="w-full sm:w-auto bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md">
                             Export As ▾
                         </button>
                         <button className="w-full sm:w-auto bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md">
                             Sort: Newest First ▾
-                        </button>
+                        </button> */}
                     </div>
                 </div>
 

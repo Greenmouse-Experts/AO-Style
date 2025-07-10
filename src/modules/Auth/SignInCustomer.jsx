@@ -80,7 +80,7 @@ export default function SignInAsCustomer() {
   return (
     <div className="h-screen flex overflow-hidden">
       {/* Left Section - Banner */}
-      <div className="hidden md:flex w-1/2 relative">
+      <div className="hidden lg:flex w-1/2 relative">
         <img
           src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741611518/AoStyle/image_1_m2fv4b.png"
           alt="Sign In"
@@ -100,7 +100,7 @@ export default function SignInAsCustomer() {
       </div>
 
       {/* Right Section - Scrollable Form */}
-      <div className="w-full md:w-1/2 h-full overflow-y-auto p-4 sm:p-8">
+      <div className="w-full lg:w-1/2 md:w-1/1 h-full overflow-y-auto p-4 sm:p-8">
         <div className="max-w-2xl mx-auto">
           <Link to="/">
             <img
@@ -109,10 +109,10 @@ export default function SignInAsCustomer() {
               className="h-20 w-auto mx-auto"
             />
           </Link>
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+          <h2 className="text-2xl lg:text-left md:text-center font-semibold text-gray-800 mb-4">
             Sign Up As A <span className="text-[#2B21E5]">Customer</span>
           </h2>
-          <p className="text-gray-500 text-sm mt-1">
+          <p className="text-gray-500 lg:text-left md:text-center text-sm mt-1">
             Fill the form below to create an account instantly
           </p>
 

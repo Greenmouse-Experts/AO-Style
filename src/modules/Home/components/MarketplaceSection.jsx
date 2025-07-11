@@ -94,6 +94,8 @@ export default function MarketplaceSection() {
     [marketPlacePublic]
   );
 
+  console.log(maxIndex);
+
   const nextSlide = () => {
     setIndex((prev) => (prev < maxIndex ? prev + 1 : 0));
   };
@@ -145,7 +147,7 @@ export default function MarketplaceSection() {
             <div
               className="flex space-x-4 transition-transform duration-300 mt-10"
               style={{
-                transform: `translateX(-${(index * 100) / itemsPerPage}%)`,
+                transform: `translateX(-${index / marketPlacePublic?.length}%)`,
               }}
             >
               {marketPlacePublic?.map((market) => (

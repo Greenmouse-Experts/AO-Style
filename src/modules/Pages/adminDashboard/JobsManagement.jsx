@@ -233,7 +233,7 @@ const JobsManagementPage = () => {
       requirements: job.requirements || "",
       location: job.location || "",
       type: job.type,
-      job_category_id: job.job_category_id || "",
+      job_category_id: job.category?.id || job.job_category_id || "",
     });
     setShowJobEditForm(true);
     setActiveDropdown(null);
@@ -740,7 +740,7 @@ const JobsManagementPage = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+              className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
               onClick={() => setShowJobForm(false)}
             >
               <motion.div
@@ -934,7 +934,7 @@ const JobsManagementPage = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+              className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
               onClick={() => {
                 setShowJobEditForm(false);
                 resetJobForm();
@@ -1051,7 +1051,7 @@ const JobsManagementPage = () => {
                       </select>
                     </div>
 
-                    <div>
+                    {/* <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Application URL
                       </label>
@@ -1063,7 +1063,7 @@ const JobsManagementPage = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         placeholder="https://example.com/apply"
                       />
-                    </div>
+                    </div> */}
                   </div>
 
                   <div>
@@ -1137,7 +1137,7 @@ const JobsManagementPage = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+              className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
               onClick={() => {
                 setShowCategoryForm(false);
                 setEditingCategory(null);
@@ -1256,7 +1256,7 @@ const JobsManagementPage = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+              className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
               onClick={() => setShowJobView(false)}
             >
               <motion.div
@@ -1350,7 +1350,7 @@ const JobsManagementPage = () => {
                         <div>
                           <p className="text-sm text-gray-500">Category</p>
                           <p className="font-medium">
-                            {selectedJob.job_category?.name || "Uncategorized"}
+                            {selectedJob.category?.name || selectedJob.job_category?.name || "Uncategorized"}
                           </p>
                         </div>
                       </div>
@@ -1363,7 +1363,7 @@ const JobsManagementPage = () => {
                         </div>
                       </div>
 
-                      {selectedJob.application_url && (
+                      {/* {selectedJob.application_url && (
                         <div className="flex items-center space-x-3">
                           <FaLink className="text-gray-400" />
                           <div>
@@ -1380,7 +1380,7 @@ const JobsManagementPage = () => {
                             </a>
                           </div>
                         </div>
-                      )}
+                      )} */}
                     </div>
                   </div>
 
@@ -1459,7 +1459,7 @@ const JobsManagementPage = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
               onClick={() => setShowApplicationsView(false)}
             >
               <motion.div

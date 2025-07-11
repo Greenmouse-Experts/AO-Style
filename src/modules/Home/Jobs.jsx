@@ -11,19 +11,29 @@ import {
   X,
   FileText,
   Upload,
+  Calendar,
+  Building,
+  ExternalLink,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import ShippingInfo from "./components/ShippingInfo";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Breadcrumb from "./components/Breadcrumb";
 import useGetPublicJobs from "../../hooks/jobs/useGetPublicJobs";
 import BeatLoader from "../../components/BeatLoader";
 import JobApplicationModal from "./components/JobApplicationModal";
+import { useCarybinUserStore } from "../../store/carybinUserStore";
 
 export default function JobBoard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All Jobs");
   const [selectedJob, setSelectedJob] = useState(null);
   const [showApplicationModal, setShowApplicationModal] = useState(false);
+  const [showJobModal, setShowJobModal] = useState(false);
+
+  // Navigation and authentication
+  const navigate = useNavigate();
+  const { carybinUser } = useCarybinUserStore();
 
   // Fetch jobs from API
   const {
@@ -37,14 +47,51 @@ export default function JobBoard() {
     (job) => job.status === "PUBLISHED"
   );
 
-  // Handle job application
+  // Handle job application with authentication check
   const handleApplyClick = (job) => {
+    // Check if user is logged in
+    if (!carybinUser) {
+      // Redirect to login page if not authenticated
+      navigate('/login');
+      return;
+    }
+    
+    // If authenticated, proceed with application
     setSelectedJob(job);
+    setShowApplicationModal(true);
+  };
+
+  // Handle view job
+  const handleViewJob = (job) => {
+    setSelectedJob(job);
+    setShowJobModal(true);
+  };
+
+  // Handle apply from job modal with authentication check
+  const handleApplyFromModal = () => {
+    // Check if user is logged in
+    if (!carybinUser) {
+      // Close the job modal first, then redirect to login
+      setShowJobModal(false);
+      setSelectedJob(null);
+      navigate('/login');
+      return;
+    }
+    
+    // If authenticated, proceed with application
+    setShowJobModal(false);
     setShowApplicationModal(true);
   };
 
   const handleApplicationClose = () => {
     setShowApplicationModal(false);
+    if (!showJobModal) {
+      setSelectedJob(null);
+    }
+  };
+
+  const handleJobModalClose = () => {
+    setShowJobModal(false);
     setSelectedJob(null);
   };
 
@@ -280,20 +327,27 @@ export default function JobBoard() {
                       </div>
                     </div>
                     
-                    <div className="flex-shrink-0">
+                    <div className="flex-shrink-0 flex flex-col gap-2">
+                      <button
+                        onClick={() => handleViewJob(job)}
+                        className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-[#9847FE] to-[#8036D3] text-white rounded-lg hover:from-[#8036D3] hover:to-[#6B2BB5] transition-all duration-200 font-medium text-sm"
+                      >
+                        View Job
+                      </button>
+                      
                       {job.application_url ? (
                         <a
                           href={job.application_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center px-6 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors font-medium"
+                          className="inline-flex items-center px-4 py-2 border-2 border-[#9847FE] text-[#9847FE] rounded-lg hover:bg-[#9847FE] hover:text-white transition-all duration-200 font-medium text-sm"
                         >
                           Apply Now →
                         </a>
                       ) : (
                         <button
                           onClick={() => handleApplyClick(job)}
-                          className="inline-flex items-center px-6 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors font-medium"
+                          className="inline-flex items-center px-4 py-2 border-2 border-[#9847FE] text-[#9847FE] rounded-lg hover:bg-[#9847FE] hover:text-white transition-all duration-200 font-medium text-sm"
                         >
                           Apply Now →
                         </button>
@@ -315,6 +369,166 @@ export default function JobBoard() {
           onClose={handleApplicationClose}
         />
       )}
+
+      {/* Job View Modal */}
+      <AnimatePresence>
+        {showJobModal && selectedJob && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+            onClick={handleJobModalClose}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="bg-gradient-to-r from-[#9847FE] to-[#8036D3] p-6 text-white flex-shrink-0">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1 pr-4">
+                    <h2 className="text-2xl font-bold mb-3">{selectedJob.title}</h2>
+                    <div className="flex flex-wrap gap-4 text-white/90">
+                      {selectedJob.location && (
+                        <div className="flex items-center gap-1">
+                          <MapPin className="h-4 w-4" />
+                          <span className="text-sm">{selectedJob.location}</span>
+                        </div>
+                      )}
+                      {selectedJob.type && (
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          <span className="text-sm">{selectedJob.type}</span>
+                        </div>
+                      )}
+                      {selectedJob.category && (
+                        <div className="flex items-center gap-1">
+                          <Briefcase className="h-4 w-4" />
+                          <span className="text-sm">{selectedJob.category.name}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleJobModalClose}
+                    className="p-2 hover:bg-white/20 rounded-lg transition-colors flex-shrink-0"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="p-6 space-y-6">
+                {/* Job Details Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Calendar className="h-4 w-4 text-gray-600" />
+                      <span className="text-sm font-medium text-gray-600">Posted Date</span>
+                    </div>
+                    <p className="text-gray-900 font-semibold">
+                      {new Date(selectedJob.created_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Building className="h-4 w-4 text-gray-600" />
+                      <span className="text-sm font-medium text-gray-600">Status</span>
+                    </div>
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700">
+                      {selectedJob.status}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Job Description */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-[#9847FE]" />
+                    Job Description
+                  </h3>
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      {selectedJob.description}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Requirements */}
+                {selectedJob.requirements && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <Users className="h-5 w-5 text-[#9847FE]" />
+                      Requirements
+                    </h3>
+                    <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-100 rounded-xl p-4">
+                      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                        {selectedJob.requirements}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* External Application Link */}
+                {selectedJob.application_url && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <ExternalLink className="h-4 w-4 text-amber-600" />
+                      <span className="text-sm font-medium text-amber-800">External Application</span>
+                    </div>
+                    <p className="text-amber-700 text-sm mb-3">
+                      This position requires applying through an external website.
+                    </p>
+                    <a
+                      href={selectedJob.application_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm font-medium"
+                    >
+                      Apply Externally
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  </div>
+                )}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="border-t border-gray-200 p-6 bg-gray-50 flex-shrink-0">
+                <div className="flex flex-col sm:flex-row gap-3 justify-end">
+                  <button
+                    onClick={handleJobModalClose}
+                    className="px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  >
+                    Close
+                  </button>
+                  {!selectedJob.application_url && (
+                    <button
+                      onClick={handleApplyFromModal}
+                      className="px-6 py-3 bg-gradient-to-r from-[#9847FE] to-[#8036D3] text-white rounded-lg hover:from-[#8036D3] hover:to-[#6B2BB5] transition-all duration-200 font-medium flex items-center gap-2"
+                    >
+                      Apply for this Job
+                      <ArrowUpRight className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <ShippingInfo />
     </>

@@ -9,6 +9,7 @@ import TransactionPage from "../modules/Pages/tailorDashboard/TransactionPage";
 import Settings from "../modules/Pages/tailorDashboard/Settings";
 import InboxPage from "../modules/Pages/tailorDashboard/Inbox";
 import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
+import Coupons from "../modules/Pages/Coupons";
 
 export const tailorRoute = [
   {
@@ -27,6 +28,11 @@ export const tailorRoute = [
         path: "/tailor/catalog-add-style",
         element: <AddStyle />,
       },
+      {
+        path: "/tailor/coupons",
+        element: <Coupons />,
+      },
+
       {
         path: "/tailor/catalog-edit-style",
         element: <AddStyle />,

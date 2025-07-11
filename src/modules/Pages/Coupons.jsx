@@ -26,6 +26,7 @@ import Select from "react-select";
 import useCreateCoupon from "../../hooks/coupon/useCreateCoupon";
 import useGetBusinessDetails from "../../hooks/settings/useGetBusinessDetails";
 import useGetCoupon from "../../hooks/coupon/useGetCoupon";
+import useToast from "../../hooks/useToast";
 
 const Coupons = () => {
   const dropdownRef = useRef(null);
@@ -56,6 +57,8 @@ const Coupons = () => {
 
   const { isPending: deleteIsPending, deleteProductMutate } =
     useDeleteProduct();
+
+  const { toastError } = useToast();
 
   const {
     handleSubmit,
@@ -97,10 +100,16 @@ const Coupons = () => {
     "pagination[page]": 1,
   });
 
-  const { data, isPending } = useGetCoupon({
+  const { data, isPending, error } = useGetCoupon({
     ...queryParams,
     business_id: businessDetails?.data?.id,
   });
+
+  useEffect(() => {
+    if (error?.data?.message) {
+      toastError(error?.data?.message);
+    }
+  }, [error?.data?.message]);
 
   const [queryString, setQueryString] = useState(queryParams.q);
 

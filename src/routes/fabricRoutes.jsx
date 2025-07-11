@@ -10,6 +10,7 @@ import TransactionPage from "../modules/Pages/fabricDashboard/TransactionPage";
 import Settings from "../modules/Pages/fabricDashboard/Settings";
 import InboxPage from "../modules/Pages/fabricDashboard/Inbox";
 import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
+import Coupons from "../modules/Pages/Coupons";
 
 export const fabricRoutes = [
   {
@@ -23,6 +24,10 @@ export const fabricRoutes = [
       {
         path: "/fabric/products",
         element: <MyProducts />,
+      },
+      {
+        path: "/fabric/coupons",
+        element: <Coupons />,
       },
       {
         path: "/fabric/product/add-product",

@@ -83,7 +83,7 @@ const CartPage = () => {
   return (
     <>
       <Breadcrumb
-        title="Cart Page"
+        title="Cart"
         subtitle="Cart"
         backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1744104104/AoStyle/image_1_xxie9w.jpg"
       />
@@ -129,7 +129,9 @@ const CartPage = () => {
                       </div>
                     </>
                   ) : (
-                    <div className="text-gray-400 italic">-</div>
+                    <div className="text-gray-400 italic">
+                      Tailor Not Needed?
+                    </div>
                   )}
                 </div>
 
@@ -151,7 +153,10 @@ const CartPage = () => {
                       </div>
                     </>
                   ) : (
-                    <div className="text-gray-400 italic">-</div>
+                    <div className="text-gray-400 italic">
+                      {" "}
+                      Fabric Not Needed?
+                    </div>
                   )}
                 </div>
 

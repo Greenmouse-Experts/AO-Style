@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import MDEditor from "@uiw/react-md-editor";
+import "@uiw/react-md-editor/markdown-editor.css";
 import {
   FaPlus,
   FaTrash,
@@ -63,6 +65,7 @@ const JobsManagementPage = () => {
     location: "",
     type: "Full-time",
     job_category_id: "",
+    application_url: "",
   });
   const [categoryFormData, setCategoryFormData] = useState({
     name: "",
@@ -141,6 +144,21 @@ const JobsManagementPage = () => {
     }
   };
 
+  // Handler for rich text editor changes
+  const handleDescriptionChange = (content) => {
+    setJobFormData((prev) => ({
+      ...prev,
+      description: content,
+    }));
+  };
+
+  const handleRequirementsChange = (content) => {
+    setJobFormData((prev) => ({
+      ...prev,
+      requirements: content,
+    }));
+  };
+
   const handleCategoryFormChange = (e) => {
     const { name, value } = e.target;
     setCategoryFormData((prev) => ({
@@ -158,7 +176,9 @@ const JobsManagementPage = () => {
       return;
     }
     
-    if (!jobFormData.description.trim()) {
+    // Check if description has content (remove HTML tags for validation)
+    const descriptionText = jobFormData.description.replace(/<[^>]*>/g, '').trim();
+    if (!descriptionText) {
       toastError("Job description is required");
       return;
     }
@@ -169,8 +189,8 @@ const JobsManagementPage = () => {
       job_category_id: jobFormData.job_category_id || null, // Send null if no category selected
       // Ensure all text fields are trimmed
       title: jobFormData.title.trim(),
-      description: jobFormData.description.trim(),
-      requirements: jobFormData.requirements.trim(),
+      description: jobFormData.description, // Keep HTML formatting
+      requirements: jobFormData.requirements, // Keep HTML formatting
       location: jobFormData.location.trim(),
     };
     
@@ -234,6 +254,7 @@ const JobsManagementPage = () => {
       location: job.location || "",
       type: job.type,
       job_category_id: job.category?.id || job.job_category_id || "",
+      application_url: job.application_url || "",
     });
     setShowJobEditForm(true);
     setActiveDropdown(null);
@@ -279,7 +300,9 @@ const JobsManagementPage = () => {
       return;
     }
     
-    if (!jobFormData.description.trim()) {
+    // Check if description has content (remove HTML tags for validation)
+    const descriptionText = jobFormData.description.replace(/<[^>]*>/g, '').trim();
+    if (!descriptionText) {
       toastError("Job description is required");
       return;
     }
@@ -290,8 +313,8 @@ const JobsManagementPage = () => {
       job_category_id: jobFormData.job_category_id || null,
       // Ensure all text fields are trimmed
       title: jobFormData.title.trim(),
-      description: jobFormData.description.trim(),
-      requirements: jobFormData.requirements.trim(),
+      description: jobFormData.description, // Keep HTML formatting
+      requirements: jobFormData.requirements, // Keep HTML formatting
       location: jobFormData.location.trim(),
     };
     
@@ -377,6 +400,7 @@ const JobsManagementPage = () => {
       location: "",
       type: "Full-time",
       job_category_id: "",
+      application_url: "",
     });
     setEditingJob(null);
   };
@@ -850,34 +874,23 @@ const JobsManagementPage = () => {
                         ))}
                       </select>
                     </div>
-
-                    {/* <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Application URL
-                      </label>
-                      <input
-                        type="url"
-                        name="application_url"
-                        value={jobFormData.application_url}
-                        onChange={handleJobFormChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="https://example.com/apply"
-                      />
-                    </div> */}
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Job Description *
                     </label>
-                    <textarea
-                      name="description"
+                    <MDEditor
                       value={jobFormData.description}
-                      onChange={handleJobFormChange}
-                      required
-                      rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Describe the job role, responsibilities, and what you're looking for..."
+                      onChange={handleDescriptionChange}
+                      preview="edit"
+                      hideToolbar={false}
+                      visibleDragBar={false}
+                      data-color-mode="light"
+                      style={{
+                        minHeight: '150px',
+                        marginBottom: '20px'
+                      }}
                     />
                   </div>
 
@@ -885,13 +898,17 @@ const JobsManagementPage = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Requirements
                     </label>
-                    <textarea
-                      name="requirements"
+                    <MDEditor
                       value={jobFormData.requirements}
-                      onChange={handleJobFormChange}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="List the requirements, skills, and qualifications needed..."
+                      onChange={handleRequirementsChange}
+                      preview="edit"
+                      hideToolbar={false}
+                      visibleDragBar={false}
+                      data-color-mode="light"
+                      style={{
+                        minHeight: '120px',
+                        marginBottom: '20px'
+                      }}
                     />
                   </div>
 
@@ -1070,14 +1087,17 @@ const JobsManagementPage = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Job Description *
                     </label>
-                    <textarea
-                      name="description"
+                    <MDEditor
                       value={jobFormData.description}
-                      onChange={handleJobFormChange}
-                      required
-                      rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Describe the job role, responsibilities, and what you're looking for..."
+                      onChange={handleDescriptionChange}
+                      preview="edit"
+                      hideToolbar={false}
+                      visibleDragBar={false}
+                      data-color-mode="light"
+                      style={{
+                        minHeight: '150px',
+                        marginBottom: '20px'
+                      }}
                     />
                   </div>
 
@@ -1085,13 +1105,17 @@ const JobsManagementPage = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Requirements
                     </label>
-                    <textarea
-                      name="requirements"
+                    <MDEditor
                       value={jobFormData.requirements}
-                      onChange={handleJobFormChange}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="List the requirements, skills, and qualifications needed..."
+                      onChange={handleRequirementsChange}
+                      preview="edit"
+                      hideToolbar={false}
+                      visibleDragBar={false}
+                      data-color-mode="light"
+                      style={{
+                        minHeight: '120px',
+                        marginBottom: '20px'
+                      }}
                     />
                   </div>
 
@@ -1390,9 +1414,10 @@ const JobsManagementPage = () => {
                       Job Description
                     </h3>
                     <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-                        {selectedJob.description}
-                      </p>
+                      <div 
+                        className="text-gray-700 leading-relaxed prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ __html: selectedJob.description }}
+                      />
                     </div>
                   </div>
 
@@ -1404,9 +1429,10 @@ const JobsManagementPage = () => {
                         <span>Requirements</span>
                       </h3>
                       <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-100 rounded-lg p-4">
-                        <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-                          {selectedJob.requirements}
-                        </p>
+                        <div 
+                          className="text-gray-700 leading-relaxed prose prose-sm max-w-none"
+                          dangerouslySetInnerHTML={{ __html: selectedJob.requirements }}
+                        />
                       </div>
                     </div>
                   )}

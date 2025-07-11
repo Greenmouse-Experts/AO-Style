@@ -10,7 +10,7 @@ import ExpensesChart from "./components/ExpensesChart";
 export default function CustomerDashboard() {
     return (
         <>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-4 md:grid-cols-1 gap-6">
                 <div className="md:col-span-3">
                     <HeaderCard />
                     <StatsCard />
@@ -36,7 +36,7 @@ export default function CustomerDashboard() {
                 <OrdersTable />
             </div>
             {/* New Section for Orders & Insights */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+            <div className="grid grid-cols-1 lg:md:grid-cols-3 md:grid-cols-1 gap-6 mt-6">
                 <NotificationsCard />
                 <UpcomingDelivery />
                 <ExpensesChart />

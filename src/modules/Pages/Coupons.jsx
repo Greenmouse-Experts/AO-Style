@@ -27,6 +27,8 @@ import useCreateCoupon from "../../hooks/coupon/useCreateCoupon";
 import useGetBusinessDetails from "../../hooks/settings/useGetBusinessDetails";
 import useGetCoupon from "../../hooks/coupon/useGetCoupon";
 import useToast from "../../hooks/useToast";
+import useDeleteCoupon from "../../hooks/coupon/useDeleteCoupon";
+import useEditCoupon from "../../hooks/coupon/useEditCoupon";
 
 const Coupons = () => {
   const dropdownRef = useRef(null);
@@ -37,14 +39,14 @@ const Coupons = () => {
   const [type, setType] = useState("Add");
 
   const initialValues = {
-    code: "",
-    type: "",
-    value: "",
-    start_date: "",
-    end_date: "",
-    usage_limit: "",
-    user_limit: "",
-    min_purchase: "",
+    code: newCategory?.code ?? "",
+    type: newCategory?.type ?? "",
+    value: newCategory?.value ?? "",
+    start_date: newCategory?.start_date ?? "",
+    end_date: newCategory?.end_date ?? "",
+    usage_limit: newCategory?.usage_limit ?? "",
+    user_limit: newCategory?.user_limit ?? "",
+    min_purchase: newCategory?.min_purchase ?? "",
   };
 
   const { data: businessDetails } = useGetBusinessDetails();
@@ -53,10 +55,9 @@ const Coupons = () => {
 
   const { isPending: createIsPending, createCouponMutate } = useCreateCoupon();
 
-  const { isPending: editIsPending, editProductMutate } = useEditProduct();
+  const { isPending: editIsPending, editCouponMutate } = useEditCoupon();
 
-  const { isPending: deleteIsPending, deleteProductMutate } =
-    useDeleteProduct();
+  const { isPending: deleteIsPending, deleteCouponMutate } = useDeleteCoupon();
 
   const { toastError } = useToast();
 
@@ -75,12 +76,45 @@ const Coupons = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      console.log(newCategory);
+      console.log(type);
+      if (type == "Remove") {
+        return deleteCouponMutate(
+          { ...val, id: newCategory?.id },
+          {
+            onSuccess: () => {
+              setIsAddModalOpen(false);
+              setNewCategory(null);
+            },
+          }
+        );
+      }
+
+      if (type == "Edit") {
+        return editCouponMutate(
+          {
+            ...val,
+            value: +val?.value,
+            id: newCategory?.id,
+            business_id: businessDetails?.data?.id,
+          },
+          {
+            onSuccess: () => {
+              setIsAddModalOpen(false);
+              setNewCategory(null);
+              resetForm();
+            },
+          }
+        );
+      }
+
       createCouponMutate(
         { ...val, business_id: businessDetails?.data?.id },
         {
           onSuccess: () => {
             setIsAddModalOpen(false);
             setNewCategory(null);
+            resetForm();
           },
         }
       );
@@ -100,10 +134,12 @@ const Coupons = () => {
     "pagination[page]": 1,
   });
 
-  const { data, isPending, error } = useGetCoupon({
+  const { data, isPending, error, isError } = useGetCoupon({
     ...queryParams,
     business_id: businessDetails?.data?.id,
   });
+
+  console.log(isError);
 
   useEffect(() => {
     if (error?.data?.message) {
@@ -178,9 +214,6 @@ const Coupons = () => {
 
             {openDropdown === row.id && (
               <div className="absolute right-0 top-full mt-2 w-40 bg-white rounded-md z-50 shadow-lg">
-                <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
-                  View Coupon
-                </button>
                 <button
                   onClick={() => {
                     setIsAddModalOpen(true);
@@ -190,7 +223,7 @@ const Coupons = () => {
                   }}
                   className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
                 >
-                  Edit Coupon
+                  View/Edit Coupon
                 </button>
                 <button
                   onClick={() => {
@@ -201,7 +234,7 @@ const Coupons = () => {
                   }}
                   className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full"
                 >
-                  Remove Coupon
+                  Delete Coupon
                 </button>
               </div>
             )}
@@ -325,12 +358,16 @@ const Coupons = () => {
           <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
             Sort: Newest First ▾
           </button>
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="bg-gradient cursor-pointer text-white px-4 py-2 text-sm rounded-md"
-          >
-            + Add Coupons
-          </button>
+          {!isError && !isPending ? (
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="bg-gradient cursor-pointer text-white px-4 py-2 text-sm rounded-md"
+            >
+              + Add Coupons
+            </button>
+          ) : (
+            <></>
+          )}
         </div>
       </div>
 
@@ -341,6 +378,14 @@ const Coupons = () => {
             columns={columns}
             data={fabricData}
           />
+
+          {!fabricData?.length && !isPending ? (
+            <p className="flex-1 text-center text-sm md:text-sm">
+              No coupon found.
+            </p>
+          ) : (
+            <></>
+          )}
         </>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -495,7 +540,7 @@ const Coupons = () => {
               <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
                 {type == "Remove" ? (
                   <label className="block text-sm font-medium text-gray-700 mb-4">
-                    Are you sure you want to delete {newCategory?.name}
+                    Are you sure you want to delete {newCategory?.code}
                   </label>
                 ) : (
                   <div className="space-y-4">
@@ -581,7 +626,7 @@ const Coupons = () => {
                         type="date"
                         name="start_date"
                         required
-                        value={values.start_date}
+                        value={values.start_date?.split(" ")[0]}
                         onChange={handleChange}
                         className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                       />
@@ -595,7 +640,7 @@ const Coupons = () => {
                         type="date"
                         name="end_date"
                         required
-                        value={values.end_date}
+                        value={values.end_date?.split(" ")[0]}
                         onChange={handleChange}
                         className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                       />

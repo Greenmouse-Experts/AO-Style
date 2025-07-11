@@ -27,16 +27,8 @@ const getAdminFabricProduct = (params) => {
   });
 };
 
-const updateFabricProduct = (payload) => {
-  return CaryBinApi.patch(`/fabric/${payload.id}`, payload, {
-    headers: {
-      "Business-id": payload.business_id,
-    },
-  });
-};
-
-const updateAdminFabricProduct = (payload) => {
-  return CaryBinApi.patch(`/manage-fabric/${payload.id}`, payload, {
+const updateCouponProduct = (payload) => {
+  return CaryBinApi.patch(`/coupon-management/${payload.id}`, payload, {
     headers: {
       "Business-id": payload.business_id,
     },
@@ -52,11 +44,8 @@ const deleteFabricProduct = (payload) => {
   });
 };
 
-const deleteAdminFabricProduct = (payload) => {
-  return CaryBinApi.delete(`/manage-fabric/${payload.id}`, {
-    headers: {
-      "Business-id": payload.business_id,
-    },
+const deleteCoupon = (payload) => {
+  return CaryBinApi.delete(`/coupon-management/${payload.id}`, {
     data: payload,
   });
 };
@@ -64,6 +53,8 @@ const deleteAdminFabricProduct = (payload) => {
 const CouponService = {
   createCoupon,
   getAllCoupon,
+  deleteCoupon,
+  updateCouponProduct,
 };
 
 export default CouponService;

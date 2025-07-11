@@ -11,6 +11,8 @@ import { motion } from "framer-motion";
 import LoaderComponent from "../../../components/BeatLoader";
 import useProductGeneral from "../../../hooks/dashboard/useGetProductGeneral";
 import useQueryParams from "../../../hooks/useQueryParams";
+import Slider from "react-slick";
+import { settings } from "../../Home/components/MarketplaceSection";
 
 const marketplaces = [
   {
@@ -327,64 +329,32 @@ export default function ShopMaterials() {
           {isPending ? (
             <></>
           ) : (
-            <div className="relative flex items-center justify-center overflow-hidden">
-              <button
-                className="absolute left-0 p-2 bg-white shadow-md rounded-full z-10"
-                onClick={prevSlide}
-              >
-                <ChevronLeft size={20} />
-              </button>
-
-              <div className="w-full overflow-hidden ">
-                <div
-                  className="flex space-x-4 transition-transform duration-300 mt-10"
-                  style={{
-                    transform: `translateX(-${
-                      (index / marketPlacePublic.length) * 170
-                    }%)`,
-                  }}
-                >
-                  {marketPlacePublic?.map((market) => (
-                    <Link
-                      to={`/inner-marketplace`}
-                      state={{ info: market }}
-                      key={market.id}
-                      className="flex-shrink-0 px-2"
-                      style={{ width: `${100 / itemsPerPage}%` }}
+            <div className="relative w-full  mt-10 items-center">
+              <Slider {...settings}>
+                {marketPlacePublic?.map((market) => (
+                  <Link
+                    to={`/inner-marketplace`}
+                    state={{ info: market }}
+                    key={market.id}
+                    className="px-2 text-center"
+                  >
+                    <img
+                      src={market?.multimedia_url}
+                      alt={market.name}
+                      className="w-20 h-20 sm:w-24 sm:h-24 md:w-48 md:h-48 rounded-full object-cover mx-auto"
+                    />
+                    <h3
+                      className="font-medium mt-6 mb-2 truncate"
+                      title={market.name}
                     >
-                      <img
-                        src={market?.multimedia_url}
-                        alt={market.name}
-                        className="w-20 h-20 sm:w-24 sm:h-24 md:w-48 md:h-48 rounded-full object-cover mx-auto"
-                      />
-
-                      <h3
-                        className="font-medium mt-6 mb-2 truncate"
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          width: "100%",
-                          display: "block",
-                        }}
-                        title={market.name}
-                      >
-                        {market.name}
-                      </h3>
-                      <p className="text-[#2B21E5] text-sm flex items-center justify-center font-light">
-                        <MapPin size={14} className="mr-1" /> {market.state}
-                      </p>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                className="absolute right-0 p-2 bg-white shadow-md rounded-full z-10"
-                onClick={nextSlide}
-              >
-                <ChevronRight size={20} />
-              </button>
+                      {market.name}
+                    </h3>
+                    <p className="text-[#2B21E5] text-sm flex items-center justify-center font-light">
+                      <MapPin size={14} className="mr-1" /> {market.state}
+                    </p>
+                  </Link>
+                ))}
+              </Slider>
             </div>
           )}
 

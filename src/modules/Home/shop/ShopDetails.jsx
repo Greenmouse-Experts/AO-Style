@@ -509,9 +509,13 @@ export default function ShopDetails() {
 
           {/* Related Products */}
           <div className="mt-8 md:mt-12">
-            <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">
-              You might also like
-            </h3>
+            {filteredData?.length ? (
+              <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">
+                You might also like
+              </h3>
+            ) : (
+              <></>
+            )}
             <div className="overflow-x-auto">
               <div className="flex gap-4">
                 {filteredData?.map((product) => (

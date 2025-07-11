@@ -278,30 +278,31 @@ const CartPage = () => {
               <button
                 disabled={cartIsPending}
                 onClick={() => {
-                  const updatedCart = cartData?.data?.items?.map((item) => {
-                    return {
-                      purchase_id: item?.product_id,
-                      quantity: item?.quantity,
-                      purchase_type: item?.product_type,
-                    };
-                  });
+                  setShowCheckoutModal(true);
+                  // const updatedCart = cartData?.data?.items?.map((item) => {
+                  //   return {
+                  //     purchase_id: item?.product_id,
+                  //     quantity: item?.quantity,
+                  //     purchase_type: item?.product_type,
+                  //   };
+                  // });
 
-                  createPaymentMutate(
-                    {
-                      purchases: updatedCart,
-                      amount: totalAmount,
-                      currency: "NGN",
-                      email: carybinUser?.email,
-                    },
-                    {
-                      onSuccess: (data) => {
-                        payWithPaystack({
-                          amount: totalAmount,
-                          payment_id: data?.data?.data?.payment_id,
-                        });
-                      },
-                    }
-                  );
+                  // createPaymentMutate(
+                  //   {
+                  //     purchases: updatedCart,
+                  //     amount: totalAmount,
+                  //     currency: "NGN",
+                  //     email: carybinUser?.email,
+                  //   },
+                  //   {
+                  //     onSuccess: (data) => {
+                  //       payWithPaystack({
+                  //         amount: totalAmount,
+                  //         payment_id: data?.data?.data?.payment_id,
+                  //       });
+                  //     },
+                  //   }
+                  // );
                   // console.log({
                   //   purchases: updatedCart,
                   //   amount: totalAmount + Math.round(totalAmount * 0.075),
@@ -364,7 +365,7 @@ const CartPage = () => {
                         type="text"
                         placeholder="Enter contact name"
                         className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
-                        required
+                        // required
                       />
                     </label>
                   </div>
@@ -375,7 +376,7 @@ const CartPage = () => {
                         type="email"
                         placeholder="Enter contact email"
                         className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
-                        required
+                        // required
                       />
                     </label>
                   </div>
@@ -396,7 +397,7 @@ const CartPage = () => {
                           type="tel"
                           placeholder="Enter phone number"
                           className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
-                          required
+                          // required
                         />
                       </label>
                     </div>
@@ -440,7 +441,7 @@ const CartPage = () => {
                         type="text"
                         placeholder="Enter your delivery address"
                         className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
-                        required
+                        // required
                       />
                     </label>
                   </div>
@@ -451,7 +452,7 @@ const CartPage = () => {
                         type="text"
                         placeholder="Enter your nearest bustop"
                         className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
-                        required
+                        // required
                       />
                     </label>
                   </div>
@@ -463,7 +464,7 @@ const CartPage = () => {
                     <div className="flex justify-between text-sm text-gray-700 mt-2">
                       <span>Estimated sales VAT (7.5)</span>
                       <span>
-                        NGN {Math.round(total * 0.075).toLocaleString()}
+                        NGN {Math.round(totalAmount * 0.075).toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm text-gray-700 mt-2">
@@ -473,12 +474,40 @@ const CartPage = () => {
                     <div className="flex justify-between text-lg font-medium text-gray-700 mt-2">
                       <span>TOTAL</span>
                       <span>
-                        NGN{" "}
-                        {(total + Math.round(total * 0.075)).toLocaleString()}
+                        NGN ₦
+                        {(
+                          totalAmount + Math.round(totalAmount * 0.075)
+                        ).toLocaleString()}
                       </span>
                     </div>
                   </div>
                   <button
+                    onClick={() => {
+                      const updatedCart = cartData?.data?.items?.map((item) => {
+                        return {
+                          purchase_id: item?.product_id,
+                          quantity: item?.quantity,
+                          purchase_type: item?.product_type,
+                        };
+                      });
+
+                      createPaymentMutate(
+                        {
+                          purchases: updatedCart,
+                          amount: totalAmount,
+                          currency: "NGN",
+                          email: carybinUser?.email,
+                        },
+                        {
+                          onSuccess: (data) => {
+                            payWithPaystack({
+                              amount: totalAmount,
+                              payment_id: data?.data?.data?.payment_id,
+                            });
+                          },
+                        }
+                      );
+                    }}
                     type="submit"
                     className="w-full mt-6 py-3 bg-gradient text-white hover:from-purple-600 hover:to-pink-600 transition"
                   >

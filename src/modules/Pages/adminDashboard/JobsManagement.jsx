@@ -63,7 +63,6 @@ const JobsManagementPage = () => {
     location: "",
     type: "Full-time",
     job_category_id: "",
-    application_url: "",
   });
   const [categoryFormData, setCategoryFormData] = useState({
     name: "",
@@ -168,7 +167,6 @@ const JobsManagementPage = () => {
     const payload = {
       ...jobFormData,
       job_category_id: jobFormData.job_category_id || null, // Send null if no category selected
-      application_url: jobFormData.application_url || "", // Send empty string if not provided
       // Ensure all text fields are trimmed
       title: jobFormData.title.trim(),
       description: jobFormData.description.trim(),
@@ -236,7 +234,6 @@ const JobsManagementPage = () => {
       location: job.location || "",
       type: job.type,
       job_category_id: job.job_category_id || "",
-      application_url: job.application_url || "",
     });
     setShowJobEditForm(true);
     setActiveDropdown(null);
@@ -291,7 +288,6 @@ const JobsManagementPage = () => {
     const payload = {
       ...jobFormData,
       job_category_id: jobFormData.job_category_id || null,
-      application_url: jobFormData.application_url || "", // Send empty string if not provided
       // Ensure all text fields are trimmed
       title: jobFormData.title.trim(),
       description: jobFormData.description.trim(),
@@ -381,7 +377,6 @@ const JobsManagementPage = () => {
       location: "",
       type: "Full-time",
       job_category_id: "",
-      application_url: "",
     });
     setEditingJob(null);
   };
@@ -856,7 +851,7 @@ const JobsManagementPage = () => {
                       </select>
                     </div>
 
-                    <div>
+                    {/* <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Application URL
                       </label>
@@ -868,7 +863,7 @@ const JobsManagementPage = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         placeholder="https://example.com/apply"
                       />
-                    </div>
+                    </div> */}
                   </div>
 
                   <div>

@@ -124,7 +124,7 @@ export default function JobBoard() {
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700"
             >
               Reload Page
             </button>
@@ -146,14 +146,14 @@ export default function JobBoard() {
         <div className="max-w-4xl mx-auto">
           {/* Enhanced Hero Section */}
           <div className="text-center mb-12">
-            <div className="inline-flex items-center px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-medium mb-6">
+            <div className="inline-flex items-center px-4 py-2 bg-violet-100 text-violet-700 rounded-full text-sm font-medium mb-6">
               <Users className="h-4 w-4 mr-2" />
               We're Hiring Amazing Talent
             </div>
 
             <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight">
               Join Our Mission to{" "}
-              <span className="text-purple-600">Revolutionize</span> the Fashion
+              <span className="text-violet-600">Revolutionize</span> the Fashion
               Industry
             </h1>
 
@@ -171,7 +171,7 @@ export default function JobBoard() {
             <input
               type="text"
               placeholder="Search Job Role"
-              className="w-full py-3 pl-10 pr-4 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all duration-200"
+              className="w-full py-3 pl-10 pr-4 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400 transition-all duration-200"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -193,8 +193,8 @@ export default function JobBoard() {
                     key={category}
                     className={`px-4 py-2 text-sm font-medium transition-all duration-200 border-b-2 ${
                       activeCategory === category
-                        ? "text-purple-600 border-purple-600"
-                        : "text-gray-600 border-transparent hover:text-purple-600 hover:border-purple-300"
+                        ? "text-violet-600 border-violet-600"
+                        : "text-gray-600 border-transparent hover:text-violet-600 hover:border-violet-300"
                     }`}
                     onClick={() => setActiveCategory(category)}
                   >
@@ -216,7 +216,7 @@ export default function JobBoard() {
                   setSearchQuery("");
                   setActiveCategory("All Jobs");
                 }}
-                className="flex items-center space-x-2 px-4 py-2 text-purple-600 hover:text-purple-800 font-medium rounded-lg border border-purple-200 hover:border-purple-300 transition-colors"
+                className="flex items-center space-x-2 px-4 py-2 text-violet-600 hover:text-violet-800 font-medium rounded-lg border border-violet-200 hover:border-violet-300 transition-colors"
               >
                 <X className="h-4 w-4" />
                 <span>Clear filters</span>
@@ -245,7 +245,7 @@ export default function JobBoard() {
                     setSearchQuery("");
                     setActiveCategory("All Jobs");
                   }}
-                  className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  className="px-6 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors"
                 >
                   View all positions
                 </button>
@@ -286,14 +286,14 @@ export default function JobBoard() {
                           href={job.application_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                          className="inline-flex items-center px-6 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors font-medium"
                         >
                           Apply Now →
                         </a>
                       ) : (
                         <button
                           onClick={() => handleApplyClick(job)}
-                          className="inline-flex items-center px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                          className="inline-flex items-center px-6 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors font-medium"
                         >
                           Apply Now →
                         </button>

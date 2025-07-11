@@ -31,9 +31,9 @@ export default function Navbar({ toggleSidebar }) {
   const unreadNotificationsCount = data?.count || 0;
 
   return (
-    <nav className="bg-white px-4 py-6 flex items-center justify-between sticky top-0 z-40 w-full">
+    <nav className="bg-white shadow-md p-6 flex items-center justify-between">
       <button
-        className="lg:hidden p-2 text-gray-600"
+        className="md:block lg:hidden p-2 text-gray-600"
         onClick={toggleSidebar}
         aria-label="Toggle Sidebar"
       >

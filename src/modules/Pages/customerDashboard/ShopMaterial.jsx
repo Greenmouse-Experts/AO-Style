@@ -396,7 +396,11 @@ export default function ShopMaterials() {
           ) : (
             <div className="grid grid-cols-2 mt-20 mb-5 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {getProductData?.data?.map((product, index) => (
-                <Link to={`/shop-details`} key={product.id}>
+                <Link
+                  to={`/shop-details`}
+                  state={{ info: product?.fabric?.id }}
+                  key={product.id}
+                >
                   <motion.div
                     className="text-center"
                     initial={{ opacity: 0, y: 50 }}

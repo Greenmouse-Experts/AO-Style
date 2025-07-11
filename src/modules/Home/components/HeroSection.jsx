@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 export default function HeroSection() {
     return (
-        <section className="relative w-full h-[70vh] flex items-center justify-center bg-cover bg-center px-6 md:px-12"
+        <section className="relative w-full h-[70vh] md:h-[50vh] lg:h-[70vh] flex items-center justify-center bg-cover bg-center px-6 md:px-12"
             style={{ backgroundImage: "url('https://res.cloudinary.com/greenmouse-tech/image/upload/v1741216481/AoStyle/Frame_1618873173_1_yftuuw.png')" }}>
 
             {/* Left Image */}

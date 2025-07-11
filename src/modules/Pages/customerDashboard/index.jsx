@@ -23,14 +23,14 @@ export default function CustomerDashboard() {
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-medium">All Orders</h2>
 
-                    <div className="hidden md:flex gap-4">
+                    {/* <div className="hidden md:flex gap-4">
                         <button className="bg-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm">
                             Export As ⌄
                         </button>
                         <button className="bg-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm">
                             Sort: Newest First ⌄
                         </button>
-                    </div>
+                    </div> */}
 
                 </div>
                 <OrdersTable />

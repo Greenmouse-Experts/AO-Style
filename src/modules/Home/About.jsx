@@ -241,7 +241,7 @@ const AboutUs = () => {
                         <h2 className="text-2xl md:text-3xl font-medium text-center mb-10">
                             Meet the Team Behind Carybin Limited
                         </h2>
-                        <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-10 text-center">
+                        <div className="grid sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-10 text-center">
                             {teamMembers.map((member, index) => (
                                 <div key={index} className="bg-white rounded-lg shadow-sm border-2 border-gray-50 p-6">
                                     <img

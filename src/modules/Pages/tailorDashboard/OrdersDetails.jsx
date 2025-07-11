@@ -40,7 +40,7 @@ const OrderDetails = () => {
 
             <div className="space-y-6">
                 {/* Order Details and Status */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                     {/* Order Details */}
                     <div className="bg-white p-6 rounded-lg md:col-span-2">
                         <h5 className="text-lg font-medium border-b border-gray-200 pb-3 mb-6">Order Details</h5>
@@ -192,7 +192,7 @@ const OrderDetails = () => {
                 )}
 
                 {/* Delivery & Support */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                     {/* Delivery Details */}
                     <div className="bg-white p-6 rounded-lg">
                         <h5 className="text-lg font-medium border-b border-gray-200 pb-3 mb-6">Delivery Details</h5>

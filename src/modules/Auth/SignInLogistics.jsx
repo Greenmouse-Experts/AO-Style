@@ -89,7 +89,7 @@ export default function SignUpAsLogisticsAgent() {
   return (
     <div className="flex flex-col md:flex-row h-screen">
       {/* Left Section */}
-      <div className="hidden md:flex w-1/2 h-screen relative">
+      <div className="hidden lg:flex w-1/2 h-screen relative">
         <img
           src="https://res.cloudinary.com/diqa0sakr/image/upload/v1743763031/image_ov4nhd.jpg"
           alt="Sign In"
@@ -108,7 +108,7 @@ export default function SignUpAsLogisticsAgent() {
       </div>
 
       {/* Right Section */}
-      <div className="w-full md:w-1/2 h-screen overflow-y-auto p-4 sm:p-8">
+      <div className="w-full lg:w-1/2 md:w-1/1 h-screen overflow-y-auto p-4 sm:p-8">
         <div className="max-w-2xl mx-auto">
           <div className="mb-4">
             <Link to="/">
@@ -121,11 +121,11 @@ export default function SignUpAsLogisticsAgent() {
           </div>
 
           <div className="mb-4">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+            <h2 className="text-2xl lg:text-left md:text-center font-semibold text-gray-800 mb-2">
               Sign Up As A{" "}
               <span className="text-[#2B21E5]">Logistics Agent</span>
             </h2>
-            <p className="text-gray-500 text-sm mt-1">
+            <p className="text-gray-500 lg:text-left md:text-center text-sm mt-1">
               Fill the form become a delivery agent for customers
             </p>
           </div>

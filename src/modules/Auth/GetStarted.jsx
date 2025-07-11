@@ -52,7 +52,7 @@ export default function GetStarted() {
                         <img
                             src={user.image}
                             alt={user.title}
-                            className="w-full h-auto -mt-2 sm:-mt-14 object-cover rounded-md"
+                            className="w-full h-auto -mt-2 md:mt-1 sm:-mt-14 object-cover rounded-md"
                         />
                         <h2 className="text-lg font-medium mt-5">{user.title}</h2>
                         <p className="text-black text-sm mt-3 leading-loose">{user.description}</p>
@@ -64,7 +64,7 @@ export default function GetStarted() {
             </div>
 
             <footer className="mt-14 text-black text-sm">
-                &copy; 2025 CARYBIN . All rights reserved.
+            ©  {new Date().getFullYear()} CARYBIN . All rights reserved.
             </footer>
         </div>
     );

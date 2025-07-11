@@ -81,17 +81,17 @@ export default function MarketplaceSection() {
         backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741604351/AoStyle/image_ugfmjr.jpg"
       />
       <section className="Resizer section px-4">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center text-left mb-6">
+        <div className="flex flex-col md:flex-col md:items-start lg:flex-row lg:justify-between lg:items-center text-left mb-6">
           <div>
-            <h2 className="text-2xl font-medium max-w-md leading-relaxed ">
+            <h2 className="text-2xl font-medium lg:max-w-lg md:max-w-auto  leading-relaxed ">
               Access fabric markets all around the country from your home
             </h2>
-            <p className="text-[#4B4A4A] mt-4 max-w-md font-light leading-loose mb-6">
+            <p className="text-[#4B4A4A] mt-4 lg:max-w-lg md:max-w-auto  font-light leading-loose mb-6">
               A virtual marketplace that offers high-quality fabric from various
               parts of the country.
             </p>
           </div>
-          <div className="relative w-full max-w-md">
+          <div className="relative w-full md:max-w-auto lg:max-w-md">
             <input
               type="text"
               placeholder="Search by keyword"

@@ -50,7 +50,7 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex flex-grow justify-left space-x-4 lg:space-x-6 xl:space-x-8 cursor-pointer">
+          <div className="hidden lg:flex flex-grow justify-left space-x-4 lg:space-x-6 xl:space-x-8 cursor-pointer">
             {[
               { name: "Home", link: "/" },
               { name: "About", link: "/about" },
@@ -68,7 +68,7 @@ export default function Navbar() {
           </div>
 
           {/* Right Icons */}
-          <div className="hidden md:flex items-center space-x-4 lg:space-x-6">
+          <div className="hidden lg:flex items-center space-x-4 lg:space-x-6">
             <div className="relative" ref={searchRef}>
               {searchOpen ? (
                 <input
@@ -104,7 +104,6 @@ export default function Navbar() {
               </Link>
             ) : (
               <>
-                {" "}
                 <div className="flex items-center space-x-1 cursor-pointer">
                   <UserIcon className="h-5 w-5 text-gray-800" />
                   <Link to="/login" className="text-gray-800">
@@ -122,7 +121,7 @@ export default function Navbar() {
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden">
+          <div className="lg:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="p-2 rounded-md bg-gradient"
@@ -168,7 +167,7 @@ export default function Navbar() {
               ))}
               {/* Product Dropdown for Mobile */}
               <button
-                className="text-[#545252]  hover:text-purple-500 flex justify-between"
+                className="text-[#545252] hover:text-purple-500 flex justify-between"
                 onClick={() => setMobileProductOpen(!mobileProductOpen)}
               >
                 Product <ChevronDownIcon className="h-4 w-4" />

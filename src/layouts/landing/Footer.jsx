@@ -24,7 +24,7 @@ const Footer = () => {
           "url('https://res.cloudinary.com/greenmouse-tech/image/upload/v1741734865/AoStyle/Frame_1618873174_htyz4s.jpg')",
       }}
     >
-      <div className="Resizer mx-auto px-6 grid md:grid-cols-6 gap-4 text-sm">
+      <div className="Resizer mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 text-sm">
         {/* Quick Links */}
         <div className="col-span-1">
           <h4 className="font-medium mb-6 text-lg">Quick Links</h4>

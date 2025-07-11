@@ -30,7 +30,7 @@ export default function Navbar({ toggleSidebar }) {
   return (
     <nav className="bg-white shadow-md p-6 flex items-center justify-between">
       {/* Sidebar Toggle Button (Only on Mobile) */}
-      <button className="lg:hidden p-2 text-gray-600" onClick={toggleSidebar}>
+      <button className="md:block lg:hidden p-2 text-gray-600" onClick={toggleSidebar}>
         <Menu size={24} />
       </button>
 

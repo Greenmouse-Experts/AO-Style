@@ -75,7 +75,7 @@ export default function SignInAsCustomer() {
   return (
     <div className="h-screen w-full flex overflow-hidden">
       {/* Left Section */}
-      <div className="hidden md:flex w-1/2 relative h-full">
+      <div className="hidden lg:flex w-1/2 relative h-full">
         <img
           src="https://res.cloudinary.com/diqa0sakr/image/upload/v1745811955/image_1_wfjpsw.jpg"
           alt="Sign In"
@@ -94,7 +94,7 @@ export default function SignInAsCustomer() {
       </div>
 
       {/* Right Section - Sign In Form */}
-      <div className="w-full md:w-1/2 h-full overflow-y-auto p-4 sm:p-8">
+      <div className="w-full lg:w-1/2 md:w-1/1 h-full overflow-y-auto p-4 sm:p-8">
         <div className="max-w-2xl mx-auto">
           <div className="mb-6">
             <Link to="/">
@@ -105,10 +105,10 @@ export default function SignInAsCustomer() {
               />
             </Link>
           </div>
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+          <h2 className="text-2xl font-semibold lg:text-left md:text-center text-gray-800 mb-4">
             Become a Market Rep
           </h2>
-          <p className="text-gray-500 text-sm mt-1">
+          <p className="text-gray-500 lg:text-left md:text-center text-sm mt-1">
             Fill the form become a Market rep on OAStyles
           </p>
 

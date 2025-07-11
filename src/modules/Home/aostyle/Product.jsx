@@ -186,18 +186,18 @@ export default function MarketplaceSection() {
         backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1743712882/AoStyle/image_lslmok.png"
       />
       <section className="Resizer section px-4">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center text-left mb-6">
+        <div className="flex flex-col md:flex-col md:items-start lg:flex-row lg:justify-between lg:items-center text-left mb-6">
           <div>
-            <h2 className="text-2xl font-medium max-w-md leading-relaxed">
+            <h2 className="text-2xl font-medium lg:max-w-md md:max-w-auto leading-relaxed">
               Get Access to the best Tailors and a range of Designs for your
               next outfit
             </h2>
-            <p className="text-[#4B4A4A] mt-4 max-w-md font-light leading-loose mb-6">
+            <p className="text-[#4B4A4A] mt-4 lg:max-w-lg md:max-w-auto font-light leading-loose mb-6">
               A virtual marketplace that offers access to tailors and fashion
               designers around the country.
             </p>
           </div>
-          <div className="relative w-full max-w-md">
+          <div className="relative w-full md:max-w-auto lg:max-w-md">
             <input
               type="text"
               placeholder="Search by keyword"
@@ -218,32 +218,31 @@ export default function MarketplaceSection() {
           <div className="flex space-x-4 overflow-x-auto  px-4 w-[1000px] whitespace-nowrap">
             {styleData
               ? [
-                  {
-                    id: "1",
-                    name: "All Products",
-                    type: "style",
-                  },
-                  ...styleData,
-                ].map((category) => (
-                  <button
-                    style={{
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      display: "block",
-                    }}
-                    title={category.name}
-                    key={category.name}
-                    onClick={() => setSelectedCategory(category?.id)}
-                    className={`px-4 py-2 truncate overflow-hidden whitespace-nowrap max-w-[120px] rounded-md shrink-0 text-sm ${
-                      selectedCategory === category?.id
-                        ? "text-[#AB52EE] border-b-2 border-[#AB52EE] font-medium"
-                        : "text-[#4B4A4A] font-light"
+                {
+                  id: "1",
+                  name: "All Products",
+                  type: "style",
+                },
+                ...styleData,
+              ].map((category) => (
+                <button
+                  style={{
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    display: "block",
+                  }}
+                  title={category.name}
+                  key={category.name}
+                  onClick={() => setSelectedCategory(category?.id)}
+                  className={`px-4 py-2 truncate overflow-hidden whitespace-nowrap max-w-[120px] rounded-md shrink-0 text-sm ${selectedCategory === category?.id
+                      ? "text-[#AB52EE] border-b-2 border-[#AB52EE] font-medium"
+                      : "text-[#4B4A4A] font-light"
                     }`}
-                  >
-                    {category?.name}
-                  </button>
-                ))
+                >
+                  {category?.name}
+                </button>
+              ))
               : null}
           </div>
           <div className="flex space-x-4">

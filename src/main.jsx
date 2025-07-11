@@ -5,6 +5,9 @@ import { routes } from "./routes";
 import "./index.css";
 import { QueryProvider } from "./services/react-query/queryProvider.jsx";
 import "react-toastify/dist/ReactToastify.css";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+
 import { ToastContainer } from "react-toastify";
 import App from "./App.jsx";
 

@@ -79,7 +79,7 @@ const initialProducts = [
 export default function MarketplaceSection() {
   const [products, setProducts] = useState(initialProducts);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All Styles");
+  const [selectedCategory, setSelectedCategory] = useState("1");
   const [sortBy, setSortBy] = useState("Default");
   const [showFilter, setShowFilter] = useState(false);
   const [priceRange, setPriceRange] = useState([5000, 20000]);

@@ -30,10 +30,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     <div className="relative">
       {/* Sidebar */}
       <div
-       className={`fixed lg:relative top-0 left-0 h-screen bg-gradient p-5 flex flex-col transition-transform duration-300 z-40 ${
-        isOpen ? "translate-x-0" : "-translate-x-full"
-      } lg:translate-x-0 lg:w-72 w-64`}
-      
+        className={`fixed lg:relative top-0 left-0 h-screen bg-gradient p-5 flex flex-col transition-transform duration-300 z-40 ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0 lg:w-72 w-64`}
       >
         {/* Logo */}
         <div className="flex justify-center">
@@ -73,6 +72,13 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             text="Products"
             toggleSidebar={toggleSidebar}
           />
+          <SidebarItem
+            to="/fabric/coupons"
+            icon={<MdProductionQuantityLimits />}
+            text="Coupon"
+            toggleSidebar={toggleSidebar}
+          />
+
           <SidebarItem
             to="/fabric/orders"
             icon={<FaClipboardList />}

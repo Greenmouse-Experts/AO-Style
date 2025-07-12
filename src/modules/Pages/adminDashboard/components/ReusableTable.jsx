@@ -8,7 +8,7 @@ const ReusableTable = ({ columns, data, loading }) => {
           <Loader />
         </div>
       ) : (
-        <table className="w-full  border-collapse rounded-lg hidden sm:table">
+        <table className="w-full  border-collapse rounded-lg hidden  sm:table">
           {/* Table Header */}
           <thead>
             <tr className="text-left text-gray-600">

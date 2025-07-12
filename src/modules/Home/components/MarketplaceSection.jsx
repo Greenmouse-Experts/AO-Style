@@ -4,6 +4,64 @@ import { Link } from "react-router-dom";
 import useGetMarketPlaces from "../../../hooks/dashboard/useGetMarketPlaces";
 import LoaderComponent from "../../../components/BeatLoader";
 import { useMemo } from "react";
+import Slider from "react-slick";
+
+export const SamplePrevArrow = (props) => {
+  const { onClick, style } = props;
+  return (
+    <button
+      onClick={onClick}
+      className="absolute left-0 md:-left-2 p-2 bg-white shadow-md rounded-full z-10 top-1/2 -translate-y-1/2"
+      style={{ ...style }}
+    >
+      <ChevronLeft size={24} />
+    </button>
+  );
+};
+
+export const SampleNextArrow = (props) => {
+  const { onClick, style } = props;
+  return (
+    <button
+      onClick={onClick}
+      className="absolute right-0 md:-right-2 p-2 bg-white shadow-md rounded-full z-10 top-1/2 -translate-y-1/2"
+      style={{ ...style }}
+    >
+      <ChevronRight size={24} />
+    </button>
+  );
+};
+
+export const settings = {
+  infinite: true,
+  speed: 500,
+  slidesToShow: 5, // Default
+  slidesToScroll: 1,
+  autoplay: true,
+  arrows: true,
+  prevArrow: <SamplePrevArrow />,
+  nextArrow: <SampleNextArrow />,
+  responsive: [
+    {
+      breakpoint: 1024, // lg
+      settings: {
+        slidesToShow: 3,
+      },
+    },
+    {
+      breakpoint: 768, // md
+      settings: {
+        slidesToShow: 2,
+      },
+    },
+    {
+      breakpoint: 480, // sm
+      settings: {
+        slidesToShow: 1,
+      },
+    },
+  ],
+};
 
 // const markets = [
 //   {
@@ -94,6 +152,8 @@ export default function MarketplaceSection() {
     [marketPlacePublic]
   );
 
+  console.log(maxIndex);
+
   const nextSlide = () => {
     setIndex((prev) => (prev < maxIndex ? prev + 1 : 0));
   };
@@ -133,62 +193,32 @@ export default function MarketplaceSection() {
       {isPending ? (
         <LoaderComponent />
       ) : (
-        <div className="relative flex items-center justify-center">
-          <button
-            className="absolute left-0 md:-left-8 p-2 bg-white shadow-md rounded-full z-10"
-            onClick={prevSlide}
-          >
-            <ChevronLeft size={24} />
-          </button>
-
-          <div className="w-full overflow-hidden">
-            <div
-              className="flex space-x-4 transition-transform duration-300 mt-10"
-              style={{
-                transform: `translateX(-${(index * 100) / itemsPerPage}%)`,
-              }}
-            >
-              {marketPlacePublic?.map((market) => (
-                <Link
-                  to={`/inner-marketplace`}
-                  state={{ info: market }}
-                  key={market.id}
-                  className="flex-shrink-0 px-2 w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/6 text-center"
+        <div className="relative w-full mt-10 items-center">
+          <Slider {...settings}>
+            {marketPlacePublic?.map((market) => (
+              <Link
+                to={`/inner-marketplace`}
+                state={{ info: market }}
+                key={market.id}
+                className="px-2 text-center"
+              >
+                <img
+                  src={market?.multimedia_url}
+                  alt={market.name}
+                  className="w-20 h-20 sm:w-24 sm:h-24 md:w-48 md:h-48 rounded-full object-cover mx-auto"
+                />
+                <h3
+                  className="font-medium mt-6 mb-2 truncate"
+                  title={market.name}
                 >
-                  <img
-                    src={market?.multimedia_url}
-                    alt={market.name}
-                    className="w-20 h-20 sm:w-24 sm:h-24 md:w-48 md:h-48 rounded-full object-cover mx-auto"
-                  />
-
-                  <h3
-                    className="font-medium mt-6 mb-2 truncate"
-                    style={{
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      width: "100%",
-                      display: "block",
-                    }}
-                    title={market.name}
-                  >
-                    {market.name}
-                  </h3>
-
-                  <p className="text-[#2B21E5] text-sm flex items-center justify-center font-light">
-                    <MapPin size={14} className="mr-1" /> {market.state}
-                  </p>
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          <button
-            className="absolute right-0 md:-right-8 p-2 bg-white shadow-md rounded-full z-10"
-            onClick={nextSlide}
-          >
-            <ChevronRight size={24} />
-          </button>
+                  {market.name}
+                </h3>
+                <p className="text-[#2B21E5] text-sm flex items-center justify-center font-light">
+                  <MapPin size={14} className="mr-1" /> {market.state}
+                </p>
+              </Link>
+            ))}
+          </Slider>
         </div>
       )}
     </section>

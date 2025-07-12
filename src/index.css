@@ -151,3 +151,59 @@ body {
   scrollbar-color: #EE79AC #f0f0f0;
   scrollbar-width: thin;
 }
+
+/* MDEditor custom styles for admin UI */
+.w-md-editor {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 0.5rem !important;
+}
+
+.w-md-editor-text-textarea,
+.w-md-editor-text-input,
+.w-md-editor-text {
+  font-family: "Poppins", sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  color: #374151 !important;
+}
+
+.w-md-editor .w-md-editor-toolbar {
+  background-color: #f8fafc !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  border-radius: 0.5rem 0.5rem 0 0 !important;
+}
+
+.w-md-editor-toolbar ul > li button {
+  color: #6b7280 !important;
+}
+
+.w-md-editor-toolbar ul > li button:hover {
+  color: #374151 !important;
+  background-color: #e5e7eb !important;
+}
+
+.ql-toolbar button:hover,
+.ql-toolbar button:focus {
+  color: #9847fe !important;
+}
+
+.ql-toolbar button:hover .ql-stroke {
+  stroke: #9847fe !important;
+}
+
+.ql-toolbar button:hover .ql-fill {
+  fill: #9847fe !important;
+}
+
+.ql-toolbar .ql-active {
+  color: #9847fe !important;
+}
+
+.ql-toolbar .ql-active .ql-stroke {
+  stroke: #9847fe !important;
+}
+
+.ql-toolbar .ql-active .ql-fill {
+  fill: #9847fe !important;
+}

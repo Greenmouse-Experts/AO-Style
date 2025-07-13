@@ -2,11 +2,27 @@ import { useState, useEffect } from "react";
 import Breadcrumb from "./components/Breadcrumb";
 import useGetCart from "../../hooks/cart/useGetCart";
 import LoaderComponent from "../../components/BeatLoader";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import useDeleteCart from "../../hooks/cart/useDeleteCart";
 import useCreatePayment from "../../hooks/cart/useCreatePayment";
 import { useCarybinUserStore } from "../../store/carybinUserStore";
 import useVerifyPayment from "../../hooks/cart/useVerifyPayment";
+import { useCartStore } from "../../store/carybinUserCartStore";
+import Cookies from "js-cookie";
+import useToast from "../../hooks/useToast";
+import { useFormik } from "formik";
+import Select from "react-select";
+import { nigeriaStates } from "../../constant";
+import PhoneInput from "react-phone-input-2";
+import useCreateBilling from "../../hooks/billing/useCreateBilling";
+
+const initialValues = {
+  address: "",
+  city: "",
+  state: "",
+  postal_code: "",
+  country: "NG",
+};
 
 const CartPage = () => {
   const [dropdownOpen, setDropdownOpen] = useState(null);
@@ -16,19 +32,25 @@ const CartPage = () => {
 
   const { data: cartData, isPending } = useGetCart();
 
-  const totalQuantity = cartData?.data?.items?.reduce(
-    (total, item) => total + item.quantity,
+  const items = useCartStore((state) => state.items);
+
+  console.log(items);
+
+  const totalQuantity = items?.reduce(
+    (total, item) => total + item?.product?.quantity,
     0
   );
 
   const totalAmount =
-    cartData?.data?.items?.reduce((total, item) => {
-      return total + item.quantity * item.price_at_time;
+    items?.reduce((total, item) => {
+      return total + item?.product.quantity * item?.product?.price_at_time;
     }, 0) ?? 0;
 
   const { isPending: deleteIsPending, deleteCartMutate } = useDeleteCart();
 
   const { isPending: cartIsPending, createPaymentMutate } = useCreatePayment();
+
+  const { isPending: billingPending, createBillingMutate } = useCreateBilling();
 
   const { isPending: verifyPending, verifyPaymentMutate } = useVerifyPayment();
 
@@ -80,6 +102,32 @@ const CartPage = () => {
     handler.openIframe();
   };
 
+  const token = Cookies.get("token");
+
+  const { toastSuccess } = useToast();
+
+  const location = useLocation();
+
+  const {
+    handleSubmit,
+    touched,
+    errors,
+    values,
+    handleChange,
+    resetForm,
+    setFieldValue,
+    // setFieldError,
+  } = useFormik({
+    initialValues: initialValues,
+    validateOnChange: false,
+    validateOnBlur: false,
+    enableReinitialize: true,
+    onSubmit: (val) => {
+      console.log(val);
+      createBillingMutate(val);
+    },
+  });
+
   return (
     <>
       <Breadcrumb
@@ -104,7 +152,7 @@ const CartPage = () => {
           </div>
 
           <div className="space-y-6">
-            {cartData?.data?.items.map((item) => (
+            {items?.map((item) => (
               <div
                 key={item.id}
                 className="border border-gray-300 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
@@ -139,16 +187,18 @@ const CartPage = () => {
                 <div className="flex items-center gap-4 w-full md:w-1/3">
                   {item?.product?.type == "FABRIC" ? (
                     <>
-                      {/* <img
-                        src={item.fabric.image}
+                      <img
+                        src={item?.product?.image}
                         alt="Fabric"
                         className="w-20 h-20 object-cover rounded-md"
-                      /> */}
+                      />
                       <div>
                         <p className="font-semibold">{item?.product?.name}</p>
-                        <p className="text-sm text-gray-500">{item.quantity}</p>
+                        <p className="text-sm text-gray-500">
+                          {item?.product?.quantity}
+                        </p>
                         <p className="text-purple-600 font-medium mt-1">
-                          ₦{item?.price_at_time.toLocaleString()}
+                          ₦{item?.product?.price_at_time.toLocaleString()}
                         </p>
                       </div>
                     </>
@@ -163,14 +213,19 @@ const CartPage = () => {
                 {/* Total & Dropdown Action */}
                 <div className="flex items-center justify-between w-full md:w-auto md:gap-16 relative">
                   <div className="text-purple-600 font-semibold">
-                    ₦{item?.price_at_time * item.quantity}
+                    ₦
+                    {(
+                      item?.product?.price_at_time * item?.product?.quantity
+                    ).toLocaleString()}
                   </div>
 
                   <div className="relative ml-14 cursor-pointer">
                     <button
                       onClick={() =>
                         setDropdownOpen(
-                          dropdownOpen === item.id ? null : item.id
+                          dropdownOpen === item?.product?.id
+                            ? null
+                            : item?.product?.id
                         )
                       }
                       className="text-gray-600 hover:text-black cursor-pointer"
@@ -191,7 +246,7 @@ const CartPage = () => {
                     </button>
 
                     {/* Dropdown */}
-                    {dropdownOpen === item.id && (
+                    {dropdownOpen === item?.product?.id && (
                       <div className="absolute cursor-pointer  right-0 mt-2 w-40 bg-white border shadow-lg rounded-lg z-50">
                         <button
                           onClick={() => {
@@ -246,7 +301,9 @@ const CartPage = () => {
             <div className="flex flex-col w-full space-y-2 text-sm text-gray-700">
               <div className="flex justify-between w-full max-w-md">
                 <span className="font-light">Sub-Total :</span>
-                <span className="font-medium">₦{totalAmount}</span>
+                <span className="font-medium">
+                  ₦{totalAmount?.toLocaleString()}
+                </span>
               </div>
               <div className="flex justify-between w-full max-w-md">
                 <span className="font-light">Discount :</span>
@@ -276,9 +333,20 @@ const CartPage = () => {
             {/* Checkout Button */}
             <div className="flex justify-center mt-8">
               <button
-                disabled={cartIsPending}
+                // disabled={cartIsPending}
                 onClick={() => {
-                  setShowCheckoutModal(true);
+                  if (!token) {
+                    toastSuccess(
+                      "You need to have a Customer Account to make an order"
+                    );
+                    const currentPath = location.pathname + location.search;
+                    navigate(
+                      `/login?redirect=${encodeURIComponent(currentPath)}`
+                    );
+                  } else {
+                    setShowCheckoutModal(true);
+                  }
+
                   // const updatedCart = cartData?.data?.items?.map((item) => {
                   //   return {
                   //     purchase_id: item?.product_id,
@@ -347,7 +415,7 @@ const CartPage = () => {
                 <h2 className="text-xl font-semibold mb-4">
                   Receiver’s Information
                 </h2>
-                <form className="space-y-4">
+                <form className="space-y-4" onSubmit={handleSubmit}>
                   <div>
                     <label className="block text-sm text-black">
                       Delivery Address Option *
@@ -381,23 +449,27 @@ const CartPage = () => {
                     </label>
                   </div>
                   <div className="flex gap-4">
-                    <div className="w-1/3">
+                    <div className="w-full">
                       <label className="block text-sm text-black">
                         Phone Number *
-                        <select className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none">
-                          <option value="+234">🇳🇬 +234</option>
-                          {/* Add more country codes as needed */}
-                        </select>
-                      </label>
-                    </div>
-                    <div className="w-2/3">
-                      <label className="block text-sm text-black">
-                        &nbsp;
-                        <input
-                          type="tel"
-                          placeholder="Enter phone number"
-                          className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
-                          // required
+                        <PhoneInput
+                          country={"ng"}
+                          value={values.phone}
+                          inputProps={{
+                            name: "phone",
+                            required: true,
+                          }}
+                          onChange={(value) => {
+                            // Ensure `+` is included and validate
+                            if (!value.startsWith("+")) {
+                              value = "+" + value;
+                            }
+                            setFieldValue("phone", value);
+                          }}
+                          containerClass="w-full disabled:bg-gray-100"
+                          dropdownClass="flex flex-col gap-2 text-black disabled:bg-gray-100"
+                          buttonClass="bg-gray-100 !border !border-gray-100 hover:!bg-gray-100 disabled:bg-gray-100"
+                          inputClass="!w-full px-2 font-sans disabled:bg-gray-100  !h-[50px] !py-2 border border-gray-300 !rounded-md focus:outline-none"
                         />
                       </label>
                     </div>
@@ -405,32 +477,88 @@ const CartPage = () => {
                   <div>
                     <label className="block text-sm text-black">
                       Country *
-                      <select className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none">
-                        <option>Select an option</option>
-                        <option>Nigeria</option>
-                        {/* Add more countries as needed */}
-                      </select>
+                      <Select
+                        options={[{ value: "NG", label: "Nigeria" }]}
+                        name="country"
+                        value={[{ value: "NG", label: "Nigeria" }]?.find(
+                          (opt) => opt.value === values.country
+                        )}
+                        onChange={(selectedOption) =>
+                          setFieldValue("country", selectedOption.value)
+                        }
+                        placeholder="Select"
+                        className="p-1 w-full mt-1 border border-[#CCCCCC] outline-none rounded-lg"
+                        styles={{
+                          control: (base, state) => ({
+                            ...base,
+                            border: "none",
+                            boxShadow: "none",
+                            outline: "none",
+                            backgroundColor: "#fff",
+                            "&:hover": {
+                              border: "none",
+                            },
+                          }),
+                          indicatorSeparator: () => ({
+                            display: "none",
+                          }),
+                          menu: (base) => ({
+                            ...base,
+                            zIndex: 9999,
+                          }),
+                        }}
+                      />{" "}
                     </label>
                   </div>
                   <div className="flex gap-4">
                     <div className="w-1/2">
                       <label className="block text-sm text-black">
                         State *
-                        <select className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none">
-                          <option>Select an option</option>
-                          <option>Lagos</option>
-                          {/* Add more states as needed */}
-                        </select>
+                        <Select
+                          options={nigeriaStates}
+                          name="state"
+                          value={nigeriaStates?.find(
+                            (opt) => opt.value === values.state
+                          )}
+                          onChange={(selectedOption) =>
+                            setFieldValue("state", selectedOption.value)
+                          }
+                          placeholder="Select"
+                          className="p-1 w-full mt-1 border border-[#CCCCCC] outline-none rounded-lg"
+                          styles={{
+                            control: (base, state) => ({
+                              ...base,
+                              border: "none",
+                              boxShadow: "none",
+                              outline: "none",
+                              backgroundColor: "#fff",
+                              "&:hover": {
+                                border: "none",
+                              },
+                            }),
+                            indicatorSeparator: () => ({
+                              display: "none",
+                            }),
+                            menu: (base) => ({
+                              ...base,
+                              zIndex: 9999,
+                            }),
+                          }}
+                        />{" "}
                       </label>
                     </div>
                     <div className="w-1/2">
                       <label className="block text-sm text-black">
-                        Local Government *
-                        <select className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none">
-                          <option>Select an option</option>
-                          <option>Ikeja</option>
-                          {/* Add more local governments as needed */}
-                        </select>
+                        City*
+                        <input
+                          type="text"
+                          placeholder="Enter your city"
+                          className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
+                          required
+                          name={"city"}
+                          value={values.city}
+                          onChange={handleChange}
+                        />
                       </label>
                     </div>
                   </div>
@@ -441,25 +569,31 @@ const CartPage = () => {
                         type="text"
                         placeholder="Enter your delivery address"
                         className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
-                        // required
+                        required
+                        name={"address"}
+                        value={values.address}
+                        onChange={handleChange}
                       />
                     </label>
                   </div>
                   <div>
                     <label className="block text-sm text-black">
-                      Landmark/nearest bustop *
+                      Postal Code *
                       <input
                         type="text"
-                        placeholder="Enter your nearest bustop"
+                        placeholder="Postal code"
                         className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
-                        // required
+                        required
+                        name={"postal_code"}
+                        value={values.postal_code}
+                        onChange={handleChange}
                       />
                     </label>
                   </div>
                   <div className="border-t border-gray-300 pt-4">
                     <div className="flex justify-between text-sm text-gray-700">
                       <span>SUBTOTAL</span>
-                      <span>NGN {total.toLocaleString()}</span>
+                      <span>NGN {totalAmount.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-sm text-gray-700 mt-2">
                       <span>Estimated sales VAT (7.5)</span>
@@ -482,36 +616,36 @@ const CartPage = () => {
                     </div>
                   </div>
                   <button
+                    disabled={billingPending}
                     onClick={() => {
-                      const updatedCart = cartData?.data?.items?.map((item) => {
-                        return {
-                          purchase_id: item?.product_id,
-                          quantity: item?.quantity,
-                          purchase_type: item?.product_type,
-                        };
-                      });
-
-                      createPaymentMutate(
-                        {
-                          purchases: updatedCart,
-                          amount: totalAmount,
-                          currency: "NGN",
-                          email: carybinUser?.email,
-                        },
-                        {
-                          onSuccess: (data) => {
-                            payWithPaystack({
-                              amount: totalAmount,
-                              payment_id: data?.data?.data?.payment_id,
-                            });
-                          },
-                        }
-                      );
+                      // const updatedCart = cartData?.data?.items?.map((item) => {
+                      //   return {
+                      //     purchase_id: item?.product_id,
+                      //     quantity: item?.quantity,
+                      //     purchase_type: item?.product_type,
+                      //   };
+                      // });
+                      // createPaymentMutate(
+                      //   {
+                      //     purchases: updatedCart,
+                      //     amount: totalAmount,
+                      //     currency: "NGN",
+                      //     email: carybinUser?.email,
+                      //   },
+                      //   {
+                      //     onSuccess: (data) => {
+                      //       payWithPaystack({
+                      //         amount: totalAmount,
+                      //         payment_id: data?.data?.data?.payment_id,
+                      //       });
+                      //     },
+                      //   }
+                      // );
                     }}
                     type="submit"
-                    className="w-full mt-6 py-3 bg-gradient text-white hover:from-purple-600 hover:to-pink-600 transition"
+                    className="w-full cursor-pointer mt-6 py-3 bg-gradient text-white hover:from-purple-600 hover:to-pink-600 transition"
                   >
-                    Proceed to Payment
+                    {billingPending ? "Please wait..." : "Proceed to Payment"}
                   </button>
                 </form>
               </div>

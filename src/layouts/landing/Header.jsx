@@ -14,6 +14,7 @@ import {
   ArrowRightIcon,
 } from "@heroicons/react/24/outline";
 import useGetCart from "../../hooks/cart/useGetCart";
+import { useCartStore } from "../../store/carybinUserCartStore";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,8 +30,10 @@ export default function Navbar() {
 
   const { data: cartData, isPending } = useGetCart();
 
-  const totalQuantity = cartData?.data?.items?.reduce(
-    (total, item) => total + item.quantity,
+  const items = useCartStore((state) => state.items);
+
+  const totalQuantity = items?.reduce(
+    (total, item) => total + item?.product?.quantity,
     0
   );
 
@@ -240,20 +243,43 @@ export default function Navbar() {
             <div className="flex flex-col space-y-6 mt-6">
               <div className="flex justify-start space-x-4">
                 <MagnifyingGlassIcon className="h-5 w-5 text-[#545252] cursor-pointer md:hidden hidden" />
-                <ShoppingCartIcon className="h-5 w-5 text-[#545252] cursor-pointer" />
-                <div className="flex items-center space-x-1 cursor-pointer">
-                  <UserIcon className="h-5 w-5 text-[#545252]" />
-                  <Link to="/login" className="text-gray-800">
-                    Login
-                  </Link>
-                </div>
+                <Link to={`/view-cart`} className="transition relative">
+                  <ShoppingCartIcon className="h-5 w-5 text-[#545252] cursor-pointer" />
+                  {totalQuantity > 0 ? (
+                    <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                      {totalQuantity}
+                    </span>
+                  ) : (
+                    <></>
+                  )}
+                </Link>
+
+                {token && currUrl ? (
+                  <></>
+                ) : (
+                  <div className="flex items-center space-x-1 cursor-pointer">
+                    <UserIcon className="h-5 w-5 text-[#545252]" />
+                    <Link to="/login" className="text-gray-800">
+                      Login
+                    </Link>
+                  </div>
+                )}
               </div>
-              <Link
-                to="/sign-up"
-                className="bg-gradient text-white px-5 rounded-md lg:px-6 py-2 lg:py-3 hover:bg-purple-600 transition"
-              >
-                Get Started
-              </Link>
+              {token && currUrl ? (
+                <Link
+                  to={`/${currUrl}`}
+                  className="bg-gradient text-white px-5 lg:px-6 py-2 lg:py-3 hover:bg-purple-600 transition"
+                >
+                  Dashboard
+                </Link>
+              ) : (
+                <Link
+                  to="/sign-up"
+                  className="bg-gradient text-white px-5 rounded-md lg:px-6 py-2 lg:py-3 hover:bg-purple-600 transition"
+                >
+                  Get Started
+                </Link>
+              )}
             </div>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { ChevronDown, Folder, ShoppingCart } from "lucide-react";
 import { useState } from "react";
+import Cookies from "js-cookie";
 
 const ProductInventoryCard = (dataVal) => {
   const { dataVal: userData } = dataVal;

@@ -10,6 +10,7 @@ import useToast from "../../../hooks/useToast";
 import useAddCart from "../../../hooks/cart/useAddCart";
 import LoaderComponent from "../../../components/BeatLoader";
 import useProductGeneral from "../../../hooks/dashboard/useGetProductGeneral";
+import { useCartStore } from "../../../store/carybinUserCartStore";
 
 const product = {
   name: "Luxury Embellished Lace Fabrics",
@@ -154,6 +155,8 @@ export default function ShopDetails() {
     (item) => item.fabric?.id !== productInfo
   );
 
+  const addToCart = useCartStore((state) => state.addToCart);
+
   return (
     <>
       <Breadcrumb
@@ -244,7 +247,7 @@ export default function ShopDetails() {
                       key={index}
                       type="button"
                       onClick={() => setSelectedColor(color)}
-                      className={`w-10 h-10 rounded-full border-2 transition duration-200 ${
+                      className={`w-10 h-10 rounded-full border-2 cursor-pointer transition duration-200 ${
                         selectedColor === color
                           ? "border-purple-600"
                           : "border-gray-300"
@@ -285,40 +288,66 @@ export default function ShopDetails() {
 
               {/* Add to Cart Button */}
               <button
+                disabled={!selectedColor}
                 onClick={() => {
-                  if (!token) {
-                    toastSuccess(
-                      "You need to have a Customer Account to make an order"
-                    );
-                    const currentPath = location.pathname + location.search;
-                    localStorage.setItem(
-                      "pendingProduct",
-                      JSON.stringify(productInfo)
-                    );
-                    navigate(
-                      `/login?redirect=${encodeURIComponent(currentPath)}`
-                    );
-                  } else {
-                    addCartMutate(
-                      {
-                        product_id: productVal?.product_id,
-                        product_type: "FABRIC",
-                        quantity: +quantity,
-                      },
-                      {
-                        onSuccess: () => {
-                          setIsSuccessModalOpen(true);
+                  addToCart({
+                    product: {
+                      id: productVal?.product_id,
+                      name: productVal?.product?.name,
+                      type: "FABRIC",
+                      quantity: +quantity,
+                      price_at_time: productVal?.product?.price,
+                      image: mainImage,
+                      color: selectedColor,
+                    },
+                  });
 
-                          setTimeout(() => {
-                            setIsSuccessModalOpen(false);
-                            setIsModalOpen(true);
-                          }, 2500);
-                        },
-                      }
-                    );
-                  }
+                  toastSuccess("Item saved in the cart");
+
+                  setIsSuccessModalOpen(true);
+
+                  setTimeout(() => {
+                    setIsSuccessModalOpen(false);
+                    setIsModalOpen(true);
+                  }, 2500);
+
+                  // if (!token) {
+                  //   toastSuccess(
+                  //     "You need to have a Customer Account to make an order"
+                  //   );
+                  //   const currentPath = location.pathname + location.search;
+                  //   localStorage.setItem(
+                  //     "pendingProduct",
+                  //     JSON.stringify(productInfo)
+                  //   );
+                  //   navigate(
+                  //     `/login?redirect=${encodeURIComponent(currentPath)}`
+                  //   );
+                  // } else {
+                  //   addCartMutate(
+                  //     {
+                  //       product_id: productVal?.product_id,
+                  //       product_type: "FABRIC",
+                  //       quantity: +quantity,
+                  //     },
+                  //     {
+                  //       onSuccess: () => {
+                  //         setIsSuccessModalOpen(true);
+
+                  //         setTimeout(() => {
+                  //           setIsSuccessModalOpen(false);
+                  //           setIsModalOpen(true);
+                  //         }, 2500);
+                  //       },
+                  //     }
+                  //   );
+                  // }
                 }}
-                className="w-full md:w-auto flex items-center justify-center bg-gradient text-white px-6 md:px-8 py-2.5 md:py-3 cursor-pointer font-light mt-4 md:mt-6 transition-colors duration-200"
+                className={`w-full md:w-auto flex items-center justify-center ${
+                  !selectedColor
+                    ? "bg-gray-300 cursor-not-allowed"
+                    : "bg-gradient cursor-pointer"
+                }  text-white px-6 md:px-8 py-2.5 md:py-3  font-light mt-4 md:mt-6 transition-colors duration-200`}
               >
                 <ShoppingCart size={18} className="mr-2" />{" "}
                 {addCartPending ? "Please wait..." : "Add To Cart"}

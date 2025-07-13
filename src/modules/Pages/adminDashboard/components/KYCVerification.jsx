@@ -6,13 +6,12 @@ import Select from "react-select";
 import { nigeriaStates } from "../../../../constant";
 import useSendKyc from "../../../../hooks/settings/useSendKyc";
 import useGetKyc from "../../../../hooks/settings/useGetKyc";
+import useUploadImage from "../../../../hooks/multimedia/useUploadImage";
 
 const KYCVerificationUpdate = () => {
   const { data } = useGetKyc();
 
   const kycInfo = data?.data;
-
-  console.log(kycInfo);
 
   const initialValues = {
     doc_front: kycInfo?.doc_front ?? null,
@@ -37,6 +36,21 @@ const KYCVerificationUpdate = () => {
 
   const { isPending: uploadIsPending, uploadDocumentMutate } =
     useUploadDocument();
+
+  const {
+    isPending: uploadFrontIsPending,
+    uploadImageMutate: uploadFrontMutate,
+  } = useUploadImage();
+
+  const {
+    isPending: uploadBackIsPending,
+    uploadImageMutate: uploadBackMutate,
+  } = useUploadImage();
+
+  const {
+    isPending: uploadUtilityIsPending,
+    uploadImageMutate: uploadUtilityMutate,
+  } = useUploadImage();
 
   const {
     handleSubmit,
@@ -66,23 +80,16 @@ const KYCVerificationUpdate = () => {
         }
       });
 
-      uploadDocumentMutate(formData, {
-        onSuccess: (data) => {
-          sendKycMutate(
-            {
-              ...val,
-              doc_front: data?.data?.data[0]?.url ?? val.doc_front,
-              doc_back: data?.data?.data[1]?.url ?? val.doc_back,
-              utility_doc: data?.data?.data[2]?.url ?? val.utility_doc,
-            },
-            {
-              onSuccess: () => {
-                resetForm();
-              },
-            }
-          );
+      sendKycMutate(
+        {
+          ...val,
         },
-      });
+        {
+          onSuccess: () => {
+            resetForm();
+          },
+        }
+      );
     },
   });
 
@@ -156,107 +163,151 @@ const KYCVerificationUpdate = () => {
               ? "National ID"
               : "Passport"}{" "}
           </label> */}
-          <div className="mt-2 flex flex-col sm:flex-row gap-4">
-            <div className="flex flex-col w-full">
-              {values?.doc_front ? (
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div
+              onClick={() => document.getElementById("doc_front").click()}
+              className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg flex flex-col items-center"
+            >
+              <p className="cursor-pointer flex flex-col items-center space-y-2 text-gray-500">
+                <span>⬆️</span> <span>Upload Front</span>
+              </p>
+
+              <input
+                type="file"
+                name="doc_front"
+                onChange={(e) => {
+                  if (e.target.files) {
+                    if (e.target.files[0].size > 5 * 1024 * 1024) {
+                      alert("File size exceeds 5MB limit");
+                      return;
+                    }
+                    const file = e.target.files[0];
+                    const formData = new FormData();
+                    formData.append("image", file);
+                    uploadFrontMutate(formData, {
+                      onSuccess: (data) => {
+                        setFieldValue("doc_front", data?.data?.data?.url);
+                      },
+                    });
+                    e.target.value = "";
+                  }
+                }}
+                className="hidden"
+                id="doc_front"
+              />
+
+              {uploadFrontIsPending ? (
+                <p className="cursor-pointer text-gray-400">please wait... </p>
+              ) : values.doc_front ? (
                 <a
-                  href={values?.doc_front}
+                  onClick={(e) => e.stopPropagation()}
+                  href={values.doc_front}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-purple-600 flex justify-end cursor-pointer hover:underline"
+                  className="text-purple-600 flex justify-center cursor-pointer hover:underline"
                 >
                   View file upload
                 </a>
               ) : (
                 <></>
               )}
-              <label
-                htmlFor="front"
-                className="w-full flex flex-col items-center justify-center p-3 border border-[#CCCCCC] border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
-              >
-                {values.doc_front_name ? (
-                  <div className="">{values.doc_front_name}</div>
-                ) : (
-                  ""
-                )}
-                <input
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setFieldValue("front_upload", file);
-                      setFieldValue("doc_front_name", file?.name);
-
-                      // You can also set it to state or Formik here
-                    }
-                  }}
-                  id="front"
-                  type="file"
-                  required={values?.doc_front ? false : true}
-                  className="hidden"
-                />
-                <span className="text-gray-700 flex items-center gap-2">
-                  📤 Upload Front
-                </span>
-              </label>
             </div>
-            <div className="flex flex-col w-full">
-              {" "}
-              {values?.doc_back ? (
+
+            <div
+              onClick={() => document.getElementById("doc_back").click()}
+              className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg flex flex-col items-center"
+            >
+              <p className="cursor-pointer flex flex-col items-center space-y-2 text-gray-500">
+                <span>⬆️</span> <span>Upload Back</span>
+              </p>
+
+              <input
+                type="file"
+                name="doc_front"
+                onChange={(e) => {
+                  if (e.target.files) {
+                    if (e.target.files[0].size > 5 * 1024 * 1024) {
+                      alert("File size exceeds 5MB limit");
+                      return;
+                    }
+                    const file = e.target.files[0];
+                    const formData = new FormData();
+                    formData.append("image", file);
+                    uploadBackMutate(formData, {
+                      onSuccess: (data) => {
+                        setFieldValue("doc_back", data?.data?.data?.url);
+                      },
+                    });
+                    e.target.value = "";
+                  }
+                }}
+                className="hidden"
+                id="doc_back"
+              />
+
+              {uploadBackIsPending ? (
+                <p className="cursor-pointer text-gray-400">please wait... </p>
+              ) : values.doc_back ? (
                 <a
-                  href={values?.doc_back}
+                  onClick={(e) => e.stopPropagation()}
+                  href={values.doc_back}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-purple-600 flex justify-end cursor-pointer hover:underline"
+                  className="text-purple-600 flex justify-center cursor-pointer hover:underline"
                 >
                   View file upload
                 </a>
               ) : (
                 <></>
               )}
-              <label
-                htmlFor="doc_back"
-                className="w-full flex flex-col items-center justify-center p-3 border border-[#CCCCCC] border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
-              >
-                {values.doc_back_name ? (
-                  <div className="">{values.doc_back_name}</div>
-                ) : (
-                  ""
-                )}
-                <input
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setFieldValue("back_upload", file);
-                      setFieldValue("doc_back_name", file?.name);
-
-                      // You can also set it to state or Formik here
-                    }
-                  }}
-                  id="doc_back"
-                  type="file"
-                  required={values?.doc_back ? false : true}
-                  className="hidden"
-                />
-                <span className="text-gray-700 flex items-center gap-2">
-                  📤 Upload Back
-                </span>
-              </label>
             </div>
           </div>
         </div>
         {/* Utility Bill Upload */}
         <div className="mb-6">
-          <div className="justify-between flex mb-2">
-            {" "}
-            <label className="block text-gray-700">
-              Utility Bill (Proof of Address)
-            </label>
-            {values?.utility_doc ? (
+          <label className="block text-gray-600 font-medium mb-4">
+            Utility Bill (Proof of Address)
+          </label>
+          <div
+            onClick={() => document.getElementById("utility_doc").click()}
+            className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg flex flex-col items-center"
+          >
+            <p className="cursor-pointer flex flex-col items-center space-y-2 text-gray-500">
+              <span>⬆️</span> <span>Upload Utility Bill</span>
+            </p>
+
+            <input
+              type="file"
+              name="utility_doc"
+              onChange={(e) => {
+                if (e.target.files) {
+                  if (e.target.files[0].size > 5 * 1024 * 1024) {
+                    alert("File size exceeds 5MB limit");
+                    return;
+                  }
+                  const file = e.target.files[0];
+                  const formData = new FormData();
+                  formData.append("image", file);
+                  uploadUtilityMutate(formData, {
+                    onSuccess: (data) => {
+                      setFieldValue("utility_doc", data?.data?.data?.url);
+                    },
+                  });
+                  e.target.value = "";
+                }
+              }}
+              className="hidden"
+              id="utility_doc"
+            />
+            {uploadUtilityIsPending ? (
+              <p className="cursor-pointer text-gray-400">please wait... </p>
+            ) : values.utility_doc ? (
               <a
-                href={values?.utility_doc}
+                onClick={(e) => e.stopPropagation()}
+                href={values.utility_doc}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-purple-600 flex justify-end cursor-pointer hover:underline"
+                className="text-purple-600 flex justify-center cursor-pointer hover:underline"
               >
                 View file upload
               </a>
@@ -264,35 +315,6 @@ const KYCVerificationUpdate = () => {
               <></>
             )}
           </div>
-
-          <label
-            htmlFor="utility_doc"
-            className="w-full flex flex-col items-center justify-center p-3 border border-[#CCCCCC] border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
-          >
-            {values.utility_doc_name ? (
-              <div className="">{values.utility_doc_name}</div>
-            ) : (
-              ""
-            )}
-            <input
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  setFieldValue("utility_upload", file);
-                  setFieldValue("utility_doc_name", file?.name);
-
-                  // You can also set it to state or Formik here
-                }
-              }}
-              id="utility_doc"
-              type="file"
-              required={values?.utility_doc ? false : true}
-              className="hidden"
-            />
-            <span className="text-gray-700 flex items-center gap-2">
-              📤 Upload Back
-            </span>
-          </label>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>

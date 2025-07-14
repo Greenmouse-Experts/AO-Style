@@ -96,6 +96,7 @@ export default function ShopDetails() {
   // useEffect(() => {
   //   setQuantity(productVal?.minimum_yards);
   // }, [productVal?.minimum_yards]);
+
   const incrementQty = () => {
     setQuantity((prev) => +prev + 1);
   };

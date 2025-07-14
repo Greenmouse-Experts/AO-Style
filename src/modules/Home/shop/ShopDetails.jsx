@@ -97,12 +97,14 @@ export default function ShopDetails() {
   //   setQuantity(productVal?.minimum_yards);
   // }, [productVal?.minimum_yards]);
   const incrementQty = () => {
-    setQuantity((prev) => prev + 1);
+    setQuantity((prev) => +prev + 1);
   };
 
   const decrementQty = () => {
     setQuantity((prev) =>
-      prev > productVal?.minimum_yards ? prev - 1 : productVal?.minimum_yards
+      +prev > +productVal?.minimum_yards
+        ? +prev - 1
+        : +productVal?.minimum_yards
     );
   };
 

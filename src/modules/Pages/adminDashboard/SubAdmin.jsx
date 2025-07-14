@@ -565,7 +565,7 @@ const CustomersTable = () => {
             </div>
             <h3 className="text-lg font-semibold mb-4 -mt-7">
               {newCategory?.profile?.approved_by_admin
-                ? "suspend Admin"
+                ? "Suspend Admin"
                 : "Unsuspend Admin"}
             </h3>
             <form

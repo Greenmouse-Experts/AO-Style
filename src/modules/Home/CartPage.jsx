@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Breadcrumb from "./components/Breadcrumb";
 import useGetCart from "../../hooks/cart/useGetCart";
 import LoaderComponent from "../../components/BeatLoader";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import useDeleteCart from "../../hooks/cart/useDeleteCart";
 import useCreatePayment from "../../hooks/cart/useCreatePayment";
 import { useCarybinUserStore } from "../../store/carybinUserStore";
@@ -34,7 +34,7 @@ const CartPage = () => {
 
   const items = useCartStore((state) => state.items);
 
-  console.log(items);
+  console.log(items?.length);
 
   const totalQuantity = items?.reduce(
     (total, item) => total + item?.product?.quantity,
@@ -135,10 +135,19 @@ const CartPage = () => {
         subtitle="Cart"
         backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1744104104/AoStyle/image_1_xxie9w.jpg"
       />
-      {isPending ? (
-        <div className="h-screen flex items-center">
+      {items?.length == 0 ? (
+        <div className="  px-4 h-screen  flex-row flex items-center justify-center border-2">
           {" "}
-          <LoaderComponent />
+          <div className="space-y-8 flex flex-col items-center justify-center">
+            <p className="font-semibold text-base">Your cart is empty</p>
+
+            <Link
+              to={`/marketplace`}
+              className="bg-gradient text-white px-5 lg:px-6 py-2 lg:py-3 hover:bg-purple-600 transition"
+            >
+              Explore Product
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="Resizer section px-4">

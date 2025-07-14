@@ -250,6 +250,8 @@ const CustomersTable = () => {
     saveAs(blob, "Employees/Admin.xlsx");
   };
 
+  console.log(newCategory?.profile?.approved_by_admin);
+
   return (
     <>
       <div className="bg-white p-6 rounded-xl overflow-x-auto">
@@ -591,7 +593,7 @@ const CustomersTable = () => {
               <div>
                 <label className="block text-black mb-2">
                   Reasons for{" "}
-                  {newCategory?.profile?.approved_by_admin
+                  {!newCategory?.profile?.approved_by_admin
                     ? "unsuspending"
                     : "suspending"}
                 </label>

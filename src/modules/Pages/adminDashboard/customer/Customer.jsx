@@ -415,6 +415,91 @@ const CustomersTable = () => {
           </div>
         </div>
       )}
+
+      {/* {suspendModalOpen && (
+        <div
+          className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
+          onClick={() => {
+            setSuspendModalOpen(false);
+            setReason("");
+          }}
+        >
+          <div
+            className="bg-white rounded-lg p-6 w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-end">
+              <button
+                onClick={() => {
+                  setSuspendModalOpen(false);
+                  setReason("");
+                  setNewCategory(null);
+                }}
+                className="text-gray-500 cursor-pointer hover:text-gray-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <h3 className="text-lg font-semibold mb-4 -mt-7">
+              {newCategory?.profile?.approved_by_admin
+                ? "Suspend Admin"
+                : "Unsuspend Admin"}
+            </h3>
+            <form
+              className="mt-6 space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                approveMarketRepMutate(
+                  {
+                    user_id: newCategory?.id,
+                    suspension_reason: reason,
+                    approved: newCategory?.profile?.approved_by_admin
+                      ? false
+                      : true,
+                  },
+                  {
+                    onSuccess: () => {
+                      setSuspendModalOpen(false);
+                      setNewCategory(null);
+                      setReason("");
+                    },
+                  }
+                );
+              }}
+            >
+              <div>
+                <label className="block text-black mb-2">
+                  Reasons for{" "}
+                  {!newCategory?.profile?.approved_by_admin
+                    ? "unsuspending"
+                    : "suspending"}
+                </label>
+                <textarea
+                  placeholder="Reasons"
+                  className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg resize-none"
+                  name="reason"
+                  required
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  rows={3}
+                />
+              </div>
+
+              <button
+                disabled={suspendIsPending || approoveIsPending}
+                className="w-full bg-gradient cursor-pointer text-white py-4 rounded-lg font-normal"
+                type="submit"
+              >
+                {suspendIsPending || approoveIsPending
+                  ? "Please wait..."
+                  : newCategory?.profile?.approved_by_admin
+                  ? "Suspend"
+                  : "Unsuspend"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )} */}
     </div>
   );
 };

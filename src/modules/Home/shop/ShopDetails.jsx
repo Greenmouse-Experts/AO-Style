@@ -308,7 +308,7 @@ export default function ShopDetails() {
                 <div className="flex items-center border border-gray-300 rounded-md overflow-hidden w-max">
                   <button
                     title={
-                      quantity == productVal.minimum_yards
+                      quantity == productVal?.minimum_yards
                         ? "Sorry this is the minimum quantity"
                         : ""
                     }

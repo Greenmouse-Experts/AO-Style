@@ -723,7 +723,7 @@ const AddProduct = () => {
               {/* Quantity */}
               <div>
                 <label className="block text-gray-700 mb-4">
-                  Quantity (Must be more than 10 years)
+                  Quantity (Must be more than 10 yards)
                 </label>
                 <input
                   type="number"

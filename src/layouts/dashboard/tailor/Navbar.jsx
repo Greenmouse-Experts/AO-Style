@@ -27,7 +27,7 @@ export default function Navbar({ toggleSidebar }) {
     read: false,
   });
 
-  const { data: kycinfo } = useGetKyc();
+  const { data: kycinfo, isPending: kycIsPending } = useGetKyc();
 
   const unreadNotificationsCount = data?.count || 0;
 
@@ -114,15 +114,19 @@ export default function Navbar({ toggleSidebar }) {
             )}
           </div>
         </div>
-        <span
-          className={`p-1 text-[10px] rounded-full ${
-            kycinfo?.data?.is_approved
-              ? "bg-green-100 text-green-700"
-              : "bg-red-100 text-red-700"
-          }`}
-        >
-          {kycinfo?.data?.is_approved ? "VEERIFIED" : "UNVERIFIED"}
-        </span>
+        {kycIsPending ? (
+          <></>
+        ) : (
+          <span
+            className={`p-1 text-[10px] rounded-full ${
+              kycinfo?.data?.is_approved
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
+            }`}
+          >
+            {kycinfo?.data?.is_approved ? "VEERIFIED" : "UNVERIFIED"}
+          </span>
+        )}
       </div>
     </nav>
   );

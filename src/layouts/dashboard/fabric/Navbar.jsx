@@ -16,7 +16,7 @@ export default function Navbar({ toggleSidebar }) {
 
   const { carybinUser, logOut } = useCarybinUserStore();
 
-  const { data: kycinfo } = useGetKyc();
+  const { data: kycinfo, isPending } = useGetKyc();
 
   const handleSignOut = () => {
     navigate("/login");
@@ -114,15 +114,19 @@ export default function Navbar({ toggleSidebar }) {
             )}
           </div>
         </div>
-        <span
-          className={`p-1 text-[10px] rounded-full ${
-            kycinfo?.data?.is_approved
-              ? "bg-green-100 text-green-700"
-              : "bg-red-100 text-red-700"
-          }`}
-        >
-          {kycinfo?.data?.is_approved ? "VEERIFIED" : "UNVERIFIED"}
-        </span>
+        {isPending ? (
+          <></>
+        ) : (
+          <span
+            className={`p-1 text-[10px] rounded-full ${
+              kycinfo?.data?.is_approved
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
+            }`}
+          >
+            {kycinfo?.data?.is_approved ? "VEERIFIED" : "UNVERIFIED"}
+          </span>
+        )}
       </div>
     </nav>
   );

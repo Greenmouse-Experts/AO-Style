@@ -215,7 +215,7 @@ export default function ShopDetails() {
             <></>
           )}
 
-          <div className="grid grid-cols-1 2xl:grid-cols-2 gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Image Section - Optimized for mobile */}
             <div className="flex flex-col md:flex-row w-full">
               <div className="flex md:flex-col md:space-y-3 md:mr-4 mb-4 md:mb-0 overflow-x-auto md:overflow-x-visible space-x-2 md:space-x-0">
@@ -308,7 +308,7 @@ export default function ShopDetails() {
                 <div className="flex items-center border border-gray-300 rounded-md overflow-hidden w-max">
                   <button
                     title={
-                      quantity == productVal?.minimum_yards
+                      quantity == productVal.minimum_yards
                         ? "Sorry this is the minimum quantity"
                         : ""
                     }

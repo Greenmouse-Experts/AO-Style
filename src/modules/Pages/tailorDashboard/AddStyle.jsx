@@ -383,18 +383,20 @@ export default function StyleForm() {
               />
             </div>
             {/* SKU (Disabled) */}
-            <div>
+            {/* <div>
               <label className="block text-gray-700 mb-4 mt-4">SKU</label>
               <input
                 type="text"
                 required
+
+
                 name="sku"
                 value={values.sku}
                 onChange={handleChange}
                 placeholder="Enter the unique identifier"
                 className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
               />
-            </div>
+            </div> */}
             {/* Style Description */}
             <div>
               <label className="block text-gray-700 mb-4 mt-4">

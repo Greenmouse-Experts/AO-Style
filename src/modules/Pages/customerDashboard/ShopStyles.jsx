@@ -170,7 +170,7 @@ export default function ShopStyles() {
   const trendingProducts = getTrendingData?.data || [];
 
   const { data: getStyleProductGeneralData } = useProductCategoryGeneral({
-    "pagination[limit]": 100000000,
+    "pagination[limit]": 10000,
     "pagination[page]": 1,
     type: "style",
   });

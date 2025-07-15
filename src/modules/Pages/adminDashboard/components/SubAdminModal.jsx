@@ -18,7 +18,7 @@ const SubAdminModal = ({ isOpen, onClose, newCategory }) => {
   const [showPassword, setShowPassword] = useState(false);
 
   const { data, isPending } = useGetAdminRoles({
-    "pagination[limit]": 10000,
+    "pagination[limit]": 1000,
     "pagination[page]": 1,
   });
 

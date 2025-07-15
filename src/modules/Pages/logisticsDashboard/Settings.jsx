@@ -22,8 +22,8 @@ const Settings = () => {
     email: carybinUser?.email ?? "",
     profile_picture: carybinUser?.profile?.profile_picture ?? null,
     address: carybinUser?.profile?.address ?? "",
-    country: "",
-    state: "",
+    country: carybinUser?.profile?.country ?? "",
+    state: carybinUser?.profile?.state ?? "",
     phone: carybinUser?.phone ?? "",
   };
 
@@ -236,6 +236,9 @@ const Settings = () => {
                           className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                           placeholder="Enter the state"
                           required
+                          name={"state"}
+                          value={values.state}
+                          onChange={handleChange}
                         />
                       </div>
                       <div>
@@ -247,6 +250,9 @@ const Settings = () => {
                           className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                           placeholder="Enter the country"
                           required
+                          name={"country"}
+                          value={values.country}
+                          onChange={handleChange}
                         />
                       </div>
                     </div>

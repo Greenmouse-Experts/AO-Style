@@ -13,6 +13,7 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
+import useApproveMarketRep from "../../../../hooks/marketRep/useApproveMarketRep";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -22,6 +23,13 @@ const CustomersTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(7); // Default items per page
   const [activeTab, setActiveTab] = useState("table");
+  const [reason, setReason] = useState("");
+  const [suspendModalOpen, setSuspendModalOpen] = useState(false);
+
+  const { isPending: approoveIsPending, approveMarketRepMutate } =
+    useApproveMarketRep();
+
+  const [newCategory, setNewCategory] = useState();
 
   const handleDropdownToggle = (id) => {
     setOpenDropdown(openDropdown === id ? null : id);
@@ -123,9 +131,35 @@ const CustomersTable = () => {
                 <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
                   Edit User
                 </button>
-                <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center">
-                  Remove User
-                </button>
+                {row?.profile?.approved_by_admin ? (
+                  <>
+                    {" "}
+                    <button
+                      onClick={() => {
+                        setSuspendModalOpen(true);
+                        setNewCategory(row);
+                        setOpenDropdown(null);
+                      }}
+                      className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center"
+                    >
+                      {"Suspend Vendor"}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {" "}
+                    <button
+                      onClick={() => {
+                        setSuspendModalOpen(true);
+                        setNewCategory(row);
+                        setOpenDropdown(null);
+                      }}
+                      className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+                    >
+                      {"Unsuspend Vendor"}
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -451,6 +485,90 @@ const CustomersTable = () => {
             </div>
           )}
         </>
+      )}
+      {suspendModalOpen && (
+        <div
+          className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
+          onClick={() => {
+            setSuspendModalOpen(false);
+            setReason("");
+          }}
+        >
+          <div
+            className="bg-white rounded-lg p-6 w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-end">
+              <button
+                onClick={() => {
+                  setSuspendModalOpen(false);
+                  setReason("");
+                  setNewCategory(null);
+                }}
+                className="text-gray-500 cursor-pointer hover:text-gray-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <h3 className="text-lg font-semibold mb-4 -mt-7">
+              {newCategory?.profile?.approved_by_admin
+                ? "Suspend Fabric Vendor"
+                : "Unsuspend Fabric Vendor"}
+            </h3>
+            <form
+              className="mt-6 space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                approveMarketRepMutate(
+                  {
+                    user_id: newCategory?.id,
+                    suspension_reason: reason,
+                    approved: newCategory?.profile?.approved_by_admin
+                      ? false
+                      : true,
+                  },
+                  {
+                    onSuccess: () => {
+                      setSuspendModalOpen(false);
+                      setNewCategory(null);
+                      setReason("");
+                    },
+                  }
+                );
+              }}
+            >
+              <div>
+                <label className="block text-black mb-2">
+                  Reasons for{" "}
+                  {!newCategory?.profile?.approved_by_admin
+                    ? "unsuspending"
+                    : "suspending"}
+                </label>
+                <textarea
+                  placeholder="Reasons"
+                  className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg resize-none"
+                  name="reason"
+                  required
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  rows={3}
+                />
+              </div>
+
+              <button
+                disabled={approoveIsPending}
+                className="w-full bg-gradient cursor-pointer text-white py-4 rounded-lg font-normal"
+                type="submit"
+              >
+                {approoveIsPending
+                  ? "Please wait..."
+                  : newCategory?.profile?.approved_by_admin
+                  ? "Suspend"
+                  : "Unsuspend"}
+              </button>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -126,7 +126,7 @@ export default function ShopPage() {
   const { data: getProductData, isPending: productIsPending } =
     useProductGeneral(
       {
-        "pagination[limit]": 10000000000000000,
+        "pagination[limit]": 10000,
         "pagination[page]": 1,
         q: debounceSearch,
         status: "PUBLISHED",

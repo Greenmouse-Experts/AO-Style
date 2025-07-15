@@ -32,10 +32,17 @@ export default function Navbar() {
 
   const items = useCartStore((state) => state.items);
 
-  const totalQuantity = items?.reduce(
-    (total, item) => total + item?.product?.quantity,
+  const totalProductQuantity = items?.reduce(
+    (total, item) => total + (item?.product?.quantity || 0),
     0
   );
+
+  const totalStyleQuantity = items?.reduce(
+    (total, item) => total + (item?.product?.style?.measurement?.length || 0),
+    0
+  );
+
+  const totalQuantity = totalProductQuantity + totalStyleQuantity;
 
   return (
     <nav className="bg-white fixed w-full z-[95] py-3">

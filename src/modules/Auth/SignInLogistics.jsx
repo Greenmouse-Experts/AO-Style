@@ -322,6 +322,22 @@ export default function SignUpAsLogisticsAgent() {
               </div>
             )}
 
+            {agentType === "organization" && (
+              <div className="w-full">
+                <label className="block text-gray-600 font-medium mb-4">
+                  Business Registration Number (Optional)
+                </label>
+                <input
+                  type="text"
+                  name="business_registration_number"
+                  value={values.business_registration_number}
+                  onChange={handleChange}
+                  placeholder="Enter your business registration number"
+                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                />
+              </div>
+            )}
+
             <div>
               <label className="block text-gray-700 mb-1">Email Address</label>
               <input

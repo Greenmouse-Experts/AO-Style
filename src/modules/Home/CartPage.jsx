@@ -361,7 +361,7 @@ const CartPage = () => {
                     {/* Dropdown */}
                     {dropdownOpen === item?.cartId && (
                       <div className="absolute cursor-pointer  right-0 mt-2 w-40 bg-white border shadow-lg rounded-lg z-50">
-                        <button
+                        {/* <button
                           onClick={() => {
                             // console.log(item);
                             // navigate("/shop-details", {
@@ -371,7 +371,7 @@ const CartPage = () => {
                           className="block cursor-pointer  px-4 py-2 text-sm hover:bg-gray-100 w-full text-left"
                         >
                           Edit
-                        </button>
+                        </button> */}
 
                         <button
                           onClick={() => {

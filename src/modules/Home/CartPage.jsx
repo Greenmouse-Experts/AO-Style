@@ -468,7 +468,8 @@ const CartPage = () => {
                         quantity: item?.product?.quantity,
                         color: item?.product?.color,
                         style_product_id: item?.product?.style?.id,
-                        measurements: item?.product?.style?.measurement ?? [],
+                        measurements:
+                          item?.product?.style?.measurement ?? undefined,
                       };
                     });
 

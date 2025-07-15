@@ -15,6 +15,7 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
+import useApproveMarketRep from "../../../../hooks/marketRep/useApproveMarketRep";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -23,6 +24,9 @@ const CustomersTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [activeTab, setActiveTab] = useState("table");
+  const [reason, setReason] = useState("");
+
+  const [suspendModalOpen, setSuspendModalOpen] = useState(false);
 
   const toggleDropdown = (rowId) => {
     setOpenDropdown(openDropdown === rowId ? null : rowId);
@@ -127,9 +131,34 @@ const CustomersTable = () => {
                 <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
                   Edit User
                 </button>
-                <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center">
-                  Remove User
-                </button>
+                {row?.profile?.approved_by_admin ? (
+                  <>
+                    <button
+                      onClick={() => {
+                        setSuspendModalOpen(true);
+                        setNewCategory(row);
+                        setOpenDropdown(null);
+                      }}
+                      className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center"
+                    >
+                      {"Suspend user"}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {" "}
+                    <button
+                      onClick={() => {
+                        setSuspendModalOpen(true);
+                        setNewCategory(row);
+                        setOpenDropdown(null);
+                      }}
+                      className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+                    >
+                      {"Unsuspend user"}
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -197,6 +226,11 @@ const CustomersTable = () => {
     });
     doc.save("Customers.pdf");
   };
+
+  const { isPending: approoveIsPending, approveMarketRepMutate } =
+    useApproveMarketRep();
+
+  const [newCategory, setNewCategory] = useState();
 
   return (
     <div className="bg-white p-6 rounded-xl overflow-x-auto">
@@ -416,7 +450,7 @@ const CustomersTable = () => {
         </div>
       )}
 
-      {/* {suspendModalOpen && (
+      {suspendModalOpen && (
         <div
           className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
           onClick={() => {
@@ -442,8 +476,8 @@ const CustomersTable = () => {
             </div>
             <h3 className="text-lg font-semibold mb-4 -mt-7">
               {newCategory?.profile?.approved_by_admin
-                ? "Suspend Admin"
-                : "Unsuspend Admin"}
+                ? "Suspend User"
+                : "Unsuspend User"}
             </h3>
             <form
               className="mt-6 space-y-4"
@@ -486,11 +520,11 @@ const CustomersTable = () => {
               </div>
 
               <button
-                disabled={suspendIsPending || approoveIsPending}
+                disabled={approoveIsPending}
                 className="w-full bg-gradient cursor-pointer text-white py-4 rounded-lg font-normal"
                 type="submit"
               >
-                {suspendIsPending || approoveIsPending
+                {approoveIsPending
                   ? "Please wait..."
                   : newCategory?.profile?.approved_by_admin
                   ? "Suspend"
@@ -499,7 +533,7 @@ const CustomersTable = () => {
             </form>
           </div>
         </div>
-      )} */}
+      )}
     </div>
   );
 };

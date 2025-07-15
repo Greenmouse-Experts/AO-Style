@@ -246,7 +246,7 @@ export default function SavedMeasurementsDisplay({
                 {
                   product: {
                     style: {
-                      id: styleInfo?.style?.id,
+                      id: styleInfo?.id,
                       name: styleInfo?.name,
                       type: "STYLE",
                       price_at_time: styleInfo?.price,
@@ -263,7 +263,7 @@ export default function SavedMeasurementsDisplay({
                 {
                   product: {
                     style: {
-                      id: styleInfo?.style?.id,
+                      id: styleInfo?.id,
                       name: styleInfo?.name,
                       type: "STYLE",
                       price_at_time: styleInfo?.price,

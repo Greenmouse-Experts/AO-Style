@@ -309,7 +309,7 @@ export default function ShopDetails() {
                   <button
                     title={
                       quantity == productVal.minimum_yards
-                        ? "You cannot select quantity lower than the minimum yards"
+                        ? "Sorry this is the minimum quantity"
                         : ""
                     }
                     onClick={decrementQty}

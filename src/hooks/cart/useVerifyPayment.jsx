@@ -7,16 +7,14 @@ import Cookies from "js-cookie";
 
 const useVerifyPayment = () => {
   const { toastError, toastSuccess } = useToast();
-  const navigate = useNavigate();
 
-  const currentUrl = Cookies.get("currUserUrl");
+  const queryClient = useQueryClient();
 
   const { isPending, mutate: verifyPaymentMutate } = useMutation({
     mutationFn: (payload) => CartService.verifyPayment(payload),
     mutationKey: ["verify-payment"],
     onSuccess(data) {
       toastSuccess(data?.data?.message);
-      navigate(`/${currentUrl}/orders`);
 
       queryClient.invalidateQueries({
         queryKey: ["get-cart"],

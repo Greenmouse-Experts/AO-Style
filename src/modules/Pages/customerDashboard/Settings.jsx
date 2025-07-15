@@ -22,8 +22,8 @@ const Settings = () => {
     email: carybinUser?.email ?? "",
     profile_picture: carybinUser?.profile?.profile_picture ?? null,
     address: carybinUser?.profile?.address ?? "",
-    country: "",
-    state: "",
+    country: carybinUser?.profile?.country ?? "",
+    state: carybinUser?.profile?.state ?? "",
     phone: carybinUser?.phone ?? "",
   };
 

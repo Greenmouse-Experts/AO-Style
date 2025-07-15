@@ -443,9 +443,10 @@ const AddProduct = () => {
 
         <form className="" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 gap-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
+              {/* md:grid-cols-2 */}
               {/* Fabric Name */}
-              <div>
+              <div className="w-full">
                 <label className="block text-gray-700 mb-4">Fabric Name</label>
                 <input
                   type="text"
@@ -457,9 +458,8 @@ const AddProduct = () => {
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 />
               </div>
-
               {/* SKU */}
-              <div>
+              {/* <div>
                 <label className="block text-gray-700 mb-4">SKU</label>
                 <input
                   type="text"
@@ -470,7 +470,7 @@ const AddProduct = () => {
                   placeholder="Enter the unique identifier"
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 />
-              </div>
+              </div> */}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

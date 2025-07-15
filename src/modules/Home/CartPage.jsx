@@ -248,7 +248,7 @@ const CartPage = () => {
         </div>
       ) : (
         <div className="Resizer section px-4">
-          <h2 className="text-lg font-medium mb-6">Cart ({totalQuantity})</h2>
+          <h2 className="text-lg font-medium mb-6">Cart ({items?.length})</h2>
 
           <div className="hidden md:grid grid-cols-[4fr_2fr_2fr_1fr] gap-8 text-sm font-medium text-gray-500 mb-4">
             <div>STYLE</div>

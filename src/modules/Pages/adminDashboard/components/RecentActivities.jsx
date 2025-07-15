@@ -114,6 +114,7 @@ const RecentActivitiesTable = (dataVal) => {
     setItemsPerPage(Number(e.target.value));
     setCurrentPage(1); // Reset to page 1 when items per page changes
   };
+  console.log(dataVal?.dataVal?.recentOrders, "here");
   return (
     <div className="bg-white p-6 rounded-xl overflow-x-auto mt-6">
       <div className="flex flex-wrap justify-between items-center pb-3gap-4">

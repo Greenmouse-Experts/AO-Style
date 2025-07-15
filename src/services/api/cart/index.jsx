@@ -8,6 +8,10 @@ const addCartProduct = (payload) => {
   return CaryBinApi.post(`/cart/add`, payload);
 };
 
+const addMultipleCartProduct = (payload) => {
+  return CaryBinApi.post(`/cart/add-multiple`, payload);
+};
+
 const editProduct = (payload) => {
   return CaryBinApi.patch(`/product-category/${payload.id}`, payload);
 };
@@ -30,6 +34,7 @@ const CartService = {
   deleteCart,
   createPayment,
   verifyPayment,
+  addMultipleCartProduct,
 };
 
 export default CartService;

@@ -8,6 +8,7 @@ import LoaderComponent from "../../../components/BeatLoader";
 import { motion } from "framer-motion";
 import useDebounce from "../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
+import { useCartStore } from "../../../store/carybinUserCartStore";
 
 const categories = ["Male", "Female"];
 
@@ -125,7 +126,7 @@ export default function ShopPage() {
   const { data: getProductData, isPending: productIsPending } =
     useProductGeneral(
       {
-        "pagination[limit]": page,
+        "pagination[limit]": 10000000000000000,
         "pagination[page]": 1,
         q: debounceSearch,
         status: "PUBLISHED",
@@ -135,6 +136,12 @@ export default function ShopPage() {
 
   const isShowMoreBtn = getProductData?.count == getProductData?.data?.length;
 
+  const Cartid = localStorage.getItem("cart_id");
+
+  const item = useCartStore.getState().getItemByCartId(Cartid);
+
+  console.log(item);
+
   return (
     <>
       <Breadcrumb
@@ -143,6 +150,35 @@ export default function ShopPage() {
         backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741604351/AoStyle/image_ugfmjr.jpg"
       />
       <section className="Resizer section px-4">
+        {item ? (
+          <div className="bg-[#FFF2FF] p-4 rounded-lg mb-6">
+            <h2 className="text-sm font-medium text-gray-500 mb-4">STYLE</h2>
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <img
+                  src={item?.product?.style?.image}
+                  alt="product"
+                  className="w-20 h-20 rounded object-cover"
+                />
+              </div>
+              <div className="ml-4 flex-1">
+                <h3 className="font-medium">{item?.product?.style?.name}</h3>
+                <p className="mt-1 text-sm">
+                  X {item?.product?.style?.measurement?.length}{" "}
+                  {item?.product?.style?.measurement?.length > 1
+                    ? "Pieces"
+                    : "Piece"}
+                </p>
+                <p className="mt-1 text-[#0f0f11] text-sm">
+                  N {item?.product?.style?.price_at_time?.toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <></>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Sidebar */}
           <aside

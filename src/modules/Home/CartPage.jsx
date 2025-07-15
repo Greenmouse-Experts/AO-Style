@@ -70,7 +70,8 @@ const CartPage = () => {
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const { isPending: cartIsPending, createPaymentMutate } = useCreatePayment();
+  const { isPending: createPaymentPending, createPaymentMutate } =
+    useCreatePayment();
 
   const { isPending: billingPending, createBillingMutate } = useCreateBilling();
 
@@ -82,6 +83,8 @@ const CartPage = () => {
   const [verifyPayment, setVerifyPayment] = useState("");
 
   const { carybinUser } = useCarybinUserStore();
+
+  const currentUrl = Cookies.get("currUserUrl");
 
   const navigate = useNavigate();
 
@@ -106,14 +109,16 @@ const CartPage = () => {
       callback: function (response) {
         // console.log(payment_id);
         setVerifyPayment(response?.reference);
-
         verifyPaymentMutate(
           {
             id: response?.reference,
           },
           {
             onSuccess: () => {
+              useCartStore.getState().clearCart();
+
               setVerifyPayment("");
+              navigate(`/${currentUrl}/orders`);
             },
           }
         );
@@ -149,7 +154,72 @@ const CartPage = () => {
     enableReinitialize: true,
     onSubmit: (val) => {
       console.log(val);
-      createBillingMutate(val);
+      createBillingMutate(val, {
+        onSuccess: () => {
+          const purchases = [];
+
+          const metadata = [];
+
+          items.forEach((item) => {
+            const product = item.product;
+
+            if (product?.id) {
+              purchases.push({
+                purchase_id: product.id,
+                quantity: product.quantity,
+                purchase_type: product.type,
+              });
+            }
+
+            if (product?.style?.id) {
+              purchases.push({
+                purchase_id: product.style.id,
+                quantity: product?.style?.measurement?.length,
+                purchase_type: product.style.type,
+              });
+            }
+          });
+
+          items.forEach((item) => {
+            const product = item.product;
+
+            if (product?.style?.id) {
+              metadata.push({
+                style_product_id: product.style.id,
+                measurement: product?.style?.measurement,
+              });
+            }
+          });
+
+          console.log({
+            purchases,
+            metadata,
+            amount: Math.round(updatedAmount),
+            currency: "NGN",
+            email: carybinUser?.email,
+          });
+
+          createPaymentMutate(
+            {
+              purchases,
+              metadata,
+              amount: Math.round(updatedAmount),
+              currency: "NGN",
+              email: carybinUser?.email,
+            },
+            {
+              onSuccess: (data) => {
+                setShowCheckoutModal(false);
+                resetForm();
+                payWithPaystack({
+                  amount: Math.round(updatedAmount),
+                  payment_id: data?.data?.data?.payment_id,
+                });
+              },
+            }
+          );
+        },
+      });
     },
   });
 
@@ -414,14 +484,6 @@ const CartPage = () => {
                     );
                   }
 
-                  // const updatedCart = cartData?.data?.items?.map((item) => {
-                  //   return {
-                  //     purchase_id: item?.product_id,
-                  //     quantity: item?.quantity,
-                  //     purchase_type: item?.product_type,
-                  //   };
-                  // });
-
                   // createPaymentMutate(
                   //   {
                   //     purchases: updatedCart,
@@ -438,12 +500,6 @@ const CartPage = () => {
                   //     },
                   //   }
                   // );
-                  // console.log({
-                  //   purchases: updatedCart,
-                  //   amount: totalAmount + Math.round(totalAmount * 0.075),
-                  //   currency: "NGN",
-                  //   email: carybinUser?.email,
-                  // });
                 }}
                 className="bg-gradient text-white font-medium px-16 py-3 cursor-pointer"
               >
@@ -481,7 +537,7 @@ const CartPage = () => {
                   Receiver’s Information
                 </h2>
                 <form className="space-y-4" onSubmit={handleSubmit}>
-                  <div>
+                  {/* <div>
                     <label className="block text-sm text-black">
                       Delivery Address Option *
                       <select className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none">
@@ -490,8 +546,8 @@ const CartPage = () => {
                         <option>Express Delivery</option>
                       </select>
                     </label>
-                  </div>
-                  <div>
+                  </div> */}
+                  {/* <div>
                     <label className="block text-sm text-black">
                       Name *
                       <input
@@ -501,8 +557,8 @@ const CartPage = () => {
                         // required
                       />
                     </label>
-                  </div>
-                  <div>
+                  </div> */}
+                  {/* <div>
                     <label className="block text-sm text-black">
                       Email *
                       <input
@@ -512,8 +568,8 @@ const CartPage = () => {
                         // required
                       />
                     </label>
-                  </div>
-                  <div className="flex gap-4">
+                  </div> */}
+                  {/* <div className="flex gap-4">
                     <div className="w-full">
                       <label className="block text-sm text-black">
                         Phone Number *
@@ -538,7 +594,7 @@ const CartPage = () => {
                         />
                       </label>
                     </div>
-                  </div>
+                  </div> */}
                   <div>
                     <label className="block text-sm text-black">
                       Country *
@@ -660,12 +716,12 @@ const CartPage = () => {
                       <span>SUBTOTAL</span>
                       <span>NGN {updatedAmount.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between text-sm text-gray-700 mt-2">
+                    {/* <div className="flex justify-between text-sm text-gray-700 mt-2">
                       <span>Estimated sales VAT (7.5)</span>
                       <span>
                         NGN {Math.round(updatedAmount).toLocaleString()}
                       </span>
-                    </div>
+                    </div> */}
                     <div className="flex justify-between text-sm text-gray-700 mt-2">
                       <span>DELIVERY FEE</span>
                       <span>NGN 0</span>
@@ -707,7 +763,9 @@ const CartPage = () => {
                     type="submit"
                     className="w-full cursor-pointer mt-6 py-3 bg-gradient text-white hover:from-purple-600 hover:to-pink-600 transition"
                   >
-                    {billingPending ? "Please wait..." : "Proceed to Payment"}
+                    {billingPending || createPaymentPending
+                      ? "Please wait..."
+                      : "Proceed to Payment"}
                   </button>
                 </form>
               </div>

@@ -8,43 +8,47 @@ export const useCartStore = create(
       items: [],
       cartMeta: undefined,
 
-      addToCart: (item) => {
-        const productId = item.product?.id;
-        if (!productId) return;
+      addToCart: (item, cartId) => {
+        if (!cartId) return;
 
-        const incomingQty = item.product?.quantity || 1;
+        const existingItem = get().items.find((i) => i.cartId === cartId);
 
-        const existingItem = get().items.find(
-          (i) => i.product?.id === productId
-        );
+        const incomingQty = item.product?.quantity || 0;
+        const incomingStyle = item.product?.style;
 
         if (existingItem) {
+          // Update existing cart item
           set({
             items: get().items.map((i) =>
-              i.product?.id === productId
+              i.cartId === cartId
                 ? {
                     ...i,
                     product: {
                       ...i.product,
+                      quantity: i.product?.quantity + incomingQty,
+                      style: incomingStyle
+                        ? {
+                            ...(i.product?.style || {}),
+                            ...incomingStyle,
+                            measurement:
+                              incomingStyle?.measurement ||
+                              i.product?.style?.measurement ||
+                              [],
+                          }
+                        : i.product?.style,
                       ...item.product,
-                      quantity: i.product?.quantity + item.product?.quantity,
-                    },
-                    style: {
-                      ...i.style,
-                      ...item.style,
-                      measurement:
-                        item.style?.measurement || i.style?.measurement,
                     },
                   }
                 : i
             ),
           });
         } else {
+          // Add new item
           set({
             items: [
               ...get().items,
               {
-                ...item,
+                cartId,
                 product: {
                   ...item.product,
                   quantity: incomingQty,
@@ -55,20 +59,20 @@ export const useCartStore = create(
         }
       },
 
-      removeFromCart: (productId) => {
+      removeFromCart: (cartId) => {
         set({
-          items: get().items.filter((i) => i.product?.id !== productId),
+          items: get().items.filter((i) => i.cartId !== cartId),
         });
       },
 
-      getItemByProductId: (productId) => {
-        return get().items.find((i) => i.product?.id === productId);
+      getItemByCartId: (cartId) => {
+        return get().items.find((i) => i.cartId === cartId);
       },
 
-      updateQuantity: (productId, newQty) => {
+      updateQuantity: (cartId, newQty) => {
         set({
           items: get().items.map((i) =>
-            i.product?.id === productId
+            i.cartId === cartId
               ? {
                   ...i,
                   product: {
@@ -85,13 +89,12 @@ export const useCartStore = create(
 
       setUser: (user) => set({ user }),
 
-      replaceCart: ({ items, cartMeta, user }) => {
+      replaceCart: ({ items, cartMeta, user }) =>
         set({
           items,
           cartMeta,
           user: user ?? get().user,
-        });
-      },
+        }),
     }),
     {
       name: "cart-storage",

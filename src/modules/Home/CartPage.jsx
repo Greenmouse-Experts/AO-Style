@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Breadcrumb from "./components/Breadcrumb";
 import useGetCart from "../../hooks/cart/useGetCart";
 import LoaderComponent from "../../components/BeatLoader";
@@ -15,6 +15,7 @@ import Select from "react-select";
 import { nigeriaStates } from "../../constant";
 import PhoneInput from "react-phone-input-2";
 import useCreateBilling from "../../hooks/billing/useCreateBilling";
+import useAddMultipleCart from "../../hooks/cart/useAddMultipleCart";
 
 const initialValues = {
   address: "",
@@ -30,29 +31,53 @@ const CartPage = () => {
   const [total, setTotal] = useState(0);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
+  const [newCategory, setNewCategory] = useState();
+
   const { data: cartData, isPending } = useGetCart();
 
   const items = useCartStore((state) => state.items);
 
-  console.log(items?.length);
+  const removeFromCart = useCartStore((state) => state.removeFromCart);
 
-  const totalQuantity = items?.reduce(
-    (total, item) => total + item?.product?.quantity,
+  const totalProductQuantity = items?.reduce(
+    (total, item) => total + (item?.product?.quantity || 0),
     0
   );
+
+  const totalStyleQuantity = items?.reduce(
+    (total, item) => total + (item?.product?.style?.measurement?.length || 0),
+    0
+  );
+
+  const totalQuantity = totalProductQuantity + totalStyleQuantity;
 
   const totalAmount =
     items?.reduce((total, item) => {
       return total + item?.product.quantity * item?.product?.price_at_time;
     }, 0) ?? 0;
 
+  const totalStyleAmount =
+    items?.reduce((total, item) => {
+      const measurements = item?.product?.style?.measurement || [];
+      const pricePerMeasurement = +item?.product?.style?.price_at_time || 0;
+
+      return total + measurements.length * pricePerMeasurement;
+    }, 0) ?? 0;
+
+  const updatedAmount = totalAmount + totalStyleAmount;
+
   const { isPending: deleteIsPending, deleteCartMutate } = useDeleteCart();
+
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const { isPending: cartIsPending, createPaymentMutate } = useCreatePayment();
 
   const { isPending: billingPending, createBillingMutate } = useCreateBilling();
 
   const { isPending: verifyPending, verifyPaymentMutate } = useVerifyPayment();
+
+  const { isPending: addCartPending, addMultipleCartMutate } =
+    useAddMultipleCart();
 
   const [verifyPayment, setVerifyPayment] = useState("");
 
@@ -128,6 +153,8 @@ const CartPage = () => {
     },
   });
 
+  console.log(items);
+
   return (
     <>
       <Breadcrumb
@@ -136,7 +163,7 @@ const CartPage = () => {
         backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1744104104/AoStyle/image_1_xxie9w.jpg"
       />
       {items?.length == 0 ? (
-        <div className="  px-4 h-screen  flex-row flex items-center justify-center border-2">
+        <div className="  px-4 h-[80vh]  flex-row flex items-center justify-center border-2">
           {" "}
           <div className="space-y-8 flex flex-col items-center justify-center">
             <p className="font-semibold text-base">Your cart is empty</p>
@@ -163,25 +190,31 @@ const CartPage = () => {
           <div className="space-y-6">
             {items?.map((item) => (
               <div
-                key={item.id}
+                key={item.cartId}
                 className="border border-gray-300 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
               >
                 {/* Style */}
                 <div className="flex items-center gap-4 w-full md:w-1/3">
-                  {item?.product?.type == "STYLE" ? (
+                  {item?.product?.style?.type == "STYLE" ? (
                     <>
                       <img
-                        src={item.style.image}
+                        src={item?.product?.style?.image}
                         alt="Style"
                         className="w-20 h-24 object-cover rounded-md"
                       />
                       <div>
-                        <p className="font-semibold">{item.style.name}</p>
+                        <p className="font-semibold">
+                          {item?.product?.style?.name}
+                        </p>
                         <p className="text-sm text-gray-500">
-                          {item.style.qty}
+                          x {item?.product?.style?.measurement?.length}{" "}
+                          {item?.product?.style?.measurement?.length > 1
+                            ? "Pieces"
+                            : "Piece"}
                         </p>
                         <p className="text-purple-600 font-medium mt-1">
-                          ₦{item.style.price.toLocaleString()}
+                          ₦
+                          {item?.product?.style?.price_at_time?.toLocaleString()}
                         </p>
                       </div>
                     </>
@@ -204,7 +237,7 @@ const CartPage = () => {
                       <div>
                         <p className="font-semibold">{item?.product?.name}</p>
                         <p className="text-sm text-gray-500">
-                          {item?.product?.quantity}
+                          x {item?.product?.quantity} yards
                         </p>
                         <p className="text-purple-600 font-medium mt-1">
                           ₦{item?.product?.price_at_time.toLocaleString()}
@@ -224,17 +257,18 @@ const CartPage = () => {
                   <div className="text-purple-600 font-semibold">
                     ₦
                     {(
-                      item?.product?.price_at_time * item?.product?.quantity
-                    ).toLocaleString()}
+                      (item?.product?.price_at_time || 0) *
+                        (item?.product?.quantity || 0) +
+                      (item?.product?.style?.measurement?.length || 0) *
+                        (item?.product?.style?.price_at_time || 0)
+                    )?.toLocaleString()}
                   </div>
 
                   <div className="relative ml-14 cursor-pointer">
                     <button
                       onClick={() =>
                         setDropdownOpen(
-                          dropdownOpen === item?.product?.id
-                            ? null
-                            : item?.product?.id
+                          dropdownOpen === item?.cartId ? null : item?.cartId
                         )
                       }
                       className="text-gray-600 hover:text-black cursor-pointer"
@@ -255,7 +289,7 @@ const CartPage = () => {
                     </button>
 
                     {/* Dropdown */}
-                    {dropdownOpen === item?.product?.id && (
+                    {dropdownOpen === item?.cartId && (
                       <div className="absolute cursor-pointer  right-0 mt-2 w-40 bg-white border shadow-lg rounded-lg z-50">
                         <button
                           onClick={() => {
@@ -268,18 +302,22 @@ const CartPage = () => {
                         >
                           Edit
                         </button>
+
                         <button
                           onClick={() => {
-                            deleteCartMutate(
-                              {
-                                id: item?.id,
-                              },
-                              {
-                                onSuccess: () => {
-                                  setDropdownOpen(null);
-                                },
-                              }
-                            );
+                            setNewCategory(item?.cartId);
+                            setIsAddModalOpen(true);
+                            setDropdownOpen(null);
+                            // deleteCartMutate(
+                            //   {
+                            //     id: item?.id,
+                            //   },
+                            //   {
+                            //     onSuccess: () => {
+                            //       setDropdownOpen(null);
+                            //     },
+                            //   }
+                            // );
                           }}
                           className="block cursor-pointer px-4 py-2 text-sm hover:bg-gray-100 w-full text-left text-red-500"
                         >
@@ -311,19 +349,19 @@ const CartPage = () => {
               <div className="flex justify-between w-full max-w-md">
                 <span className="font-light">Sub-Total :</span>
                 <span className="font-medium">
-                  ₦{totalAmount?.toLocaleString()}
+                  ₦{updatedAmount?.toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between w-full max-w-md">
                 <span className="font-light">Discount :</span>
                 <span className="font-medium">₦0</span>
               </div>
-              <div className="flex justify-between w-full max-w-md">
+              {/* <div className="flex justify-between w-full max-w-md">
                 <span className="font-light">Estimated Sales VAT (7.5%) :</span>
                 <span className="font-medium">
-                  ₦{Math.round(totalAmount * 0.075).toLocaleString()}
+                  ₦{Math.round(updatedAmount * 0.075).toLocaleString()}
                 </span>
-              </div>
+              </div> */}
               <div className="flex justify-between w-full max-w-md">
                 <span className="font-light">Delivery Fee :</span>
                 <span className="font-medium">₦0</span>
@@ -331,10 +369,10 @@ const CartPage = () => {
               <div className="flex justify-between w-full max-w-md">
                 <span className="font-medium text-lg">Total :</span>
                 <span className="font-medium text-lg">
-                  ₦
-                  {(
-                    totalAmount + Math.round(totalAmount * 0.075)
-                  ).toLocaleString()}
+                  ₦ {Math.round(updatedAmount).toLocaleString()}
+                  {/* {(
+                    updatedAmount + Math.round(updatedAmount * 0.075)
+                  ).toLocaleString()} */}
                 </span>
               </div>
             </div>
@@ -353,7 +391,27 @@ const CartPage = () => {
                       `/login?redirect=${encodeURIComponent(currentPath)}`
                     );
                   } else {
-                    setShowCheckoutModal(true);
+                    const updatedItem = items?.map((item) => {
+                      return {
+                        product_id: item?.product?.id,
+                        product_type: item?.product?.type,
+                        quantity: item?.product?.quantity,
+                        color: item?.product?.color,
+                        style_product_id: item?.product?.style?.id,
+                        measurements: item?.product?.style?.measurement ?? [],
+                      };
+                    });
+
+                    addMultipleCartMutate(
+                      {
+                        items: updatedItem,
+                      },
+                      {
+                        onSuccess: () => {
+                          setShowCheckoutModal(true);
+                        },
+                      }
+                    );
                   }
 
                   // const updatedCart = cartData?.data?.items?.map((item) => {
@@ -389,11 +447,9 @@ const CartPage = () => {
                 }}
                 className="bg-gradient text-white font-medium px-16 py-3 cursor-pointer"
               >
-                {cartIsPending
+                {addCartPending
                   ? "Please wait..."
-                  : `Checkout | ₦${(
-                      totalAmount + Math.round(totalAmount * 0.075)
-                    ).toLocaleString()}`}
+                  : `Checkout | ₦${Math.round(updatedAmount).toLocaleString()}`}
               </button>
             </div>
           </div>
@@ -602,12 +658,12 @@ const CartPage = () => {
                   <div className="border-t border-gray-300 pt-4">
                     <div className="flex justify-between text-sm text-gray-700">
                       <span>SUBTOTAL</span>
-                      <span>NGN {totalAmount.toLocaleString()}</span>
+                      <span>NGN {updatedAmount.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-sm text-gray-700 mt-2">
                       <span>Estimated sales VAT (7.5)</span>
                       <span>
-                        NGN {Math.round(totalAmount * 0.075).toLocaleString()}
+                        NGN {Math.round(updatedAmount).toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm text-gray-700 mt-2">
@@ -617,10 +673,7 @@ const CartPage = () => {
                     <div className="flex justify-between text-lg font-medium text-gray-700 mt-2">
                       <span>TOTAL</span>
                       <span>
-                        NGN ₦
-                        {(
-                          totalAmount + Math.round(totalAmount * 0.075)
-                        ).toLocaleString()}
+                        NGN ₦{Math.round(updatedAmount).toLocaleString()}
                       </span>
                     </div>
                   </div>
@@ -657,6 +710,63 @@ const CartPage = () => {
                     {billingPending ? "Please wait..." : "Proceed to Payment"}
                   </button>
                 </form>
+              </div>
+            </div>
+          )}
+
+          {isAddModalOpen && (
+            <div
+              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
+              onClick={() => {
+                setIsAddModalOpen(false);
+                setNewCategory(null);
+              }}
+            >
+              <div
+                className="bg-white rounded-xl p-6 w-full max-w-lg"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex justify-between items-center border-b border-gray-200 pb-4 mb-4">
+                  <h2 className="text-lg font-semibold text-gray-800">
+                    Remove Cart
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setNewCategory(null);
+                      setIsAddModalOpen(false);
+                    }}
+                    className="text-gray-500 cursor-pointer hover:text-gray-700 text-2xl"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="max-h-[80vh] overflow-y-auto px-1">
+                  {" "}
+                  <label className="block text-sm font-medium text-gray-700 mb-4">
+                    Are you sure you want to Remove
+                  </label>
+                  <div className="flex justify-between mt-6 space-x-4">
+                    <button
+                      onClick={() => {
+                        setNewCategory(null);
+                        setIsAddModalOpen(false);
+                      }}
+                      className="w-full cursor-pointer bg-purple-400 text-white px-4 py-2 rounded-md text-sm font-medium"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        removeFromCart(newCategory);
+                        toastSuccess("Item removed from cart successfully.");
+                        setIsAddModalOpen(false);
+                      }}
+                      className="w-full cursor-pointer bg-gradient text-white px-4 py-4 rounded-md text-sm font-medium"
+                    >
+                      {"Remove"}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}

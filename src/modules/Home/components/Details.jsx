@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Search, Filter, SortDesc, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import useProductGeneral from "../../../hooks/dashboard/useGetProductGeneral";
 import useProductCategoryGeneral from "../../../hooks/dashboard/useGetProductPublic";
 import useDebounce from "../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 import LoaderComponent from "../../../components/BeatLoader";
+import { useCartStore } from "../../../store/carybinUserCartStore";
 
 const categories = ["All Styles", "Male Styles", "Female Styles", "Bubu"];
 
@@ -176,9 +177,46 @@ export default function MarketplaceSection() {
 
   const isShowMoreBtn = styleData?.length == getStyleProductGeneralData?.count;
 
+  const location = useLocation();
+
+  const id = location?.state?.info;
+
+  const cart_id = localStorage.getItem("cart_id");
+
+  const item = useCartStore.getState().getItemByCartId(cart_id);
+
+  console.log(item);
+
   return (
     <>
       <section className="Resizer section px-4">
+        {/* Conditionally render the Fabric section */}
+        {item ? (
+          <div className="bg-[#FFF2FF] p-4 rounded-lg mb-6">
+            <h2 className="text-sm font-medium text-gray-500 mb-4">FABRIC</h2>
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <img
+                  src={item?.product?.image}
+                  alt="product"
+                  className="w-20 h-20 rounded object-cover"
+                />
+              </div>
+              <div className="ml-4 flex-1">
+                <h3 className="font-medium">{item?.product?.name}</h3>
+                <p className="mt-1 text-sm">
+                  X {item?.product?.quantity} Yards
+                </p>
+                <p className="mt-1 text-[#2B21E5] text-sm">
+                  N {item?.product?.price_at_time?.toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <></>
+        )}
+
         <div className="flex flex-col md:flex-row md:justify-between md:items-center text-left mb-6">
           <div>
             <h2 className="text-2xl font-medium max-w-md leading-relaxed">
@@ -290,12 +328,9 @@ export default function MarketplaceSection() {
             {getStyleProductData?.data?.map((product) => (
               <Link
                 to={`/aostyle-details`}
-                state={{ info: product }}
+                state={{ info: product, id }}
                 key={product.id}
                 className=""
-                onClick={() => {
-                  console.o;
-                }}
               >
                 <img
                   src={product?.style?.photos[0]}

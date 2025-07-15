@@ -1,7 +1,9 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-const CheckModal = ({ isOpen, onClose }) => {
+const CheckModal = ({ isOpen, onClose, id }) => {
+  const navigate = useNavigate();
+
   return (
     isOpen && (
       <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm">
@@ -36,8 +38,15 @@ const CheckModal = ({ isOpen, onClose }) => {
                 </button>
               </Link>
               <Link to="/pickastyle">
-                <button className="bg-gradient text-white px-6 py-3 cursor-pointer">
-                  Proceed to Carybin
+                <button
+                  onClick={() => {
+                    navigate("/pickastyle");
+
+                    localStorage.setItem("cart_id", id);
+                  }}
+                  className="bg-gradient text-white px-6 py-3 cursor-pointer"
+                >
+                  Proceed to pick a style
                 </button>
               </Link>
             </div>

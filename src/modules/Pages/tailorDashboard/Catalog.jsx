@@ -188,6 +188,7 @@ export default function StylesTable() {
             >
               Published
             </button>
+
             <button
               onClick={() => {
                 setOpenDropdown(null);

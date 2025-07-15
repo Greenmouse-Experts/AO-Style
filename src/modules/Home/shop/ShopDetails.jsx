@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ShoppingCart } from "lucide-react";
 import { Facebook, Twitter, Instagram, Star, Music2 } from "lucide-react";
 import CheckModal from "../components/CheckModal";
@@ -11,6 +11,8 @@ import useAddCart from "../../../hooks/cart/useAddCart";
 import LoaderComponent from "../../../components/BeatLoader";
 import useProductGeneral from "../../../hooks/dashboard/useGetProductGeneral";
 import { useCartStore } from "../../../store/carybinUserCartStore";
+import SubmitProductModal from "../components/SubmitProduct";
+import { generateUniqueId } from "../../../lib/helper";
 
 const product = {
   name: "Luxury Embellished Lace Fabrics",
@@ -118,6 +120,8 @@ export default function ShopDetails() {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const [isModalSubmitOpen, setIsModalSubmitOpen] = useState(false);
+
   const handleAddToCart = () => {
     setIsSuccessModalOpen(true);
 
@@ -160,6 +164,12 @@ export default function ShopDetails() {
 
   const addToCart = useCartStore((state) => state.addToCart);
 
+  const Cartid = localStorage.getItem("cart_id");
+
+  const item = useCartStore.getState().getItemByCartId(Cartid);
+
+  const id = useMemo(() => generateUniqueId(), []);
+
   return (
     <>
       <Breadcrumb
@@ -176,6 +186,35 @@ export default function ShopDetails() {
         </div>
       ) : (
         <section className="Resizer section px-4">
+          {item ? (
+            <div className="bg-[#FFF2FF] p-4 rounded-lg mb-6">
+              <h2 className="text-sm font-medium text-gray-500 mb-4">STYLE</h2>
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <img
+                    src={item?.product?.style?.image}
+                    alt="product"
+                    className="w-20 h-20 rounded object-cover"
+                  />
+                </div>
+                <div className="ml-4 flex-1">
+                  <h3 className="font-medium">{item?.product?.style?.name}</h3>
+                  <p className="mt-1 text-sm">
+                    X {item?.product?.style?.measurement?.length}{" "}
+                    {item?.product?.style?.measurement?.length > 1
+                      ? "Pieces"
+                      : "Piece"}
+                  </p>
+                  <p className="mt-1 text-[#0f0f11] text-sm">
+                    N {item?.product?.style?.price_at_time?.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <></>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Image Section - Optimized for mobile */}
             <div className="flex flex-col md:flex-row w-full">
@@ -287,32 +326,67 @@ export default function ShopDetails() {
               <CheckModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
+                id={id}
+              />
+
+              <SubmitProductModal
+                isOpen={isModalSubmitOpen}
+                onClose={() => setIsModalSubmitOpen(false)}
               />
 
               {/* Add to Cart Button */}
               <button
                 disabled={!selectedColor}
                 onClick={() => {
-                  addToCart({
-                    product: {
-                      id: productVal?.product_id,
-                      name: productVal?.product?.name,
-                      type: "FABRIC",
-                      quantity: +quantity,
-                      price_at_time: productVal?.product?.price,
-                      image: mainImage,
-                      color: selectedColor,
-                    },
-                  });
+                  if (Cartid) {
+                    addToCart(
+                      {
+                        product: {
+                          id: productVal?.product_id,
+                          name: productVal?.product?.name,
+                          type: "FABRIC",
+                          quantity: +quantity,
+                          price_at_time: productVal?.product?.price,
+                          image: mainImage,
+                          color: selectedColor,
+                        },
+                      },
+                      Cartid
+                    );
 
-                  toastSuccess("Item saved in the cart");
+                    toastSuccess("Item saved in the cart");
 
-                  setIsSuccessModalOpen(true);
+                    setIsSuccessModalOpen(true);
 
-                  setTimeout(() => {
-                    setIsSuccessModalOpen(false);
-                    setIsModalOpen(true);
-                  }, 2500);
+                    setTimeout(() => {
+                      setIsSuccessModalOpen(false);
+                      setIsModalSubmitOpen(true);
+                    }, 2500);
+                  } else {
+                    addToCart(
+                      {
+                        product: {
+                          id: productVal?.product_id,
+                          name: productVal?.product?.name,
+                          type: "FABRIC",
+                          quantity: +quantity,
+                          price_at_time: productVal?.product?.price,
+                          image: mainImage,
+                          color: selectedColor,
+                        },
+                      },
+                      id
+                    );
+
+                    toastSuccess("Item saved in the cart");
+
+                    setIsSuccessModalOpen(true);
+
+                    setTimeout(() => {
+                      setIsSuccessModalOpen(false);
+                      setIsModalOpen(true);
+                    }, 2500);
+                  }
 
                   // if (!token) {
                   //   toastSuccess(
@@ -369,8 +443,14 @@ export default function ShopDetails() {
                     <div className="mt-3 flex justify-end">
                       <button
                         onClick={() => {
-                          setIsSuccessModalOpen(false);
-                          setIsModalOpen(true);
+                          if (item) {
+                            setIsSuccessModalOpen(false);
+                            setIsModalSubmitOpen(true);
+                            localStorage.removeItem("cart_id");
+                          } else {
+                            setIsSuccessModalOpen(false);
+                            setIsModalOpen(true);
+                          }
                         }}
                         className="px-4 py-2 bg-gradient text-white rounded hover:bg-purple-700 transition"
                       >

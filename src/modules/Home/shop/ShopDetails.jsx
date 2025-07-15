@@ -307,6 +307,11 @@ export default function ShopDetails() {
                 </h3>
                 <div className="flex items-center border border-gray-300 rounded-md overflow-hidden w-max">
                   <button
+                    title={
+                      quantity == productVal.minimum_yards
+                        ? "You cannot select quantity lower than the minimum yards"
+                        : ""
+                    }
                     onClick={decrementQty}
                     className="px-3 md:px-4 py-1.5 md:py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-light text-lg"
                   >

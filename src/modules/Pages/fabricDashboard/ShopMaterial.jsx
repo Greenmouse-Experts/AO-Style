@@ -367,7 +367,7 @@ export default function ShopMaterials() {
                     {product.name}
                   </h3>
                   <p className="text-[#2B21E5] text-left font-light">
-                    ₦{product.price.toLocaleString()}
+                    ₦{product?.price?.toLocaleString()}
                   </p>
                 </div>
               ))

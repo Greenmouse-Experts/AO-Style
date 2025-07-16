@@ -158,8 +158,8 @@ export default function Filters({
       <div className="mb-3 sm:mb-4">
         <h3 className="font-medium mb-2 sm:mb-3">Price</h3>
         <div className="flex justify-between text-xs sm:text-sm">
-          <span>₦{queryMin.toLocaleString()}</span>
-          <span>₦{queryMax.toLocaleString()}</span>
+          <span>₦{queryMin?.toLocaleString()}</span>
+          <span>₦{queryMax?.toLocaleString()}</span>
         </div>
         <input
           type="range"

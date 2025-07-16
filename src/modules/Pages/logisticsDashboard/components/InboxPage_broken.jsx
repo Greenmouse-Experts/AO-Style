@@ -37,15 +37,15 @@ export default function InboxPage() {
   const [isConnected, setIsConnected] = useState(false);
   const [chats, setChats] = useState([]);
 
-  // User profile state
-  const [userProfile, setUserProfile] = useState(null);
-  const [profileLoading, setProfileLoading] = useState(true);
-
   const { toastError, toastSuccess } = useToast();
   const userToken = Cookies.get("token");
   // Use profile ID instead of hardcoded ID
   const userId = userProfile?.id || null;
   const selectedChatRef = useRef(selectedChat);
+
+  // User profile state
+  const [userProfile, setUserProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   // Get user profile hook
   const {
@@ -70,44 +70,14 @@ export default function InboxPage() {
     selectedChatRef.current = selectedChat;
   }, [selectedChat]);
 
-  // Handle profile loading and setting user profile state
-  useEffect(() => {
-    if (profileSuccess && profileData) {
-      console.log("=== USER PROFILE LOADED ===");
-      console.log("Profile data:", profileData);
-      console.log("User ID from profile:", profileData.id);
-      console.log("============================");
-      setUserProfile(profileData);
-      setProfileLoading(false);
-    } else if (profileError) {
-      console.error("=== PROFILE LOADING ERROR ===");
-      console.error("Error:", profileErrorData);
-      console.error("=============================");
-      toastError("Failed to load user profile: " + profileErrorData?.message);
-      setProfileLoading(false);
-    } else if (profilePending) {
-      console.log("=== PROFILE LOADING ===");
-      console.log("Profile is loading...");
-      console.log("======================");
-      setProfileLoading(true);
-    }
-  }, [profileSuccess, profileData, profileError, profileErrorData, profilePending]);
-
-  // Initialize Socket.IO connection - Wait for profile to be loaded
+  // Initialize Socket.IO connection
   useEffect(() => {
     console.log("=== INITIALIZING CUSTOMER SOCKET CONNECTION ===");
     console.log("User token:", userToken);
-    console.log("User ID from profile:", userId);
-    console.log("Profile loading:", profileLoading);
     console.log("Socket URL: https://api-carybin.victornwadinobi.com");
     console.log("===============================================");
 
-    // Wait for profile to be loaded before initializing socket
-    if (userToken && userId && !profileLoading) {
-      console.log("=== PROFILE LOADED, INITIALIZING SOCKET ===");
-      console.log("User token:", userToken);
-      console.log("User ID:", userId);
-      console.log("==========================================");
+    if (userToken) {
       const socketInstance = io("https://api-carybin.victornwadinobi.com", {
         auth: { token: userToken },
         transports: ["websocket", "polling"],
@@ -125,19 +95,17 @@ export default function InboxPage() {
         console.log("=== CUSTOMER SOCKET CONNECTED ===");
         console.log("Socket ID:", socketInstance.id);
         console.log("Socket connected:", socketInstance.connected);
-        console.log("User ID being used:", userId);
         console.log("==================================");
         setIsConnected(true);
-        toastSuccess("Socket connected successfully");
+        toastSuccess("Connected successfully");
       });
 
       socketInstance.on("disconnect", (reason) => {
         console.log("=== CUSTOMER SOCKET DISCONNECTED ===");
         console.log("Disconnect reason:", reason);
-        console.log("User ID:", userId);
         console.log("=====================================");
         setIsConnected(false);
-        toastError("Socket disconnected: " + reason);
+        toastError("Disconnected: " + reason);
       });
 
       socketInstance.on("messageSent", (data) => {
@@ -227,49 +195,6 @@ export default function InboxPage() {
           }
         });
 
-        // Also listen for chat-specific messages events
-        // This will be set up when a chat is selected
-        const setupChatSpecificListener = (chatId) => {
-          const eventName = `messagesRetrieved:${chatId}:${userId}`;
-          console.log(`🎯 Setting up chat-specific listener: ${eventName}`);
-          
-          socketInstance.on(eventName, (data) => {
-            console.log(`=== CHAT-SPECIFIC MESSAGES RETRIEVED (${chatId}:${userId}) ===`);
-            console.log("Full response:", JSON.stringify(data, null, 2));
-            console.log("Status:", data?.status);
-            console.log("Messages array:", data?.data?.result);
-            console.log("Selected chat from ref:", selectedChatRef.current);
-            console.log("========================================================");
-
-            if (data?.status === "success" && data?.data?.result) {
-              const currentSelectedChat = selectedChatRef.current;
-              console.log("Current selected chat:", currentSelectedChat);
-
-              const formattedMessages = data.data.result.map((msg) => ({
-                id: msg.id,
-                sender: msg.initiator?.name || "Unknown",
-                text: msg.message,
-                time: new Date(msg.created_at).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: true,
-                }),
-                type:
-                  msg.initiator_id === currentSelectedChat?.chat_buddy?.id
-                    ? "received"
-                    : "sent",
-                read: msg.read,
-              }));
-
-              console.log("Formatted messages with types:", formattedMessages);
-              setMessageList(formattedMessages);
-            }
-          });
-        };
-
-        // Store the function for later use
-        socketInstance.setupChatSpecificListener = setupChatSpecificListener;
-
         socketInstance.on(`recentChatRetrieved:${userId}`, (data) => {
           console.log(
             `=== USER-SPECIFIC RECENT CHAT RETRIEVED (${userId}) ===`
@@ -278,8 +203,6 @@ export default function InboxPage() {
           console.log("=============================================");
 
           if (data?.data) {
-            const currentSelectedChat = selectedChatRef.current;
-            
             setChats((prevChats) => {
               const existingChatIndex = prevChats.findIndex(
                 (chat) => chat.id === data.data.id
@@ -296,15 +219,6 @@ export default function InboxPage() {
                 return [data.data, ...prevChats];
               }
             });
-
-            // Auto-refresh messages if this chat is currently selected
-            if (currentSelectedChat && currentSelectedChat.id === data.data.id) {
-              console.log("🔄 Auto-refreshing messages for currently selected chat (user-specific)");
-              socketInstance.emit("retrieveMessages", {
-                token: userToken,
-                chatBuddy: currentSelectedChat.chat_buddy.id,
-              });
-            }
           }
         });
       }
@@ -348,8 +262,6 @@ export default function InboxPage() {
         console.log("============================");
 
         if (data?.data) {
-          const currentSelectedChat = selectedChatRef.current;
-          
           setChats((prevChats) => {
             const existingChatIndex = prevChats.findIndex(
               (chat) => chat.id === data.data.id
@@ -366,15 +278,6 @@ export default function InboxPage() {
               return [data.data, ...prevChats];
             }
           });
-
-          // Auto-refresh messages if this chat is currently selected
-          if (currentSelectedChat && currentSelectedChat.id === data.data.id) {
-            console.log("🔄 Auto-refreshing messages for currently selected chat");
-            socketInstance.emit("retrieveMessages", {
-              token: userToken,
-              chatBuddy: currentSelectedChat.chat_buddy.id,
-            });
-          }
         }
       });
 
@@ -475,56 +378,41 @@ export default function InboxPage() {
 
       return () => {
         console.log("=== CLEANING UP CUSTOMER SOCKET ===");
-        console.log("User ID:", userId);
         socketInstance.disconnect();
         console.log("====================================");
       };
     } else {
-      console.log("=== WAITING FOR USER PROFILE OR TOKEN ===");
-      console.log("User token exists:", !!userToken);
-      console.log("User ID exists:", !!userId);
-      console.log("Profile loading:", profileLoading);
-      console.log("==========================================");
-      
-      if (!userToken) {
-        toastError("User token not found. Please login again.");
-      }
+      console.error("=== NO USER TOKEN ===");
+      console.error("User token not found");
+      console.error("=====================");
+      toastError("User token not found. Please login again.");
     }
-  }, [userToken, userId, profileLoading]);
+  }, [userToken, selectedChat, toastError, toastSuccess]);
 
   // Fetch chats via Socket.IO on mount
   useEffect(() => {
-    if (socket && isConnected && userToken && userId) {
+    if (socket && isConnected && userToken) {
       console.log("=== FETCHING CHATS VIA SOCKET ===");
       console.log("Emitting retrieveChats with token:", userToken);
-      console.log("User ID:", userId);
       socket.emit("retrieveChats", { token: userToken });
       console.log("================================");
     }
-  }, [socket, isConnected, userToken, userId]);
+  }, [socket, isConnected, userToken]);
 
   // Fetch messages when chat is selected
   useEffect(() => {
-    if (socket && isConnected && selectedChat && userToken && userId) {
+    if (socket && isConnected && selectedChat && userToken) {
+      console.log(selectedChat);
       console.log("=== FETCHING MESSAGES VIA SOCKET ===");
-      console.log("Selected chat:", selectedChat);
       console.log("Chat ID:", selectedChat.id);
-      console.log("User ID:", userId);
-      console.log("Chat buddy ID:", selectedChat.chat_buddy?.id);
       console.log("Emitting retrieveMessages");
-      
-      // Set up chat-specific listener for this chat
-      if (socket.setupChatSpecificListener) {
-        socket.setupChatSpecificListener(selectedChat.id);
-      }
-      
       socket.emit("retrieveMessages", {
         token: userToken,
         chatBuddy: selectedChat.chat_buddy.id,
       });
       console.log("====================================");
     }
-  }, [socket, isConnected, selectedChat, userToken, userId]);
+  }, [socket, isConnected, selectedChat, userToken]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -549,18 +437,12 @@ export default function InboxPage() {
   const sendMessage = () => {
     if (!newMessage.trim() || !selectedChat) return;
 
-    console.log("=== CUSTOMER SENDING MESSAGE VIA SOCKET ===");
+    console.log("=== SENDING MESSAGE VIA SOCKET ===");
     console.log("Socket ID:", socket?.id);
     console.log("Selected chat:", selectedChat.id);
     console.log("Message:", newMessage);
     console.log("Socket connected:", socket?.connected);
-    console.log("User ID from profile:", userId);
-    console.log("=======================================");
-
-    if (!userId) {
-      toastError("User profile not loaded. Please wait and try again.");
-      return;
-    }
+    console.log("==================================");
 
     if (socket && isConnected) {
       const messageData = {
@@ -606,16 +488,6 @@ export default function InboxPage() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
-      {/* Show loading state while profile is loading */}
-      {profileLoading && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 flex items-center space-x-3">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
-            <span className="text-gray-700">Loading profile...</span>
-          </div>
-        </div>
-      )}
-
       {/* Fixed Header */}
       <div className="bg-white shadow-sm px-6 py-4 border-b border-gray-300 flex-shrink-0">
         <div className="flex items-center justify-between">
@@ -635,22 +507,13 @@ export default function InboxPage() {
           <div className="flex items-center space-x-2">
             <div
               className={`flex items-center space-x-2 px-3 py-1.5 rounded-full text-sm font-medium ${
-                profileLoading
-                  ? "bg-yellow-100 text-yellow-700"
-                  : isConnected
+                isConnected
                   ? "bg-green-100 text-green-700"
                   : "bg-red-100 text-red-700"
               }`}
             >
               <FaCircle size={8} />
-              <span>
-                {profileLoading 
-                  ? "Loading..." 
-                  : isConnected 
-                  ? "Online" 
-                  : "Offline"
-                }
-              </span>
+              <span>{isConnected ? "Online" : "Offline"}</span>
             </div>
           </div>
         </div>

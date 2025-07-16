@@ -223,49 +223,6 @@ export default function InboxPage() {
           }
         });
 
-        // Also listen for chat-specific messages events
-        // This will be set up when a chat is selected
-        const setupChatSpecificListener = (chatId) => {
-          const eventName = `messagesRetrieved:${chatId}:${userId}`;
-          console.log(`🎯 Setting up chat-specific listener: ${eventName}`);
-          
-          socketInstance.on(eventName, (data) => {
-            console.log(`=== FABRIC CHAT-SPECIFIC MESSAGES RETRIEVED (${chatId}:${userId}) ===`);
-            console.log("Full response:", JSON.stringify(data, null, 2));
-            console.log("Status:", data?.status);
-            console.log("Messages array:", data?.data?.result);
-            console.log("Selected chat from ref:", selectedChatRef.current);
-            console.log("=================================================================");
-
-            if (data?.status === "success" && data?.data?.result) {
-              const currentSelectedChat = selectedChatRef.current;
-              console.log("Current selected chat:", currentSelectedChat);
-
-              const formattedMessages = data.data.result.map((msg) => ({
-                id: msg.id,
-                sender: msg.initiator?.name || "Unknown",
-                text: msg.message,
-                time: new Date(msg.created_at).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: true,
-                }),
-                type:
-                  msg.initiator_id === currentSelectedChat?.chat_buddy?.id
-                    ? "received"
-                    : "sent",
-                read: msg.read,
-              }));
-
-              console.log("Formatted messages with types:", formattedMessages);
-              setMessageList(formattedMessages);
-            }
-          });
-        };
-
-        // Store the function for later use
-        socketInstance.setupChatSpecificListener = setupChatSpecificListener;
-
         socketInstance.on(`recentChatRetrieved:${userId}`, (data) => {
           console.log(
             `=== FABRIC USER-SPECIFIC RECENT CHAT RETRIEVED (${userId}) ===`
@@ -274,8 +231,6 @@ export default function InboxPage() {
           console.log("=========================================================");
 
           if (data?.data) {
-            const currentSelectedChat = selectedChatRef.current;
-            
             setChats((prevChats) => {
               const existingChatIndex = prevChats.findIndex(
                 (chat) => chat.id === data.data.id
@@ -292,15 +247,6 @@ export default function InboxPage() {
                 return [data.data, ...prevChats];
               }
             });
-
-            // Auto-refresh messages if this chat is currently selected
-            if (currentSelectedChat && currentSelectedChat.id === data.data.id) {
-              console.log("🔄 Auto-refreshing messages for currently selected fabric chat (user-specific)");
-              socketInstance.emit("retrieveMessages", {
-                token: userToken,
-                chatBuddy: currentSelectedChat.chat_buddy.id,
-              });
-            }
           }
         });
       }
@@ -344,8 +290,6 @@ export default function InboxPage() {
         console.log("====================================");
 
         if (data?.data) {
-          const currentSelectedChat = selectedChatRef.current;
-          
           setChats((prevChats) => {
             const existingChatIndex = prevChats.findIndex(
               (chat) => chat.id === data.data.id
@@ -362,15 +306,6 @@ export default function InboxPage() {
               return [data.data, ...prevChats];
             }
           });
-
-          // Auto-refresh messages if this chat is currently selected
-          if (currentSelectedChat && currentSelectedChat.id === data.data.id) {
-            console.log("🔄 Auto-refreshing messages for currently selected fabric chat");
-            socketInstance.emit("retrieveMessages", {
-              token: userToken,
-              chatBuddy: currentSelectedChat.chat_buddy.id,
-            });
-          }
         }
       });
 
@@ -405,37 +340,23 @@ export default function InboxPage() {
 
   // Load chats when socket connects
   useEffect(() => {
-    if (socket && isConnected && userToken && userId) {
-      console.log("=== FETCHING CHATS VIA SOCKET ===");
-      console.log("Emitting retrieveChats with token:", userToken);
-      console.log("User ID:", userId);
-      socket.emit("retrieveChats", { token: userToken });
-      console.log("================================");
+    if (socket && isConnected && userId) {
+      console.log("🔄 Emitting getChats for fabric user:", userId);
+      socket.emit("getChats", { userId });
     }
-  }, [socket, isConnected, userToken, userId]);
+  }, [socket, isConnected, userId]);
 
   // Load messages when chat is selected
   useEffect(() => {
-    if (socket && isConnected && selectedChat && userToken && userId) {
-      console.log("=== FETCHING MESSAGES VIA SOCKET ===");
-      console.log("Selected chat:", selectedChat);
-      console.log("Chat ID:", selectedChat.id);
-      console.log("User ID:", userId);
-      console.log("Chat buddy ID:", selectedChat.chat_buddy?.id);
-      console.log("Emitting retrieveMessages");
-      
-      // Set up chat-specific listener for this chat
-      if (socket.setupChatSpecificListener) {
-        socket.setupChatSpecificListener(selectedChat.id);
-      }
-      
-      socket.emit("retrieveMessages", {
-        token: userToken,
-        chatBuddy: selectedChat.chat_buddy.id,
+    if (socket && selectedChat && userId) {
+      console.log("🔄 Emitting getMessages for fabric chat:", selectedChat.id);
+      console.log("🔄 User ID:", userId);
+      socket.emit("getMessages", { 
+        chatId: selectedChat.id,
+        userId: userId
       });
-      console.log("====================================");
     }
-  }, [socket, isConnected, selectedChat, userToken, userId]);
+  }, [socket, selectedChat, userId]);
 
   const sendMessage = () => {
     if (!newMessage.trim() || !socket || !selectedChat || !userId) {

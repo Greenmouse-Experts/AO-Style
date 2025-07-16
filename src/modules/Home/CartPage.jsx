@@ -26,7 +26,6 @@ const initialValues = {
 };
 
 const CartPage = () => {
-  const [dropdownOpen, setDropdownOpen] = useState(null);
   const [coupon, setCoupon] = useState("");
   const [total, setTotal] = useState(0);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
@@ -85,6 +84,9 @@ const CartPage = () => {
   const { carybinUser } = useCarybinUserStore();
 
   const currentUrl = Cookies.get("currUserUrl");
+  const token = Cookies.get("token");
+  const location = useLocation();
+  const { toastSuccess } = useToast();
 
   const navigate = useNavigate();
 
@@ -131,12 +133,6 @@ const CartPage = () => {
 
     handler.openIframe();
   };
-
-  const token = Cookies.get("token");
-
-  const { toastSuccess } = useToast();
-
-  const location = useLocation();
 
   const {
     handleSubmit,
@@ -247,267 +243,340 @@ const CartPage = () => {
           </div>
         </div>
       ) : (
-        <div className="Resizer section px-4">
-          <h2 className="text-lg font-medium mb-6">Cart ({items?.length})</h2>
+        <div className="Resizer section px-4 py-8">
+          <div className="max-w-7xl mx-auto">
+            {/* Header */}
+            <div className="mb-8">
+              <h1 className="text-2xl font-semibold text-gray-900">Shopping Cart</h1>
+              <p className="text-sm text-gray-600 mt-1">{items?.length} {items?.length === 1 ? 'item' : 'items'} in your cart</p>
+            </div>
 
-          <div className="hidden md:grid grid-cols-[4fr_2fr_2fr_1fr] gap-8 text-sm font-medium text-gray-500 mb-4">
-            <div>STYLE</div>
-            <div>FABRIC</div>
-            <div className="text-right">TOTAL AMOUNT</div>
-            <div className="text-right">ACTION</div>
-          </div>
-
-          <div className="space-y-6">
-            {items?.map((item) => (
-              <div
-                key={item.cartId}
-                className="border border-gray-300 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
-              >
-                {/* Style */}
-                <div className="flex items-center gap-4 w-full md:w-1/3">
-                  {item?.product?.style?.type == "STYLE" ? (
-                    <>
-                      <img
-                        src={item?.product?.style?.image}
-                        alt="Style"
-                        className="w-20 h-24 object-cover rounded-md"
-                      />
-                      <div>
-                        <p className="font-semibold">
-                          {item?.product?.style?.name}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          x {item?.product?.style?.measurement?.length}{" "}
-                          {item?.product?.style?.measurement?.length > 1
-                            ? "Pieces"
-                            : "Piece"}
-                        </p>
-                        <p className="text-purple-600 font-medium mt-1">
-                          ₦
-                          {item?.product?.style?.price_at_time?.toLocaleString()}
-                        </p>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-gray-400 italic">
-                      Tailor Not Needed?
-                    </div>
-                  )}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Cart Items - Left Side */}
+              <div className="lg:col-span-2 space-y-4">
+                {/* Desktop Headers */}
+                <div className="hidden md:grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 rounded-lg text-sm font-medium text-gray-600">
+                  <div className="col-span-6">Product</div>
+                  <div className="col-span-2 text-center">Quantity</div>
+                  <div className="col-span-2 text-right">Price</div>
+                  <div className="col-span-2 text-right">Total</div>
                 </div>
 
-                {/* Fabric */}
-                <div className="flex items-center gap-4 w-full md:w-1/3">
-                  {item?.product?.type == "FABRIC" ? (
-                    <>
-                      <img
-                        src={item?.product?.image}
-                        alt="Fabric"
-                        className="w-20 h-20 object-cover rounded-md"
-                      />
-                      <div>
-                        <p className="font-semibold">{item?.product?.name}</p>
-                        <p className="text-sm text-gray-500">
-                          x {item?.product?.quantity} yards
-                        </p>
-                        <p className="text-purple-600 font-medium mt-1">
-                          ₦{item?.product?.price_at_time.toLocaleString()}
-                        </p>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-gray-400 italic">
-                      {" "}
-                      Fabric Not Needed?
-                    </div>
-                  )}
-                </div>
-
-                {/* Total & Dropdown Action */}
-                <div className="flex items-center justify-between w-full md:w-auto md:gap-16 relative">
-                  <div className="text-purple-600 font-semibold">
-                    ₦
-                    {(
-                      (item?.product?.price_at_time || 0) *
-                        (item?.product?.quantity || 0) +
-                      (item?.product?.style?.measurement?.length || 0) *
-                        (item?.product?.style?.price_at_time || 0)
-                    )?.toLocaleString()}
-                  </div>
-
-                  <div className="relative ml-14 cursor-pointer">
+                {/* Cart Items */}
+                {items?.map((item) => (
+                  <div
+                    key={item.cartId}
+                    className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow relative"
+                  >
+                    {/* Delete Icon - Top Right */}
                     <button
-                      onClick={() =>
-                        setDropdownOpen(
-                          dropdownOpen === item?.cartId ? null : item?.cartId
-                        )
-                      }
-                      className="text-gray-600 hover:text-black cursor-pointer"
+                      onClick={() => {
+                        setNewCategory(item?.cartId);
+                        setIsAddModalOpen(true);
+                      }}
+                      className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors z-10"
+                      title="Remove item"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="8"
-                        viewBox="0 0 28 8"
-                        fill="none"
-                      >
-                        <path
-                          d="M1.48645 6.35355C2.1447 7.01181 2.9672 7.34 3.92 7.34C4.8511 7.34 5.65872 7.00839 6.31355 6.35355C6.9718 5.6953 7.3 4.8728 7.3 3.92C7.3 2.9672 6.9718 2.1447 6.31355 1.48645C5.65872 0.831614 4.8511 0.5 3.92 0.5C2.9672 0.5 2.1447 0.828195 1.48645 1.48645C0.828195 2.1447 0.5 2.9672 0.5 3.92C0.5 4.8728 0.828195 5.6953 1.48645 6.35355ZM11.1349 6.35355C11.7931 7.01181 12.6156 7.34 13.5684 7.34C14.4995 7.34 15.3072 7.00839 15.962 6.35355C16.6202 5.6953 16.9484 4.8728 16.9484 3.92C16.9484 2.9672 16.6202 2.1447 15.962 1.48645C15.3072 0.831614 14.4995 0.5 13.5684 0.5C12.6156 0.5 11.7931 0.828195 11.1349 1.48645C10.4766 2.1447 10.1484 2.9672 10.1484 3.92C10.1484 4.8728 10.4766 5.6953 11.1349 6.35355ZM20.7833 6.35355C21.4416 7.01181 22.2641 7.34 23.2169 7.34C24.148 7.34 24.9556 7.00839 25.6104 6.35355C26.2687 5.6953 26.5969 4.8728 26.5969 3.92C26.5969 2.9672 26.2687 2.1447 25.6104 1.48645C24.9556 0.831614 24.148 0.5 23.2169 0.5C22.2641 0.5 21.4416 0.828195 20.7833 1.48645C20.1251 2.1447 19.7969 2.9672 19.7969 3.92C19.7969 4.8728 20.1251 5.6953 20.7833 6.35355Z"
-                          fill="#AB52EE"
-                          stroke="white"
-                        />
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
                       </svg>
                     </button>
 
-                    {/* Dropdown */}
-                    {dropdownOpen === item?.cartId && (
-                      <div className="absolute cursor-pointer  right-0 mt-2 w-40 bg-white border shadow-lg rounded-lg z-50">
-                        {/* <button
-                          onClick={() => {
-                            // console.log(item);
-                            // navigate("/shop-details", {
-                            //   state: { info: item?.product?.id },
-                            // });
-                          }}
-                          className="block cursor-pointer  px-4 py-2 text-sm hover:bg-gray-100 w-full text-left"
-                        >
-                          Edit
-                        </button> */}
+                    {/* Mobile Layout */}
+                    <div className="md:hidden space-y-4 pr-8">
+                      {/* Product Info */}
+                      <div className="space-y-3">
+                        {/* Style Section */}
+                        {item?.product?.style?.type === "STYLE" ? (
+                          <div className="flex itemscenter space-x-3">
+                            <img
+                              src={item?.product?.style?.image}
+                              alt="Style"
+                              className="w-16 h-20 object-cover rounded border flex-shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-gray-900 text-sm truncate">
+                                {item?.product?.style?.name}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Style • {item?.product?.style?.measurement?.length} {item?.product?.style?.measurement?.length > 1 ? 'pieces' : 'piece'}
+                              </p>
+                              <p className="text-sm font-medium text-purple-600 mt-1">
+                                ₦{item?.product?.style?.price_at_time?.toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center h-16">
+                            <div className="text-xs text-gray-400 italic bg-gray-50 px-3 py-2 rounded">
+                              No style selected
+                            </div>
+                          </div>
+                        )}
 
-                        <button
-                          onClick={() => {
-                            setNewCategory(item?.cartId);
-                            setIsAddModalOpen(true);
-                            setDropdownOpen(null);
-                            // deleteCartMutate(
-                            //   {
-                            //     id: item?.id,
-                            //   },
-                            //   {
-                            //     onSuccess: () => {
-                            //       setDropdownOpen(null);
-                            //     },
-                            //   }
-                            // );
-                          }}
-                          className="block cursor-pointer px-4 py-2 text-sm hover:bg-gray-100 w-full text-left text-red-500"
-                        >
-                          Remove
-                        </button>
+                        {/* Fabric Section */}
+                        {item?.product?.type === "FABRIC" ? (
+                          <div className="flex items-center space-x-3">
+                            <img
+                              src={item?.product?.image}
+                              alt="Fabric"
+                              className="w-16 h-16 object-cover rounded border flex-shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-gray-900 text-sm truncate">
+                                {item?.product?.name}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Fabric • {item?.product?.quantity} yards
+                              </p>
+                              <p className="text-sm font-medium text-purple-600 mt-1">
+                                ₦{item?.product?.price_at_time?.toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center h-16">
+                            <div className="text-xs text-gray-400 italic bg-gray-50 px-3 py-2 rounded">
+                              No fabric selected
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    )}
+
+                      {/* Mobile Summary Row */}
+                      <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+                        <div>
+                          <p className="text-xs text-gray-500">Quantity</p>
+                          <p className="text-sm font-medium text-gray-900">
+                            {(item?.product?.quantity || 0) + (item?.product?.style?.measurement?.length || 0)} items
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500">Unit Price</p>
+                          <p className="text-sm font-medium text-gray-900">
+                            ₦{Math.max(
+                              item?.product?.price_at_time || 0,
+                              item?.product?.style?.price_at_time || 0
+                            ).toLocaleString()}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-gray-500">Total</p>
+                          <p className="text-lg font-bold text-purple-600">
+                            ₦{(
+                              (item?.product?.price_at_time || 0) * (item?.product?.quantity || 0) +
+                              (item?.product?.style?.measurement?.length || 0) * (item?.product?.style?.price_at_time || 0)
+                            ).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Desktop Layout */}
+                    <div className="hidden md:grid grid-cols-12 gap-4 items-center pr-8">
+                      {/* Product Info - Style & Fabric Combined */}
+                      <div className="md:col-span-6">
+                        <div className="space-y-3">
+                          {/* Style Section */}
+                          {item?.product?.style?.type === "STYLE" ? (
+                            <div className="flex items-center space-x-3">
+                              <img
+                                src={item?.product?.style?.image}
+                                alt="Style"
+                                className="w-12 h-14 object-cover rounded border"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-gray-900 text-sm truncate">
+                                  {item?.product?.style?.name}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  Style • {item?.product?.style?.measurement?.length} {item?.product?.style?.measurement?.length > 1 ? 'pieces' : 'piece'}
+                                </p>
+                                <p className="text-sm font-medium text-purple-600">
+                                  ₦{item?.product?.style?.price_at_time?.toLocaleString()}
+                                </p>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center h-14">
+                              <div className="text-xs text-gray-400 italic bg-gray-50 px-3 py-2 rounded">
+                                No style selected
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Fabric Section */}
+                          {item?.product?.type === "FABRIC" ? (
+                            <div className="flex items-center space-x-3">
+                              <img
+                                src={item?.product?.image}
+                                alt="Fabric"
+                                className="w-12 h-12 object-cover rounded border"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-gray-900 text-sm truncate">
+                                  {item?.product?.name}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  Fabric • {item?.product?.quantity} yards
+                                </p>
+                                <p className="text-sm font-medium text-purple-600">
+                                  ₦{item?.product?.price_at_time?.toLocaleString()}
+                                </p>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center h-12">
+                              <div className="text-xs text-gray-400 italic bg-gray-50 px-3 py-2 rounded">
+                                No fabric selected
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Quantity */}
+                      <div className="md:col-span-2 text-center">
+                        <div className="text-sm text-gray-900">
+                          {(item?.product?.quantity || 0) + (item?.product?.style?.measurement?.length || 0)}
+                        </div>
+                        <div className="text-xs text-gray-500">items</div>
+                      </div>
+
+                      {/* Unit Price */}
+                      <div className="md:col-span-2 text-right">
+                        <div className="text-sm font-medium text-gray-900">
+                          ₦{Math.max(
+                            item?.product?.price_at_time || 0,
+                            item?.product?.style?.price_at_time || 0
+                          ).toLocaleString()}
+                        </div>
+                        <div className="text-xs text-gray-500">per unit</div>
+                      </div>
+
+                      {/* Total */}
+                      <div className="md:col-span-2 text-right">
+                        <div className="text-lg font-semibold text-purple-600">
+                          ₦{(
+                            (item?.product?.price_at_time || 0) * (item?.product?.quantity || 0) +
+                            (item?.product?.style?.measurement?.length || 0) * (item?.product?.style?.price_at_time || 0)
+                          ).toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Order Summary - Right Side */}
+              <div className="lg:col-span-1">
+                <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm sticky top-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h3>
+                  
+                  {/* Coupon Field */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Promo Code</label>
+                    <div className="flex w-full">
+                      <input
+                        type="text"
+                        placeholder="Enter code"
+                        value={coupon}
+                        onChange={(e) => setCoupon(e.target.value)}
+                        className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-l-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
+                      <button className="flex-shrink-0 px-4 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-md text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
+                        Apply
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Summary Details */}
+                  <div className="space-y-3 mb-6">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Subtotal</span>
+                      <span className="font-medium">₦{updatedAmount?.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Discount</span>
+                      <span className="font-medium text-green-600">-₦0</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Delivery</span>
+                      <span className="font-medium text-green-600">Free</span>
+                    </div>
+                    <div className="border-t border-gray-200 pt-3">
+                      <div className="flex justify-between">
+                        <span className="text-base font-semibold text-gray-900">Total</span>
+                        <span className="text-xl font-bold text-purple-600">
+                          ₦{Math.round(updatedAmount).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Checkout Button */}
+                  <button
+                    onClick={() => {
+                      if (!token) {
+                        toastSuccess(
+                          "You need to have a Customer Account to make an order"
+                        );
+                        const currentPath = location.pathname + location.search;
+                        navigate(
+                          `/login?redirect=${encodeURIComponent(currentPath)}`
+                        );
+                      } else {
+                        const updatedItem = items?.map((item) => {
+                          return {
+                            product_id: item?.product?.id,
+                            product_type: item?.product?.type,
+                            quantity: item?.product?.quantity,
+                            color: item?.product?.color,
+                            style_product_id: item?.product?.style?.id,
+                            measurements:
+                              item?.product?.style?.measurement ?? undefined,
+                          };
+                        });
+
+                        addMultipleCartMutate(
+                          {
+                            items: updatedItem,
+                          },
+                          {
+                            onSuccess: () => {
+                              setShowCheckoutModal(true);
+                            },
+                          }
+                        );
+                      }
+                    }}
+                    disabled={addCartPending}
+                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium py-3 px-4 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {addCartPending
+                      ? "Processing..."
+                      : `Proceed to Checkout • ₦${Math.round(updatedAmount).toLocaleString()}`}
+                  </button>
+
+                  {/* Trust Badges */}
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="flex items-center justify-center space-x-4 text-xs text-gray-500">
+                      <div className="flex items-center space-x-1">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/>
+                        </svg>
+                        <span>Secure Payment</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>Free Returns</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* Coupon Field */}
-          <div className="mt-10">
-            <label className="block mb-2 text-sm text-gray-700">Coupon</label>
-            <input
-              type="text"
-              placeholder="Enter coupon"
-              value={coupon}
-              onChange={(e) => setCoupon(e.target.value)}
-              className="w-full max-w-sm border border-gray-300 outline-none rounded-lg p-3"
-            />
-          </div>
-
-          {/* Summary */}
-          <div className="mt-10 border-t border-gray-300 pt-6">
-            <div className="flex flex-col w-full space-y-2 text-sm text-gray-700">
-              <div className="flex justify-between w-full max-w-md">
-                <span className="font-light">Sub-Total :</span>
-                <span className="font-medium">
-                  ₦{updatedAmount?.toLocaleString()}
-                </span>
-              </div>
-              <div className="flex justify-between w-full max-w-md">
-                <span className="font-light">Discount :</span>
-                <span className="font-medium">₦0</span>
-              </div>
-              {/* <div className="flex justify-between w-full max-w-md">
-                <span className="font-light">Estimated Sales VAT (7.5%) :</span>
-                <span className="font-medium">
-                  ₦{Math.round(updatedAmount * 0.075).toLocaleString()}
-                </span>
-              </div> */}
-              <div className="flex justify-between w-full max-w-md">
-                <span className="font-light">Delivery Fee :</span>
-                <span className="font-medium">₦0</span>
-              </div>
-              <div className="flex justify-between w-full max-w-md">
-                <span className="font-medium text-lg">Total :</span>
-                <span className="font-medium text-lg">
-                  ₦ {Math.round(updatedAmount).toLocaleString()}
-                  {/* {(
-                    updatedAmount + Math.round(updatedAmount * 0.075)
-                  ).toLocaleString()} */}
-                </span>
-              </div>
-            </div>
-
-            {/* Checkout Button */}
-            <div className="flex justify-center mt-8">
-              <button
-                // disabled={cartIsPending}
-                onClick={() => {
-                  if (!token) {
-                    toastSuccess(
-                      "You need to have a Customer Account to make an order"
-                    );
-                    const currentPath = location.pathname + location.search;
-                    navigate(
-                      `/login?redirect=${encodeURIComponent(currentPath)}`
-                    );
-                  } else {
-                    const updatedItem = items?.map((item) => {
-                      return {
-                        product_id: item?.product?.id,
-                        product_type: item?.product?.type,
-                        quantity: item?.product?.quantity,
-                        color: item?.product?.color,
-                        style_product_id: item?.product?.style?.id,
-                        measurements:
-                          item?.product?.style?.measurement ?? undefined,
-                      };
-                    });
-
-                    addMultipleCartMutate(
-                      {
-                        items: updatedItem,
-                      },
-                      {
-                        onSuccess: () => {
-                          setShowCheckoutModal(true);
-                        },
-                      }
-                    );
-                  }
-
-                  // createPaymentMutate(
-                  //   {
-                  //     purchases: updatedCart,
-                  //     amount: totalAmount,
-                  //     currency: "NGN",
-                  //     email: carybinUser?.email,
-                  //   },
-                  //   {
-                  //     onSuccess: (data) => {
-                  //       payWithPaystack({
-                  //         amount: totalAmount,
-                  //         payment_id: data?.data?.data?.payment_id,
-                  //       });
-                  //     },
-                  //   }
-                  // );
-                }}
-                className="bg-gradient text-white font-medium px-16 py-3 cursor-pointer"
-              >
-                {addCartPending
-                  ? "Please wait..."
-                  : `Checkout | ₦${Math.round(updatedAmount).toLocaleString()}`}
-              </button>
             </div>
           </div>
 

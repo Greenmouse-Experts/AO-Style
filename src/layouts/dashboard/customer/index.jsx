@@ -69,10 +69,12 @@ export default function DashboardLayout() {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col w-full overflow-hidden">
+      <div className="flex-1 flex flex-col w-full overflow-hidden min-w-0">
         <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
-        <main className="flex-1 bg-gray-100 h-full overflow-y-auto px-4 sm:px-6 py-6">
-          <Outlet />
+        <main className="flex-1 bg-gray-100 h-full overflow-y-auto px-4 sm:px-6 py-6 min-w-0">
+          <div className="max-w-full overflow-hidden">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

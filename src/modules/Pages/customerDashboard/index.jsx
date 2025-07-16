@@ -9,13 +9,16 @@ import ExpensesChart from "./components/ExpensesChart";
 
 export default function CustomerDashboard() {
     return (
-        <>
-            <div className="grid grid-cols-1 lg:grid-cols-4 md:grid-cols-1 gap-6">
-                <div className="md:col-span-3">
+        <div className="max-w-full overflow-hidden">
+            {/* Main Header and Stats Section */}
+            <div className="grid grid-cols-1 xl:grid-cols-4 lg:grid-cols-1 gap-6 min-h-0">
+                <div className="xl:col-span-3 lg:col-span-1 min-w-0">
                     <HeaderCard />
                     <StatsCard />
                 </div>
-                <CalendarWidget />
+                <div className="xl:col-span-1 lg:col-span-1 min-w-0">
+                    <CalendarWidget />
+                </div>
             </div>
 
             {/* Orders Section */}
@@ -35,13 +38,13 @@ export default function CustomerDashboard() {
                 </div>
                 <OrdersTable />
             </div>
+            
             {/* New Section for Orders & Insights */}
-            <div className="grid grid-cols-1 lg:md:grid-cols-3 md:grid-cols-1 gap-6 mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-1 gap-6 mt-6">
                 <NotificationsCard />
                 <UpcomingDelivery />
                 <ExpensesChart />
             </div>
-
-        </>
+        </div>
     );
 }

@@ -81,6 +81,8 @@ export default function Filters({
   const [product, setProduct] = useState("");
   const [market, setMarket] = useState("");
 
+  const [colorVal, setColorVal] = useState("");
+
   return (
     <div className="bg-white p-3 sm:p-4 rounded-lg w-full">
       <h2 className="text-base sm:text-lg font-semibold mb-4 sm:mb-5">
@@ -188,19 +190,18 @@ export default function Filters({
           {colors.map((color, index) => (
             <button
               key={index}
-              className={`p-5 rounded border-[#BEBCBD] transition ${
-                filters.color === color ? "border-white" : "border-gray-300"
+              className={`p-5 rounded border-2  transition ${
+                colorVal === color ? " border-gray-300" : "border-white"
               }`}
               style={{ backgroundColor: color.toLowerCase() }}
               onClick={() => {
-                console.log(color?.toLowerCase());
-                updateQueryParams({
-                  color: color?.toLowerCase(),
-                });
-                setFilters({
-                  ...filters,
-                  color: filters.color === color ? "" : color,
-                });
+                if (colorVal === color) {
+                  updateQueryParams({ color: undefined });
+                  setColorVal("");
+                } else {
+                  updateQueryParams({ color: color.toLowerCase() });
+                  setColorVal(color);
+                }
               }}
             ></button>
           ))}

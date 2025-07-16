@@ -272,7 +272,7 @@ export default function ShopMaterials() {
 
   useUpdatedEffect(() => {
     // update search params with undefined if debouncedSearchTerm is an empty string
-    setDebounceMin(debouncedMax || undefined);
+    setDebounceMax(debouncedMax || undefined);
     updateQueryParams({
       "pagination[page]": 1,
     });
@@ -390,9 +390,12 @@ export default function ShopMaterials() {
             <div className="relative w-full  mt-10 items-center">
               <Slider {...settings}>
                 {marketPlacePublic?.map((market) => (
-                  <Link
-                    to={`/inner-marketplace`}
-                    state={{ info: market }}
+                  <button
+                    onClick={() => {
+                      updateQueryParams({
+                        market_id: market.id,
+                      });
+                    }}
                     key={market.id}
                     className="px-2 text-center"
                   >
@@ -410,7 +413,7 @@ export default function ShopMaterials() {
                     <p className="text-[#2B21E5] text-sm flex items-center justify-center font-light">
                       <MapPin size={14} className="mr-1" /> {market.state}
                     </p>
-                  </Link>
+                  </button>
                 ))}
               </Slider>
             </div>

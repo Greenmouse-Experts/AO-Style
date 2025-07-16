@@ -20,8 +20,6 @@ const initialValues = {
   business_type: "",
   location: "",
   phoneCode: "+234",
-
-  business_registration_number: "",
 };
 
 export default function SignInAsCustomer() {

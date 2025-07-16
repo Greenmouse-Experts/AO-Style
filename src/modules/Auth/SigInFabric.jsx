@@ -19,7 +19,6 @@ const initialValues = {
   business_name: "",
   business_type: "",
   location: "",
-  business_registration_number: "",
   phoneCode: "+234",
 };
 

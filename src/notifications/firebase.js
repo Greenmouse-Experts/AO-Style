@@ -11,7 +11,7 @@ const firebaseConfig = {
   appId: "1:331646577121:web:9ccc1581bfcd4b53948aa0",
   measurementId: "G-07SMS9TQWT",
   vapidKey:
-    "BFns3QSMy3RE6PjeD7i4yhl63Y_x2VPPoEKTXhd58zfsU4lABY9nQysUHFWAIYhe04XUfLOHqM8U_dsnyYN30vk",
+    "BIACB3hPnQHNWO7LTdfemJpTu3ZEQokeATwiZo99LXFRgAxDY4BYVsGlu_tTbCRUkORwqHtD-bEZPNFPV0_LZSE",
 };
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
@@ -26,7 +26,7 @@ export const requestNotificationPermission = async () => {
       );
       const token = await getToken(messaging, {
         vapidKey:
-          "BFns3QSMy3RE6PjeD7i4yhl63Y_x2VPPoEKTXhd58zfsU4lABY9nQysUHFWAIYhe04XUfLOHqM8U_dsnyYN30vk",
+          "BIACB3hPnQHNWO7LTdfemJpTu3ZEQokeATwiZo99LXFRgAxDY4BYVsGlu_tTbCRUkORwqHtD-bEZPNFPV0_LZSE",
         serviceWorkerRegistration: registration,
       });
 

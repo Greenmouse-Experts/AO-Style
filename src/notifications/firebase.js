@@ -2,7 +2,6 @@ import { initializeApp } from "firebase/app";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import Cookies from "js-cookie";
 
-
 const firebaseConfig = {
   apiKey: "AIzaSyCLutEIgOiAnoMRdAKbu7tRh49N4ULcYMg",
   authDomain: "carybin-c89a7.firebaseapp.com",
@@ -22,14 +21,14 @@ export const requestNotificationPermission = async () => {
   try {
     const permission = await Notification.requestPermission();
     if (permission === "granted") {
-         const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+      const registration = await navigator.serviceWorker.register(
+        "/firebase-messaging-sw.js"
+      );
       const token = await getToken(messaging, {
         vapidKey:
-          "BIACB3hPnQHNWO7LTdfemJpTu3ZEQokeATwiZo99LXFRgAxDY4BYVsGlu_tTbCRUkORwqHtD-bEZPNFPV0_LZSE",
-          serviceWorkerRegistration: registration,
+          "BFns3QSMy3RE6PjeD7i4yhl63Y_x2VPPoEKTXhd58zfsU4lABY9nQysUHFWAIYhe04XUfLOHqM8U_dsnyYN30vk",
+        serviceWorkerRegistration: registration,
       });
-
-
 
       if (token) {
         console.log("FCM Token:", token);
@@ -39,7 +38,7 @@ export const requestNotificationPermission = async () => {
           {
             method: "POST",
             headers: {
-             "Content-Type": "application/json",
+              "Content-Type": "application/json",
               Authorization: `Bearer ${accessToken}` || "",
             },
             body: JSON.stringify({ token: token, device_type: "web" }),

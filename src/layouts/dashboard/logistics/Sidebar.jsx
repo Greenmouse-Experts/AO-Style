@@ -50,13 +50,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           </NavLink>
         </div>
 
-        {/* Search */}
-        <input
-          type="text"
-          placeholder="Search for..."
-          className="w-full p-3 rounded-md text-white border border-white mb-5 mt-3 outline-none"
-        />
-
         {/* Sidebar Links */}
         <nav className="flex-1 space-y-2">
           <SidebarItem

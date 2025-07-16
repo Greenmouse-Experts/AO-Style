@@ -73,34 +73,34 @@ export default function InboxPage() {
   // Handle profile loading and setting user profile state
   useEffect(() => {
     if (profileSuccess && profileData) {
-      console.log("=== FABRIC USER PROFILE LOADED ===");
+      console.log("=== SALES USER PROFILE LOADED ===");
       console.log("Profile data:", profileData);
       console.log("User ID from profile:", profileData.id);
-      console.log("====================================");
+      console.log("==================================");
       setUserProfile(profileData);
       setProfileLoading(false);
     } else if (profileError) {
-      console.error("=== FABRIC PROFILE LOADING ERROR ===");
+      console.error("=== SALES PROFILE LOADING ERROR ===");
       console.error("Error:", profileErrorData);
-      console.error("====================================");
+      console.error("==================================");
       toastError("Failed to load user profile: " + profileErrorData?.message);
       setProfileLoading(false);
     } else if (profilePending) {
-      console.log("=== FABRIC PROFILE LOADING ===");
+      console.log("=== SALES PROFILE LOADING ===");
       console.log("Profile is loading...");
-      console.log("===============================");
+      console.log("=============================");
       setProfileLoading(true);
     }
   }, [profileSuccess, profileData, profileError, profileErrorData, profilePending]);
 
   // Initialize Socket.IO connection - Wait for profile to be loaded
   useEffect(() => {
-    console.log("=== INITIALIZING FABRIC SOCKET CONNECTION ===");
+    console.log("=== INITIALIZING SALES SOCKET CONNECTION ===");
     console.log("User token:", userToken);
     console.log("User ID from profile:", userId);
     console.log("Profile loading:", profileLoading);
     console.log("Socket URL: https://api-carybin.victornwadinobi.com");
-    console.log("===============================================");
+    console.log("=============================================");
 
     // Wait for profile to be loaded before initializing socket
     if (userToken && userId && !profileLoading) {
@@ -118,42 +118,42 @@ export default function InboxPage() {
       });
 
       socketInstance.on("connect", () => {
-        console.log("=== FABRIC SOCKET CONNECTED ===");
+        console.log("=== SALES SOCKET CONNECTED ===");
         console.log("Socket ID:", socketInstance.id);
         console.log("Socket connected:", socketInstance.connected);
         console.log("User ID being used:", userId);
-        console.log("==================================");
+        console.log("================================");
         setIsConnected(true);
         toastSuccess("Connected successfully");
       });
 
       socketInstance.on("disconnect", (reason) => {
-        console.log("=== FABRIC SOCKET DISCONNECTED ===");
+        console.log("=== SALES SOCKET DISCONNECTED ===");
         console.log("Disconnect reason:", reason);
         console.log("User ID:", userId);
-        console.log("===================================");
+        console.log("=================================");
         setIsConnected(false);
         toastError("Disconnected: " + reason);
       });
 
       socketInstance.on("messageSent", (data) => {
-        console.log("🎉 === FABRIC MESSAGE SENT EVENT RECEIVED === 🎉");
+        console.log("🎉 === SALES MESSAGE SENT EVENT RECEIVED === 🎉");
         console.log("Raw data:", data);
         console.log("Formatted data:", JSON.stringify(data, null, 2));
         console.log("Status:", data?.status);
         console.log("Message:", data?.message);
         console.log("Data object:", data?.data);
-        console.log("🎉 ========================================== 🎉");
+        console.log("🎉 ======================================== 🎉");
         toastSuccess(data?.message || "Message delivered successfully");
       });
 
       socketInstance.on("chatsRetrieved", (data) => {
-        console.log("=== FABRIC CHATS RETRIEVED ON LOAD ===");
+        console.log("=== SALES CHATS RETRIEVED ON LOAD ===");
         console.log("Full response:", JSON.stringify(data, null, 2));
         console.log("Status:", data?.status);
         console.log("Message:", data?.message);
         console.log("Result array:", data?.data?.result);
-        console.log("======================================");
+        console.log("====================================");
 
         if (data?.status === "success" && data?.data?.result) {
           setChats(data.data.result);
@@ -167,19 +167,19 @@ export default function InboxPage() {
       // Listen for user-specific chat events
       if (userId) {
         console.log(
-          `🎯 Setting up fabric user-specific event listeners for user: ${userId}`
+          `🎯 Setting up sales user-specific event listeners for user: ${userId}`
         );
         console.log(`🎯 Listening for: chatsRetrieved.${userId}`);
         console.log(`🎯 Listening for: messagesRetrieved.${userId}`);
         console.log(`🎯 Listening for: recentChatRetrieved.${userId}`);
 
         socketInstance.on(`chatsRetrieved:${userId}`, (data) => {
-          console.log(`=== FABRIC USER-SPECIFIC CHATS RETRIEVED (${userId}) ===`);
+          console.log(`=== SALES USER-SPECIFIC CHATS RETRIEVED (${userId}) ===`);
           console.log("Full response:", JSON.stringify(data, null, 2));
           console.log("Status:", data?.status);
           console.log("Message:", data?.message);
           console.log("Result array:", data?.data?.result);
-          console.log("=========================================================");
+          console.log("=======================================================");
 
           if (data?.status === "success" && data?.data?.result) {
             setChats(data.data.result);
@@ -191,12 +191,12 @@ export default function InboxPage() {
         });
 
         socketInstance.on(`messagesRetrieved:${userId}`, (data) => {
-          console.log(`=== FABRIC USER-SPECIFIC MESSAGES RETRIEVED (${userId}) ===`);
+          console.log(`=== SALES USER-SPECIFIC MESSAGES RETRIEVED (${userId}) ===`);
           console.log("Full response:", JSON.stringify(data, null, 2));
           console.log("Status:", data?.status);
           console.log("Messages array:", data?.data?.result);
           console.log("Selected chat from ref:", selectedChatRef.current);
-          console.log("==========================================================");
+          console.log("========================================================");
 
           if (data?.status === "success" && data?.data?.result) {
             const currentSelectedChat = selectedChatRef.current;
@@ -223,59 +223,14 @@ export default function InboxPage() {
           }
         });
 
-        // Also listen for chat-specific messages events
-        // This will be set up when a chat is selected
-        const setupChatSpecificListener = (chatId) => {
-          const eventName = `messagesRetrieved:${chatId}:${userId}`;
-          console.log(`🎯 Setting up chat-specific listener: ${eventName}`);
-          
-          socketInstance.on(eventName, (data) => {
-            console.log(`=== FABRIC CHAT-SPECIFIC MESSAGES RETRIEVED (${chatId}:${userId}) ===`);
-            console.log("Full response:", JSON.stringify(data, null, 2));
-            console.log("Status:", data?.status);
-            console.log("Messages array:", data?.data?.result);
-            console.log("Selected chat from ref:", selectedChatRef.current);
-            console.log("=================================================================");
-
-            if (data?.status === "success" && data?.data?.result) {
-              const currentSelectedChat = selectedChatRef.current;
-              console.log("Current selected chat:", currentSelectedChat);
-
-              const formattedMessages = data.data.result.map((msg) => ({
-                id: msg.id,
-                sender: msg.initiator?.name || "Unknown",
-                text: msg.message,
-                time: new Date(msg.created_at).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: true,
-                }),
-                type:
-                  msg.initiator_id === currentSelectedChat?.chat_buddy?.id
-                    ? "received"
-                    : "sent",
-                read: msg.read,
-              }));
-
-              console.log("Formatted messages with types:", formattedMessages);
-              setMessageList(formattedMessages);
-            }
-          });
-        };
-
-        // Store the function for later use
-        socketInstance.setupChatSpecificListener = setupChatSpecificListener;
-
         socketInstance.on(`recentChatRetrieved:${userId}`, (data) => {
           console.log(
-            `=== FABRIC USER-SPECIFIC RECENT CHAT RETRIEVED (${userId}) ===`
+            `=== SALES USER-SPECIFIC RECENT CHAT RETRIEVED (${userId}) ===`
           );
           console.log("Chat data:", JSON.stringify(data, null, 2));
-          console.log("=========================================================");
+          console.log("=======================================================");
 
           if (data?.data) {
-            const currentSelectedChat = selectedChatRef.current;
-            
             setChats((prevChats) => {
               const existingChatIndex = prevChats.findIndex(
                 (chat) => chat.id === data.data.id
@@ -292,26 +247,17 @@ export default function InboxPage() {
                 return [data.data, ...prevChats];
               }
             });
-
-            // Auto-refresh messages if this chat is currently selected
-            if (currentSelectedChat && currentSelectedChat.id === data.data.id) {
-              console.log("🔄 Auto-refreshing messages for currently selected fabric chat (user-specific)");
-              socketInstance.emit("retrieveMessages", {
-                token: userToken,
-                chatBuddy: currentSelectedChat.chat_buddy.id,
-              });
-            }
           }
         });
       }
 
       socketInstance.on("messagesRetrieved", (data) => {
-        console.log("=== FABRIC MESSAGES RETRIEVED ===");
+        console.log("=== SALES MESSAGES RETRIEVED ===");
         console.log("Full response:", JSON.stringify(data, null, 2));
         console.log("Status:", data?.status);
         console.log("Messages array:", data?.data?.result);
         console.log("Selected chat from ref:", selectedChatRef.current);
-        console.log("=================================");
+        console.log("===============================");
 
         if (data?.status === "success" && data?.data?.result) {
           const currentSelectedChat = selectedChatRef.current;
@@ -339,13 +285,11 @@ export default function InboxPage() {
       });
 
       socketInstance.on("recentChatRetrieved", (data) => {
-        console.log("=== FABRIC RECENT CHAT RETRIEVED ===");
+        console.log("=== SALES RECENT CHAT RETRIEVED ===");
         console.log("Chat data:", JSON.stringify(data, null, 2));
-        console.log("====================================");
+        console.log("==================================");
 
         if (data?.data) {
-          const currentSelectedChat = selectedChatRef.current;
-          
           setChats((prevChats) => {
             const existingChatIndex = prevChats.findIndex(
               (chat) => chat.id === data.data.id
@@ -362,40 +306,31 @@ export default function InboxPage() {
               return [data.data, ...prevChats];
             }
           });
-
-          // Auto-refresh messages if this chat is currently selected
-          if (currentSelectedChat && currentSelectedChat.id === data.data.id) {
-            console.log("🔄 Auto-refreshing messages for currently selected fabric chat");
-            socketInstance.emit("retrieveMessages", {
-              token: userToken,
-              chatBuddy: currentSelectedChat.chat_buddy.id,
-            });
-          }
         }
       });
 
       socketInstance.on("connect_error", (error) => {
-        console.error("=== FABRIC SOCKET CONNECTION ERROR ===");
+        console.error("=== SALES SOCKET CONNECTION ERROR ===");
         console.error("Error:", error);
         console.error("Error message:", error.message);
-        console.error("======================================");
+        console.error("====================================");
         toastError("Socket connection failed: " + error.message);
       });
 
       setSocket(socketInstance);
 
       return () => {
-        console.log("=== CLEANING UP FABRIC SOCKET ===");
+        console.log("=== CLEANING UP SALES SOCKET ===");
         console.log("User ID:", userId);
         socketInstance.disconnect();
-        console.log("=================================");
+        console.log("===============================");
       };
     } else {
-      console.log("=== WAITING FOR FABRIC USER PROFILE OR TOKEN ===");
+      console.log("=== WAITING FOR SALES USER PROFILE OR TOKEN ===");
       console.log("User token exists:", !!userToken);
       console.log("User ID exists:", !!userId);
       console.log("Profile loading:", profileLoading);
-      console.log("================================================");
+      console.log("==============================================");
       
       if (!userToken) {
         toastError("User token not found. Please login again.");
@@ -405,37 +340,23 @@ export default function InboxPage() {
 
   // Load chats when socket connects
   useEffect(() => {
-    if (socket && isConnected && userToken && userId) {
-      console.log("=== FETCHING CHATS VIA SOCKET ===");
-      console.log("Emitting retrieveChats with token:", userToken);
-      console.log("User ID:", userId);
-      socket.emit("retrieveChats", { token: userToken });
-      console.log("================================");
+    if (socket && isConnected && userId) {
+      console.log("🔄 Emitting getChats for sales user:", userId);
+      socket.emit("getChats", { userId });
     }
-  }, [socket, isConnected, userToken, userId]);
+  }, [socket, isConnected, userId]);
 
   // Load messages when chat is selected
   useEffect(() => {
-    if (socket && isConnected && selectedChat && userToken && userId) {
-      console.log("=== FETCHING MESSAGES VIA SOCKET ===");
-      console.log("Selected chat:", selectedChat);
-      console.log("Chat ID:", selectedChat.id);
-      console.log("User ID:", userId);
-      console.log("Chat buddy ID:", selectedChat.chat_buddy?.id);
-      console.log("Emitting retrieveMessages");
-      
-      // Set up chat-specific listener for this chat
-      if (socket.setupChatSpecificListener) {
-        socket.setupChatSpecificListener(selectedChat.id);
-      }
-      
-      socket.emit("retrieveMessages", {
-        token: userToken,
-        chatBuddy: selectedChat.chat_buddy.id,
+    if (socket && selectedChat && userId) {
+      console.log("🔄 Emitting getMessages for sales chat:", selectedChat.id);
+      console.log("🔄 User ID:", userId);
+      socket.emit("getMessages", { 
+        chatId: selectedChat.id,
+        userId: userId
       });
-      console.log("====================================");
     }
-  }, [socket, isConnected, selectedChat, userToken, userId]);
+  }, [socket, selectedChat, userId]);
 
   const sendMessage = () => {
     if (!newMessage.trim() || !socket || !selectedChat || !userId) {
@@ -451,12 +372,12 @@ export default function InboxPage() {
       return;
     }
 
-    console.log("📤 === SENDING FABRIC MESSAGE ===");
+    console.log("📤 === SENDING SALES MESSAGE ===");
     console.log("Message:", newMessage);
     console.log("Chat ID:", selectedChat.id);
     console.log("User ID:", userId);
     console.log("Socket connected:", socket.connected);
-    console.log("================================");
+    console.log("==============================");
 
     const messageData = {
       chatId: selectedChat.id,
@@ -475,7 +396,7 @@ export default function InboxPage() {
   };
 
   const handleChatClick = (chat) => {
-    console.log("🔄 Fabric chat selected:", chat);
+    console.log("🔄 Sales chat selected:", chat);
     setSelectedChat(chat);
     setShowSidebar(false);
   };
@@ -518,7 +439,7 @@ export default function InboxPage() {
       <div className="flex items-center justify-center h-screen bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading fabric user profile...</p>
+          <p className="text-gray-600">Loading sales user profile...</p>
         </div>
       </div>
     );
@@ -531,7 +452,7 @@ export default function InboxPage() {
         <div className="text-center">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
           <h2 className="text-xl font-semibold text-gray-800 mb-2">Profile Load Error</h2>
-          <p className="text-gray-600 mb-4">Failed to load fabric user profile</p>
+          <p className="text-gray-600 mb-4">Failed to load sales user profile</p>
           <button 
             onClick={() => window.location.reload()} 
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"

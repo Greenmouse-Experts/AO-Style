@@ -147,6 +147,12 @@ export default function InboxPage() {
       console.log("Current chatId state:", chatId);
       console.log("Chat buddy ID:", selectedChat.chat_buddy?.id);
       console.log("Emitting retrieveMessages");        
+      
+      // Set up chat-specific listener for this chat
+      if (socket.setupChatSpecificListener) {
+        socket.setupChatSpecificListener(selectedChat.id);
+      }
+      
       socket.emit("retrieveMessages", {
         token: adminToken,
         chatBuddy: selectedChat.chat_buddy?.id || selectedChat.id,
@@ -233,6 +239,8 @@ export default function InboxPage() {
 
         // Update chats list with new chat data
         if (data?.data) {
+          const currentSelectedChat = selectedChatRef.current;
+          
           setChats((prevChats) => {
             const existingChatIndex = prevChats.findIndex(
               (chat) => chat.id === data.data.id,
@@ -251,56 +259,26 @@ export default function InboxPage() {
               return [data.data, ...prevChats];
             }
           });
+
+          // Auto-refresh messages if this chat is currently selected
+          if (currentSelectedChat && currentSelectedChat.id === data.data.id) {
+            console.log("🔄 Auto-refreshing messages for currently selected admin chat");
+            socketInstance.emit("retrieveMessages", {
+              token: adminToken,
+              chatBuddy: currentSelectedChat.chat_buddy.id,
+            });
+          }
         }
       });
 
       // Listen for admin-specific messages retrieved events
       socketInstance.on(`messagesRetrieved:${adminId}`, (data) => {
-        console.log("=== ADMIN MESSAGES RETRIEVED (General) ===");
-        console.log("Admin ID:", adminId);
-        console.log("Event data:", data);
+        console.log(`=== ADMIN-SPECIFIC MESSAGES RETRIEVED (${adminId}) ===`);
+        console.log("Full response:", JSON.stringify(data, null, 2));
         console.log("Status:", data?.status);
         console.log("Messages array:", data?.data?.result);
         console.log("Selected chat from ref:", selectedChatRef.current);
-        console.log("===============================");
-
-        if (data?.status === "success" && data?.data?.result) {
-          const currentSelectedChat = selectedChatRef.current;
-          console.log("Current selected chat:", currentSelectedChat);
-          setChatId(currentSelectedChat?.id || null);
-          console.log("Chat ID set:", currentSelectedChat.id);
-          const formattedMessages = data.data.result.map((msg) => ({
-            id: msg.id,
-            sender: msg.initiator?.name || "Unknown",
-            text: msg.message,
-            time: new Date(msg.created_at).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: true,
-            }),
-            type:
-              msg.initiator_id === currentSelectedChat?.chat_buddy?.id
-                ? "received"
-                : "sent",
-            read: msg.read,
-          }));
-
-          console.log("Formatted messages with types:", formattedMessages);
-          setMessageList(formattedMessages);
-        }
-      });
-
-      // Register chat-specific event listener when chatId is available
-
-      socketInstance.on(`messagesRetrieved:${localStorage.getItem("selectedChatId")}:${adminId}`, (data) => {
-        console.log("=== CHAT-SPECIFIC MESSAGES RETRIEVED ===");
-        console.log("Chat ID:", chatId);
-        console.log("Admin ID:", adminId);
-        console.log("Event data:", data);
-        console.log("Status:", data?.status);
-        console.log("Messages array:", data?.data?.result);
-        console.log("Selected chat from ref:", selectedChatRef.current);
-        console.log("=======================================");
+        console.log("===============================================");
 
         if (data?.status === "success" && data?.data?.result) {
           const currentSelectedChat = selectedChatRef.current;
@@ -326,6 +304,49 @@ export default function InboxPage() {
           setMessageList(formattedMessages);
         }
       });
+
+      // Also listen for chat-specific messages events
+      // This will be set up when a chat is selected
+      const setupChatSpecificListener = (chatId) => {
+        const eventName = `messagesRetrieved:${chatId}:${adminId}`;
+        console.log(`🎯 Setting up chat-specific listener: ${eventName}`);
+        
+        socketInstance.on(eventName, (data) => {
+          console.log(`=== ADMIN CHAT-SPECIFIC MESSAGES RETRIEVED (${chatId}:${adminId}) ===`);
+          console.log("Full response:", JSON.stringify(data, null, 2));
+          console.log("Status:", data?.status);
+          console.log("Messages array:", data?.data?.result);
+          console.log("Selected chat from ref:", selectedChatRef.current);
+          console.log("==============================================================");
+
+          if (data?.status === "success" && data?.data?.result) {
+            const currentSelectedChat = selectedChatRef.current;
+            console.log("Current selected chat:", currentSelectedChat);
+
+            const formattedMessages = data.data.result.map((msg) => ({
+              id: msg.id,
+              sender: msg.initiator?.name || "Unknown",
+              text: msg.message,
+              time: new Date(msg.created_at).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              }),
+              type:
+                msg.initiator_id === currentSelectedChat?.chat_buddy?.id
+                  ? "received"
+                  : "sent",
+              read: msg.read,
+            }));
+
+            console.log("Formatted messages with types:", formattedMessages);
+            setMessageList(formattedMessages);
+          }
+        });
+      };
+
+      // Store the function for later use
+      socketInstance.setupChatSpecificListener = setupChatSpecificListener;
 
       setSocket(socketInstance);
 

@@ -115,19 +115,46 @@ body {
     border-left: 3px solid #242ef2;
   }
 }
+
+/* Line clamp utilities for text truncation */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+/* Smooth animations for the shop details page */
 @keyframes fade-in-up {
-  0% {
+  from {
     opacity: 0;
     transform: translateY(20px);
   }
-  100% {
+  to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
 .animate-fade-in-up {
-  animation: fade-in-up 0.3s ease-out forwards;
+  animation: fade-in-up 0.3s ease-out;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -206,4 +233,259 @@ body {
 
 .ql-toolbar .ql-active .ql-fill {
   fill: #9847fe !important;
+}
+
+/* Custom Calendar Styles */
+.custom-calendar {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.custom-calendar .rdp {
+  margin: 0;
+  font-size: 14px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.custom-calendar .rdp-months {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.custom-calendar .rdp-month {
+  margin: 0;
+  width: 100%;
+  max-width: 280px;
+}
+
+.custom-calendar .rdp-caption {
+  display: flex;
+  justify-content: center;
+  padding: 0 0 1rem 0;
+  text-align: center;
+  position: relative;
+}
+
+.custom-calendar .rdp-caption_label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.custom-calendar .rdp-nav {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0;
+}
+
+.custom-calendar .rdp-nav_button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background-color: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.custom-calendar .rdp-nav_button:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.custom-calendar .rdp-table {
+  width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.custom-calendar .rdp-head_cell {
+  font-weight: 500;
+  color: #6b7280;
+  padding: 0.5rem 0;
+  text-align: center;
+  font-size: 0.75rem;
+  width: 14.28%;
+}
+
+.custom-calendar .rdp-cell {
+  text-align: center;
+  padding: 1px;
+  width: 14.28%;
+}
+
+.custom-calendar .rdp-button {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background-color: transparent;
+  color: #374151;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+.custom-calendar .rdp-button:hover {
+  background-color: #f3f4f6;
+}
+
+.custom-calendar .rdp-button_reset {
+  background: none;
+  border: none;
+}
+
+.custom-calendar .rdp-day_today {
+  background-color: #3b82f6;
+  color: white;
+  font-weight: 600;
+}
+
+.custom-calendar .rdp-day_selected {
+  background-color: #9333ea !important;
+  color: white !important;
+  font-weight: 600;
+}
+
+.custom-calendar .rdp-day_selected:hover {
+  background-color: #7c3aed !important;
+}
+
+.custom-calendar .rdp-day_outside {
+  color: #d1d5db;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 1280px) {
+  .custom-calendar .rdp-button {
+    width: 28px;
+    height: 28px;
+    font-size: 0.8rem;
+  }
+  
+  .custom-calendar .rdp-head_cell {
+    font-size: 0.7rem;
+    padding: 0.25rem 0;
+  }
+  
+  .custom-calendar .rdp-caption_label {
+    font-size: 0.9rem;
+  }
+}
+
+/* Enhanced Calendar Widget Styles */
+.calendar-widget-header {
+  background: linear-gradient(92.49deg, #9E4BFA -14.1%, #EE79AC 111.07%);
+  position: relative;
+  overflow: hidden;
+}
+
+.calendar-widget-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.calendar-date-display {
+  transition: all 0.3s ease;
+}
+
+.calendar-date-display:hover {
+  transform: translateY(-1px);
+}
+
+.calendar-mini-grid {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.calendar-day-button {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.calendar-day-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.1);
+  transition: all 0.3s ease;
+  transform: translate(-50%, -50%);
+}
+
+.calendar-day-button:hover::before {
+  width: 100%;
+  height: 100%;
+}
+
+.calendar-nav-button {
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.calendar-nav-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.05);
+  transition: all 0.3s ease;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+}
+
+.calendar-nav-button:hover::after {
+  width: 120%;
+  height: 120%;
+}
+
+/* Animation for calendar toggle */
+.calendar-toggle-icon {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Subtle shadow effects */
+.calendar-widget-shadow {
+  box-shadow: 
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.calendar-widget-shadow:hover {
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
 }

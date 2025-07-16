@@ -205,7 +205,7 @@ export default function ShopStyles() {
         </p>
       </div>
       <div className="flex h-screen">
-        <div
+        {/* <div
           className={`hidden md:block bg-white fixed md:relative left-0 transition-all duration-300 overflow-hidden
                 ${
                   isSidebarOpen
@@ -226,16 +226,14 @@ export default function ShopStyles() {
                 ✖
               </button>
 
-              {/* Filters */}
               <Filters filters={filters} setFilters={setFilters} />
             </>
           ) : (
-            /* Filter Button - Only on Desktop */
             <button className="bg-gradient text-white p-3 rounded-full">
               <FaFilter size={15} />
             </button>
           )}
-        </div>
+        </div> */}
 
         {/* Main Content */}
         <div

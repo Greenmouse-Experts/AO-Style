@@ -29,10 +29,13 @@ const DoughnutChartComponent = () => {
         {data.map((item) => (
           <div key={item.name} className="flex justify-between text-sm">
             <span className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full" style={{ background: item.color }}></span>
+              <span
+                className="w-3 h-3 rounded-full"
+                style={{ background: item.color }}
+              ></span>
               {item.name}
             </span>
-            <span>₦ {item.value.toLocaleString()}</span>
+            <span>₦ {item?.value?.toLocaleString()}</span>
           </div>
         ))}
       </div>

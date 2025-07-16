@@ -20,7 +20,7 @@ const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white p-3 shadow-md rounded-md">
-        <p className="text-gray-700 font-semibold">${payload[0].value.toLocaleString()}</p>
+        <p className="text-gray-700 font-semibold">${payload[0]?.value?.toLocaleString()}</p>
         <p className="text-xs text-gray-500">{payload[0].payload.month}</p>
       </div>
     );

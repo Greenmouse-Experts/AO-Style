@@ -13,6 +13,8 @@ import useProductGeneral from "../../../hooks/dashboard/useGetProductGeneral";
 import useQueryParams from "../../../hooks/useQueryParams";
 import Slider from "react-slick";
 import { settings } from "../../Home/components/MarketplaceSection";
+import useDebounce from "../../../hooks/useDebounce";
+import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 
 const marketplaces = [
   {
@@ -243,16 +245,46 @@ export default function ShopMaterials() {
 
   const trendingProducts = getTrendingData?.data || [];
 
+  const [queryMin, setQueryMin] = useState(0);
+
+  const debouncedMin = useDebounce(queryMin ?? "", 1000);
+
+  const [debounceMin, setDebounceMin] = useState("");
+
+  const [queryMax, setQueryMax] = useState(200000);
+
+  const debouncedMax = useDebounce(queryMin ?? "", 1000);
+
+  const [debounceMax, setDebounceMax] = useState("");
+
   const { queryParams, updateQueryParams } = useQueryParams({
     "pagination[limit]": 10,
     "pagination[page]": 1,
   });
+
+  useUpdatedEffect(() => {
+    // update search params with undefined if debouncedSearchTerm is an empty string
+    setDebounceMin(debouncedMin || undefined);
+    updateQueryParams({
+      "pagination[page]": 1,
+    });
+  }, [debouncedMin]);
+
+  useUpdatedEffect(() => {
+    // update search params with undefined if debouncedSearchTerm is an empty string
+    setDebounceMin(debouncedMax || undefined);
+    updateQueryParams({
+      "pagination[page]": 1,
+    });
+  }, [debouncedMax]);
 
   const { data: getProductData, isPending: productIsPending } =
     useProductGeneral(
       {
         ...queryParams,
         status: "PUBLISHED",
+        min_price: debounceMin,
+        max_price: debounceMax,
       },
       "FABRIC"
     );
@@ -260,6 +292,8 @@ export default function ShopMaterials() {
   const totalPages = Math.ceil(
     getProductData?.count / (queryParams["pagination[limit]"] ?? 10)
   );
+
+  console.log(getProductData?.data?.length);
 
   return (
     <>
@@ -277,7 +311,13 @@ export default function ShopMaterials() {
                     ? "w-1/5 h-screen p-2"
                     : "w-14 h-14 p-2 rounded-md flex items-center justify-center cursor-pointer"
                 }`}
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            if (!isSidebarOpen) {
+              setIsSidebarOpen(true);
+            }
+          }}
         >
           {isSidebarOpen ? (
             <>
@@ -292,7 +332,16 @@ export default function ShopMaterials() {
               </button>
 
               {/* Filters */}
-              <Filters filters={filters} setFilters={setFilters} />
+              <Filters
+                filters={filters}
+                updateQueryParams={updateQueryParams}
+                setFilters={setFilters}
+                queryMin={queryMin}
+                setQueryMin={setQueryMin}
+                queryMax={queryMax}
+                setQueryMax={setQueryMax}
+                getMarketPlacePublicData={getMarketPlacePublicData}
+              />
             </>
           ) : (
             /* Filter Button - Only on Desktop */
@@ -304,7 +353,7 @@ export default function ShopMaterials() {
 
         {/* Main Content */}
         <div
-          className={`flex-1 overflow-auto p-1 md:p-4 transition-all duration-300  -mt-4`}
+          className={`flex-1  overflow-auto p-1 md:p-4 transition-all duration-300  -mt-4`}
         >
           <HeaderCard />
 
@@ -321,7 +370,16 @@ export default function ShopMaterials() {
               Show Filters
             </button>
             <div id="mobile-filters" className="hidden">
-              <Filters filters={filters} setFilters={setFilters} />
+              <Filters
+                filters={filters}
+                updateQueryParams={updateQueryParams}
+                setFilters={setFilters}
+                setQueryMin={setQueryMin}
+                queryMin={queryMin}
+                queryMax={queryMax}
+                setQueryMax={setQueryMax}
+                getMarketPlacePublicData={getMarketPlacePublicData}
+              />
             </div>
           </div>
 
@@ -397,6 +455,16 @@ export default function ShopMaterials() {
                 </Link>
               ))}
             </div>
+          )}
+
+          {!productIsPending && !getProductData?.data?.length ? (
+            <div classNamee="flex items-center justify-center w-full border-2 border-red-800 border-solid">
+              <p className="text-sm text-gray-600 text-center">
+                Product not found{" "}
+              </p>
+            </div>
+          ) : (
+            <></>
           )}
 
           {getProductData?.data?.length > 0 ? (

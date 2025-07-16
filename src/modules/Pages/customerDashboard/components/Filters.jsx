@@ -1,4 +1,19 @@
-export default function Filters({ filters, setFilters }) {
+import { useState } from "react";
+import useProductCategoryGeneral from "../../../../hooks/dashboard/useGetProductPublic";
+import Select from "react-select";
+import useGetMarketPlaces from "../../../../hooks/dashboard/useGetMarketPlaces";
+
+export default function Filters({
+  filters,
+  setFilters,
+  updateQueryParams,
+  getMarketPlacePublicData,
+  setQueryMin,
+  queryMin,
+
+  setQueryMax,
+  queryMax,
+}) {
   const categories = [
     "Agbada",
     "Kaftan",
@@ -40,6 +55,32 @@ export default function Filters({ filters, setFilters }) {
     "Ogbete Market",
   ];
 
+  const { data: getFabricProductGeneralData, isPending } =
+    useProductCategoryGeneral({
+      "pagination[limit]": 10000,
+      "pagination[page]": 1,
+      type: "fabric",
+    });
+
+  console.log(getFabricProductGeneralData?.data);
+
+  const categoryFabricList = getFabricProductGeneralData?.data
+    ? getFabricProductGeneralData?.data?.map((c) => ({
+        label: c.name,
+        value: c.id,
+      }))
+    : [];
+
+  const marketList = getMarketPlacePublicData?.data
+    ? getMarketPlacePublicData?.data?.map((c) => ({
+        label: c.name,
+        value: c.id,
+      }))
+    : [];
+
+  const [product, setProduct] = useState("");
+  const [market, setMarket] = useState("");
+
   return (
     <div className="bg-white p-3 sm:p-4 rounded-lg w-full">
       <h2 className="text-base sm:text-lg font-semibold mb-4 sm:mb-5">
@@ -49,7 +90,55 @@ export default function Filters({ filters, setFilters }) {
       {/* Categories */}
       <div className="mb-3 sm:mb-4">
         <h3 className="font-medium mb-2 sm:mb-3">Categories</h3>
-        <select
+        <Select
+          options={[{ label: "All", value: "" }, ...categoryFabricList]}
+          name="category_id"
+          value={[{ label: "All", value: "" }, ...categoryFabricList]?.find(
+            (opt) => opt.value === product
+          )}
+          onChange={(selectedOption) => {
+            // console.log(selectedOption?.value);
+            if (selectedOption?.value == "") {
+              updateQueryParams({
+                category_id: undefined,
+              });
+            } else {
+              updateQueryParams({
+                category_id: selectedOption?.value,
+              });
+            }
+
+            setProduct(selectedOption.value);
+            // updateQueryParams({
+            //   color: color?.toLowerCase(),
+            // });
+
+            // setFieldValue("category_id", selectedOption.value);
+          }}
+          required
+          placeholder="select"
+          className="w-full p-[1px] border border-gray-300 text-gray-600 outline-none rounded"
+          styles={{
+            control: (base, state) => ({
+              ...base,
+              border: "none",
+              boxShadow: "none",
+              outline: "none",
+              backgroundColor: "#fff",
+              "&:hover": {
+                border: "none",
+              },
+            }),
+            indicatorSeparator: () => ({
+              display: "none",
+            }),
+            menu: (base) => ({
+              ...base,
+              zIndex: 9999,
+            }),
+          }}
+        />{" "}
+        {/* <select
           className="w-full p-2 sm:p-3 border border-gray-300 text-gray-600 outline-none rounded"
           value={filters.category}
           onChange={(e) => setFilters({ ...filters, category: e.target.value })}
@@ -60,40 +149,34 @@ export default function Filters({ filters, setFilters }) {
               {category}
             </option>
           ))}
-        </select>
+        </select> */}
       </div>
 
       {/* Price Range */}
       <div className="mb-3 sm:mb-4">
         <h3 className="font-medium mb-2 sm:mb-3">Price</h3>
         <div className="flex justify-between text-xs sm:text-sm">
-          <span>₦{filters.price[0].toLocaleString()}</span>
-          <span>₦{filters.price[1].toLocaleString()}</span>
+          <span>₦{queryMin.toLocaleString()}</span>
+          <span>₦{queryMax.toLocaleString()}</span>
         </div>
         <input
           type="range"
           min="0"
           max="200000"
-          value={filters.price[0]}
-          onChange={(e) =>
-            setFilters({
-              ...filters,
-              price: [parseInt(e.target.value), filters.price[1]],
-            })
-          }
+          value={queryMin}
+          onChange={(e) => {
+            setQueryMin(parseInt(e.target.value ?? undefined));
+          }}
           className="w-full mb-3"
         />
         <input
           type="range"
-          min={filters.price[0]}
+          min={queryMin}
           max="200000"
-          value={filters.price[1]}
-          onChange={(e) =>
-            setFilters({
-              ...filters,
-              price: [filters.price[0], parseInt(e.target.value)],
-            })
-          }
+          value={queryMax}
+          onChange={(e) => {
+            setQueryMax(parseInt(e.target.value ?? undefined));
+          }}
           className="w-full mb-3"
         />
       </div>
@@ -109,19 +192,23 @@ export default function Filters({ filters, setFilters }) {
                 filters.color === color ? "border-white" : "border-gray-300"
               }`}
               style={{ backgroundColor: color.toLowerCase() }}
-              onClick={() =>
+              onClick={() => {
+                console.log(color?.toLowerCase());
+                updateQueryParams({
+                  color: color?.toLowerCase(),
+                });
                 setFilters({
                   ...filters,
                   color: filters.color === color ? "" : color,
-                })
-              }
+                });
+              }}
             ></button>
           ))}
         </div>
       </div>
 
       {/* Sizes */}
-      <div className="mb-3 sm:mb-4">
+      {/* <div className="mb-3 sm:mb-4">
         <h3 className="font-medium mb-2 sm:mb-3">Size</h3>
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
           {sizes.map((size, index) => (
@@ -143,25 +230,57 @@ export default function Filters({ filters, setFilters }) {
             </button>
           ))}
         </div>
-      </div>
+      </div> */}
 
       {/* Marketplace */}
       <div className="mb-3 sm:mb-4">
         <h3 className="font-medium mb-2 sm:mb-3">Marketplace</h3>
-        <select
-          className="w-full p-2 sm:p-3 border border-gray-300 text-gray-600 outline-none rounded"
-          value={filters.marketplace}
-          onChange={(e) =>
-            setFilters({ ...filters, marketplace: e.target.value })
-          }
-        >
-          <option value="">All Marketplaces</option>
-          {marketplaces.map((market, index) => (
-            <option key={index} value={market}>
-              {market}
-            </option>
-          ))}
-        </select>
+        <Select
+          options={[{ label: "All", value: "" }, ...marketList]}
+          name="market_id"
+          value={[{ label: "All", value: "" }, ...marketList]?.find(
+            (opt) => opt.value === market
+          )}
+          onChange={(selectedOption) => {
+            if (selectedOption?.value == "") {
+              updateQueryParams({
+                market_id: undefined,
+              });
+            } else {
+              updateQueryParams({
+                market_id: selectedOption?.value,
+              });
+            }
+            setMarket(selectedOption.value);
+            // updateQueryParams({
+            //   color: color?.toLowerCase(),
+            // });
+
+            // setFieldValue("category_id", selectedOption.value);
+          }}
+          required
+          placeholder="select"
+          className="w-full p-[1px] border border-gray-300 text-gray-600 outline-none rounded"
+          styles={{
+            control: (base, state) => ({
+              ...base,
+              border: "none",
+              boxShadow: "none",
+              outline: "none",
+              backgroundColor: "#fff",
+              "&:hover": {
+                border: "none",
+              },
+            }),
+            indicatorSeparator: () => ({
+              display: "none",
+            }),
+            menu: (base) => ({
+              ...base,
+              zIndex: 9999,
+            }),
+          }}
+        />{" "}
       </div>
     </div>
   );

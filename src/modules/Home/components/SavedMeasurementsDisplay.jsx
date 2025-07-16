@@ -85,9 +85,9 @@ export default function SavedMeasurementsDisplay({
           </div>
 
           {/* Measurement Sections */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <h4 className="font-medium text-gray-700 mb-4">Upper Body</h4>
+              <h4 className="font-bold text-gray-700 mb-4">Upper Body</h4>
               <div className="space-y-4 mb-4">
                 <div className="flex justify-between">
                   <span className="text-gray-800">Bust Circumference :</span>
@@ -145,7 +145,7 @@ export default function SavedMeasurementsDisplay({
             </div>
 
             <div>
-              <h4 className="font-medium text-gray-700 mb-4">Lower Body</h4>
+              <h4 className="font-bold text-gray-700 mb-4">Lower Body</h4>
               <div className="space-y-4 mb-4">
                 <div className="flex justify-between">
                   <span className="text-gray-800">Waist Circumference :</span>
@@ -196,7 +196,7 @@ export default function SavedMeasurementsDisplay({
             </div>
 
             <div>
-              <h4 className="font-medium text-gray-700 mb-4">Full Body</h4>
+              <h4 className="font-bold text-gray-700 mb-4">Full Body</h4>
               <div className="space-y-4 mb-4">
                 <div className="flex justify-between">
                   <span className="text-gray-800">Height :</span>

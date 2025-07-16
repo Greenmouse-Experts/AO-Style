@@ -6,6 +6,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useCartStore } from "../../../store/carybinUserCartStore";
 import { useFormik } from "formik";
+import { useCarybinUserStore } from "../../../store/carybinUserStore";
 
 export default function AnkaraGownPage() {
   const location = useLocation();
@@ -112,8 +113,6 @@ export default function AnkaraGownPage() {
 
   const Cartid = localStorage.getItem("cart_id");
 
-  console.log(Cartid);
-
   const item = useCartStore.getState().getItemByCartId(Cartid);
 
   console.log(item);
@@ -124,61 +123,132 @@ export default function AnkaraGownPage() {
 
   console.log(currMeasurement);
 
-  const initialValues = {
-    customer_name: currMeasurement?.customer_name ?? "",
-    bust_circumference: currMeasurement?.upper_body?.bust_circumference ?? "",
-    bust_circumference_unit:
-      currMeasurement?.upper_body?.bust_circumference_unit ?? "cm",
-    shoulder_width: currMeasurement?.upper_body?.shoulder_width ?? "",
-    shoulder_width_unit:
-      currMeasurement?.upper_body?.shoulder_width_unit ?? "cm",
-    armhole_circumference:
-      currMeasurement?.upper_body?.armhole_circumference ?? "",
-    armhole_circumference_unit:
-      currMeasurement?.upper_body?.armhole_circumference_unit ?? "cm",
-    sleeve_length: currMeasurement?.upper_body?.sleeve_length ?? "",
+  const { carybinUser } = useCarybinUserStore();
 
-    sleeve_length_unit: currMeasurement?.upper_body?.sleeve_length_unit ?? "cm",
-    bicep_circumference: currMeasurement?.upper_body?.bicep_circumference ?? "",
+  console.log(carybinUser);
+
+  const userMeasurement = carybinUser?.profile?.measurement;
+
+  const initialValues = {
+    customer_name: currMeasurement?.customer_name ?? carybinUser?.name ?? "",
+    bust_circumference:
+      currMeasurement?.upper_body?.bust_circumference ??
+      userMeasurement?.upper_body?.bust_circumference ??
+      "",
+    bust_circumference_unit:
+      currMeasurement?.upper_body?.bust_circumference_unit ??
+      userMeasurement?.upper_body?.bust_circumference_unit ??
+      "cm",
+    shoulder_width:
+      currMeasurement?.upper_body?.shoulder_width ??
+      userMeasurement?.upper_body?.shoulder_width ??
+      "",
+    shoulder_width_unit:
+      currMeasurement?.upper_body?.shoulder_width_unit ??
+      userMeasurement?.upper_body?.shoulder_width_unit ??
+      "cm",
+    armhole_circumference:
+      currMeasurement?.upper_body?.armhole_circumference ??
+      userMeasurement?.upper_body?.armhole_circumference ??
+      "",
+    armhole_circumference_unit:
+      currMeasurement?.upper_body?.armhole_circumference_unit ??
+      userMeasurement?.upper_body?.armhole_circumference_unit ??
+      "cm",
+    sleeve_length:
+      currMeasurement?.upper_body?.sleeve_length ??
+      userMeasurement?.upper_body?.sleeve_length ??
+      "",
+
+    sleeve_length_unit:
+      currMeasurement?.upper_body?.sleeve_length_unit ??
+      userMeasurement?.upper_body?.sleeve_length_unit ??
+      "cm",
+    bicep_circumference:
+      currMeasurement?.upper_body?.bicep_circumference ??
+      userMeasurement?.upper_body?.bicep_circumference ??
+      "",
 
     bicep_circumference_unit:
-      currMeasurement?.upper_body?.bicep_circumference_unit ?? "cm",
+      currMeasurement?.upper_body?.bicep_circumference_unit ??
+      userMeasurement?.upper_body?.bicep_circumference_unit ??
+      "cm",
     waist_circumference_upper:
-      currMeasurement?.upper_body?.waist_circumference ?? "",
+      currMeasurement?.upper_body?.waist_circumference ??
+      userMeasurement?.upper_body?.waist_circumference ??
+      "",
 
     waist_circumference_unit_upper:
-      currMeasurement?.upper_body?.waist_circumference_unit ?? "cm",
+      currMeasurement?.upper_body?.waist_circumference_unit ??
+      userMeasurement?.upper_body?.waist_circumference_unit ??
+      "cm",
     waist_circumference_lower:
-      currMeasurement?.lower_body?.waist_circumference ?? "",
+      currMeasurement?.lower_body?.waist_circumference ??
+      userMeasurement?.lower_body?.waist_circumference ??
+      "",
 
     waist_circumference_lower_unit:
-      currMeasurement?.lower_body?.waist_circumference_unit ?? "cm",
-    hip_circumference: currMeasurement?.lower_body?.hip_circumference ?? "",
+      currMeasurement?.lower_body?.waist_circumference_unit ??
+      userMeasurement?.lower_body?.waist_circumference_unit ??
+      "cm",
+    hip_circumference:
+      currMeasurement?.lower_body?.hip_circumference ??
+      userMeasurement?.lower_body?.hip_circumference ??
+      "",
 
     hip_circumference_unit:
-      currMeasurement?.lower_body?.hip_circumference_unit ?? "cm",
-    thigh_circumference: currMeasurement?.lower_body?.thigh_circumference ?? "",
+      currMeasurement?.lower_body?.hip_circumference_unit ??
+      userMeasurement?.lower_body?.hip_circumference_unit ??
+      "cm",
+    thigh_circumference:
+      currMeasurement?.lower_body?.thigh_circumference ??
+      userMeasurement?.lower_body?.thigh_circumference ??
+      "",
 
     thigh_circumference_unit:
-      currMeasurement?.lower_body?.thigh_circumference_unit ?? "cm",
+      currMeasurement?.lower_body?.thigh_circumference_unit ??
+      userMeasurement?.lower_body?.thigh_circumference_unit ??
+      "cm",
 
-    knee_circumference: currMeasurement?.lower_body?.knee_circumference ?? "",
+    knee_circumference:
+      currMeasurement?.lower_body?.knee_circumference ??
+      userMeasurement?.lower_body?.knee_circumference ??
+      "",
 
     knee_circumference_unit:
-      currMeasurement?.lower_body?.knee_circumference_unit ?? "cm",
+      currMeasurement?.lower_body?.knee_circumference_unit ??
+      userMeasurement?.lower_body?.knee_circumference_unit ??
+      "cm",
 
-    trouser_length: currMeasurement?.lower_body?.trouser_length ?? "",
+    trouser_length:
+      currMeasurement?.lower_body?.trouser_length ??
+      userMeasurement?.lower_body?.trouser_length ??
+      "",
 
     trouser_length_unit:
-      currMeasurement?.lower_body?.trouser_length_unit ?? "cm",
+      currMeasurement?.lower_body?.trouser_length_unit ??
+      userMeasurement?.lower_body?.trouser_length_unit ??
+      "cm",
 
-    height: currMeasurement?.full_body?.height ?? "",
+    height:
+      currMeasurement?.full_body?.height ??
+      userMeasurement?.full_body?.height ??
+      "",
 
-    height_unit: currMeasurement?.full_body?.height_unit ?? "cm",
+    height_unit:
+      currMeasurement?.full_body?.height_unit ??
+      userMeasurement?.full_body?.height_unit ??
+      "cm",
 
-    dress_length: currMeasurement?.full_body?.dress_length ?? "",
+    dress_length:
+      currMeasurement?.full_body?.dress_length ??
+      userMeasurement?.full_body?.dress_length ??
+      "",
 
-    dress_length_unit: currMeasurement?.full_body?.dress_length_unit ?? "cm",
+    dress_length_unit:
+      currMeasurement?.full_body?.dress_length_unit ??
+      userMeasurement?.full_body?.dress_length_unit ??
+      "cm",
   };
 
   const {
@@ -247,7 +317,7 @@ export default function AnkaraGownPage() {
           }
         });
 
-        setCurrMeasurement();
+        setCurrMeasurement(null);
         setMeasurementsSubmitted(true);
         resetForm();
       } else {

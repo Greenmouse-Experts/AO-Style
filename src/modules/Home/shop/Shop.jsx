@@ -368,8 +368,10 @@ export default function ShopPage() {
             />{" "}
             <h3 className="font-semibold mt-4 mb-2">PRICE</h3>
             <div className="flex justify-between text-xs sm:text-sm">
-              <span>₦{queryMin.toLocaleString()}</span>
-              <span>₦{queryMax.toLocaleString()}</span>
+              <span>
+                <span>Min</span>
+              </span>
+              <span>₦{queryMin?.toLocaleString()} </span>
             </div>
             <input
               type="range"
@@ -381,6 +383,12 @@ export default function ShopPage() {
               }}
               className="w-full mb-3"
             />
+            <div className="flex justify-between text-xs sm:text-sm">
+              <span>
+                <span>Max</span>
+              </span>
+              <span> ₦{queryMax?.toLocaleString()}</span>
+            </div>
             <input
               type="range"
               min={queryMin}

@@ -3,7 +3,7 @@ import useProductCategoryGeneral from "../../../../hooks/dashboard/useGetProduct
 import Select from "react-select";
 import useGetMarketPlaces from "../../../../hooks/dashboard/useGetMarketPlaces";
 
-export default function Filters({
+export default function StylesFilters({
   filters,
   setFilters,
   updateQueryParams,
@@ -59,7 +59,7 @@ export default function Filters({
     useProductCategoryGeneral({
       "pagination[limit]": 10000,
       "pagination[page]": 1,
-      type: "fabric",
+      type: "style",
     });
 
   console.log(getFabricProductGeneralData?.data);
@@ -179,6 +179,7 @@ export default function Filters({
           </span>
           <span> ₦{queryMax?.toLocaleString()}</span>
         </div>
+
         <input
           type="range"
           min={queryMin}
@@ -192,7 +193,7 @@ export default function Filters({
       </div>
 
       {/* Colors */}
-      <div className="mb-3 sm:mb-4">
+      {/* <div className="mb-3 sm:mb-4">
         <h3 className="font-medium mb-2 sm:mb-3">Colors</h3>
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
           {colors.map((color, index) => (
@@ -214,7 +215,7 @@ export default function Filters({
             ></button>
           ))}
         </div>
-      </div>
+      </div> */}
 
       {/* Sizes */}
       {/* <div className="mb-3 sm:mb-4">
@@ -240,57 +241,6 @@ export default function Filters({
           ))}
         </div>
       </div> */}
-
-      {/* Marketplace */}
-      <div className="mb-3 sm:mb-4">
-        <h3 className="font-medium mb-2 sm:mb-3">Marketplace</h3>
-        <Select
-          options={[{ label: "All", value: "" }, ...marketList]}
-          name="market_id"
-          value={[{ label: "All", value: "" }, ...marketList]?.find(
-            (opt) => opt.value === market
-          )}
-          onChange={(selectedOption) => {
-            if (selectedOption?.value == "") {
-              updateQueryParams({
-                market_id: undefined,
-              });
-            } else {
-              updateQueryParams({
-                market_id: selectedOption?.value,
-              });
-            }
-            setMarket(selectedOption.value);
-            // updateQueryParams({
-            //   color: color?.toLowerCase(),
-            // });
-
-            // setFieldValue("category_id", selectedOption.value);
-          }}
-          required
-          placeholder="select"
-          className="w-full p-[1px] border border-gray-300 text-gray-600 outline-none rounded"
-          styles={{
-            control: (base, state) => ({
-              ...base,
-              border: "none",
-              boxShadow: "none",
-              outline: "none",
-              backgroundColor: "#fff",
-              "&:hover": {
-                border: "none",
-              },
-            }),
-            indicatorSeparator: () => ({
-              display: "none",
-            }),
-            menu: (base) => ({
-              ...base,
-              zIndex: 9999,
-            }),
-          }}
-        />{" "}
-      </div>
     </div>
   );
 }

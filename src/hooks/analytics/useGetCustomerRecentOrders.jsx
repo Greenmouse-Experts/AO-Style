@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import AnalyticsService from "../../services/api/analytics";
 
-function useGetDashboardStat() {
+function useGetCustomerRecentOrdersStat() {
   const { isLoading, isFetching, data, isError, refetch, isPending } = useQuery(
     {
-      queryKey: ["dashboard-stats"],
-      queryFn: () => AnalyticsService.getDashboardStat(),
+      queryKey: ["customer-recentorders-stats"],
+      queryFn: () => AnalyticsService.getCustomerRecentOrders(),
     }
   );
 
@@ -19,4 +19,4 @@ function useGetDashboardStat() {
   };
 }
 
-export default useGetDashboardStat;
+export default useGetCustomerRecentOrdersStat;

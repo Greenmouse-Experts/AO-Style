@@ -12,6 +12,9 @@ import LoaderComponent from "../../../components/BeatLoader";
 import useProductGeneral from "../../../hooks/dashboard/useGetProductGeneral";
 import useProductCategoryGeneral from "../../../hooks/dashboard/useGetProductPublic";
 import useQueryParams from "../../../hooks/useQueryParams";
+import StylesFilters from "./components/StylesFilters";
+import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
+import useDebounce from "../../../hooks/useDebounce";
 
 const products = [
   {
@@ -175,6 +178,34 @@ export default function ShopStyles() {
     type: "style",
   });
 
+  const [queryMin, setQueryMin] = useState(0);
+
+  const debouncedMin = useDebounce(queryMin ?? "", 1000);
+
+  const [debounceMin, setDebounceMin] = useState("");
+
+  const [queryMax, setQueryMax] = useState(200000);
+
+  const debouncedMax = useDebounce(queryMin ?? "", 1000);
+
+  const [debounceMax, setDebounceMax] = useState("");
+
+  useUpdatedEffect(() => {
+    // update search params with undefined if debouncedSearchTerm is an empty string
+    setDebounceMin(debouncedMin || undefined);
+    updateQueryParams({
+      "pagination[page]": 1,
+    });
+  }, [debouncedMin]);
+
+  useUpdatedEffect(() => {
+    // update search params with undefined if debouncedSearchTerm is an empty string
+    setDebounceMax(debouncedMax || undefined);
+    updateQueryParams({
+      "pagination[page]": 1,
+    });
+  }, [debouncedMax]);
+
   const { queryParams, updateQueryParams } = useQueryParams({
     "pagination[limit]": 10,
     "pagination[page]": 1,
@@ -186,6 +217,8 @@ export default function ShopStyles() {
         ...queryParams,
         category_id: selectedCategory == "1" ? undefined : selectedCategory,
         status: "PUBLISHED",
+        min_price: debounceMin,
+        max_price: debounceMax,
       },
       "STYLE"
     );
@@ -205,14 +238,20 @@ export default function ShopStyles() {
         </p>
       </div>
       <div className="flex h-screen">
-        {/* <div
+        <div
           className={`hidden md:block bg-white fixed md:relative left-0 transition-all duration-300 overflow-hidden
                 ${
                   isSidebarOpen
                     ? "w-1/5 h-screen p-2"
                     : "w-14 h-14 p-2 rounded-md flex items-center justify-center cursor-pointer"
                 }`}
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            if (!isSidebarOpen) {
+              setIsSidebarOpen(true);
+            }
+          }}
         >
           {isSidebarOpen ? (
             <>
@@ -220,20 +259,31 @@ export default function ShopStyles() {
                 className="absolute top-4 right-4 text-black"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setIsSidebarOpen(false);
+                  e.preventDefault();
+                  if (!isSidebarOpen) {
+                    setIsSidebarOpen(true);
+                  }
                 }}
               >
                 ✖
               </button>
 
-              <Filters filters={filters} setFilters={setFilters} />
+              <StylesFilters
+                filters={filters}
+                updateQueryParams={updateQueryParams}
+                setFilters={setFilters}
+                queryMin={queryMin}
+                setQueryMin={setQueryMin}
+                queryMax={queryMax}
+                setQueryMax={setQueryMax}
+              />
             </>
           ) : (
             <button className="bg-gradient text-white p-3 rounded-full">
               <FaFilter size={15} />
             </button>
           )}
-        </div> */}
+        </div>
 
         {/* Main Content */}
         <div
@@ -254,7 +304,15 @@ export default function ShopStyles() {
               Show Filters
             </button>
             <div id="mobile-filters" className="hidden">
-              <Filters filters={filters} setFilters={setFilters} />
+              <StylesFilters
+                filters={filters}
+                updateQueryParams={updateQueryParams}
+                setFilters={setFilters}
+                queryMin={queryMin}
+                setQueryMin={setQueryMin}
+                queryMax={queryMax}
+                setQueryMax={setQueryMax}
+              />
             </div>
           </div>
 

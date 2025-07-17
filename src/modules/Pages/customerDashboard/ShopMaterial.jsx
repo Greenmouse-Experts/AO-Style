@@ -325,7 +325,10 @@ export default function ShopMaterials() {
                 className="absolute top-4 right-4 text-black"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setIsSidebarOpen(false);
+                  e.preventDefault();
+                  if (!isSidebarOpen) {
+                    setIsSidebarOpen(true);
+                  }
                 }}
               >
                 ✖

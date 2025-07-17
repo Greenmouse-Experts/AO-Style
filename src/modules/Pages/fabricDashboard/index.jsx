@@ -4,9 +4,26 @@ import TopSelling from "./components/TopSelling";
 import IncomeExpensesChart from "./components/IncomeExpensesChart";
 import Noti from "./components/Noti";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
+import useVendorSummaryStat from "../../../hooks/analytics/useGetVendorSummmary";
+import Loader from "../../../components/ui/Loader";
 
 export default function FabricDashboard() {
   const { carybinUser } = useCarybinUserStore();
+
+  const {
+    isPending,
+    isLoading,
+    isError,
+    data: vendorSummaryStat,
+  } = useVendorSummaryStat();
+
+  if (isPending) {
+    return (
+      <div className="m-auto flex h-[80vh] items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -20,8 +37,8 @@ export default function FabricDashboard() {
           Enjoy creating beautiful pieces for customers
         </p>
       </div>
-      <Cards />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+      <Cards vendorSummaryStat={vendorSummaryStat?.data} />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <AddedUser />
         </div>

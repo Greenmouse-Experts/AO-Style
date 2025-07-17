@@ -1,3 +1,5 @@
+import useVendorTopProduct from "../../../../hooks/analytics/useGetVendorTopProduct";
+
 const products = [
   {
     name: "Blue Lace",
@@ -50,15 +52,29 @@ const products = [
 ];
 
 export default function TopSellingProducts() {
+  const {
+    isPending,
+    isLoading,
+    isError,
+    data: vendorTopProduct,
+  } = useVendorTopProduct();
+
   return (
     <div className="bg-white p-6 rounded-xl">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold">Top Selling Products</h3>
-        <button className="bg-gray-100 text-gray-600 px-4 py-1 rounded-lg text-sm">
+        {/* <button className="bg-gray-100 text-gray-600 px-4 py-1 rounded-lg text-sm">
           Monthly ⌄
-        </button>
+        </button> */}
       </div>
-      {products.map((item, index) => (
+      {vendorTopProduct?.data?.length ? (
+        <></>
+      ) : (
+        <p className="flex items-center justify-center text-center my-auto h-[30vh] text-sm md:text-sm">
+          No top selling product.
+        </p>
+      )}
+      {/* {products.map((item, index) => (
         <div key={index} className="flex items-center gap-4 mb-4">
           <img
             src={item.image}
@@ -79,7 +95,7 @@ export default function TopSellingProducts() {
             N {item?.price?.toLocaleString()}
           </p>
         </div>
-      ))}
+      ))} */}
     </div>
   );
 }

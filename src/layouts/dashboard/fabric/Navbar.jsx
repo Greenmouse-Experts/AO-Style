@@ -5,7 +5,6 @@ import useToast from "../../../hooks/useToast";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import Cookies from "js-cookie";
 import useGetNotification from "../../../hooks/notification/useGetNotification";
-import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails";
 import useGetKyc from "../../../hooks/settings/useGetKyc";
 export default function Navbar({ toggleSidebar }) {
   const { toastSuccess } = useToast();

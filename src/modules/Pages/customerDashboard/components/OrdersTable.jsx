@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 import { FaEllipsisV } from "react-icons/fa";
-import useGetCustomerRecentOrdersStat from "../../../../hooks/analytics/useGetCustomerRecentOrders";
+// import useGetCustomerRecentOrdersStat from "../../../../hooks/analytics/useGetCustomerRecentOrders";
 import { formatDateStr } from "../../../../lib/helper";
 import ReusableTable from "../../adminDashboard/components/ReusableTable";
 
 const OrdersTable = (customerRecentOrderStat) => {
   console.log(customerRecentOrderStat?.customerRecentOrderStat);
+
   const [orders] = useState([
     {
       id: "01",

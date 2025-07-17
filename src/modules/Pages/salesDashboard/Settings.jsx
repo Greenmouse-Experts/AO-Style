@@ -222,6 +222,9 @@ const Settings = () => {
                         className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                         placeholder="Enter full detailed address"
                         required
+                        name={"address"}
+                        value={values.address}
+                        onChange={handleChange}
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4">

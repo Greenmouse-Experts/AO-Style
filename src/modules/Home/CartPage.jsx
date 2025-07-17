@@ -755,7 +755,7 @@ const CartPage = () => {
                   </div>
                   <div>
                     <label className="block text-sm text-black">
-                      Deliver Address *
+                      Delivery Address *
                       <input
                         type="text"
                         placeholder="Enter your delivery address"

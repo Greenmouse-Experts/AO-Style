@@ -124,7 +124,6 @@ const OrderPage = () => {
           <div className="relative">
             <button
               onClick={() => {
-                console.log("here");
                 setOpenDropdown(openDropdown === row.id ? null : row.id);
               }}
               className="px-2 py-1 cursor-pointer rounded-md"
@@ -133,7 +132,7 @@ const OrderPage = () => {
             </button>
             {openDropdown === row.id && (
               <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
-                <Link to="/customer/orders/orders-details">
+                <Link to={`/customer/orders/orders-details?id=${row.id}`}>
                   <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
                     View Details
                   </button>
@@ -255,8 +254,9 @@ const OrderPage = () => {
         {/* Filters & Actions */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pb-3 mb-4 gap-4">
           {/* Order Filters */}
+          {/* "ongoing", "completed", "cancelled" */}
           <div className="flex flex-wrap justify-center sm:justify-start gap-3 text-gray-600 text-sm font-medium">
-            {["all", "ongoing", "completed", "cancelled"].map((tab) => (
+            {["all"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setFilter(tab)}
@@ -270,7 +270,6 @@ const OrderPage = () => {
               </button>
             ))}
           </div>
-
           {/* Search & Actions */}
           <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
             <div className="relative w-full sm:w-auto">

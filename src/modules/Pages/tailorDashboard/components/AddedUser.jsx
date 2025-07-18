@@ -60,8 +60,8 @@ const NewOrders = () => {
   const columns = useMemo(
     () => [
       //   { label: "Order ID", key: "orderId" },
-      { label: "Order Description", key: "description" },
       { label: "Product", key: "product" },
+      { label: "Order Description", key: "description" },
 
       { label: "Price", key: "price" },
       { label: "Order Date", key: "dateAdded" },

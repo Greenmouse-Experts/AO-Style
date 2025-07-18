@@ -64,13 +64,13 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <SidebarItem
             to="/customer/shop-materials"
             icon={<FaStore />}
-            text="Shop Materials"
+            text="Buy Fabrics"
             onClick={handleClick}
           />
           <SidebarItem
             to="/customer/shop-styles"
             icon={<FaStore />}
-            text="Shop Styles"
+            text="Select Styles"
             onClick={handleClick}
           />
 

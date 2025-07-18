@@ -8,6 +8,12 @@ import useQueryParams from "../../../hooks/useQueryParams";
 import useDebounce from "../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import { CSVLink } from "react-csv";
+
 const orders = [
   {
     id: "01",
@@ -87,10 +93,10 @@ const OrderPage = () => {
     () => [
       { key: "transactionId", label: "Transaction ID" },
 
-      { key: "category", label: "Category" },
+      { key: "product", label: "Product" },
       { key: "amount", label: "Amount" },
       {
-        label: "Date",
+        label: "Order Date",
         key: "dateAdded",
       },
 
@@ -151,6 +157,13 @@ const OrderPage = () => {
             return {
               ...details,
               transactionId: `${details?.payment?.transaction_id}`,
+              product:
+                details?.payment?.purchase?.items[0]?.name?.length > 15
+                  ? `${details?.payment?.purchase?.items[0]?.name.slice(
+                      0,
+                      15
+                    )}...`
+                  : details?.payment?.purchase?.items[0]?.name,
               amount: `${details?.payment?.amount}`,
               status: `${details?.payment?.payment_status}`,
               dateAdded: `${
@@ -183,6 +196,49 @@ const OrderPage = () => {
   const totalPages = Math.ceil(
     customersOrderData?.count / (queryParams["pagination[limit]"] ?? 10)
   );
+
+  const handleExport = (e) => {
+    const value = e.target.value;
+    if (value === "excel") exportToExcel();
+    if (value === "pdf") exportToPDF();
+    if (value === "csv") document.getElementById("csvDownload").click();
+  };
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(customersOrderData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const blob = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    saveAs(blob, "MyOrders.xlsx");
+  };
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    autoTable(doc, {
+      head: [["Transaction ID", "Product", "Amount", "Date", "Qty", "Status"]],
+      body: customersOrderData?.map((row) => [
+        row.transactionId,
+        row.product,
+        row.amount,
+        row.dateAdded,
+        row.status,
+      ]),
+      headStyles: {
+        fillColor: [209, 213, 219],
+        textColor: [0, 0, 0],
+        halign: "center",
+        valign: "middle",
+        fontSize: 10,
+      },
+    });
+    doc.save("MyOrders.pdf");
+  };
 
   return (
     <div className="">
@@ -234,9 +290,32 @@ const OrderPage = () => {
                 }
               />
             </div>
-            <button className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md text-sm">
+            {/* <button className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md text-sm">
               Export As ▼
-            </button>
+            </button> */}
+            <select
+              onChange={handleExport}
+              className="bg-gray-100 outline-none text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
+            >
+              <option value="" disabled selected>
+                Export As
+              </option>
+              <option value="csv">Export to CSV</option>{" "}
+              <option value="excel">Export to Excel</option>{" "}
+              <option value="pdf">Export to PDF</option>{" "}
+            </select>
+            <CSVLink
+              id="csvDownload"
+              data={customersOrderData?.map((row) => ({
+                "Transaction ID": row.transactionId,
+                Product: row.product,
+                Amount: row.amount,
+                Date: row?.dateAdded,
+                Status: row.status,
+              }))}
+              filename="MyOrders.csv"
+              className="hidden"
+            />{" "}
             <button className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md text-sm">
               Sort: Newest First ▼
             </button>
@@ -249,6 +328,14 @@ const OrderPage = () => {
           columns={columns}
           data={customersOrderData}
         />
+
+        {!customersOrderData?.length && !isPending ? (
+          <p className="flex-1 text-center text-sm md:text-sm">
+            No Order found.
+          </p>
+        ) : (
+          <></>
+        )}
 
         {customersOrderData?.length > 0 && (
           <div className="flex justify-between items-center mt-4">

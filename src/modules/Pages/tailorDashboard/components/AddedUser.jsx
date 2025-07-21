@@ -83,12 +83,12 @@ const NewOrders = () => {
                 <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
                   View Details
                 </button>
-                <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
+                {/* <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
                   Edit Order
                 </button>
                 <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">
                   Cancel Order
-                </button>
+                </button> */}
               </div>
             )}
           </div>

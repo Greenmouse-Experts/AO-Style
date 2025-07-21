@@ -5,6 +5,7 @@ import useToast from "../../../hooks/useToast";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import Cookies from "js-cookie";
 import useGetNotification from "../../../hooks/notification/useGetNotification";
+import useGetKyc from "../../../hooks/settings/useGetKyc";
 
 export default function Navbar({ toggleSidebar }) {
   const { toastSuccess } = useToast();
@@ -12,6 +13,8 @@ export default function Navbar({ toggleSidebar }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const { data: kycinfo, isPending: kycIsPending } = useGetKyc();
 
   const navigate = useNavigate();
 
@@ -47,67 +50,82 @@ export default function Navbar({ toggleSidebar }) {
         </h1>
 
         {/* Right: Notification & Profile */}
-        <div className="flex items-center space-x-6">
-          <Link
-            to="/logistics/notifications"
-            className="relative bg-purple-100 p-2 rounded-full"
-          >
-            <Bell size={20} className="text-purple-600" />
-            {unreadNotificationsCount > 0 ? (
-              <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                {unreadNotificationsCount}
-              </span>
-            ) : (
-              <></>
-            )}
-          </Link>
+        <div className="flex flex-col justify-end items-end gap-1">
+          <div className="flex items-center justify-center space-x-6">
+            <Link
+              to="/logistics/notifications"
+              className="relative bg-purple-100 p-2 rounded-full"
+            >
+              <Bell size={20} className="text-purple-600" />
+              {unreadNotificationsCount > 0 ? (
+                <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                  {unreadNotificationsCount}
+                </span>
+              ) : (
+                <></>
+              )}
+            </Link>
 
-          {/* Profile Section */}
-          <div className="relative">
-            {carybinUser?.profile?.profile_picture ? (
-              <img
-                src={carybinUser?.profile?.profile_picture ?? null}
-                alt="User"
-                className="w-8 h-8 rounded-full cursor-pointer"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              />
-            ) : (
-              <div
-                role="button"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="w-8 h-8 cursor-pointer rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white"
-              >
-                {carybinUser?.name?.charAt(0).toUpperCase() || "?"}
-              </div>
-            )}
+            {/* Profile Section */}
+            <div className="relative">
+              {carybinUser?.profile?.profile_picture ? (
+                <img
+                  src={carybinUser?.profile?.profile_picture ?? null}
+                  alt="User"
+                  className="w-8 h-8 rounded-full cursor-pointer"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                />
+              ) : (
+                <div
+                  role="button"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="w-8 h-8 cursor-pointer rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white"
+                >
+                  {carybinUser?.name?.charAt(0).toUpperCase() || "?"}
+                </div>
+              )}
 
-            {/* Dropdown */}
-            {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg z-50">
-                <ul className="py-2">
-                  <Link
-                    onClick={() => {
-                      setIsDropdownOpen(!isDropdownOpen);
-                    }}
-                    to="/logistics/settings"
-                  >
-                    <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                      Settings
-                    </li>
-                  </Link>
-                  <button
-                    onClick={() => {
-                      setIsAddModalOpen(true);
-                      setIsDropdownOpen(!isDropdownOpen);
-                    }}
-                    className="px-4 py-2 hover:bg-gray-100 text-red-500 cursor-pointer"
-                  >
-                    Logout
-                  </button>
-                </ul>
-              </div>
-            )}
+              {/* Dropdown */}
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg z-50">
+                  <ul className="py-2">
+                    <Link
+                      onClick={() => {
+                        setIsDropdownOpen(!isDropdownOpen);
+                      }}
+                      to="/logistics/settings"
+                    >
+                      <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                        Settings
+                      </li>
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setIsAddModalOpen(true);
+                        setIsDropdownOpen(!isDropdownOpen);
+                      }}
+                      className="px-4 py-2 hover:bg-gray-100 text-red-500 cursor-pointer"
+                    >
+                      Logout
+                    </button>
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
+          {kycIsPending ? (
+            <></>
+          ) : (
+            <span
+              className={`p-1 text-[10px] rounded-full ${
+                kycinfo?.data?.is_approved
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700"
+              }`}
+            >
+              {kycinfo?.data?.is_approved ? "VERIFIED" : "UNVERIFIED"}
+            </span>
+          )}
         </div>
       </nav>
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const AddCustomerModal = ({ isOpen, onClose }) => {
+const AddTailorModal = ({ isOpen, onClose }) => {
   const [addAddress, setAddAddress] = useState(false);
 
   return (
@@ -9,7 +9,7 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
         <div className="bg-white rounded-lg p-6 w-full max-h-[80vh] overflow-y-auto max-w-3xl relative">
           {/* Header */}
           <div className="flex justify-between items-center border-b border-[#CCCCCC] outline-none pb-3 mb-4">
-            <h2 className="text-lg font-semibold">Add a New Customer</h2>
+            <h2 className="text-lg font-semibold">Add a New Tailor</h2>
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-black"
@@ -108,7 +108,7 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
                 Cancel
               </button>
               <button className="bg-gradient text-white px-4 py-2 rounded-md">
-                Add Customer
+                Add Tailor
               </button>
             </div>
           </div>
@@ -118,4 +118,4 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
   );
 };
 
-export default AddCustomerModal;
+export default AddTailorModal;

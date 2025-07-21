@@ -14,6 +14,7 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
 import useApproveMarketRep from "../../../../hooks/marketRep/useApproveMarketRep";
+import AddFabricModal from "../components/AddFabricModal";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -294,13 +295,21 @@ const CustomersTable = () => {
           {/* <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
             Sort: Newest First ▾
           </button> */}
-          <Link to="/admin/fabric/add-fabric-vendor">
-            <button className="bg-[#9847FE] cursor-pointer text-white px-4 py-2 text-sm rounded-md">
-              + Add a New Vendor
-            </button>
-          </Link>
+          {/* <Link to="/admin/fabric/add-fabric-vendor"> */}
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-[#9847FE] cursor-pointer text-white px-4 py-2 text-sm rounded-md"
+          >
+            + Add a New Vendor
+          </button>
+          {/* </Link> */}
         </div>
       </div>
+
+      <AddFabricModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
 
       {activeTab === "table" ? (
         <>

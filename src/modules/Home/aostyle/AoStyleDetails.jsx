@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { useCartStore } from "../../../store/carybinUserCartStore";
 import { useFormik } from "formik";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
+import Cookies from "js-cookie";
 
 export default function AnkaraGownPage() {
   const location = useLocation();
@@ -114,14 +115,11 @@ export default function AnkaraGownPage() {
   const Cartid = localStorage.getItem("cart_id");
 
   const item = useCartStore.getState().getItemByCartId(Cartid);
-
-  console.log(item);
+  const token = Cookies.get("token");
 
   const [measurementArr, setMeasurementArr] = useState([]);
 
   const [currMeasurement, setCurrMeasurement] = useState(null);
-
-  console.log(currMeasurement);
 
   const { carybinUser } = useCarybinUserStore();
 
@@ -130,124 +128,61 @@ export default function AnkaraGownPage() {
   const userMeasurement = carybinUser?.profile?.measurement;
 
   const initialValues = {
-    customer_name: currMeasurement?.customer_name ?? carybinUser?.name ?? "",
-    bust_circumference:
-      currMeasurement?.upper_body?.bust_circumference ??
-      userMeasurement?.upper_body?.bust_circumference ??
-      "",
+    customer_name: currMeasurement?.customer_name ?? "",
+    bust_circumference: currMeasurement?.upper_body?.bust_circumference ?? "",
     bust_circumference_unit:
-      currMeasurement?.upper_body?.bust_circumference_unit ??
-      userMeasurement?.upper_body?.bust_circumference_unit ??
-      "cm",
-    shoulder_width:
-      currMeasurement?.upper_body?.shoulder_width ??
-      userMeasurement?.upper_body?.shoulder_width ??
-      "",
+      currMeasurement?.upper_body?.bust_circumference_unit ?? "cm",
+    shoulder_width: currMeasurement?.upper_body?.shoulder_width ?? "",
     shoulder_width_unit:
-      currMeasurement?.upper_body?.shoulder_width_unit ??
-      userMeasurement?.upper_body?.shoulder_width_unit ??
-      "cm",
+      currMeasurement?.upper_body?.shoulder_width_unit ?? "cm",
     armhole_circumference:
-      currMeasurement?.upper_body?.armhole_circumference ??
-      userMeasurement?.upper_body?.armhole_circumference ??
-      "",
+      currMeasurement?.upper_body?.armhole_circumference ?? "",
     armhole_circumference_unit:
-      currMeasurement?.upper_body?.armhole_circumference_unit ??
-      userMeasurement?.upper_body?.armhole_circumference_unit ??
-      "cm",
-    sleeve_length:
-      currMeasurement?.upper_body?.sleeve_length ??
-      userMeasurement?.upper_body?.sleeve_length ??
-      "",
+      currMeasurement?.upper_body?.armhole_circumference_unit ?? "cm",
+    sleeve_length: currMeasurement?.upper_body?.sleeve_length ?? "",
 
-    sleeve_length_unit:
-      currMeasurement?.upper_body?.sleeve_length_unit ??
-      userMeasurement?.upper_body?.sleeve_length_unit ??
-      "cm",
-    bicep_circumference:
-      currMeasurement?.upper_body?.bicep_circumference ??
-      userMeasurement?.upper_body?.bicep_circumference ??
-      "",
+    sleeve_length_unit: currMeasurement?.upper_body?.sleeve_length_unit ?? "cm",
+    bicep_circumference: currMeasurement?.upper_body?.bicep_circumference ?? "",
 
     bicep_circumference_unit:
-      currMeasurement?.upper_body?.bicep_circumference_unit ??
-      userMeasurement?.upper_body?.bicep_circumference_unit ??
-      "cm",
+      currMeasurement?.upper_body?.bicep_circumference_unit ?? "cm",
     waist_circumference_upper:
-      currMeasurement?.upper_body?.waist_circumference ??
-      userMeasurement?.upper_body?.waist_circumference ??
-      "",
+      currMeasurement?.upper_body?.waist_circumference ?? "",
 
     waist_circumference_unit_upper:
-      currMeasurement?.upper_body?.waist_circumference_unit ??
-      userMeasurement?.upper_body?.waist_circumference_unit ??
-      "cm",
+      currMeasurement?.upper_body?.waist_circumference_unit ?? "cm",
     waist_circumference_lower:
-      currMeasurement?.lower_body?.waist_circumference ??
-      userMeasurement?.lower_body?.waist_circumference ??
-      "",
+      currMeasurement?.lower_body?.waist_circumference ?? "",
 
     waist_circumference_lower_unit:
-      currMeasurement?.lower_body?.waist_circumference_unit ??
-      userMeasurement?.lower_body?.waist_circumference_unit ??
-      "cm",
-    hip_circumference:
-      currMeasurement?.lower_body?.hip_circumference ??
-      userMeasurement?.lower_body?.hip_circumference ??
-      "",
+      currMeasurement?.lower_body?.waist_circumference_unit ?? "cm",
+    hip_circumference: currMeasurement?.lower_body?.hip_circumference ?? "",
 
     hip_circumference_unit:
-      currMeasurement?.lower_body?.hip_circumference_unit ??
-      userMeasurement?.lower_body?.hip_circumference_unit ??
-      "cm",
-    thigh_circumference:
-      currMeasurement?.lower_body?.thigh_circumference ??
-      userMeasurement?.lower_body?.thigh_circumference ??
-      "",
+      currMeasurement?.lower_body?.hip_circumference_unit ?? "cm",
+    thigh_circumference: currMeasurement?.lower_body?.thigh_circumference ?? "",
 
     thigh_circumference_unit:
-      currMeasurement?.lower_body?.thigh_circumference_unit ??
-      userMeasurement?.lower_body?.thigh_circumference_unit ??
-      "cm",
+      currMeasurement?.lower_body?.thigh_circumference_unit ?? "cm",
 
-    knee_circumference:
-      currMeasurement?.lower_body?.knee_circumference ??
-      userMeasurement?.lower_body?.knee_circumference ??
-      "",
+    knee_circumference: currMeasurement?.lower_body?.knee_circumference ?? "",
 
     knee_circumference_unit:
-      currMeasurement?.lower_body?.knee_circumference_unit ??
-      userMeasurement?.lower_body?.knee_circumference_unit ??
-      "cm",
+      currMeasurement?.lower_body?.knee_circumference_unit ?? "cm",
 
-    trouser_length:
-      currMeasurement?.lower_body?.trouser_length ??
-      userMeasurement?.lower_body?.trouser_length ??
-      "",
+    trouser_length: currMeasurement?.lower_body?.trouser_length ?? "",
 
     trouser_length_unit:
-      currMeasurement?.lower_body?.trouser_length_unit ??
-      userMeasurement?.lower_body?.trouser_length_unit ??
-      "cm",
+      currMeasurement?.lower_body?.trouser_length_unit ?? "cm",
 
-    height:
-      currMeasurement?.full_body?.height ??
-      userMeasurement?.full_body?.height ??
-      "",
+    height: currMeasurement?.full_body?.height ?? "",
 
-    height_unit:
-      currMeasurement?.full_body?.height_unit ??
-      userMeasurement?.full_body?.height_unit ??
-      "cm",
+    height_unit: currMeasurement?.full_body?.height_unit ?? "cm",
 
-    dress_length:
-      currMeasurement?.full_body?.dress_length ??
-      userMeasurement?.full_body?.dress_length ??
-      "",
+    dress_length: currMeasurement?.full_body?.dress_length ?? "",
 
     dress_length_unit:
       currMeasurement?.full_body?.dress_length_unit ??
-      userMeasurement?.full_body?.dress_length_unit ??
       "cm",
   };
 
@@ -329,6 +264,8 @@ export default function AnkaraGownPage() {
   const removeMeasurementById = (idToRemove) => {
     setMeasurementArr((prev) => prev.filter((m) => m.id !== idToRemove));
   };
+
+  const [markReceivedChecked, setMarkReceivedChecked] = useState(false);
 
   return (
     <>
@@ -485,6 +422,24 @@ export default function AnkaraGownPage() {
                       measurement
                     </p>
 
+                    {token ? (
+                      <div>
+                        <label className="flex flex-row gap-6 mb-4">
+                          <span className="text-sm">Use saved measurement</span>
+                          <input
+                            type="checkbox"
+                            className="accent-purple-500 w-5 h-5"
+                            checked={markReceivedChecked}
+                            onChange={() =>
+                              setMarkReceivedChecked(!markReceivedChecked)
+                            }
+                          />
+                        </label>
+                      </div>
+                    ) : (
+                      <></>
+                    )}
+
                     {/* Tabs */}
                     <div className="flex mb-6 border-b border-purple-500">
                       {tabs.map((tab, index) => (
@@ -521,7 +476,11 @@ export default function AnkaraGownPage() {
                             type="text"
                             name={"customer_name"}
                             required
-                            value={values.customer_name}
+                            value={
+                              markReceivedChecked
+                                ? carybinUser?.name
+                                : values.customer_name
+                            }
                             onChange={handleChange}
                             placeholder="Enter customer name"
                             className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
@@ -541,7 +500,12 @@ export default function AnkaraGownPage() {
                                   }
                                   name={"bust_circumference"}
                                   required
-                                  value={values.bust_circumference}
+                                  value={
+                                    markReceivedChecked
+                                      ? userMeasurement?.upper_body
+                                          ?.bust_circumference
+                                      : values.bust_circumference
+                                  }
                                   onChange={handleChange}
                                   className="flex-1 w-full appearance-none p-4 border border-[#CCCCCC] outline-none rounded-l-md"
                                 />
@@ -549,7 +513,12 @@ export default function AnkaraGownPage() {
                                   <select
                                     className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
                                     name={"bust_circumference_unit"}
-                                    value={values.bust_circumference_unit}
+                                    value={
+                                      markReceivedChecked
+                                        ? userMeasurement?.upper_body
+                                            ?.bust_circumference_unit
+                                        : values.bust_circumference_unit
+                                    }
                                     onChange={handleChange}
                                   >
                                     <option value="cm">cm</option>
@@ -573,7 +542,12 @@ export default function AnkaraGownPage() {
                                   }
                                   name={"shoulder_width"}
                                   required
-                                  value={values.shoulder_width}
+                                  value={
+                                    markReceivedChecked
+                                      ? userMeasurement?.upper_body
+                                          ?.shoulder_width
+                                      : values.shoulder_width
+                                  }
                                   onChange={handleChange}
                                   className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
                                 />
@@ -581,7 +555,12 @@ export default function AnkaraGownPage() {
                                   <select
                                     className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
                                     name={"shoulder_width_unit"}
-                                    value={values.shoulder_width_unit}
+                                    value={
+                                      markReceivedChecked
+                                        ? userMeasurement?.upper_body
+                                            ?.shoulder_width_unit
+                                        : values.shoulder_width_unit
+                                    }
                                     onChange={handleChange}
                                   >
                                     <option value="cm">cm</option>
@@ -608,7 +587,12 @@ export default function AnkaraGownPage() {
                                   }
                                   name={"armhole_circumference"}
                                   required
-                                  value={values.armhole_circumference}
+                                  value={
+                                    markReceivedChecked
+                                      ? userMeasurement?.upper_body
+                                          ?.armhole_circumference
+                                      : values.armhole_circumference
+                                  }
                                   onChange={handleChange}
                                   className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
                                 />
@@ -616,7 +600,12 @@ export default function AnkaraGownPage() {
                                   <select
                                     className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
                                     name={"armhole_circumference_unit"}
-                                    value={values.armhole_circumference_unit}
+                                    value={
+                                      markReceivedChecked
+                                        ? userMeasurement?.upper_body
+                                            ?.armhole_circumference_unit
+                                        : values.armhole_circumference_unit
+                                    }
                                     onChange={handleChange}
                                   >
                                     <option value="cm">cm</option>
@@ -640,7 +629,12 @@ export default function AnkaraGownPage() {
                                   }
                                   name={"sleeve_length"}
                                   required
-                                  value={values.sleeve_length}
+                                  value={
+                                    markReceivedChecked
+                                      ? userMeasurement?.upper_body
+                                          ?.sleeve_length
+                                      : values.sleeve_length
+                                  }
                                   onChange={handleChange}
                                   className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
                                 />
@@ -648,7 +642,12 @@ export default function AnkaraGownPage() {
                                   <select
                                     className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
                                     name={"sleeve_length_unit"}
-                                    value={values.sleeve_length_unit}
+                                    value={
+                                      markReceivedChecked
+                                        ? userMeasurement?.upper_body
+                                            ?.sleeve_length_unit
+                                        : values.sleeve_length_unit
+                                    }
                                     onChange={handleChange}
                                   >
                                     <option value="cm">cm</option>
@@ -675,7 +674,12 @@ export default function AnkaraGownPage() {
                                   }
                                   name={"bicep_circumference"}
                                   required
-                                  value={values.bicep_circumference}
+                                  value={
+                                    markReceivedChecked
+                                      ? userMeasurement?.upper_body
+                                          ?.bicep_circumference
+                                      : values.bicep_circumference
+                                  }
                                   onChange={handleChange}
                                   className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
                                 />
@@ -683,7 +687,12 @@ export default function AnkaraGownPage() {
                                   <select
                                     className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
                                     name={"bicep_circumference_unit"}
-                                    value={values.bicep_circumference_unit}
+                                    value={
+                                      markReceivedChecked
+                                        ? userMeasurement?.upper_body
+                                            ?.bicep_circumference_unit
+                                        : values.bicep_circumference_unit
+                                    }
                                     onChange={handleChange}
                                   >
                                     <option value="cm">cm</option>
@@ -707,7 +716,12 @@ export default function AnkaraGownPage() {
                                   }
                                   name={"waist_circumference_upper"}
                                   required
-                                  value={values.waist_circumference_upper}
+                                  value={
+                                    markReceivedChecked
+                                      ? userMeasurement?.upper_body
+                                          ?.waist_circumference
+                                      : values.waist_circumference_upper
+                                  }
                                   onChange={handleChange}
                                   className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
                                 />
@@ -716,7 +730,10 @@ export default function AnkaraGownPage() {
                                     className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
                                     name={"waist_circumference_unit_upper"}
                                     value={
-                                      values.waist_circumference_unit_upper
+                                      markReceivedChecked
+                                        ? userMeasurement?.upper_body
+                                            ?.waist_circumference_unit
+                                        : values.waist_circumference_unit_upper
                                     }
                                     onChange={handleChange}
                                   >
@@ -746,7 +763,12 @@ export default function AnkaraGownPage() {
                                   placeholder={"Enter your waist measurement"}
                                   name={"waist_circumference_lower"}
                                   required
-                                  value={values.waist_circumference_lower}
+                                  value={
+                                    markReceivedChecked
+                                      ? userMeasurement?.lower_body
+                                          ?.waist_circumference
+                                      : values.waist_circumference_lower
+                                  }
                                   onChange={handleChange}
                                   className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
                                 />
@@ -755,7 +777,10 @@ export default function AnkaraGownPage() {
                                     className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
                                     name={"waist_circumference_lower_unit"}
                                     value={
-                                      values.waist_circumference_lower_unit
+                                      markReceivedChecked
+                                        ? userMeasurement?.lower_body
+                                            ?.waist_circumference_unit
+                                        : values.waist_circumference_lower_unit
                                     }
                                     onChange={handleChange}
                                   >
@@ -778,7 +803,12 @@ export default function AnkaraGownPage() {
                                   placeholder={"Enter your hip measurement"}
                                   name={"hip_circumference"}
                                   required
-                                  value={values.hip_circumference}
+                                  value={
+                                    markReceivedChecked
+                                      ? userMeasurement?.lower_body
+                                          ?.hip_circumference
+                                      : values.hip_circumference
+                                  }
                                   onChange={handleChange}
                                   className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
                                 />
@@ -786,7 +816,12 @@ export default function AnkaraGownPage() {
                                   <select
                                     className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
                                     name={"hip_circumference_unit"}
-                                    value={values.hip_circumference_unit}
+                                    value={
+                                      markReceivedChecked
+                                        ? userMeasurement?.lower_body
+                                            ?.hip_circumference_unit
+                                        : values.hip_circumference_unit
+                                    }
                                     onChange={handleChange}
                                   >
                                     <option value="cm">cm</option>
@@ -811,7 +846,12 @@ export default function AnkaraGownPage() {
                                   placeholder={"Enter your thigh measurement"}
                                   name={"thigh_circumference"}
                                   required
-                                  value={values.thigh_circumference}
+                                  value={
+                                    markReceivedChecked
+                                      ? userMeasurement?.lower_body
+                                          ?.thigh_circumference
+                                      : values.thigh_circumference
+                                  }
                                   onChange={handleChange}
                                   className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
                                 />
@@ -819,7 +859,12 @@ export default function AnkaraGownPage() {
                                   <select
                                     className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
                                     name={"thigh_circumference_unit"}
-                                    value={values.thigh_circumference_unit}
+                                    value={
+                                      markReceivedChecked
+                                        ? userMeasurement?.lower_body
+                                            ?.thigh_circumference_unit
+                                        : values.thigh_circumference_unit
+                                    }
                                     onChange={handleChange}
                                   >
                                     <option value="cm">cm</option>
@@ -841,7 +886,12 @@ export default function AnkaraGownPage() {
                                   placeholder={"Enter your knee measurement"}
                                   name={"knee_circumference"}
                                   required
-                                  value={values.knee_circumference}
+                                  value={
+                                    markReceivedChecked
+                                      ? userMeasurement?.lower_body
+                                          ?.knee_circumference
+                                      : values.knee_circumference
+                                  }
                                   onChange={handleChange}
                                   className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
                                 />
@@ -849,7 +899,12 @@ export default function AnkaraGownPage() {
                                   <select
                                     className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
                                     name={"knee_circumference_unit"}
-                                    value={values.knee_circumference_unit}
+                                    value={
+                                      markReceivedChecked
+                                        ? userMeasurement?.lower_body
+                                            ?.knee_circumference_unit
+                                        : values.knee_circumference_unit
+                                    }
                                     onChange={handleChange}
                                   >
                                     <option value="cm">cm</option>
@@ -874,7 +929,12 @@ export default function AnkaraGownPage() {
                                   placeholder={"Enter your trouser length"}
                                   name={"trouser_length"}
                                   required
-                                  value={values.trouser_length}
+                                  value={
+                                    markReceivedChecked
+                                      ? userMeasurement?.lower_body
+                                          ?.trouser_length
+                                      : values.trouser_length
+                                  }
                                   onChange={handleChange}
                                   className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
                                 />
@@ -882,7 +942,12 @@ export default function AnkaraGownPage() {
                                   <select
                                     className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
                                     name={"trouser_length_unit"}
-                                    value={values.trouser_length_unit}
+                                    value={
+                                      markReceivedChecked
+                                        ? userMeasurement?.lower_body
+                                            ?.trouser_length_unit
+                                        : values.trouser_length_unit
+                                    }
                                     onChange={handleChange}
                                   >
                                     <option value="cm">cm</option>
@@ -911,7 +976,11 @@ export default function AnkaraGownPage() {
                                   placeholder={"Enter your height"}
                                   name={"height"}
                                   required
-                                  value={values.height}
+                                  value={
+                                    markReceivedChecked
+                                      ? userMeasurement?.full_body?.height
+                                      : values.height
+                                  }
                                   onChange={handleChange}
                                   className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
                                 />
@@ -919,7 +988,12 @@ export default function AnkaraGownPage() {
                                   <select
                                     className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
                                     name={"height_unit"}
-                                    value={values.height_unit}
+                                    value={
+                                      markReceivedChecked
+                                        ? userMeasurement?.full_body
+                                            ?.height_unit
+                                        : values.height_unit
+                                    }
                                     onChange={handleChange}
                                   >
                                     <option value="cm">cm</option>
@@ -941,7 +1015,11 @@ export default function AnkaraGownPage() {
                                   placeholder={"Enter your desired length"}
                                   name={"dress_length"}
                                   required
-                                  value={values.dress_length}
+                                  value={
+                                    markReceivedChecked
+                                      ? userMeasurement?.full_body?.dress_length
+                                      : values.dress_length
+                                  }
                                   onChange={handleChange}
                                   className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
                                 />
@@ -949,7 +1027,12 @@ export default function AnkaraGownPage() {
                                   <select
                                     className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
                                     name={"dress_length_unit"}
-                                    value={values.dress_length_unit}
+                                    value={
+                                      markReceivedChecked
+                                        ? userMeasurement?.full_body
+                                            ?.dress_length_unit
+                                        : values.dress_length_unit
+                                    }
                                     onChange={handleChange}
                                   >
                                     <option value="cm">cm</option>

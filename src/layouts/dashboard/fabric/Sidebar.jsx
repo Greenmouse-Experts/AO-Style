@@ -68,12 +68,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             text="Products"
             toggleSidebar={toggleSidebar}
           />
-          <SidebarItem
+          {/* <SidebarItem
             to="/fabric/coupons"
             icon={<MdProductionQuantityLimits />}
             text="Coupon"
             toggleSidebar={toggleSidebar}
-          />
+          /> */}
 
           <SidebarItem
             to="/fabric/orders"

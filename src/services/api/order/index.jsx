@@ -6,8 +6,13 @@ const getAllOrder = (params) => {
   });
 };
 
+const getSingleOrder = (id) => {
+  return CaryBinApi.get(`/orders/${id}`);
+};
+
 const OrderService = {
   getAllOrder,
+  getSingleOrder,
 };
 
 export default OrderService;

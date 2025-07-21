@@ -32,7 +32,7 @@ export default function StatsCard(vendorSummaryStat) {
     [cardValue]
   );
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 md:grid-rows-2 lg:grid-cols-4 gap-6">
+    <div className="border-2 grid grid-cols-1 md:grid-cols-2 md:grid-rows-2 lg:grid-cols-4 gap-6">
       {stats.map((stat, index) => (
         <div
           key={index}

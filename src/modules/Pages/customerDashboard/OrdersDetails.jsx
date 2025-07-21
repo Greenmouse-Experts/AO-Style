@@ -9,6 +9,8 @@ import {
   X,
 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
+import useGetSingleOrder from "../../../hooks/order/useGetSingleOrder";
+import Loader from "../../../components/ui/Loader";
 
 const orderSteps = [
   "Order Placed",
@@ -36,7 +38,30 @@ const OrderDetails = () => {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get("id");
 
+  const { isPending: getUserIsPending, data } = useGetSingleOrder(orderId);
+
+  if (getUserIsPending) {
+    return (
+      <div className="m-auto flex h-[80vh] items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
+
   console.log(orderId);
+
+  console.log(data?.data);
+
+  const orderDetails = data?.data;
+
+  const orderPurchase = data?.data?.payment?.purchase?.items;
+
+  console.log(orderDetails);
+
+  const totalAmount =
+    orderPurchase?.reduce((total, item) => {
+      return total + item?.quantity * item?.price;
+    }, 0) ?? 0;
 
   const handleStepClick = (index) => {
     setCurrentStep(index);
@@ -63,7 +88,7 @@ const OrderDetails = () => {
       <div className="bg-white px-6 py-4 mb-6">
         <h1 className="text-lg font-medium mb-3">
           Orders Details :{" "}
-          <span className="text-gray-600">QWER123DFDG324R</span>
+          <span className="text-gray-600">{orderDetails?.id}</span>
         </h1>
         <p className="text-gray-500">
           <Link to="/customer" className="text-blue-500 hover:underline">
@@ -154,31 +179,55 @@ const OrderDetails = () => {
           <div className="bg-white rounded-md">
             <div>
               <div className="bg-white grid grid-cols-3 gap-4 mt-5 items-center">
-                <div className="flex items-center gap-4">
-                  <img
-                    src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170600/AoStyle/image_bwjfib.jpg"
-                    alt="Ankara Gown"
-                    className="w-24 h-24 rounded-md"
-                  />
-                  <div>
-                    <p className="font-semibold">Ankara Gown</p>
-                    <p className="text-gray-500">x 1 Piece</p>
-                    <p className="text-blue-600">N 24,000</p>
-                  </div>
-                </div>
+                {orderPurchase?.map((order) => {
+                  return (
+                    <div className="">
+                      <div className="flex items-center gap-4">
+                        {order?.purchase_type == "STYLE" ? (
+                          <>
+                            <img
+                              src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170600/AoStyle/image_bwjfib.jpg"
+                              alt="Ankara Gown"
+                              className="w-24 h-24 rounded-md"
+                            />
+                            <div>
+                              <p className="font-semibold">Ankara Gown</p>
+                              <p className="text-gray-500">x 1 Piece</p>
+                              <p className="text-blue-600">N 24,000</p>
+                            </div>
+                          </>
+                        ) : (
+                          <></>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-4">
+                        {order?.purchase_type == "FABRIC" ? (
+                          <>
+                            <img
+                              src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170603/AoStyle/image1_s3s2sd.jpg"
+                              alt="Luxury Embellished Lace"
+                              className="w-24 h-24 rounded-md mb-2"
+                            />
+                            <div>
+                              <p className="font-semibold">
+                                {order?.name?.length > 30
+                                  ? `${order?.name.slice(0, 30)}...`
+                                  : order?.name}
+                              </p>
+                              <p className="text-gray-500">
+                                x {order?.quantity} Yards
+                              </p>
+                              <p className="text-blue-600">N {order?.price}</p>
+                            </div>
+                          </>
+                        ) : (
+                          <></>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
 
-                <div className="flex items-center gap-4">
-                  <img
-                    src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170603/AoStyle/image1_s3s2sd.jpg"
-                    alt="Luxury Embellished Lace"
-                    className="w-24 h-24 rounded-md mb-2"
-                  />
-                  <div>
-                    <p className="font-semibold">Luxury Embellished Lace</p>
-                    <p className="text-gray-500">x 2 Yards</p>
-                    <p className="text-blue-600">N 102,000</p>
-                  </div>
-                </div>
                 <div className="flex justify-center">
                   <FileText size={24} className="text-gray-600" />
                 </div>
@@ -186,13 +235,15 @@ const OrderDetails = () => {
               <div className="mt-6">
                 <div className="flex justify-between items-center pb-2">
                   <span className="text-gray-600 font-medium">Subtotal :</span>
-                  <span className="font-semibold">N 126,000</span>
+                  <span className="font-semibold">
+                    N {totalAmount?.toLocaleString()}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center pb-2 mt-2">
                   <span className="text-gray-600 font-medium">
                     Delivery Fee :
                   </span>
-                  <span className="font-semibold">N 120,000</span>
+                  <span className="font-semibold">N 0</span>
                 </div>
                 <div className="flex justify-between items-center pb-2 mt-2">
                   <span className="text-gray-600 font-medium">Discount :</span>
@@ -203,9 +254,11 @@ const OrderDetails = () => {
                     Order Total :
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-lg">N 11,440,000</span>
+                    <span className="font-semibold text-lg">
+                      N {(totalAmount + 0 + 0)?.toLocaleString()}
+                    </span>
                     <span className="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm">
-                      Paid
+                      {orderDetails?.status}
                     </span>
                   </div>
                 </div>
@@ -219,13 +272,11 @@ const OrderDetails = () => {
               Delivery Details
             </h5>
             <p className="font-medium mb-2">SHIPPING ADDRESS:</p>
-            <p className="text-gray-600">
-              No 7, Street Name, Estate Name, Lagos, Nigeria
-            </p>
+            <p className="text-gray-600"></p>
             <p className="ont-medium mb-2 mt-2">DELIVERY DATE:</p>
-            <p className="text-gray-600">12-03-2025</p>
+            <p className="text-gray-600">12-</p>
             <p className="font-medium mb-2 mt-2">DELIVERY CODE:</p>
-            <p className="text-[#A14DF6]">55400</p>
+            <p className="text-[#A14DF6]"></p>
           </div>
           <div className="bg-white p-4 rounded-md">
             <h5 className="text-lg font-medium leading-loose border-b border-[#D9D9D9] pb-3 mb-3">

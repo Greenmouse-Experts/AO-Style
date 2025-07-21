@@ -70,12 +70,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             text="My Catalog"
             onClick={handleClick}
           />
-          <SidebarItem
+          {/* <SidebarItem
             to="/tailor/coupons"
             icon={<FaClipboardList />}
             text="Coupon"
             onClick={handleClick}
-          />
+          /> */}
           <SidebarItem
             to="/tailor/orders"
             icon={<FaClipboardList />}

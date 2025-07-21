@@ -11,9 +11,13 @@ import {
 } from "react-icons/fa";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useToast from "../../../hooks/useToast";
+import { useState } from "react";
+import Cookies from "js-cookie";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { carybinUser, logOut } = useCarybinUserStore();
+
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const navigate = useNavigate();
   const { toastSuccess } = useToast();
@@ -29,9 +33,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     <div className="relative">
       {/* Sidebar */}
       <div
-       className={`fixed lg:relative top-0 left-0 h-screen bg-gradient p-5 flex flex-col transition-transform duration-300 z-40 ${
-        isOpen ? "translate-x-0" : "-translate-x-full"
-      } lg:translate-x-0 lg:w-72 w-64`}
+        className={`fixed lg:relative top-0 left-0 h-screen bg-gradient p-5 flex flex-col transition-transform duration-300 z-40 ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0 lg:w-72 w-64`}
       >
         {/* Logo */}
         <div className="flex justify-center">
@@ -129,7 +133,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         {/* Logout Button */}
         <button
           onClick={() => {
-            handleSignOut();
+            setIsAddModalOpen(true);
           }}
           className="mt-6 cursor-pointer bg-gradient-to-r from-[#A056FE] to-[#E44ED8] text-white py-3 px-4 rounded-md w-full flex items-center justify-center"
         >
@@ -143,6 +147,56 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           className="fixed inset-0 bg-black/30 md:hidden z-30"
           onClick={toggleSidebar}
         ></div>
+      )}
+
+      {isAddModalOpen && (
+        <div
+          className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
+          onClick={() => {
+            setIsAddModalOpen(false);
+          }}
+        >
+          <div
+            className="bg-white rounded-xl p-6 w-full max-w-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center border-b border-gray-200 pb-4 mb-4">
+              <h2 className="text-lg font-semibold text-gray-800">Log out</h2>
+              <button
+                onClick={() => {
+                  setIsAddModalOpen(false);
+                }}
+                className="text-gray-500 cursor-pointer hover:text-gray-700 text-2xl"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="max-h-[80vh] overflow-y-auto px-1">
+              {" "}
+              <label className="block text-sm font-medium text-gray-700 mb-4">
+                Are you sure you want to logout
+              </label>
+              <div className="flex justify-between mt-6 space-x-4">
+                <button
+                  onClick={() => {
+                    setIsAddModalOpen(false);
+                  }}
+                  className="w-full cursor-pointer bg-purple-400 text-white px-4 py-2 rounded-md text-sm font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    handleSignOut();
+                  }}
+                  className="w-full cursor-pointer bg-gradient text-white px-4 py-4 rounded-md text-sm font-medium"
+                >
+                  {"Logout"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

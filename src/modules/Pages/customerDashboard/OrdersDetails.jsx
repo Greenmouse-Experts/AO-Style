@@ -249,6 +249,16 @@ const OrderDetails = () => {
                   <span className="text-gray-600 font-medium">Discount :</span>
                   <span className="font-semibold">N 0</span>
                 </div>
+                <div className="flex justify-between items-center pb-2 mt-2">
+                  <span className="text-gray-600 font-medium">
+                    Estimated sales VAT :
+                  </span>
+                  <span className="font-semibold">N 0</span>
+                </div>
+                <div className="flex justify-between items-center pb-2 mt-2">
+                  <span className="text-gray-600 font-medium">Charges :</span>
+                  <span className="font-semibold">N 0</span>
+                </div>
                 <div className="flex justify-between items-center mt-4">
                   <span className="text-gray-600 font-medium text-lg">
                     Order Total :

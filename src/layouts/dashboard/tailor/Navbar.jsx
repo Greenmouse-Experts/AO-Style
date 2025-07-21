@@ -35,7 +35,6 @@ export default function Navbar({ toggleSidebar }) {
 
   return (
     <div>
-      {" "}
       <nav className="bg-white shadow-md p-6 flex items-center justify-between">
         {/* Sidebar Toggle Button (Only on Mobile) */}
         <button
@@ -128,7 +127,7 @@ export default function Navbar({ toggleSidebar }) {
                   : "bg-red-100 text-red-700"
               }`}
             >
-              {kycinfo?.data?.is_approved ? "VEERIFIED" : "UNVERIFIED"}
+              {kycinfo?.data?.is_approved ? "VERIFIED" : "UNVERIFIED"}
             </span>
           )}
         </div>

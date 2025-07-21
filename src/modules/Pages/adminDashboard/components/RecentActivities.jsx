@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { FaEllipsisH } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import ReusableTable from "./ReusableTable";
+import { formatDateStr } from "../../../../lib/helper";
 
 const RecentActivitiesTable = (dataVal) => {
   console.log("dataVal", dataVal?.dataVal?.recentOrders);
@@ -34,40 +35,40 @@ const RecentActivitiesTable = (dataVal) => {
       key: "customerName",
     },
     { label: "Order Date", key: "orderDate" },
-    { label: "Location", key: "location" },
-    {
-      label: "Status",
-      key: "status",
-      render: (_, row) => (
-        <span
-          className={`px-3 py-1 text-sm capitalize rounded-md ${
-            row?.status === "Completed"
-              ? "bg-green-100 text-green-600"
-              : row?.status === "Ongoing"
-              ? "bg-yellow-100 text-yellow-600"
-              : "bg-red-100 text-red-600"
-          }`}
-        >
-          {row?.status}
-        </span>
-      ),
-    },
-    {
-      label: "Action",
-      key: "action",
-      render: (_, row) => (
-        <div className="relative">
-          <button
-            className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
-            onClick={() => {
-              toggleDropdown(row.id);
-            }}
-          >
-            <FaEllipsisH />
-          </button>
-        </div>
-      ),
-    },
+    // { label: "Location", key: "location" },
+    // {
+    //   label: "Status",
+    //   key: "status",
+    //   render: (_, row) => (
+    //     <span
+    //       className={`px-3 py-1 text-sm capitalize rounded-md ${
+    //         row?.status === "Completed"
+    //           ? "bg-green-100 text-green-600"
+    //           : row?.status === "Ongoing"
+    //           ? "bg-yellow-100 text-yellow-600"
+    //           : "bg-red-100 text-red-600"
+    //       }`}
+    //     >
+    //       {row?.status}
+    //     </span>
+    //   ),
+    // },
+    // {
+    //   label: "Action",
+    //   key: "action",
+    //   render: (_, row) => (
+    //     <div className="relative">
+    //       <button
+    //         className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
+    //         onClick={() => {
+    //           toggleDropdown(row.id);
+    //         }}
+    //       >
+    //         <FaEllipsisH />
+    //       </button>
+    //     </div>
+    //   ),
+    // },
   ];
 
   const toggleDropdown = (rowId) => {
@@ -114,6 +115,39 @@ const RecentActivitiesTable = (dataVal) => {
     setItemsPerPage(Number(e.target.value));
     setCurrentPage(1); // Reset to page 1 when items per page changes
   };
+  const recentOrderData = useMemo(
+    () =>
+      dataVal?.dataVal?.recentOrders
+        ? dataVal?.dataVal?.recentOrders.map((details) => {
+            return {
+              ...details,
+              orderId: `${details?.order?.id}`,
+              price: `${details?.order?.total_amount}`,
+              description:
+                details?.product?.description?.length > 20
+                  ? `${details?.product?.description.slice(0, 20)}...`
+                  : details?.product?.description,
+              customerName:
+                details?.purchase?.items[0]?.name?.length > 15
+                  ? `${details?.purchase?.items[0]?.name.slice(0, 15)}...`
+                  : details?.purchase?.items[0]?.name,
+              amount: `${details?.payment?.amount}`,
+
+              status: `${details?.payment?.payment_status}`,
+              orderDate: `${
+                details?.created_at
+                  ? formatDateStr(
+                      details?.created_at.split(".").shift(),
+                      "D/M/YYYY h:mm A"
+                    )
+                  : ""
+              }`,
+            };
+          })
+        : [],
+    [dataVal?.dataVal?.recentOrders]
+  );
+
   console.log(dataVal?.dataVal?.recentOrders, "here");
   return (
     <div className="bg-white p-6 rounded-xl overflow-x-auto mt-6">
@@ -121,7 +155,7 @@ const RecentActivitiesTable = (dataVal) => {
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <h2 className="text-lg font-semibold">Recent Orders</h2>
         </div>
-        <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
+        {/* <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
           <input
             type="text"
             placeholder="Search..."
@@ -135,13 +169,10 @@ const RecentActivitiesTable = (dataVal) => {
           <select className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-auto">
             <option>Bulk Action</option>
           </select>
-        </div>
+        </div> */}
       </div>
       {dataVal?.dataVal?.recentOrders?.length ? (
-        <ReusableTable
-          columns={columns}
-          data={dataVal?.dataVal?.recentOrders}
-        />
+        <ReusableTable columns={columns} data={recentOrderData} />
       ) : (
         <p className="text-gray-500 text-sm text-center mt-8">
           No recent order

@@ -284,7 +284,7 @@ const OrderDetails = () => {
             <p className="font-medium mb-2">SHIPPING ADDRESS:</p>
             <p className="text-gray-600"></p>
             <p className="ont-medium mb-2 mt-2">DELIVERY DATE:</p>
-            <p className="text-gray-600">12-</p>
+            <p className="text-gray-600"></p>
             <p className="font-medium mb-2 mt-2">DELIVERY CODE:</p>
             <p className="text-[#A14DF6]"></p>
           </div>

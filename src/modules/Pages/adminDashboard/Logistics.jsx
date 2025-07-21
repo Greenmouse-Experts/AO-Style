@@ -133,9 +133,9 @@ const CustomersTable = () => {
                     View Details
                   </button>
                 </Link>
-                <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
+                {/* <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
                   Edit User
-                </button>
+                </button> */}
                 {row?.profile?.approved_by_admin ? (
                   <>
                     {" "}
@@ -399,18 +399,48 @@ const CustomersTable = () => {
                     >
                       View Details
                     </Link>
-                    <button
+                    {/* <button
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
                       onClick={() => console.log("Edit user", item.id)}
                     >
                       Edit User
-                    </button>
-                    <button
+                    </button> */}
+                    {/* <button
                       className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full text-left"
                       onClick={() => console.log("Remove user", item.id)}
                     >
                       Remove User
-                    </button>
+                    </button> */}
+
+                    {item?.profile?.approved_by_admin ? (
+                      <>
+                        {" "}
+                        <button
+                          onClick={() => {
+                            setSuspendModalOpen(true);
+                            setNewCategory(item);
+                            setOpenDropdown(null);
+                          }}
+                          className="block text-red-500 hover:bg-red-100 cursor-pointer px-4 py-2  w-full text-center"
+                        >
+                          {"Suspend User"}
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        {" "}
+                        <button
+                          onClick={() => {
+                            setSuspendModalOpen(true);
+                            setNewCategory(item);
+                            setOpenDropdown(null);
+                          }}
+                          className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+                        >
+                          {"Unsuspend User"}
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>

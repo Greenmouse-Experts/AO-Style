@@ -18,6 +18,10 @@ const getAllCoupon = (params) => {
   });
 };
 
+const getAllCouponAdmin = () => {
+  return CaryBinApi.get(`/coupon-management/fetch-all`);
+};
+
 const getAdminFabricProduct = (params) => {
   return CaryBinApi.get(`/product-general/fetch`, {
     params,
@@ -55,6 +59,7 @@ const CouponService = {
   getAllCoupon,
   deleteCoupon,
   updateCouponProduct,
+  getAllCouponAdmin,
 };
 
 export default CouponService;

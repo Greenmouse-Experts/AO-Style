@@ -199,6 +199,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               onClick={handleClick}
             />
             <SidebarItem
+              to="/admin/coupon"
+              icon={<FaStore />}
+              text="Coupon"
+              onClick={handleClick}
+            />
+            <SidebarItem
               to="/admin/transactions"
               icon={<FaCreditCard />}
               text="Payments & Transactions"

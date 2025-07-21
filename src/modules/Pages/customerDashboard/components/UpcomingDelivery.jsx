@@ -57,10 +57,10 @@ export default function UpcomingDelivery() {
         <></>
       ) : (
         <p className="flex items-center justify-center text-center my-auto h-full text-sm md:text-sm">
-          No upcoming orders.
+          No upcoming delivery.
         </p>
       )}
-      {deliveries.map((item, index) => (
+      {/* {deliveries.map((item, index) => (
         <div key={index} className="flex items-center gap-3 mb-3">
           <img
             src={item.image}
@@ -87,7 +87,7 @@ export default function UpcomingDelivery() {
             ({item.daysLeft} days left)
           </span>
         </div>
-      ))}
+      ))} */}
     </div>
   );
 }

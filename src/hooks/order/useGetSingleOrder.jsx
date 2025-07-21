@@ -2,11 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import AnalyticsService from "../../services/api/analytics";
 import OrderService from "../../services/api/order";
 
-function useGetAllOrder(params) {
+function useGetSingleOrder(id) {
   const { isLoading, isFetching, data, isError, refetch, isPending } = useQuery(
     {
-      queryKey: ["get-all-order", params],
-      queryFn: () => OrderService.getAllOrder(params),
+      queryKey: ["get-single-order", id],
+      queryFn: () => OrderService.getSingleOrder(id),
+      enabled: !!id,
     }
   );
 
@@ -20,4 +21,4 @@ function useGetAllOrder(params) {
   };
 }
 
-export default useGetAllOrder;
+export default useGetSingleOrder;

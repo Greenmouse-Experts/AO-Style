@@ -253,6 +253,7 @@ export default function AnkaraGownPage() {
         setCurrMeasurement(null);
         setMeasurementsSubmitted(true);
         resetForm();
+        setSelectedTab("Upper Body");
       } else {
         handleProceed();
       }

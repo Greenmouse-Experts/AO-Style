@@ -12,7 +12,7 @@ const AddLogisticsAgentModal = ({ isOpen, onClose }) => {
   return (
     isOpen && (
       <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm">
-        <div className="bg-white p-6 rounded-lg w-[90%] sm:w-[400px]">
+        <div className="bg-white rounded-lg p-6 w-full max-h-[80vh] overflow-y-auto max-w-3xl relative">
           {/* Header */}
           <div className="flex justify-between items-center border-b border-gray-300 pb-3 mb-4">
             <h2 className="text-lg font-semibold">Add a New Logistics Agent</h2>
@@ -25,7 +25,7 @@ const AddLogisticsAgentModal = ({ isOpen, onClose }) => {
           </div>
 
           {/* Tabs */}
-          <div className="flex space-x-2 mb-4">
+          {/* <div className="flex space-x-2 mb-4">
             <button
               className={`flex-1 py-2 rounded-md ${
                 activeTab === "individual"
@@ -46,7 +46,7 @@ const AddLogisticsAgentModal = ({ isOpen, onClose }) => {
             >
               As Organisation
             </button>
-          </div>
+          </div> */}
 
           {/* Form */}
           <div className="space-y-4">
@@ -54,12 +54,25 @@ const AddLogisticsAgentModal = ({ isOpen, onClose }) => {
               <label className="text-sm">Full Name</label>
               <input
                 type="text"
-                placeholder="Enter your full name"
-                className="w-full p-3 mt-3 border border-[#CCCCCC] outline-none rounded-lg"
+                placeholder="Full Name"
+                className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
+                name={"name"}
+                required
+                // value={values.name}
+                // onChange={handleChange}
               />
             </div>
 
             <div>
+              <label className="text-sm text-gray-600">Email Address</label>
+              <input
+                type="email"
+                className="w-full p-3 mt-3 border border-[#CCCCCC] outline-none rounded-lg"
+                placeholder="Email Address"
+              />
+            </div>
+
+            {/* <div>
               <label className="text-sm">Phone Number</label>
               <div className="flex gap-3 mt-4">
                 <div className="flex items-center p-2 border border-gray-300 rounded-md">
@@ -133,7 +146,7 @@ const AddLogisticsAgentModal = ({ isOpen, onClose }) => {
                   {showConfirmPassword ? "👁️" : "🙈"}
                 </button>
               </div>
-            </div>
+            </div> */}
 
             {/* Submit Button */}
             <button className="w-full py-3 mt-4 bg-gradient text-white rounded-md">

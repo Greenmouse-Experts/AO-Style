@@ -221,7 +221,7 @@ export default function SavedMeasurementsDisplay({
       ))}
 
       {/* Add New Measurement Button */}
-      <div
+      {/* <div
         className="inline-flex items-center gap-2 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-md py-3 px-5 cursor-pointer"
         onClick={handleAddNewMeasurement}
       >
@@ -229,10 +229,10 @@ export default function SavedMeasurementsDisplay({
           <Plus className="w-4 h-4" />
         </div>
         <span>Add New Measurement</span>
-      </div>
+      </div> */}
 
       {/* Submit Button */}
-      <div className="mt-10 flex justify-center">
+      <div className="my-10 flex justify-center">
         <SubmitStyleModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}

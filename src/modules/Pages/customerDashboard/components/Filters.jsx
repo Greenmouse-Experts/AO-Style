@@ -83,6 +83,16 @@ export default function Filters({
 
   const [colorVal, setColorVal] = useState("");
 
+  const [selectedColor, setSelectedColor] = useState("");
+
+  const handleColorSelect = (color) => {
+    setSelectedColor(color);
+
+    updateQueryParams({
+      color: color.toLowerCase(),
+    });
+  };
+
   return (
     <div className="bg-white p-3 sm:p-4 rounded-lg w-full">
       <h2 className="text-base sm:text-lg font-semibold mb-4 sm:mb-5">
@@ -154,6 +164,56 @@ export default function Filters({
         </select> */}
       </div>
 
+      <div className="mb-3 sm:mb-4">
+        <h3 className="font-medium mb-2 sm:mb-3">Marketplace</h3>
+        <Select
+          options={[{ label: "All", value: "" }, ...marketList]}
+          name="market_id"
+          value={[{ label: "All", value: "" }, ...marketList]?.find(
+            (opt) => opt.value === market
+          )}
+          onChange={(selectedOption) => {
+            if (selectedOption?.value == "") {
+              updateQueryParams({
+                market_id: undefined,
+              });
+            } else {
+              updateQueryParams({
+                market_id: selectedOption?.value,
+              });
+            }
+            setMarket(selectedOption.value);
+            // updateQueryParams({
+            //   color: color?.toLowerCase(),
+            // });
+
+            // setFieldValue("category_id", selectedOption.value);
+          }}
+          required
+          placeholder="select"
+          className="w-full p-[1px] border border-gray-300 text-gray-600 outline-none rounded"
+          styles={{
+            control: (base, state) => ({
+              ...base,
+              border: "none",
+              boxShadow: "none",
+              outline: "none",
+              backgroundColor: "#fff",
+              "&:hover": {
+                border: "none",
+              },
+            }),
+            indicatorSeparator: () => ({
+              display: "none",
+            }),
+            menu: (base) => ({
+              ...base,
+              zIndex: 9999,
+            }),
+          }}
+        />{" "}
+      </div>
+
       {/* Price Range */}
       <div className="mb-3 sm:mb-4">
         <h3 className="font-medium mb-2 sm:mb-3">Price</h3>
@@ -214,6 +274,12 @@ export default function Filters({
             ></button>
           ))}
         </div>
+        <input
+          type="color"
+          value={selectedColor}
+          onChange={(e) => handleColorSelect(e.target.value)}
+          className="w-full h-10 mt-4 relative z-[9999] border rounded"
+        />
       </div>
 
       {/* Sizes */}
@@ -242,55 +308,6 @@ export default function Filters({
       </div> */}
 
       {/* Marketplace */}
-      <div className="mb-3 sm:mb-4">
-        <h3 className="font-medium mb-2 sm:mb-3">Marketplace</h3>
-        <Select
-          options={[{ label: "All", value: "" }, ...marketList]}
-          name="market_id"
-          value={[{ label: "All", value: "" }, ...marketList]?.find(
-            (opt) => opt.value === market
-          )}
-          onChange={(selectedOption) => {
-            if (selectedOption?.value == "") {
-              updateQueryParams({
-                market_id: undefined,
-              });
-            } else {
-              updateQueryParams({
-                market_id: selectedOption?.value,
-              });
-            }
-            setMarket(selectedOption.value);
-            // updateQueryParams({
-            //   color: color?.toLowerCase(),
-            // });
-
-            // setFieldValue("category_id", selectedOption.value);
-          }}
-          required
-          placeholder="select"
-          className="w-full p-[1px] border border-gray-300 text-gray-600 outline-none rounded"
-          styles={{
-            control: (base, state) => ({
-              ...base,
-              border: "none",
-              boxShadow: "none",
-              outline: "none",
-              backgroundColor: "#fff",
-              "&:hover": {
-                border: "none",
-              },
-            }),
-            indicatorSeparator: () => ({
-              display: "none",
-            }),
-            menu: (base) => ({
-              ...base,
-              zIndex: 9999,
-            }),
-          }}
-        />{" "}
-      </div>
     </div>
   );
 }

@@ -82,8 +82,6 @@ const Coupons = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      console.log(newCategory);
-      console.log(type);
       if (type == "Remove") {
         return deleteCouponMutate(
           { ...val, id: newCategory?.id },
@@ -92,6 +90,7 @@ const Coupons = () => {
               setIsAddModalOpen(false);
               setNewCategory(null);
               setType("Add");
+              resetForm();
             },
           }
         );

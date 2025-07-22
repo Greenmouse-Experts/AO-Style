@@ -186,7 +186,7 @@ export default function ShopStyles() {
 
   const [queryMax, setQueryMax] = useState(200000);
 
-  const debouncedMax = useDebounce(queryMin ?? "", 1000);
+  const debouncedMax = useDebounce(queryMax ?? "", 1000);
 
   const [debounceMax, setDebounceMax] = useState("");
 

@@ -118,6 +118,11 @@ const MarketsTable = () => {
     });
   }, [debouncedSearchTerm]);
 
+  const {
+    isPending: uploadFrontIsPending,
+    uploadImageMutate: uploadFrontMutate,
+  } = useUploadImage();
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -167,9 +172,9 @@ const MarketsTable = () => {
             </button>
             {openDropdown === row.id && (
               <div className="absolute right-0 mt-2 w-40 bg-white rounded-md z-10 shadow-lg">
-                <button className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
+                {/* <button className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
                   View Details
-                </button>
+                </button> */}
                 <button
                   onClick={() => {
                     setIsAddModalOpen(true);
@@ -179,7 +184,7 @@ const MarketsTable = () => {
                   }}
                   className="block px-4 cursor-pointer py-2 text-gray-700 hover:bg-gray-100 w-full"
                 >
-                  Edit Market
+                  View/Edit Market
                 </button>
                 <button
                   onClick={() => {
@@ -223,41 +228,19 @@ const MarketsTable = () => {
     enableReinitialize: true,
     onSubmit: (val) => {
       if (type == "Edit") {
-        if (val.multimedia_url) {
-          editMarketMutate(
-            { ...val, id: newCategory?.id },
-            {
-              onSuccess: () => {
-                setIsAddModalOpen(false);
-                setNewCategory(null);
-                setUpload(null);
-                resetForm();
-              },
-            }
-          );
-        } else {
-          const formData = new FormData();
-          formData.append("image", upload);
-          uploadImageMutate(formData, {
-            onSuccess: (data) => {
-              editMarketMutate(
-                {
-                  ...val,
-                  multimedia_url: data?.data?.data?.url,
-                  id: newCategory?.id,
-                },
-                {
-                  onSuccess: () => {
-                    setIsAddModalOpen(false);
-                    setNewCategory(null);
-                    setUpload(null);
-                    resetForm();
-                  },
-                }
-              );
+        editMarketMutate(
+          { ...val, id: newCategory?.id },
+          {
+            onSuccess: () => {
+              setIsAddModalOpen(false);
+              setNewCategory(null);
+              setUpload(null);
+              resetForm();
+              setType("Add");
             },
-          });
-        }
+          }
+        );
+
         // If editing an existing style category
         // editProductMutate(
         //   { ...val, id: newStyleCategory.id },
@@ -269,23 +252,18 @@ const MarketsTable = () => {
         //   }
         // );
       } else if (type == "Add") {
-        const formData = new FormData();
-        formData.append("image", upload);
-        uploadImageMutate(formData, {
-          onSuccess: (data) => {
-            createMarketMutate(
-              { ...val, multimedia_url: data?.data?.data?.url },
-              {
-                onSuccess: () => {
-                  setIsAddModalOpen(false);
-                  setNewCategory(null);
-                  setUpload(null);
-                  resetForm();
-                },
-              }
-            );
-          },
-        });
+        createMarketMutate(
+          { ...val },
+          {
+            onSuccess: () => {
+              setIsAddModalOpen(false);
+              setNewCategory(null);
+              setUpload(null);
+              resetForm();
+              setType("Add");
+            },
+          }
+        );
       } else {
         deleteMarketMutate(
           { ...val, id: newCategory?.id },
@@ -295,6 +273,7 @@ const MarketsTable = () => {
               setNewCategory(null);
               setUpload(null);
               resetForm();
+              setType("Add");
             },
           }
         );
@@ -601,6 +580,62 @@ const MarketsTable = () => {
                       Market Image
                     </label>
                     <div
+                      onClick={() =>
+                        document.getElementById("multimedia_url").click()
+                      }
+                      className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg flex flex-col items-center"
+                    >
+                      <p className="cursor-pointer flex flex-col items-center space-y-2 text-gray-500">
+                        <span>⬆️</span> <span> Upload Picture of Market</span>
+                      </p>
+
+                      <input
+                        type="file"
+                        name="multimedia_url"
+                        onChange={(e) => {
+                          if (e.target.files) {
+                            if (e.target.files[0].size > 5 * 1024 * 1024) {
+                              alert("File size exceeds 5MB limit");
+                              return;
+                            }
+                            const file = e.target.files[0];
+                            const formData = new FormData();
+                            formData.append("image", file);
+                            uploadFrontMutate(formData, {
+                              onSuccess: (data) => {
+                                setFieldValue(
+                                  "multimedia_url",
+                                  data?.data?.data?.url
+                                );
+                              },
+                            });
+                            e.target.value = "";
+                          }
+                        }}
+                        className="hidden"
+                        id="multimedia_url"
+                      />
+
+                      {uploadFrontIsPending ? (
+                        <p className="cursor-pointer text-gray-400">
+                          please wait...{" "}
+                        </p>
+                      ) : values.multimedia_url ? (
+                        <a
+                          onClick={(e) => e.stopPropagation()}
+                          href={values.multimedia_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-purple-600 flex justify-center cursor-pointer hover:underline"
+                        >
+                          View file upload
+                        </a>
+                      ) : (
+                        <></>
+                      )}
+                    </div>
+
+                    {/* <div
                       role="button"
                       onClick={handleButtonClick}
                       className="border border-gray-200 rounded-lg p-6 flex flex-col items-center justify-center"
@@ -629,24 +664,46 @@ const MarketsTable = () => {
                           />
                         </svg>
                       )}
+                      {uploadFrontIsPending ? (
+                        <>
+                          {" "}
+                          <p className="cursor-pointer text-gray-400">
+                            please wait...{" "}
+                          </p>
+                        </>
+                      ) : (
+                        <></>
+                      )}
                       <p className="text-sm text-gray-500">
                         Upload Picture of Market
                       </p>
                       <input
                         type="file"
-                        name="marketImage"
-                        className="hidden"
-                        ref={fileInputRef}
+                        name="doc_front"
                         onChange={(e) => {
                           if (e.target.files) {
-                            setUpload(e.target.files[0]);
-                            setFieldValue("multimedia_url", null);
+                            if (e.target.files[0].size > 5 * 1024 * 1024) {
+                              alert("File size exceeds 5MB limit");
+                              return;
+                            }
+                            const file = e.target.files[0];
+                            const formData = new FormData();
+                            formData.append("image", file);
+                            uploadFrontMutate(formData, {
+                              onSuccess: (data) => {
+                                setFieldValue(
+                                  "multimedia_url",
+                                  data?.data?.data?.url
+                                );
+                              },
+                            });
+                            e.target.value = "";
                           }
-
-                          e.target.value = "";
                         }}
+                        className="hidden"
+                        id="doc_back"
                       />
-                    </div>
+                    </div> */}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -656,6 +713,7 @@ const MarketsTable = () => {
                       type="text"
                       name={"name"}
                       required
+                      maxLength={40}
                       value={values.name}
                       onChange={handleChange}
                       className="mt-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-lg text-sm"

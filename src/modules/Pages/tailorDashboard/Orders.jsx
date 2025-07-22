@@ -13,6 +13,7 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
 import ReusableTable from "../adminDashboard/components/ReusableTable";
+import useGetVendorOrder from "../../../hooks/order/useGetVendorOrder";
 
 const orders = [
   {
@@ -92,7 +93,7 @@ const OrderPage = () => {
     isLoading,
     isError,
     data: orderData,
-  } = useGetAllOrder({
+  } = useGetVendorOrder({
     ...queryParams,
   });
 
@@ -101,15 +102,15 @@ const OrderPage = () => {
       { label: "Transaction ID", key: "transactionId" },
       { label: "Customer", key: "customer" },
       { label: "Product", key: "product" },
-      {
-        label: "Body Measurement",
-        key: "measurement",
-        render: (text) => (
-          <Link to="#" className="text-blue-500 hover:underline">
-            {text}
-          </Link>
-        ),
-      },
+      // {
+      //   label: "Body Measurement",
+      //   key: "measurement",
+      //   render: (text) => (
+      //     <Link to="#" className="text-blue-500 hover:underline">
+      //       {text}
+      //     </Link>
+      //   ),
+      // },
       { label: "Amount", key: "amount" },
       { label: "Order Date", key: "dateAdded" },
       {
@@ -144,8 +145,8 @@ const OrderPage = () => {
             </button>
             {openDropdown === row.id && (
               <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
-                <Link to="/tailor/orders/orders-details">
-                  <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                <Link to={`/tailor/orders/orders-details?id=${row.id}`}>
+                  <button className="block cursor-pointer w-full text-left px-4 py-2 hover:bg-gray-100">
                     View Details
                   </button>
                 </Link>
@@ -171,7 +172,10 @@ const OrderPage = () => {
             return {
               ...details,
               transactionId: `${details?.payment?.transaction_id}`,
-              customer: `${details?.user?.email}`,
+              customer:
+                details?.user?.email?.length > 15
+                  ? `${details?.user?.email.slice(0, 15)}...`
+                  : details?.user?.email,
               product:
                 details?.payment?.purchase?.items[0]?.name?.length > 15
                   ? `${details?.payment?.purchase?.items[0]?.name.slice(
@@ -263,7 +267,7 @@ const OrderPage = () => {
       <div className="bg-white px-6 py-4 mb-6">
         <h1 className="text-2xl font-medium mb-3">Orders</h1>
         <p className="text-gray-500">
-          <Link to="/tailor" className="text-blue-500 hover:underline">
+          <Link to="/admin" className="text-blue-500 hover:underline">
             Dashboard
           </Link>{" "}
           &gt; Orders
@@ -277,7 +281,33 @@ const OrderPage = () => {
             {["all", "ongoing", "completed", "cancelled"].map((tab) => (
               <button
                 key={tab}
-                onClick={() => setFilter(tab)}
+                onClick={() => {
+                  setFilter(tab);
+                  if (tab == "all") {
+                    updateQueryParams({
+                      ...queryParams,
+                      status: undefined,
+                    });
+                  }
+                  if (tab == "ongoing") {
+                    updateQueryParams({
+                      ...queryParams,
+                      status: "PROCESSING",
+                    });
+                  }
+                  if (tab == "completed") {
+                    updateQueryParams({
+                      ...queryParams,
+                      status: "DELIVERED",
+                    });
+                  }
+                  if (tab == "cancelled") {
+                    updateQueryParams({
+                      ...queryParams,
+                      status: "CANCELLED",
+                    });
+                  }
+                }}
                 className={`font-medium capitalize px-3 py-1 ${
                   filter === tab
                     ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"

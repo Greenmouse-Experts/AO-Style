@@ -31,10 +31,10 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { toastSuccess } = useToast();
 
   const handleSignOut = () => {
-    navigate("/login");
-    toastSuccess("Logout Successfully");
     logOut();
     Cookies.remove("token");
+    toastSuccess("Logout Successfully");
+    window.location.replace("/login");
   };
 
   return (

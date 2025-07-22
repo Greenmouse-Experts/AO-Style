@@ -1,11 +1,30 @@
 import { Phone, MessageSquare, Mail, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useState } from "react";
+import useGetSingleOrder from "../../../hooks/order/useGetSingleOrder";
+import Loader from "../../../components/ui/Loader";
 
 const OrderDetails = () => {
   const [showUploadPopup, setShowUploadPopup] = useState(false);
   const [markReceivedChecked, setMarkReceivedChecked] = useState(false);
   const [markSentChecked, setMarkSentChecked] = useState(false);
+
+  const [searchParams] = useSearchParams();
+  const orderId = searchParams.get("id");
+
+  const { isPending: getOrderIsPending, data } = useGetSingleOrder(orderId);
+
+  if (getOrderIsPending) {
+    return (
+      <div className="m-auto flex h-[80vh] items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
+
+  const orderInfo = data?.data;
+
+  const orderPurchase = data?.data?.payment?.purchase?.items;
 
   const handleCheckboxChange = (type) => {
     if (type === "received") {
@@ -31,10 +50,10 @@ const OrderDetails = () => {
     <div className="">
       <div className="bg-white rounded-lg px-6 py-4 mb-6">
         <h1 className="text-xl font-semibold mb-4">
-          Order Details : <span className="text-gray-600">QWER123DFDG324R</span>
+          Order Details : <span className="text-gray-600">{orderInfo?.id}</span>
         </h1>
         <p className="text-gray-500 text-sm">
-          <Link to="/fabric" className="text-blue-500 hover:underline">
+          <Link to="/admin" className="text-blue-500 hover:underline">
             Dashboard
           </Link>{" "}
           &gt; Orders &gt; Order Details
@@ -49,43 +68,69 @@ const OrderDetails = () => {
             <h5 className="text-lg font-medium border-b border-gray-200 pb-3 mb-6">
               Order Details
             </h5>
-            <div className="grid grid-cols-3 gap-6 border-b border-gray-200 pb-6 mb-6">
-              {/* Style Info */}
-              <div className="flex gap-4">
-                <img
-                  src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170600/AoStyle/image_bwjfib.jpg"
-                  alt="Ankara Gown"
-                  className="w-28 h-28 rounded-md object-cover"
-                />
-                <div>
-                  <p className="font-meduim">Ankara Gown</p>
-                  <p className="text-gray-500 text-sm">x 1 Piece</p>
-                  <p className="text-blue-600 text-sm">N 24,000</p>
+            <div className="flex justify-between w-full items-center mb-5">
+              {[
+                { key: "product", label: "Product" },
+                { key: "measurement", label: "Measurement" },
+              ].map((tab) => (
+                <div
+                  key={tab.key}
+                  className={`text-base w-full font-normal text-gray-500`}
+                  onClick={() => {}}
+                >
+                  {tab.label}
                 </div>
-              </div>
+              ))}
+            </div>
 
-              {/* Fabric Info */}
-              <div className="flex gap-4">
-                <img
-                  src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214605/AoStyle/image4_p4lpek.png"
-                  alt="Fabric"
-                  className="w-28 h-28 rounded-md object-cover"
-                />
-                <div>
-                  <p className="font-meduim">Luxury Embellished Lace</p>
-                  <p className="text-gray-500 text-sm">x 2 Yards</p>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <a href="#" className="text-blue-700 underline text-sm">
-                  See measurement
-                </a>
-              </div>
+            <div className="w-full flex flex-col gap-6">
+              {orderPurchase?.map((order, id) => {
+                return (
+                  <div key={id} className="flex w-full justify-between">
+                    <div className="flex items-center gap-4  w-full">
+                      <div className="w-full">
+                        <div className="text-xs text-gray-400 italic px-3 py-2 rounded">
+                          {order?.purchase_type}
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <img
+                            src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170600/AoStyle/image_bwjfib.jpg"
+                            alt="Ankara Gown"
+                            className="w-24 h-24 rounded-md"
+                          />
+                          <div>
+                            <p className="font-semibold">{order?.name}</p>
+                            {order?.purchase_type == "FABRIC" ? (
+                              <p className="text-gray-500">
+                                x {order?.quantity} Yards
+                              </p>
+                            ) : (
+                              <p className="text-gray-500">
+                                x {order?.quantity} Piece
+                              </p>
+                            )}
+                            <p className="text-blue-600">N {order?.price}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* <div className="flex w-full gap-4">
+                        <a href="#" className="text-blue-700 underline text-sm">
+                          See measurement
+                        </a>
+                      </div> */}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             <div className="flex justify-between items-center mt-5">
               <span className="text-gray-700 mb-4 font-medium">
-                Order Total: <span className="font-medium">N 11,440,000</span>
+                Order Total:{" "}
+                <span className="font-medium">
+                  N {orderInfo?.total_amount?.toLocaleString()}
+                </span>
                 <span className="ml-2 px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm">
                   Pending
                 </span>
@@ -144,7 +189,7 @@ const OrderDetails = () => {
           <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm">
             <div className="bg-white rounded-lg p-6 w-full max-w-md">
               <button
-                onClick={() => setShowReviewPopup(false)}
+                onClick={() => setShowUploadPopup(false)}
                 className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
               >
                 <X size={24} />
@@ -218,12 +263,14 @@ const OrderDetails = () => {
               Delivery Details
             </h5>
             <p className="text-gray-700 mb-3">
-              <span className="font-semibold">Shipping Address:</span> No 7,
-              Street name, Estate name, Lagos, Nigeria
+              <span className="font-semibold">Shipping Address:</span>
+              {/* No 7,
+              Street name, Estate name, Lagos, Nigeria */}
             </p>
             <p className="text-gray-700 mb-3">
-              <span className="font-semibold">Delivery Date:</span> 12-03-2025
-              (10 days left)
+              <span className="font-semibold">Delivery Date:</span>
+              {/* 12-03-2025
+              (10 days left) */}
             </p>
             <p className="text-gray-700">
               <span className="font-semibold">Delivery Method:</span> Logistics
@@ -260,17 +307,19 @@ const OrderDetails = () => {
           </h5>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <p className="text-gray-500 text-sm mb-2">Customer Name</p>
-              <p className="font-semibold">Chukka Uzo</p>
+              <p className="text-gray-500 text-sm mb-2">Customer Email</p>
+              <p className="font-semibold">{orderInfo?.user?.email}</p>
             </div>
             <div>
-              <p className="text-gray-500 text-sm mb-2">Fabric Vendor Name</p>
-              <p className="font-semibold">Daniel Amaka</p>
+              <p className="text-gray-500 text-sm mb-2">
+                Customer Phone Number
+              </p>
+              <p className="font-semibold">{orderInfo?.user?.phone}</p>
             </div>
-            <div>
+            {/* <div>
               <p className="text-gray-500 text-sm mb-2">Delivery Method</p>
-              <p className="font-semibold">Logistics</p>
-            </div>
+              <p className="font-semibold"></p>
+            </div> */}
           </div>
         </div>
       </div>

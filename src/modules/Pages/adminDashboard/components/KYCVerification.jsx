@@ -7,11 +7,21 @@ import { nigeriaStates } from "../../../../constant";
 import useSendKyc from "../../../../hooks/settings/useSendKyc";
 import useGetKyc from "../../../../hooks/settings/useGetKyc";
 import useUploadImage from "../../../../hooks/multimedia/useUploadImage";
+import {
+  useCountries,
+  useStates,
+} from "../../../../hooks/location/useGetCountries";
+import useToast from "../../../../hooks/useToast";
 
 const KYCVerificationUpdate = () => {
   const { data } = useGetKyc();
 
   const kycInfo = data?.data;
+
+  const { data: countries, isLoading: loadingCountries } = useCountries();
+
+  const countriesOptions =
+    countries?.map((c) => ({ label: c.name, value: c.name })) || [];
 
   const initialValues = {
     doc_front: kycInfo?.doc_front ?? null,
@@ -52,6 +62,8 @@ const KYCVerificationUpdate = () => {
     uploadImageMutate: uploadUtilityMutate,
   } = useUploadImage();
 
+  const { toastError } = useToast();
+
   const {
     handleSubmit,
     touched,
@@ -69,16 +81,20 @@ const KYCVerificationUpdate = () => {
     onSubmit: (val) => {
       // Prepare FormData for each file to upload
 
-      const uploads = [val.front_upload, val.back_upload, val.utility_upload];
+      if (!val.doc_back || !val.doc_front || !val.utility_doc) {
+        return toastError("Upload necessary document");
+      }
+
+      // const uploads = [val.front_upload, val.back_upload, val.utility_upload];
 
       const formData = new FormData();
 
       // Append all files as `documents[]`
-      uploads.forEach((file) => {
-        if (file) {
-          formData.append("documents", file);
-        }
-      });
+      // uploads.forEach((file) => {
+      //   if (file) {
+      //     formData.append("documents", file);
+      //   }
+      // });
 
       sendKycMutate(
         {
@@ -92,6 +108,11 @@ const KYCVerificationUpdate = () => {
       );
     },
   });
+
+  const { data: states, isLoading: loadingStates } = useStates(values.country);
+
+  const statesOptions =
+    states?.map((c) => ({ label: c.name, value: c.name })) || [];
 
   return (
     <div className="rounded-lg">
@@ -175,6 +196,7 @@ const KYCVerificationUpdate = () => {
               <input
                 type="file"
                 name="doc_front"
+                accept="image/*"
                 onChange={(e) => {
                   if (e.target.files) {
                     if (e.target.files[0].size > 5 * 1024 * 1024) {
@@ -224,6 +246,7 @@ const KYCVerificationUpdate = () => {
               <input
                 type="file"
                 name="doc_front"
+                accept="image/*"
                 onChange={(e) => {
                   if (e.target.files) {
                     if (e.target.files[0].size > 5 * 1024 * 1024) {
@@ -279,6 +302,7 @@ const KYCVerificationUpdate = () => {
             <input
               type="file"
               name="utility_doc"
+              accept="image/*"
               onChange={(e) => {
                 if (e.target.files) {
                   if (e.target.files[0].size > 5 * 1024 * 1024) {
@@ -320,14 +344,14 @@ const KYCVerificationUpdate = () => {
           <div>
             <label className="block text-gray-700 mb-2">Country</label>
             <Select
-              options={[{ value: "Nigeria", label: "Nigeria" }]}
+              options={countriesOptions}
               name="country"
-              value={[{ value: "Nigeria", label: "Nigeria" }]?.find(
+              value={countriesOptions?.find(
                 (opt) => opt.value === values.country
               )}
-              onChange={(selectedOption) =>
-                setFieldValue("country", selectedOption.value)
-              }
+              onChange={(selectedOption) => {
+                setFieldValue("country", selectedOption.value);
+              }}
               placeholder="Select"
               className="p-2 w-full mb-6 border border-[#CCCCCC] outline-none rounded-lg"
               styles={{
@@ -355,9 +379,9 @@ const KYCVerificationUpdate = () => {
           <div>
             <label className="block text-gray-700 mb-2">State</label>
             <Select
-              options={nigeriaStates}
+              options={statesOptions}
               name="state"
-              value={nigeriaStates?.find((opt) => opt.value === values.state)}
+              value={statesOptions?.find((opt) => opt.value === values.state)}
               onChange={(selectedOption) =>
                 setFieldValue("state", selectedOption.value)
               }
@@ -393,7 +417,17 @@ const KYCVerificationUpdate = () => {
               name={"city"}
               required
               value={values.city}
-              onChange={handleChange}
+              onChange={(e) => {
+                const city = e.target.value;
+
+                const validChars = /^[a-zA-Z\s\-']*$/;
+                if (!validChars.test(city)) return;
+
+                const onlySpecialOrNumeric = /^[^a-zA-Z]*$/;
+                if (onlySpecialOrNumeric.test(city)) return;
+
+                setFieldValue("city", city);
+              }}
               className="mb-6 w-full p-4  border border-[#CCCCCC] outline-none rounded-lg text-sm"
               placeholder="City"
             />
@@ -406,7 +440,17 @@ const KYCVerificationUpdate = () => {
               name={"location"}
               required
               value={values.location}
-              onChange={handleChange}
+              onChange={(e) => {
+                const city = e.target.value;
+
+                const validChars = /^[a-zA-Z\s\-']*$/;
+                if (!validChars.test(city)) return;
+
+                const onlySpecialOrNumeric = /^[^a-zA-Z]*$/;
+                if (onlySpecialOrNumeric.test(city)) return;
+
+                setFieldValue("location", city);
+              }}
               className="mb-6 w-full p-4  border border-[#CCCCCC] outline-none rounded-lg text-sm"
               placeholder="address"
             />

@@ -61,13 +61,13 @@ const StyleCategoriesTable = () => {
     enableReinitialize: true,
     onSubmit: (val) => {
       if (type == "Edit") {
-        // If editing an existing style category
         editProductMutate(
           { ...val, id: newStyleCategory.id },
           {
             onSuccess: () => {
               setIsAddModalOpen(false);
               setNewStyleCategory(null);
+              setType("Add");
             },
           }
         );
@@ -78,6 +78,7 @@ const StyleCategoriesTable = () => {
             onSuccess: () => {
               setIsAddModalOpen(false);
               setNewStyleCategory(null);
+              setType("Add");
             },
           }
         );
@@ -88,6 +89,7 @@ const StyleCategoriesTable = () => {
             onSuccess: () => {
               setIsAddModalOpen(false);
               setNewStyleCategory(null);
+              setType("Add");
             },
           }
         );
@@ -492,6 +494,7 @@ const StyleCategoriesTable = () => {
                       type="text"
                       name={"name"}
                       required
+                      maxLength={40}
                       value={values.name}
                       onChange={handleChange}
                       className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"

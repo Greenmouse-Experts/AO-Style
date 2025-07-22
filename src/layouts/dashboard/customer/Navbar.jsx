@@ -17,10 +17,11 @@ export default function Navbar({ toggleSidebar }) {
   const { carybinUser, logOut } = useCarybinUserStore();
 
   const handleSignOut = () => {
-    navigate("/login");
     toastSuccess("Logout Successfully");
     logOut();
     Cookies.remove("token");
+    localStorage.setItem("logout", Date.now().toString());
+    window.location.replace("/login");
   };
 
   const { data, isPending } = useGetNotification({

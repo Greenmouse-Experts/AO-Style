@@ -6,6 +6,7 @@ import { useFormik } from "formik";
 import useRegister from "./hooks/useSignUpMutate";
 import ReCAPTCHA from "react-google-recaptcha";
 import useToast from "../../hooks/useToast";
+import PhoneInput from "react-phone-input-2";
 
 import { countryCodes } from "../../constant";
 
@@ -50,8 +51,8 @@ export default function SignInAsCustomer() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      const phoneno = `${val.phoneCode + val.phone}`;
-      const altno = `${val.altCode + val.alternative_phone}`;
+      const phoneno = `${val.phone}`;
+      const altno = `${val.alternative_phone}`;
 
       if (values.password_confirmation !== values.password) {
         return toastError("Password must match");
@@ -142,7 +143,7 @@ export default function SignInAsCustomer() {
 
               <div className="flex flex-col md:flex-row md:items-center gap-2 ">
                 {/* Country Code Dropdown */}
-                <Select
+                {/* <Select
                   options={options}
                   name="phoneCode"
                   value={options.find((opt) => opt.value === values.phoneCode)}
@@ -170,9 +171,28 @@ export default function SignInAsCustomer() {
                       zIndex: 9999,
                     }),
                   }}
-                />{" "}
+                /> */}
+                <PhoneInput
+                  country={"ng"}
+                  value={values.phone}
+                  inputProps={{
+                    name: "phone",
+                    required: true,
+                  }}
+                  onChange={(value) => {
+                    // Ensure `+` is included and validate
+                    if (!value.startsWith("+")) {
+                      value = "+" + value;
+                    }
+                    setFieldValue("phone", value);
+                  }}
+                  containerClass="w-full disabled:bg-gray-100"
+                  dropdownClass="flex flex-col gap-2 text-black disabled:bg-gray-100"
+                  buttonClass="bg-gray-100 !border !border-gray-100 hover:!bg-gray-100 disabled:bg-gray-100"
+                  inputClass="!w-full px-4 font-sans disabled:bg-gray-100  !h-[54px] !py-4 border border-gray-300 !rounded-md focus:outline-none"
+                />
                 {/* Phone Input */}
-                <input
+                {/* <input
                   type="tel"
                   name="phone"
                   placeholder="Phone Number"
@@ -180,7 +200,7 @@ export default function SignInAsCustomer() {
                   value={values.phone}
                   onChange={handleChange}
                   required
-                />
+                /> */}
               </div>
             </div>
             {/* <select
@@ -197,7 +217,7 @@ export default function SignInAsCustomer() {
 
               <div className="flex flex-col md:flex-row md:items-center gap-2 ">
                 {/* Country Code Dropdown */}
-                <Select
+                {/* <Select
                   options={options}
                   name="altCode"
                   value={options.find((opt) => opt.value === values.altCode)}
@@ -225,14 +245,33 @@ export default function SignInAsCustomer() {
                       zIndex: 9999,
                     }),
                   }}
-                />{" "}
-                <input
+                /> */}
+                {/* <input
                   type="tel"
                   name={"alternative_phone"}
                   value={values.alternative_phone}
                   onChange={handleChange}
                   placeholder="Alternative Phone Number"
                   className="w-full p-4 border border-[#CCCCCC] outline-none  rounded-lg"
+                /> */}
+                <PhoneInput
+                  country={"ng"}
+                  value={values.alternative_phone}
+                  inputProps={{
+                    name: "alternative_phone",
+                    required: true,
+                  }}
+                  onChange={(value) => {
+                    // Ensure `+` is included and validate
+                    if (!value.startsWith("+")) {
+                      value = "+" + value;
+                    }
+                    setFieldValue("alternative_phone", value);
+                  }}
+                  containerClass="w-full disabled:bg-gray-100"
+                  dropdownClass="flex flex-col gap-2 text-black disabled:bg-gray-100"
+                  buttonClass="bg-gray-100 !border !border-gray-100 hover:!bg-gray-100 disabled:bg-gray-100"
+                  inputClass="!w-full px-4 font-sans disabled:bg-gray-100  !h-[54px] !py-4 border border-gray-300 !rounded-md focus:outline-none"
                 />
               </div>
             </div>

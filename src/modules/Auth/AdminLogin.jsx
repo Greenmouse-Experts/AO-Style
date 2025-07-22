@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useFormik } from "formik";
 import useSignIn from "./hooks/useSigninMutate";
@@ -10,6 +10,20 @@ const initialValues = {
 };
 
 export default function SignInCustomer() {
+  useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+
+    const handlePopState = () => {
+      window.history.pushState(null, "", window.location.href);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
   const [showPassword, setShowPassword] = useState(false);
 
   const { isPending, signinMutate } = useSignIn();

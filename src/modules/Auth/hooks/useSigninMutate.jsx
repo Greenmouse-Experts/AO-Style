@@ -29,7 +29,7 @@ const useSignIn = (email, resendCodeMutate) => {
         // Cookies.set("token", data?.data?.accessToken);
         Cookies.set("adminToken", data?.data?.accessToken);
 
-        navigate("/admin");
+        navigate("/admin", { replace: true });
       } else if (
         data?.data?.data?.role !== "owner-super-administrator" &&
         currentPath == "/admin/login"
@@ -44,30 +44,35 @@ const useSignIn = (email, resendCodeMutate) => {
         if (data?.data?.data?.role === "fabric-vendor") {
           navigate(redirectPath ?? "/fabric", {
             state: { info: parsedProduct },
+            replace: true,
           });
           Cookies.set("currUserUrl", "fabric");
         }
         if (data?.data?.data?.role === "fashion-designer") {
           navigate(redirectPath ?? "/tailor", {
             state: { info: parsedProduct },
+            replace: true,
           });
           Cookies.set("currUserUrl", "tailor");
         }
         if (data?.data?.data?.role === "logistics-agent") {
           navigate(redirectPath ?? "/logistics", {
             state: { info: parsedProduct },
+            replace: true,
           });
           Cookies.set("currUserUrl", "logistics");
         }
         if (data?.data?.data?.role === "user") {
           navigate(redirectPath ?? "/customer", {
             state: { info: parsedProduct },
+            replace: true,
           });
           Cookies.set("currUserUrl", "customer");
         }
         if (data?.data?.data?.role === "market-representative") {
           navigate(redirectPath ?? "/sales", {
             state: { info: parsedProduct },
+            replace: true,
           });
           Cookies.set("currUserUrl", "sales");
         }

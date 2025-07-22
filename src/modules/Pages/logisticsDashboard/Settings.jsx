@@ -9,11 +9,22 @@ import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 import useUpdateProfile from "../../../hooks/settings/useUpdateProfile";
 import BankDetailsUpdate from "../tailorDashboard/components/BankDetails";
 import KYCVerificationUpdate from "../adminDashboard/components/KYCVerification";
+import PhoneInput from "react-phone-input-2";
+import {
+  useCountries,
+  useStates,
+} from "../../../hooks/location/useGetCountries";
+import Select from "react-select";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("personalDetails");
   const [bodyTab, setBodyTab] = useState("upperBody");
   const [activeSection, setActiveSection] = useState("Profile");
+
+  const { data: countries, isLoading: loadingCountries } = useCountries();
+
+  const countriesOptions =
+    countries?.map((c) => ({ label: c.name, value: c.name })) || [];
 
   const { carybinUser } = useCarybinUserStore();
 
@@ -39,6 +50,7 @@ const Settings = () => {
     values,
     handleChange,
     resetForm,
+    setFieldValue,
     // setFieldError,
   } = useFormik({
     initialValues: initialValues,
@@ -53,6 +65,11 @@ const Settings = () => {
       });
     },
   });
+
+  const { data: states, isLoading: loadingStates } = useStates(values.country);
+
+  const statesOptions =
+    states?.map((c) => ({ label: c.name, value: c.name })) || [];
 
   const fileInputRef = useRef(null);
 
@@ -187,14 +204,24 @@ const Settings = () => {
                         <label className="block text-gray-700 mb-4">
                           Phone Number
                         </label>
-                        <input
-                          type="tel"
-                          className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                          placeholder="0700 000 0000"
-                          required
-                          name={"phone"}
+                        <PhoneInput
+                          country={"ng"}
                           value={values.phone}
-                          onChange={handleChange}
+                          inputProps={{
+                            name: "phone",
+                            required: true,
+                          }}
+                          onChange={(value) => {
+                            // Ensure `+` is included and validate
+                            if (!value.startsWith("+")) {
+                              value = "+" + value;
+                            }
+                            setFieldValue("phone", value);
+                          }}
+                          containerClass="w-full disabled:bg-gray-100"
+                          dropdownClass="flex flex-col gap-2 text-black disabled:bg-gray-100"
+                          buttonClass="bg-gray-100 !border !border-gray-100 hover:!bg-gray-100 disabled:bg-gray-100"
+                          inputClass="!w-full px-4 font-sans disabled:bg-gray-100  !h-[54px] !py-4 border border-gray-300 !rounded-md focus:outline-none"
                         />
                       </div>
                       <div>
@@ -212,48 +239,120 @@ const Settings = () => {
                         />
                       </div>
                     </div>
-                    <div>
-                      <label className="block text-gray-700 mb-4">
-                        Address
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                        placeholder="Enter full detailed address"
-                        required
-                        name={"address"}
-                        value={values.address}
-                        onChange={handleChange}
-                      />
-                    </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-gray-700 mb-4">
-                          State
+                          Alternate Phone Number
                         </label>
-                        <input
-                          type="text"
-                          className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                          placeholder="Enter the state"
-                          required
-                          name={"state"}
-                          value={values.state}
-                          onChange={handleChange}
+                        <PhoneInput
+                          country={"ng"}
+                          value={values.alternative_phone}
+                          inputProps={{
+                            name: "alternative_phone",
+                            required: true,
+                          }}
+                          onChange={(value) => {
+                            // Ensure `+` is included and validate
+                            if (!value.startsWith("+")) {
+                              value = "+" + value;
+                            }
+                            setFieldValue("alternative_phone", value);
+                          }}
+                          containerClass="w-full disabled:bg-gray-100"
+                          dropdownClass="flex flex-col gap-2 text-black disabled:bg-gray-100"
+                          buttonClass="bg-gray-100 !border !border-gray-100 hover:!bg-gray-100 disabled:bg-gray-100"
+                          inputClass="!w-full px-4 font-sans disabled:bg-gray-100  !h-[54px] !py-4 border border-gray-300 !rounded-md focus:outline-none"
                         />
                       </div>
                       <div>
                         <label className="block text-gray-700 mb-4">
-                          Country
+                          Address
                         </label>
                         <input
                           type="text"
                           className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                          placeholder="Enter the country"
+                          placeholder="Enter full detailed address"
                           required
-                          name={"country"}
-                          value={values.country}
+                          name={"address"}
+                          maxLength={150}
+                          value={values.address}
                           onChange={handleChange}
                         />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-gray-700 mb-4">
+                          Country
+                        </label>
+                        <Select
+                          options={countriesOptions}
+                          name="country"
+                          value={countriesOptions?.find(
+                            (opt) => opt.value === values.country
+                          )}
+                          onChange={(selectedOption) => {
+                            setFieldValue("country", selectedOption.value);
+                          }}
+                          placeholder="Select"
+                          className="w-full p-2 border border-[#CCCCCC] outline-none rounded-lg"
+                          styles={{
+                            control: (base, state) => ({
+                              ...base,
+                              border: "none",
+                              boxShadow: "none",
+                              outline: "none",
+                              backgroundColor: "#fff",
+                              "&:hover": {
+                                border: "none",
+                              },
+                            }),
+                            indicatorSeparator: () => ({
+                              display: "none",
+                            }),
+                            menu: (base) => ({
+                              ...base,
+                              zIndex: 9999,
+                            }),
+                          }}
+                        />{" "}
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-700 mb-4">
+                          State
+                        </label>
+                        <Select
+                          options={statesOptions}
+                          name="state"
+                          value={statesOptions?.find(
+                            (opt) => opt.value === values.state
+                          )}
+                          onChange={(selectedOption) => {
+                            setFieldValue("state", selectedOption.value);
+                          }}
+                          placeholder="Select"
+                          className="w-full p-2 border border-[#CCCCCC] outline-none rounded-lg"
+                          styles={{
+                            control: (base, state) => ({
+                              ...base,
+                              border: "none",
+                              boxShadow: "none",
+                              outline: "none",
+                              backgroundColor: "#fff",
+                              "&:hover": {
+                                border: "none",
+                              },
+                            }),
+                            indicatorSeparator: () => ({
+                              display: "none",
+                            }),
+                            menu: (base) => ({
+                              ...base,
+                              zIndex: 9999,
+                            }),
+                          }}
+                        />{" "}
                       </div>
                     </div>
                     <button

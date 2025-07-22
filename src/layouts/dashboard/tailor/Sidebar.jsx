@@ -31,10 +31,10 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { carybinUser, logOut } = useCarybinUserStore();
 
   const handleSignOut = () => {
-    navigate("/login");
     toastSuccess("Logout Successfully");
     logOut();
     Cookies.remove("token");
+    window.location.replace("/login");
   };
 
   return (

@@ -1,18 +1,20 @@
 import { useState } from "react";
 import { FaEye, FaEyeSlash, FaArrowUp, FaArrowDown } from "react-icons/fa";
+import { formatDateStr } from "../../../../lib/helper";
 
 const WalletPage = (data) => {
   const [showBalance, setShowBalance] = useState(true);
+
+  console.log(data?.data?.recentIncome, "recentincome");
 
   return (
     <div className="bg-white p-6 rounded-xl lg:max-w-md md:max-w-auto mx-auto">
       {/* Wallet Header */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg font-semibold">Wallet</h2>
-        <button className="bg-gray-100 px-3 py-1 rounded-md text-gray-700 text-sm">
+        {/* <button className="bg-gray-100 px-3 py-1 rounded-md text-gray-700 text-sm">
           Monthly
-          {/* Monthly ▾ */}
-        </button>
+        </button> */}
       </div>
 
       {/* Balance Card */}
@@ -64,7 +66,46 @@ const WalletPage = (data) => {
         {data?.data?.recentIncome?.length ? (
           <>
             {" "}
-            <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg mt-2">
+            {data?.data?.recentIncome?.slice(0, 5).map((recent, id) => {
+              return (
+                <div
+                  key={id}
+                  className="flex justify-between items-center bg-gray-50 p-4 rounded-lg mt-2"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="bg-green-100 p-4 rounded-full">
+                      <FaArrowUp className="text-green-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm">
+                        {recent?.purchase?.items[0]?.name?.length > 15
+                          ? recent?.purchase?.items[0]?.name?.slice(0, 15)
+                          : ""}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {recent?.created_at
+                          ? formatDateStr(
+                              recent?.created_at.split(".").shift(),
+                              "DD - MM - YY"
+                            )
+                          : ""}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-green-600">
+                      + N {recent?.amount}
+                    </p>
+                    <p className="text-xs text-green-500">
+                      {recent?.payment_status == "SUCCESS"
+                        ? "Successful"
+                        : recent?.payment_status}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+            {/* <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg mt-2">
               <div className="flex items-center gap-2">
                 <div className="bg-green-100 p-4 rounded-full">
                   <FaArrowUp className="text-green-500" />
@@ -78,22 +119,7 @@ const WalletPage = (data) => {
                 <p className="font-semibold text-green-600">+ N 200,000</p>
                 <p className="text-xs text-green-500">Successful</p>
               </div>
-            </div>
-            <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg mt-2">
-              <div className="flex items-center gap-2">
-                <div className="bg-green-100 p-4 rounded-full">
-                  <FaArrowUp className="text-green-500" />
-                </div>
-                <div>
-                  <p className="text-sm">Payment for Vendor reg..</p>
-                  <p className="text-xs text-gray-500">12 - 02 - 25</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="font-semibold text-green-600">+ N 200,000</p>
-                <p className="text-xs text-green-500">Successful</p>
-              </div>
-            </div>
+            </div> */}
           </>
         ) : (
           <p className="text-gray-500 text-sm text-center mt-4">

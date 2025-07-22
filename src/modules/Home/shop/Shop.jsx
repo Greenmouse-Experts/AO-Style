@@ -144,7 +144,7 @@ export default function ShopPage() {
 
   const [queryMax, setQueryMax] = useState(200000);
 
-  const debouncedMax = useDebounce(queryMin ?? "", 1000);
+  const debouncedMax = useDebounce(queryMax ?? "", 1000);
 
   const [debounceMax, setDebounceMax] = useState("");
 
@@ -226,6 +226,16 @@ export default function ShopPage() {
         value: c.id,
       }))
     : [];
+
+  const [selectedColor, setSelectedColor] = useState("");
+
+  const handleColorSelect = (color) => {
+    setSelectedColor(color);
+
+    updateQueryParams({
+      color: color.toLowerCase(),
+    });
+  };
 
   return (
     <>
@@ -420,6 +430,14 @@ export default function ShopPage() {
                 ></button>
               ))}
             </div>
+            <input
+              type="color"
+              value={selectedColor}
+              onChange={(e) => {
+                handleColorSelect(e.target.value);
+              }}
+              className="w-full h-10 mt-4 border rounded"
+            />
           </aside>
 
           {/* Product Display */}

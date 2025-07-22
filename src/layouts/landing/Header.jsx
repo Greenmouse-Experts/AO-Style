@@ -15,14 +15,23 @@ import {
 } from "@heroicons/react/24/outline";
 import useGetCart from "../../hooks/cart/useGetCart";
 import { useCartStore } from "../../store/carybinUserCartStore";
+import { useCarybinUserStore } from "../../store/carybinUserStore";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileCareersOpen, setMobileCareersOpen] = useState(false);
   const [mobileProductOpen, setMobileProductOpen] = useState(false);
   const searchRef = useRef(null);
   const menuRef = useRef(null);
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const { carybinUser } = useCarybinUserStore();
+
+  console.log(carybinUser);
 
   const token = Cookies.get("token");
 
@@ -79,7 +88,7 @@ export default function Navbar() {
 
           {/* Right Icons */}
           <div className="hidden lg:flex items-center space-x-4 lg:space-x-6">
-            <div className="relative" ref={searchRef}>
+            {/* <div className="relative" ref={searchRef}>
               {searchOpen ? (
                 <input
                   type="text"
@@ -93,7 +102,7 @@ export default function Navbar() {
                   onClick={() => setSearchOpen(true)}
                 />
               )}
-            </div>
+            </div> */}
             <Link to={`/view-cart`} className="transition relative">
               <ShoppingCartIcon className="h-5 w-5 text-gray-800 cursor-pointer" />
               {items?.length > 0 ? (
@@ -106,16 +115,27 @@ export default function Navbar() {
             </Link>
 
             {token && currUrl ? (
-              <Link
-                to={`/${currUrl}`}
-                className="bg-gradient text-white px-5 lg:px-6 py-2 lg:py-3 hover:bg-purple-600 transition"
-              >
-                Dashboard
-              </Link>
+              <>
+                {/* <Link
+                  to={`/${currUrl}`}
+                  className="bg-gradient text-white px-5 lg:px-6 py-2 lg:py-3 hover:bg-purple-600 transition"
+                >
+                  Dashboard
+                </Link> */}
+                <div
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center gap-1 cursor-pointer"
+                >
+                  <UserIcon className="h-5 w-5 text-gray-800" />
+                  <p className="text-xs font-light text-purple-500 transition">
+                    {carybinUser.name}
+                  </p>
+                </div>
+              </>
             ) : (
               <>
-                <div className="flex items-center space-x-1 cursor-pointer">
-                  <UserIcon className="h-5 w-5 text-gray-800" />
+                <div className="flex  items-center space-x-1 cursor-pointer">
+                  <UserIcon className="h-5 w-5 text-purple-500 " />
                   <Link to="/login" className="text-gray-800">
                     Login
                   </Link>
@@ -273,12 +293,22 @@ export default function Navbar() {
                 )}
               </div>
               {token && currUrl ? (
-                <Link
-                  to={`/${currUrl}`}
-                  className="bg-gradient text-white px-5 lg:px-6 py-2 lg:py-3 hover:bg-purple-600 transition"
+                <div
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex bg-gray-100 p-2 rounded items-center gap-3 cursor-pointer"
                 >
-                  Dashboard
-                </Link>
+                  <img
+                    src={carybinUser?.profile?.profile_picture}
+                    alt="User"
+                    className="w-8 h-8 rounded-full cursor-pointer"
+                  />
+                  <div className="flex flex-col">
+                    <p className="text-sm text-[#545252] transition">
+                      {carybinUser.name}
+                    </p>
+                    <p className="text-gray-500 text-[10px]">View profile</p>
+                  </div>
+                </div>
               ) : (
                 <Link
                   to="/sign-up"
@@ -289,6 +319,32 @@ export default function Navbar() {
               )}
             </div>
           </div>
+        </div>
+      )}
+      {isDropdownOpen && (
+        <div className="absolute right-4 mt-2 w-36 bg-white shadow-lg rounded-lg z-50">
+          <ul className="py-2">
+            {/* <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                  Profile
+                </li> */}
+            <Link
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              to={`/${currUrl}`}
+            >
+              <li className="px-4  py-2 hover:bg-gray-100 cursor-pointer">
+                My Account
+              </li>
+            </Link>
+            <button
+              onClick={() => {
+                setIsAddModalOpen(true);
+                setIsDropdownOpen(!isDropdownOpen);
+              }}
+              className="px-4 py-2 hover:bg-gray-100 text-red-500 cursor-pointer"
+            >
+              Logout
+            </button>
+          </ul>
         </div>
       )}
     </nav>

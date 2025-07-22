@@ -20,10 +20,11 @@ export default function Navbar({ toggleSidebar }) {
   const { logOut } = useCarybinAdminUserStore();
 
   const handleSignOut = () => {
-    navigate("/admin/login");
+    Cookies.remove("adminToken");
+
     toastSuccess("Logout Successfully");
     logOut();
-    Cookies.remove("adminToken");
+    window.location.href = "/admin/login";
   };
 
   const { data, isPending } = useGetNotification({

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import useSignIn from "./hooks/useSigninMutate";
 import { useFormik } from "formik";
@@ -11,6 +11,22 @@ const initialValues = {
 };
 
 export default function SignInCustomer() {
+  useEffect(() => {
+    // Push a dummy state so that user can't go back
+    window.history.pushState(null, "", window.location.href);
+
+    const handlePopState = () => {
+      // Block back/forward navigation
+      window.history.pushState(null, "", window.location.href);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
   const [showPassword, setShowPassword] = useState(false);
 
   const { isPending: resendCodeIsPending, resendCodeMutate } = useResendCode();

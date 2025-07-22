@@ -5,6 +5,10 @@ import { nigeriaStates } from "../../../../constant";
 import RejectKycModal from "./RejectTailorKyc";
 import { useModalState } from "../../../../hooks/useModalState";
 import useApproveKyc from "../../../../hooks/user/useApproveKyc";
+import {
+  useCountries,
+  useStates,
+} from "../../../../hooks/location/useGetCountries";
 
 const ViewTailorDetails = () => {
   // const marketRepoInfo = state?.info;
@@ -12,6 +16,11 @@ const ViewTailorDetails = () => {
   const { isPending, approveKycMutate } = useApproveKyc();
 
   const { isOpen, closeModal, openModal } = useModalState();
+
+  const { data: countries, isLoading: loadingCountries } = useCountries();
+
+  const countriesOptions =
+    countries?.map((c) => ({ label: c.name, value: c.name })) || [];
 
   const location = useLocation();
 
@@ -23,6 +32,8 @@ const ViewTailorDetails = () => {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  console.log(tailorInfo?.country);
 
   const togglePassword = () => setShowPassword(!showPassword);
   const toggleConfirmPassword = () =>
@@ -61,6 +72,13 @@ const ViewTailorDetails = () => {
     : "Fabric Vendor";
 
   console.log(tailorInfo);
+
+  const { data: states, isLoading: loadingStates } = useStates(
+    tailorInfo?.kyc?.country
+  );
+
+  const statesOptions =
+    states?.map((c) => ({ label: c.name, value: c.name })) || [];
 
   return (
     <React.Fragment>
@@ -236,12 +254,13 @@ const ViewTailorDetails = () => {
             </div>
             <div>
               <label className="block text-gray-700 mb-4">City</label>
-              <select className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg">
-                <option>Choose the city</option>
-                <option>Lagos</option>
-                <option>Abuja</option>
-                <option>Port Harcourt</option>
-              </select>
+              <input
+                type="text"
+                name={"city"}
+                value={tailorInfo?.city}
+                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                placeholder="City"
+              />
             </div>
             <div className="col-span-2">
               <label className="block text-gray-700 mb-4">
@@ -256,22 +275,67 @@ const ViewTailorDetails = () => {
             </div>
             <div>
               <label className="block text-gray-700 mb-4">State</label>
-              <select className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg">
-                <option>Choose the state</option>
-                <option>Lagos</option>
-                <option>Abuja</option>
-              </select>
+              <Select
+                options={statesOptions}
+                name="state"
+                value={statesOptions?.find(
+                  (opt) => opt.value === tailorInfo?.state
+                )}
+                onChange={(selectedOption) => {}}
+                placeholder="Select"
+                className="p-2 w-full mb-6 border border-[#CCCCCC] outline-none rounded-lg"
+                styles={{
+                  control: (base, state) => ({
+                    ...base,
+                    border: "none",
+                    boxShadow: "none",
+                    outline: "none",
+                    backgroundColor: "#fff",
+                    "&:hover": {
+                      border: "none",
+                    },
+                  }),
+                  indicatorSeparator: () => ({
+                    display: "none",
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    zIndex: 9999,
+                  }),
+                }}
+              />{" "}
             </div>
             <div>
               <label className="block text-gray-700 mb-4">Country</label>
-              <select
-                value={tailorInfo?.country}
-                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-              >
-                <option>Choose the country</option>
-                <option>Nigeria</option>
-                <option>Ghana</option>
-              </select>
+              <Select
+                options={countriesOptions}
+                name="country"
+                value={countriesOptions?.find(
+                  (opt) => opt.value === tailorInfo?.country
+                )}
+                onChange={(selectedOption) => {}}
+                placeholder="Select"
+                className="p-2 w-full mb-6 border border-[#CCCCCC] outline-none rounded-lg"
+                styles={{
+                  control: (base, state) => ({
+                    ...base,
+                    border: "none",
+                    boxShadow: "none",
+                    outline: "none",
+                    backgroundColor: "#fff",
+                    "&:hover": {
+                      border: "none",
+                    },
+                  }),
+                  indicatorSeparator: () => ({
+                    display: "none",
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    zIndex: 9999,
+                  }),
+                }}
+              />{" "}
             </div>
           </div>
         )}
@@ -459,9 +523,9 @@ const ViewTailorDetails = () => {
               <div className="w-full">
                 <label className="block text-gray-700 mb-2">Country</label>
                 <Select
-                  options={[{ value: "Nigeria", label: "Nigeria" }]}
+                  options={countriesOptions}
                   name="country"
-                  value={[{ value: "Nigeria", label: "Nigeria" }]?.find(
+                  value={countriesOptions?.find(
                     (opt) => opt.value === tailorInfo?.kyc?.country
                   )}
                   onChange={(selectedOption) => {}}
@@ -491,9 +555,9 @@ const ViewTailorDetails = () => {
               <div>
                 <label className="block text-gray-700 mb-2">State</label>
                 <Select
-                  options={nigeriaStates}
+                  options={statesOptions}
                   name="state"
-                  value={nigeriaStates?.find(
+                  value={statesOptions?.find(
                     (opt) => opt.value === tailorInfo?.kyc?.state
                   )}
                   onChange={(selectedOption) => {}}

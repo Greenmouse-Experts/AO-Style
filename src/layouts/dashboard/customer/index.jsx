@@ -6,8 +6,25 @@ import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useGetUserProfile from "../../../modules/Auth/hooks/useGetProfile";
 import Loader from "../../../components/ui/Loader";
 import useToast from "../../../hooks/useToast";
+import useCrossTabLogout from "../../../hooks/useGlobalLayout";
 
 export default function DashboardLayout() {
+  useCrossTabLogout();
+
+  useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+
+    const handlePopState = () => {
+      window.history.pushState(null, "", window.location.href);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -78,6 +95,5 @@ export default function DashboardLayout() {
         </main>
       </div>
     </div>
-
   );
 }

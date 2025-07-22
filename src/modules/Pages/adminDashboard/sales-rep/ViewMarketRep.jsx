@@ -5,6 +5,12 @@ import useApproveKyc from "../../../../hooks/user/useApproveKyc";
 import { useModalState } from "../../../../hooks/useModalState";
 import RejectKycModal from "../tailor/RejectTailorKyc";
 import { nigeriaStates } from "../../../../constant";
+import PhoneInput from "react-phone-input-2";
+
+import {
+  useCountries,
+  useStates,
+} from "../../../../hooks/location/useGetCountries";
 
 const ViewMarketDetails = () => {
   // const marketRepoInfo = state?.info;
@@ -12,6 +18,11 @@ const ViewMarketDetails = () => {
   const { isPending, approveKycMutate } = useApproveKyc();
 
   const { isOpen, closeModal, openModal } = useModalState();
+
+  const { data: countries, isLoading: loadingCountries } = useCountries();
+
+  const countriesOptions =
+    countries?.map((c) => ({ label: c.name, value: c.name })) || [];
 
   const location = useLocation();
 
@@ -57,6 +68,13 @@ const ViewMarketDetails = () => {
   const headerName = urlContainsTailors
     ? "Tailor/Fashion Designers"
     : "Fabric Vendor";
+
+  const { data: states, isLoading: loadingStates } = useStates(
+    tailorInfo?.kyc?.country
+  );
+
+  const statesOptions =
+    states?.map((c) => ({ label: c.name, value: c.name })) || [];
 
   return (
     <React.Fragment>
@@ -152,6 +170,7 @@ const ViewMarketDetails = () => {
                     className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                   />
                 </div>
+
                 {/* <div className="relative">
                   <label className="block text-gray-700 mb-4">Password</label>
                   <input
@@ -453,9 +472,9 @@ const ViewMarketDetails = () => {
               <div className="w-full">
                 <label className="block text-gray-700 mb-2">Country</label>
                 <Select
-                  options={[{ value: "Nigeria", label: "Nigeria" }]}
+                  options={countriesOptions}
                   name="country"
-                  value={[{ value: "Nigeria", label: "Nigeria" }]?.find(
+                  value={countriesOptions?.find(
                     (opt) => opt.value === tailorInfo?.kyc?.country
                   )}
                   onChange={(selectedOption) => {}}
@@ -485,9 +504,9 @@ const ViewMarketDetails = () => {
               <div>
                 <label className="block text-gray-700 mb-2">State</label>
                 <Select
-                  options={nigeriaStates}
+                  options={statesOptions}
                   name="state"
-                  value={nigeriaStates?.find(
+                  value={statesOptions?.find(
                     (opt) => opt.value === tailorInfo?.kyc?.state
                   )}
                   onChange={(selectedOption) => {}}

@@ -8,8 +8,24 @@ import ProductInventory from "./components/ProductInventory";
 import RecentActivitiesTable from "./components/RecentActivities";
 import useGetDashboardStat from "../../../hooks/analytics/useGetAnalytics";
 import Loader from "../../../components/ui/Loader";
+import { useEffect } from "react";
 
 export default function SuperDashboard() {
+  useEffect(() => {
+    // Replace the last history entry (e.g. login or "/") with the dashboard
+    window.history.replaceState(null, "", window.location.href);
+
+    const handlePopState = () => {
+      // When back button is pressed, re-push the same dashboard route
+      window.history.pushState(null, "", window.location.href);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
   const { isPending, isLoading, isError, data } = useGetDashboardStat();
 
   if (isPending) {

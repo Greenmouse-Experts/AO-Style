@@ -834,6 +834,7 @@ const CartPage = () => {
                         className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
                         required
                         name={"address"}
+                        maxLength={150}
                         value={values.address}
                         onChange={handleChange}
                       />

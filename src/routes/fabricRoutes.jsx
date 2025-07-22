@@ -11,11 +11,16 @@ import Settings from "../modules/Pages/fabricDashboard/Settings";
 import InboxPage from "../modules/Pages/fabricDashboard/Inbox";
 import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
 import Coupons from "../modules/Pages/Coupons";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 export const fabricRoutes = [
   {
     path: "/fabric",
-    element: <FabricLayout />,
+    element: (
+      // <ProtectedRoute>
+        <FabricLayout />
+      // </ProtectedRoute>
+    ),
     children: [
       {
         index: true,

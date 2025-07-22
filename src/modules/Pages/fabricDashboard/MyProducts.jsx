@@ -262,18 +262,21 @@ const ProductPage = () => {
                       : "Draft Product"}
                   </button>
                 ) : null}
-
-                <Link
-                  state={{ info: row }}
-                  to={
-                    isAdminFabricRoute
-                      ? "/admin/fabric/edit-product"
-                      : "/fabric/product/edit-product"
-                  }
-                  className="block cursor-pointer text-center px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
-                >
-                  {"Edit Product"}
-                </Link>
+                {currProd == "all" ? (
+                  <></>
+                ) : (
+                  <Link
+                    state={{ info: row }}
+                    to={
+                      isAdminFabricRoute
+                        ? "/admin/fabric/edit-product"
+                        : "/fabric/product/edit-product"
+                    }
+                    className="block cursor-pointer text-center px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
+                  >
+                    {"Edit Product"}
+                  </Link>
+                )}
 
                 <button
                   onClick={() => {
@@ -389,7 +392,7 @@ const ProductPage = () => {
                   : "text-gray-500"
               }`}
             >
-              {tab} Products
+              {tab == "all" ? "All" : tab} Products
             </button>
           ))}{" "}
         </div>

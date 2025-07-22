@@ -253,7 +253,7 @@ export default function ShopMaterials() {
 
   const [queryMax, setQueryMax] = useState(200000);
 
-  const debouncedMax = useDebounce(queryMin ?? "", 1000);
+  const debouncedMax = useDebounce(queryMax ?? "", 1000);
 
   const [debounceMax, setDebounceMax] = useState("");
 
@@ -303,17 +303,16 @@ export default function ShopMaterials() {
           <Link to="/customer">Dashboard</Link> &gt; Shop Materials
         </p>
       </div>
+
       <div className="flex h-screen">
         <div
           className={`hidden md:block bg-white fixed md:relative left-0 transition-all duration-300 overflow-hidden
                 ${
                   isSidebarOpen
-                    ? "w-1/5 h-screen p-2"
+                    ? "w-1/5 h-full p-2"
                     : "w-14 h-14 p-2 rounded-md flex items-center justify-center cursor-pointer"
                 }`}
           onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
             if (!isSidebarOpen) {
               setIsSidebarOpen(true);
             }

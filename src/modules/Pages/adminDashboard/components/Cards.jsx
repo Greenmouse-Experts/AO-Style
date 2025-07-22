@@ -1,35 +1,34 @@
 import { useMemo } from "react";
 
 export default function StatsCard({ data }) {
-  const { data: cardData } = data;
   const stats = useMemo(
     () => [
       {
         image:
           "https://res.cloudinary.com/greenmouse-tech/image/upload/v1742827212/AoStyle/Group_38685_lvqmtr.png",
-        value: cardData?.fashionDesigners ?? 0,
+        value: data?.fashionDesigners ?? 0,
         label: "Tailors/Designers",
       },
       {
         image:
           "https://res.cloudinary.com/greenmouse-tech/image/upload/v1742827221/AoStyle/Group_38685_iz31fn.png",
-        value: cardData?.fabricVendors ?? 0,
+        value: data?.fabricVendors ?? 0,
         label: "Fabric Vendors",
       },
       {
         image:
           "https://res.cloudinary.com/greenmouse-tech/image/upload/v1742827244/AoStyle/Group_38685_p4bgt4.png",
-        value: cardData?.logisticsAgents ?? 0,
+        value: data?.logisticsAgents ?? 0,
         label: "Logistics Agents",
       },
       {
         image:
           "https://res.cloudinary.com/greenmouse-tech/image/upload/v1742827223/AoStyle/Group_38685_qx6z7j.png",
-        value: cardData?.marketReps ?? 0,
+        value: data?.marketReps ?? 0,
         label: "Market Representatives",
       },
     ],
-    [data, cardData]
+    [data]
   );
 
   return (

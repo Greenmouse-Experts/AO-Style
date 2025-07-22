@@ -48,15 +48,9 @@ const OrderDetails = () => {
     );
   }
 
-  console.log(orderId);
-
-  console.log(data?.data);
-
   const orderDetails = data?.data;
 
   const orderPurchase = data?.data?.payment?.purchase?.items;
-
-  console.log(orderDetails);
 
   const totalAmount =
     orderPurchase?.reduce((total, item) => {

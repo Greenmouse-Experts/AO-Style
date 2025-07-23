@@ -30,6 +30,15 @@ const getAdminFabricProduct = (params) => {
   });
 };
 
+const getManageFabricProduct = (params) => {
+  return CaryBinApi.get(`/manage-fabric/${params.id}`, {
+    params,
+    headers: {
+      "Business-id": params.id,
+    },
+  });
+};
+
 const updateFabricProduct = (payload) => {
   return CaryBinApi.patch(`/fabric/${payload.id}`, payload, {
     headers: {
@@ -73,6 +82,7 @@ const FabricService = {
   updateAdminFabricProduct,
   deleteAdminFabricProduct,
   createAdminFabricProduct,
+  getManageFabricProduct,
 };
 
 export default FabricService;

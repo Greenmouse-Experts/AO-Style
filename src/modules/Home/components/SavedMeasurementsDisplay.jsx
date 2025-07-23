@@ -49,11 +49,64 @@ export default function SavedMeasurementsDisplay({
   return (
     <div className="">
       {/* Header */}
-      <div className="text-center mb-10">
-        <h2 className="text-2xl font-medium text-purple-500">
-          Your Measurement
-        </h2>
-        <div className="mt-2 w-64 h-0.5 bg-purple-500 mx-auto"></div>
+      <div className="flex justify-between my-10">
+        <div className="text-center ">
+          <h2 className="text-2xl font-medium text-purple-500">
+            Your Measurement
+          </h2>
+          <div className="mt-2 w-64 h-0.5 bg-purple-500 mx-auto"></div>
+        </div>
+        <div className=" flex justify-center">
+          <SubmitStyleModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+          />
+          <button
+            className="bg-purple-500 cursor-pointer hover:bg-purple-600 text-white font-medium py-3 px-12 rounded-md"
+            onClick={() => {
+              if (item) {
+                setIsModalOpen(true);
+                addToCart(
+                  {
+                    product: {
+                      style: {
+                        id: styleInfo?.id,
+                        name: styleInfo?.name,
+                        type: "STYLE",
+                        price_at_time: styleInfo?.price,
+                        image: styleInfo?.style?.photos[0],
+                        measurement: measurementArr,
+                      },
+                    },
+                  },
+                  item
+                );
+                localStorage.removeItem("cart_id");
+              } else {
+                addToCart(
+                  {
+                    product: {
+                      style: {
+                        id: styleInfo?.id,
+                        name: styleInfo?.name,
+                        type: "STYLE",
+                        price_at_time: styleInfo?.price,
+                        image: styleInfo?.style?.photos[0],
+                        measurement: measurementArr,
+                      },
+                    },
+                  },
+                  id
+                );
+
+                navigate("/shop");
+                localStorage.setItem("cart_id", id);
+              }
+            }} // Opens the modal
+          >
+            Submit Measurements
+          </button>
+        </div>
       </div>
 
       {/* Measurement Cards */}
@@ -221,7 +274,7 @@ export default function SavedMeasurementsDisplay({
       ))}
 
       {/* Add New Measurement Button */}
-      <div
+      {/* <div
         className="inline-flex items-center gap-2 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-md py-3 px-5 cursor-pointer"
         onClick={handleAddNewMeasurement}
       >
@@ -229,60 +282,9 @@ export default function SavedMeasurementsDisplay({
           <Plus className="w-4 h-4" />
         </div>
         <span>Add New Measurement</span>
-      </div>
+      </div> */}
 
       {/* Submit Button */}
-      <div className="mt-10 flex justify-center">
-        <SubmitStyleModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-        />
-        <button
-          className="bg-purple-500 cursor-pointer hover:bg-purple-600 text-white font-medium py-3 px-12 rounded-md"
-          onClick={() => {
-            if (item) {
-              setIsModalOpen(true);
-              addToCart(
-                {
-                  product: {
-                    style: {
-                      id: styleInfo?.id,
-                      name: styleInfo?.name,
-                      type: "STYLE",
-                      price_at_time: styleInfo?.price,
-                      image: styleInfo?.style?.photos[0],
-                      measurement: measurementArr,
-                    },
-                  },
-                },
-                item
-              );
-              localStorage.removeItem("cart_id");
-            } else {
-              addToCart(
-                {
-                  product: {
-                    style: {
-                      id: styleInfo?.id,
-                      name: styleInfo?.name,
-                      type: "STYLE",
-                      price_at_time: styleInfo?.price,
-                      image: styleInfo?.style?.photos[0],
-                      measurement: measurementArr,
-                    },
-                  },
-                },
-                id
-              );
-
-              navigate("/shop");
-              localStorage.setItem("cart_id", id);
-            }
-          }} // Opens the modal
-        >
-          Submit Measurements
-        </button>
-      </div>
 
       {/* Edit Modal */}
       {editModalVisible && currentEdit && (

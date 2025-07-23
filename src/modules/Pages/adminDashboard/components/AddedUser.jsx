@@ -11,6 +11,7 @@ import { formatDateStr } from "../../../../lib/helper";
 import useGetAllUsersByRole from "../../../../hooks/admin/useGetAllUserByRole";
 import useDebounce from "../../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../../hooks/useUpdatedEffect";
+import useApproveMarketRep from "../../../../hooks/marketRep/useApproveMarketRep";
 
 const NewlyAddedUsers = () => {
   const [currView, setCurrView] = useState("approved");
@@ -21,6 +22,15 @@ const NewlyAddedUsers = () => {
   const dropdownRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const { isPending: approoveIsPending, approveMarketRepMutate } =
+    useApproveMarketRep();
+
+  const [reason, setReason] = useState("");
+
+  const [suspendModalOpen, setSuspendModalOpen] = useState(false);
+
+  const [newCategory, setNewCategory] = useState();
 
   const { data: businessData } = useGetBusinessDetails();
 
@@ -166,15 +176,39 @@ const NewlyAddedUsers = () => {
                 >
                   View Market Rep
                 </Link>
-                <button
-                  onClick={() => {}}
-                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
-                >
-                  Edit User
-                </button>
-                <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center">
-                  Remove User
-                </button>
+
+                {row.profile?.approved_by_admin !== null ? (
+                  row?.profile?.approved_by_admin ? (
+                    <>
+                      {" "}
+                      <button
+                        onClick={() => {
+                          setSuspendModalOpen(true);
+                          setNewCategory(row);
+                          setOpenDropdown(null);
+                        }}
+                        className="block text-red-500 hover:bg-red-100 cursor-pointer px-4 py-2  w-full text-center"
+                      >
+                        {"Suspend User"}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => {
+                          setSuspendModalOpen(true);
+                          setNewCategory(row);
+                          setOpenDropdown(null);
+                        }}
+                        className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+                      >
+                        {"Unsuspend User"}
+                      </button>
+                    </>
+                  )
+                ) : (
+                  <></>
+                )}
               </div>
             )}
           </div>
@@ -392,6 +426,90 @@ const NewlyAddedUsers = () => {
           </div>
         </div>
       </div>
+      {suspendModalOpen && (
+        <div
+          className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
+          onClick={() => {
+            setSuspendModalOpen(false);
+            setReason("");
+          }}
+        >
+          <div
+            className="bg-white rounded-lg p-6 w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-end">
+              <button
+                onClick={() => {
+                  setSuspendModalOpen(false);
+                  setReason("");
+                  setNewCategory(null);
+                }}
+                className="text-gray-500 cursor-pointer hover:text-gray-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <h3 className="text-lg font-semibold mb-4 -mt-7">
+              {newCategory?.profile?.approved_by_admin
+                ? "Suspend Admin"
+                : "Unsuspend Admin"}
+            </h3>
+            <form
+              className="mt-6 space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                approveMarketRepMutate(
+                  {
+                    user_id: newCategory?.id,
+                    suspension_reason: reason,
+                    approved: newCategory?.profile?.approved_by_admin
+                      ? false
+                      : true,
+                  },
+                  {
+                    onSuccess: () => {
+                      setSuspendModalOpen(false);
+                      setNewCategory(null);
+                      setReason("");
+                    },
+                  }
+                );
+              }}
+            >
+              <div>
+                <label className="block text-black mb-2">
+                  Reasons for{" "}
+                  {!newCategory?.profile?.approved_by_admin
+                    ? "unsuspending"
+                    : "suspending"}
+                </label>
+                <textarea
+                  placeholder="Reasons"
+                  className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg resize-none"
+                  name="reason"
+                  required
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  rows={3}
+                />
+              </div>
+
+              <button
+                disabled={approoveIsPending}
+                className="w-full bg-gradient cursor-pointer text-white py-4 rounded-lg font-normal"
+                type="submit"
+              >
+                {approoveIsPending
+                  ? "Please wait..."
+                  : newCategory?.profile?.approved_by_admin
+                  ? "Suspend"
+                  : "Unsuspend"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

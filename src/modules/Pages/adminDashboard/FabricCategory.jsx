@@ -66,6 +66,8 @@ const FabricCategoryTable = () => {
             onSuccess: () => {
               setIsAddModalOpen(false);
               setNewCategory(null);
+              resetForm();
+              setType("Add");
             },
           }
         );
@@ -76,6 +78,8 @@ const FabricCategoryTable = () => {
             onSuccess: () => {
               setIsAddModalOpen(false);
               setNewCategory(null);
+              resetForm();
+              setType("Add");
             },
           }
         );
@@ -86,6 +90,8 @@ const FabricCategoryTable = () => {
             onSuccess: () => {
               setIsAddModalOpen(false);
               setNewCategory(null);
+              resetForm();
+              setType("Add");
             },
           }
         );
@@ -497,6 +503,7 @@ const FabricCategoryTable = () => {
                       type="text"
                       name={"name"}
                       required
+                      maxLength={40}
                       value={values.name}
                       onChange={handleChange}
                       className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"

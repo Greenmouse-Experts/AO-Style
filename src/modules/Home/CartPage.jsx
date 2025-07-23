@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Breadcrumb from "./components/Breadcrumb";
 import useGetCart from "../../hooks/cart/useGetCart";
 import LoaderComponent from "../../components/BeatLoader";
@@ -16,6 +16,7 @@ import { nigeriaStates } from "../../constant";
 import PhoneInput from "react-phone-input-2";
 import useCreateBilling from "../../hooks/billing/useCreateBilling";
 import useAddMultipleCart from "../../hooks/cart/useAddMultipleCart";
+import useApplyCoupon from "../../hooks/coupon/useApplyCoupon";
 
 const initialValues = {
   address: "",
@@ -63,7 +64,9 @@ const CartPage = () => {
       return total + measurements.length * pricePerMeasurement;
     }, 0) ?? 0;
 
-  const updatedAmount = totalAmount + totalStyleAmount;
+  const [discountedPrice, setDiscountedPrice] = useState("");
+
+  const updatedAmount = totalAmount + totalStyleAmount - discountedPrice;
 
   const { isPending: deleteIsPending, deleteCartMutate } = useDeleteCart();
 
@@ -71,6 +74,8 @@ const CartPage = () => {
 
   const { isPending: createPaymentPending, createPaymentMutate } =
     useCreatePayment();
+
+  const { isPending: applyCouponPending, applyCouponMutate } = useApplyCoupon();
 
   const { isPending: billingPending, createBillingMutate } = useCreateBilling();
 
@@ -219,8 +224,6 @@ const CartPage = () => {
     },
   });
 
-  console.log(items);
-
   return (
     <>
       <Breadcrumb
@@ -247,8 +250,13 @@ const CartPage = () => {
           <div className="max-w-7xl mx-auto">
             {/* Header */}
             <div className="mb-8">
-              <h1 className="text-2xl font-semibold text-gray-900">Shopping Cart</h1>
-              <p className="text-sm text-gray-600 mt-1">{items?.length} {items?.length === 1 ? 'item' : 'items'} in your cart</p>
+              <h1 className="text-2xl font-semibold text-gray-900">
+                Shopping Cart
+              </h1>
+              <p className="text-sm text-gray-600 mt-1">
+                {items?.length} {items?.length === 1 ? "item" : "items"} in your
+                cart
+              </p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -277,8 +285,16 @@ const CartPage = () => {
                       className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors z-10"
                       title="Remove item"
                     >
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     </button>
 
@@ -299,10 +315,15 @@ const CartPage = () => {
                                 {item?.product?.style?.name}
                               </p>
                               <p className="text-xs text-gray-500 mt-1">
-                                Style • {item?.product?.style?.measurement?.length} {item?.product?.style?.measurement?.length > 1 ? 'pieces' : 'piece'}
+                                Style •{" "}
+                                {item?.product?.style?.measurement?.length}{" "}
+                                {item?.product?.style?.measurement?.length > 1
+                                  ? "pieces"
+                                  : "piece"}
                               </p>
                               <p className="text-sm font-medium text-purple-600 mt-1">
-                                ₦{item?.product?.style?.price_at_time?.toLocaleString()}
+                                ₦
+                                {item?.product?.style?.price_at_time?.toLocaleString()}
                               </p>
                             </div>
                           </div>
@@ -330,7 +351,8 @@ const CartPage = () => {
                                 Fabric • {item?.product?.quantity} yards
                               </p>
                               <p className="text-sm font-medium text-purple-600 mt-1">
-                                ₦{item?.product?.price_at_time?.toLocaleString()}
+                                ₦
+                                {item?.product?.price_at_time?.toLocaleString()}
                               </p>
                             </div>
                           </div>
@@ -348,13 +370,17 @@ const CartPage = () => {
                         <div>
                           <p className="text-xs text-gray-500">Quantity</p>
                           <p className="text-sm font-medium text-gray-900">
-                            {(item?.product?.quantity || 0) + (item?.product?.style?.measurement?.length || 0)} items
+                            {(item?.product?.quantity || 0) +
+                              (item?.product?.style?.measurement?.length ||
+                                0)}{" "}
+                            items
                           </p>
                         </div>
                         <div>
                           <p className="text-xs text-gray-500">Unit Price</p>
                           <p className="text-sm font-medium text-gray-900">
-                            ₦{Math.max(
+                            ₦
+                            {Math.max(
                               item?.product?.price_at_time || 0,
                               item?.product?.style?.price_at_time || 0
                             ).toLocaleString()}
@@ -363,9 +389,12 @@ const CartPage = () => {
                         <div className="text-right">
                           <p className="text-xs text-gray-500">Total</p>
                           <p className="text-lg font-bold text-purple-600">
-                            ₦{(
-                              (item?.product?.price_at_time || 0) * (item?.product?.quantity || 0) +
-                              (item?.product?.style?.measurement?.length || 0) * (item?.product?.style?.price_at_time || 0)
+                            ₦
+                            {(
+                              (item?.product?.price_at_time || 0) *
+                                (item?.product?.quantity || 0) +
+                              (item?.product?.style?.measurement?.length || 0) *
+                                (item?.product?.style?.price_at_time || 0)
                             ).toLocaleString()}
                           </p>
                         </div>
@@ -390,10 +419,15 @@ const CartPage = () => {
                                   {item?.product?.style?.name}
                                 </p>
                                 <p className="text-xs text-gray-500">
-                                  Style • {item?.product?.style?.measurement?.length} {item?.product?.style?.measurement?.length > 1 ? 'pieces' : 'piece'}
+                                  Style •{" "}
+                                  {item?.product?.style?.measurement?.length}{" "}
+                                  {item?.product?.style?.measurement?.length > 1
+                                    ? "pieces"
+                                    : "piece"}
                                 </p>
                                 <p className="text-sm font-medium text-purple-600">
-                                  ₦{item?.product?.style?.price_at_time?.toLocaleString()}
+                                  ₦
+                                  {item?.product?.style?.price_at_time?.toLocaleString()}
                                 </p>
                               </div>
                             </div>
@@ -421,7 +455,8 @@ const CartPage = () => {
                                   Fabric • {item?.product?.quantity} yards
                                 </p>
                                 <p className="text-sm font-medium text-purple-600">
-                                  ₦{item?.product?.price_at_time?.toLocaleString()}
+                                  ₦
+                                  {item?.product?.price_at_time?.toLocaleString()}
                                 </p>
                               </div>
                             </div>
@@ -438,7 +473,8 @@ const CartPage = () => {
                       {/* Quantity */}
                       <div className="md:col-span-2 text-center">
                         <div className="text-sm text-gray-900">
-                          {(item?.product?.quantity || 0) + (item?.product?.style?.measurement?.length || 0)}
+                          {(item?.product?.quantity || 0) +
+                            (item?.product?.style?.measurement?.length || 0)}
                         </div>
                         <div className="text-xs text-gray-500">items</div>
                       </div>
@@ -446,7 +482,8 @@ const CartPage = () => {
                       {/* Unit Price */}
                       <div className="md:col-span-2 text-right">
                         <div className="text-sm font-medium text-gray-900">
-                          ₦{Math.max(
+                          ₦
+                          {Math.max(
                             item?.product?.price_at_time || 0,
                             item?.product?.style?.price_at_time || 0
                           ).toLocaleString()}
@@ -457,9 +494,12 @@ const CartPage = () => {
                       {/* Total */}
                       <div className="md:col-span-2 text-right">
                         <div className="text-lg font-semibold text-purple-600">
-                          ₦{(
-                            (item?.product?.price_at_time || 0) * (item?.product?.quantity || 0) +
-                            (item?.product?.style?.measurement?.length || 0) * (item?.product?.style?.price_at_time || 0)
+                          ₦
+                          {(
+                            (item?.product?.price_at_time || 0) *
+                              (item?.product?.quantity || 0) +
+                            (item?.product?.style?.measurement?.length || 0) *
+                              (item?.product?.style?.price_at_time || 0)
                           ).toLocaleString()}
                         </div>
                       </div>
@@ -471,11 +511,15 @@ const CartPage = () => {
               {/* Order Summary - Right Side */}
               <div className="lg:col-span-1">
                 <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm sticky top-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h3>
-                  
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Order Summary
+                  </h3>
+
                   {/* Coupon Field */}
                   <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Promo Code</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Promo Code
+                    </label>
                     <div className="flex w-full">
                       <input
                         type="text"
@@ -484,8 +528,45 @@ const CartPage = () => {
                         onChange={(e) => setCoupon(e.target.value)}
                         className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-l-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       />
-                      <button className="flex-shrink-0 px-4 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-md text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
-                        Apply
+                      <button
+                        disabled={!coupon}
+                        onClick={() => {
+                          if (!token || !carybinUser) {
+                            toastSuccess(
+                              "You need to have a Customer Account to apply coupon"
+                            );
+                            const currentPath =
+                              location.pathname + location.search;
+                            navigate(
+                              `/login?redirect=${encodeURIComponent(
+                                currentPath
+                              )}`
+                            );
+                          } else {
+                            console.log(carybinUser?.email);
+                            applyCouponMutate(
+                              {
+                                email: carybinUser?.email,
+                                code: coupon,
+                                amount: (
+                                  totalAmount + totalStyleAmount
+                                )?.toString(),
+                              },
+                              {
+                                onSuccess: (data) => {
+                                  setDiscountedPrice(
+                                    data?.data?.data?.discount
+                                  );
+                                  setCoupon("");
+                                },
+                                onError: () => {},
+                              }
+                            );
+                          }
+                        }}
+                        className="flex-shrink-0 disabled:cursor-not-allowed px-4 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-md text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+                      >
+                        {applyCouponPending ? "Please wait..." : "Apply"}
                       </button>
                     </div>
                   </div>
@@ -494,19 +575,38 @@ const CartPage = () => {
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Subtotal</span>
-                      <span className="font-medium">₦{updatedAmount?.toLocaleString()}</span>
+                      <span className="font-medium">
+                        ₦{(totalAmount + totalStyleAmount)?.toLocaleString()}
+                      </span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Discount</span>
-                      <span className="font-medium text-green-600">-₦0</span>
+                      <span className="font-medium text-green-600">
+                        -₦{discountedPrice}
+                      </span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Delivery</span>
                       <span className="font-medium text-green-600">Free</span>
                     </div>
+                    <div className="flex justify-between text-sm text-gray-700 mt-2">
+                      <span>Estimated sales VAT</span>
+                      <span>
+                        <span className="font-medium text-green-600">₦0</span>
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-sm text-gray-700 mt-2">
+                      <span>Charges</span>
+                      <span>
+                        <span className="font-medium text-green-600">₦0</span>
+                      </span>
+                    </div>
                     <div className="border-t border-gray-200 pt-3">
                       <div className="flex justify-between">
-                        <span className="text-base font-semibold text-gray-900">Total</span>
+                        <span className="text-base font-semibold text-gray-900">
+                          Total
+                        </span>
                         <span className="text-xl font-bold text-purple-600">
                           ₦{Math.round(updatedAmount).toLocaleString()}
                         </span>
@@ -517,7 +617,7 @@ const CartPage = () => {
                   {/* Checkout Button */}
                   <button
                     onClick={() => {
-                      if (!token) {
+                      if (!token || !carybinUser) {
                         toastSuccess(
                           "You need to have a Customer Account to make an order"
                         );
@@ -555,21 +655,35 @@ const CartPage = () => {
                   >
                     {addCartPending
                       ? "Processing..."
-                      : `Proceed to Checkout • ₦${Math.round(updatedAmount).toLocaleString()}`}
+                      : `Proceed to Checkout • ₦${Math.round(
+                          updatedAmount
+                        ).toLocaleString()}`}
                   </button>
 
                   {/* Trust Badges */}
                   <div className="mt-4 pt-4 border-t border-gray-200">
                     <div className="flex items-center justify-center space-x-4 text-xs text-gray-500">
                       <div className="flex items-center space-x-1">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/>
+                        <svg
+                          className="w-4 h-4"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                         <span>Secure Payment</span>
                       </div>
                       <div className="flex items-center space-x-1">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        <svg
+                          className="w-4 h-4"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <span>Free Returns</span>
                       </div>
@@ -755,13 +869,14 @@ const CartPage = () => {
                   </div>
                   <div>
                     <label className="block text-sm text-black">
-                      Deliver Address *
+                      Delivery Address *
                       <input
                         type="text"
                         placeholder="Enter your delivery address"
                         className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
                         required
                         name={"address"}
+                        maxLength={150}
                         value={values.address}
                         onChange={handleChange}
                       />
@@ -784,7 +899,15 @@ const CartPage = () => {
                   <div className="border-t border-gray-300 pt-4">
                     <div className="flex justify-between text-sm text-gray-700">
                       <span>SUBTOTAL</span>
-                      <span>NGN {updatedAmount.toLocaleString()}</span>
+                      <span>
+                        NGN {(totalAmount + totalStyleAmount).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between mt-2 text-sm text-gray-700">
+                      <span className="">Discount</span>
+                      <span className=" text-green-600">
+                        -₦{discountedPrice}
+                      </span>
                     </div>
                     {/* <div className="flex justify-between text-sm text-gray-700 mt-2">
                       <span>Estimated sales VAT (7.5)</span>

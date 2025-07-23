@@ -6,7 +6,7 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
   return (
     isOpen && (
       <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm">
-        <div className="bg-white p-6 rounded-lg w-[90%] sm:w-[400px]">
+        <div className="bg-white rounded-lg p-6 w-full max-h-[80vh] overflow-y-auto max-w-3xl relative">
           {/* Header */}
           <div className="flex justify-between items-center border-b border-[#CCCCCC] outline-none pb-3 mb-4">
             <h2 className="text-lg font-semibold">Add a New Customer</h2>
@@ -21,25 +21,29 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
           {/* Form */}
           <div className="space-y-3">
             <div>
-              <label className="text-sm text-gray-600">Customer Name</label>
+              <label className="text-sm text-gray-600">Full Name</label>
               <input
                 type="text"
-                className="w-full p-3 mt-3 border border-[#CCCCCC] outline-none rounded-lg"
-                placeholder="Customer Name"
+                placeholder="Full Name"
+                className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
+                name={"name"}
+                required
+                // value={values.name}
+                // onChange={handleChange}
               />
             </div>
 
             <div>
-              <label className="text-sm text-gray-600">Customer Email</label>
+              <label className="text-sm text-gray-600">Email Address</label>
               <input
                 type="email"
                 className="w-full p-3 mt-3 border border-[#CCCCCC] outline-none rounded-lg"
-                placeholder="Customer Email"
+                placeholder="Email Address"
               />
             </div>
 
             {/* Phone Number */}
-            <div className="flex gap-2">
+            {/* <div className="flex gap-2">
               <div className="flex items-center p-0 px-3 border border-[#CCCCCC] rounded-lg">
                 🇳🇬 +234
               </div>
@@ -49,9 +53,9 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
                 placeholder="8023456789"
               />
             </div>
-
+ */}
             {/* Toggle for Address */}
-            <div className="flex items-center justify-between">
+            {/* <div className="flex items-center justify-between">
               <label className="text-sm text-gray-600">Add Address</label>
               <input
                 type="checkbox"
@@ -60,7 +64,7 @@ const AddCustomerModal = ({ isOpen, onClose }) => {
                 onChange={() => setAddAddress(!addAddress)}
               />
             </div>
-
+ */}
             {/* Address Fields (Hidden Until Add Address is Enabled) */}
             {addAddress && (
               <div className="space-y-3">

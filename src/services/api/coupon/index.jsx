@@ -8,6 +8,10 @@ const createCoupon = (payload, business_id) => {
   });
 };
 
+const applyCoupon = (payload) => {
+  return CaryBinApi.post(`/coupon-management/apply-coupon`, payload);
+};
+
 const createAdminFabricProduct = (payload) => {
   return CaryBinApi.post(`/manage-fabric/create`, payload, {});
 };
@@ -16,6 +20,10 @@ const getAllCoupon = (params) => {
   return CaryBinApi.get(`/coupon-management/fetch/${params?.business_id}`, {
     params,
   });
+};
+
+const getAllCouponAdmin = () => {
+  return CaryBinApi.get(`/coupon-management/fetch-all`);
 };
 
 const getAdminFabricProduct = (params) => {
@@ -55,6 +63,8 @@ const CouponService = {
   getAllCoupon,
   deleteCoupon,
   updateCouponProduct,
+  getAllCouponAdmin,
+  applyCoupon,
 };
 
 export default CouponService;

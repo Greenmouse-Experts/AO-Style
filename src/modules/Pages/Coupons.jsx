@@ -29,8 +29,14 @@ import useGetCoupon from "../../hooks/coupon/useGetCoupon";
 import useToast from "../../hooks/useToast";
 import useDeleteCoupon from "../../hooks/coupon/useDeleteCoupon";
 import useEditCoupon from "../../hooks/coupon/useEditCoupon";
+import { useLocation } from "react-router-dom";
+import useGetAllCoupon from "../../hooks/coupon/useGetAllAdminCoupon";
 
 const Coupons = () => {
+  const location = useLocation();
+
+  const currUrl = location.pathname;
+  console.log(currUrl);
   const dropdownRef = useRef(null);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -76,8 +82,6 @@ const Coupons = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      console.log(newCategory);
-      console.log(type);
       if (type == "Remove") {
         return deleteCouponMutate(
           { ...val, id: newCategory?.id },
@@ -85,6 +89,8 @@ const Coupons = () => {
             onSuccess: () => {
               setIsAddModalOpen(false);
               setNewCategory(null);
+              setType("Add");
+              resetForm();
             },
           }
         );
@@ -103,6 +109,7 @@ const Coupons = () => {
               setIsAddModalOpen(false);
               setNewCategory(null);
               resetForm();
+              setType("Add");
             },
           }
         );
@@ -115,6 +122,7 @@ const Coupons = () => {
             setIsAddModalOpen(false);
             setNewCategory(null);
             resetForm();
+            setType("Add");
           },
         }
       );
@@ -139,7 +147,10 @@ const Coupons = () => {
     business_id: businessDetails?.data?.id,
   });
 
-  console.log(isError);
+  const { data: allData, isPending: allIsPending } = useGetAllCoupon({
+    ...queryParams,
+    business_id: businessDetails?.data?.id,
+  });
 
   useEffect(() => {
     if (error?.data?.message) {
@@ -149,18 +160,19 @@ const Coupons = () => {
 
   const [queryString, setQueryString] = useState(queryParams.q);
 
+  const couponData = currUrl == "/admin/coupon" ? allData : data;
+
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
 
   const fabricData = useMemo(
     () =>
-      data?.data
-        ? data?.data.map((details) => {
+      couponData?.data
+        ? couponData?.data?.map((details) => {
             return {
               ...details,
               code: `${details?.code}`,
               type: `${details?.type}`,
               value: `${details?.value}`,
-
               dateAdded: `${
                 details?.created_at
                   ? formatDateStr(details?.created_at.split(".").shift())
@@ -204,7 +216,7 @@ const Coupons = () => {
         label: "Action",
         key: "action",
         render: (_, row) => (
-          <div className="relative inline-block z-[9999]">
+          <div className="relative inline-block ">
             <button
               className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
               onClick={() => toggleDropdown(row.id)}

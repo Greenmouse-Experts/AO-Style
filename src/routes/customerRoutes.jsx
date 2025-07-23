@@ -11,11 +11,16 @@ import InboxPage from "../modules/Pages/customerDashboard/Inbox";
 import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
 import ShopStyles from "../modules/Pages/customerDashboard/ShopStyles";
 import CustomerAnnouncementsPage from "../modules/Pages/customerDashboard/Announcements";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 export const customerRoutes = [
   {
     path: "/customer",
-    element: <CustomerLayout />,
+    element: (
+      <ProtectedRoute>
+        <CustomerLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,

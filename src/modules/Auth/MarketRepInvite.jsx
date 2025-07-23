@@ -10,6 +10,7 @@ import Loader from "../../components/ui/Loader";
 import { useFormik } from "formik";
 import useAcceptInvite from "./hooks/useAcceptInvite";
 import { countryCodes } from "../../constant";
+import PhoneInput from "react-phone-input-2";
 
 import Select from "react-select";
 import useToast from "../../hooks/useToast";
@@ -165,44 +166,24 @@ export default function MarketRepInvite() {
 
               <div className="flex flex-col md:flex-row md:items-center gap-2 ">
                 {/* Country Code Dropdown */}
-                <Select
-                  options={options}
-                  name="phoneCode"
-                  value={options?.find((opt) => opt.value === values.phoneCode)}
-                  onChange={(selectedOption) =>
-                    setFieldValue("phoneCode", selectedOption.value)
-                  }
-                  placeholder="Select"
-                  className="p-2 md:w-28 border border-[#CCCCCC] outline-none rounded-lg text-gray-500"
-                  styles={{
-                    control: (base, state) => ({
-                      ...base,
-                      border: "none",
-                      boxShadow: "none",
-                      outline: "none",
-                      backgroundColor: "#fff",
-                      "&:hover": {
-                        border: "none",
-                      },
-                    }),
-                    indicatorSeparator: () => ({
-                      display: "none",
-                    }),
-                    menu: (base) => ({
-                      ...base,
-                      zIndex: 9999,
-                    }),
-                  }}
-                />{" "}
-                {/* Phone Input */}
-                <input
-                  type="tel"
-                  name="phone"
-                  placeholder="Phone Number"
-                  className="flex-1 p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                <PhoneInput
+                  country={"ng"}
                   value={values.phone}
-                  onChange={handleChange}
-                  required
+                  inputProps={{
+                    name: "phone",
+                    required: true,
+                  }}
+                  onChange={(value) => {
+                    // Ensure `+` is included and validate
+                    if (!value.startsWith("+")) {
+                      value = "+" + value;
+                    }
+                    setFieldValue("phone", value);
+                  }}
+                  containerClass="w-full disabled:bg-gray-100"
+                  dropdownClass="flex flex-col gap-2 text-black disabled:bg-gray-100"
+                  buttonClass="bg-gray-100 !border !border-gray-100 hover:!bg-gray-100 disabled:bg-gray-100"
+                  inputClass="!w-full px-4 font-sans disabled:bg-gray-100  !h-[54px] !py-4 border border-gray-300 !rounded-md focus:outline-none"
                 />
               </div>
             </div>
@@ -215,42 +196,24 @@ export default function MarketRepInvite() {
 
               <div className="flex flex-col md:flex-row md:items-center gap-2 ">
                 {/* Country Code Dropdown */}
-                <Select
-                  options={options}
-                  name="altCode"
-                  value={options?.find((opt) => opt.value === values.altCode)}
-                  onChange={(selectedOption) =>
-                    setFieldValue("altCode", selectedOption.value)
-                  }
-                  placeholder="Select"
-                  className="p-2 md:w-34 border border-[#CCCCCC] outline-none rounded-lg text-gray-500"
-                  styles={{
-                    control: (base, state) => ({
-                      ...base,
-                      border: "none",
-                      boxShadow: "none",
-                      outline: "none",
-                      backgroundColor: "#fff",
-                      "&:hover": {
-                        border: "none",
-                      },
-                    }),
-                    indicatorSeparator: () => ({
-                      display: "none",
-                    }),
-                    menu: (base) => ({
-                      ...base,
-                      zIndex: 9999,
-                    }),
-                  }}
-                />{" "}
-                <input
-                  type="tel"
-                  name={"alternative_phone"}
+                <PhoneInput
+                  country={"ng"}
                   value={values.alternative_phone}
-                  onChange={handleChange}
-                  placeholder="Alternative Phone Number"
-                  className="w-full p-4 border border-[#CCCCCC] outline-none  rounded-lg"
+                  inputProps={{
+                    name: "alternative_phone",
+                    required: true,
+                  }}
+                  onChange={(value) => {
+                    // Ensure `+` is included and validate
+                    if (!value.startsWith("+")) {
+                      value = "+" + value;
+                    }
+                    setFieldValue("alternative_phone", value);
+                  }}
+                  containerClass="w-full disabled:bg-gray-100"
+                  dropdownClass="flex flex-col gap-2 text-black disabled:bg-gray-100"
+                  buttonClass="bg-gray-100 !border !border-gray-100 hover:!bg-gray-100 disabled:bg-gray-100"
+                  inputClass="!w-full px-4 font-sans disabled:bg-gray-100  !h-[54px] !py-4 border border-gray-300 !rounded-md focus:outline-none"
                 />
               </div>
             </div>

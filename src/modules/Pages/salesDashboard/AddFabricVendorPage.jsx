@@ -10,6 +10,8 @@ import { countryCodes } from "../../../constant";
 
 import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 import useToast from "../../../hooks/useToast";
+import PhoneInput from "react-phone-input-2";
+
 import useAddFabricVendor from "../../../hooks/marketRep/useAddFabricVendor";
 
 const initialValues = {
@@ -386,46 +388,24 @@ export default function AddFabricVendorPage() {
                   </label>
                   <div className="flex flex-col md:flex-row md:items-center gap-2 ">
                     {/* Country Code Dropdown */}
-                    <Select
-                      options={options}
-                      name="phoneCode"
-                      value={options?.find(
-                        (opt) => opt.value === values.phoneCode
-                      )}
-                      onChange={(selectedOption) =>
-                        setFieldValue("phoneCode", selectedOption.value)
-                      }
-                      placeholder="Select"
-                      className="p-2 md:w-30 border border-[#CCCCCC] outline-none rounded-lg text-gray-500"
-                      styles={{
-                        control: (base, state) => ({
-                          ...base,
-                          border: "none",
-                          boxShadow: "none",
-                          outline: "none",
-                          backgroundColor: "#fff",
-                          "&:hover": {
-                            border: "none",
-                          },
-                        }),
-                        indicatorSeparator: () => ({
-                          display: "none",
-                        }),
-                        menu: (base) => ({
-                          ...base,
-                          zIndex: 9999,
-                        }),
-                      }}
-                    />{" "}
-                    {/* Phone Input */}
-                    <input
-                      type="tel"
-                      name="phone"
-                      placeholder="Phone Number"
-                      className="flex-1 p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                    <PhoneInput
+                      country={"ng"}
                       value={values.phone}
-                      onChange={handleChange}
-                      required
+                      inputProps={{
+                        name: "phone",
+                        required: true,
+                      }}
+                      onChange={(value) => {
+                        // Ensure `+` is included and validate
+                        if (!value.startsWith("+")) {
+                          value = "+" + value;
+                        }
+                        setFieldValue("phone", value);
+                      }}
+                      containerClass="w-full disabled:bg-gray-100"
+                      dropdownClass="flex flex-col gap-2 text-black disabled:bg-gray-100"
+                      buttonClass="bg-gray-100 !border !border-gray-100 hover:!bg-gray-100 disabled:bg-gray-100"
+                      inputClass="!w-full px-4 font-sans disabled:bg-gray-100  !h-[54px] !py-4 border border-gray-300 !rounded-md focus:outline-none"
                     />
                   </div>
                 </div>

@@ -81,6 +81,18 @@ export default function Filters({
   const [product, setProduct] = useState("");
   const [market, setMarket] = useState("");
 
+  const [colorVal, setColorVal] = useState("");
+
+  const [selectedColor, setSelectedColor] = useState("");
+
+  const handleColorSelect = (color) => {
+    setSelectedColor(color);
+
+    updateQueryParams({
+      color: color.toLowerCase(),
+    });
+  };
+
   return (
     <div className="bg-white p-3 sm:p-4 rounded-lg w-full">
       <h2 className="text-base sm:text-lg font-semibold mb-4 sm:mb-5">
@@ -152,87 +164,6 @@ export default function Filters({
         </select> */}
       </div>
 
-      {/* Price Range */}
-      <div className="mb-3 sm:mb-4">
-        <h3 className="font-medium mb-2 sm:mb-3">Price</h3>
-        <div className="flex justify-between text-xs sm:text-sm">
-          <span>₦{queryMin.toLocaleString()}</span>
-          <span>₦{queryMax.toLocaleString()}</span>
-        </div>
-        <input
-          type="range"
-          min="0"
-          max="200000"
-          value={queryMin}
-          onChange={(e) => {
-            setQueryMin(parseInt(e.target.value ?? undefined));
-          }}
-          className="w-full mb-3"
-        />
-        <input
-          type="range"
-          min={queryMin}
-          max="200000"
-          value={queryMax}
-          onChange={(e) => {
-            setQueryMax(parseInt(e.target.value ?? undefined));
-          }}
-          className="w-full mb-3"
-        />
-      </div>
-
-      {/* Colors */}
-      <div className="mb-3 sm:mb-4">
-        <h3 className="font-medium mb-2 sm:mb-3">Colors</h3>
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-          {colors.map((color, index) => (
-            <button
-              key={index}
-              className={`p-5 rounded border-[#BEBCBD] transition ${
-                filters.color === color ? "border-white" : "border-gray-300"
-              }`}
-              style={{ backgroundColor: color.toLowerCase() }}
-              onClick={() => {
-                console.log(color?.toLowerCase());
-                updateQueryParams({
-                  color: color?.toLowerCase(),
-                });
-                setFilters({
-                  ...filters,
-                  color: filters.color === color ? "" : color,
-                });
-              }}
-            ></button>
-          ))}
-        </div>
-      </div>
-
-      {/* Sizes */}
-      {/* <div className="mb-3 sm:mb-4">
-        <h3 className="font-medium mb-2 sm:mb-3">Size</h3>
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-          {sizes.map((size, index) => (
-            <button
-              key={index}
-              className={`p-3 sm:p-4 rounded text-sm sm:text-base transition ${
-                filters.size === size
-                  ? "bg-purple-600 text-white"
-                  : "bg-gray-100 hover:bg-gray-200"
-              }`}
-              onClick={() =>
-                setFilters({
-                  ...filters,
-                  size: filters.size === size ? "" : size,
-                })
-              }
-            >
-              {size}
-            </button>
-          ))}
-        </div>
-      </div> */}
-
-      {/* Marketplace */}
       <div className="mb-3 sm:mb-4">
         <h3 className="font-medium mb-2 sm:mb-3">Marketplace</h3>
         <Select
@@ -282,6 +213,101 @@ export default function Filters({
           }}
         />{" "}
       </div>
+
+      {/* Price Range */}
+      <div className="mb-3 sm:mb-4">
+        <h3 className="font-medium mb-2 sm:mb-3">Price</h3>
+        <div className="flex justify-between text-xs sm:text-sm">
+          <span>
+            <span>Min</span>
+          </span>
+          <span>₦{queryMin?.toLocaleString()} </span>
+        </div>
+        <input
+          type="range"
+          min="0"
+          max="200000"
+          value={queryMin}
+          onChange={(e) => {
+            setQueryMin(parseInt(e.target.value ?? undefined));
+          }}
+          className="w-full mb-3"
+        />
+        <div className="flex justify-between text-xs sm:text-sm">
+          <span>
+            <span>Max</span>
+          </span>
+          <span> ₦{queryMax?.toLocaleString()}</span>
+        </div>
+        <input
+          type="range"
+          min={queryMin}
+          max="200000"
+          value={queryMax}
+          onChange={(e) => {
+            setQueryMax(parseInt(e.target.value ?? undefined));
+          }}
+          className="w-full mb-3"
+        />
+      </div>
+
+      {/* Colors */}
+      <div className="mb-3 sm:mb-4">
+        <h3 className="font-medium mb-2 sm:mb-3">Colors</h3>
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+          {colors.map((color, index) => (
+            <button
+              key={index}
+              className={`p-5 rounded border-2  transition ${
+                colorVal === color ? " border-gray-300" : "border-white"
+              }`}
+              style={{ backgroundColor: color.toLowerCase() }}
+              onClick={() => {
+                if (colorVal === color) {
+                  updateQueryParams({ color: undefined });
+                  setColorVal("");
+                } else {
+                  updateQueryParams({ color: color.toLowerCase() });
+                  setColorVal(color);
+                }
+              }}
+            ></button>
+          ))}
+        </div>
+        <input
+          type="color"
+          value={selectedColor}
+          onChange={(e) => handleColorSelect(e.target.value)}
+          className="w-full h-10 mt-4 relative z-[9999] border rounded"
+        />
+      </div>
+
+      {/* Sizes */}
+      {/* <div className="mb-3 sm:mb-4">
+        <h3 className="font-medium mb-2 sm:mb-3">Size</h3>
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+          {sizes.map((size, index) => (
+            <button
+              key={index}
+              className={`p-3 sm:p-4 rounded text-sm sm:text-base transition ${
+                filters.size === size
+                  ? "bg-purple-600 text-white"
+                  : "bg-gray-100 hover:bg-gray-200"
+              }`}
+              onClick={() =>
+                setFilters({
+                  ...filters,
+                  size: filters.size === size ? "" : size,
+                })
+              }
+            >
+              {size}
+            </button>
+          ))}
+        </div>
+      </div> */}
+
+      {/* Marketplace */}
     </div>
   );
 }

@@ -10,10 +10,12 @@ import useDebounce from "../../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../../hooks/useUpdatedEffect";
 import Loader from "../../../../components/ui/Loader";
 import useApproveMarketRep from "../../../../hooks/marketRep/useApproveMarketRep";
+import AddTailorModal from "../components/AddTailorModal";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [activeTab, setActiveTab] = useState("table");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [suspendModalOpen, setSuspendModalOpen] = useState(false);
 
@@ -221,13 +223,21 @@ const CustomersTable = () => {
           <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
             Bulk Action
           </button>
-          <Link to="/admin/tailors/add-tailor">
-            <button className="bg-purple-600 cursor-pointer text-white px-4 py-2 text-sm rounded-md">
-              + Add a New Tailor/Designer
-            </button>
-          </Link>
+          {/* <Link to="/admin/tailors/add-tailor"> */}
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-purple-600 cursor-pointer text-white px-4 py-2 text-sm rounded-md"
+          >
+            + Add a New Tailor/Designer
+          </button>
+          {/* </Link> */}
         </div>
       </div>
+
+      <AddTailorModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
 
       {activeTab === "table" ? (
         <>

@@ -1,6 +1,7 @@
 import { Bell } from "lucide-react";
 import useQueryParams from "../../../../hooks/useQueryParams";
 import useGetNotification from "../../../../hooks/notification/useGetNotification";
+import useMarkReadNotification from "../../../../hooks/notification/useMarkReadNotification";
 
 const notifications = [
   {
@@ -27,6 +28,9 @@ export default function NotificationsCard() {
     "pagination[page]": 1,
   });
 
+  const { isPending: markReadIsPending, markReadNotificationMutate } =
+    useMarkReadNotification();
+
   return (
     <div className="bg-white p-6 rounded-xl">
       <h3 className="font-medium text-lg mb-4">Recent Notifications</h3>
@@ -34,6 +38,11 @@ export default function NotificationsCard() {
         data?.data.map((notification, index) => (
           <div
             key={notification?.id}
+            onClick={() => {
+              if (!notification?.read) {
+                markReadNotificationMutate({ id: notification?.id });
+              }
+            }}
             className={`flex items-start py-2 last:border-none gap-3 ${
               !notification?.read ? "bg-purple-100 cursor-pointer" : ""
             }`}

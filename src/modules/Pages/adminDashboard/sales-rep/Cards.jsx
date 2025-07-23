@@ -27,11 +27,11 @@ export default function MarketRepCard() {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 md:grid-rows-2 lg:grid-cols-4 gap-6">
+    <div className="flex flex-wrap gap-3">
       {stats.map((stat, index) => (
         <div
           key={index}
-          className="flex items-center justify-between bg-white p-4 rounded-md"
+          className="flex items-center justify-between bg-white p-4 rounded-md w-full sm:w-[calc(50%-0.75rem)] lg:w-[calc(25%-0.75rem)]"
         >
           <div>
             <p className="text-xl font-bold leading-loose">{stat.value}</p>

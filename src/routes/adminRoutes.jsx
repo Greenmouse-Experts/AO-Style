@@ -46,6 +46,7 @@ import FAQManagementPage from "../modules/Pages/adminDashboard/FAQManagement";
 import ViewFabric from "../modules/Pages/adminDashboard/fabric/ViewFabric";
 import ViewLogistics from "../modules/Pages/adminDashboard/components/ViewLogistics";
 import JobsManagementPage from "../modules/Pages/adminDashboard/JobsManagement";
+import Coupons from "../modules/Pages/Coupons";
 
 export const adminRoutes = [
   {
@@ -209,6 +210,11 @@ export const adminRoutes = [
         path: "/admin/subscription",
         element: <Subscriptionpage />,
       },
+      {
+        path: "/admin/coupon",
+        element: <Coupons />,
+      },
+
       {
         path: "/admin/transactions",
         element: <PaymentTransaction />,

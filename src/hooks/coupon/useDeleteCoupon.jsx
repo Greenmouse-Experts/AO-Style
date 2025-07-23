@@ -15,6 +15,9 @@ const useDeleteCoupon = () => {
       queryClient.invalidateQueries({
         queryKey: ["get-coupon"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["get-allcoupon"],
+      });
     },
     onError: (error) => {
       if (!navigator.onLine) {

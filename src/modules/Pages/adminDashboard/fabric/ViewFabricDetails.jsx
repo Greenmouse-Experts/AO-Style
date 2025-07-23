@@ -6,6 +6,10 @@ import { useModalState } from "../../../../hooks/useModalState";
 import RejectKycModal from "../tailor/RejectTailorKyc";
 import { nigeriaStates } from "../../../../constant";
 import Select from "react-select";
+import {
+  useCountries,
+  useStates,
+} from "../../../../hooks/location/useGetCountries";
 
 const ViewFabricDetails = () => {
   // const marketRepoInfo = state?.info;
@@ -17,6 +21,11 @@ const ViewFabricDetails = () => {
   const location = useLocation();
 
   const id = location?.state?.info;
+
+  const { data: countries, isLoading: loadingCountries } = useCountries();
+
+  const countriesOptions =
+    countries?.map((c) => ({ label: c.name, value: c.name })) || [];
 
   console.log(id);
 
@@ -66,6 +75,13 @@ const ViewFabricDetails = () => {
   };
 
   console.log("Tailor Info:", tailorInfo);
+
+  const { data: states, isLoading: loadingStates } = useStates(
+    tailorInfo?.kyc?.country
+  );
+
+  const statesOptions =
+    states?.map((c) => ({ label: c.name, value: c.name })) || [];
 
   const urlContainsTailors = location.pathname.includes("logistics")
     ? "View  Logistics"
@@ -466,9 +482,9 @@ const ViewFabricDetails = () => {
               <div className="w-full">
                 <label className="block text-gray-700 mb-2">Country</label>
                 <Select
-                  options={[{ value: "Nigeria", label: "Nigeria" }]}
+                  options={countriesOptions}
                   name="country"
-                  value={[{ value: "Nigeria", label: "Nigeria" }]?.find(
+                  value={countriesOptions?.find(
                     (opt) => opt.value === tailorInfo?.kyc?.country
                   )}
                   onChange={(selectedOption) => {}}
@@ -498,9 +514,9 @@ const ViewFabricDetails = () => {
               <div>
                 <label className="block text-gray-700 mb-2">State</label>
                 <Select
-                  options={nigeriaStates}
+                  options={statesOptions}
                   name="state"
-                  value={nigeriaStates?.find(
+                  value={statesOptions?.find(
                     (opt) => opt.value === tailorInfo?.kyc?.state
                   )}
                   onChange={(selectedOption) => {}}

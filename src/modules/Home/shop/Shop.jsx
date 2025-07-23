@@ -8,7 +8,11 @@ import LoaderComponent from "../../../components/BeatLoader";
 import { motion } from "framer-motion";
 import useDebounce from "../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
+import Select from "react-select";
+
 import { useCartStore } from "../../../store/carybinUserCartStore";
+import useProductCategoryGeneral from "../../../hooks/dashboard/useGetProductPublic";
+import useGetMarketPlaces from "../../../hooks/dashboard/useGetMarketPlaces";
 
 const categories = ["Male", "Female"];
 
@@ -71,6 +75,21 @@ const initialProducts = [
   },
 ];
 
+const colors = [
+  "Purple",
+  "Black",
+  "Red",
+  "Orange",
+  "Navy",
+  "White",
+  "Brown",
+  "Green",
+  "Yellow",
+  "Grey",
+  "Pink",
+  "Blue",
+];
+
 export default function ShopPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -117,19 +136,53 @@ export default function ShopPage() {
 
   const [debounceSearch, setDebounceSearch] = useState("");
 
+  const [queryMin, setQueryMin] = useState(0);
+
+  const debouncedMin = useDebounce(queryMin ?? "", 1000);
+
+  const [debounceMin, setDebounceMin] = useState("");
+
+  const [queryMax, setQueryMax] = useState(200000);
+
+  const debouncedMax = useDebounce(queryMax ?? "", 1000);
+
+  const [debounceMax, setDebounceMax] = useState("");
+
+  useUpdatedEffect(() => {
+    // update search params with undefined if debouncedSearchTerm is an empty string
+    setDebounceMin(debouncedMin || undefined);
+    updateQueryParams({
+      "pagination[page]": 1,
+    });
+  }, [debouncedMin]);
+
+  useUpdatedEffect(() => {
+    // update search params with undefined if debouncedSearchTerm is an empty string
+    setDebounceMax(debouncedMax || undefined);
+    updateQueryParams({
+      "pagination[page]": 1,
+    });
+  }, [debouncedMax]);
+
   useUpdatedEffect(() => {
     // update search params with undefined if debouncedSearchTerm is an empty string
     setDebounceSearch(debouncedSearchTerm.trim() || undefined);
     setPage(1);
   }, [debouncedSearchTerm]);
 
+  const { queryParams, updateQueryParams } = useQueryParams({
+    "pagination[limit]": 10,
+    "pagination[page]": 1,
+  });
+
   const { data: getProductData, isPending: productIsPending } =
     useProductGeneral(
       {
-        "pagination[limit]": 10000,
-        "pagination[page]": 1,
-        q: debounceSearch,
+        ...queryParams,
         status: "PUBLISHED",
+        min_price: debounceMin,
+        max_price: debounceMax,
+        q: debounceSearch,
       },
       "FABRIC"
     );
@@ -140,7 +193,49 @@ export default function ShopPage() {
 
   const item = useCartStore.getState().getItemByCartId(Cartid);
 
-  console.log(item);
+  const [product, setProduct] = useState("");
+  const [market, setMarket] = useState("");
+
+  const [colorVal, setColorVal] = useState("");
+
+  const { data: getFabricProductGeneralData, isPending } =
+    useProductCategoryGeneral({
+      "pagination[limit]": 10,
+      "pagination[page]": 1,
+      type: "fabric",
+    });
+
+  const categoryFabricList = getFabricProductGeneralData?.data
+    ? getFabricProductGeneralData?.data?.map((c) => ({
+        label: c.name,
+        value: c.id,
+      }))
+    : [];
+
+  const totalPages = Math.ceil(
+    getProductData?.count / (queryParams["pagination[limit]"] ?? 10)
+  );
+
+  const { data: getMarketPlacePublicData } = useGetMarketPlaces({
+    "pagination[limit]": 10000,
+  });
+
+  const marketList = getMarketPlacePublicData?.data
+    ? getMarketPlacePublicData?.data?.map((c) => ({
+        label: c.name,
+        value: c.id,
+      }))
+    : [];
+
+  const [selectedColor, setSelectedColor] = useState("");
+
+  const handleColorSelect = (color) => {
+    setSelectedColor(color);
+
+    updateQueryParams({
+      color: color.toLowerCase(),
+    });
+  };
 
   return (
     <>
@@ -183,28 +278,165 @@ export default function ShopPage() {
           {/* Sidebar */}
           <aside
             className="bg-white p-6 border border-gray-300 rounded-md 
-  md:h-[50vh] md:sticky md:top-24 md:overflow-y-auto 
-  scrollbar-thin scrollbar-thumb-purple-500 scrollbar-track-gray-100"
+            md:h-[70vh] md:sticky md:top-24 overflow-y-scroll"
           >
             <h3 className="font-semibold mb-2">CATEGORY</h3>
-            {categories.map((category) => (
-              <div key={category} className="flex items-center mb-2">
-                <input type="checkbox" className="mr-2" /> {category}
-              </div>
-            ))}
+            <Select
+              options={[{ label: "All", value: "" }, ...categoryFabricList]}
+              name="category_id"
+              value={[{ label: "All", value: "" }, ...categoryFabricList]?.find(
+                (opt) => opt.value === product
+              )}
+              onChange={(selectedOption) => {
+                // console.log(selectedOption?.value);
+                if (selectedOption?.value == "") {
+                  updateQueryParams({
+                    category_id: undefined,
+                  });
+                } else {
+                  updateQueryParams({
+                    category_id: selectedOption?.value,
+                  });
+                }
+
+                setProduct(selectedOption.value);
+                // updateQueryParams({
+                //   color: color?.toLowerCase(),
+                // });
+
+                // setFieldValue("category_id", selectedOption.value);
+              }}
+              required
+              placeholder="select"
+              className="w-full  p-[1px] border border-gray-300 text-gray-600 outline-none rounded"
+              styles={{
+                control: (base, state) => ({
+                  ...base,
+                  border: "none",
+                  boxShadow: "none",
+                  outline: "none",
+                  backgroundColor: "#fff",
+                  "&:hover": {
+                    border: "none",
+                  },
+                }),
+                indicatorSeparator: () => ({
+                  display: "none",
+                }),
+                menu: (base) => ({
+                  ...base,
+                  zIndex: 9999,
+                }),
+              }}
+            />{" "}
             <h3 className="font-semibold mt-4 mb-2">MARKET</h3>
-            <input
-              type="text"
-              placeholder="Choose Market Place"
-              className="w-full border p-2 rounded"
-            />
+            <Select
+              options={[{ label: "All", value: "" }, ...marketList]}
+              name="market_id"
+              value={[{ label: "All", value: "" }, ...marketList]?.find(
+                (opt) => opt.value === market
+              )}
+              onChange={(selectedOption) => {
+                if (selectedOption?.value == "") {
+                  updateQueryParams({
+                    market_id: undefined,
+                  });
+                } else {
+                  updateQueryParams({
+                    market_id: selectedOption?.value,
+                  });
+                }
+                setMarket(selectedOption.value);
+                // updateQueryParams({
+                //   color: color?.toLowerCase(),
+                // });
+
+                // setFieldValue("category_id", selectedOption.value);
+              }}
+              required
+              placeholder="select"
+              className="w-full p-[1px] border border-gray-300 text-gray-600 outline-none rounded"
+              styles={{
+                control: (base, state) => ({
+                  ...base,
+                  border: "none",
+                  boxShadow: "none",
+                  outline: "none",
+                  backgroundColor: "#fff",
+                  "&:hover": {
+                    border: "none",
+                  },
+                }),
+                indicatorSeparator: () => ({
+                  display: "none",
+                }),
+                menu: (base) => ({
+                  ...base,
+                  zIndex: 9999,
+                }),
+              }}
+            />{" "}
             <h3 className="font-semibold mt-4 mb-2">PRICE</h3>
-            <input type="range" className="w-full" />
-            <h3 className="font-semibold mt-4 mb-2">COLOUR</h3>
+            <div className="flex justify-between text-xs sm:text-sm">
+              <span>
+                <span>Min</span>
+              </span>
+              <span>₦{queryMin?.toLocaleString()} </span>
+            </div>
             <input
-              type="text"
-              placeholder="Choose Colour"
-              className="w-full border p-2 rounded"
+              type="range"
+              min="0"
+              max="200000"
+              value={queryMin}
+              onChange={(e) => {
+                setQueryMin(parseInt(e.target.value ?? undefined));
+              }}
+              className="w-full mb-3"
+            />
+            <div className="flex justify-between text-xs sm:text-sm">
+              <span>
+                <span>Max</span>
+              </span>
+              <span> ₦{queryMax?.toLocaleString()}</span>
+            </div>
+            <input
+              type="range"
+              min={queryMin}
+              max="200000"
+              value={queryMax}
+              onChange={(e) => {
+                setQueryMax(parseInt(e.target.value ?? undefined));
+              }}
+              className="w-full mb-3"
+            />
+            <h3 className="font-semibold mt-4 mb-2">COLOUR</h3>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              {colors.map((color, index) => (
+                <button
+                  key={index}
+                  className={`p-5 rounded border-2  transition ${
+                    colorVal === color ? " border-gray-300" : "border-white"
+                  }`}
+                  style={{ backgroundColor: color.toLowerCase() }}
+                  onClick={() => {
+                    if (colorVal === color) {
+                      updateQueryParams({ color: undefined });
+                      setColorVal("");
+                    } else {
+                      updateQueryParams({ color: color.toLowerCase() });
+                      setColorVal(color);
+                    }
+                  }}
+                ></button>
+              ))}
+            </div>
+            <input
+              type="color"
+              value={selectedColor}
+              onChange={(e) => {
+                handleColorSelect(e.target.value);
+              }}
+              className="w-full h-10 mt-4 border rounded"
             />
           </aside>
 
@@ -212,9 +444,9 @@ export default function ShopPage() {
           <div className="col-span-3">
             <div className="flex justify-between bg-purple-600 text-white p-4 rounded">
               <button>Explore by Market Place</button>
-              <button className="flex items-center space-x-1">
+              {/* <button className="flex items-center space-x-1">
                 <SortDesc size={16} /> <span>Sort by: Popularity</span>
-              </button>
+              </button> */}
             </div>
 
             {productIsPending ? (
@@ -257,7 +489,71 @@ export default function ShopPage() {
               </div>
             )}
 
-            {getProductData?.data?.length ? (
+            {!productIsPending && !getProductData?.data?.length ? (
+              <div classNamee="flex items-center justify-center w-full border-2 border-red-800 border-solid">
+                <p className="text-sm text-gray-600 text-center">
+                  Product not found{" "}
+                </p>
+              </div>
+            ) : (
+              <></>
+            )}
+
+            {getProductData?.data?.length > 0 ? (
+              <>
+                <div className="flex justify-between px-4 items-center mt-10">
+                  <div className="flex items-center">
+                    <p className="text-sm text-gray-600">Items per page: </p>
+                    <select
+                      value={queryParams["pagination[limit]"] || 10}
+                      onChange={(e) =>
+                        updateQueryParams({
+                          "pagination[limit]": +e.target.value,
+                        })
+                      }
+                      className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
+                    >
+                      <option value={5}>5</option>
+                      <option value={10}>10</option>
+                      <option value={15}>15</option>
+                      <option value={20}>20</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => {
+                        updateQueryParams({
+                          "pagination[page]":
+                            +queryParams["pagination[page]"] - 1,
+                        });
+                      }}
+                      disabled={(queryParams["pagination[page]"] ?? 1) == 1}
+                      className="px-3 py-1 rounded-md bg-gray-200"
+                    >
+                      ◀
+                    </button>
+                    <button
+                      onClick={() => {
+                        updateQueryParams({
+                          "pagination[page]":
+                            +queryParams["pagination[page]"] + 1,
+                        });
+                      }}
+                      disabled={
+                        (queryParams["pagination[page]"] ?? 1) == totalPages
+                      }
+                      className="px-3 py-1 rounded-md bg-gray-200"
+                    >
+                      ▶
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <></>
+            )}
+
+            {/* {getProductData?.data?.length ? (
               isShowMoreBtn ? (
                 <></>
               ) : (
@@ -274,7 +570,7 @@ export default function ShopPage() {
               )
             ) : (
               <></>
-            )}
+            )} */}
           </div>
         </div>
       </section>

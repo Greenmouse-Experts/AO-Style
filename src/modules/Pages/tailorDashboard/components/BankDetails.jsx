@@ -192,7 +192,7 @@ const BankDetailsUpdate = () => {
 
         {/* Submit Button */}
         <button
-          isPending={isPending}
+          disabled={isPending}
           type="submit"
           className="w-full md:w-auto px-6 py-3 rounded-lg bg-gradient cursor-pointer text-white"
         >

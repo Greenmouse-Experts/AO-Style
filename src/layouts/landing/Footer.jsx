@@ -7,14 +7,38 @@ import {
   BsTwitterX,
 } from "react-icons/bs";
 import { Link, useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import useSubscribeNewsletter from "../../hooks/newsletter/useSubscribeNewsletter";
 
 const Footer = () => {
   const { pathname } = useLocation();
+  const [email, setEmail] = useState("");
+  const [feedback, setFeedback] = useState("");
+  const { mutate: subscribeNewsletter, isPending, isSuccess, isError, error } = useSubscribeNewsletter();
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [pathname]);
+
+  const handleNewsletterSubmit = (e) => {
+    e.preventDefault();
+    setFeedback("");
+    if (!email) {
+      setFeedback("Please enter a valid email address.");
+      return;
+    }
+    subscribeNewsletter(email, {
+      onSuccess: (res) => {
+        setFeedback("Subscribed successfully! Check your inbox for updates.");
+        setEmail("");
+        console.log("Newsletter subscription response:", res);
+      },
+      onError: (err) => {
+        setFeedback("Subscription failed. Please try again or use a valid email.");
+        console.error("Newsletter subscription error:", err);
+      },
+    });
+  };
 
   return (
     <footer
@@ -154,19 +178,26 @@ const Footer = () => {
           <p className="text-sm mb-4 text-[#C5C5C5] font-light">
             Get access to exclusive deals and discounts
           </p>
-          <form action="">
+          <form onSubmit={handleNewsletterSubmit}>
             <input
               type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
               placeholder="Enter your email"
               className="w-full p-4 mb-4 border border-white text-white outline-none"
               required
+              disabled={isPending}
             />
             <button
               className="ma-auto px-6 bg-white py-4 text-black hover:bg-purple-600 hover:text-white cursor-pointer"
               type="submit"
+              disabled={isPending}
             >
-              SUBSCRIBE
+              {isPending ? "Subscribing..." : "SUBSCRIBE"}
             </button>
+            {feedback && (
+              <div className={`mt-3 text-sm ${isSuccess ? "text-green-300" : "text-red-300"}`}>{feedback}</div>
+            )}
           </form>
           <div className="flex gap-8 mt-6">
             <a

@@ -225,13 +225,7 @@ export default function ShopDetails() {
                   alt={productVal?.product?.name}
                   className="w-full h-96 lg:h-[500px] object-cover"
                 />
-                <div className="absolute top-4 right-4">
-                  <button className="p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm hover:bg-white transition-colors">
-                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                  </button>
-                </div>
+                {/* Heart icon removed as requested */}
               </div>
               
               {/* Thumbnail Images */}
@@ -435,10 +429,8 @@ export default function ShopDetails() {
                 </button>
                 
                 {/* Additional CTA buttons */}
-                <div className="grid grid-cols-2 gap-3 mt-3">
-                  <button className="py-3 px-4 border-2 border-purple-600 text-purple-600 rounded-lg font-medium hover:bg-purple-50 transition-colors">
-                    Add to Wishlist
-                  </button>
+                <div className="grid grid-cols-1 gap-3 mt-3">
+                  {/* Wishlist button removed as requested */}
                   <button className="py-3 px-4 border-2 border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors">
                     Share Product
                   </button>

@@ -10,6 +10,7 @@ import OrdersDetails from "../modules/Pages/customerDashboard/OrdersDetails";
 import InboxPage from "../modules/Pages/customerDashboard/Inbox";
 import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
 import ShopStyles from "../modules/Pages/customerDashboard/ShopStyles";
+import CustomerAnnouncementsPage from "../modules/Pages/customerDashboard/Announcements";
 import ProtectedRoute from "../components/ProtectedRoute";
 
 export const customerRoutes = [
@@ -61,6 +62,10 @@ export const customerRoutes = [
       {
         path: "/customer/inbox",
         element: <InboxPage />,
+      },
+      {
+        path: "/customer/announcements",
+        element: <CustomerAnnouncementsPage />,
       },
       // Add other customer dashboard routes here
     ],

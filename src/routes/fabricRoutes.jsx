@@ -11,6 +11,7 @@ import Settings from "../modules/Pages/fabricDashboard/Settings";
 import InboxPage from "../modules/Pages/fabricDashboard/Inbox";
 import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
 import Coupons from "../modules/Pages/Coupons";
+import FabricAnnouncementsPage from "../modules/Pages/fabricDashboard/Announcements";
 import ProtectedRoute from "../components/ProtectedRoute";
 
 export const fabricRoutes = [
@@ -61,6 +62,10 @@ export const fabricRoutes = [
       {
         path: "/fabric/inbox",
         element: <InboxPage />,
+      },
+      {
+        path: "/fabric/announcements",
+        element: <FabricAnnouncementsPage />,
       },
       {
         path: "/fabric/transactions",

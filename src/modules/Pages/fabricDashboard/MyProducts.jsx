@@ -24,6 +24,7 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
+import useGetAdminManageFabricProduct from "../../../hooks/fabric/useGetManageFabric";
 
 const ProductPage = () => {
   const { data: businessDetails } = useGetBusinessDetails();

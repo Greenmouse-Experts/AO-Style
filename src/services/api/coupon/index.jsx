@@ -8,6 +8,10 @@ const createCoupon = (payload, business_id) => {
   });
 };
 
+const applyCoupon = (payload) => {
+  return CaryBinApi.post(`/coupon-management/apply-coupon`, payload);
+};
+
 const createAdminFabricProduct = (payload) => {
   return CaryBinApi.post(`/manage-fabric/create`, payload, {});
 };
@@ -60,6 +64,7 @@ const CouponService = {
   deleteCoupon,
   updateCouponProduct,
   getAllCouponAdmin,
+  applyCoupon,
 };
 
 export default CouponService;

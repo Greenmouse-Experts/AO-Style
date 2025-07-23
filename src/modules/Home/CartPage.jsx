@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Breadcrumb from "./components/Breadcrumb";
 import useGetCart from "../../hooks/cart/useGetCart";
 import LoaderComponent from "../../components/BeatLoader";
@@ -16,6 +16,7 @@ import { nigeriaStates } from "../../constant";
 import PhoneInput from "react-phone-input-2";
 import useCreateBilling from "../../hooks/billing/useCreateBilling";
 import useAddMultipleCart from "../../hooks/cart/useAddMultipleCart";
+import useApplyCoupon from "../../hooks/coupon/useApplyCoupon";
 
 const initialValues = {
   address: "",
@@ -63,7 +64,9 @@ const CartPage = () => {
       return total + measurements.length * pricePerMeasurement;
     }, 0) ?? 0;
 
-  const updatedAmount = totalAmount + totalStyleAmount;
+  const [discountedPrice, setDiscountedPrice] = useState("");
+
+  const updatedAmount = totalAmount + totalStyleAmount - discountedPrice;
 
   const { isPending: deleteIsPending, deleteCartMutate } = useDeleteCart();
 
@@ -71,6 +74,8 @@ const CartPage = () => {
 
   const { isPending: createPaymentPending, createPaymentMutate } =
     useCreatePayment();
+
+  const { isPending: applyCouponPending, applyCouponMutate } = useApplyCoupon();
 
   const { isPending: billingPending, createBillingMutate } = useCreateBilling();
 
@@ -218,8 +223,6 @@ const CartPage = () => {
       });
     },
   });
-
-  console.log(items);
 
   return (
     <>
@@ -525,8 +528,45 @@ const CartPage = () => {
                         onChange={(e) => setCoupon(e.target.value)}
                         className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-l-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       />
-                      <button className="flex-shrink-0 px-4 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-md text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
-                        Apply
+                      <button
+                        disabled={!coupon}
+                        onClick={() => {
+                          if (!token || !carybinUser) {
+                            toastSuccess(
+                              "You need to have a Customer Account to apply coupon"
+                            );
+                            const currentPath =
+                              location.pathname + location.search;
+                            navigate(
+                              `/login?redirect=${encodeURIComponent(
+                                currentPath
+                              )}`
+                            );
+                          } else {
+                            console.log(carybinUser?.email);
+                            applyCouponMutate(
+                              {
+                                email: carybinUser?.email,
+                                code: coupon,
+                                amount: (
+                                  totalAmount + totalStyleAmount
+                                )?.toString(),
+                              },
+                              {
+                                onSuccess: (data) => {
+                                  setDiscountedPrice(
+                                    data?.data?.data?.discount
+                                  );
+                                  setCoupon("");
+                                },
+                                onError: () => {},
+                              }
+                            );
+                          }
+                        }}
+                        className="flex-shrink-0 disabled:cursor-not-allowed px-4 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-md text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+                      >
+                        {applyCouponPending ? "Please wait..." : "Apply"}
                       </button>
                     </div>
                   </div>
@@ -536,12 +576,14 @@ const CartPage = () => {
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Subtotal</span>
                       <span className="font-medium">
-                        ₦{updatedAmount?.toLocaleString()}
+                        ₦{(totalAmount + totalStyleAmount)?.toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Discount</span>
-                      <span className="font-medium text-green-600">-₦0</span>
+                      <span className="font-medium text-green-600">
+                        -₦{discountedPrice}
+                      </span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Delivery</span>
@@ -575,7 +617,7 @@ const CartPage = () => {
                   {/* Checkout Button */}
                   <button
                     onClick={() => {
-                      if (!token) {
+                      if (!token || !carybinUser) {
                         toastSuccess(
                           "You need to have a Customer Account to make an order"
                         );
@@ -857,7 +899,15 @@ const CartPage = () => {
                   <div className="border-t border-gray-300 pt-4">
                     <div className="flex justify-between text-sm text-gray-700">
                       <span>SUBTOTAL</span>
-                      <span>NGN {updatedAmount.toLocaleString()}</span>
+                      <span>
+                        NGN {(totalAmount + totalStyleAmount).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between mt-2 text-sm text-gray-700">
+                      <span className="">Discount</span>
+                      <span className=" text-green-600">
+                        -₦{discountedPrice}
+                      </span>
                     </div>
                     {/* <div className="flex justify-between text-sm text-gray-700 mt-2">
                       <span>Estimated sales VAT (7.5)</span>

@@ -12,6 +12,7 @@ import useUpdatedEffect from "../../../../hooks/useUpdatedEffect";
 import useEditSubscription from "../../../../hooks/subscription/useUpdateSubscription";
 import useDeleteAdminFabric from "../../../../hooks/fabric/useDeleteAdminFabric";
 import useDeleteSubscription from "../../../../hooks/subscription/useDeleteSubscription";
+import useGetAdminBusinessDetails from "../../../../hooks/settings/useGetAdmnBusinessInfo";
 
 const AddSubscriptionModal = ({ isOpen, onClose, onAdd, newCategory }) => {
   const initialValues = {
@@ -28,6 +29,8 @@ const AddSubscriptionModal = ({ isOpen, onClose, onAdd, newCategory }) => {
   const { isPending: editIsPending, editSubscriptionMutate } =
     useEditSubscription(newCategory?.id);
   const { data: businessDetails } = useGetBusinessDetails();
+
+  const { data: businessAdminDetails } = useGetAdminBusinessDetails();
 
   const modalRef = useRef(null);
 
@@ -49,7 +52,7 @@ const AddSubscriptionModal = ({ isOpen, onClose, onAdd, newCategory }) => {
         description: val.description,
         max_quantity: val.max_quantity,
         role: val.role,
-        business_id: businessDetails?.data?.id,
+        business_id: businessAdminDetails?.data?.id,
         subscription_plan_prices: [
           {
             price: val.price?.toString(),

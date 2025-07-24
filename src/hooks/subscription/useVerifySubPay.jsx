@@ -20,6 +20,9 @@ const useVerifySubPay = () => {
       queryClient.invalidateQueries({
         queryKey: ["get-user-subscription"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["get-user-profile"],
+      });
     },
     onError: (error) => {
       if (!navigator.onLine) {

@@ -9,11 +9,11 @@ import useDebounce from "../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 import useToast from "../../../hooks/useToast";
 import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails";
-import useGetUserSubscription from "../../../hooks/subscription/useGetuserSubscription";
-import { useModalState } from "../../../hooks/useModalState";
+=import { useModalState } from "../../../hooks/useModalState";
 import ViewSubscription from "./ViewSubscription";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import SubscriptionModal from "./SubscribeModal";
+import useGetUserSubscription from "../../../hooks/subscription/useGetuserSubscription";
 
 const Subscriptions = () => {
   const location = useLocation();

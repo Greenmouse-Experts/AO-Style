@@ -18,7 +18,14 @@ const getSubscription = (params, id) => {
   });
 };
 
+const getUserSubscription = (params, id) => {
+  return CaryBinApi.get(`/subscription-plan/public`, {
+    params,
+  });
+};
+
 const SubscriptionService = {
+  getUserSubscription,
   createSubscriptionProduct,
   getSubscription,
   updateSubscription,

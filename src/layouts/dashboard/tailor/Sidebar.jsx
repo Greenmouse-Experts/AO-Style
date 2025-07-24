@@ -76,10 +76,16 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             text="Coupon"
             onClick={handleClick}
           /> */}
-          <SidebarItem
-            to="/tailor/orders"
+          {/* <SidebarItem
+            to="/tailor/coupons"
             icon={<FaClipboardList />}
-            text="Orders"
+            text="Coupon"
+            onClick={handleClick}
+          /> */}
+          <SidebarItem
+            to="/tailor/subscription"
+            icon={<FaClipboardList />}
+            text="Subscription"
             onClick={handleClick}
           />
           <SidebarItem

@@ -568,10 +568,10 @@ const SubscriptionsPlansTable = () => {
 
   const columns = useMemo(
     () => [
-      { label: "Name", key: "name" },
+      { label: "Plan Name", key: "name" },
       { label: "User Type", key: "userType" },
       { label: "Plan Description", key: "planDescription" },
-      { label: "Amount", key: "amount" },
+      { label: "Plan Price", key: "amount" },
       { label: "Date added", key: "dateAdded" },
 
       {

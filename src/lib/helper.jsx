@@ -22,5 +22,15 @@ export const formatDateStr = (dateStr, format) => {
   return dayjs(dateStr).format(format || "D/M/YYYY");
 };
 
+export const formatNumberWithCommas = (num) => {
+  // Convert to number if it's a string
+  const number = typeof num === "string" ? parseFloat(num) : num;
+
+  return number.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
 export const generateUniqueId = () =>
   "id" + Math.random().toString(36).substr(2, 19);

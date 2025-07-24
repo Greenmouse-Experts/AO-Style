@@ -47,12 +47,14 @@ const JobsManagementPage = () => {
   const [showDeleteJobModal, setShowDeleteJobModal] = useState(false);
   const [showDeleteCategoryModal, setShowDeleteCategoryModal] = useState(false);
   const [showApplicationsView, setShowApplicationsView] = useState(false);
-  const [showDeleteApplicationModal, setShowDeleteApplicationModal] = useState(false);
+  const [showDeleteApplicationModal, setShowDeleteApplicationModal] =
+    useState(false);
   const [deletingJob, setDeletingJob] = useState(null);
   const [deletingCategory, setDeletingCategory] = useState(null);
   const [deletingApplication, setDeletingApplication] = useState(null);
   const [selectedJob, setSelectedJob] = useState(null);
-  const [selectedJobForApplications, setSelectedJobForApplications] = useState(null);
+  const [selectedJobForApplications, setSelectedJobForApplications] =
+    useState(null);
   const [editingJob, setEditingJob] = useState(null);
   const [editingCategory, setEditingCategory] = useState(null);
   const [activeTab, setActiveTab] = useState("jobs"); // jobs or categories
@@ -96,10 +98,10 @@ const JobsManagementPage = () => {
   const { deleteJobCategoryMutate, isPending: isDeletingCategory } =
     useDeleteJobCategory();
 
-  const { data: applicationsData, isLoading: applicationsLoading } = useGetJobApplications(
-    selectedJobForApplications?.id
-  );
-  const { mutate: deleteApplicationMutate, isLoading: isDeletingApplication } = useDeleteApplication();
+  const { data: applicationsData, isLoading: applicationsLoading } =
+    useGetJobApplications(selectedJobForApplications?.id);
+  const { mutate: deleteApplicationMutate, isLoading: isDeletingApplication } =
+    useDeleteApplication();
 
   const { toastError } = useToast();
 
@@ -132,11 +134,11 @@ const JobsManagementPage = () => {
         .replace(/[^a-z0-9\s]/g, "") // Remove special characters except spaces
         .replace(/\s+/g, "-") // Replace spaces with hyphens
         .replace(/^-+|-+$/g, ""); // Remove leading/trailing hyphens
-      
+
       // Add timestamp to make slug unique
       const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
       const slug = baseSlug ? `${baseSlug}-${timestamp}` : timestamp;
-      
+
       setJobFormData((prev) => ({
         ...prev,
         slug: slug,
@@ -169,20 +171,22 @@ const JobsManagementPage = () => {
 
   const handleJobSubmit = (e) => {
     e.preventDefault();
-    
+
     // Validate required fields
     if (!jobFormData.title.trim()) {
       toastError("Job title is required");
       return;
     }
-    
+
     // Check if description has content (remove HTML tags for validation)
-    const descriptionText = jobFormData.description.replace(/<[^>]*>/g, '').trim();
+    const descriptionText = jobFormData.description
+      .replace(/<[^>]*>/g, "")
+      .trim();
     if (!descriptionText) {
       toastError("Job description is required");
       return;
     }
-    
+
     // Prepare the payload with proper category ID
     const payload = {
       ...jobFormData,
@@ -193,7 +197,7 @@ const JobsManagementPage = () => {
       requirements: jobFormData.requirements, // Keep HTML formatting
       location: jobFormData.location.trim(),
     };
-    
+
     createJobMutate(payload, {
       onSuccess: () => {
         resetJobForm();
@@ -277,7 +281,7 @@ const JobsManagementPage = () => {
         onSuccess: () => {
           setShowDeleteApplicationModal(false);
           setDeletingApplication(null);
-        }
+        },
       });
     }
   };
@@ -288,25 +292,27 @@ const JobsManagementPage = () => {
   };
 
   const handleDownloadResume = (resumeUrl) => {
-    window.open(resumeUrl, '_blank');
+    window.open(resumeUrl, "_blank");
   };
 
   const handleJobUpdate = (e) => {
     e.preventDefault();
-    
+
     // Validate required fields
     if (!jobFormData.title.trim()) {
       toastError("Job title is required");
       return;
     }
-    
+
     // Check if description has content (remove HTML tags for validation)
-    const descriptionText = jobFormData.description.replace(/<[^>]*>/g, '').trim();
+    const descriptionText = jobFormData.description
+      .replace(/<[^>]*>/g, "")
+      .trim();
     if (!descriptionText) {
       toastError("Job description is required");
       return;
     }
-    
+
     // Prepare the payload with proper category ID
     const payload = {
       ...jobFormData,
@@ -317,7 +323,7 @@ const JobsManagementPage = () => {
       requirements: jobFormData.requirements, // Keep HTML formatting
       location: jobFormData.location.trim(),
     };
-    
+
     updateJobMutate(
       { id: editingJob.id, payload },
       {
@@ -888,8 +894,8 @@ const JobsManagementPage = () => {
                       visibleDragBar={false}
                       data-color-mode="light"
                       style={{
-                        minHeight: '150px',
-                        marginBottom: '20px'
+                        minHeight: "150px",
+                        marginBottom: "20px",
                       }}
                     />
                   </div>
@@ -906,8 +912,8 @@ const JobsManagementPage = () => {
                       visibleDragBar={false}
                       data-color-mode="light"
                       style={{
-                        minHeight: '120px',
-                        marginBottom: '20px'
+                        minHeight: "120px",
+                        marginBottom: "20px",
                       }}
                     />
                   </div>
@@ -1095,8 +1101,8 @@ const JobsManagementPage = () => {
                       visibleDragBar={false}
                       data-color-mode="light"
                       style={{
-                        minHeight: '150px',
-                        marginBottom: '20px'
+                        minHeight: "150px",
+                        marginBottom: "20px",
                       }}
                     />
                   </div>
@@ -1113,8 +1119,8 @@ const JobsManagementPage = () => {
                       visibleDragBar={false}
                       data-color-mode="light"
                       style={{
-                        minHeight: '120px',
-                        marginBottom: '20px'
+                        minHeight: "120px",
+                        marginBottom: "20px",
                       }}
                     />
                   </div>
@@ -1374,7 +1380,9 @@ const JobsManagementPage = () => {
                         <div>
                           <p className="text-sm text-gray-500">Category</p>
                           <p className="font-medium">
-                            {selectedJob.category?.name || selectedJob.job_category?.name || "Uncategorized"}
+                            {selectedJob.category?.name ||
+                              selectedJob.job_category?.name ||
+                              "Uncategorized"}
                           </p>
                         </div>
                       </div>
@@ -1414,9 +1422,11 @@ const JobsManagementPage = () => {
                       Job Description
                     </h3>
                     <div className="bg-gray-50 rounded-lg p-4">
-                      <div 
+                      <div
                         className="text-gray-700 leading-relaxed prose prose-sm max-w-none"
-                        dangerouslySetInnerHTML={{ __html: selectedJob.description }}
+                        dangerouslySetInnerHTML={{
+                          __html: selectedJob.description,
+                        }}
                       />
                     </div>
                   </div>
@@ -1429,9 +1439,11 @@ const JobsManagementPage = () => {
                         <span>Requirements</span>
                       </h3>
                       <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-100 rounded-lg p-4">
-                        <div 
+                        <div
                           className="text-gray-700 leading-relaxed prose prose-sm max-w-none"
-                          dangerouslySetInnerHTML={{ __html: selectedJob.requirements }}
+                          dangerouslySetInnerHTML={{
+                            __html: selectedJob.requirements,
+                          }}
                         />
                       </div>
                     </div>
@@ -1507,7 +1519,8 @@ const JobsManagementPage = () => {
                           Applications for {selectedJobForApplications.title}
                         </h2>
                         <p className="text-sm text-gray-500">
-                          {selectedJobForApplications.category?.name || 'No category'}
+                          {selectedJobForApplications.category?.name ||
+                            "No category"}
                         </p>
                       </div>
                     </div>
@@ -1546,7 +1559,7 @@ const JobsManagementPage = () => {
                               {applicationsData?.data?.length || 0} Applications
                             </h3>
                           </div>
-                          
+
                           {applicationsData?.data?.map((application) => (
                             <div
                               key={application.id}
@@ -1567,7 +1580,7 @@ const JobsManagementPage = () => {
                                       </p>
                                     </div>
                                   </div>
-                                  
+
                                   <div className="flex items-center space-x-3 text-sm text-gray-600 mt-3">
                                     <span className="flex items-center space-x-1 bg-gray-50 px-3 py-1 rounded-full border">
                                       <FaPhone className="h-3 w-3" />
@@ -1576,25 +1589,32 @@ const JobsManagementPage = () => {
                                     <span className="flex items-center space-x-1 bg-gray-50 px-3 py-1 rounded-full border">
                                       <FaCalendarAlt className="h-3 w-3" />
                                       <span>
-                                        Applied {new Date(application.created_at).toLocaleDateString()}
+                                        Applied{" "}
+                                        {new Date(
+                                          application.created_at
+                                        ).toLocaleDateString()}
                                       </span>
                                     </span>
                                   </div>
                                 </div>
-                                
+
                                 <div className="flex items-center space-x-2">
                                   {application.resume && (
                                     <button
-                                      onClick={() => handleDownloadResume(application.resume)}
+                                      onClick={() =>
+                                        handleDownloadResume(application.resume)
+                                      }
                                       className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center space-x-1 text-sm"
                                     >
                                       <FaEye className="h-3 w-3" />
                                       <span>View Resume</span>
                                     </button>
                                   )}
-                                  
+
                                   <button
-                                    onClick={() => handleDeleteApplication(application.id)}
+                                    onClick={() =>
+                                      handleDeleteApplication(application.id)
+                                    }
                                     className="px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors flex items-center space-x-1 text-sm"
                                   >
                                     <FaTrash className="h-3 w-3" />

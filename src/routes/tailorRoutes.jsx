@@ -11,6 +11,7 @@ import InboxPage from "../modules/Pages/tailorDashboard/Inbox";
 import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
 import Coupons from "../modules/Pages/Coupons";
 import Subscriptions from "../modules/Pages/tailorDashboard/Subscription";
+import TailorAnnouncementsPage from "../modules/Pages/tailorDashboard/Announcements";
 
 export const tailorRoute = [
   {

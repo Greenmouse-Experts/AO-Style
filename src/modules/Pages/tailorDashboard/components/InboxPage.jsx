@@ -141,14 +141,16 @@ export default function InboxPage() {
         toastError("Socket disconnected: " + reason);
       });
 
-      socketInstance.on("messageSent", (data) => {
-        console.log("🎉 === MESSAGE SENT EVENT RECEIVED === 🎉");
+      // Listen for user-specific message sent events
+      socketInstance.on(`messageSent:${userId}`, (data) => {
+        console.log("🎉 === TAILOR MESSAGE SENT EVENT RECEIVED === 🎉");
+        console.log("User ID:", userId);
         console.log("Raw data:", data);
         console.log("Formatted data:", JSON.stringify(data, null, 2));
         console.log("Status:", data?.status);
         console.log("Message:", data?.message);
         console.log("Data object:", data?.data);
-        console.log("🎉 ===================================== 🎉");
+        console.log("🎉 =========================================== 🎉");
         toastSuccess(data?.message || "Message delivered successfully");
       });
 

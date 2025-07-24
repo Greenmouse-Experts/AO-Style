@@ -7,6 +7,7 @@ import {
   FaBell,
   FaCreditCard,
   FaCog,
+  FaBullhorn,
 } from "react-icons/fa";
 import { MdProductionQuantityLimits } from "react-icons/md";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
@@ -93,6 +94,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             to="/fabric/inbox"
             icon={<FaCommentDots />}
             text="Inbox"
+            toggleSidebar={toggleSidebar}
+          />
+          <SidebarItem
+            to="/fabric/announcements"
+            icon={<FaBullhorn />}
+            text="Announcements"
             toggleSidebar={toggleSidebar}
           />
           <SidebarItem

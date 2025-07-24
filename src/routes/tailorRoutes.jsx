@@ -56,6 +56,10 @@ export const tailorRoute = [
         element: <InboxPage />,
       },
       {
+        path: "/tailor/announcements",
+        element: <TailorAnnouncementsPage />,
+      },
+      {
         path: "/tailor/notifications",
         element: <NotificationPageUpdate />,
       },

@@ -126,20 +126,43 @@ export default function Navbar() {
 
               {token && currUrl && carybinUser ? (
                 <>
-                  {/* <Link
-                  to={`/${currUrl}`}
-                  className="bg-gradient text-white px-5 lg:px-6 py-2 lg:py-3 hover:bg-purple-600 transition"
-                >
-                  Dashboard
-                </Link> */}
                   <div
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="flex items-center gap-1 cursor-pointer"
+                    className="flex items-center gap-1 cursor-pointer relative"
                   >
                     <UserIcon className="h-5 w-5 text-gray-800" />
                     <p className="text-xs font-light text-purple-500 transition">
                       {carybinUser?.name}
                     </p>
+                    <ChevronDownIcon className={`h-4 w-4 text-purple-500 ml-1 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`} />
+                    {/* Dropdown for desktop */}
+                    {isDropdownOpen && (
+                      <div className="absolute right-0 top-10 w-40 bg-white shadow-lg rounded-lg z-50 animate-fade-in">
+                        <ul className="py-2">
+                          <Link
+                            onClick={() => {
+                              setIsDropdownOpen(false);
+                              setIsOpen(false); // close hamburger if open
+                            }}
+                            to={`/${currUrl}`}
+                          >
+                            <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-150">
+                              My Account
+                            </li>
+                          </Link>
+                          <button
+                            onClick={() => {
+                              setIsAddModalOpen(true);
+                              setIsDropdownOpen(false);
+                              setIsOpen(false); // close hamburger if open
+                            }}
+                            className="px-4 py-2 hover:bg-gray-100 text-red-500 cursor-pointer w-full text-left transition-colors duration-150"
+                          >
+                            Logout
+                          </button>
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 </>
               ) : (
@@ -305,24 +328,48 @@ export default function Navbar() {
                 {token && currUrl ? (
                   <div
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="flex bg-gray-100 p-2 rounded items-center gap-3 cursor-pointer"
+                    className="flex bg-white shadow-md p-2 rounded-lg items-center gap-3 cursor-pointer hover:bg-purple-50 transition duration-200 relative"
+                    title="View profile"
                   >
                     <img
-                      src={carybinUser?.profile?.profile_picture}
+                      src={carybinUser?.profile?.profile_picture || "https://ui-avatars.com/api/?name=User&background=eee&color=888"}
                       alt="User"
-                      className="w-8 h-8 rounded-full cursor-pointer"
+                      className="w-8 h-8 rounded-full border-2 border-purple-400 object-cover"
                     />
                     <div className="flex flex-col">
-                      <p className="text-sm text-[#545252] transition">
-                        {carybinUser.name}
-                      </p>
-                      <p className="text-gray-500 text-[10px]">View profile</p>
+                      <span className="text-sm font-semibold text-purple-700">{carybinUser.name}</span>
+                      <span className="text-xs text-gray-500">View profile</span>
                     </div>
+                    <ChevronDownIcon className={`h-4 w-4 text-purple-500 ml-auto transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`} />
+                    {/* Enhanced Dropdown */}
+                    {isDropdownOpen && (
+                      <div className="absolute bottom-12 left-0 w-40 bg-white shadow-lg rounded-lg z-50 animate-fade-in">
+                        <ul className="py-2">
+                          <Link
+                            onClick={() => setIsDropdownOpen(false)}
+                            to={`/${currUrl}`}
+                          >
+                            <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-150">
+                              My Account
+                            </li>
+                          </Link>
+                          <button
+                            onClick={() => {
+                              setIsAddModalOpen(true);
+                              setIsDropdownOpen(false);
+                            }}
+                            className="px-4 py-2 hover:bg-gray-100 text-red-500 cursor-pointer w-full text-left transition-colors duration-150"
+                          >
+                            Logout
+                          </button>
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <Link
                     to="/sign-up"
-                    className="bg-gradient text-white px-5 rounded-md lg:px-6 py-2 lg:py-3 hover:bg-purple-600 transition"
+                    className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-6 py-2 rounded-lg font-semibold shadow hover:scale-105 hover:bg-purple-600 transition"
                   >
                     Get Started
                   </Link>
@@ -331,12 +378,11 @@ export default function Navbar() {
             </div>
           </div>
         )}
+        {/* Commented out old dropdown for clarity */}
+        {/*
         {isDropdownOpen && (
           <div className="absolute right-4 mt-2 w-36 bg-white shadow-lg rounded-lg z-50">
             <ul className="py-2">
-              {/* <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                  Profile
-                </li> */}
               <Link
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 to={`/${currUrl}`}
@@ -357,6 +403,7 @@ export default function Navbar() {
             </ul>
           </div>
         )}
+        */}
       </nav>
       {isAddModalOpen && (
         <div

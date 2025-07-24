@@ -13,7 +13,7 @@ import { useModalState } from "../../../hooks/useModalState";
 import ViewSubscription from "./ViewSubscription";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import SubscriptionModal from "./SubscribeModal";
-import useGetUserSubscription from "../../../hooks/subscription/useGetuserSubscription";
+import useGetUserSubscription from "../../../hooks/subscription/useGetUserSub";
 
 const Subscriptions = () => {
   const location = useLocation();

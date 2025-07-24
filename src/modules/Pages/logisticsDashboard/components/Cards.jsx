@@ -21,7 +21,7 @@ export default function StatsCard() {
     {
       image:
         "https://res.cloudinary.com/greenmouse-tech/image/upload/v1742273107/AoStyle/Group_328686_ndt2b0.png",
-      value: "N200,000",
+      value: "200,000",
       label: "Total Income",
     },
   ];

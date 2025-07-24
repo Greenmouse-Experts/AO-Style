@@ -6,7 +6,7 @@ import { useFormik } from "formik";
 import useGetBusinessDetails from "../../../../hooks/settings/useGetBusinessDetails";
 import useQueryParams from "../../../../hooks/useQueryParams";
 import useGetSubscription from "../../../../hooks/subscription/useGetSubscription";
-import { formatDateStr } from "../../../../lib/helper";
+import { formatDateStr, formatNumberWithCommas } from "../../../../lib/helper";
 import useDebounce from "../../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../../hooks/useUpdatedEffect";
 import useEditSubscription from "../../../../hooks/subscription/useUpdateSubscription";
@@ -501,7 +501,9 @@ const SubscriptionsPlansTable = () => {
                 details?.description.length > 15
                   ? `${details?.description.slice(0, 15)}...`
                   : details?.description,
-              amount: `${details?.subscription_plan_prices[0]?.price}`,
+              amount: `${formatNumberWithCommas(
+                details?.subscription_plan_prices[0]?.price
+              )}`,
 
               dateAdded: `${
                 details?.created_at
@@ -568,10 +570,10 @@ const SubscriptionsPlansTable = () => {
 
   const columns = useMemo(
     () => [
-      { label: "Name", key: "name" },
+      { label: "Plan Name", key: "name" },
       { label: "User Type", key: "userType" },
       { label: "Plan Description", key: "planDescription" },
-      { label: "Amount", key: "amount" },
+      { label: "Plan Price", key: "amount" },
       { label: "Date added", key: "dateAdded" },
 
       {

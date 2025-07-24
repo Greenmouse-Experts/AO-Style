@@ -10,7 +10,7 @@ import Settings from "../modules/Pages/tailorDashboard/Settings";
 import InboxPage from "../modules/Pages/tailorDashboard/Inbox";
 import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
 import Coupons from "../modules/Pages/Coupons";
-import TailorAnnouncementsPage from "../modules/Pages/tailorDashboard/Announcements";
+import Subscriptions from "../modules/Pages/tailorDashboard/Subscription";
 
 export const tailorRoute = [
   {
@@ -32,6 +32,11 @@ export const tailorRoute = [
       {
         path: "/tailor/coupons",
         element: <Coupons />,
+      },
+
+      {
+        path: "/tailor/subscription",
+        element: <Subscriptions />,
       },
 
       {

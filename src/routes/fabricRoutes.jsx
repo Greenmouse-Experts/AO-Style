@@ -13,13 +13,14 @@ import NotificationPageUpdate from "../modules/Pages/adminDashboard/Notification
 import Coupons from "../modules/Pages/Coupons";
 import FabricAnnouncementsPage from "../modules/Pages/fabricDashboard/Announcements";
 import ProtectedRoute from "../components/ProtectedRoute";
+import Subscriptions from "../modules/Pages/tailorDashboard/Subscription";
 
 export const fabricRoutes = [
   {
     path: "/fabric",
     element: (
       // <ProtectedRoute>
-        <FabricLayout />
+      <FabricLayout />
       // </ProtectedRoute>
     ),
     children: [
@@ -34,6 +35,10 @@ export const fabricRoutes = [
       {
         path: "/fabric/coupons",
         element: <Coupons />,
+      },
+      {
+        path: "/fabric/subscription",
+        element: <Subscriptions />,
       },
       {
         path: "/fabric/product/add-product",

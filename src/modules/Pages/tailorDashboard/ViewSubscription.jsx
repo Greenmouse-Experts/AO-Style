@@ -148,35 +148,38 @@ const ViewSubscription = ({ onClose, currentView }) => {
                 </div>
               </div>
             </div>
-
-            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200/50">
-              <button
-                onClick={() =>
-                  createSubMutate(
-                    {
-                      email: carybinUser?.email,
-                      plan_price_id:
-                        currentView?.subscription_plan_prices[0]?.id,
-                      payment_method: "PAYSTACK",
-                      auto_renew: true,
-                    },
-                    {
-                      onSuccess: (data) => {
-                        onClose();
-                        payWithPaystack({
-                          amount:
-                            +currentView?.subscription_plan_prices[0]?.price,
-                          payment_id: data?.data?.data?.payment_id,
-                        });
+            {currentView?.planValidity == "Free" ? (
+              <></>
+            ) : (
+              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200/50">
+                <button
+                  onClick={() =>
+                    createSubMutate(
+                      {
+                        email: carybinUser?.email,
+                        plan_price_id:
+                          currentView?.subscription_plan_prices[0]?.id,
+                        payment_method: "PAYSTACK",
+                        auto_renew: true,
                       },
-                    }
-                  )
-                }
-                className={`px-4 py-2 rounded-lg hover:shadow-lg cursor-pointer duration-200 transition-colors flex items-center space-x-2 bg-gradient-to-r hover:from-[#8036D3] from-[#9847FE] to-[#8036D3] text-white hover:to-[#6B2BB5] `}
-              >
-                {createPending ? "Please wait..." : "Subscribe"}
-              </button>
-            </div>
+                      {
+                        onSuccess: (data) => {
+                          onClose();
+                          payWithPaystack({
+                            amount:
+                              +currentView?.subscription_plan_prices[0]?.price,
+                            payment_id: data?.data?.data?.payment_id,
+                          });
+                        },
+                      }
+                    )
+                  }
+                  className={`px-4 py-2 rounded-lg hover:shadow-lg cursor-pointer duration-200 transition-colors flex items-center space-x-2 bg-gradient-to-r hover:from-[#8036D3] from-[#9847FE] to-[#8036D3] text-white hover:to-[#6B2BB5] `}
+                >
+                  {createPending ? "Please wait..." : "Subscribe"}
+                </button>
+              </div>
+            )}
           </div>
         </motion.div>
       </motion.div>

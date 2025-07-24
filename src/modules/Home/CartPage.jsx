@@ -213,7 +213,7 @@ const CartPage = () => {
                 setShowCheckoutModal(false);
                 resetForm();
                 payWithPaystack({
-                  amount: Math.round(updatedAmount),
+                  amount: +updatedAmount,
                   payment_id: data?.data?.data?.payment_id,
                 });
               },

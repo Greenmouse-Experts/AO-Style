@@ -24,12 +24,22 @@ const getUserSubscription = (params, id) => {
   });
 };
 
+const verifySubPayment = (payload) => {
+  return CaryBinApi.post(`/subscription/verify/${payload?.id}`);
+};
+
+const createSubPayment = (payload) => {
+  return CaryBinApi.post(`/subscription/create`, payload);
+};
+
 const SubscriptionService = {
+  createSubPayment,
   getUserSubscription,
   createSubscriptionProduct,
   getSubscription,
   updateSubscription,
   deleteSubscription,
+  verifySubPayment,
 };
 
 export default SubscriptionService;

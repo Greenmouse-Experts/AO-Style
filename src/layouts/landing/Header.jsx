@@ -128,39 +128,94 @@ export default function Navbar() {
                 <>
                   <div
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="flex items-center gap-1 cursor-pointer relative"
+                    className="flex items-center gap-2 cursor-pointer relative px-3 py-2 rounded-lg hover:bg-white transition-all duration-200 bg-purple-50 shadow-md"
                   >
-                    <UserIcon className="h-5 w-5 text-gray-800" />
-                    <p className="text-xs font-light text-purple-500 transition">
+                    <div className="p-1.5 bg-purple-100 rounded-full">
+                      <UserIcon className="h-4 w-4 text-purple-600" />
+                    </div>
+                    <p className="text-sm font-medium text-purple-700 transition">
                       {carybinUser?.name}
                     </p>
-                    <ChevronDownIcon className={`h-4 w-4 text-purple-500 ml-1 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`} />
-                    {/* Dropdown for desktop */}
+                    <ChevronDownIcon
+                      className={`h-4 w-4 text-purple-500 transition-transform duration-200 ${
+                        isDropdownOpen ? "rotate-180" : ""
+                      }`}
+                    />
+
+                    {/* Enhanced Dropdown */}
                     {isDropdownOpen && (
-                      <div className="absolute right-0 top-10 w-40 bg-white shadow-lg rounded-lg z-50 animate-fade-in">
-                        <ul className="py-2">
+                      <div className="absolute right-0 top-12 w-48 bg-white shadow-xl rounded-xl border border-purple-100 z-50 animate-fade-in overflow-hidden">
+                        {/* Header */}
+                        <div className="px-4 py-3 bg-gradient-to-r from-purple-50 to-purple-100 border-b border-purple-100">
+                          <p className="text-xs text-purple-600 font-medium">
+                            Welcome back,
+                          </p>
+                          <p className="text-sm font-semibold text-purple-800 truncate">
+                            {carybinUser?.name}
+                          </p>
+                        </div>
+
+                        {/* Menu Items */}
+                        <div className="py-2">
                           <Link
                             onClick={() => {
                               setIsDropdownOpen(false);
-                              setIsOpen(false); // close hamburger if open
+                              setIsOpen(false);
                             }}
                             to={`/${currUrl}`}
                           >
-                            <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-150">
-                              My Account
-                            </li>
+                            <div className="flex items-center px-4 py-3 hover:bg-purple-50 cursor-pointer transition-all duration-150 group">
+                              <div className="p-1.5 bg-purple-100 rounded-lg mr-3 group-hover:bg-purple-200 transition-colors">
+                                <svg
+                                  className="h-4 w-4 text-purple-600"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                  />
+                                </svg>
+                              </div>
+                              <span className="text-sm font-medium text-gray-700 group-hover:text-purple-700">
+                                My Account
+                              </span>
+                            </div>
                           </Link>
+
+                          <div className="border-t border-gray-100 my-1"></div>
+
                           <button
                             onClick={() => {
                               setIsAddModalOpen(true);
                               setIsDropdownOpen(false);
-                              setIsOpen(false); // close hamburger if open
+                              setIsOpen(false);
                             }}
-                            className="px-4 py-2 hover:bg-gray-100 text-red-500 cursor-pointer w-full text-left transition-colors duration-150"
+                            className="flex items-center w-full px-4 py-3 hover:bg-red-50 cursor-pointer transition-all duration-150 group"
                           >
-                            Logout
+                            <div className="p-1.5 bg-red-100 rounded-lg mr-3 group-hover:bg-red-200 transition-colors">
+                              <svg
+                                className="h-4 w-4 text-red-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013-3v1"
+                                />
+                              </svg>
+                            </div>
+                            <span className="text-sm font-medium text-red-600">
+                              Logout
+                            </span>
                           </button>
-                        </ul>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -332,15 +387,26 @@ export default function Navbar() {
                     title="View profile"
                   >
                     <img
-                      src={carybinUser?.profile?.profile_picture || "https://ui-avatars.com/api/?name=User&background=eee&color=888"}
+                      src={
+                        carybinUser?.profile?.profile_picture ||
+                        "https://ui-avatars.com/api/?name=User&background=eee&color=888"
+                      }
                       alt="User"
                       className="w-8 h-8 rounded-full border-2 border-purple-400 object-cover"
                     />
                     <div className="flex flex-col">
-                      <span className="text-sm font-semibold text-purple-700">{carybinUser.name}</span>
-                      <span className="text-xs text-gray-500">View profile</span>
+                      <span className="text-sm font-semibold text-purple-700">
+                        {carybinUser.name}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        View profile
+                      </span>
                     </div>
-                    <ChevronDownIcon className={`h-4 w-4 text-purple-500 ml-auto transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`} />
+                    <ChevronDownIcon
+                      className={`h-4 w-4 text-purple-500 ml-auto transition-transform duration-200 ${
+                        isDropdownOpen ? "rotate-180" : ""
+                      }`}
+                    />
                     {/* Enhanced Dropdown */}
                     {isDropdownOpen && (
                       <div className="absolute bottom-12 left-0 w-40 bg-white shadow-lg rounded-lg z-50 animate-fade-in">

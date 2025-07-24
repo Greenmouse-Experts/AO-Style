@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Search } from "lucide-react";
-import { formatDateStr } from "../../../lib/helper";
+import { formatDateStr, formatNumberWithCommas } from "../../../lib/helper";
 import useQueryParams from "../../../hooks/useQueryParams";
 import useGetAllOrder from "../../../hooks/order/useGetOrder";
 import useDebounce from "../../../hooks/useDebounce";
@@ -183,7 +183,9 @@ const OrderPage = () => {
                       15
                     )}...`
                   : details?.payment?.purchase?.items[0]?.name,
-              amount: `${details?.payment?.amount}`,
+              amount: `${formatNumberWithCommas(
+                details?.payment?.amount ?? 0
+              )}`,
 
               status: `${details?.payment?.payment_status}`,
               dateAdded: `${

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import ReusableTable from "../components/ReusableTable";
 import { FaEllipsisH } from "react-icons/fa";
 import useGetVendorRecentOrder from "../../../../hooks/analytics/useGetVendorRecentOrder";
-import { formatDateStr } from "../../../../lib/helper";
+import { formatDateStr, formatNumberWithCommas } from "../../../../lib/helper";
 
 const NewOrders = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -137,7 +137,9 @@ const NewOrders = () => {
                 details?.product?.name?.length > 15
                   ? `${details?.product?.name.slice(0, 15)}...`
                   : details?.product?.name,
-              amount: `${details?.payment?.amount}`,
+              amount: `${formatNumberWithCommas(
+                details?.payment?.amount ?? 0
+              )}`,
 
               status: `${details?.payment?.payment_status}`,
               dateAdded: `${

@@ -1,8 +1,57 @@
-import React from "react";
+import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { FaBriefcase, FaTimes } from "react-icons/fa";
+import useCreateSubscriptionPayment from "../../../hooks/subscription/useCreateSubscriptionPayment";
+import { useCarybinUserStore } from "../../../store/carybinUserStore";
 
 const ViewSubscription = ({ onClose, currentView }) => {
+  const { isPending: createPending, createSubMutate } =
+    useCreateSubscriptionPayment();
+  const { carybinUser } = useCarybinUserStore();
+
+  const { isPending: verifyPending, verifyPaymentMutate } = useVerifySubPay();
+
+  const [verifyPayment, setVerifyPayment] = useState("");
+
+  const payWithPaystack = ({ amount, payment_id }) => {
+    const handler = window.PaystackPop.setup({
+      key: import.meta.env.VITE_PAYSTACK_API_KEY,
+      email: carybinUser?.email,
+      id: payment_id,
+      amount: amount * 100,
+      currency: "NGN",
+      reference: payment_id,
+      ref: payment_id,
+      metadata: {
+        custom_fields: [
+          {
+            display_name: carybinUser?.email,
+            variable_name: carybinUser?.email,
+            value: payment_id,
+          },
+        ],
+      },
+      callback: function (response) {
+        setVerifyPayment(response?.reference);
+        verifyPaymentMutate(
+          {
+            id: response?.reference,
+          },
+          {
+            onSuccess: () => {
+              setVerifyPayment("");
+            },
+          }
+        );
+      },
+      onClose: function () {
+        alert("Payment window closed.");
+      },
+    });
+
+    handler.openIframe();
+  };
+
   return (
     <AnimatePresence>
       <motion.div
@@ -101,10 +150,30 @@ const ViewSubscription = ({ onClose, currentView }) => {
 
             <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200/50">
               <button
-                // onClick={() => handleStatusToggle(selectedJob)}
+                onClick={() =>
+                  createSubMutate(
+                    {
+                      email: carybinUser?.email,
+                      plan_price_id:
+                        currentView?.subscription_plan_prices[0]?.id,
+                      payment_method: "PAYSTACK",
+                      auto_renew: true,
+                    },
+                    {
+                      onSuccess: (data) => {
+                        onClose();
+                        payWithPaystack({
+                          amount:
+                            +currentView?.subscription_plan_prices[0]?.price,
+                          payment_id: data?.data?.data?.payment_id,
+                        });
+                      },
+                    }
+                  )
+                }
                 className={`px-4 py-2 rounded-lg hover:shadow-lg cursor-pointer duration-200 transition-colors flex items-center space-x-2 bg-gradient-to-r hover:from-[#8036D3] from-[#9847FE] to-[#8036D3] text-white hover:to-[#6B2BB5] `}
               >
-                Subscribe
+                {createPending ? "Please wait..." : "Subscribe"}
               </button>
             </div>
           </div>

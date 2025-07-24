@@ -87,7 +87,7 @@ const Subscriptions = () => {
 
   const { carybinUser } = useCarybinUserStore();
 
-  console.log(location.pathname);
+  console.log(carybinUser?.subscription);
 
   const {
     isPending,
@@ -131,7 +131,7 @@ const Subscriptions = () => {
                   ? `${details?.description.slice(0, 15)}...`
                   : details?.description,
               amount: ` ${formatNumberWithCommas(
-                details?.subscription_plan_prices[0]?.price
+                details?.subscription_plan_prices[0]?.price ?? 0
               )}`,
 
               dateAdded: `${
@@ -206,16 +206,21 @@ const Subscriptions = () => {
                 >
                   View plan
                 </button>
-                <button
-                  onClick={() => {
-                    subOpenModal();
-                    setCurrentView(row);
-                    setOpenDropdown(null);
-                  }}
-                  className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
-                >
-                  Subscribe
-                </button>
+                {carybinUser?.subscription?.length ||
+                row?.subscription_plan_prices[0]?.period === "free" ? (
+                  <></>
+                ) : (
+                  <button
+                    onClick={() => {
+                      subOpenModal();
+                      setCurrentView(row);
+                      setOpenDropdown(null);
+                    }}
+                    className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
+                  >
+                    Subscribe
+                  </button>
+                )}
               </div>
             )}
           </div>

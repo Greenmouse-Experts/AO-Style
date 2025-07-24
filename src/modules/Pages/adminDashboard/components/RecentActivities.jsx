@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { FaEllipsisH } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import ReusableTable from "./ReusableTable";
-import { formatDateStr } from "../../../../lib/helper";
+import { formatDateStr, formatNumberWithCommas } from "../../../../lib/helper";
 
 const RecentActivitiesTable = (dataVal) => {
   console.log("dataVal", dataVal?.dataVal?.recentOrders);
@@ -81,6 +81,7 @@ const RecentActivitiesTable = (dataVal) => {
         setOpenDropdown(null);
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [openDropdown]);
@@ -115,12 +116,14 @@ const RecentActivitiesTable = (dataVal) => {
     setItemsPerPage(Number(e.target.value));
     setCurrentPage(1); // Reset to page 1 when items per page changes
   };
+
   const recentOrderData = useMemo(
     () =>
       dataVal?.dataVal?.recentOrders
         ? dataVal?.dataVal?.recentOrders.map((details) => {
             return {
               ...details,
+
               orderId: `${details?.order?.id}`,
               price: `${details?.order?.total_amount}`,
               description:
@@ -131,7 +134,9 @@ const RecentActivitiesTable = (dataVal) => {
                 details?.purchase?.items[0]?.name?.length > 15
                   ? `${details?.purchase?.items[0]?.name.slice(0, 15)}...`
                   : details?.purchase?.items[0]?.name,
-              amount: `${details?.payment?.amount}`,
+              amount: `${formatNumberWithCommas(
+                details?.payment?.amount ?? 0
+              )}`,
 
               status: `${details?.payment?.payment_status}`,
               orderDate: `${

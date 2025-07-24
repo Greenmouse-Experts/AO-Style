@@ -206,12 +206,14 @@ const CartPage = () => {
               metadata,
               amount: Math.round(updatedAmount),
               currency: "NGN",
+              coupon_code: coupon ?? undefined,
               email: carybinUser?.email,
             },
             {
               onSuccess: (data) => {
                 setShowCheckoutModal(false);
                 resetForm();
+                setCoupon("");
                 payWithPaystack({
                   amount: +updatedAmount,
                   payment_id: data?.data?.data?.payment_id,
@@ -543,7 +545,6 @@ const CartPage = () => {
                               )}`
                             );
                           } else {
-                            console.log(carybinUser?.email);
                             applyCouponMutate(
                               {
                                 email: carybinUser?.email,
@@ -557,7 +558,6 @@ const CartPage = () => {
                                   setDiscountedPrice(
                                     data?.data?.data?.discount
                                   );
-                                  setCoupon("");
                                 },
                                 onError: () => {},
                               }
@@ -699,7 +699,10 @@ const CartPage = () => {
             <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 pt-20">
               <div className="bg-white rounded-lg p-6 w-full max-h-[80vh] overflow-y-auto max-w-3xl relative">
                 <button
-                  onClick={() => setShowCheckoutModal(false)}
+                  onClick={() => {
+                    setShowCheckoutModal(false);
+                    handleSubmit();
+                  }}
                   className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
                 >
                   <svg
@@ -926,6 +929,7 @@ const CartPage = () => {
                       </span>
                     </div>
                   </div>
+
                   <button
                     disabled={billingPending}
                     onClick={() => {

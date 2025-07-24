@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Search } from "lucide-react";
 import useGetAllOrder from "../../../hooks/order/useGetOrder";
 import useQueryParams from "../../../hooks/useQueryParams";
-import { formatDateStr } from "../../../lib/helper";
+import { formatDateStr, formatNumberWithCommas } from "../../../lib/helper";
 import ReusableTable from "../adminDashboard/components/ReusableTable";
 import useDebounce from "../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
@@ -226,7 +226,9 @@ const OrderPage = () => {
                       15
                     )}...`
                   : details?.payment?.purchase?.items[0]?.name,
-              amount: `${details?.payment?.amount}`,
+              amount: `${formatNumberWithCommas(
+                details?.payment?.amount ?? 0
+              )}`,
 
               status: `${details?.payment?.payment_status}`,
               dateAdded: `${

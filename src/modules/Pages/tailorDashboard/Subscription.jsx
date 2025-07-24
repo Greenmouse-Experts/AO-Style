@@ -413,8 +413,6 @@ const Subscriptions = () => {
         </div>
       )} */}
 
-      {/* Add Fabric Category Modal */}
-
       {isOpen && (
         <ViewSubscription onClose={closeModal} currentView={currentView} />
       )}

@@ -373,22 +373,36 @@ const ProductPage = () => {
               ? "All Products"
               : ""}
           </h1>
-          <Link
-            to={
-              isAdminFabricRoute
-                ? "/admin/fabric/add-product"
-                : "/fabric/product/add-product"
-            }
-            className="w-full sm:w-auto"
-          >
-            {currProd === "all" ? (
-              <></>
-            ) : (
+
+          {!isAdminFabricRoute ? (
+            <Link
+              to={
+                isAdminFabricRoute
+                  ? "/admin/fabric/add-product"
+                  : "/fabric/product/add-product"
+              }
+              className="w-full sm:w-auto"
+            >
               <button className="bg-gradient text-white px-6 sm:px-8 py-3 sm:py-3 cursor-pointer rounded-md hover:bg-purple-600 transition w-full sm:w-auto">
                 + Add New Product
               </button>
-            )}
-          </Link>
+            </Link>
+          ) : currProd == "all" ? (
+            <></>
+          ) : (
+            <Link
+              to={
+                isAdminFabricRoute
+                  ? "/admin/fabric/add-product"
+                  : "/fabric/product/add-product"
+              }
+              className="w-full sm:w-auto"
+            >
+              <button className="bg-gradient text-white px-6 sm:px-8 py-3 sm:py-3 cursor-pointer rounded-md hover:bg-purple-600 transition w-full sm:w-auto">
+                + Add New Product
+              </button>
+            </Link>
+          )}
         </div>
         <p className="text-gray-500 mt-2 text-sm sm:text-base">
           <Link to="/sales" className="text-blue-500 hover:underline">

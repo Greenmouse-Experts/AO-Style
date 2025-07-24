@@ -206,7 +206,7 @@ const Subscriptions = () => {
                 >
                   View plan
                 </button>
-                {carybinUser?.subscription?.length ||
+                {carybinUser?.subscriptions?.length ||
                 row?.subscription_plan_prices[0]?.period === "free" ? (
                   <></>
                 ) : (

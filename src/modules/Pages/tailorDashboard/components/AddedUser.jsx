@@ -3,6 +3,7 @@ import ReusableTable from "../components/ReusableTable";
 import { FaEllipsisH } from "react-icons/fa";
 import useGetVendorRecentOrder from "../../../../hooks/analytics/useGetVendorRecentOrder";
 import { formatDateStr, formatNumberWithCommas } from "../../../../lib/helper";
+import { Link } from "react-router-dom";
 
 const NewOrders = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -70,7 +71,7 @@ const NewOrders = () => {
         label: "Action",
         key: "action",
         render: (_, row) => (
-          <div className="relative" ref={dropdownRef}>
+          <div className="relative">
             <button
               className="text-gray-500 px-3 py-1 rounded-md"
               onClick={() => toggleDropdown(row.id)}
@@ -80,9 +81,12 @@ const NewOrders = () => {
 
             {openDropdown === row.id && (
               <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
-                <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
-                  View Details
-                </button>
+                <Link to={`/fabric/orders/orders-details?id=${row.order_id}`}>
+                  <button className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
+                    View Details
+                  </button>
+                </Link>
+
                 {/* <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
                   Edit Order
                 </button>
@@ -155,6 +159,8 @@ const NewOrders = () => {
         : [],
     [vendorRecentOrder?.data]
   );
+
+  console.log(vendorRecentOrder?.data);
 
   return (
     <div className="bg-white p-6 rounded-xl overflow-x-auto">

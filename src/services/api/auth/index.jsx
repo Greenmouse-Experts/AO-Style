@@ -12,6 +12,10 @@ const resendCode = (payload) => {
   return CaryBinApi.post(`/auth/resend-email`, payload);
 };
 
+const googleSignin = (payload) => {
+  return CaryBinApi.post(`/auth/sso`, payload);
+};
+
 const forgotPassword = (payload) => {
   return CaryBinApi.post(`/auth/request-password-reset`, payload);
 };
@@ -33,6 +37,7 @@ const acceptInvite = (payload) => {
 };
 
 const AuthService = {
+  googleSignin,
   signinUser,
   GetUser,
   forgotPassword,

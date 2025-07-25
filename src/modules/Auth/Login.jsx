@@ -6,6 +6,8 @@ import { useFormik } from "formik";
 import useResendCode from "./hooks/useResendOtp";
 import { GoogleLogin } from "@react-oauth/google";
 import useToast from "../../hooks/useToast";
+import useGoogleSignin from "./hooks/useGoogleSignIn";
+import { jwtDecode } from "jwt-decode";
 
 const initialValues = {
   email: "",
@@ -52,6 +54,22 @@ export default function SignInCustomer() {
   });
 
   const { isPending, signinMutate } = useSignIn(values.email, resendCodeMutate);
+
+  const { isPending: googleIsPending, googleSigninMutate } = useGoogleSignin();
+
+  const googleSigninHandler = (cred) => {
+    console.log(cred?.credential, "cred");
+    const payload = {
+      token: cred?.credential,
+      provider: "google",
+    };
+
+    googleSigninMutate(payload, {
+      onSuccess: (data) => {
+        console.log(data);
+      },
+    });
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient">
@@ -134,14 +152,16 @@ export default function SignInCustomer() {
           </div>
         </form>
 
-        <div className="flex items-center justify-center rounded-lg">
+        <div
+          role="button"
+          className="flex items-center justify-center rounded-lg "
+        >
           <GoogleLogin
             size="large"
             text="signin_with"
             theme="outlined"
             onSuccess={(credentialResponse) => {
-              console.log(credentialResponse);
-              // handleSignInGoogle(jwtDecode(credentialResponse.credential));
+              googleSigninHandler(credentialResponse);
             }}
             onError={() => {
               console.log("Login Failed");

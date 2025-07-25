@@ -132,7 +132,9 @@ const NewOrders = () => {
             return {
               ...details,
               orderId: `${details?.order?.id}`,
-              price: `${details?.order?.total_amount}`,
+              price: `${formatNumberWithCommas(
+                details?.order?.total_amount ?? 0
+              )}`,
               description:
                 details?.product?.description?.length > 20
                   ? `${details?.product?.description.slice(0, 20)}...`

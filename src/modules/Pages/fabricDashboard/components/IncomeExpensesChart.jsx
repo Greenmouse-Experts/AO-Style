@@ -44,13 +44,11 @@ const IncomeExpensesChart = () => {
     }));
   }
 
-  console.log(chartData);
-
   return (
     <div className="bg-white p-6 rounded-xl">
       <div className="flex justify-between items-center mb-4">
         <h2 className="font-medium text-lg">
-          Today{" "}
+          Monthly Revenue{" "}
           {/* <span className="text-green-600 text-sm bg-green-100 px-2 py-1 rounded">
             24.6% ⬆
           </span> */}

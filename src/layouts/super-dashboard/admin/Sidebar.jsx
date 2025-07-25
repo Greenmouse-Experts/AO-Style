@@ -35,6 +35,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const superAdmin =
     carybinAdminUser?.role?.role_id == "owner-super-administrator";
 
+  console.log(carybinAdminUser);
+
   const hasFabricRole =
     carybinAdminUser?.admin_role?.role?.includes("fabric-vendor");
   const hasUserRole = carybinAdminUser?.admin_role?.role?.includes("user");

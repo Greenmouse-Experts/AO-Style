@@ -8,6 +8,8 @@ import { GoogleLogin } from "@react-oauth/google";
 import useToast from "../../hooks/useToast";
 import useGoogleSignin from "./hooks/useGoogleSignIn";
 import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
+import Cookies from "js-cookie";
 
 const initialValues = {
   email: "",
@@ -32,6 +34,7 @@ export default function SignInCustomer() {
   }, []);
 
   const [showPassword, setShowPassword] = useState(false);
+  const redirectPath = new URLSearchParams(location.search).get("redirect");
 
   const { isPending: resendCodeIsPending, resendCodeMutate } = useResendCode();
   const { toastError } = useToast();
@@ -53,9 +56,15 @@ export default function SignInCustomer() {
     },
   });
 
+  const navigate = useNavigate();
+
   const { isPending, signinMutate } = useSignIn(values.email, resendCodeMutate);
 
   const { isPending: googleIsPending, googleSigninMutate } = useGoogleSignin();
+
+  const pendingProduct = localStorage.getItem("pendingProduct");
+
+  const parsedProduct = JSON.parse(pendingProduct);
 
   const googleSigninHandler = (cred) => {
     console.log(cred?.credential, "cred");
@@ -66,7 +75,44 @@ export default function SignInCustomer() {
 
     googleSigninMutate(payload, {
       onSuccess: (data) => {
-        console.log(data);
+        Cookies.set("token", data?.data?.accessToken);
+
+        if (data?.data?.data?.role === "user") {
+          navigate(redirectPath ?? "/customer", {
+            state: { info: parsedProduct },
+            replace: true,
+          });
+          Cookies.set("currUserUrl", "customer");
+        }
+        if (data?.data?.data?.role === "fabric-vendor") {
+          navigate(redirectPath ?? "/fabric", {
+            state: { info: parsedProduct },
+            replace: true,
+          });
+          Cookies.set("currUserUrl", "fabric");
+        }
+        if (data?.data?.data?.role === "fashion-designer") {
+          navigate(redirectPath ?? "/tailor", {
+            state: { info: parsedProduct },
+            replace: true,
+          });
+          Cookies.set("currUserUrl", "tailor");
+        }
+        if (data?.data?.data?.role === "logistics-agent") {
+          navigate(redirectPath ?? "/logistics", {
+            state: { info: parsedProduct },
+            replace: true,
+          });
+          Cookies.set("currUserUrl", "logistics");
+        }
+        if (data?.data?.data?.role === "market-representative") {
+          navigate(redirectPath ?? "/sales", {
+            state: { info: parsedProduct },
+            replace: true,
+          });
+          Cookies.set("currUserUrl", "sales");
+        }
+        // if()
       },
     });
   };

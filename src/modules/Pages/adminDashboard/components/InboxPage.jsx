@@ -15,7 +15,6 @@ import EmojiPicker from "emoji-picker-react";
 import { Link } from "react-router-dom";
 import io from "socket.io-client";
 import Cookies from "js-cookie";
-import useGetAllUsersByRole from "../../../../hooks/admin/useGetAllUserByRole";
 import useSendMessage from "../../../../hooks/messaging/useSendMessage";
 import useToast from "../../../../hooks/useToast";
 import { useQuery } from "@tanstack/react-query";
@@ -64,32 +63,55 @@ export default function InboxPage() {
   const adminId = adminProfile?.id || null;
   const { toastError, toastSuccess } = useToast();
 
-  // Get users by role hook
-  const {
-    data: usersData,
-    isLoading: loadingUsers,
-    refetch: refetchUsers,
-    error: usersError,
-  } = useGetAllUsersByRole({
-    role: userType ? roleMapping[userType] : null,
-  });
+  // Remove usersError and related debug code
+  const [users, setUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [userPage, setUserPage] = useState(1);
+  const usersPerPage = 10;
+  const [totalUsers, setTotalUsers] = useState(0);
 
-  // Debug users data
+  // Pagination calculation
+  const totalPages = Math.ceil(totalUsers / usersPerPage);
+
+  // Fetch users with pagination using the correct endpoint
+  const fetchUsers = async (role, page = 1) => {
+    if (!role) return;
+    setUsersLoading(true);
+    try {
+      const res = await CaryBinApi.get(
+        `/auth/users/${roleMapping[role]}?pagination[page]=${page}`
+      );
+      setUsers(res.data.data || []);
+      setTotalUsers(res.data.count || 0);
+    } catch (e) {
+      setUsers([]);
+      setTotalUsers(0);
+      toastError("Failed to fetch users.");
+    }
+    setUsersLoading(false);
+  };
+
+  // Fetch users when userType or userPage changes
   useEffect(() => {
-    if (usersData) {
-      console.log("Users data received:", usersData);
+    if (userType) {
+      fetchUsers(userType, userPage);
+    } else {
+      setUsers([]);
+      setTotalUsers(0);
+    }
+  }, [userType, userPage]);
+
+  // Debug users data (remove usersError usage)
+  useEffect(() => {
+    if (users) {
+      console.log("Users data received:", users);
       console.log("Users array:", users);
     }
-    if (usersError) {
-      console.error("Error fetching users:", usersError);
-      toastError("Failed to fetch users: " + usersError?.data?.message);
-    }
-  }, [usersData, usersError]);
+    // Remove usersError block
+  }, [users]);
 
   // Send message hook
   const { isPending: sendingMessage, sendMessageMutate } = useSendMessage();
-
-  const users = usersData?.data || [];
 
   // Keep selectedChatRef in sync and set chatId
   useEffect(() => {
@@ -988,7 +1010,7 @@ export default function InboxPage() {
             <div className="flex justify-between items-center outline-none pb-3 mb-4">
               <h2 className="text-lg font-semibold">Send Message</h2>
               <button
-                onClick={handleModalClose}
+                onClick={() => {handleModalClose(); setUserPage(1);}}
                 className="text-gray-500 hover:text-black"
               >
                 ✕
@@ -1001,7 +1023,7 @@ export default function InboxPage() {
                   <select
                     className="w-full p-4 border border-[#CCCCCC] text-gray-700 outline-none rounded-lg"
                     value={userType}
-                    onChange={handleUserTypeChange}
+                    onChange={(e) => { handleUserTypeChange(e); setUserPage(1); }}
                     required
                   >
                     <option value="">Choose user type</option>
@@ -1017,51 +1039,6 @@ export default function InboxPage() {
                   <label className="block text-gray-700 mb-4 mt-4">
                     Users will show here
                   </label>
-                  {loadingUsers ? (
-                    <div className="flex items-center gap-2 text-purple-600 py-2">
-                      <svg
-                        className="animate-spin h-5 w-5 text-purple-500"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                        ></path>
-                      </svg>
-                      Loading users...
-                    </div>
-                  ) : (
-                    ""
-                  )}
-                  {/* <select
-                    className="w-full p-4 border border-[#CCCCCC] text-gray-700 outline-none rounded-lg"
-                    value={selectedUser}
-                    onChange={handleUserDropdownChange}
-                    required
-                    disabled={!userType || loadingUsers}
-                  >
-                    <option value="">
-                      {loadingUsers ? "Loading users..." : "Choose a user"}
-                    </option>
-                    {users.length > 0 &&
-                      users.map((user) => (
-                        <option key={user.id} value={user.id}>
-                          {user.name || user.email || `User ${user.id}`}
-                        </option>
-                      ))}
-                  </select> */}
-                  {/* Enhanced user list */}
                   <div className="max-h-60 overflow-y-auto mt-2 rounded border border-gray-100 bg-white shadow">
                     {users.length > 0
                       ? users.map((user) => (
@@ -1104,15 +1081,50 @@ export default function InboxPage() {
                             )}
                           </div>
                         ))
-                      : !loadingUsers &&
+                      : !usersLoading &&
                         userType && (
                           <div className="px-4 py-3 text-gray-400 text-sm">
                             No users found for this role
                           </div>
                         )}
                   </div>
+                  {/* Pagination controls */}
+                  <div className="flex justify-between items-center mt-2 px-2">
+                    <button
+                      type="button"
+                      className="px-3 py-1 rounded bg-gray-100 text-gray-700 text-sm font-medium hover:bg-purple-100 disabled:opacity-50"
+                      onClick={() => setUserPage((p) => Math.max(1, p - 1))}
+                      disabled={userPage === 1 || usersLoading}
+                    >
+                      Previous
+                    </button>
+                    <span className="text-xs text-gray-500">
+                      Page {userPage}
+                    </span>
+                    <button
+                      type="button"
+                      className="px-3 py-1 rounded bg-purple-100 text-purple-700 text-sm font-medium hover:bg-purple-100 disabled:opacity-50"
+                      onClick={() =>
+                        setUserPage((p) => Math.min(totalPages, p + 1))
+                      }
+                      disabled={
+                        userPage === totalPages ||
+                        usersLoading ||
+                        totalPages === 0
+                      }
+                    >
+                      Next
+                    </button>
+                  </div>
+                  {usersLoading && (
+                    <div className="py-4 flex flex-col items-center justify-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-purple-500 mb-2"></div>
+                      <div className="text-purple-400 text-xs">
+                        Loading users...
+                      </div>
+                    </div>
+                  )}
                 </div>
-
                 <div>
                   <label className="block text-gray-700 mb-4 mt-4">
                     Message

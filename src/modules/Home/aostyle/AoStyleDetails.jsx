@@ -132,7 +132,7 @@ export default function AnkaraGownPage() {
       ? carybinUser?.name
       : currMeasurement?.customer_name ?? "",
     bust_circumference: markReceivedChecked
-      ? userMeasurement?.upper_body
+      ? userMeasurement?.upper_body?.bust_circumference
       : currMeasurement?.upper_body?.bust_circumference ?? "",
     bust_circumference_unit: markReceivedChecked
       ? userMeasurement?.upper_body?.bust_circumference_unit
@@ -936,9 +936,7 @@ export default function AnkaraGownPage() {
                                 <select
                                   className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
                                   name={"dress_length_unit"}
-                                  value={
-                                   values.dress_length_unit
-                                  }
+                                  value={values.dress_length_unit}
                                   onChange={handleChange}
                                 >
                                   <option value="cm">cm</option>

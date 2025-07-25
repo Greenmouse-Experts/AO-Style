@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import SecuritySettings from "./components/SecuritySettings";
 import BankDetails from "./components/BankDetails";
@@ -13,13 +13,16 @@ import {
   useStates,
 } from "../../../hooks/location/useGetCountries";
 import Select from "react-select";
+import useGetDelivery from "../../../hooks/delivery/useGetDeliverySettings";
+import useAddDelivery from "../../../hooks/delivery/useAddDelivery";
+import useUpdateDelivery from "../../../hooks/delivery/useUpdateDelivery";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("personalDetails");
   const [activeSection, setActiveSection] = useState("Profile");
 
   const { carybinAdminUser } = useCarybinAdminUserStore();
-
+  console.log(carybinAdminUser);
   const initialValues = {
     name: carybinAdminUser?.name ?? "",
     email: carybinAdminUser?.email ?? "",
@@ -28,6 +31,7 @@ const Settings = () => {
     country: carybinAdminUser?.profile?.country ?? "",
     state: carybinAdminUser?.profile?.state ?? "",
     phone: carybinAdminUser?.phone ?? "",
+    alternative_phone: carybinAdminUser?.alternative_phone ?? "",
   };
 
   const [profileIsLoading, setProfileIsLoading] = useState(false);
@@ -97,6 +101,27 @@ const Settings = () => {
     fileInputRef.current?.click();
   };
 
+  const { data } = useGetDelivery();
+
+  const [delivery, setDelivery] = useState(undefined);
+
+  console.log(data?.data?.data?.id);
+
+  console.log(delivery);
+
+  useEffect(() => {
+    if (data?.data?.data?.price_per_km) {
+      setDelivery(data?.data?.data?.price_per_km);
+    } else {
+      setDelivery(undefined);
+    }
+  }, [data?.data?.data?.price_per_km]);
+
+  const { isPending: deliveryIsPending, addDeliveryMutate } = useAddDelivery();
+
+  const { isPending: updateDeliveryIsPending, updateDeliveryMutate } =
+    useUpdateDelivery();
+
   return (
     <>
       <div className="bg-white px-6 py-4 mb-6">
@@ -112,7 +137,7 @@ const Settings = () => {
         {/* Sidebar */}
         <div className="w-full md:w-1/5 bg-white md:mb-0 mb-6 h-fit p-4 rounded-lg">
           <ul className="space-y-2 text-gray-600">
-            {["Profile", "Security"].map((item) => (
+            {["Profile", "Security", "Delivery"].map((item) => (
               <li
                 key={item}
                 className={`cursor-pointer px-4 py-3 rounded-lg transition-colors duration-300 ${
@@ -382,8 +407,56 @@ const Settings = () => {
               <SecuritySettings />
             </div>
           )}
-          {activeSection === "Settings" && (
-            <h2 className="text-xl font-medium">General Settings</h2>
+          {activeSection === "Delivery" && (
+            <div>
+              <h2 className="text-xl font-medium mb-4">Delivery</h2>
+
+              {/* Tab Content */}
+              <div className="mt-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-gray-700 mb-4">
+                      Delivery Price (per km)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                      name={"delivery_price"}
+                      value={delivery}
+                      onChange={(e) => {
+                        setDelivery(e.target.value);
+                      }}
+                      required
+                    />
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      if (data?.data?.data?.id) {
+                        updateDeliveryMutate({
+                          id: data?.data?.data?.id,
+                          price_per_km: +delivery,
+                        });
+                      } else {
+                        addDeliveryMutate({
+                          price_per_km: +delivery,
+                        });
+                      }
+                    }}
+                    disabled={
+                      deliveryIsPending || !delivery || updateDeliveryIsPending
+                    }
+                    className="mt-4 cursor-pointer disabled:cursor-pointer bg-gradient text-white px-6 py-2 rounded-md"
+                  >
+                    {deliveryIsPending || updateDeliveryIsPending
+                      ? "Please wait..."
+                      : data?.data?.data?.id
+                      ? "Update"
+                      : "Add"}
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
           {activeSection === "Support" && (
             <h2 className="text-xl font-medium">Support & Help</h2>

@@ -99,7 +99,7 @@ export default function InboxPage() {
     console.log("User token:", userToken);
     console.log("User ID from profile:", userId);
     console.log("Profile loading:", profileLoading);
-    console.log("Socket URL: https://api-carybin.victornwadinobi.com");
+    console.log("Socket URL: https://api-staging.carybin.com/");
     console.log("===============================================");
 
     // Wait for profile to be loaded before initializing socket
@@ -108,7 +108,7 @@ export default function InboxPage() {
       console.log("User token:", userToken);
       console.log("User ID:", userId);
       console.log("==========================================");
-      const socketInstance = io("https://api-carybin.victornwadinobi.com", {
+      const socketInstance = io("https://api-staging.carybin.com/", {
         auth: { token: userToken },
         transports: ["websocket", "polling"],
         timeout: 20000,

@@ -346,14 +346,14 @@ export default function SignInAsCustomer() {
             <hr className="flex-grow border-gray-300" />
           </div>
 
-          <button className="w-full mt-4 flex items-center justify-center border border-[#CCCCCC] hover:bg-gradient-to-r from-purple-500 to-pink-50 hover:text-white p-4 rounded-lg">
+          {/* <button className="w-full mt-4 flex items-center justify-center border border-[#CCCCCC] hover:bg-gradient-to-r from-purple-500 to-pink-50 hover:text-white p-4 rounded-lg">
             <img
               src="https://www.svgrepo.com/show/355037/google.svg"
               alt="Google"
               className="h-5 mr-2"
             />
             Sign Up with Google
-          </button>
+          </button> */}
         </div>
       </div>
     </div>

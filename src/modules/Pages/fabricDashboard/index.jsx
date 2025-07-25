@@ -17,6 +17,8 @@ export default function FabricDashboard() {
     data: vendorSummaryStat,
   } = useVendorSummaryStat();
 
+  console.log(vendorSummaryStat);
+
   if (isPending) {
     return (
       <div className="m-auto flex h-[80vh] items-center justify-center">

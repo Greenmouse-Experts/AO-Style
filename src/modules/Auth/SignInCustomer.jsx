@@ -7,10 +7,12 @@ import useRegister from "./hooks/useSignUpMutate";
 import ReCAPTCHA from "react-google-recaptcha";
 import useToast from "../../hooks/useToast";
 import PhoneInput from "react-phone-input-2";
+import { GoogleLogin } from "@react-oauth/google";
 
 import { countryCodes } from "../../constant";
 
 import Select from "react-select";
+import useGoogleSignin from "./hooks/useGoogleSignIn";
 
 const initialValues = {
   name: "",
@@ -76,6 +78,24 @@ export default function SignInAsCustomer() {
 
   const changeHandler = (value) => {
     setValue(value);
+  };
+
+  const { isPending: googleIsPending, googleSigninMutate } = useGoogleSignin();
+
+  const googleSigninHandler = (cred) => {
+    console.log(cred?.credential, "cred");
+
+    const payload = {
+      token: cred?.credential,
+      provider: "google",
+      role: "user",
+    };
+
+    googleSigninMutate(payload, {
+      onSuccess: (data) => {
+        console.log(data);
+      },
+    });
   };
 
   return (
@@ -404,14 +424,22 @@ export default function SignInAsCustomer() {
             <hr className="flex-grow border-gray-300" />
           </div>
 
-          <button className="w-full mt-4 flex items-center justify-center border border-[#CCCCCC] hover:bg-gradient-to-r from-purple-500 to-pink-50 hover:text-white p-4 rounded-lg">
-            <img
-              src="https://www.svgrepo.com/show/355037/google.svg"
-              alt="Google"
-              className="h-5 mr-2"
-            />
-            Sign Up with Google
-          </button>
+          <div
+            role="button"
+            className="flex items-center mt-4 justify-center rounded-lg "
+          >
+            <GoogleLogin
+              size="large"
+              text="signin_with"
+              theme="outlined"
+              onSuccess={(credentialResponse) => {
+                googleSigninHandler(credentialResponse);
+              }}
+              onError={() => {
+                console.log("Login Failed");
+              }}
+            />{" "}
+          </div>
         </div>
       </div>
     </div>

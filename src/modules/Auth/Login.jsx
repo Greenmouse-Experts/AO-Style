@@ -4,6 +4,10 @@ import { Eye, EyeOff } from "lucide-react";
 import useSignIn from "./hooks/useSigninMutate";
 import { useFormik } from "formik";
 import useResendCode from "./hooks/useResendOtp";
+import { GoogleLogin } from "@react-oauth/google";
+import useToast from "../../hooks/useToast";
+import useGoogleSignin from "./hooks/useGoogleSignIn";
+import { jwtDecode } from "jwt-decode";
 
 const initialValues = {
   email: "",
@@ -30,6 +34,7 @@ export default function SignInCustomer() {
   const [showPassword, setShowPassword] = useState(false);
 
   const { isPending: resendCodeIsPending, resendCodeMutate } = useResendCode();
+  const { toastError } = useToast();
 
   const {
     handleSubmit,
@@ -49,6 +54,22 @@ export default function SignInCustomer() {
   });
 
   const { isPending, signinMutate } = useSignIn(values.email, resendCodeMutate);
+
+  const { isPending: googleIsPending, googleSigninMutate } = useGoogleSignin();
+
+  const googleSigninHandler = (cred) => {
+    console.log(cred?.credential, "cred");
+    const payload = {
+      token: cred?.credential,
+      provider: "google",
+    };
+
+    googleSigninMutate(payload, {
+      onSuccess: (data) => {
+        console.log(data);
+      },
+    });
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient">
@@ -129,16 +150,24 @@ export default function SignInCustomer() {
             <span className="px-3 text-gray-500">Or</span>
             <div className="border-b border-[#CCCCCC] w-full"></div>
           </div>
-
-          <button className="w-full flex items-center justify-center border border-[#CCCCCC] py-3 rounded-lg font-normal">
-            <img
-              src="https://www.svgrepo.com/show/355037/google.svg"
-              alt="Google"
-              className="h-5 mr-2"
-            />
-            Login with Google
-          </button>
         </form>
+
+        <div
+          role="button"
+          className="flex items-center justify-center rounded-lg "
+        >
+          <GoogleLogin
+            size="large"
+            text="signin_with"
+            theme="outlined"
+            onSuccess={(credentialResponse) => {
+              googleSigninHandler(credentialResponse);
+            }}
+            onError={() => {
+              console.log("Login Failed");
+            }}
+          />{" "}
+        </div>
       </div>
     </div>
   );

@@ -79,28 +79,6 @@ const useSignIn = (email, resendCodeMutate) => {
       } else {
         navigate("/admin/login");
       }
-
-      // toastSuccess(data?.data?.message);
-      // // @ts-ignore
-      // Cookies.set("token", data?.data?.accessToken);
-      // if (data?.data?.data?.role === "owner-super-administrator") {
-      //   navigate("/admin");
-      // }
-      // if (data?.data?.data?.role === "fabric-vendor") {
-      //   navigate("/fabric");
-      // }
-      // if (data?.data?.data?.role === "fashion-designer") {
-      //   navigate("/tailor");
-      // }
-      // if (data?.data?.data?.role === "logistics-agent") {
-      //   navigate("/logistics");
-      // }
-      // if (data?.data?.data?.role === "user") {
-      //   navigate("/customer");
-      // }
-      // if (data?.data?.data?.role === "market-representative") {
-      //   navigate("/sales");
-      // }
     },
     onError: (error) => {
       if (!navigator.onLine) {

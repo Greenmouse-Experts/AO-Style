@@ -148,7 +148,8 @@ const ViewSubscription = ({ onClose, currentView }) => {
                 </div>
               </div>
             </div>
-            {currentView?.planValidity == "Free" ? (
+            {currentView?.planValidity == "Free" ||
+            carybinUser?.subscriptions?.length ? (
               <></>
             ) : (
               <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200/50">

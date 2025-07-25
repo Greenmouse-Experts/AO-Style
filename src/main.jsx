@@ -7,6 +7,7 @@ import { QueryProvider } from "./services/react-query/queryProvider.jsx";
 import "react-toastify/dist/ReactToastify.css";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import { ToastContainer } from "react-toastify";
 import App from "./App.jsx";
@@ -22,22 +23,23 @@ if ("serviceWorker" in navigator) {
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <QueryProvider>
-      <RouterProvider router={router} />
-
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar
-        newestOnTop={false}
-        closeOnClick={false}
-        rtl={false}
-        pauseOnFocusLoss
-        draggable={false}
-        pauseOnHover={false}
-        theme="colored"
-      />
-      <App />
-    </QueryProvider>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_LOGIN}>
+      <QueryProvider>
+        <RouterProvider router={router} />
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar
+          newestOnTop={false}
+          closeOnClick={false}
+          rtl={false}
+          pauseOnFocusLoss
+          draggable={false}
+          pauseOnHover={false}
+          theme="colored"
+        />
+        <App />
+      </QueryProvider>
+    </GoogleOAuthProvider>
   </StrictMode>
 );

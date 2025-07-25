@@ -888,7 +888,7 @@ const AddProduct = () => {
                     setFieldValue("category_id", selectedOption.value);
                   }}
                   required
-                  placeholder="Choose category"
+                  placeholder="Choose fabric"
                   className="w-full p-2 border border-[#CCCCCC] outline-none rounded-lg"
                   styles={{
                     control: (base, state) => ({

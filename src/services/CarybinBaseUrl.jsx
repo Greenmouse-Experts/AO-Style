@@ -12,6 +12,9 @@ const CaryBinApi = axios.create({
 });
 
 const onRequest = (request) => {
+  if (!navigator.onLine) {
+    return Promise.reject(new Error("No internet connection"));
+  }
   // * get the user data if loggedin to access the token and pass it to the header authorization
 
   const isAdminRoute = window.location.pathname.includes("/admin");

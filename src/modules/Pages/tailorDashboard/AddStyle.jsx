@@ -406,6 +406,7 @@ export default function StyleForm() {
                 placeholder="Enter the style description"
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 h-32 outline-none"
                 type="text"
+                required
                 name={"description"}
                 value={values.description}
                 onChange={handleChange}

@@ -5,17 +5,17 @@ import {
   FaClock,
   FaEye,
   FaArrowLeft,
-  FaCut,
+  FaTruck,
 } from "react-icons/fa";
 import dayjs from "dayjs";
 import useGetAnnouncements from "../../../hooks/announcement/useGetAnnouncements";
 import useToast from "../../../hooks/useToast";
 
-const TailorAnnouncementsPage = () => {
+const LogisticsAnnouncementsPage = () => {
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const { toastError } = useToast();
 
-  // Fetch announcements for tailor role
+  // Fetch announcements for logistics role
   const {
     data: announcementsData,
     isLoading,
@@ -24,10 +24,10 @@ const TailorAnnouncementsPage = () => {
   } = useGetAnnouncements("user");
 
   // Console log the full response to understand the structure
-  console.log("Tailor Announcements - Full Response:", announcementsData);
-  console.log("Tailor Announcements - Data:", announcementsData?.data);
+  console.log("Logistics Announcements - Full Response:", announcementsData);
+  console.log("Logistics Announcements - Data:", announcementsData?.data);
   console.log(
-    "Tailor Announcements - Nested Data:",
+    "Logistics Announcements - Nested Data:",
     announcementsData?.data?.data
   );
 
@@ -104,10 +104,10 @@ const TailorAnnouncementsPage = () => {
             <div className="bg-gradient-to-r from-purple-600 to-pink-400 p-6 text-white">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="p-2 bg-white/20 rounded-lg">
-                  <FaCut className="h-6 w-6" />
+                  <FaTruck className="h-6 w-6" />
                 </div>
                 <span className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full">
-                  Tailor Announcement
+                  Logistics Announcement
                 </span>
               </div>
               <h1 className="text-2xl font-bold mb-2">
@@ -150,11 +150,11 @@ const TailorAnnouncementsPage = () => {
               <FaBullhorn className="h-6 w-6 text-purple-600" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900">
-              Tailor Announcements
+              Logistics Announcements
             </h1>
           </div>
           <p className="text-gray-600">
-            Important updates and information for tailors.
+            Important updates and information for logistics users.
           </p>
         </div>
 
@@ -186,13 +186,13 @@ const TailorAnnouncementsPage = () => {
         {!isLoading && announcements.length === 0 && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
             <div className="w-16 h-16 bg-purple-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-              <FaCut className="h-8 w-8 text-purple-400" />
+              <FaTruck className="h-8 w-8 text-purple-400" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               No Announcements Yet
             </h3>
             <p className="text-gray-600">
-              You're all caught up! New tailor announcements will appear here
+              You're all caught up! New logistics announcements will appear here
               when available.
             </p>
           </div>
@@ -211,7 +211,7 @@ const TailorAnnouncementsPage = () => {
                   {/* Icon */}
                   <div className="flex-shrink-0">
                     <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-400 rounded-lg flex items-center justify-center">
-                      <FaCut className="h-6 w-6 text-white" />
+                      <FaTruck className="h-6 w-6 text-white" />
                     </div>
                   </div>
 
@@ -255,4 +255,4 @@ const TailorAnnouncementsPage = () => {
   );
 };
 
-export default TailorAnnouncementsPage;
+export default LogisticsAnnouncementsPage;

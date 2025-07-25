@@ -542,11 +542,11 @@ export default function AnkaraGownPage() {
                   </div>
                 )}
 
-                <div className="pt-4">
+                {/* <div className="pt-4">
                   <button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded transition-colors">
                     Add To Cart
                   </button>
-                </div>
+                </div> */}
               </div>
             </div>
 

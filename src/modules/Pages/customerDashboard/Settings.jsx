@@ -16,6 +16,8 @@ import {
   useCountries,
   useStates,
 } from "../../../hooks/location/useGetCountries";
+import useToast from "../../../hooks/useToast";
+import { usePlacesWidget } from "react-google-autocomplete";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("personalDetails");
@@ -110,6 +112,8 @@ const Settings = () => {
   const { isPending: updateIsPending, updatePersonalMutate } =
     useUpdateProfile();
 
+  const { toastError } = useToast();
+
   const {
     handleSubmit,
     values,
@@ -123,6 +127,11 @@ const Settings = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      console.log(val);
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       updatePersonalMutate(
         {
           ...val,
@@ -131,34 +140,38 @@ const Settings = () => {
               bust_circumference: val?.bust_circumference,
               bust_circumference_unit: val?.bust_circumference_unit,
               shoulder_width: val?.shoulder_width,
-              shoulder_width_unit: val?.shoulder_width_unit,
+              shoulder_width_unit: val?.bust_circumference_unit,
               armhole_circumference: val?.armhole_circumference,
-              armhole_circumference_unit: val?.armhole_circumference_unit,
+              armhole_circumference_unit: val?.bust_circumference_unit,
               sleeve_length: val?.sleeve_length,
-              sleeve_length_unit: val?.sleeve_length_unit,
+              sleeve_length_unit: val?.bust_circumference_unit,
               bicep_circumference: val?.bicep_circumference,
-              bicep_circumference_unit: val?.bicep_circumference_unit,
+              bicep_circumference_unit: val?.bust_circumference_unit,
               waist_circumference: val?.waist_circumference_upper,
-              waist_circumference_unit: val?.waist_circumference_unit_upper,
+              waist_circumference_unit: val?.bust_circumference_unit,
             },
             lower_body: {
               waist_circumference: val?.waist_circumference_lower,
-              waist_circumference_unit: val?.waist_circumference_lower_unit,
+              waist_circumference_unit: val?.bust_circumference_unit,
               hip_circumference: val?.hip_circumference,
-              hip_circumference_unit: val?.hip_circumference_unit,
+              hip_circumference_unit: val?.bust_circumference_unit,
               thigh_circumference: val?.thigh_circumference,
-              thigh_circumference_unit: val?.thigh_circumference_unit,
+              thigh_circumference_unit: val?.bust_circumference_unit,
               knee_circumference: val?.knee_circumference,
-              knee_circumference_unit: val?.knee_circumference_unit,
+              knee_circumference_unit: val?.bust_circumference_unit,
               trouser_length: val?.trouser_length,
-              trouser_length_unit: val?.trouser_length_unit,
+              trouser_length_unit: val?.bust_circumference_unit,
             },
             full_body: {
               height: val?.height,
-              height_unit: val?.height_unit,
+              height_unit: val?.bust_circumference_unit,
               dress_length: val?.dress_length,
-              dress_length_unit: val?.dress_length_unit,
+              dress_length_unit: val?.bust_circumference_unit,
             },
+          },
+          coordinates: {
+            longitude: val.longitude,
+            latitude: val.latitude,
           },
         },
         {
@@ -203,6 +216,19 @@ const Settings = () => {
   const handleButtonClick = () => {
     fileInputRef.current?.click();
   };
+
+  const { ref } = usePlacesWidget({
+    apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
+    onPlaceSelected: (place) => {
+      setFieldValue("address", place.formatted_address);
+      setFieldValue("latitude", place.geometry?.location?.lat().toString());
+      setFieldValue("longitude", place.geometry?.location?.lng().toString());
+    },
+    options: {
+      componentRestrictions: { country: "ng" },
+      types: [],
+    },
+  });
 
   return (
     <>
@@ -389,19 +415,23 @@ const Settings = () => {
                         />
                       </div>
                       <div>
-                        {" "}
                         <label className="block text-gray-700 mb-4">
                           Address
                         </label>
                         <input
                           type="text"
+                          ref={ref}
                           className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                           placeholder="Enter full detailed address"
                           required
-                          name={"address"}
+                          name="address"
                           maxLength={150}
+                          onChange={(e) => {
+                            setFieldValue("address", e.currentTarget.value);
+                            setFieldValue("latitude", "");
+                            setFieldValue("longitude", "");
+                          }}
                           value={values.address}
-                          onChange={handleChange}
                         />
                       </div>
                     </div>
@@ -538,6 +568,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={
                                 "Enter the circumference of your bust"
                               }
@@ -571,6 +602,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={"Enter the width of your shoulder"}
                               name={"shoulder_width"}
                               required
@@ -581,8 +613,8 @@ const Settings = () => {
                             <div className="relative">
                               <select
                                 className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"shoulder_width_unit"}
-                                value={values.shoulder_width_unit}
+                                name={"bust_circumference_unit"}
+                                value={values.bust_circumference_unit}
                                 onChange={handleChange}
                               >
                                 <option value="cm">cm</option>
@@ -602,6 +634,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={
                                 "Enter the circumference of your armhole"
                               }
@@ -614,8 +647,8 @@ const Settings = () => {
                             <div className="relative">
                               <select
                                 className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"armhole_circumference_unit"}
-                                value={values.armhole_circumference_unit}
+                                name={"bust_circumference_unit"}
+                                value={values.bust_circumference_unit}
                                 onChange={handleChange}
                               >
                                 <option value="cm">cm</option>
@@ -635,6 +668,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={"Enter the length of your sleeve"}
                               name={"sleeve_length"}
                               required
@@ -645,8 +679,8 @@ const Settings = () => {
                             <div className="relative">
                               <select
                                 className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"sleeve_length_unit"}
-                                value={values.sleeve_length_unit}
+                                name={"bust_circumference_unit"}
+                                value={values.bust_circumference_unit}
                                 onChange={handleChange}
                               >
                                 <option value="cm">cm</option>
@@ -666,6 +700,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={
                                 "Enter the circumference of your bicep"
                               }
@@ -678,8 +713,8 @@ const Settings = () => {
                             <div className="relative">
                               <select
                                 className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"bicep_circumference_unit"}
-                                value={values.bicep_circumference_unit}
+                                name={"bust_circumference_unit"}
+                                value={values.bust_circumference_unit}
                                 onChange={handleChange}
                               >
                                 <option value="cm">cm</option>
@@ -699,6 +734,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={
                                 "Enter the circumference of your wrist"
                               }
@@ -711,8 +747,8 @@ const Settings = () => {
                             <div className="relative">
                               <select
                                 className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"waist_circumference_unit_upper"}
-                                value={values.waist_circumference_unit_upper}
+                                name={"bust_circumference_unit"}
+                                value={values.bust_circumference_unit}
                                 onChange={handleChange}
                               >
                                 <option value="cm">cm</option>
@@ -751,6 +787,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={"Enter your waist measurement"}
                               name={"waist_circumference_lower"}
                               required
@@ -761,8 +798,8 @@ const Settings = () => {
                             <div className="relative">
                               <select
                                 className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"waist_circumference_lower_unit"}
-                                value={values.waist_circumference_lower_unit}
+                                name={"bust_circumference_unit"}
+                                value={values.bust_circumference_unit}
                                 onChange={handleChange}
                               >
                                 <option value="cm">cm</option>
@@ -782,6 +819,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={"Enter your hip measurement"}
                               name={"hip_circumference"}
                               required
@@ -792,8 +830,8 @@ const Settings = () => {
                             <div className="relative">
                               <select
                                 className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"hip_circumference_unit"}
-                                value={values.hip_circumference_unit}
+                                name={"bust_circumference_unit"}
+                                value={values.bust_circumference_unit}
                                 onChange={handleChange}
                               >
                                 <option value="cm">cm</option>
@@ -813,6 +851,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={"Enter your thigh measurement"}
                               name={"thigh_circumference"}
                               required
@@ -823,8 +862,8 @@ const Settings = () => {
                             <div className="relative">
                               <select
                                 className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"thigh_circumference_unit"}
-                                value={values.thigh_circumference_unit}
+                                name={"bust_circumference_unit"}
+                                value={values.bust_circumference_unit}
                                 onChange={handleChange}
                               >
                                 <option value="cm">cm</option>
@@ -844,6 +883,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={"Enter your knee measurement"}
                               name={"knee_circumference"}
                               required
@@ -854,8 +894,8 @@ const Settings = () => {
                             <div className="relative">
                               <select
                                 className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"knee_circumference_unit"}
-                                value={values.knee_circumference_unit}
+                                name={"bust_circumference_unit"}
+                                value={values.bust_circumference_unit}
                                 onChange={handleChange}
                               >
                                 <option value="cm">cm</option>
@@ -875,6 +915,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={"Enter your trouser length"}
                               name={"trouser_length"}
                               required
@@ -885,8 +926,8 @@ const Settings = () => {
                             <div className="relative">
                               <select
                                 className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"trouser_length_unit"}
-                                value={values.trouser_length_unit}
+                                name={"bust_circumference_unit"}
+                                value={values.bust_circumference_unit}
                                 onChange={handleChange}
                               >
                                 <option value="cm">cm</option>
@@ -927,6 +968,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={"Enter your height"}
                               name={"height"}
                               required
@@ -937,8 +979,8 @@ const Settings = () => {
                             <div className="relative">
                               <select
                                 className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"height_unit"}
-                                value={values.height_unit}
+                                name={"bust_circumference_unit"}
+                                value={values.bust_circumference_unit}
                                 onChange={handleChange}
                               >
                                 <option value="cm">cm</option>
@@ -958,6 +1000,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={"Enter your desired length"}
                               name={"dress_length"}
                               required
@@ -968,8 +1011,8 @@ const Settings = () => {
                             <div className="relative">
                               <select
                                 className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"dress_length_unit"}
-                                value={values.dress_length_unit}
+                                name={"bust_circumference_unit"}
+                                value={values.bust_circumference_unit}
                                 onChange={handleChange}
                               >
                                 <option value="cm">cm</option>

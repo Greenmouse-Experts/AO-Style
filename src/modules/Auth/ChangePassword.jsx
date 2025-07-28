@@ -3,6 +3,7 @@ import { useFormik } from "formik";
 import useChangePassword from "./hooks/useChangePassword";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import useToast from "../../hooks/useToast";
 
 const initialValues = {
   new_password: "",
@@ -14,6 +15,7 @@ export default function ChangePassword() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { isPending, changePasswordMutate } = useChangePassword();
+  const { toastError } = useToast();
 
   const {
     handleSubmit,
@@ -28,6 +30,10 @@ export default function ChangePassword() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       changePasswordMutate({
         ...val,
         reset_token: new URLSearchParams(window.location.search).get("token"),

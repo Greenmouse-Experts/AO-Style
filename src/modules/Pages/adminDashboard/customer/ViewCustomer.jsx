@@ -164,11 +164,9 @@ const ViewCustomer = () => {
     );
   }
 
-  console.log(data);
 
   const customer = data?.data?.user;
 
-  console.log(customer);
 
   return (
     <div>

@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { formatNumberWithCommas } from "../../../../lib/helper";
 
 export default function StatsCard(vendorSummaryStat) {
   const cardValue = vendorSummaryStat?.vendorSummaryStat;
@@ -25,7 +26,7 @@ export default function StatsCard(vendorSummaryStat) {
       {
         image:
           "https://res.cloudinary.com/greenmouse-tech/image/upload/v1742827223/AoStyle/Group_38685_qx6z7j.png",
-        value: `N${cardValue?.totalIncome}`,
+        value: `${formatNumberWithCommas(cardValue?.totalIncome ?? 0)}`,
         label: "Total Income",
       },
     ],

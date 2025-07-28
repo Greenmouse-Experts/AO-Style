@@ -4,6 +4,12 @@ import { Eye, EyeOff } from "lucide-react";
 import useSignIn from "./hooks/useSigninMutate";
 import { useFormik } from "formik";
 import useResendCode from "./hooks/useResendOtp";
+import { GoogleLogin } from "@react-oauth/google";
+import useToast from "../../hooks/useToast";
+import useGoogleSignin from "./hooks/useGoogleSignIn";
+import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
+import Cookies from "js-cookie";
 
 const initialValues = {
   email: "",
@@ -28,8 +34,10 @@ export default function SignInCustomer() {
   }, []);
 
   const [showPassword, setShowPassword] = useState(false);
+  const redirectPath = new URLSearchParams(location.search).get("redirect");
 
   const { isPending: resendCodeIsPending, resendCodeMutate } = useResendCode();
+  const { toastError } = useToast();
 
   const {
     handleSubmit,
@@ -44,11 +52,74 @@ export default function SignInCustomer() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       signinMutate(val);
     },
   });
 
+  const navigate = useNavigate();
+
   const { isPending, signinMutate } = useSignIn(values.email, resendCodeMutate);
+
+  const { isPending: googleIsPending, googleSigninMutate } = useGoogleSignin();
+
+  const pendingProduct = localStorage.getItem("pendingProduct");
+
+  const parsedProduct = JSON.parse(pendingProduct);
+
+  const googleSigninHandler = (cred) => {
+    console.log(cred?.credential, "cred");
+    const payload = {
+      token: cred?.credential,
+      provider: "google",
+    };
+
+    googleSigninMutate(payload, {
+      onSuccess: (data) => {
+        Cookies.set("token", data?.data?.accessToken);
+
+        if (data?.data?.data?.role === "user") {
+          navigate(redirectPath ?? "/customer", {
+            state: { info: parsedProduct },
+            replace: true,
+          });
+          Cookies.set("currUserUrl", "customer");
+        }
+        if (data?.data?.data?.role === "fabric-vendor") {
+          navigate(redirectPath ?? "/fabric", {
+            state: { info: parsedProduct },
+            replace: true,
+          });
+          Cookies.set("currUserUrl", "fabric");
+        }
+        if (data?.data?.data?.role === "fashion-designer") {
+          navigate(redirectPath ?? "/tailor", {
+            state: { info: parsedProduct },
+            replace: true,
+          });
+          Cookies.set("currUserUrl", "tailor");
+        }
+        if (data?.data?.data?.role === "logistics-agent") {
+          navigate(redirectPath ?? "/logistics", {
+            state: { info: parsedProduct },
+            replace: true,
+          });
+          Cookies.set("currUserUrl", "logistics");
+        }
+        if (data?.data?.data?.role === "market-representative") {
+          navigate(redirectPath ?? "/sales", {
+            state: { info: parsedProduct },
+            replace: true,
+          });
+          Cookies.set("currUserUrl", "sales");
+        }
+        // if()
+      },
+    });
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient">
@@ -129,16 +200,24 @@ export default function SignInCustomer() {
             <span className="px-3 text-gray-500">Or</span>
             <div className="border-b border-[#CCCCCC] w-full"></div>
           </div>
-
-          <button className="w-full flex items-center justify-center border border-[#CCCCCC] py-3 rounded-lg font-normal">
-            <img
-              src="https://www.svgrepo.com/show/355037/google.svg"
-              alt="Google"
-              className="h-5 mr-2"
-            />
-            Login with Google
-          </button>
         </form>
+
+        <div
+          role="button"
+          className="flex items-center justify-center rounded-lg "
+        >
+          <GoogleLogin
+            size="large"
+            text="signin_with"
+            theme="outlined"
+            onSuccess={(credentialResponse) => {
+              googleSigninHandler(credentialResponse);
+            }}
+            onError={() => {
+              console.log("Login Failed");
+            }}
+          />{" "}
+        </div>
       </div>
     </div>
   );

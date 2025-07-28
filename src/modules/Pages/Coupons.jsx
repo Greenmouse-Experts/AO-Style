@@ -82,6 +82,11 @@ const Coupons = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
+
       if (type == "Remove") {
         return deleteCouponMutate(
           { ...val, id: newCategory?.id },
@@ -620,6 +625,7 @@ const Coupons = () => {
                         Value
                       </label>
                       <input
+                        max={values?.type === "PERCENTAGE" ? 100 : undefined}
                         type="number"
                         name={"value"}
                         required
@@ -636,6 +642,7 @@ const Coupons = () => {
                       </label>
                       <input
                         type="date"
+                        min={new Date().toISOString().split("T")[0]}
                         name="start_date"
                         required
                         value={values.start_date?.split(" ")[0]}
@@ -650,6 +657,7 @@ const Coupons = () => {
                       </label>
                       <input
                         type="date"
+                        min={values.start_date?.split(" ")[0]}
                         name="end_date"
                         required
                         value={values.end_date?.split(" ")[0]}

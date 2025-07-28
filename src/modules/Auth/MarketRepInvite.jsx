@@ -50,6 +50,7 @@ export default function MarketRepInvite() {
     value: code,
   }));
 
+
   const {
     handleSubmit,
     values,
@@ -63,6 +64,10 @@ export default function MarketRepInvite() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       const phoneno = `${val.phoneCode + val.phone}`;
       const altno = `${val.altCode + val.alternative_phone}`;
 
@@ -372,7 +377,7 @@ export default function MarketRepInvite() {
             <span className="px-3 text-gray-500">Or</span>
             <hr className="flex-grow border-gray-300" />
           </div>
-
+          {/* 
           <button className="w-full mt-4 flex items-center justify-center border border-[#CCCCCC] hover:bg-gradient-to-r from-purple-500 to-pink-50 hover:text-white p-4 rounded-lg">
             <img
               src="https://www.svgrepo.com/show/355037/google.svg"
@@ -380,7 +385,7 @@ export default function MarketRepInvite() {
               className="h-5 mr-2"
             />
             Sign Up with Google
-          </button>
+          </button> */}
         </div>
       </div>
     </div>

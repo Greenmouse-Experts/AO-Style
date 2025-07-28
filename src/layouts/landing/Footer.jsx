@@ -9,18 +9,32 @@ import {
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useSubscribeNewsletter from "../../hooks/newsletter/useSubscribeNewsletter";
+import useToast from "../../hooks/useToast";
 
 const Footer = () => {
   const { pathname } = useLocation();
   const [email, setEmail] = useState("");
   const [feedback, setFeedback] = useState("");
-  const { mutate: subscribeNewsletter, isPending, isSuccess, isError, error } = useSubscribeNewsletter();
+  const {
+    mutate: subscribeNewsletter,
+    isPending,
+    isSuccess,
+    isError,
+    error,
+  } = useSubscribeNewsletter();
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [pathname]);
 
+  const { toastError } = useToast();
+
   const handleNewsletterSubmit = (e) => {
+    if (!navigator.onLine) {
+      toastError("No internet connection. Please check your network.");
+      return;
+    }
+
     e.preventDefault();
     setFeedback("");
     if (!email) {
@@ -34,7 +48,9 @@ const Footer = () => {
         console.log("Newsletter subscription response:", res);
       },
       onError: (err) => {
-        setFeedback("Subscription failed. Please try again or use a valid email.");
+        setFeedback(
+          "Subscription failed. Please try again or use a valid email."
+        );
         console.error("Newsletter subscription error:", err);
       },
     });
@@ -182,7 +198,7 @@ const Footer = () => {
             <input
               type="email"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
               className="w-full p-4 mb-4 border border-white text-white outline-none"
               required
@@ -196,7 +212,13 @@ const Footer = () => {
               {isPending ? "Subscribing..." : "SUBSCRIBE"}
             </button>
             {feedback && (
-              <div className={`mt-3 text-sm ${isSuccess ? "text-green-300" : "text-red-300"}`}>{feedback}</div>
+              <div
+                className={`mt-3 text-sm ${
+                  isSuccess ? "text-green-300" : "text-red-300"
+                }`}
+              >
+                {feedback}
+              </div>
             )}
           </form>
           <div className="flex gap-8 mt-6">

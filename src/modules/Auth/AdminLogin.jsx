@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useFormik } from "formik";
 import useSignIn from "./hooks/useSigninMutate";
+import useToast from "../../hooks/useToast";
 
 const initialValues = {
   email: "",
@@ -24,6 +25,8 @@ export default function SignInCustomer() {
     };
   }, []);
 
+  const { toastError } = useToast();
+
   const [showPassword, setShowPassword] = useState(false);
 
   const { isPending, signinMutate } = useSignIn();
@@ -41,6 +44,10 @@ export default function SignInCustomer() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       signinMutate(val);
     },
   });

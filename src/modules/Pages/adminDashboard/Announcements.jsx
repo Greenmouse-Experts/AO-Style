@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FaBullhorn, FaUsers, FaPaperPlane } from "react-icons/fa";
 import useSendAnnouncement from "../../../hooks/announcement/useSendAnnouncement";
+import useToast from "../../../hooks/useToast";
 
 const AnnouncementsPage = () => {
   const [formData, setFormData] = useState({
@@ -20,7 +21,13 @@ const AnnouncementsPage = () => {
     }));
   };
 
+  const { toastError } = useToast();
+
   const handleSubmit = (e) => {
+    if (!navigator.onLine) {
+      toastError("No internet connection. Please check your network.");
+      return;
+    }
     e.preventDefault();
 
     // Map the frontend role values to backend expected values using the correct mapping

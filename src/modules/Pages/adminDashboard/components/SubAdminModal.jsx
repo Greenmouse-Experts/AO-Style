@@ -7,6 +7,7 @@ import PhoneInput from "react-phone-input-2";
 import useGetAdminRoles from "../../../../hooks/admin/useGetAdminRoles";
 import Select from "react-select";
 import useEditAdminRole from "../../../../hooks/admin/useEditAdminRole";
+import useToast from "../../../../hooks/useToast";
 
 const SubAdminModal = ({ isOpen, onClose, newCategory }) => {
   console.log(newCategory?.admin_role?.id);
@@ -37,6 +38,8 @@ const SubAdminModal = ({ isOpen, onClose, newCategory }) => {
     role: "owner-administrator",
   };
 
+  const { toastError } = useToast();
+
   const {
     handleSubmit,
     values,
@@ -50,6 +53,10 @@ const SubAdminModal = ({ isOpen, onClose, newCategory }) => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       if (newCategory) {
         editAdminRoleMutate(
           { user_id: newCategory?.id, admin_role_id: val.admin_role_id },

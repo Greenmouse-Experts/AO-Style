@@ -6,12 +6,14 @@ import { useFormik } from "formik";
 import useGetBusinessDetails from "../../../../hooks/settings/useGetBusinessDetails";
 import useQueryParams from "../../../../hooks/useQueryParams";
 import useGetSubscription from "../../../../hooks/subscription/useGetSubscription";
-import { formatDateStr } from "../../../../lib/helper";
+import { formatDateStr, formatNumberWithCommas } from "../../../../lib/helper";
 import useDebounce from "../../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../../hooks/useUpdatedEffect";
 import useEditSubscription from "../../../../hooks/subscription/useUpdateSubscription";
 import useDeleteAdminFabric from "../../../../hooks/fabric/useDeleteAdminFabric";
 import useDeleteSubscription from "../../../../hooks/subscription/useDeleteSubscription";
+import useGetAdminBusinessDetails from "../../../../hooks/settings/useGetAdmnBusinessInfo";
+import useToast from "../../../../hooks/useToast";
 
 const AddSubscriptionModal = ({ isOpen, onClose, onAdd, newCategory }) => {
   const initialValues = {
@@ -29,7 +31,11 @@ const AddSubscriptionModal = ({ isOpen, onClose, onAdd, newCategory }) => {
     useEditSubscription(newCategory?.id);
   const { data: businessDetails } = useGetBusinessDetails();
 
+  const { data: businessAdminDetails } = useGetAdminBusinessDetails();
+
   const modalRef = useRef(null);
+
+  const { toastError } = useToast();
 
   const {
     handleSubmit,
@@ -44,12 +50,16 @@ const AddSubscriptionModal = ({ isOpen, onClose, onAdd, newCategory }) => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       const updatedSubscription = {
         name: val.name,
         description: val.description,
         max_quantity: val.max_quantity,
         role: val.role,
-        business_id: businessDetails?.data?.id,
+        business_id: businessAdminDetails?.data?.id,
         subscription_plan_prices: [
           {
             price: val.price?.toString(),
@@ -244,7 +254,13 @@ const SubscriptionModal = ({ isOpen, onClose, subscription, onUpdate }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const { toastError } = useToast();
+
   const handleSubmit = (e) => {
+    if (!navigator.onLine) {
+      toastError("No internet connection. Please check your network.");
+      return;
+    }
     e.preventDefault();
     onUpdate(formData.id, {
       ...formData,
@@ -501,7 +517,9 @@ const SubscriptionsPlansTable = () => {
                 details?.description.length > 15
                   ? `${details?.description.slice(0, 15)}...`
                   : details?.description,
-              amount: `${details?.subscription_plan_prices[0]?.price}`,
+              amount: `${formatNumberWithCommas(
+                details?.subscription_plan_prices[0]?.price
+              )}`,
 
               dateAdded: `${
                 details?.created_at
@@ -568,10 +586,10 @@ const SubscriptionsPlansTable = () => {
 
   const columns = useMemo(
     () => [
-      { label: "Name", key: "name" },
+      { label: "Plan Name", key: "name" },
       { label: "User Type", key: "userType" },
       { label: "Plan Description", key: "planDescription" },
-      { label: "Amount", key: "amount" },
+      { label: "Plan Price", key: "amount" },
       { label: "Date added", key: "dateAdded" },
 
       {

@@ -8,7 +8,7 @@ import {
 } from "recharts";
 import { FaRegCalendarAlt } from "react-icons/fa";
 
-const months = [
+export const months = [
   "Jan",
   "Feb",
   "Mar",
@@ -23,7 +23,7 @@ const months = [
   "Dec",
 ];
 
-const CustomTooltip = ({ active, payload }) => {
+export const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white p-3 shadow-md rounded-md">
@@ -90,7 +90,7 @@ const IncomeExpensesChart = (dataVal) => {
       </ResponsiveContainer>
       <div className="flex justify-center gap-4 mt-4 text-sm">
         <span className="flex items-center gap-2">
-          <span className="w-3 h-3 bg-purple-600 rounded-full"></span> Income
+          <span className="w-3 h-3 bg-purple-600 rounded-full"></span> Revenue
         </span>
         {/* <span className="flex items-center gap-2">
               <span className="w-3 h-3 bg-blue-400 rounded-full"></span> Expenses

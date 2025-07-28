@@ -58,6 +58,10 @@ export default function SignInAsCustomer() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       const phoneno = `${val.phone}`;
       const altno = `${val.alternative_phone}`;
 

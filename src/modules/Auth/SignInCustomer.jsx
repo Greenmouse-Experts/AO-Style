@@ -7,10 +7,14 @@ import useRegister from "./hooks/useSignUpMutate";
 import ReCAPTCHA from "react-google-recaptcha";
 import useToast from "../../hooks/useToast";
 import PhoneInput from "react-phone-input-2";
+import { GoogleLogin } from "@react-oauth/google";
+import { useNavigate } from "react-router-dom";
+import Cookies from "js-cookie";
 
 import { countryCodes } from "../../constant";
 
 import Select from "react-select";
+import useGoogleSignin from "./hooks/useGoogleSignIn";
 
 const initialValues = {
   name: "",
@@ -25,6 +29,12 @@ const initialValues = {
 
 export default function SignInAsCustomer() {
   const { toastError } = useToast();
+  const redirectPath = new URLSearchParams(location.search).get("redirect");
+  const pendingProduct = localStorage.getItem("pendingProduct");
+
+  const parsedProduct = JSON.parse(pendingProduct);
+
+  const navigate = useNavigate();
 
   const [value, setValue] = useState("");
 
@@ -51,6 +61,10 @@ export default function SignInAsCustomer() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       const phoneno = `${val.phone}`;
       const altno = `${val.alternative_phone}`;
 
@@ -76,6 +90,59 @@ export default function SignInAsCustomer() {
 
   const changeHandler = (value) => {
     setValue(value);
+  };
+
+  const { isPending: googleIsPending, googleSigninMutate } = useGoogleSignin();
+
+  const googleSigninHandler = (cred) => {
+    const payload = {
+      token: cred?.credential,
+      provider: "google",
+      role: "user",
+    };
+
+    googleSigninMutate(payload, {
+      onSuccess: (data) => {
+        Cookies.set("token", data?.data?.accessToken);
+
+        if (data?.data?.data?.role === "user") {
+          navigate(redirectPath ?? "/customer", {
+            state: { info: parsedProduct },
+            replace: true,
+          });
+          Cookies.set("currUserUrl", "customer");
+        }
+        if (data?.data?.data?.role === "fabric-vendor") {
+          navigate(redirectPath ?? "/fabric", {
+            state: { info: parsedProduct },
+            replace: true,
+          });
+          Cookies.set("currUserUrl", "fabric");
+        }
+        if (data?.data?.data?.role === "fashion-designer") {
+          navigate(redirectPath ?? "/tailor", {
+            state: { info: parsedProduct },
+            replace: true,
+          });
+          Cookies.set("currUserUrl", "tailor");
+        }
+        if (data?.data?.data?.role === "logistics-agent") {
+          navigate(redirectPath ?? "/logistics", {
+            state: { info: parsedProduct },
+            replace: true,
+          });
+          Cookies.set("currUserUrl", "logistics");
+        }
+        if (data?.data?.data?.role === "market-representative") {
+          navigate(redirectPath ?? "/sales", {
+            state: { info: parsedProduct },
+            replace: true,
+          });
+          Cookies.set("currUserUrl", "sales");
+        }
+        // if()
+      },
+    });
   };
 
   return (
@@ -404,14 +471,22 @@ export default function SignInAsCustomer() {
             <hr className="flex-grow border-gray-300" />
           </div>
 
-          <button className="w-full mt-4 flex items-center justify-center border border-[#CCCCCC] hover:bg-gradient-to-r from-purple-500 to-pink-50 hover:text-white p-4 rounded-lg">
-            <img
-              src="https://www.svgrepo.com/show/355037/google.svg"
-              alt="Google"
-              className="h-5 mr-2"
-            />
-            Sign Up with Google
-          </button>
+          <div
+            role="button"
+            className="flex items-center mt-4 justify-center rounded-lg "
+          >
+            <GoogleLogin
+              size="large"
+              text="signup_with"
+              theme="outlined"
+              onSuccess={(credentialResponse) => {
+                googleSigninHandler(credentialResponse);
+              }}
+              onError={() => {
+                console.log("Login Failed");
+              }}
+            />{" "}
+          </div>
         </div>
       </div>
     </div>

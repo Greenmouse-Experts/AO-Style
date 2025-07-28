@@ -16,6 +16,7 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
 import useApproveMarketRep from "../../../hooks/marketRep/useApproveMarketRep";
+import useToast from "../../../hooks/useToast";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -235,6 +236,8 @@ const CustomersTable = () => {
     });
     saveAs(blob, "Logistics.xlsx");
   };
+
+  const { toastError } = useToast();
 
   return (
     <div className="bg-white p-6 rounded-xl overflow-x-auto">
@@ -563,6 +566,12 @@ const CustomersTable = () => {
             <form
               className="mt-6 space-y-4"
               onSubmit={(e) => {
+                if (!navigator.onLine) {
+                  toastError(
+                    "No internet connection. Please check your network."
+                  );
+                  return;
+                }
                 e.preventDefault();
                 approveMarketRepMutate(
                   {

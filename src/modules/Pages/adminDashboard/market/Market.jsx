@@ -22,6 +22,7 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
+import useToast from "../../../../hooks/useToast";
 
 const MarketsTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -212,6 +213,8 @@ const MarketsTable = () => {
 
   const { isPending: editIsPending, editMarketMutate } = useEditMarket();
 
+  const { toastError } = useToast();
+
   const {
     handleSubmit,
     touched,
@@ -227,6 +230,10 @@ const MarketsTable = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       if (type == "Edit") {
         editMarketMutate(
           { ...val, id: newCategory?.id },

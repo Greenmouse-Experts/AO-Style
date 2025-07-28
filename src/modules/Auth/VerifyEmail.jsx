@@ -4,9 +4,12 @@ import { useFormik } from "formik";
 import { maskEmail } from "../../lib/helper";
 import useResendCode from "./hooks/useResendOtp";
 import { useTriggerResend } from "../../hooks/useTriggerResend";
+import useToast from "../../hooks/useToast";
 
 export default function SignInCustomer() {
   const { isPending, verifyEmailMutate } = useVerifyEmail();
+
+  const { toastError } = useToast();
 
   const { isPending: resendCodeIsPending, resendCodeMutate } = useResendCode();
 
@@ -30,6 +33,10 @@ export default function SignInCustomer() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       verifyEmailMutate({ ...val, email: savedEmail });
     },
   });

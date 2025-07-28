@@ -69,6 +69,8 @@ const CartPage = () => {
 
   const updatedAmount = totalAmount + totalStyleAmount - discountedPrice;
 
+  const actualWithoutDiscountAmount = totalAmount + totalStyleAmount;
+
   const { isPending: deleteIsPending, deleteCartMutate } = useDeleteCart();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -140,6 +142,8 @@ const CartPage = () => {
     handler.openIframe();
   };
 
+  const { toastError } = useToast();
+
   const {
     handleSubmit,
     touched,
@@ -155,6 +159,10 @@ const CartPage = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       console.log(val);
       createBillingMutate(val, {
         onSuccess: () => {
@@ -207,14 +215,16 @@ const CartPage = () => {
               metadata,
               amount: Math.round(updatedAmount),
               currency: "NGN",
+              coupon_code: coupon ?? undefined,
               email: carybinUser?.email,
             },
             {
               onSuccess: (data) => {
                 setShowCheckoutModal(false);
                 resetForm();
+                setCoupon("");
                 payWithPaystack({
-                  amount: Math.round(updatedAmount),
+                  amount: +updatedAmount,
                   payment_id: data?.data?.data?.payment_id,
                 });
               },
@@ -224,6 +234,8 @@ const CartPage = () => {
       });
     },
   });
+
+  console.log(carybinUser);
 
   return (
     <>
@@ -544,7 +556,6 @@ const CartPage = () => {
                               )}`,
                             );
                           } else {
-                            console.log(carybinUser?.email);
                             applyCouponMutate(
                               {
                                 email: carybinUser?.email,
@@ -558,10 +569,11 @@ const CartPage = () => {
                                   setDiscountedPrice(
                                     data?.data?.data?.discount,
                                   );
-                                  setCoupon("");
                                 },
-                                onError: () => {},
-                              },
+                                onError: () => {
+                                  setDiscountedPrice("0");
+                                },
+                              }
                             );
                           }
                         }}
@@ -644,6 +656,14 @@ const CartPage = () => {
                         navigate(
                           `/login?redirect=${encodeURIComponent(currentPath)}`,
                         );
+                      } else if (carybinUser?.role?.role_id !== "user") {
+                        toastSuccess(
+                          "Access Denied, Create Customer Account to Proceed"
+                        );
+                        const currentPath = location.pathname + location.search;
+                        navigate(
+                          `/login?redirect=${encodeURIComponent(currentPath)}`
+                        );
                       } else {
                         const updatedItem = items?.map((item) => {
                           return {
@@ -718,7 +738,10 @@ const CartPage = () => {
             <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 pt-20">
               <div className="bg-white rounded-lg p-6 w-full max-h-[80vh] overflow-y-auto max-w-3xl relative">
                 <button
-                  onClick={() => setShowCheckoutModal(false)}
+                  onClick={() => {
+                    setShowCheckoutModal(false);
+                    handleSubmit();
+                  }}
                   className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
                 >
                   <svg
@@ -945,6 +968,7 @@ const CartPage = () => {
                       </span>
                     </div>
                   </div>
+
                   <button
                     disabled={billingPending}
                     onClick={() => {

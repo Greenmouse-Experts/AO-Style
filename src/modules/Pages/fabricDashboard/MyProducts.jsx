@@ -12,7 +12,7 @@ import useGetFabricProduct from "../../../hooks/fabric/useGetFabric";
 import useDebounce from "../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 
-import { formatDateStr } from "../../../lib/helper";
+import { formatDateStr, formatNumberWithCommas } from "../../../lib/helper";
 import useUpdateFabric from "../../../hooks/fabric/useUpdateFabric";
 import useDeleteFabric from "../../../hooks/fabric/useDeleteFabric";
 import useGetAdminFabricProduct from "../../../hooks/fabric/useGetAdminFabricProduct";
@@ -25,6 +25,7 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
 import useGetAdminManageFabricProduct from "../../../hooks/fabric/useGetManageFabric";
+import useToast from "../../../hooks/useToast";
 
 const ProductPage = () => {
   const { data: businessDetails } = useGetBusinessDetails();
@@ -92,7 +93,7 @@ const ProductPage = () => {
               name: `${details?.name ?? ""}`,
               category: `${details?.category?.name ?? ""}`,
               qty: `${details?.fabric?.quantity ?? ""}`,
-
+              price: `${formatNumberWithCommas(details?.price ?? 0)}`,
               created_at: `${
                 details?.created_at
                   ? formatDateStr(details?.created_at.split(".").shift())
@@ -263,7 +264,19 @@ const ProductPage = () => {
                       : "Draft Product"}
                   </button>
                 ) : null}
-                {currProd == "all" ? (
+                {!isAdminFabricRoute ? (
+                  <Link
+                    state={{ info: row }}
+                    to={
+                      isAdminFabricRoute
+                        ? "/admin/fabric/edit-product"
+                        : "/fabric/product/edit-product"
+                    }
+                    className="block cursor-pointer text-center px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
+                  >
+                    {"Edit Product"}
+                  </Link>
+                ) : currProd == "all" ? (
                   <></>
                 ) : (
                   <Link
@@ -349,30 +362,50 @@ const ProductPage = () => {
 
   console.log(currProd);
 
+  const { toastError } = useToast();
+
   return (
     <>
       <div className="bg-white px-4 sm:px-6 py-4 mb-6 relative">
         <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center space-y-3 sm:space-y-0">
           <h1 className="text-xl sm:text-2xl font-medium">
             {" "}
-            {currProd == "all" ? "All" : "My"} Products
+            {!isAdminFabricRoute
+              ? "My Products"
+              : currProd == "all"
+              ? "All Products"
+              : ""}
           </h1>
-          <Link
-            to={
-              isAdminFabricRoute
-                ? "/admin/fabric/add-product"
-                : "/fabric/product/add-product"
-            }
-            className="w-full sm:w-auto"
-          >
-            {currProd === "all" ? (
-              <></>
-            ) : (
+
+          {!isAdminFabricRoute ? (
+            <Link
+              to={
+                isAdminFabricRoute
+                  ? "/admin/fabric/add-product"
+                  : "/fabric/product/add-product"
+              }
+              className="w-full sm:w-auto"
+            >
               <button className="bg-gradient text-white px-6 sm:px-8 py-3 sm:py-3 cursor-pointer rounded-md hover:bg-purple-600 transition w-full sm:w-auto">
                 + Add New Product
               </button>
-            )}
-          </Link>
+            </Link>
+          ) : currProd == "all" ? (
+            <></>
+          ) : (
+            <Link
+              to={
+                isAdminFabricRoute
+                  ? "/admin/fabric/add-product"
+                  : "/fabric/product/add-product"
+              }
+              className="w-full sm:w-auto"
+            >
+              <button className="bg-gradient text-white px-6 sm:px-8 py-3 sm:py-3 cursor-pointer rounded-md hover:bg-purple-600 transition w-full sm:w-auto">
+                + Add New Product
+              </button>
+            </Link>
+          )}
         </div>
         <p className="text-gray-500 mt-2 text-sm sm:text-base">
           <Link to="/sales" className="text-blue-500 hover:underline">
@@ -380,23 +413,27 @@ const ProductPage = () => {
           </Link>{" "}
           &gt; {currProd === "all" ? "All Products" : "My Products"}
         </p>
-        <div className="flex flex-wrap justify-center sm:justify-start gap-3 text-gray-600 text-sm font-medium">
-          {["all", "my"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => {
-                setCurrProd(tab);
-              }}
-              className={`font-medium cursor-pointer capitalize px-3 py-1 ${
-                currProd === tab
-                  ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
-                  : "text-gray-500"
-              }`}
-            >
-              {tab == "all" ? "All" : tab} Products
-            </button>
-          ))}{" "}
-        </div>
+        {isAdminFabricRoute ? (
+          <div className="flex flex-wrap justify-center sm:justify-start gap-3 text-gray-600 text-sm font-medium">
+            {["all", "my"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => {
+                  setCurrProd(tab);
+                }}
+                className={`font-medium cursor-pointer capitalize px-3 py-1 ${
+                  currProd === tab
+                    ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
+                    : "text-gray-500"
+                }`}
+              >
+                {tab == "all" ? "All" : tab} Products
+              </button>
+            ))}{" "}
+          </div>
+        ) : (
+          <></>
+        )}
       </div>
       <div className="bg-white p-4 rounded-lg">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pb-3 mb-4 gap-4">
@@ -576,6 +613,12 @@ const ProductPage = () => {
             <form
               className="mt-6 space-y-4"
               onSubmit={(e) => {
+                if (!navigator.onLine) {
+                  toastError(
+                    "No internet connection. Please check your network."
+                  );
+                  return;
+                }
                 e.preventDefault();
                 if (isAdminFabricRoute) {
                   deleteAdminFabricMutate(

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FaEye, FaEyeSlash, FaArrowUp, FaArrowDown } from "react-icons/fa";
-import { formatDateStr } from "../../../../lib/helper";
+import { formatDateStr, formatNumberWithCommas } from "../../../../lib/helper";
 
 const WalletPage = (data) => {
   const [showBalance, setShowBalance] = useState(true);
@@ -21,7 +21,9 @@ const WalletPage = (data) => {
       <div className="bg-gradient text-white p-6 h-28 rounded-lg relative">
         <p className="text-sm mb-3">TOTAL BALANCE</p>
         <h1 className="text-3xl font-bold">
-          {showBalance ? data?.data?.totalBalance : "******"}
+          {showBalance
+            ? formatNumberWithCommas(data?.data?.totalBalance ?? 0)
+            : "******"}
         </h1>
         <button
           className="absolute top-6 right-6 text-white text-xl"
@@ -39,7 +41,9 @@ const WalletPage = (data) => {
           </div>
           <div>
             <p className="text-green-600 text-sm">INCOME</p>
-            <p className="font-semibold">₦ {data?.data?.totalIncome}</p>
+            <p className="font-semibold">
+              ₦ {formatNumberWithCommas(data?.data?.totalIncome ?? 0)}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -48,7 +52,9 @@ const WalletPage = (data) => {
           </div>
           <div>
             <p className="text-red-600 text-sm">Withdrawal</p>
-            <p className="font-semibold">₦ {data?.data?.totalWithdrawals}</p>
+            <p className="font-semibold">
+              ₦ {formatNumberWithCommas(data?.data?.totalWithdrawals ?? 0)}
+            </p>
           </div>
         </div>
       </div>
@@ -65,7 +71,6 @@ const WalletPage = (data) => {
         <p className="text-gray-500 text-sm">RECENT</p>
         {data?.data?.recentIncome?.length ? (
           <>
-            {" "}
             {data?.data?.recentIncome?.slice(0, 5).map((recent, id) => {
               return (
                 <div
@@ -78,7 +83,9 @@ const WalletPage = (data) => {
                     </div>
                     <div>
                       <p className="text-sm">
-                        {recent?.purchase?.items[0]?.name?.length > 15
+                        {recent?.purchase_type == "SUBSCRIPTION"
+                          ? recent?.purchase_type
+                          : recent?.purchase?.items[0]?.name?.length > 15
                           ? recent?.purchase?.items[0]?.name?.slice(0, 15)
                           : ""}
                       </p>
@@ -94,7 +101,7 @@ const WalletPage = (data) => {
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-green-600">
-                      + N {recent?.amount}
+                      + {formatNumberWithCommas(recent?.amount ?? 0)}
                     </p>
                     <p className="text-xs text-green-500">
                       {recent?.payment_status == "SUCCESS"

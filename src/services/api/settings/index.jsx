@@ -16,6 +16,10 @@ const getBusinessDetails = () => {
   return CaryBinApi.get(`/onboard/fetch-business-details`);
 };
 
+const getAdminBusinessInfo = () => {
+  return CaryBinApi.get(`/onboard/fetch-admin-business-details`);
+};
+
 const updatePersonalInfo = (payload) => {
   return CaryBinApi.post("/auth/save-profile-info", payload);
 };
@@ -37,6 +41,7 @@ const getKycInfo = (payload) => {
 };
 
 const SettingsService = {
+  getAdminBusinessInfo,
   updatePassword,
   getBusinessInfo,
   updatePersonalInfo,

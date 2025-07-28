@@ -77,11 +77,19 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           /> */}
 
           <SidebarItem
+            to="/fabric/subscription"
+            icon={<FaClipboardList />}
+            text="Subscription"
+            toggleSidebar={toggleSidebar}
+          />
+
+          <SidebarItem
             to="/fabric/orders"
             icon={<FaClipboardList />}
             text="Orders"
             toggleSidebar={toggleSidebar}
           />
+
           <SidebarItem
             to="/fabric/inbox"
             icon={<FaCommentDots />}

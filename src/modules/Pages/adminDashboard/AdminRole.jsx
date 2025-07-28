@@ -236,6 +236,10 @@ const CustomersTable = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       if (!val?.role?.length) {
         return toastError("Select a role");
       }
@@ -482,6 +486,12 @@ const CustomersTable = () => {
               <form
                 className="mt-6 space-y-4"
                 onSubmit={(e) => {
+                  if (!navigator.onLine) {
+                    toastError(
+                      "No internet connection. Please check your network."
+                    );
+                    return;
+                  }
                   e.preventDefault();
                   deleteAdminRoleMutate(
                     {

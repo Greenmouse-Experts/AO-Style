@@ -59,7 +59,7 @@ const ProductInventoryCard = (dataVal) => {
               Completed Cart
             </p>
             <p className="text-2xl font-semibold flex items-center">
-              {userData?.completedCartPercentage}%{" "}
+              {userData?.completedCartPercentage?.toFixed(2)}%{" "}
               {/* <span className="text-gray-400 text-sm ml-2">+0.00%</span> */}
             </p>
           </div>

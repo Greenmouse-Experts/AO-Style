@@ -24,6 +24,10 @@ const getVendorAnalyticsSummary = () => {
   return CaryBinApi.get(`/vendor-analytics/summary`);
 };
 
+const getVendorMetrics = () => {
+  return CaryBinApi.get(`/vendor-analytics/monthly-revenue`);
+};
+
 const getVendorRecentOrders = () => {
   return CaryBinApi.get(`/vendor-analytics/recent-orders`);
 };
@@ -41,6 +45,7 @@ const AnalyticsService = {
   getCustomerUpcomingDeliveries,
   getVendorAnalyticsSummary,
   getVendorRecentOrders,
+  getVendorMetrics,
 };
 
 export default AnalyticsService;

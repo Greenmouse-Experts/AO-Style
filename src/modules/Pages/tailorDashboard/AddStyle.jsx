@@ -122,6 +122,10 @@ export default function StyleForm() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       if (
         !values.front_url ||
         !values.back_url ||
@@ -157,10 +161,7 @@ export default function StyleForm() {
                   val.right_url,
                   val.left_url,
                 ],
-                location: {
-                  latitude: "1.2343444",
-                  longitude: "1.500332",
-                },
+
                 video_url: val.video_url,
               },
             },
@@ -197,10 +198,7 @@ export default function StyleForm() {
                   val.right_url,
                   val.left_url,
                 ],
-                location: {
-                  latitude: "1.2343444",
-                  longitude: "1.500332",
-                },
+
                 video_url: val.video_url,
               },
             },
@@ -236,10 +234,7 @@ export default function StyleForm() {
                   val.right_url,
                   val.left_url,
                 ],
-                location: {
-                  latitude: "1.2343444",
-                  longitude: "1.500332",
-                },
+
                 video_url: val.video_url,
               },
             },
@@ -273,10 +268,7 @@ export default function StyleForm() {
                   val.right_url,
                   val.left_url,
                 ],
-                location: {
-                  latitude: "1.2343444",
-                  longitude: "1.500332",
-                },
+
                 video_url: val.video_url,
               },
             },
@@ -406,6 +398,7 @@ export default function StyleForm() {
                 placeholder="Enter the style description"
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 h-32 outline-none"
                 type="text"
+                required
                 name={"description"}
                 value={values.description}
                 onChange={handleChange}
@@ -871,7 +864,7 @@ export default function StyleForm() {
               </div>
             </div>
             {/* Location */}
-            <div>
+            {/* <div>
               <label className="block text-gray-700 mb-4 mt-4">Location</label>
               <input
                 type="text"
@@ -888,7 +881,7 @@ export default function StyleForm() {
                 placeholder="Enter the coordinates of the shop"
                 className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
               />
-            </div>
+            </div> */}
             {/* Modal and Submit Button */}
             <ModalThanks
               isOpen={isModalOpen}

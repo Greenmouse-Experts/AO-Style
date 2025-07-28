@@ -6,7 +6,7 @@ import useQueryParams from "../../../hooks/useQueryParams";
 import useGetFabricProduct from "../../../hooks/fabric/useGetFabric";
 import useDebounce from "../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
-import { formatDateStr } from "../../../lib/helper";
+import { formatDateStr, formatNumberWithCommas } from "../../../lib/helper";
 import useUpdateStyle from "../../../hooks/style/useUpdateStyle";
 import Loader from "../../../components/ui/Loader";
 import useDeleteStyle from "../../../hooks/style/useDeleteFabric";
@@ -19,9 +19,12 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
+import useToast from "../../../hooks/useToast";
 
 export default function StylesTable() {
   const [newCategory, setNewCategory] = useState();
+
+  const [currProd, setCurrProd] = useState("all");
 
   const isAdminStyleRoute = location.pathname === "/admin/styles-products";
 
@@ -63,6 +66,8 @@ export default function StylesTable() {
   const [queryString, setQueryString] = useState(queryParams.q);
 
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
+
+  const { toastError } = useToast();
 
   useUpdatedEffect(() => {
     // update search params with undefined if debouncedSearchTerm is an empty string
@@ -122,30 +127,72 @@ export default function StylesTable() {
     doc.save("StylesCatalog.pdf");
   };
 
+  const dataRes = currProd == "all" ? updatedData?.data : [];
+
   return (
     <>
       <div className="bg-white px-4 sm:px-6 py-4 mb-6 relative">
         <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center space-y-3 sm:space-y-0">
           <h1 className="text-xl sm:text-2xl font-medium">All Styles</h1>
-          <Link
-            to={
-              isAdminStyleRoute
-                ? "/admin/style/add-product"
-                : "/tailor/catalog-add-style"
-            }
-            className="w-full sm:w-auto"
-          >
-            <button className="bg-gradient text-white px-6 sm:px-8 py-3 sm:py-3 cursor-pointer rounded-md hover:bg-purple-600 transition w-full sm:w-auto">
-              + Add Styles
-            </button>
-          </Link>
+
+          {!isAdminStyleRoute ? (
+            <Link
+              to={
+                isAdminStyleRoute
+                  ? "/admin/style/add-product"
+                  : "/tailor/catalog-add-style"
+              }
+              className="w-full sm:w-auto"
+            >
+              <button className="bg-gradient text-white px-6 sm:px-8 py-3 sm:py-3 cursor-pointer rounded-md hover:bg-purple-600 transition w-full sm:w-auto">
+                + Add Styles
+              </button>
+            </Link>
+          ) : currProd === "all" ? (
+            <></>
+          ) : (
+            <Link
+              to={
+                isAdminStyleRoute
+                  ? "/admin/style/add-product"
+                  : "/tailor/catalog-add-style"
+              }
+              className="w-full sm:w-auto"
+            >
+              <button className="bg-gradient text-white px-6 sm:px-8 py-3 sm:py-3 cursor-pointer rounded-md hover:bg-purple-600 transition w-full sm:w-auto">
+                + Add Styles
+              </button>
+            </Link>
+          )}
         </div>
         <p className="text-gray-500 mt-2 text-sm sm:text-base">
           <Link to="/tailor" className="text-blue-500 hover:underline">
             Dashboard
           </Link>{" "}
-          &gt; Styles
+          &gt;{currProd === "all" ? "All Styles" : "My Styles"}
         </p>
+
+        {isAdminStyleRoute ? (
+          <div className="flex flex-wrap justify-center sm:justify-start gap-3 text-gray-600 text-sm font-medium">
+            {["all", "my"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => {
+                  setCurrProd(tab);
+                }}
+                className={`font-medium cursor-pointer capitalize px-3 py-1 ${
+                  currProd === tab
+                    ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
+                    : "text-gray-500"
+                }`}
+              >
+                {tab == "all" ? "All" : tab} Styles
+              </button>
+            ))}{" "}
+          </div>
+        ) : (
+          <></>
+        )}
       </div>
 
       <div className="bg-white p-6 rounded-lg">
@@ -284,7 +331,7 @@ export default function StylesTable() {
                 </thead>
 
                 <tbody>
-                  {updatedData?.data?.map((style) => (
+                  {dataRes?.map((style) => (
                     <tr
                       key={style.id}
                       className="border-b border-gray-200 text-sm"
@@ -319,7 +366,10 @@ export default function StylesTable() {
                           </p>
                         </div>
                       </td>
-                      <td className="hidden md:table-cell">{style.price}</td>
+                      <td className="hidden md:table-cell">
+                        {" "}
+                        {formatNumberWithCommas(style.price ?? 0)}
+                      </td>
                       {/* <td className="hidden md:table-cell">{style.sold}</td> */}
                       <td>
                         <span
@@ -349,17 +399,34 @@ export default function StylesTable() {
                         </button>
                         {openDropdown === style.id && (
                           <div className="absolute cursor-pointer right-0 mt-2 bg-white shadow-md rounded-md py-2 w-32 z-50">
-                            <Link
-                              to={
-                                isAdminStyleRoute
-                                  ? "/admin/style/edit-product"
-                                  : "/tailor/catalog-edit-style"
-                              }
-                              state={{ info: style }}
-                              className="block  cursor-pointer w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                            >
-                              Edit
-                            </Link>
+                            {!isAdminStyleRoute ? (
+                              <Link
+                                to={
+                                  isAdminStyleRoute
+                                    ? "/admin/style/edit-product"
+                                    : "/tailor/catalog-edit-style"
+                                }
+                                state={{ info: style }}
+                                className="block  cursor-pointer w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                              >
+                                Edit
+                              </Link>
+                            ) : currProd == "all" ? (
+                              <></>
+                            ) : (
+                              <Link
+                                to={
+                                  isAdminStyleRoute
+                                    ? "/admin/style/edit-product"
+                                    : "/tailor/catalog-edit-style"
+                                }
+                                state={{ info: style }}
+                                className="block  cursor-pointer w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                              >
+                                Edit
+                              </Link>
+                            )}
+
                             {style?.status === "DRAFT" ? (
                               <button
                                 onClick={() => {
@@ -566,6 +633,12 @@ export default function StylesTable() {
             <form
               className="mt-6 space-y-4"
               onSubmit={(e) => {
+                if (!navigator.onLine) {
+                  toastError(
+                    "No internet connection. Please check your network."
+                  );
+                  return;
+                }
                 e.preventDefault();
                 if (isAdminStyleRoute) {
                   deleteAdminStyleMutate(

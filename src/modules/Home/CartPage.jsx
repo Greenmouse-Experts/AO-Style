@@ -30,6 +30,7 @@ const CartPage = () => {
   const [coupon, setCoupon] = useState("");
   const [total, setTotal] = useState(0);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [agreedToPolicy, setAgreedToPolicy] = useState(false);
 
   const [newCategory, setNewCategory] = useState();
 
@@ -41,12 +42,12 @@ const CartPage = () => {
 
   const totalProductQuantity = items?.reduce(
     (total, item) => total + (item?.product?.quantity || 0),
-    0
+    0,
   );
 
   const totalStyleQuantity = items?.reduce(
     (total, item) => total + (item?.product?.style?.measurement?.length || 0),
-    0
+    0,
   );
 
   const totalQuantity = totalProductQuantity + totalStyleQuantity;
@@ -129,7 +130,7 @@ const CartPage = () => {
               setVerifyPayment("");
               navigate(`/${currentUrl}/orders`);
             },
-          }
+          },
         );
         // 🔁 You can call your backend here to verify & process the payment
       },
@@ -227,7 +228,7 @@ const CartPage = () => {
                   payment_id: data?.data?.data?.payment_id,
                 });
               },
-            }
+            },
           );
         },
       });
@@ -394,7 +395,7 @@ const CartPage = () => {
                             ₦
                             {Math.max(
                               item?.product?.price_at_time || 0,
-                              item?.product?.style?.price_at_time || 0
+                              item?.product?.style?.price_at_time || 0,
                             ).toLocaleString()}
                           </p>
                         </div>
@@ -497,7 +498,7 @@ const CartPage = () => {
                           ₦
                           {Math.max(
                             item?.product?.price_at_time || 0,
-                            item?.product?.style?.price_at_time || 0
+                            item?.product?.style?.price_at_time || 0,
                           ).toLocaleString()}
                         </div>
                         <div className="text-xs text-gray-500">per unit</div>
@@ -545,14 +546,14 @@ const CartPage = () => {
                         onClick={() => {
                           if (!token || !carybinUser) {
                             toastSuccess(
-                              "You need to have a Customer Account to apply coupon"
+                              "You need to have a Customer Account to apply coupon",
                             );
                             const currentPath =
                               location.pathname + location.search;
                             navigate(
                               `/login?redirect=${encodeURIComponent(
-                                currentPath
-                              )}`
+                                currentPath,
+                              )}`,
                             );
                           } else {
                             applyCouponMutate(
@@ -566,7 +567,7 @@ const CartPage = () => {
                               {
                                 onSuccess: (data) => {
                                   setDiscountedPrice(
-                                    data?.data?.data?.discount
+                                    data?.data?.data?.discount,
                                   );
                                 },
                                 onError: () => {
@@ -625,17 +626,35 @@ const CartPage = () => {
                       </div>
                     </div>
                   </div>
-
+                  {/* CHECKBOX */}
+                  <div className="flex items-center mt-2 mb-3">
+                    <input
+                      type="checkbox"
+                      id="agreeToPolicy"
+                      checked={agreedToPolicy}
+                      onChange={() => setAgreedToPolicy((prev) => !prev)}
+                      className="mr-2 accent-purple-600"
+                    />
+                    <label
+                      htmlFor="agreeToPolicy"
+                      className="text-sm text-gray-700 select-none"
+                    >
+                      I agree to the{" "}
+                      <span className="font-semibold text-purple-600">
+                        CARYBIN checkout policy
+                      </span>
+                    </label>
+                  </div>
                   {/* Checkout Button */}
                   <button
                     onClick={() => {
                       if (!token || !carybinUser) {
                         toastSuccess(
-                          "You need to have a Customer Account to make an order"
+                          "You need to have a Customer Account to make an order",
                         );
                         const currentPath = location.pathname + location.search;
                         navigate(
-                          `/login?redirect=${encodeURIComponent(currentPath)}`
+                          `/login?redirect=${encodeURIComponent(currentPath)}`,
                         );
                       } else if (carybinUser?.role?.role_id !== "user") {
                         toastSuccess(
@@ -666,17 +685,17 @@ const CartPage = () => {
                             onSuccess: () => {
                               setShowCheckoutModal(true);
                             },
-                          }
+                          },
                         );
                       }
                     }}
-                    disabled={addCartPending}
+                    disabled={addCartPending || !agreedToPolicy}
                     className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium py-3 px-4 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {addCartPending
                       ? "Processing..."
                       : `Proceed to Checkout • ₦${Math.round(
-                          updatedAmount
+                          updatedAmount,
                         ).toLocaleString()}`}
                   </button>
 
@@ -809,7 +828,7 @@ const CartPage = () => {
                         options={[{ value: "NG", label: "Nigeria" }]}
                         name="country"
                         value={[{ value: "NG", label: "Nigeria" }]?.find(
-                          (opt) => opt.value === values.country
+                          (opt) => opt.value === values.country,
                         )}
                         onChange={(selectedOption) =>
                           setFieldValue("country", selectedOption.value)
@@ -846,7 +865,7 @@ const CartPage = () => {
                           options={nigeriaStates}
                           name="state"
                           value={nigeriaStates?.find(
-                            (opt) => opt.value === values.state
+                            (opt) => opt.value === values.state,
                           )}
                           onChange={(selectedOption) =>
                             setFieldValue("state", selectedOption.value)

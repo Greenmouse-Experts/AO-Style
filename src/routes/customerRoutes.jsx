@@ -12,6 +12,7 @@ import NotificationPageUpdate from "../modules/Pages/adminDashboard/Notification
 import ShopStyles from "../modules/Pages/customerDashboard/ShopStyles";
 import CustomerAnnouncementsPage from "../modules/Pages/customerDashboard/Announcements";
 import ProtectedRoute from "../components/ProtectedRoute";
+import CustomerJobsPage from "../modules/Pages/customerDashboard/Jobs";
 
 export const customerRoutes = [
   {
@@ -66,6 +67,10 @@ export const customerRoutes = [
       {
         path: "/customer/announcements",
         element: <CustomerAnnouncementsPage />,
+      },
+      {
+        path: "/customer/jobs",
+        element: <CustomerJobsPage />,
       },
       // Add other customer dashboard routes here
     ],

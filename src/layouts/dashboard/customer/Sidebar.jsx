@@ -9,6 +9,7 @@ import {
   FaCreditCard,
   FaCog,
   FaBullhorn,
+  FaBriefcase,
 } from "react-icons/fa";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useToast from "../../../hooks/useToast";
@@ -94,6 +95,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             to="/customer/announcements"
             icon={<FaBullhorn />}
             text="Announcements"
+            onClick={handleClick}
+          />
+          <SidebarItem
+            to="/customer/jobs"
+            icon={<FaBriefcase />}
+            text="Jobs"
             onClick={handleClick}
           />
           <SidebarItem

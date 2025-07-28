@@ -184,10 +184,7 @@ const AddProduct = () => {
               fabric: {
                 market_id: val.market_id,
                 weight_per_unit: val?.weight_per_unit?.toString(),
-                location: {
-                  latitude: "1.2343444",
-                  longitude: "1.500332",
-                },
+
                 local_name: val.local_name,
                 manufacturer_name: val.manufacturer_name,
                 material_type: val.material_type,
@@ -233,10 +230,7 @@ const AddProduct = () => {
               fabric: {
                 market_id: val.market_id,
                 weight_per_unit: val?.weight_per_unit?.toString(),
-                location: {
-                  latitude: "1.2343444",
-                  longitude: "1.500332",
-                },
+
                 local_name: val.local_name,
                 manufacturer_name: val.manufacturer_name,
                 material_type: val.material_type,
@@ -281,10 +275,7 @@ const AddProduct = () => {
               fabric: {
                 market_id: val.market_id,
                 weight_per_unit: val?.weight_per_unit?.toString(),
-                location: {
-                  latitude: "1.2343444",
-                  longitude: "1.500332",
-                },
+
                 local_name: val.local_name,
                 manufacturer_name: val.manufacturer_name,
                 material_type: val.material_type,
@@ -328,10 +319,7 @@ const AddProduct = () => {
               fabric: {
                 market_id: val.market_id,
                 weight_per_unit: val?.weight_per_unit?.toString(),
-                location: {
-                  latitude: "1.2343444",
-                  longitude: "1.500332",
-                },
+
                 local_name: val.local_name,
                 manufacturer_name: val.manufacturer_name,
                 material_type: val.material_type,
@@ -404,9 +392,6 @@ const AddProduct = () => {
     setPhotoFiles(updated);
     onChange?.(updated);
   };
-
-  const enableGooglePlaces =
-    import.meta.env.VITE_ENABLE_GOOGLE_PLACES === "true";
 
   const { ref } = usePlacesWidget({
     apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
@@ -599,7 +584,7 @@ const AddProduct = () => {
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 />
               </div>
-              <div>
+              {/* <div>
                 <label className="block text-gray-700 mb-4">
                   Location Coordinate
                 </label>
@@ -618,7 +603,7 @@ const AddProduct = () => {
                   placeholder="Enter the coordinates of the shop"
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 />
-              </div>
+              </div> */}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

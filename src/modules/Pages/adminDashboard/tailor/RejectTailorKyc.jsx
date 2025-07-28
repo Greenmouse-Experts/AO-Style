@@ -1,6 +1,7 @@
 import { useFormik } from "formik";
 import useApproveMarketRep from "../../../../hooks/marketRep/useApproveMarketRep";
 import useApproveKyc from "../../../../hooks/user/useApproveKyc";
+import useToast from "../../../../hooks/useToast";
 
 const initialValues = {
   reason: "",
@@ -8,6 +9,8 @@ const initialValues = {
 
 const RejectKycModal = ({ isOpen, onClose, id }) => {
   const { isPending, approveKycMutate } = useApproveKyc();
+
+  const { toastError } = useToast();
 
   // const [showPassword, setShowPassword] = useState(false);
   // const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -24,6 +27,10 @@ const RejectKycModal = ({ isOpen, onClose, id }) => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       approveKycMutate(
         {
           business_id: id,

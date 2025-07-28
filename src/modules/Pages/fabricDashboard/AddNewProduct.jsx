@@ -151,6 +151,10 @@ const AddProduct = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       if (
         !values.closeup_url ||
         !values.spreadout_url ||

@@ -16,10 +16,13 @@ import Select from "react-select";
 import useGetDelivery from "../../../hooks/delivery/useGetDeliverySettings";
 import useAddDelivery from "../../../hooks/delivery/useAddDelivery";
 import useUpdateDelivery from "../../../hooks/delivery/useUpdateDelivery";
+import useToast from "../../../hooks/useToast";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("personalDetails");
   const [activeSection, setActiveSection] = useState("Profile");
+
+  const { toastError } = useToast();
 
   const { carybinAdminUser } = useCarybinAdminUserStore();
   console.log(carybinAdminUser);
@@ -55,6 +58,10 @@ const Settings = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       updatePersonalMutate(val, {
         onSuccess: () => {
           resetForm();

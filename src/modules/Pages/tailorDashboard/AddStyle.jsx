@@ -122,6 +122,10 @@ export default function StyleForm() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       if (
         !values.front_url ||
         !values.back_url ||

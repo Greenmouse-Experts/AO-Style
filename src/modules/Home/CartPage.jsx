@@ -139,6 +139,8 @@ const CartPage = () => {
     handler.openIframe();
   };
 
+  const { toastError } = useToast();
+
   const {
     handleSubmit,
     touched,
@@ -154,6 +156,10 @@ const CartPage = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       console.log(val);
       createBillingMutate(val, {
         onSuccess: () => {

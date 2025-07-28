@@ -52,6 +52,10 @@ export default function SignInCustomer() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       signinMutate(val);
     },
   });

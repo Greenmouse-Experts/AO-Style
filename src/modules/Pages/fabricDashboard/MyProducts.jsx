@@ -25,6 +25,7 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
 import useGetAdminManageFabricProduct from "../../../hooks/fabric/useGetManageFabric";
+import useToast from "../../../hooks/useToast";
 
 const ProductPage = () => {
   const { data: businessDetails } = useGetBusinessDetails();
@@ -361,6 +362,8 @@ const ProductPage = () => {
 
   console.log(currProd);
 
+  const { toastError } = useToast();
+
   return (
     <>
       <div className="bg-white px-4 sm:px-6 py-4 mb-6 relative">
@@ -610,6 +613,12 @@ const ProductPage = () => {
             <form
               className="mt-6 space-y-4"
               onSubmit={(e) => {
+                if (!navigator.onLine) {
+                  toastError(
+                    "No internet connection. Please check your network."
+                  );
+                  return;
+                }
                 e.preventDefault();
                 if (isAdminFabricRoute) {
                   deleteAdminFabricMutate(

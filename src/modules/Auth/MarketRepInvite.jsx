@@ -50,6 +50,7 @@ export default function MarketRepInvite() {
     value: code,
   }));
 
+
   const {
     handleSubmit,
     values,
@@ -63,6 +64,10 @@ export default function MarketRepInvite() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       const phoneno = `${val.phoneCode + val.phone}`;
       const altno = `${val.altCode + val.alternative_phone}`;
 

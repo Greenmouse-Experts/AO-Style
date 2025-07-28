@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useFormik } from "formik";
 import useAddMarketRep from "../../../../hooks/marketRep/useAddMarketRep";
+import useToast from "../../../../hooks/useToast";
 
 const initialValues = {
   email: "",
@@ -13,6 +14,7 @@ const AddMarketModal = ({ isOpen, onClose, businessId }) => {
   // const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { isPending, addMarketRepMutate } = useAddMarketRep();
+  const { toastError } = useToast();
 
   const {
     handleSubmit,
@@ -28,6 +30,10 @@ const AddMarketModal = ({ isOpen, onClose, businessId }) => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       addMarketRepMutate(
         { ...val, business_id: businessId },
         {

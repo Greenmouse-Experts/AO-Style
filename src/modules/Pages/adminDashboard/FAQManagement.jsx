@@ -16,6 +16,7 @@ import useToggleFAQStatus from "../../../hooks/faq/useToggleFAQStatus";
 import useDeleteFAQ from "../../../hooks/faq/useDeleteFAQ";
 import BeatLoader from "../../../components/BeatLoader";
 import ConfirmationModal from "../../../components/ui/ConfirmationModal";
+import useToast from "../../../hooks/useToast";
 
 const FAQManagementPage = () => {
   const [showForm, setShowForm] = useState(false);
@@ -62,7 +63,13 @@ const FAQManagementPage = () => {
     }));
   };
 
+  const { toastError } = useToast();
+
   const handleSubmit = (e) => {
+    if (!navigator.onLine) {
+      toastError("No internet connection. Please check your network.");
+      return;
+    }
     e.preventDefault();
     if (formData.question.trim() && formData.answer.trim()) {
       createFAQMutate(formData, {
@@ -75,6 +82,10 @@ const FAQManagementPage = () => {
   };
 
   const handleEditSubmit = (e) => {
+    if (!navigator.onLine) {
+      toastError("No internet connection. Please check your network.");
+      return;
+    }
     e.preventDefault();
     if (formData.question.trim() && formData.answer.trim() && editingFAQ) {
       updateFAQMutate(

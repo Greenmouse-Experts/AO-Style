@@ -130,7 +130,7 @@ export default function InboxPage() {
       console.log("=== FETCHING CHATS VIA SOCKET ===");
       console.log("Emitting retrieveChats with token:", adminToken);
       console.log("Admin ID:", adminId);
-      socket.emit("retrieveChats", { 
+      socket.emit("retrieveChats", {
         token: adminToken,
       });
       console.log("================================");
@@ -146,13 +146,13 @@ export default function InboxPage() {
       console.log("Admin ID:", adminId);
       console.log("Current chatId state:", chatId);
       console.log("Chat buddy ID:", selectedChat.chat_buddy?.id);
-      console.log("Emitting retrieveMessages");        
-      
+      console.log("Emitting retrieveMessages");
+
       // Set up chat-specific listener for this chat
       if (socket.setupChatSpecificListener) {
         socket.setupChatSpecificListener(selectedChat.id);
       }
-      
+
       socket.emit("retrieveMessages", {
         token: adminToken,
         chatBuddy: selectedChat.chat_buddy?.id || selectedChat.id,
@@ -174,7 +174,7 @@ export default function InboxPage() {
     if (adminToken && adminId && !profileLoading) {
       console.log(adminToken, adminId);
       const socketInstance = io("https://api-carybin.victornwadinobi.com", {
-        auth: { 
+        auth: {
           token: adminToken,
         },
         transports: ["websocket", "polling"],
@@ -240,10 +240,10 @@ export default function InboxPage() {
         // Update chats list with new chat data
         if (data?.data) {
           const currentSelectedChat = selectedChatRef.current;
-          
+
           setChats((prevChats) => {
             const existingChatIndex = prevChats.findIndex(
-              (chat) => chat.id === data.data.id,
+              (chat) => chat.id === data.data.id
             );
             if (existingChatIndex >= 0) {
               // Update existing chat
@@ -262,7 +262,9 @@ export default function InboxPage() {
 
           // Auto-refresh messages if this chat is currently selected
           if (currentSelectedChat && currentSelectedChat.id === data.data.id) {
-            console.log("🔄 Auto-refreshing messages for currently selected admin chat");
+            console.log(
+              "🔄 Auto-refreshing messages for currently selected admin chat"
+            );
             socketInstance.emit("retrieveMessages", {
               token: adminToken,
               chatBuddy: currentSelectedChat.chat_buddy.id,
@@ -310,14 +312,18 @@ export default function InboxPage() {
       const setupChatSpecificListener = (chatId) => {
         const eventName = `messagesRetrieved:${chatId}:${adminId}`;
         console.log(`🎯 Setting up chat-specific listener: ${eventName}`);
-        
+
         socketInstance.on(eventName, (data) => {
-          console.log(`=== ADMIN CHAT-SPECIFIC MESSAGES RETRIEVED (${chatId}:${adminId}) ===`);
+          console.log(
+            `=== ADMIN CHAT-SPECIFIC MESSAGES RETRIEVED (${chatId}:${adminId}) ===`
+          );
           console.log("Full response:", JSON.stringify(data, null, 2));
           console.log("Status:", data?.status);
           console.log("Messages array:", data?.data?.result);
           console.log("Selected chat from ref:", selectedChatRef.current);
-          console.log("==============================================================");
+          console.log(
+            "=============================================================="
+          );
 
           if (data?.status === "success" && data?.data?.result) {
             const currentSelectedChat = selectedChatRef.current;
@@ -362,7 +368,7 @@ export default function InboxPage() {
       console.log("Admin ID exists:", !!adminId);
       console.log("Profile loading:", profileLoading);
       console.log("==========================================");
-      
+
       if (!adminToken) {
         toastError("Admin token not found. Please login again.");
       }
@@ -381,10 +387,10 @@ export default function InboxPage() {
       try {
         console.log("=== FETCHING ADMIN PROFILE ===");
         console.log("Admin token:", adminToken);
-        
+
         const response = await AuthService.GetUser();
         console.log("Admin profile response:", response.data);
-        
+
         if (response.data?.statusCode === 200 && response.data?.data) {
           setAdminProfile(response.data.data);
           console.log("✅ Admin profile loaded:", response.data.data);
@@ -415,6 +421,10 @@ export default function InboxPage() {
 
   // Handle message sending via Socket.IO and API
   const handleSocketMessage = (e) => {
+    if (!navigator.onLine) {
+      toastError("No internet connection. Please check your network.");
+      return;
+    }
     e.preventDefault();
 
     console.log("=== ADMIN SENDING MESSAGE ===");
@@ -471,7 +481,7 @@ export default function InboxPage() {
       if (targetUser) {
         setChats((prevChats) => {
           const existingChatIndex = prevChats.findIndex(
-            (chat) => chat.chat_buddy?.id === selectedUser,
+            (chat) => chat.chat_buddy?.id === selectedUser
           );
 
           if (existingChatIndex >= 0) {
@@ -762,7 +772,9 @@ export default function InboxPage() {
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100">
                   <div
-                    className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-500" : "bg-red-500"}`}
+                    className={`w-2 h-2 rounded-full ${
+                      isConnected ? "bg-green-500" : "bg-red-500"
+                    }`}
                   ></div>
                   <span className="text-xs text-gray-600">
                     {isConnected ? "Connected" : "Disconnected"}
@@ -794,7 +806,9 @@ export default function InboxPage() {
                   {messageList.map((msg) => (
                     <div
                       key={msg.id}
-                      className={`flex ${msg.type === "sent" ? "justify-end" : "justify-start"}`}
+                      className={`flex ${
+                        msg.type === "sent" ? "justify-end" : "justify-start"
+                      }`}
                     >
                       <div
                         className={`px-4 py-3 rounded-2xl max-w-[70%] shadow-sm ${

@@ -9,12 +9,15 @@ import {
   BsFacebook,
   BsTwitterX,
 } from "react-icons/bs";
+import useToast from "../../hooks/useToast";
 
 const ContactUs = () => {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+
+  const { toastError } = useToast();
 
   // Use base URL from env, fallback to relative if not set
   const API_BASE_URL = import.meta.env.VITE_APP_CaryBin_API_URL || "";
@@ -24,6 +27,10 @@ const ContactUs = () => {
   };
 
   const handleSubmit = async (e) => {
+    if (!navigator.onLine) {
+      toastError("No internet connection. Please check your network.");
+      return;
+    }
     e.preventDefault();
     setLoading(true);
     setSuccess("");

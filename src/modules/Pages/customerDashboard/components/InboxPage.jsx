@@ -91,7 +91,13 @@ export default function InboxPage() {
       console.log("======================");
       setProfileLoading(true);
     }
-  }, [profileSuccess, profileData, profileError, profileErrorData, profilePending]);
+  }, [
+    profileSuccess,
+    profileData,
+    profileError,
+    profileErrorData,
+    profilePending,
+  ]);
 
   // Initialize Socket.IO connection - Wait for profile to be loaded
   useEffect(() => {
@@ -173,7 +179,7 @@ export default function InboxPage() {
       // Listen for user-specific chat events (as shown in Postman)
       if (userId) {
         console.log(
-          `🎯 Setting up user-specific event listeners for user: ${userId}`
+          `🎯 Setting up user-specific event listeners for user: ${userId}`,
         );
         console.log(`🎯 Listening for: chatsRetrieved.${userId}`);
         console.log(`🎯 Listening for: messagesRetrieved.${userId}`);
@@ -234,14 +240,18 @@ export default function InboxPage() {
         const setupChatSpecificListener = (chatId) => {
           const eventName = `messagesRetrieved:${chatId}:${userId}`;
           console.log(`🎯 Setting up chat-specific listener: ${eventName}`);
-          
+
           socketInstance.on(eventName, (data) => {
-            console.log(`=== CHAT-SPECIFIC MESSAGES RETRIEVED (${chatId}:${userId}) ===`);
+            console.log(
+              `=== CHAT-SPECIFIC MESSAGES RETRIEVED (${chatId}:${userId}) ===`,
+            );
             console.log("Full response:", JSON.stringify(data, null, 2));
             console.log("Status:", data?.status);
             console.log("Messages array:", data?.data?.result);
             console.log("Selected chat from ref:", selectedChatRef.current);
-            console.log("========================================================");
+            console.log(
+              "========================================================",
+            );
 
             if (data?.status === "success" && data?.data?.result) {
               const currentSelectedChat = selectedChatRef.current;
@@ -274,17 +284,17 @@ export default function InboxPage() {
 
         socketInstance.on(`recentChatRetrieved:${userId}`, (data) => {
           console.log(
-            `=== USER-SPECIFIC RECENT CHAT RETRIEVED (${userId}) ===`
+            `=== USER-SPECIFIC RECENT CHAT RETRIEVED (${userId}) ===`,
           );
           console.log("Chat data:", JSON.stringify(data, null, 2));
           console.log("=============================================");
 
           if (data?.data) {
             const currentSelectedChat = selectedChatRef.current;
-            
+
             setChats((prevChats) => {
               const existingChatIndex = prevChats.findIndex(
-                (chat) => chat.id === data.data.id
+                (chat) => chat.id === data.data.id,
               );
               if (existingChatIndex >= 0) {
                 const updatedChats = [...prevChats];
@@ -300,8 +310,13 @@ export default function InboxPage() {
             });
 
             // Auto-refresh messages if this chat is currently selected
-            if (currentSelectedChat && currentSelectedChat.id === data.data.id) {
-              console.log("🔄 Auto-refreshing messages for currently selected chat (user-specific)");
+            if (
+              currentSelectedChat &&
+              currentSelectedChat.id === data.data.id
+            ) {
+              console.log(
+                "🔄 Auto-refreshing messages for currently selected chat (user-specific)",
+              );
               socketInstance.emit("retrieveMessages", {
                 token: userToken,
                 chatBuddy: currentSelectedChat.chat_buddy.id,
@@ -351,10 +366,10 @@ export default function InboxPage() {
 
         if (data?.data) {
           const currentSelectedChat = selectedChatRef.current;
-          
+
           setChats((prevChats) => {
             const existingChatIndex = prevChats.findIndex(
-              (chat) => chat.id === data.data.id
+              (chat) => chat.id === data.data.id,
             );
             if (existingChatIndex >= 0) {
               const updatedChats = [...prevChats];
@@ -371,7 +386,9 @@ export default function InboxPage() {
 
           // Auto-refresh messages if this chat is currently selected
           if (currentSelectedChat && currentSelectedChat.id === data.data.id) {
-            console.log("🔄 Auto-refreshing messages for currently selected chat");
+            console.log(
+              "🔄 Auto-refreshing messages for currently selected chat",
+            );
             socketInstance.emit("retrieveMessages", {
               token: userToken,
               chatBuddy: currentSelectedChat.chat_buddy.id,
@@ -388,91 +405,6 @@ export default function InboxPage() {
         toastError("Socket connection failed: " + error.message);
       });
 
-      // socketInstance.onAny((event, ...args) => {
-      //   console.log(`🔍 === CUSTOMER SOCKET EVENT: ${event} === 🔍`);
-
-      //   if (event.includes("chatsRetrieved")) {
-      //     console.log("Event data:", args);
-      //     const response = args[0];
-      //     if (response?.status === "success" && response?.data) {
-      //       setChats(response.data.result);
-      //       console.log("Here are the chats:", response.data.result);
-
-      //       if (
-      //         !selectedChatRef.current &&
-      //         response.data.result &&
-      //         response.data.result.length > 0
-      //       ) {
-      //         setSelectedChat(response.data.result[0]);
-      //       }
-
-      //       toastSuccess(response?.message || "Chats loaded successfully");
-      //     }
-      //   } else if (event.includes("messagesRetrieved")) {
-      //     console.log("--------MESSAGES RETRIEVED------");
-      //     console.log("Event data:", args);
-      //     console.log(
-      //       "Selected chat from ref in onAny:",
-      //       selectedChatRef.current,
-      //     );
-
-      //     const response = args[0];
-      //     if (response?.status === "success" && response?.data?.result) {
-      //       const currentSelectedChat = selectedChatRef.current;
-
-      //       const formattedMessages = response.data.result.map((msg) => ({
-      //         id: msg.id,
-      //         sender: msg.initiator?.name || "Unknown",
-      //         text: msg.message,
-      //         time: new Date(msg.created_at).toLocaleTimeString([], {
-      //           hour: "2-digit",
-      //           minute: "2-digit",
-      //           hour12: true,
-      //         }),
-      //         type:
-      //           msg.initiator_id === currentSelectedChat?.chat_buddy?.id
-      //             ? "received"
-      //             : "sent",
-      //         read: msg.read,
-      //       }));
-
-      //       console.log("Formatted messages in onAny:", formattedMessages);
-      //       setMessageList(formattedMessages);
-      //     }
-      //   } else if (event.includes("recentChatRetrieved")) {
-      //     console.log("Event data:", args);
-      //     const response = args[0];
-      //     console.log(response);
-
-      //     if (response?.status === "success" && response?.data) {
-      //       setChats((prevChats) => {
-      //         const existingChatIndex = prevChats.findIndex(
-      //           (chat) => chat.id === response.data.id,
-      //         );
-
-      //         if (existingChatIndex >= 0) {
-      //           // Update existing chat
-      //           const updatedChats = [...prevChats];
-      //           updatedChats[existingChatIndex] = {
-      //             ...updatedChats[existingChatIndex],
-      //             last_message: response.data.last_message,
-      //             created_at: response.data.created_at,
-      //             updated_at: response.data.updated_at,
-      //           };
-      //           return updatedChats;
-      //         } else {
-      //           // Add new chat to the beginning
-      //           return [response.data, ...prevChats];
-      //         }
-      //       });
-
-      //       toastSuccess(response?.message || "Chat updated successfully");
-      //     }
-      //   }
-
-      //   console.log("🔍 ========================================= 🔍");
-      // });
-
       setSocket(socketInstance);
 
       return () => {
@@ -487,7 +419,7 @@ export default function InboxPage() {
       console.log("User ID exists:", !!userId);
       console.log("Profile loading:", profileLoading);
       console.log("==========================================");
-      
+
       if (!userToken) {
         toastError("User token not found. Please login again.");
       }
@@ -514,12 +446,12 @@ export default function InboxPage() {
       console.log("User ID:", userId);
       console.log("Chat buddy ID:", selectedChat.chat_buddy?.id);
       console.log("Emitting retrieveMessages");
-      
+
       // Set up chat-specific listener for this chat
       if (socket.setupChatSpecificListener) {
         socket.setupChatSpecificListener(selectedChat.id);
       }
-      
+
       socket.emit("retrieveMessages", {
         token: userToken,
         chatBuddy: selectedChat.chat_buddy.id,
@@ -640,18 +572,17 @@ export default function InboxPage() {
                 profileLoading
                   ? "bg-yellow-100 text-yellow-700"
                   : isConnected
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
               }`}
             >
               <FaCircle size={8} />
               <span>
-                {profileLoading 
-                  ? "Loading..." 
-                  : isConnected 
-                  ? "Online" 
-                  : "Offline"
-                }
+                {profileLoading
+                  ? "Loading..."
+                  : isConnected
+                    ? "Online"
+                    : "Offline"}
               </span>
             </div>
           </div>
@@ -749,7 +680,7 @@ export default function InboxPage() {
                           </h4>
                           <span className="text-xs text-gray-500 ml-2">
                             {new Date(
-                              chat.created_at || Date.now()
+                              chat.created_at || Date.now(),
                             ).toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",

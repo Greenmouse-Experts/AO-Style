@@ -22,6 +22,7 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
+import useToast from "../../../hooks/useToast";
 
 const FabricCategoryTable = () => {
   const dropdownRef = useRef(null);
@@ -45,6 +46,8 @@ const FabricCategoryTable = () => {
   const { isPending: deleteIsPending, deleteProductMutate } =
     useDeleteProduct();
 
+  const { toastError } = useToast();
+
   const {
     handleSubmit,
     touched,
@@ -59,6 +62,10 @@ const FabricCategoryTable = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       if (type == "Edit") {
         editProductMutate(
           { ...val, id: newCategory?.id },

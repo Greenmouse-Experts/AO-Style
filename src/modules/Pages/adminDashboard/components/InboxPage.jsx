@@ -473,6 +473,10 @@ export default function InboxPage() {
 
   // Handle message sending via Socket.IO and API (for modal)
   const handleSocketMessage = (e) => {
+    if (!navigator.onLine) {
+      toastError("No internet connection. Please check your network.");
+      return;
+    }
     e.preventDefault();
 
     console.log("=== ADMIN SENDING MESSAGE VIA MODAL ===");
@@ -1010,7 +1014,10 @@ export default function InboxPage() {
             <div className="flex justify-between items-center outline-none pb-3 mb-4">
               <h2 className="text-lg font-semibold">Send Message</h2>
               <button
-                onClick={() => {handleModalClose(); setUserPage(1);}}
+                onClick={() => {
+                  handleModalClose();
+                  setUserPage(1);
+                }}
                 className="text-gray-500 hover:text-black"
               >
                 ✕
@@ -1023,7 +1030,10 @@ export default function InboxPage() {
                   <select
                     className="w-full p-4 border border-[#CCCCCC] text-gray-700 outline-none rounded-lg"
                     value={userType}
-                    onChange={(e) => { handleUserTypeChange(e); setUserPage(1); }}
+                    onChange={(e) => {
+                      handleUserTypeChange(e);
+                      setUserPage(1);
+                    }}
                     required
                   >
                     <option value="">Choose user type</option>

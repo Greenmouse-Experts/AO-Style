@@ -79,6 +79,10 @@ const KYCVerificationUpdate = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       // Prepare FormData for each file to upload
 
       if (!val.doc_back || !val.doc_front || !val.utility_doc) {

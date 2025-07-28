@@ -15,6 +15,7 @@ import {
   useStates,
 } from "../../../hooks/location/useGetCountries";
 import Select from "react-select";
+import useToast from "../../../hooks/useToast";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("personalDetails");
@@ -45,6 +46,8 @@ const Settings = () => {
   const { isPending: updateIsPending, updatePersonalMutate } =
     useUpdateProfile();
 
+  const { toastError } = useToast();
+
   const {
     handleSubmit,
     values,
@@ -58,6 +61,10 @@ const Settings = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       updatePersonalMutate(val, {
         onSuccess: () => {
           resetForm();

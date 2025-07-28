@@ -218,31 +218,32 @@ export default function MarketplaceSection() {
           <div className="flex space-x-4 overflow-x-auto  px-4 w-[1000px] whitespace-nowrap">
             {styleData
               ? [
-                {
-                  id: "1",
-                  name: "All Products",
-                  type: "style",
-                },
-                ...styleData,
-              ].map((category) => (
-                <button
-                  style={{
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    display: "block",
-                  }}
-                  title={category.name}
-                  key={category.name}
-                  onClick={() => setSelectedCategory(category?.id)}
-                  className={`px-4 py-2 truncate overflow-hidden whitespace-nowrap max-w-[120px] rounded-md shrink-0 text-sm ${selectedCategory === category?.id
-                      ? "text-[#AB52EE] border-b-2 border-[#AB52EE] font-medium"
-                      : "text-[#4B4A4A] font-light"
+                  {
+                    id: "1",
+                    name: "All Products",
+                    type: "style",
+                  },
+                  ...styleData,
+                ].map((category) => (
+                  <button
+                    style={{
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      display: "block",
+                    }}
+                    title={category.name}
+                    key={category.name}
+                    onClick={() => setSelectedCategory(category?.id)}
+                    className={`px-4 py-2 truncate overflow-hidden whitespace-nowrap max-w-[120px] rounded-md shrink-0 text-sm ${
+                      selectedCategory === category?.id
+                        ? "text-[#AB52EE] border-b-2 border-[#AB52EE] font-medium"
+                        : "text-[#4B4A4A] font-light"
                     }`}
-                >
-                  {category?.name}
-                </button>
-              ))
+                  >
+                    {category?.name}
+                  </button>
+                ))
               : null}
           </div>
           <div className="flex space-x-4">
@@ -256,12 +257,12 @@ export default function MarketplaceSection() {
               <option value="Price: Low to High">Price: Low to High</option>
               <option value="Price: High to Low">Price: High to Low</option>
             </select>
-            <button
+            {/* <button
               onClick={toggleFilter}
               className="flex items-center space-x-2 text-gray-600"
             >
               <Filter size={16} /> <span>Filter Results</span>
-            </button>
+            </button> */}
           </div>
         </div>
 
@@ -313,8 +314,10 @@ export default function MarketplaceSection() {
                   alt={product.name}
                   className="w-full h-[200px] object-cover rounded-md"
                 />
-                <h3 className="font-medium text-left mt-4 mb-3">
-                  {product?.name}
+                <h3 className="font-medium text-left uppercase mt-4 mb-3">
+                  {product?.name?.length > 20
+                    ? product.name.slice(0, 20) + "..."
+                    : product?.name}
                 </h3>
                 <p className="text-[#2B21E5]  text-left font-light">
                   {product?.price}{" "}

@@ -21,6 +21,7 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
+import useToast from "../../../hooks/useToast";
 
 const StyleCategoriesTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -46,6 +47,8 @@ const StyleCategoriesTable = () => {
     name: newStyleCategory?.name ?? "",
   };
 
+  const { toastError } = useToast();
+
   const {
     handleSubmit,
     touched,
@@ -60,6 +63,10 @@ const StyleCategoriesTable = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       if (type == "Edit") {
         editProductMutate(
           { ...val, id: newStyleCategory.id },

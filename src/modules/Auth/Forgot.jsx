@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useFormik } from "formik";
 import useForgotPassword from "./hooks/useForgotPassword";
+import useToast from "../../hooks/useToast";
 
 const initialValues = {
   email: "",
@@ -10,6 +11,7 @@ const initialValues = {
 
 export default function SignInCustomer() {
   const { isPending, forgotPasswordMutate } = useForgotPassword();
+  const { toastError } = useToast();
 
   const {
     handleSubmit,
@@ -25,6 +27,10 @@ export default function SignInCustomer() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       forgotPasswordMutate(val, {
         onSuccess: () => {
           resetForm();

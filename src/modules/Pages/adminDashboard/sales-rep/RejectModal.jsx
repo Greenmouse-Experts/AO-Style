@@ -1,6 +1,7 @@
 import { useFormik } from "formik";
 import useApproveMarketRep from "../../../../hooks/marketRep/useApproveMarketRep";
 import { useNavigate } from "react-router-dom";
+import useToast from "../../../../hooks/useToast";
 
 const initialValues = {
   reason: "",
@@ -9,6 +10,8 @@ const initialValues = {
 const RejectModal = ({ isOpen, onClose, id }) => {
   const navigate = useNavigate();
   const { isPending, approveMarketRepMutate } = useApproveMarketRep();
+
+  const { toastError } = useToast();
 
   // const [showPassword, setShowPassword] = useState(false);
   // const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -25,6 +28,10 @@ const RejectModal = ({ isOpen, onClose, id }) => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       approveMarketRepMutate(
         {
           user_id: id,

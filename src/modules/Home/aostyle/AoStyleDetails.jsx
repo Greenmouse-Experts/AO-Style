@@ -660,6 +660,7 @@ export default function AnkaraGownPage() {
                               <input
                                 type="number"
                                 min="0"
+                                step="any"
                                 placeholder={
                                   "Enter the circumference of your bust"
                                 }
@@ -692,6 +693,7 @@ export default function AnkaraGownPage() {
                               <input
                                 type="number"
                                 min="0"
+                                step="any"
                                 placeholder={"Enter the width of your shoulder"}
                                 name={"shoulder_width"}
                                 required
@@ -725,6 +727,7 @@ export default function AnkaraGownPage() {
                               <input
                                 type="number"
                                 min="0"
+                                step="any"
                                 placeholder={
                                   "Enter the circumference of your armhole"
                                 }
@@ -757,6 +760,7 @@ export default function AnkaraGownPage() {
                               <input
                                 type="number"
                                 min="0"
+                                step="any"
                                 placeholder={"Enter the length of your sleeve"}
                                 name={"sleeve_length"}
                                 required
@@ -790,6 +794,7 @@ export default function AnkaraGownPage() {
                               <input
                                 type="number"
                                 min="0"
+                                step="any"
                                 placeholder={
                                   "Enter the circumference of your bicep"
                                 }
@@ -822,6 +827,7 @@ export default function AnkaraGownPage() {
                               <input
                                 type="number"
                                 min="0"
+                                step="any"
                                 placeholder={
                                   "Enter the circumference of your wrist"
                                 }
@@ -861,6 +867,7 @@ export default function AnkaraGownPage() {
                               <input
                                 type="number"
                                 min="0"
+                                step="any"
                                 placeholder={"Enter your waist measurement"}
                                 name={"waist_circumference_lower"}
                                 required
@@ -891,6 +898,7 @@ export default function AnkaraGownPage() {
                               <input
                                 type="number"
                                 min="0"
+                                step="any"
                                 placeholder={"Enter your hip measurement"}
                                 name={"hip_circumference"}
                                 required
@@ -924,6 +932,7 @@ export default function AnkaraGownPage() {
                               <input
                                 type="number"
                                 min="0"
+                                step="any"
                                 placeholder={"Enter your thigh measurement"}
                                 name={"thigh_circumference"}
                                 required
@@ -954,6 +963,7 @@ export default function AnkaraGownPage() {
                               <input
                                 type="number"
                                 min="0"
+                                step="any"
                                 placeholder={"Enter your knee measurement"}
                                 name={"knee_circumference"}
                                 required
@@ -987,6 +997,7 @@ export default function AnkaraGownPage() {
                               <input
                                 type="number"
                                 min="0"
+                                step="any"
                                 placeholder={"Enter your trouser length"}
                                 name={"trouser_length"}
                                 required
@@ -1024,6 +1035,7 @@ export default function AnkaraGownPage() {
                               <input
                                 type="number"
                                 min="0"
+                                step="any"
                                 placeholder={"Enter your height"}
                                 name={"height"}
                                 required
@@ -1054,6 +1066,7 @@ export default function AnkaraGownPage() {
                               <input
                                 type="number"
                                 min="0"
+                                step="any"
                                 placeholder={"Enter your desired length"}
                                 name={"dress_length"}
                                 required

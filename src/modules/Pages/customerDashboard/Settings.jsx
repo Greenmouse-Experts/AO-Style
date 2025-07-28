@@ -16,6 +16,7 @@ import {
   useCountries,
   useStates,
 } from "../../../hooks/location/useGetCountries";
+import useToast from "../../../hooks/useToast";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("personalDetails");
@@ -110,6 +111,8 @@ const Settings = () => {
   const { isPending: updateIsPending, updatePersonalMutate } =
     useUpdateProfile();
 
+  const { toastError } = useToast();
+
   const {
     handleSubmit,
     values,
@@ -123,6 +126,10 @@ const Settings = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       updatePersonalMutate(
         {
           ...val,
@@ -538,6 +545,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={
                                 "Enter the circumference of your bust"
                               }
@@ -571,6 +579,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={"Enter the width of your shoulder"}
                               name={"shoulder_width"}
                               required
@@ -602,6 +611,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={
                                 "Enter the circumference of your armhole"
                               }
@@ -635,6 +645,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={"Enter the length of your sleeve"}
                               name={"sleeve_length"}
                               required
@@ -666,6 +677,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={
                                 "Enter the circumference of your bicep"
                               }
@@ -699,6 +711,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={
                                 "Enter the circumference of your wrist"
                               }
@@ -751,6 +764,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={"Enter your waist measurement"}
                               name={"waist_circumference_lower"}
                               required
@@ -782,6 +796,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={"Enter your hip measurement"}
                               name={"hip_circumference"}
                               required
@@ -813,6 +828,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={"Enter your thigh measurement"}
                               name={"thigh_circumference"}
                               required
@@ -844,6 +860,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={"Enter your knee measurement"}
                               name={"knee_circumference"}
                               required
@@ -875,6 +892,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={"Enter your trouser length"}
                               name={"trouser_length"}
                               required
@@ -927,6 +945,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={"Enter your height"}
                               name={"height"}
                               required
@@ -958,6 +977,7 @@ const Settings = () => {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={"Enter your desired length"}
                               name={"dress_length"}
                               required

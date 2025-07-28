@@ -474,8 +474,10 @@ export default function ShopPage() {
                         whileHover={{ scale: 1.05 }}
                         transition={{ duration: 0.3 }}
                       />
-                      <h3 className="font-medium text-left mt-4 mb-3">
-                        {product?.name}
+                      <h3 className="font-medium text-left uppercase mt-4 mb-3">
+                        {product?.name?.length > 20
+                          ? product.name.slice(0, 20) + "..."
+                          : product?.name}
                       </h3>
                       <p className="text-[#2B21E5] text-left font-light">
                         ₦{product.price}{" "}

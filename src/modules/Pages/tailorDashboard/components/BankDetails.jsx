@@ -5,6 +5,7 @@ import useResolveAccount from "../../../../hooks/settings/useResolveAccount";
 import { useEffect } from "react";
 import useSaveWithdrawal from "../../../../hooks/settings/useSaveWithdrawal";
 import useGetBusinessDetails from "../../../../hooks/settings/useGetBusinessDetails";
+import useToast from "../../../../hooks/useToast";
 
 const BankDetailsUpdate = () => {
   const { data: businessDetails } = useGetBusinessDetails();
@@ -36,6 +37,8 @@ const BankDetailsUpdate = () => {
 
   const { isPending, saveWithdrawalMutate } = useSaveWithdrawal();
 
+  const { toastError } = useToast();
+
   const {
     handleSubmit,
     values,
@@ -49,6 +52,10 @@ const BankDetailsUpdate = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       saveWithdrawalMutate({ ...val, business_id: businessDetails?.data?.id });
     },
   });
@@ -196,7 +203,11 @@ const BankDetailsUpdate = () => {
           type="submit"
           className="w-full md:w-auto px-6 py-3 rounded-lg bg-gradient cursor-pointer text-white"
         >
-          {isPending ? "Please wait..." : "Add Bank Details"}{" "}
+          {isPending
+            ? "Please wait..."
+            : businessInfo?.withdrawal_account?.account_number
+            ? "Update Bank Details"
+            : "Add Bank Details"}{" "}
         </button>
       </form>
     </div>

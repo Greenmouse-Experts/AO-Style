@@ -19,6 +19,7 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
+import useToast from "../../../hooks/useToast";
 
 export default function StylesTable() {
   const [newCategory, setNewCategory] = useState();
@@ -65,6 +66,8 @@ export default function StylesTable() {
   const [queryString, setQueryString] = useState(queryParams.q);
 
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
+
+  const { toastError } = useToast();
 
   useUpdatedEffect(() => {
     // update search params with undefined if debouncedSearchTerm is an empty string
@@ -627,6 +630,12 @@ export default function StylesTable() {
             <form
               className="mt-6 space-y-4"
               onSubmit={(e) => {
+                if (!navigator.onLine) {
+                  toastError(
+                    "No internet connection. Please check your network."
+                  );
+                  return;
+                }
                 e.preventDefault();
                 if (isAdminStyleRoute) {
                   deleteAdminStyleMutate(

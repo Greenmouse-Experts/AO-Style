@@ -13,6 +13,7 @@ import useEditSubscription from "../../../../hooks/subscription/useUpdateSubscri
 import useDeleteAdminFabric from "../../../../hooks/fabric/useDeleteAdminFabric";
 import useDeleteSubscription from "../../../../hooks/subscription/useDeleteSubscription";
 import useGetAdminBusinessDetails from "../../../../hooks/settings/useGetAdmnBusinessInfo";
+import useToast from "../../../../hooks/useToast";
 
 const AddSubscriptionModal = ({ isOpen, onClose, onAdd, newCategory }) => {
   const initialValues = {
@@ -34,6 +35,8 @@ const AddSubscriptionModal = ({ isOpen, onClose, onAdd, newCategory }) => {
 
   const modalRef = useRef(null);
 
+  const { toastError } = useToast();
+
   const {
     handleSubmit,
     values,
@@ -47,6 +50,10 @@ const AddSubscriptionModal = ({ isOpen, onClose, onAdd, newCategory }) => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       const updatedSubscription = {
         name: val.name,
         description: val.description,
@@ -247,7 +254,13 @@ const SubscriptionModal = ({ isOpen, onClose, subscription, onUpdate }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const { toastError } = useToast();
+
   const handleSubmit = (e) => {
+    if (!navigator.onLine) {
+      toastError("No internet connection. Please check your network.");
+      return;
+    }
     e.preventDefault();
     onUpdate(formData.id, {
       ...formData,

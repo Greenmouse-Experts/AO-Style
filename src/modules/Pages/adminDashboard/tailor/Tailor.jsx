@@ -11,11 +11,14 @@ import useUpdatedEffect from "../../../../hooks/useUpdatedEffect";
 import Loader from "../../../../components/ui/Loader";
 import useApproveMarketRep from "../../../../hooks/marketRep/useApproveMarketRep";
 import AddTailorModal from "../components/AddTailorModal";
+import useToast from "../../../../hooks/useToast";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [activeTab, setActiveTab] = useState("table");
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const { toastError } = useToast();
 
   const [suspendModalOpen, setSuspendModalOpen] = useState(false);
 
@@ -452,6 +455,12 @@ const CustomersTable = () => {
             <form
               className="mt-6 space-y-4"
               onSubmit={(e) => {
+                if (!navigator.onLine) {
+                  toastError(
+                    "No internet connection. Please check your network."
+                  );
+                  return;
+                }
                 e.preventDefault();
                 approveMarketRepMutate(
                   {

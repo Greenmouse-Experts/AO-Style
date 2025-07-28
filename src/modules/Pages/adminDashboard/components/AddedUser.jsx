@@ -12,6 +12,7 @@ import useGetAllUsersByRole from "../../../../hooks/admin/useGetAllUserByRole";
 import useDebounce from "../../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../../hooks/useUpdatedEffect";
 import useApproveMarketRep from "../../../../hooks/marketRep/useApproveMarketRep";
+import useToast from "../../../../hooks/useToast";
 
 const NewlyAddedUsers = () => {
   const [currView, setCurrView] = useState("approved");
@@ -27,6 +28,8 @@ const NewlyAddedUsers = () => {
     useApproveMarketRep();
 
   const [reason, setReason] = useState("");
+
+  const { toastError } = useToast();
 
   const [suspendModalOpen, setSuspendModalOpen] = useState(false);
 
@@ -458,6 +461,12 @@ const NewlyAddedUsers = () => {
             <form
               className="mt-6 space-y-4"
               onSubmit={(e) => {
+                if (!navigator.onLine) {
+                  toastError(
+                    "No internet connection. Please check your network."
+                  );
+                  return;
+                }
                 e.preventDefault();
                 approveMarketRepMutate(
                   {

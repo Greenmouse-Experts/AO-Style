@@ -15,6 +15,7 @@ import {
   useCountries,
   useStates,
 } from "../../../hooks/location/useGetCountries";
+import useToast from "../../../hooks/useToast";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("personalDetails");
@@ -40,6 +41,8 @@ const Settings = () => {
 
   const [profileIsLoading, setProfileIsLoading] = useState(false);
 
+  const { toastError } = useToast();
+
   const {
     handleSubmit,
     values,
@@ -53,6 +56,10 @@ const Settings = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       updatePersonalMutate(val, {
         onSuccess: () => {
           resetForm();

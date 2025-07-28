@@ -19,6 +19,7 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
+import useToast from "../../../hooks/useToast";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -250,7 +251,7 @@ const CustomersTable = () => {
     saveAs(blob, "Employees/Admin.xlsx");
   };
 
-  console.log(newCategory?.profile?.approved_by_admin);
+  const { toastError } = useToast();
 
   return (
     <>
@@ -499,6 +500,12 @@ const CustomersTable = () => {
             <form
               className="mt-6 space-y-4"
               onSubmit={(e) => {
+                if (!navigator.onLine) {
+                  toastError(
+                    "No internet connection. Please check your network."
+                  );
+                  return;
+                }
                 e.preventDefault();
                 deleteSubAdminMutate(
                   {
@@ -571,6 +578,12 @@ const CustomersTable = () => {
             <form
               className="mt-6 space-y-4"
               onSubmit={(e) => {
+                if (!navigator.onLine) {
+                  toastError(
+                    "No internet connection. Please check your network."
+                  );
+                  return;
+                }
                 e.preventDefault();
                 approveMarketRepMutate(
                   {

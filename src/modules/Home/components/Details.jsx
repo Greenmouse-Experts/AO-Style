@@ -283,12 +283,12 @@ export default function MarketplaceSection() {
               <option value="Price: Low to High">Price: Low to High</option>
               <option value="Price: High to Low">Price: High to Low</option>
             </select>
-            <button
+            {/* <button
               onClick={toggleFilter}
               className="flex items-center space-x-2 text-gray-600"
             >
               <Filter size={16} /> <span>Filter Results</span>
-            </button>
+            </button> */}
           </div>
         </div>
 
@@ -337,8 +337,10 @@ export default function MarketplaceSection() {
                   alt={product.name}
                   className="w-full h-[200px] object-cover rounded-md"
                 />
-                <h3 className="font-medium text-left mt-4 mb-3">
-                  {product?.name}
+                <h3 className="font-medium text-left uppercase mt-4 mb-3">
+                  {product?.name?.length > 20
+                    ? product.name.slice(0, 20) + "..."
+                    : product?.name}
                 </h3>
                 <p className="text-[#2B21E5]  text-left font-light">
                   {product?.price}{" "}

@@ -170,6 +170,10 @@ const JobsManagementPage = () => {
   };
 
   const handleJobSubmit = (e) => {
+    if (!navigator.onLine) {
+      toastError("No internet connection. Please check your network.");
+      return;
+    }
     e.preventDefault();
 
     // Validate required fields
@@ -297,6 +301,11 @@ const JobsManagementPage = () => {
 
   const handleJobUpdate = (e) => {
     e.preventDefault();
+
+    if (!navigator.onLine) {
+      toastError("No internet connection. Please check your network.");
+      return;
+    }
 
     // Validate required fields
     if (!jobFormData.title.trim()) {

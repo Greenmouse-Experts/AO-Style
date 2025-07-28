@@ -37,6 +37,10 @@ const SecuritySettings = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
       if (values.new_password !== values.confirm_password) {
         return toastError("Password must match");
       }

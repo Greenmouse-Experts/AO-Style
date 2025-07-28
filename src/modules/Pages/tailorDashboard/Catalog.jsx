@@ -6,7 +6,7 @@ import useQueryParams from "../../../hooks/useQueryParams";
 import useGetFabricProduct from "../../../hooks/fabric/useGetFabric";
 import useDebounce from "../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
-import { formatDateStr } from "../../../lib/helper";
+import { formatDateStr, formatNumberWithCommas } from "../../../lib/helper";
 import useUpdateStyle from "../../../hooks/style/useUpdateStyle";
 import Loader from "../../../components/ui/Loader";
 import useDeleteStyle from "../../../hooks/style/useDeleteFabric";
@@ -366,7 +366,10 @@ export default function StylesTable() {
                           </p>
                         </div>
                       </td>
-                      <td className="hidden md:table-cell">{style.price}</td>
+                      <td className="hidden md:table-cell">
+                        {" "}
+                        {formatNumberWithCommas(style.price ?? 0)}
+                      </td>
                       {/* <td className="hidden md:table-cell">{style.sold}</td> */}
                       <td>
                         <span

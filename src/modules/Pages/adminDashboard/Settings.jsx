@@ -17,6 +17,7 @@ import useGetDelivery from "../../../hooks/delivery/useGetDeliverySettings";
 import useAddDelivery from "../../../hooks/delivery/useAddDelivery";
 import useUpdateDelivery from "../../../hooks/delivery/useUpdateDelivery";
 import useToast from "../../../hooks/useToast";
+import { usePlacesWidget } from "react-google-autocomplete";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("personalDetails");
@@ -62,11 +63,20 @@ const Settings = () => {
         toastError("No internet connection. Please check your network.");
         return;
       }
-      updatePersonalMutate(val, {
-        onSuccess: () => {
-          resetForm();
+      updatePersonalMutate(
+        {
+          ...val,
+          coordinates: {
+            longitude: val.longitude,
+            latitude: val.latitude,
+          },
         },
-      });
+        {
+          onSuccess: () => {
+            resetForm();
+          },
+        }
+      );
     },
   });
 
@@ -112,10 +122,6 @@ const Settings = () => {
 
   const [delivery, setDelivery] = useState(undefined);
 
-  console.log(data?.data?.data?.id);
-
-  console.log(delivery);
-
   useEffect(() => {
     if (data?.data?.data?.price_per_km) {
       setDelivery(data?.data?.data?.price_per_km);
@@ -128,6 +134,19 @@ const Settings = () => {
 
   const { isPending: updateDeliveryIsPending, updateDeliveryMutate } =
     useUpdateDelivery();
+
+  const { ref } = usePlacesWidget({
+    apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
+    onPlaceSelected: (place) => {
+      setFieldValue("address", place.formatted_address);
+      setFieldValue("latitude", place.geometry?.location?.lat().toString());
+      setFieldValue("longitude", place.geometry?.location?.lng().toString());
+    },
+    options: {
+      componentRestrictions: { country: "ng" },
+      types: [],
+    },
+  });
 
   return (
     <>
@@ -299,13 +318,18 @@ const Settings = () => {
                         </label>
                         <input
                           type="text"
+                          ref={ref}
                           className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                           placeholder="Enter full detailed address"
                           required
-                          name={"address"}
+                          name="address"
                           maxLength={150}
+                          onChange={(e) => {
+                            setFieldValue("address", e.currentTarget.value);
+                            setFieldValue("latitude", "");
+                            setFieldValue("longitude", "");
+                          }}
                           value={values.address}
-                          onChange={handleChange}
                         />
                       </div>
                     </div>

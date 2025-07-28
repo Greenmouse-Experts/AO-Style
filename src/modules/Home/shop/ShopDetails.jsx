@@ -13,6 +13,7 @@ import useProductGeneral from "../../../hooks/dashboard/useGetProductGeneral";
 import { useCartStore } from "../../../store/carybinUserCartStore";
 import SubmitProductModal from "../components/SubmitProduct";
 import { generateUniqueId } from "../../../lib/helper";
+import { Tooltip } from "antd";
 
 const product = {
   name: "Luxury Embellished Lace Fabrics",
@@ -100,13 +101,13 @@ export default function ShopDetails() {
   // }, [productVal?.minimum_yards]);
 
   const incrementQty = () => {
-    setQuantity((prev) => +prev + 1);
+    setQuantity((prev) => +prev + +productVal?.minimum_yards);
   };
 
   const decrementQty = () => {
     setQuantity((prev) =>
       +prev > +productVal?.minimum_yards
-        ? +prev - 1
+        ? +prev - productVal?.minimum_yards
         : +productVal?.minimum_yards
     );
   };
@@ -227,7 +228,7 @@ export default function ShopDetails() {
                 />
                 {/* Heart icon removed as requested */}
               </div>
-              
+
               {/* Thumbnail Images */}
               <div className="flex gap-2 overflow-x-auto pb-2">
                 {productVal?.photos?.map((img, index) => (
@@ -235,8 +236,8 @@ export default function ShopDetails() {
                     key={index}
                     onClick={() => setMainImage(img)}
                     className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
-                      mainImage === img 
-                        ? "border-purple-500 ring-2 ring-purple-200" 
+                      mainImage === img
+                        ? "border-purple-500 ring-2 ring-purple-200"
                         : "border-gray-200 hover:border-gray-300"
                     }`}
                   >
@@ -261,14 +262,18 @@ export default function ShopDetails() {
                   <span className="text-3xl font-bold text-purple-600">
                     ₦{productVal?.product?.price?.toLocaleString()}
                   </span>
-                  <span className="text-sm text-gray-500 font-medium">per unit</span>
+                  <span className="text-sm text-gray-500 font-medium">
+                    per unit
+                  </span>
                 </div>
               </div>
 
               {/* Tags Section */}
               {productVal?.product?.tags?.length > 0 && (
                 <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Tags</h3>
+                  <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                    Tags
+                  </h3>
                   <div className="flex flex-wrap gap-2">
                     {productVal?.product?.tags.map((tag) => (
                       <span
@@ -307,8 +312,16 @@ export default function ShopDetails() {
                       title={`Select ${color}`}
                     >
                       {selectedColor === color && (
-                        <svg className="w-6 h-6 text-white mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        <svg
+                          className="w-6 h-6 text-white mx-auto"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                       )}
                     </button>
@@ -316,7 +329,8 @@ export default function ShopDetails() {
                 </div>
                 {!selectedColor && (
                   <p className="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200">
-                    <span className="font-medium">Please select a color</span> to add this item to your cart.
+                    <span className="font-medium">Please select a color</span>{" "}
+                    to add this item to your cart.
                   </p>
                 )}
               </div>
@@ -331,35 +345,68 @@ export default function ShopDetails() {
                 </h3>
                 <div className="flex items-center">
                   <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
-                    <button
-                      onClick={decrementQty}
-                      disabled={quantity <= productVal?.minimum_yards}
-                      className="p-3 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    <Tooltip
                       title={
                         quantity <= productVal?.minimum_yards
                           ? `Minimum quantity is ${productVal?.minimum_yards} yards`
                           : "Decrease quantity"
                       }
+                      placement="top"
                     >
-                      <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                      </svg>
-                    </button>
+                      <span>
+                        <button
+                          onClick={decrementQty}
+                          disabled={quantity <= productVal?.minimum_yards}
+                          className="p-3 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          <svg
+                            className="w-4 h-4 text-gray-600"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M20 12H4"
+                            />
+                          </svg>
+                        </button>
+                      </span>
+                    </Tooltip>
                     <span className="px-6 py-3 text-lg font-semibold text-gray-900 bg-white border-x border-gray-200 min-w-[80px] text-center">
                       {quantity}
                     </span>
-                    <button
-                      onClick={incrementQty}
-                      className="p-3 hover:bg-gray-100 transition-colors"
-                      title="Increase quantity"
-                    >
-                      <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                      </svg>
-                    </button>
+                    <Tooltip title={"Increase quantity"} placement="top">
+                      <button
+                        onClick={incrementQty}
+                        className="p-3 hover:bg-gray-100 transition-colors"
+                        title="Increase quantity"
+                      >
+                        <svg
+                          className="w-4 h-4 text-gray-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                          />
+                        </svg>
+                      </button>
+                    </Tooltip>
                   </div>
                   <div className="ml-4 text-sm text-gray-600">
-                    <span className="font-medium">Total: ₦{(productVal?.product?.price * quantity)?.toLocaleString()}</span>
+                    <span className="font-medium">
+                      Total: ₦
+                      {(
+                        productVal?.product?.price * quantity
+                      )?.toLocaleString()}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -425,9 +472,11 @@ export default function ShopDetails() {
                   }`}
                 >
                   <ShoppingCart size={20} />
-                  <span>{addCartPending ? "Adding to Cart..." : "Add To Cart"}</span>
+                  <span>
+                    {addCartPending ? "Adding to Cart..." : "Add To Cart"}
+                  </span>
                 </button>
-                
+
                 {/* Additional CTA buttons */}
                 <div className="grid grid-cols-1 gap-3 mt-3">
                   {/* Wishlist button removed as requested */}
@@ -455,8 +504,18 @@ export default function ShopDetails() {
                   <div className="bg-white rounded-2xl shadow-2xl p-8 w-[90%] max-w-md animate-fade-in-up">
                     <div className="text-center">
                       <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        <svg
+                          className="w-8 h-8 text-green-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
                         </svg>
                       </div>
                       <h2 className="text-xl font-bold text-gray-900 mb-2">
@@ -520,7 +579,8 @@ export default function ShopDetails() {
               {tab === "details" ? (
                 <div className="prose prose-sm max-w-none">
                   <p className="text-gray-700 leading-relaxed">
-                    {productVal?.product?.description || "No description available for this product."}
+                    {productVal?.product?.description ||
+                      "No description available for this product."}
                   </p>
                 </div>
               ) : (
@@ -620,7 +680,9 @@ export default function ShopDetails() {
           {/* Enhanced Related Products */}
           {filteredData?.length > 0 && (
             <div className="mt-12">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">You might also like</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                You might also like
+              </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredData?.slice(0, 4).map((product) => (
                   <Link

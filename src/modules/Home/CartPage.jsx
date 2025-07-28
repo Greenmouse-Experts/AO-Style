@@ -68,6 +68,8 @@ const CartPage = () => {
 
   const updatedAmount = totalAmount + totalStyleAmount - discountedPrice;
 
+  const actualWithoutDiscountAmount = totalAmount + totalStyleAmount;
+
   const { isPending: deleteIsPending, deleteCartMutate } = useDeleteCart();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -231,6 +233,8 @@ const CartPage = () => {
       });
     },
   });
+
+  console.log(carybinUser);
 
   return (
     <>
@@ -565,7 +569,9 @@ const CartPage = () => {
                                     data?.data?.data?.discount
                                   );
                                 },
-                                onError: () => {},
+                                onError: () => {
+                                  setDiscountedPrice("0");
+                                },
                               }
                             );
                           }
@@ -626,6 +632,14 @@ const CartPage = () => {
                       if (!token || !carybinUser) {
                         toastSuccess(
                           "You need to have a Customer Account to make an order"
+                        );
+                        const currentPath = location.pathname + location.search;
+                        navigate(
+                          `/login?redirect=${encodeURIComponent(currentPath)}`
+                        );
+                      } else if (carybinUser?.role?.role_id !== "user") {
+                        toastSuccess(
+                          "Access Denied, Create Customer Account to Proceed"
                         );
                         const currentPath = location.pathname + location.search;
                         navigate(

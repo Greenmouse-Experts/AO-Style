@@ -625,6 +625,7 @@ const Coupons = () => {
                         Value
                       </label>
                       <input
+                        max={values?.type === "PERCENTAGE" ? 100 : undefined}
                         type="number"
                         name={"value"}
                         required

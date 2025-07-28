@@ -346,42 +346,160 @@ export default function AnkaraGownPage() {
               <></>
             )}
 
-            <div className="flex flex-col md:flex-row gap-8">
+            <div className="flex flex-col md:flex-row gap-6 max-w-6xl mx-auto p-4">
               {/* Image Gallery */}
-              <div className="flex md:w-1/1">
-                <div className="flex flex-col gap-2 mr-4">
+              <div className="md:w-1/2">
+                <div className="mb-4">
+                  <img
+                    src={styleInfo?.style?.photos[selectedImage]}
+                    alt={styleInfo?.name}
+                    className="w-full h-80 md:h-96 object-cover rounded"
+                  />
+                </div>
+                <div className="flex gap-2 overflow-x-auto">
                   {styleInfo?.style?.photos?.map((image, index) => (
                     <div
                       key={index}
-                      className={`cursor-pointer border-2 ${
+                      className={`cursor-pointer border-2 rounded overflow-hidden flex-shrink-0 ${
                         selectedImage === index
                           ? "border-purple-500"
-                          : "border-gray-200"
+                          : "border-gray-200 hover:border-gray-300"
                       }`}
                       onClick={() => setSelectedImage(index)}
                     >
                       <img
                         src={image}
-                        alt={`Ankara Gown thumbnail ${index}`}
-                        className="w-32 h-28 object-cover"
+                        alt={`${styleInfo?.name} thumbnail ${index + 1}`}
+                        className="w-16 h-16 object-cover"
                       />
                     </div>
                   ))}
                 </div>
-                <div className="flex-1">
-                  <img
-                    src={styleInfo?.style?.photos[selectedImage]}
-                    alt="Ankara Gown"
-                    className="w-full h-auto object-cover rounded-md"
-                  />
-                </div>
               </div>
 
               {/* Product Info */}
-              <div className="md:w-1/2">
-                <h1 className="text-3xl font-bold mb-4">{styleInfo?.name}</h1>
+              <div className="md:w-1/2 space-y-4">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                    {styleInfo?.name}
+                  </h1>
 
-                {/* <div className="flex items-center mb-4">
+                  {/* Product Details Badges */}
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {styleInfo?.gender && (
+                      <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
+                        {styleInfo.gender}
+                      </span>
+                    )}
+                    {styleInfo?.type && (
+                      <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
+                        {styleInfo.type}
+                      </span>
+                    )}
+                    {styleInfo?.fabric && (
+                      <span className="px-3 py-1 bg-orange-100 text-orange-800 text-sm font-medium rounded-full">
+                        {styleInfo.fabric}
+                      </span>
+                    )}
+                  </div>
+
+                  {styleInfo?.sku && (
+                    <p className="text-sm text-gray-500 mb-1">
+                      SKU: {styleInfo.sku}
+                    </p>
+                  )}
+                </div>
+
+                <div className="border-b pb-4">
+                  <span className="text-2xl font-bold text-purple-600">
+                    ₦{styleInfo?.price?.toLocaleString()}
+                  </span>
+                </div>
+
+                {styleInfo?.description && (
+                  <div>
+                    <p className="text-gray-700 leading-relaxed">
+                      {styleInfo.description.split(" ").slice(0, 50).join(" ")}
+                      {styleInfo.description.split(" ").length > 50 && "..."}
+                    </p>
+                  </div>
+                )}
+
+                {/* Additional Product Info */}
+                <div className="bg-purple-50 rounded-lg p-4 space-y-2">
+                  {styleInfo?.style?.minimum_fabric_qty && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600">
+                        Min. Fabric Required:
+                      </span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {styleInfo.style.minimum_fabric_qty} yards
+                      </span>
+                    </div>
+                  )}
+                  {styleInfo?.style?.estimated_sewing_time && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600">
+                        Estimated Sewing Time:
+                      </span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {styleInfo.style.estimated_sewing_time} day
+                        {styleInfo.style.estimated_sewing_time > 1 ? "s" : ""}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {styleInfo?.tags?.length > 0 && (
+                  <div>
+                    <p className="font-medium mb-2">Tags:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {styleInfo.tags.map((tag, index) => (
+                        <span
+                          key={index}
+                          className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm border"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                      <div className="flex flex-col md:flex-row gap-8">
+                        {/* Image Gallery */}
+                        <div className="flex md:w-1/1">
+                          <div className="flex flex-col gap-2 mr-4">
+                            {styleInfo?.style?.photos?.map((image, index) => (
+                              <div
+                                key={index}
+                                className={`cursor-pointer border-2 ${
+                                  selectedImage === index
+                                    ? "border-purple-500"
+                                    : "border-gray-200"
+                                }`}
+                                onClick={() => setSelectedImage(index)}
+                              >
+                                <img
+                                  src={image}
+                                  alt={`Ankara Gown thumbnail ${index}`}
+                                  className="w-32 h-28 object-cover rounded-md"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex-1">
+                            <img
+                              src={styleInfo?.style?.photos[selectedImage]}
+                              alt="Ankara Gown"
+                              className="w-full h-auto object-cover rounded-lg"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Product Info */}
+                        <div className="md:w-1/2">
+                          <h1 className="text-3xl font-bold mb-4">
+                            {styleInfo?.name}
+                          </h1>
+
+                          {/* <div className="flex items-center mb-4">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <svg
                       key={star}
@@ -397,27 +515,38 @@ export default function AnkaraGownPage() {
                   <span className="ml-2 text-gray-600">(15 Reviews)</span>
                 </div> */}
 
-                <p className="text-xl font-medium text-blue-600 mb-4">
-                  ₦{styleInfo?.price}
-                </p>
+                          <p className="text-xl font-medium text-blue-600 mb-4">
+                            ₦{styleInfo?.price}
+                          </p>
 
-                {styleInfo?.tags?.length ? (
-                  <div className="mb-6">
-                    <p className="font-medium mb-4">Tags:</p>
-                    <div className="flex gap-2">
-                      {styleInfo?.tags?.map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-8 py-2 rounded-full border border-gray-300 text-sm"
-                        >
-                          {tag}
-                        </span>
-                      ))}
+                          {styleInfo?.tags?.length ? (
+                            <div className="mb-6">
+                              <p className="font-medium mb-4">Tags:</p>
+                              <div className="flex gap-2">
+                                {styleInfo?.tags?.map((tag) => (
+                                  <span
+                                    key={tag}
+                                    className="px-8 py-2 rounded-full border border-gray-300 text-sm"
+                                  >
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <></>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                ) : (
-                  <></>
                 )}
+
+                {/* <div className="pt-4">
+                  <button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded transition-colors">
+                    Add To Cart
+                  </button>
+                </div> */}
               </div>
             </div>
 

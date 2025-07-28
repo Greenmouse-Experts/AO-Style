@@ -15,7 +15,6 @@ import EmojiPicker from "emoji-picker-react";
 import { Link } from "react-router-dom";
 import io from "socket.io-client";
 import Cookies from "js-cookie";
-import useGetAllUsersByRole from "../../../../hooks/admin/useGetAllUserByRole";
 import useSendMessage from "../../../../hooks/messaging/useSendMessage";
 import useToast from "../../../../hooks/useToast";
 import { useQuery } from "@tanstack/react-query";
@@ -39,11 +38,13 @@ export default function InboxPage() {
   const [showSidebar, setShowSidebar] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Socket and messaging states
   const [socket, setSocket] = useState(null);
   const [userType, setUserType] = useState("");
-  const [selectedUser, setSelectedUser] = useState("");
+  const [selectedUser, setSelectedUser] = useState(""); // for value in <select>
+  const [userListSelected, setUserListSelected] = useState(""); // for custom list selection
   const [messageText, setMessageText] = useState("");
   const [isConnected, setIsConnected] = useState(false);
   const [chats, setChats] = useState([]);
@@ -62,32 +63,55 @@ export default function InboxPage() {
   const adminId = adminProfile?.id || null;
   const { toastError, toastSuccess } = useToast();
 
-  // Get users by role hook
-  const {
-    data: usersData,
-    isLoading: loadingUsers,
-    refetch: refetchUsers,
-    error: usersError,
-  } = useGetAllUsersByRole({
-    role: userType ? roleMapping[userType] : null,
-  });
+  // Remove usersError and related debug code
+  const [users, setUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [userPage, setUserPage] = useState(1);
+  const usersPerPage = 10;
+  const [totalUsers, setTotalUsers] = useState(0);
 
-  // Debug users data
+  // Pagination calculation
+  const totalPages = Math.ceil(totalUsers / usersPerPage);
+
+  // Fetch users with pagination using the correct endpoint
+  const fetchUsers = async (role, page = 1) => {
+    if (!role) return;
+    setUsersLoading(true);
+    try {
+      const res = await CaryBinApi.get(
+        `/auth/users/${roleMapping[role]}?pagination[page]=${page}`
+      );
+      setUsers(res.data.data || []);
+      setTotalUsers(res.data.count || 0);
+    } catch (e) {
+      setUsers([]);
+      setTotalUsers(0);
+      toastError("Failed to fetch users.");
+    }
+    setUsersLoading(false);
+  };
+
+  // Fetch users when userType or userPage changes
   useEffect(() => {
-    if (usersData) {
-      console.log("Users data received:", usersData);
+    if (userType) {
+      fetchUsers(userType, userPage);
+    } else {
+      setUsers([]);
+      setTotalUsers(0);
+    }
+  }, [userType, userPage]);
+
+  // Debug users data (remove usersError usage)
+  useEffect(() => {
+    if (users) {
+      console.log("Users data received:", users);
       console.log("Users array:", users);
     }
-    if (usersError) {
-      console.error("Error fetching users:", usersError);
-      toastError("Failed to fetch users: " + usersError?.data?.message);
-    }
-  }, [usersData, usersError]);
+    // Remove usersError block
+  }, [users]);
 
   // Send message hook
   const { isPending: sendingMessage, sendMessageMutate } = useSendMessage();
-
-  const users = usersData?.data || [];
 
   // Keep selectedChatRef in sync and set chatId
   useEffect(() => {
@@ -167,13 +191,13 @@ export default function InboxPage() {
     console.log("Admin token:", adminToken);
     console.log("Admin ID from profile:", adminId);
     console.log("Profile loading:", profileLoading);
-    console.log("Socket URL: https://api-carybin.victornwadinobi.com");
+    console.log("Socket URL: https://api-staging.carybin.com/");
     console.log("============================================");
 
     // Wait for profile to be loaded before initializing socket
     if (adminToken && adminId && !profileLoading) {
       console.log(adminToken, adminId);
-      const socketInstance = io("https://api-carybin.victornwadinobi.com", {
+      const socketInstance = io("https://api-staging.carybin.com/", {
         auth: {
           token: adminToken,
         },
@@ -221,10 +245,6 @@ export default function InboxPage() {
         // Set chats from the retrieved data
         if (data?.status === "success" && data?.data?.result) {
           setChats(data.data.result);
-          // Set first chat as selected if no chat is selected
-          // if (!selectedChat && data.data.result.length > 0) {
-          //   setSelectedChat(data.data.result[0]);
-          // }
           toastSuccess(data?.message || "Chats loaded successfully");
         }
       });
@@ -233,7 +253,6 @@ export default function InboxPage() {
       socketInstance.on(`recentChatRetrieved:${adminId}`, (data) => {
         console.log("=== ADMIN RECENT CHAT RETRIEVED ===");
         console.log("Admin ID:", adminId);
-        console.log(localStorage.getItem("selectedChatId"));
         console.log("Event data:", data);
         console.log("==================================");
 
@@ -245,6 +264,7 @@ export default function InboxPage() {
             const existingChatIndex = prevChats.findIndex(
               (chat) => chat.id === data.data.id
             );
+
             if (existingChatIndex >= 0) {
               // Update existing chat
               const updatedChats = [...prevChats];
@@ -255,13 +275,33 @@ export default function InboxPage() {
               };
               return updatedChats;
             } else {
-              // Add new chat
-              return [data.data, ...prevChats];
+              // Check if this is a chat with the same chat_buddy to prevent duplicates
+              const duplicateChatIndex = prevChats.findIndex(
+                (chat) => chat.chat_buddy?.id === data.data.chat_buddy?.id
+              );
+
+              if (duplicateChatIndex >= 0) {
+                // Update the existing chat with same buddy instead of creating new one
+                const updatedChats = [...prevChats];
+                updatedChats[duplicateChatIndex] = {
+                  ...updatedChats[duplicateChatIndex],
+                  last_message: data.data.last_message,
+                  created_at: data.data.created_at,
+                  id: data.data.id, // Update the ID to the latest one
+                };
+                return updatedChats;
+              } else {
+                // Add new chat only if no duplicate buddy exists
+                return [data.data, ...prevChats];
+              }
             }
           });
 
-          // Auto-refresh messages if this chat is currently selected
-          if (currentSelectedChat && currentSelectedChat.id === data.data.id) {
+          // Only auto-refresh messages if this chat is currently selected AND it's the same chat buddy
+          if (
+            currentSelectedChat &&
+            currentSelectedChat.chat_buddy?.id === data.data.chat_buddy?.id
+          ) {
             console.log(
               "🔄 Auto-refreshing messages for currently selected admin chat"
             );
@@ -419,7 +459,19 @@ export default function InboxPage() {
     setSelectedUser("");
   };
 
-  // Handle message sending via Socket.IO and API
+  // When user selects from dropdown, sync custom list selection
+  const handleUserDropdownChange = (e) => {
+    setSelectedUser(e.target.value);
+    setUserListSelected(e.target.value);
+  };
+
+  // When user clicks on custom list, sync dropdown selection
+  const handleUserListClick = (id) => {
+    setSelectedUser(id);
+    setUserListSelected(id);
+  };
+
+  // Handle message sending via Socket.IO and API (for modal)
   const handleSocketMessage = (e) => {
     if (!navigator.onLine) {
       toastError("No internet connection. Please check your network.");
@@ -427,12 +479,13 @@ export default function InboxPage() {
     }
     e.preventDefault();
 
-    console.log("=== ADMIN SENDING MESSAGE ===");
+    console.log("=== ADMIN SENDING MESSAGE VIA MODAL ===");
     console.log("Selected user:", selectedUser);
     console.log("Message text:", messageText);
     console.log("Admin token:", adminToken);
     console.log("Admin ID from profile:", adminId);
-    console.log("============================");
+    console.log("Current selected chat:", selectedChat);
+    console.log("=====================================");
 
     if (!selectedUser || !messageText.trim()) {
       toastError("Please select a user and enter a message.");
@@ -454,29 +507,41 @@ export default function InboxPage() {
 
     // Send via Socket.IO only
     if (socket && isConnected) {
-      console.log("=== SENDING MESSAGE VIA SOCKET ===");
+      console.log("=== SENDING MESSAGE VIA SOCKET (MODAL) ===");
       console.log("Socket ID:", socket.id);
       console.log("Message data:", messageData);
       console.log("Socket connected:", socket.connected);
-      console.log("=================================");
+      console.log("=========================================");
 
       socket.emit("sendMessage", messageData);
 
-      // Add message to local state immediately
-      const newMsg = {
-        id: Date.now(),
-        sender: "You",
-        text: messageText.trim(),
-        time: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        }),
-        type: "sent",
-      };
-      setMessageList((prev) => [...prev, newMsg]);
+      // Only add message to local state if it's for the currently selected chat
+      const isMessageForCurrentChat =
+        selectedChat &&
+        (selectedChat.chat_buddy?.id === selectedUser ||
+          selectedChat.id === selectedUser);
 
-      // Find or create chat entry for the sent message
+      if (isMessageForCurrentChat) {
+        console.log("Adding message to current chat's message list");
+        const newMsg = {
+          id: Date.now(),
+          sender: "You",
+          text: messageText.trim(),
+          time: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          }),
+          type: "sent",
+        };
+        setMessageList((prev) => [...prev, newMsg]);
+      } else {
+        console.log(
+          "Message is for different user, not adding to current chat"
+        );
+      }
+
+      // Update chats list - find or create chat entry for the sent message
       const targetUser = users.find((user) => user.id === selectedUser);
       if (targetUser) {
         setChats((prevChats) => {
@@ -492,7 +557,9 @@ export default function InboxPage() {
               last_message: messageText.trim(),
               created_at: new Date().toISOString(),
             };
-            return updatedChats;
+            // Move updated chat to top
+            const updatedChat = updatedChats.splice(existingChatIndex, 1)[0];
+            return [updatedChat, ...updatedChats];
           } else {
             // Create new chat entry
             const newChat = {
@@ -540,17 +607,17 @@ export default function InboxPage() {
     setNewMessage((prev) => prev + emojiObject.emoji);
   };
 
-  // Unified sendMessage for chat input (Socket.IO)
+  // Unified sendMessage for chat input (Socket.IO) - for selected chat only
   const sendMessage = () => {
     if (!newMessage.trim() || !selectedChat) return;
 
-    console.log("=== ADMIN SENDING MESSAGE VIA SOCKET ===");
+    console.log("=== ADMIN SENDING MESSAGE VIA CHAT INPUT ===");
     console.log("Socket ID:", socket?.id);
     console.log("Selected chat:", selectedChat.id);
     console.log("Message:", newMessage);
     console.log("Socket connected:", socket?.connected);
     console.log("Admin ID from profile:", adminId);
-    console.log("=======================================");
+    console.log("===========================================");
 
     if (!adminId) {
       toastError("Admin profile not loaded. Please wait and try again.");
@@ -567,7 +634,7 @@ export default function InboxPage() {
       console.log("Message data to send:", messageData);
       socket.emit("sendMessage", messageData);
 
-      // Add message to local state immediately
+      // Add message to local state immediately (only for current chat)
       const newMsg = {
         id: Date.now(),
         sender: "You",
@@ -598,6 +665,17 @@ export default function InboxPage() {
     setSelectedUser("");
     setMessageText("");
   };
+
+  // Filter chats by search term (by chat buddy name or email)
+  const filteredChats = chats.filter((chat) => {
+    const buddy = chat.chat_buddy;
+    const name = buddy?.name?.toLowerCase() || "";
+    const email = buddy?.email?.toLowerCase() || "";
+    return (
+      name.includes(searchTerm.toLowerCase()) ||
+      email.includes(searchTerm.toLowerCase())
+    );
+  });
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
@@ -665,6 +743,8 @@ export default function InboxPage() {
               <input
                 type="text"
                 placeholder="Search conversations..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full py-3 pl-10 pr-4 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm focus:border-purple-500 focus:bg-white transition-all"
               />
             </div>
@@ -672,7 +752,7 @@ export default function InboxPage() {
 
           {/* Scrollable Chat List */}
           <div className="flex-1 overflow-y-auto">
-            {chats.length === 0 ? (
+            {filteredChats.length === 0 ? (
               <div className="text-center text-gray-500 py-12 px-6">
                 <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
                   <FaSearch className="text-gray-400" size={24} />
@@ -684,7 +764,7 @@ export default function InboxPage() {
               </div>
             ) : (
               <div className="p-2">
-                {chats.map((chat) => (
+                {filteredChats.map((chat) => (
                   <div
                     key={chat.id}
                     className={`flex items-center p-3 rounded-xl cursor-pointer transition-all hover:bg-gray-50 ${
@@ -712,13 +792,13 @@ export default function InboxPage() {
                         <h4 className="font-semibold text-gray-900 truncate text-sm">
                           {chat.chat_buddy?.name || "Unknown User"}
                         </h4>
-                        <span className="text-xs text-gray-500 flex-shrink-0">
+                        {/* <span className="text-xs text-gray-500 flex-shrink-0">
                           {new Date(chat.created_at).toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
                             hour12: true,
                           })}
-                        </span>
+                        </span> */}
                       </div>
 
                       <div className="flex justify-between items-center">
@@ -740,7 +820,7 @@ export default function InboxPage() {
         </div>
 
         {/* Main Chat Window */}
-        <div className="flex-1 flex flex-col bg-white">
+        <div className="flex-1 flex flex-col bg-white min-h-0">
           {/* Fixed Chat Header */}
           <div className="p-4 border-b border-gray-200 bg-white shadow-sm flex-shrink-0">
             <div className="flex items-center justify-between">
@@ -791,7 +871,7 @@ export default function InboxPage() {
           </div>
 
           {/* Scrollable Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 min-h-0">
             {selectedChat ? (
               messageList.length === 0 ? (
                 <div className="text-center text-gray-500 py-12">
@@ -852,7 +932,7 @@ export default function InboxPage() {
           <div className="p-4 border-t border-gray-200 bg-white flex-shrink-0">
             <div className="flex items-center gap-3">
               {/* Attachment Button */}
-              <div className="relative">
+              <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setShowOptions(!showOptions)}
                   className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
@@ -930,11 +1010,14 @@ export default function InboxPage() {
       {/* Enhanced Modal with Socket.IO Integration */}
       {showModal && (
         <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm">
-          <div className="bg-white p-6 rounded-lg w-full max-w-lg">
+          <div className="bg-white p-6 rounded-lg w-full max-w-lg max-h-[95vh] overflow-y-auto">
             <div className="flex justify-between items-center outline-none pb-3 mb-4">
               <h2 className="text-lg font-semibold">Send Message</h2>
               <button
-                onClick={handleModalClose}
+                onClick={() => {
+                  handleModalClose();
+                  setUserPage(1);
+                }}
                 className="text-gray-500 hover:text-black"
               >
                 ✕
@@ -947,7 +1030,10 @@ export default function InboxPage() {
                   <select
                     className="w-full p-4 border border-[#CCCCCC] text-gray-700 outline-none rounded-lg"
                     value={userType}
-                    onChange={handleUserTypeChange}
+                    onChange={(e) => {
+                      handleUserTypeChange(e);
+                      setUserPage(1);
+                    }}
                     required
                   >
                     <option value="">Choose user type</option>
@@ -961,33 +1047,94 @@ export default function InboxPage() {
 
                 <div>
                   <label className="block text-gray-700 mb-4 mt-4">
-                    Select User
+                    Users will show here
                   </label>
-                  <select
-                    className="w-full p-4 border border-[#CCCCCC] text-gray-700 outline-none rounded-lg"
-                    value={selectedUser}
-                    onChange={(e) => setSelectedUser(e.target.value)}
-                    required
-                    disabled={!userType || loadingUsers}
-                  >
-                    <option value="">
-                      {loadingUsers ? "Loading users..." : "Choose a user"}
-                    </option>
+                  <div className="max-h-60 overflow-y-auto mt-2 rounded border border-gray-100 bg-white shadow">
                     {users.length > 0
                       ? users.map((user) => (
-                          <option key={user.id} value={user.id}>
-                            {user.name || user.email || `User ${user.id}`}
-                          </option>
+                          <div
+                            key={user.id}
+                            className={`flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-purple-50 transition ${
+                              userListSelected === user.id
+                                ? "bg-purple-100"
+                                : ""
+                            }`}
+                            onClick={() => handleUserListClick(user.id)}
+                          >
+                            {user.profile?.profile_picture ? (
+                              <img
+                                src={user.profile.profile_picture}
+                                alt={user.name || user.email}
+                                className="w-10 h-10 rounded-full object-cover border border-purple-200"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-purple-200 flex items-center justify-center text-lg font-bold text-purple-700">
+                                {(
+                                  user.name?.charAt(0) ||
+                                  user.email?.charAt(0) ||
+                                  "U"
+                                ).toUpperCase()}
+                              </div>
+                            )}
+                            <div className="flex flex-col min-w-0">
+                              <span className="font-medium text-gray-900 truncate">
+                                {user.name || "No Name"}
+                              </span>
+                              <span className="text-xs text-gray-500 truncate">
+                                {user.email}
+                              </span>
+                            </div>
+                            {userListSelected === user.id && (
+                              <span className="ml-auto text-xs text-purple-600 font-semibold">
+                                Selected
+                              </span>
+                            )}
+                          </div>
                         ))
-                      : !loadingUsers &&
+                      : !usersLoading &&
                         userType && (
-                          <option value="" disabled>
+                          <div className="px-4 py-3 text-gray-400 text-sm">
                             No users found for this role
-                          </option>
+                          </div>
                         )}
-                  </select>
+                  </div>
+                  {/* Pagination controls */}
+                  <div className="flex justify-between items-center mt-2 px-2">
+                    <button
+                      type="button"
+                      className="px-3 py-1 rounded bg-gray-100 text-gray-700 text-sm font-medium hover:bg-purple-100 disabled:opacity-50"
+                      onClick={() => setUserPage((p) => Math.max(1, p - 1))}
+                      disabled={userPage === 1 || usersLoading}
+                    >
+                      Previous
+                    </button>
+                    <span className="text-xs text-gray-500">
+                      Page {userPage}
+                    </span>
+                    <button
+                      type="button"
+                      className="px-3 py-1 rounded bg-purple-100 text-purple-700 text-sm font-medium hover:bg-purple-100 disabled:opacity-50"
+                      onClick={() =>
+                        setUserPage((p) => Math.min(totalPages, p + 1))
+                      }
+                      disabled={
+                        userPage === totalPages ||
+                        usersLoading ||
+                        totalPages === 0
+                      }
+                    >
+                      Next
+                    </button>
+                  </div>
+                  {usersLoading && (
+                    <div className="py-4 flex flex-col items-center justify-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-purple-500 mb-2"></div>
+                      <div className="text-purple-400 text-xs">
+                        Loading users...
+                      </div>
+                    </div>
+                  )}
                 </div>
-
                 <div>
                   <label className="block text-gray-700 mb-4 mt-4">
                     Message

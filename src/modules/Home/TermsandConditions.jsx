@@ -272,7 +272,7 @@ const TermsAndConditions = () => {
       content: "You acknowledge that:",
       subItems: [
         "Carybin Limited through carybin.com facilitates a marketplace for buyers and third party sellers or oastyles where oastyles is the seller of a product;",
-        "the relevant seller of the product (whether oastyle is the seller or whether it is a third party seller) shall at all times remain exclusively liable for the products they sell on the marketplace; and",
+        "the relevant seller of the product (whether carybin is the seller or whether it is a third party seller) shall at all times remain exclusively liable for the products they sell on the marketplace; and",
         "in the event that there is an issue arising from the purchase of a product on the marketplace the buyer should seek recourse from the relevant seller of the product by following the process set out in Carybin's/oastyle Dispute Resolution Policy",
       ],
     },

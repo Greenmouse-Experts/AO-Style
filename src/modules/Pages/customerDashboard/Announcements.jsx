@@ -7,29 +7,37 @@ import {
   FaArrowLeft,
 } from "react-icons/fa";
 import dayjs from "dayjs";
-import useGetAnnouncements from "../../../hooks/announcement/useGetAnnouncements";
+import useGetAnnouncementsWithProfile from "../../../hooks/announcement/useGetAnnouncementsWithProfile";
 import useToast from "../../../hooks/useToast";
 
 const CustomerAnnouncementsPage = () => {
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const { toastError } = useToast();
 
-  // Fetch announcements for customer role
+  // Fetch announcements for customer role with user profile integration
   const {
     data: announcementsData,
     isLoading,
     error,
-    refetch,
-  } = useGetAnnouncements("user");
+    refetch: refetchAll,
+    profileData,
+    isProfileLoading,
+    isAnnouncementsLoading,
+  } = useGetAnnouncementsWithProfile("user");
 
   // Console log the full response to understand the structure
   console.log("Customer Announcements - Full Response:", announcementsData);
   console.log("Customer Announcements - Is Loading:", isLoading);
   console.log("Customer Announcements - Error:", error);
+  console.log("Customer Announcements - Profile Data:", profileData);
+  console.log(
+    "Customer Announcements - Profile Created At:",
+    profileData?.created_at,
+  );
   console.log("Customer Announcements - Data:", announcementsData?.data);
   console.log(
     "Customer Announcements - Nested Data:",
-    announcementsData?.data?.data
+    announcementsData?.data?.data,
   );
 
   // Try different possible data structures
@@ -97,7 +105,7 @@ const CustomerAnnouncementsPage = () => {
                 "There was an error loading announcements."}
             </p>
             <button
-              onClick={() => refetch()}
+              onClick={() => refetchAll()}
               className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors"
             >
               Try Again
@@ -180,9 +188,31 @@ const CustomerAnnouncementsPage = () => {
           </p>
         </div>
 
-        {/* Loading State */}
+        {/* Enhanced Loading State */}
         {isLoading && (
           <div className="space-y-4">
+            {/* Loading Status Indicator */}
+            <div className="bg-white rounded-xl border border-purple-200 p-4">
+              <div className="flex items-center space-x-3">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
+                <div className="text-sm text-gray-600">
+                  {isProfileLoading && !isAnnouncementsLoading && (
+                    <span>Loading your profile information...</span>
+                  )}
+                  {!isProfileLoading && isAnnouncementsLoading && (
+                    <span>Fetching personalized announcements...</span>
+                  )}
+                  {isProfileLoading && isAnnouncementsLoading && (
+                    <span>Preparing your announcements...</span>
+                  )}
+                  {!isProfileLoading && !isAnnouncementsLoading && (
+                    <span>Loading announcements...</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Skeleton Loading Cards */}
             {[1, 2, 3].map((i) => (
               <div
                 key={i}

@@ -3,11 +3,11 @@ import AnalyticsService from "../../services/api/analytics";
 import OrderService from "../../services/api/order";
 import SubscriptionService from "../../services/api/subscription";
 
-function useGetUserSubscription(params, id) {
+function useGetUserSubscription(params, role) {
   const { isLoading, isFetching, data, isError, refetch, isPending } = useQuery(
     {
       queryKey: ["get-user-subscription", params],
-      queryFn: () => SubscriptionService.getUserSubscription(params, id),
+      queryFn: () => SubscriptionService.getUserSubscription(params, role),
     }
   );
 

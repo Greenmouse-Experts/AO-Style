@@ -17,6 +17,7 @@ import PhoneInput from "react-phone-input-2";
 import useCreateBilling from "../../hooks/billing/useCreateBilling";
 import useAddMultipleCart from "../../hooks/cart/useAddMultipleCart";
 import useApplyCoupon from "../../hooks/coupon/useApplyCoupon";
+import useGetDeliveryFee from "../../hooks/delivery/useGetDeleiveryFee";
 
 const initialValues = {
   address: "",
@@ -65,6 +66,10 @@ const CartPage = () => {
     }, 0) ?? 0;
 
   const [discountedPrice, setDiscountedPrice] = useState("");
+
+  const { data } = useGetDeliveryFee();
+
+  console.log(data);
 
   const updatedAmount = totalAmount + totalStyleAmount - discountedPrice;
 

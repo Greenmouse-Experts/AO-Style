@@ -18,8 +18,8 @@ const getSubscription = (params, id) => {
   });
 };
 
-const getUserSubscription = (params, id) => {
-  return CaryBinApi.get(`/subscription-plan/public`, {
+const getUserSubscription = (params, role) => {
+  return CaryBinApi.get(`/subscription-plan/fetch?role=${role}`, {
     params,
   });
 };

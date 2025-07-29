@@ -119,16 +119,16 @@ export default function Navbar({ toggleSidebar }) {
           </div>
           {kycIsPending ? (
             <></>
-          ) : (
-            <span
-              className={`p-1 text-[10px] rounded-full ${
-                kycinfo?.data?.is_approved
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
-              }`}
-            >
-              {kycinfo?.data?.is_approved ? "VERIFIED" : "UNVERIFIED"}
+          ) : kycinfo?.data?.is_approved ? (
+            <span className="p-1 text-[10px] rounded-full bg-green-100 text-green-700">
+              VERIFIED
             </span>
+          ) : (
+            <Link to="/tailor/settings?q=kyc">
+              <span className="p-1 text-[10px] rounded-full bg-red-100 text-red-700 underline cursor-pointer">
+                UNVERIFIED
+              </span>
+            </Link>
           )}
         </div>
       </nav>

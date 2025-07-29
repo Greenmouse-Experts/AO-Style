@@ -94,12 +94,12 @@ const Subscriptions = () => {
     isLoading,
     isError,
     data: subscriptionData,
-  } = useGetUserSubscription({
-    business_id: businessDetails?.data?.id,
-    role:
-      currUrl == "/fabric/subscription" ? "fabric-vendor" : "fashion-designer",
-    ...queryParams,
-  });
+  } = useGetUserSubscription(
+    {
+      ...queryParams,
+    },
+    currUrl == "/fabric/subscription" ? "fabric-vendor" : "fashion-designer"
+  );
 
   console.log(subscriptionData?.data);
 

@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import Loader from "../../../../components/ui/Loader";
 import useGetCustomerOrderStat from "../../../../hooks/analytics/useGetCustomerOrderStats";
+import { formatNumberWithCommas } from "../../../../lib/helper";
 
 export default function StatsCard() {
   const { isPending, isLoading, isError, data } = useGetCustomerOrderStat();
@@ -22,7 +23,7 @@ export default function StatsCard() {
       {
         image:
           "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741980408/AoStyle/Group_386385_avoje8.png",
-        value: `N ${data?.data?.totalSpent}`,
+        value: `${formatNumberWithCommas(data?.data?.totalSpent)}`,
         label: "Total Spent",
       },
     ],

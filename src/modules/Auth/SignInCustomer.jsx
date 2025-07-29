@@ -160,7 +160,7 @@ export default function SignInAsCustomer() {
             <br /> and the best Tailors/Fashion Designers
           </h2>
           <p className="text-sm mt-2">
-            Welcome to OAStyles, a platform that simplifies tailoring processes;{" "}
+            Welcome to Carybin, a platform that simplifies tailoring processes;{" "}
             <br />
             from buying materials to finding a tailor for you.
           </p>

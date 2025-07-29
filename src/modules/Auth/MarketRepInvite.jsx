@@ -50,7 +50,6 @@ export default function MarketRepInvite() {
     value: code,
   }));
 
-
   const {
     handleSubmit,
     values,
@@ -87,7 +86,7 @@ export default function MarketRepInvite() {
           onSuccess: () => {
             resetForm();
           },
-        }
+        },
       );
     },
   });
@@ -117,7 +116,7 @@ export default function MarketRepInvite() {
             Earn Money by onboarding Fabric Vendors and Fashion Designers!
           </h2>
           <p className="text-sm mt-2">
-            Welcome to OAStyles, a platform that simplifies tailoring processes;{" "}
+            Welcome to Carybin, a platform that simplifies tailoring processes;{" "}
             <br />
             from buying materials to finding a tailor for you.
           </p>
@@ -140,7 +139,7 @@ export default function MarketRepInvite() {
             Become a Market Rep
           </h2>
           <p className="text-gray-500 text-sm mt-1">
-            Fill the form become a Market rep on OAStyles
+            Fill the form become a Market rep on Carybin
           </p>
 
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
@@ -377,7 +376,7 @@ export default function MarketRepInvite() {
             <span className="px-3 text-gray-500">Or</span>
             <hr className="flex-grow border-gray-300" />
           </div>
-          {/* 
+          {/*
           <button className="w-full mt-4 flex items-center justify-center border border-[#CCCCCC] hover:bg-gradient-to-r from-purple-500 to-pink-50 hover:text-white p-4 rounded-lg">
             <img
               src="https://www.svgrepo.com/show/355037/google.svg"

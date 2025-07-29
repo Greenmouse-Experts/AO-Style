@@ -130,100 +130,100 @@ export default function AnkaraGownPage() {
   const initialValues = {
     customer_name: markReceivedChecked
       ? carybinUser?.name
-      : currMeasurement?.customer_name ?? "",
+      : (currMeasurement?.customer_name ?? ""),
     bust_circumference: markReceivedChecked
       ? userMeasurement?.upper_body?.bust_circumference
-      : currMeasurement?.upper_body?.bust_circumference ?? "",
+      : (currMeasurement?.upper_body?.bust_circumference ?? ""),
     bust_circumference_unit: markReceivedChecked
       ? userMeasurement?.upper_body?.bust_circumference_unit
-      : currMeasurement?.upper_body?.bust_circumference_unit ?? "cm",
+      : (currMeasurement?.upper_body?.bust_circumference_unit ?? "cm"),
     shoulder_width: markReceivedChecked
       ? userMeasurement?.upper_body?.shoulder_width
-      : currMeasurement?.upper_body?.shoulder_width ?? "",
+      : (currMeasurement?.upper_body?.shoulder_width ?? ""),
     shoulder_width_unit: markReceivedChecked
       ? userMeasurement?.upper_body?.shoulder_width_unit
-      : currMeasurement?.upper_body?.shoulder_width_unit ?? "cm",
+      : (currMeasurement?.upper_body?.shoulder_width_unit ?? "cm"),
     armhole_circumference: markReceivedChecked
       ? userMeasurement?.upper_body?.armhole_circumference
-      : currMeasurement?.upper_body?.armhole_circumference ?? "",
+      : (currMeasurement?.upper_body?.armhole_circumference ?? ""),
     armhole_circumference_unit: markReceivedChecked
       ? userMeasurement?.upper_body?.armhole_circumference_unit
-      : currMeasurement?.upper_body?.armhole_circumference_unit ?? "cm",
+      : (currMeasurement?.upper_body?.armhole_circumference_unit ?? "cm"),
     sleeve_length: markReceivedChecked
       ? userMeasurement?.upper_body?.sleeve_length
-      : currMeasurement?.upper_body?.sleeve_length ?? "",
+      : (currMeasurement?.upper_body?.sleeve_length ?? ""),
 
     sleeve_length_unit: markReceivedChecked
       ? userMeasurement?.upper_body?.sleeve_length_unit
-      : currMeasurement?.upper_body?.sleeve_length_unit ?? "cm",
+      : (currMeasurement?.upper_body?.sleeve_length_unit ?? "cm"),
     bicep_circumference: markReceivedChecked
       ? userMeasurement?.upper_body?.bicep_circumference
-      : currMeasurement?.upper_body?.bicep_circumference ?? "",
+      : (currMeasurement?.upper_body?.bicep_circumference ?? ""),
 
     bicep_circumference_unit: markReceivedChecked
       ? userMeasurement?.upper_body?.bicep_circumference_unit
-      : currMeasurement?.upper_body?.bicep_circumference_unit ?? "cm",
+      : (currMeasurement?.upper_body?.bicep_circumference_unit ?? "cm"),
     waist_circumference_upper: markReceivedChecked
       ? userMeasurement?.upper_body?.waist_circumference
-      : currMeasurement?.upper_body?.waist_circumference ?? "",
+      : (currMeasurement?.upper_body?.waist_circumference ?? ""),
 
     waist_circumference_unit_upper: markReceivedChecked
       ? userMeasurement?.upper_body?.waist_circumference_unit
-      : currMeasurement?.upper_body?.waist_circumference_unit ?? "cm",
+      : (currMeasurement?.upper_body?.waist_circumference_unit ?? "cm"),
     waist_circumference_lower: markReceivedChecked
       ? userMeasurement?.lower_body?.waist_circumference
-      : currMeasurement?.lower_body?.waist_circumference ?? "",
+      : (currMeasurement?.lower_body?.waist_circumference ?? ""),
 
     waist_circumference_lower_unit: markReceivedChecked
       ? userMeasurement?.lower_body?.waist_circumference_unit
-      : currMeasurement?.lower_body?.waist_circumference_unit ?? "cm",
+      : (currMeasurement?.lower_body?.waist_circumference_unit ?? "cm"),
     hip_circumference: markReceivedChecked
       ? userMeasurement?.lower_body?.hip_circumference
-      : currMeasurement?.lower_body?.hip_circumference ?? "",
+      : (currMeasurement?.lower_body?.hip_circumference ?? ""),
 
     hip_circumference_unit: markReceivedChecked
       ? userMeasurement?.lower_body?.hip_circumference_unit
-      : currMeasurement?.lower_body?.hip_circumference_unit ?? "cm",
+      : (currMeasurement?.lower_body?.hip_circumference_unit ?? "cm"),
 
     thigh_circumference: markReceivedChecked
       ? userMeasurement?.lower_body?.thigh_circumference
-      : currMeasurement?.lower_body?.thigh_circumference ?? "",
+      : (currMeasurement?.lower_body?.thigh_circumference ?? ""),
 
     thigh_circumference_unit: markReceivedChecked
       ? userMeasurement?.lower_body?.thigh_circumference_unit
-      : currMeasurement?.lower_body?.thigh_circumference_unit ?? "cm",
+      : (currMeasurement?.lower_body?.thigh_circumference_unit ?? "cm"),
 
     knee_circumference: markReceivedChecked
       ? userMeasurement?.lower_body?.knee_circumference
-      : currMeasurement?.lower_body?.knee_circumference ?? "",
+      : (currMeasurement?.lower_body?.knee_circumference ?? ""),
 
     knee_circumference_unit: markReceivedChecked
       ? userMeasurement?.lower_body?.knee_circumference_unit
-      : currMeasurement?.lower_body?.knee_circumference_unit ?? "cm",
+      : (currMeasurement?.lower_body?.knee_circumference_unit ?? "cm"),
 
     trouser_length: markReceivedChecked
       ? userMeasurement?.lower_body?.trouser_length
-      : currMeasurement?.lower_body?.trouser_length ?? "",
+      : (currMeasurement?.lower_body?.trouser_length ?? ""),
 
     trouser_length_unit: markReceivedChecked
       ? userMeasurement?.lower_body?.trouser_length_unit
-      : currMeasurement?.lower_body?.trouser_length_unit ?? "cm",
+      : (currMeasurement?.lower_body?.trouser_length_unit ?? "cm"),
 
     height: markReceivedChecked
       ? userMeasurement?.full_body?.height
-      : currMeasurement?.full_body?.height ?? "",
+      : (currMeasurement?.full_body?.height ?? ""),
 
     height_unit: markReceivedChecked
       ? userMeasurement?.full_body?.height_unit
-      : currMeasurement?.full_body?.height_unit ?? "cm",
+      : (currMeasurement?.full_body?.height_unit ?? "cm"),
 
     dress_length: markReceivedChecked
       ? userMeasurement?.full_body?.dress_length
-      : currMeasurement?.full_body?.dress_length ?? "",
+      : (currMeasurement?.full_body?.dress_length ?? ""),
 
     dress_length_unit: markReceivedChecked
       ? userMeasurement?.full_body?.dress_length_unit
-      : currMeasurement?.full_body?.dress_length_unit ?? "cm",
+      : (currMeasurement?.full_body?.dress_length_unit ?? "cm"),
   };
 
   const {
@@ -285,7 +285,7 @@ export default function AnkaraGownPage() {
         setMeasurementArr((prev) => {
           if (currMeasurement?.id) {
             return prev.map((item) =>
-              item.id === currMeasurement?.id ? updateVal : item
+              item.id === currMeasurement?.id ? updateVal : item,
             );
           } else {
             return [...prev, updateVal];
@@ -309,9 +309,9 @@ export default function AnkaraGownPage() {
   return (
     <>
       <Breadcrumb
-        title="OAStyles"
+        title="Carybin"
         subtitle="Products"
-        just="OAStyles Details"
+        just="Carybin Details"
         backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1743712882/AoStyle/image_lslmok.png"
       />
       <section className="Resizer section px-4">
@@ -1101,8 +1101,8 @@ export default function AnkaraGownPage() {
                       {selectedTab === "Upper Body"
                         ? "Proceed to Lower Body"
                         : selectedTab === "Lower Body"
-                        ? "Proceed to Full Body"
-                        : "Submit Measurements"}
+                          ? "Proceed to Full Body"
+                          : "Submit Measurements"}
                     </button>
                   </form>
                 </div>

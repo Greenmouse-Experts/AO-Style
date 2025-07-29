@@ -1,6 +1,15 @@
 import { Link } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import {
+  Eye,
+  EyeOff,
+  X,
+  Download,
+  ZoomIn,
+  ZoomOut,
+  Maximize2,
+  Minimize2,
+} from "lucide-react";
+import { useState, useEffect } from "react";
 import HowDidYouHearAboutUs from "../Auth/components/HowDidYouHearAboutUs";
 import { useFormik } from "formik";
 import useRegister from "./hooks/useSignUpMutate";
@@ -8,6 +17,7 @@ import useToast from "../../hooks/useToast";
 import { countryCodes } from "../../constant";
 import Select from "react-select";
 import PhoneInput from "react-phone-input-2";
+// import agreementPdf from "./Agreement between Carybin and Fabric Vendors.pdf";
 
 const initialValues = {
   name: "",
@@ -21,6 +31,8 @@ const initialValues = {
   business_type: "",
   location: "",
   phoneCode: "+234",
+  fabricVendorAgreement: false,
+  checked: false,
 };
 
 export default function SignInAsCustomer() {
@@ -34,6 +46,9 @@ export default function SignInAsCustomer() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [step, setStep] = useState(1);
+  const [showAgreementModal, setShowAgreementModal] = useState(false);
+  const [fabricVendorAgreement, setFabricVendorAgreement] = useState(false);
+  const [termsAgreement, setTermsAgreement] = useState(false);
 
   const {
     handleSubmit,
@@ -82,6 +97,29 @@ export default function SignInAsCustomer() {
 
   const { isPending, registerMutate } = useRegister(values.email);
 
+  // Validation for Step 1
+  const isStep1Valid = () => {
+    return (
+      values.name.trim() !== "" &&
+      values.email.trim() !== "" &&
+      values.phone.trim() !== "" &&
+      values.password.trim() !== "" &&
+      values.password_confirmation.trim() !== "" &&
+      values.referral_source.trim() !== "" &&
+      fabricVendorAgreement &&
+      termsAgreement
+    );
+  };
+
+  // Validation for Step 2
+  const isStep2Valid = () => {
+    return (
+      values.business_name.trim() !== "" &&
+      values.business_type.trim() !== "" &&
+      values.location.trim() !== ""
+    );
+  };
+
   const personalImage =
     "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741617621/AoStyle/image_2_ezzekx.png";
   const businessImage =
@@ -103,7 +141,7 @@ export default function SignInAsCustomer() {
               Thousands of Customers!
             </h2>
             <p className="text-sm mt-2">
-              Welcome to OAStyles, a platform that simplifies tailoring
+              Welcome to Carybin, a platform that simplifies tailoring
               processes; <br />
               from buying materials to finding a tailor for you.
             </p>
@@ -166,7 +204,6 @@ export default function SignInAsCustomer() {
                     onChange={handleChange}
                     className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
                   />
-
                   <label className="block text-black">Email Address</label>
                   <input
                     type="email"
@@ -177,7 +214,6 @@ export default function SignInAsCustomer() {
                     placeholder="Email Address"
                     className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
                   />
-
                   <div className="mb-3">
                     <label className="block text-black mb-2">
                       Phone Number
@@ -247,7 +283,6 @@ export default function SignInAsCustomer() {
                       />
                     </div>
                   </div>
-
                   <div className="mb-3">
                     <label className="block text-black mb-2">
                       Alternative Phone Number{" "}
@@ -316,7 +351,6 @@ export default function SignInAsCustomer() {
                       />
                     </div>
                   </div>
-
                   <label className="block text-black">Password</label>
                   <div className="relative">
                     <input
@@ -340,7 +374,6 @@ export default function SignInAsCustomer() {
                       )}
                     </button>
                   </div>
-
                   <label className="block text-black">Confirm Password</label>
                   <div className="relative">
                     <input
@@ -366,7 +399,6 @@ export default function SignInAsCustomer() {
                       )}
                     </button>
                   </div>
-
                   <label className="block text-gray-700 mb-3">
                     {" "}
                     How did you hear about us?
@@ -387,10 +419,79 @@ export default function SignInAsCustomer() {
                     <option value="Just got here">Just got here</option>
                     <option value="Other">Other</option>
                   </select>
-
+                  <div className="flex items-center mt-2 mb-2">
+                    <input
+                      type="checkbox"
+                      id="fabricVendorAgreement"
+                      name="fabricVendorAgreement"
+                      required
+                      className="mr-2"
+                      checked={fabricVendorAgreement}
+                      onChange={(e) =>
+                        setFabricVendorAgreement(e.target.checked)
+                      }
+                    />
+                    <label
+                      htmlFor="fabricVendorAgreement"
+                      className="text-sm text-gray-700"
+                    >
+                      I accept the{" "}
+                      <button
+                        type="button"
+                        className="text-gradient underline cursor-pointer hover:text-purple-500 transition duration-200 ease-in-out"
+                        onClick={() => setShowAgreementModal(true)}
+                        tabIndex={0}
+                      >
+                        CARYBIN and Fabric Vendor Agreement
+                      </button>
+                    </label>
+                  </div>
+                  <div className="flex items-center mt-5 mb-2">
+                    <input
+                      type="checkbox"
+                      id="agree"
+                      required
+                      className="mr-2"
+                      checked={termsAgreement}
+                      onChange={(e) => setTermsAgreement(e.target.checked)}
+                    />
+                    <label htmlFor="agree" className="text-sm text-gray-700">
+                      I agree to the{" "}
+                      <a
+                        href="https://beta.carybin.com/terms"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gradient underline"
+                      >
+                        Terms
+                      </a>{" "}
+                      and{" "}
+                      <a
+                        href="https://beta.carybin.com/privacy-policy"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gradient underline"
+                      >
+                        Policies
+                      </a>{" "}
+                      from Carybin
+                    </label>
+                  </div>
+                  {/* Modal for Fabric Vendor Agreement */}
+                  {typeof window !== "undefined" && (
+                    <AgreementModal
+                      open={showAgreementModal}
+                      onClose={() => setShowAgreementModal(false)}
+                    />
+                  )}
                   <button
                     type="submit"
-                    className="w-full bg-gradient text-white py-4 rounded-lg font-medium cursor-pointer mt-4"
+                    disabled={!isStep1Valid()}
+                    className={`w-full py-4 rounded-lg font-medium mt-4 transition-all duration-200 ${
+                      isStep1Valid()
+                        ? "bg-gradient text-white cursor-pointer hover:opacity-90"
+                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    }`}
                   >
                     Proceed to Business Details
                   </button>
@@ -457,37 +558,6 @@ export default function SignInAsCustomer() {
                     placeholder="Enter your business registration number"
                     className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
                   />
-                  <div className="flex items-center mt-2 mb-2">
-                    <input
-                      value={values.checked}
-                      onChange={handleChange}
-                      type="checkbox"
-                      id="agree"
-                      required
-                      className="mr-2"
-                    />
-                    <label htmlFor="agree" className="text-sm text-gray-700">
-                      I agree to the{" "}
-                      <a
-                        href="https://carybin.netlify.app/terms"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gradient underline"
-                      >
-                        Terms
-                      </a>{" "}
-                      and{" "}
-                      <a
-                        href="https://carybin.netlify.app/privacy-policy"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gradient underline"
-                      >
-                        Policies
-                      </a>{" "}
-                      from Carybin
-                    </label>
-                  </div>
 
                   <button
                     type="button"
@@ -497,9 +567,13 @@ export default function SignInAsCustomer() {
                     Back
                   </button>
                   <button
-                    disabled={isPending}
+                    disabled={isPending || !isStep2Valid()}
                     type="submit"
-                    className="w-full bg-gradient text-white py-4 rounded-lg font-medium cursor-pointer"
+                    className={`w-full py-4 rounded-lg font-medium transition-all duration-200 ${
+                      !isPending && isStep2Valid()
+                        ? "bg-gradient text-white cursor-pointer hover:opacity-90"
+                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    }`}
                   >
                     {isPending
                       ? "Please wait..."
@@ -513,4 +587,241 @@ export default function SignInAsCustomer() {
       </div>
     </div>
   );
+  function AgreementModal({ open, onClose }) {
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [zoom, setZoom] = useState(100);
+
+    useEffect(() => {
+      if (open) {
+        setIsLoading(true);
+        setError(null);
+        document.body.style.overflow = "hidden";
+      } else {
+        document.body.style.overflow = "unset";
+      }
+
+      const handleKeyDown = (event) => {
+        if (!open) return;
+
+        switch (event.key) {
+          case "Escape":
+            onClose();
+            break;
+          case "=":
+          case "+":
+            if (event.ctrlKey || event.metaKey) {
+              event.preventDefault();
+              handleZoomIn();
+            }
+            break;
+          case "-":
+            if (event.ctrlKey || event.metaKey) {
+              event.preventDefault();
+              handleZoomOut();
+            }
+            break;
+          default:
+            break;
+        }
+      };
+
+      document.addEventListener("keydown", handleKeyDown);
+
+      return () => {
+        document.body.style.overflow = "unset";
+        document.removeEventListener("keydown", handleKeyDown);
+      };
+    }, [open]);
+
+    const handleDownload = () => {
+      const link = document.createElement("a");
+      link.href = agreementPdf;
+      link.download = "Agreement between Carybin and Fabric Vendors.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
+    const handleZoomIn = () => {
+      setZoom((prev) => Math.min(prev + 25, 200));
+    };
+
+    const handleZoomOut = () => {
+      setZoom((prev) => Math.max(prev - 25, 50));
+    };
+
+    const toggleFullscreen = () => {
+      setIsFullscreen(!isFullscreen);
+    };
+
+    const handleIframeLoad = () => {
+      setIsLoading(false);
+    };
+
+    const handleIframeError = () => {
+      setIsLoading(false);
+      setError("Failed to load PDF. Please try downloading the file instead.");
+    };
+
+    if (!open) return null;
+
+    return (
+      <div className="h-screen fixed inset-0 z-[9999] bg-black/40 backdrop-blur-sm bg-opacity-75 flex items-center justify-center p-4">
+        <div
+          className={`fadeInUp bg-white rounded-lg shadow-2xl flex flex-col transition-all duration-300 ${
+            isFullscreen ? "w-full h-full" : "w-full max-w-6xl h-[90vh]"
+          }`}
+        >
+          <style>
+            {`
+              @keyframes fadeInUp {
+                0% {
+                  opacity: 0;
+                  transform: translateY(40px) scale(0.98);
+                }
+                100% {
+                  opacity: 1;
+                  transform: translateY(0) scale(1);
+                }
+              }
+              .animate-fade-in-up {
+                animation: fadeInUp 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+              }
+            `}
+          </style>
+
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b bg-gray-50 rounded-t-lg">
+            <div className="flex items-center space-x-4">
+              <h2 className="text-lg font-semibold text-[#2B21E5] truncate">
+                CARYBIN AND FABRIC VENDOR AGREEMENT
+              </h2>
+              <span className="text-sm text-gray-500">{zoom}%</span>
+            </div>
+
+            {/* Controls */}
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleZoomOut}
+                className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                title="Zoom Out"
+                disabled={zoom <= 50}
+              >
+                <ZoomOut
+                  size={18}
+                  className={zoom <= 50 ? "text-gray-400" : "text-gray-600"}
+                />
+              </button>
+
+              <button
+                onClick={handleZoomIn}
+                className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                title="Zoom In"
+                disabled={zoom >= 200}
+              >
+                <ZoomIn
+                  size={18}
+                  className={zoom >= 200 ? "text-gray-400" : "text-gray-600"}
+                />
+              </button>
+
+              {/* <button
+                onClick={handleDownload}
+                className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                title="Download PDF"
+              >
+                <Download size={18} className="text-gray-600" />
+              </button> */}
+
+              <button
+                onClick={toggleFullscreen}
+                className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+              >
+                {isFullscreen ? (
+                  <Minimize2 size={18} className="text-gray-600" />
+                ) : (
+                  <Maximize2 size={18} className="text-gray-600" />
+                )}
+              </button>
+
+              <butto
+                onClick={onClose}
+                className="p-2 hover:bg-red-100 rounded-lg transition-colors"
+                title="Close"
+              >
+                <X size={18} className="text-red-600" />
+              </butto>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 relative overflow-hidden">
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2B21E5]"></div>
+                  <p className="text-gray-600">Loading PDF...</p>
+                </div>
+              </div>
+            )}
+
+            {error && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+                <div className="text-center space-y-4">
+                  <div className="text-red-500 text-xl">⚠️</div>
+                  <p className="text-gray-600 max-w-md">{error}</p>
+                  <button
+                    onClick={handleDownload}
+                    className="px-4 py-2 bg-[#2B21E5] text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Download PDF Instead
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div
+              className="w-full h-full overflow-auto"
+              style={{
+                transform: `scale(${zoom / 100})`,
+                transformOrigin: "top left",
+                width: `${10000 / zoom}%`,
+                height: `${10000 / zoom}%`,
+              }}
+            >
+              <iframe
+                src={`https://gray-daphene-38.tiiny.site/Agreement-between-Carybin-and-Fabric-Vendors.pdf#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
+                className="w-full h-full border-0"
+                title="CARYBIN Fabric Vendor Agreement"
+                onLoad={handleIframeLoad}
+                onError={handleIframeError}
+                style={{
+                  minHeight: "600px",
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between p-3 border-t bg-gray-50 text-sm text-gray-500 rounded-b-lg">
+            <div className="flex items-center space-x-4">
+              <span>Use mouse wheel or zoom controls to adjust size</span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <span>Press ESC to close • Ctrl/Cmd + Plus/Minus to zoom</span>
+              <button
+                onClick={onClose}
+                className="bg-gradient text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 }

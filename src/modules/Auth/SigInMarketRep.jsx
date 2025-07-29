@@ -66,7 +66,7 @@ export default function SignInAsCustomer() {
           onSuccess: () => {
             resetForm();
           },
-        }
+        },
       );
     },
   });
@@ -87,7 +87,7 @@ export default function SignInAsCustomer() {
             Earn Money by onboarding Fabric Vendors and Fashion Designers!
           </h2>
           <p className="text-sm mt-2">
-            Welcome to OAStyles, a platform that simplifies tailoring processes;{" "}
+            Welcome to Carybin, a platform that simplifies tailoring processes;{" "}
             <br />
             from buying materials to finding a tailor for you.
           </p>
@@ -110,7 +110,7 @@ export default function SignInAsCustomer() {
             Become a Market Rep
           </h2>
           <p className="text-gray-500 lg:text-left md:text-center text-sm mt-1">
-            Fill the form become a Market rep on OAStyles
+            Fill the form become a Market rep on Carybin
           </p>
 
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>

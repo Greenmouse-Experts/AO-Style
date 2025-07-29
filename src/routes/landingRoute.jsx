@@ -64,7 +64,7 @@ export const landingRooutes = [
         element: <Shops />,
       },
       {
-        path: "shop-details",
+        path: "shop-details/:id",
         element: <ShopDetails />,
       },
       {

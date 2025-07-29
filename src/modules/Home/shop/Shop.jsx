@@ -98,7 +98,7 @@ export default function ShopPage() {
   const filteredProducts = products.filter(
     (product) =>
       (!selectedCategory || product.category === selectedCategory) &&
-      product.name.toLowerCase().includes(searchTerm.toLowerCase())
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const handleLoadMore = () => {
@@ -184,7 +184,7 @@ export default function ShopPage() {
         max_price: debounceMax,
         q: debounceSearch,
       },
-      "FABRIC"
+      "FABRIC",
     );
 
   const isShowMoreBtn = getProductData?.count == getProductData?.data?.length;
@@ -213,7 +213,7 @@ export default function ShopPage() {
     : [];
 
   const totalPages = Math.ceil(
-    getProductData?.count / (queryParams["pagination[limit]"] ?? 10)
+    getProductData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
   const { data: getMarketPlacePublicData } = useGetMarketPlaces({
@@ -277,7 +277,7 @@ export default function ShopPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Sidebar */}
           <aside
-            className="bg-white p-6 border border-gray-300 rounded-md 
+            className="bg-white p-6 border border-gray-300 rounded-md
             md:h-[70vh] md:sticky md:top-24 overflow-y-scroll"
           >
             <h3 className="font-semibold mb-2">CATEGORY</h3>
@@ -285,7 +285,7 @@ export default function ShopPage() {
               options={[{ label: "All", value: "" }, ...categoryFabricList]}
               name="category_id"
               value={[{ label: "All", value: "" }, ...categoryFabricList]?.find(
-                (opt) => opt.value === product
+                (opt) => opt.value === product,
               )}
               onChange={(selectedOption) => {
                 // console.log(selectedOption?.value);
@@ -334,7 +334,7 @@ export default function ShopPage() {
               options={[{ label: "All", value: "" }, ...marketList]}
               name="market_id"
               value={[{ label: "All", value: "" }, ...marketList]?.find(
-                (opt) => opt.value === market
+                (opt) => opt.value === market,
               )}
               onChange={(selectedOption) => {
                 if (selectedOption?.value == "") {
@@ -457,8 +457,7 @@ export default function ShopPage() {
               <div className="grid grid-cols-2 mt-10 mb-5 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {getProductData?.data?.map((product, index) => (
                   <Link
-                    to={`/shop-details`}
-                    state={{ info: product?.fabric?.id }}
+                    to={`/shop-details/${product?.fabric?.id}`}
                     key={product.id}
                   >
                     <motion.div

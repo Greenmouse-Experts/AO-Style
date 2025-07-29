@@ -757,7 +757,7 @@ export default function SignInAsCustomer() {
               }}
             >
               <iframe
-                src={`/Agreement between Carybin and Fabric Vendors.pdf#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
+                src={`/agreements/Agreement between Carybin and Fabric Vendors.pdf#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
                 className="w-full h-full border-0"
                 title="CARYBIN Fabric Vendor Agreement"
                 onLoad={handleIframeLoad}

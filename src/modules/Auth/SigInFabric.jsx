@@ -711,13 +711,13 @@ export default function SignInAsCustomer() {
                 )}
               </button>
 
-              <button
+              <butto
                 onClick={onClose}
                 className="p-2 hover:bg-red-100 rounded-lg transition-colors"
                 title="Close"
               >
                 <X size={18} className="text-red-600" />
-              </button>
+              </butto>
             </div>
           </div>
 
@@ -757,7 +757,7 @@ export default function SignInAsCustomer() {
               }}
             >
               <iframe
-                src={`/Agreement between Carybin and Fabric Vendors.pdf#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
+                src={`/agreements/Agreement between Carybin and Fabric Vendors.pdf#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
                 className="w-full h-full border-0"
                 title="CARYBIN Fabric Vendor Agreement"
                 onLoad={handleIframeLoad}

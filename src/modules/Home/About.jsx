@@ -15,7 +15,7 @@ const highlights = [
   {
     title: "Tailoring Reimagined",
     description:
-      "Gone are the days of market runs and long queues. OAStyles brings the market to your fingertips — with expert tailors just a click away.",
+      "Gone are the days of market runs and long queues. Carybin brings the market to your fingertips — with expert tailors just a click away.",
     icon: Scissors,
   },
   {
@@ -83,7 +83,7 @@ const timeline = [
   {
     year: "2022",
     event:
-      "OAStyles was born — built to solve fashion access and delivery challenges.",
+      "Carybin was born — built to solve fashion access and delivery challenges.",
   },
   {
     year: "2023",
@@ -128,8 +128,7 @@ const AboutUs = () => {
               Our business combines a user-friendly website{" "}
               <a href="#">www.carybin.com</a> with a strong supply chain to
               provide outstanding products and services. Any personal data
-              provided or collected by Oastyles is controlled by Carybin
-              Limited.
+              provided or collected by Carybin is controlled by Carybin Limited.
             </p>
           </div>
           <div className="md:w-1/2">
@@ -232,8 +231,8 @@ const AboutUs = () => {
         {/* Section 2 */}
         <div className="mt-16">
           <h2 className="text-2xl md:text-3xl font-medium text-center">
-            With OAStyles, you don’t just buy fabric; you create your own
-            fashion story.
+            With Carybin, you don’t just buy fabric; you create your own fashion
+            story.
           </h2>
           <p className="text-dark text-base leading-loose text-center mt-2 mb-10">
             We pride ourselves on our commitment to quality, customization, and
@@ -268,7 +267,7 @@ const AboutUs = () => {
               {/* Caleb E. Anwara */}
               <TeamCard
                 name="Caleb E. Anwara"
-                role="CHIEF EXECUTIVE OFFICER/CHIEF OPERATING OFFICER"
+                role="Chief Executive Officer/Chief Operating Officer"
                 image="https://res.cloudinary.com/dmlgns85e/image/upload/v1753464597/Untitled_m94bsn.jpg"
                 shortText="Tech-savvy professional with 16+ years in ICT, delivering scalable solutions and leading multiple IT projects to success."
                 fullText="I'm a tech-savvy professional with over 16 years of experience in the ICT sector, delivering scalable solutions across diverse industries. As a certified and seasoned project manager, I’ve successfully led multiple IT deployments—on time and within budget—while maintaining a sharp focus on results and customer value.
@@ -306,7 +305,7 @@ I believe in the power of collaboration—because with the right team, no soluti
                         </h2>
                         <p className="text-dark text-base leading-loose mt-3">
                             As a tailor/fashion designer, fabric vendor, or a logistic agent,
-                            OAStyles is a platform for you to make more money. Join the
+                            Carybin is a platform for you to make more money. Join the
                             community today and enjoy all the benefits.
                         </p>
                         <Link to='/sign-up'>

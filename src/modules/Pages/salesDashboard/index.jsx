@@ -18,7 +18,7 @@ export default function SalesDashboard() {
                     </button> */}
         </div>
         <p className="text-gray-500 mt-2 text-sm sm:text-base">
-          Another day to earn from registering users on OAStyles
+          Another day to earn from registering users on Carybin
         </p>
       </div>
 

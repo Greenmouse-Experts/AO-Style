@@ -204,6 +204,12 @@ export default function InboxPage() {
         transports: ["websocket", "polling"],
         timeout: 20000,
         forceNew: true,
+        autoConnect: true,
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+        upgrade: true,
+        rememberUpgrade: false,
       });
 
       socketInstance.on("connect", () => {
@@ -393,6 +399,102 @@ export default function InboxPage() {
 
       // Store the function for later use
       socketInstance.setupChatSpecificListener = setupChatSpecificListener;
+
+      // Listen for general messagesRetrieved events (without adminId)
+      socketInstance.on("messagesRetrieved", (data) => {
+        console.log("=== ADMIN GENERAL MESSAGES RETRIEVED ===");
+        console.log("Full response:", JSON.stringify(data, null, 2));
+        console.log("Status:", data?.status);
+        console.log("Messages array:", data?.data?.result);
+        console.log("Selected chat from ref:", selectedChatRef.current);
+        console.log("========================================");
+
+        if (data?.status === "success" && data?.data?.result) {
+          const currentSelectedChat = selectedChatRef.current;
+          console.log("Current selected chat:", currentSelectedChat);
+
+          const formattedMessages = data.data.result.map((msg) => ({
+            id: msg.id,
+            sender: msg.initiator?.name || "Unknown",
+            text: msg.message,
+            time: new Date(msg.created_at).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            }),
+            type:
+              msg.initiator_id === currentSelectedChat?.chat_buddy?.id
+                ? "received"
+                : "sent",
+            read: msg.read,
+          }));
+
+          console.log("Formatted messages with types:", formattedMessages);
+          setMessageList(formattedMessages);
+        }
+      });
+
+      // Listen for general recentChatRetrieved events (without adminId)
+      socketInstance.on("recentChatRetrieved", (data) => {
+        console.log("=== ADMIN GENERAL RECENT CHAT RETRIEVED ===");
+        console.log("Chat data:", JSON.stringify(data, null, 2));
+        console.log("==========================================");
+
+        if (data?.data) {
+          const currentSelectedChat = selectedChatRef.current;
+
+          setChats((prevChats) => {
+            const existingChatIndex = prevChats.findIndex(
+              (chat) => chat.id === data.data.id,
+            );
+
+            if (existingChatIndex >= 0) {
+              // Update existing chat
+              const updatedChats = [...prevChats];
+              updatedChats[existingChatIndex] = {
+                ...updatedChats[existingChatIndex],
+                last_message: data.data.last_message,
+                created_at: data.data.created_at,
+              };
+              return updatedChats;
+            } else {
+              // Check if this is a chat with the same chat_buddy to prevent duplicates
+              const duplicateChatIndex = prevChats.findIndex(
+                (chat) => chat.chat_buddy?.id === data.data.chat_buddy?.id,
+              );
+
+              if (duplicateChatIndex >= 0) {
+                // Update the existing chat with same buddy instead of creating new one
+                const updatedChats = [...prevChats];
+                updatedChats[duplicateChatIndex] = {
+                  ...updatedChats[duplicateChatIndex],
+                  last_message: data.data.last_message,
+                  created_at: data.data.created_at,
+                  id: data.data.id, // Update the ID to the latest one
+                };
+                return updatedChats;
+              } else {
+                // Add new chat only if no duplicate buddy exists
+                return [data.data, ...prevChats];
+              }
+            }
+          });
+
+          // Auto-refresh messages if this chat is currently selected AND it's the same chat buddy
+          if (
+            currentSelectedChat &&
+            currentSelectedChat.chat_buddy?.id === data.data.chat_buddy?.id
+          ) {
+            console.log(
+              "🔄 Auto-refreshing messages for currently selected admin chat (general event)",
+            );
+            socketInstance.emit("retrieveMessages", {
+              token: adminToken,
+              chatBuddy: currentSelectedChat.chat_buddy.id,
+            });
+          }
+        }
+      });
 
       setSocket(socketInstance);
 

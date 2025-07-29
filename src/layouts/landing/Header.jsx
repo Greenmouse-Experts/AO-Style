@@ -44,12 +44,12 @@ export default function Navbar() {
 
   const totalProductQuantity = items?.reduce(
     (total, item) => total + (item?.product?.quantity || 0),
-    0
+    0,
   );
 
   const totalStyleQuantity = items?.reduce(
     (total, item) => total + (item?.product?.style?.measurement?.length || 0),
-    0
+    0,
   );
 
   const totalQuantity = totalProductQuantity + totalStyleQuantity;
@@ -396,7 +396,7 @@ export default function Navbar() {
                     />
                     <div className="flex flex-col">
                       <span className="text-sm font-semibold text-purple-700">
-                        {carybinUser.name}
+                        {carybinUser?.name}
                       </span>
                       <span className="text-xs text-gray-500">
                         View profile

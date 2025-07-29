@@ -79,7 +79,7 @@ export default function InboxPage() {
     setUsersLoading(true);
     try {
       const res = await CaryBinApi.get(
-        `/auth/users/${roleMapping[role]}?pagination[page]=${page}`
+        `/auth/users/${roleMapping[role]}?pagination[page]=${page}`,
       );
       setUsers(res.data.data || []);
       setTotalUsers(res.data.count || 0);
@@ -262,7 +262,7 @@ export default function InboxPage() {
 
           setChats((prevChats) => {
             const existingChatIndex = prevChats.findIndex(
-              (chat) => chat.id === data.data.id
+              (chat) => chat.id === data.data.id,
             );
 
             if (existingChatIndex >= 0) {
@@ -277,7 +277,7 @@ export default function InboxPage() {
             } else {
               // Check if this is a chat with the same chat_buddy to prevent duplicates
               const duplicateChatIndex = prevChats.findIndex(
-                (chat) => chat.chat_buddy?.id === data.data.chat_buddy?.id
+                (chat) => chat.chat_buddy?.id === data.data.chat_buddy?.id,
               );
 
               if (duplicateChatIndex >= 0) {
@@ -303,7 +303,7 @@ export default function InboxPage() {
             currentSelectedChat.chat_buddy?.id === data.data.chat_buddy?.id
           ) {
             console.log(
-              "🔄 Auto-refreshing messages for currently selected admin chat"
+              "🔄 Auto-refreshing messages for currently selected admin chat",
             );
             socketInstance.emit("retrieveMessages", {
               token: adminToken,
@@ -355,14 +355,14 @@ export default function InboxPage() {
 
         socketInstance.on(eventName, (data) => {
           console.log(
-            `=== ADMIN CHAT-SPECIFIC MESSAGES RETRIEVED (${chatId}:${adminId}) ===`
+            `=== ADMIN CHAT-SPECIFIC MESSAGES RETRIEVED (${chatId}:${adminId}) ===`,
           );
           console.log("Full response:", JSON.stringify(data, null, 2));
           console.log("Status:", data?.status);
           console.log("Messages array:", data?.data?.result);
           console.log("Selected chat from ref:", selectedChatRef.current);
           console.log(
-            "=============================================================="
+            "==============================================================",
           );
 
           if (data?.status === "success" && data?.data?.result) {
@@ -537,7 +537,7 @@ export default function InboxPage() {
         setMessageList((prev) => [...prev, newMsg]);
       } else {
         console.log(
-          "Message is for different user, not adding to current chat"
+          "Message is for different user, not adding to current chat",
         );
       }
 
@@ -546,7 +546,7 @@ export default function InboxPage() {
       if (targetUser) {
         setChats((prevChats) => {
           const existingChatIndex = prevChats.findIndex(
-            (chat) => chat.chat_buddy?.id === selectedUser
+            (chat) => chat.chat_buddy?.id === selectedUser,
           );
 
           if (existingChatIndex >= 0) {

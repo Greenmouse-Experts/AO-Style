@@ -20,7 +20,7 @@ const TeamCard = ({ name, role, image, shortText, fullText }) => {
             {fullText}
             <br />
             <button
-              className="text-purple-600 underline mt-2 cursor-pointer"
+              className="text-purple-600 mt-2 cursor-pointer"
               onClick={() => setExpanded(false)}
             >
               Read less
@@ -33,7 +33,7 @@ const TeamCard = ({ name, role, image, shortText, fullText }) => {
               <>
                 <br />
                 <button
-                  className="text-purple-600 underline mt-2 cursor-pointer"
+                  className="text-purple-600 mt-2 cursor-pointer"
                   onClick={() => setExpanded(true)}
                 >
                   Read more

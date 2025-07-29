@@ -29,6 +29,8 @@ const initialValues = {
   business_type: "",
   location: "",
   phoneCode: "+234",
+  fabricVendorAgreement: false,
+  checked: false,
 };
 
 export default function SignInAsCustomer() {
@@ -38,6 +40,8 @@ export default function SignInAsCustomer() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [step, setStep] = useState(1);
   const [showAgreementModal, setShowAgreementModal] = useState(false);
+  const [fabricVendorAgreement, setFabricVendorAgreement] = useState(false);
+  const [termsAgreement, setTermsAgreement] = useState(false);
 
   const options = countryCodes.map((code) => ({
     label: code,
@@ -89,6 +93,29 @@ export default function SignInAsCustomer() {
   });
 
   const { isPending, registerMutate } = useRegister(values.email);
+
+  // Validation for Step 1
+  const isStep1Valid = () => {
+    return (
+      values.name.trim() !== "" &&
+      values.email.trim() !== "" &&
+      values.phone.trim() !== "" &&
+      values.password.trim() !== "" &&
+      values.password_confirmation.trim() !== "" &&
+      values.referral_source.trim() !== "" &&
+      fabricVendorAgreement &&
+      termsAgreement
+    );
+  };
+
+  // Validation for Step 2
+  const isStep2Valid = () => {
+    return (
+      values.business_name.trim() !== "" &&
+      values.business_type.trim() !== "" &&
+      values.location.trim() !== ""
+    );
+  };
 
   const personalImage =
     "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741615921/AoStyle/image_1_m2zq1t.png";
@@ -400,10 +427,8 @@ export default function SignInAsCustomer() {
                     name="fabricVendorAgreement"
                     required
                     className="mr-2"
-                    checked={values.fabricVendorAgreement || false}
-                    onChange={(e) =>
-                      setFieldValue("fabricVendorAgreement", e.target.checked)
-                    }
+                    checked={fabricVendorAgreement}
+                    onChange={(e) => setFabricVendorAgreement(e.target.checked)}
                   />
                   <label
                     htmlFor="fabricVendorAgreement"
@@ -420,6 +445,38 @@ export default function SignInAsCustomer() {
                     </button>
                   </label>
                 </div>
+                {/* Terms and Policies Agreement */}
+                <div className="flex items-center mt-5 mb-2">
+                  <input
+                    type="checkbox"
+                    id="agree"
+                    required
+                    className="mr-2"
+                    checked={termsAgreement}
+                    onChange={(e) => setTermsAgreement(e.target.checked)}
+                  />
+                  <label htmlFor="agree" className="text-sm text-gray-700">
+                    I agree to the{" "}
+                    <a
+                      href="https://beta.carybin.com/terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gradient underline"
+                    >
+                      Terms
+                    </a>{" "}
+                    and{" "}
+                    <a
+                      href="https://beta.carybin.com/privacy-policy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gradient underline"
+                    >
+                      Policies
+                    </a>{" "}
+                    from Carybin
+                  </label>
+                </div>
                 {/* MODAL */}
                 {typeof window !== "undefined" && (
                   <AgreementModal
@@ -429,7 +486,12 @@ export default function SignInAsCustomer() {
                 )}
                 <button
                   type="submit"
-                  className="w-full bg-gradient text-white py-4 rounded-lg font-medium cursor-pointer md:mt-8"
+                  disabled={!isStep1Valid()}
+                  className={`w-full py-4 rounded-lg font-medium md:mt-8 transition-all duration-200 ${
+                    isStep1Valid()
+                      ? "bg-gradient text-white cursor-pointer hover:opacity-90"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  }`}
                 >
                   Proceed to Business Details
                 </button>
@@ -494,38 +556,6 @@ export default function SignInAsCustomer() {
                   placeholder="Enter your business registration number"
                   className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
                 />
-                {/* Terms and Policies Agreement */}
-                <div className="flex items-center mt-2 mb-2">
-                  <input
-                    value={values.checked}
-                    onChange={handleChange}
-                    type="checkbox"
-                    id="agree"
-                    required
-                    className="mr-2"
-                  />
-                  <label htmlFor="agree" className="text-sm text-gray-700">
-                    I agree to the{" "}
-                    <a
-                      href="https://carybin.netlify.app/terms"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gradient underline"
-                    >
-                      Terms
-                    </a>{" "}
-                    and{" "}
-                    <a
-                      href="https://carybin.netlify.app/privacy-policy"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gradient underline"
-                    >
-                      Policies
-                    </a>{" "}
-                    from Carybin
-                  </label>
-                </div>
 
                 <button
                   type="button"
@@ -536,13 +566,17 @@ export default function SignInAsCustomer() {
                 </button>
 
                 <button
-                  disabled={isPending}
+                  disabled={isPending || !isStep2Valid()}
                   type="submit"
-                  className="w-full bg-gradient text-white py-4 rounded-lg font-medium cursor-pointer"
+                  className={`w-full py-4 rounded-lg font-medium transition-all duration-200 ${
+                    !isPending && isStep2Valid()
+                      ? "bg-gradient text-white cursor-pointer hover:opacity-90"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  }`}
                 >
                   {isPending
                     ? "Please wait..."
-                    : "Sign Up As A Material Vendor"}
+                    : "Sign Up As A Fashion Designer"}
                 </button>
               </>
             )}
@@ -757,7 +791,7 @@ export default function SignInAsCustomer() {
               }}
             >
               <iframe
-                src={`/agreements/Agreement between Carybin and Fabric Vendors.pdf#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
+                src={`https://gold-jobina-88.tiiny.site/Agreement-between-Carybin-and-Tailor.pdf#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
                 className="w-full h-full border-0"
                 title="CARYBIN Fabric Vendor Agreement"
                 onLoad={handleIframeLoad}

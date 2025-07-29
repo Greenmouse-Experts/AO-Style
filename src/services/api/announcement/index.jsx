@@ -45,7 +45,7 @@ const getAnnouncementsWithTimestamp = (role, createdAt) => {
 
   // Add created_at as query parameter if provided
   const queryParam = createdAt
-    ? `?created_at=${encodeURIComponent(createdAt)}`
+    ? `?startDate=${encodeURIComponent(createdAt)}`
     : "";
   const fullEndpoint = `${endpoint}${queryParam}`;
 

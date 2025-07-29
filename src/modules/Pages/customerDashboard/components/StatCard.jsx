@@ -23,7 +23,7 @@ export default function StatsCard() {
       {
         image:
           "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741980408/AoStyle/Group_386385_avoje8.png",
-        value: `${formatNumberWithCommas(data?.data?.totalSpent)}`,
+        value: `${formatNumberWithCommas(data?.data?.totalSpent ?? 0)}`,
         label: "Total Spent",
       },
     ],

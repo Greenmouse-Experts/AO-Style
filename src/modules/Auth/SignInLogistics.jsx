@@ -83,7 +83,7 @@ export default function SignUpAsLogisticsAgent() {
                 business_registration_number: val.business_registration_number,
                 location: val.location,
               },
-            }
+            },
       );
     },
   });
@@ -105,7 +105,7 @@ export default function SignUpAsLogisticsAgent() {
             Today!
           </h2>
           <p className="text-sm mt-2">
-            Welcome to OAStyles, a platform that simplifies tailoring <br />{" "}
+            Welcome to Carybin, a platform that simplifies tailoring <br />{" "}
             processes; from buying materials to finding a tailor for you
           </p>
         </div>

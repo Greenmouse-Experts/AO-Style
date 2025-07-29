@@ -141,7 +141,7 @@ export default function SignInAsCustomer() {
               Thousands of Customers!
             </h2>
             <p className="text-sm mt-2">
-              Welcome to OAStyles, a platform that simplifies tailoring
+              Welcome to Carybin, a platform that simplifies tailoring
               processes; <br />
               from buying materials to finding a tailor for you.
             </p>
@@ -793,7 +793,7 @@ export default function SignInAsCustomer() {
               }}
             >
               <iframe
-                src={`https://gold-jobina-88.tiiny.site/Agreement-between-Carybin-and-Fabric-Vendors.pdf#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
+                src={`https://gray-daphene-38.tiiny.site/Agreement-between-Carybin-and-Fabric-Vendors.pdf#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
                 className="w-full h-full border-0"
                 title="CARYBIN Fabric Vendor Agreement"
                 onLoad={handleIframeLoad}

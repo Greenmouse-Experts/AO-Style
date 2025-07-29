@@ -8,30 +8,63 @@ import {
   FaTruck,
 } from "react-icons/fa";
 import dayjs from "dayjs";
-import useGetAnnouncements from "../../../hooks/announcement/useGetAnnouncements";
+import useGetAnnouncementsWithProfile from "../../../hooks/announcement/useGetAnnouncementsWithProfile";
 import useToast from "../../../hooks/useToast";
 
 const LogisticsAnnouncementsPage = () => {
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const { toastError } = useToast();
 
-  // Fetch announcements for logistics role
+  // Fetch announcements for logistics role with user profile integration
   const {
     data: announcementsData,
     isLoading,
     error,
-    refetch,
-  } = useGetAnnouncements("user");
+    refetch: refetchAll,
+    profileData,
+    isProfileLoading,
+    isAnnouncementsLoading,
+  } = useGetAnnouncementsWithProfile("logistics-agent");
 
   // Console log the full response to understand the structure
   console.log("Logistics Announcements - Full Response:", announcementsData);
+  console.log("Logistics Announcements - Is Loading:", isLoading);
+  console.log("Logistics Announcements - Error:", error);
+  console.log("Logistics Announcements - Profile Data:", profileData);
+  console.log(
+    "Logistics Announcements - Profile Created At:",
+    profileData?.created_at,
+  );
   console.log("Logistics Announcements - Data:", announcementsData?.data);
   console.log(
     "Logistics Announcements - Nested Data:",
-    announcementsData?.data?.data
+    announcementsData?.data?.data,
   );
 
-  const announcements = announcementsData?.data?.data || [];
+  // Try different possible data structures
+  let announcements = [];
+  if (announcementsData) {
+    if (Array.isArray(announcementsData)) {
+      announcements = announcementsData;
+      console.log("Using direct array:", announcementsData);
+    } else if (
+      announcementsData.data &&
+      Array.isArray(announcementsData.data)
+    ) {
+      announcements = announcementsData.data;
+      console.log("Using data array:", announcementsData.data);
+    } else if (
+      announcementsData.data?.data &&
+      Array.isArray(announcementsData.data.data)
+    ) {
+      announcements = announcementsData.data.data;
+      console.log("Using nested data array:", announcementsData.data.data);
+    } else {
+      console.log("No valid array found in response");
+    }
+  }
+
+  console.log("Final announcements array:", announcements);
 
   const handleAnnouncementClick = (announcement) => {
     setSelectedAnnouncement(announcement);
@@ -61,9 +94,9 @@ const LogisticsAnnouncementsPage = () => {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-xl shadow-sm border border-purple-200 p-8 text-center">
-            <div className="w-16 h-16 bg-purple-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-              <FaBullhorn className="h-8 w-8 text-purple-600" />
+          <div className="bg-white rounded-xl shadow-sm border border-red-200 p-8 text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+              <FaBullhorn className="h-8 w-8 text-red-600" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               Failed to Load Announcements
@@ -73,7 +106,7 @@ const LogisticsAnnouncementsPage = () => {
                 "There was an error loading announcements."}
             </p>
             <button
-              onClick={() => refetch()}
+              onClick={() => refetchAll()}
               className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors"
             >
               Try Again
@@ -149,18 +182,39 @@ const LogisticsAnnouncementsPage = () => {
             <div className="p-2 bg-purple-100 rounded-lg">
               <FaBullhorn className="h-6 w-6 text-purple-600" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Logistics Announcements
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900">Announcements</h1>
           </div>
           <p className="text-gray-600">
-            Important updates and information for logistics users.
+            Stay updated with the latest news and important information for
+            logistics operations.
           </p>
         </div>
 
-        {/* Loading State */}
+        {/* Enhanced Loading State */}
         {isLoading && (
           <div className="space-y-4">
+            {/* Loading Status Indicator */}
+            <div className="bg-white rounded-xl border border-purple-200 p-4">
+              <div className="flex items-center space-x-3">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
+                <div className="text-sm text-gray-600">
+                  {isProfileLoading && !isAnnouncementsLoading && (
+                    <span>Loading your profile information...</span>
+                  )}
+                  {!isProfileLoading && isAnnouncementsLoading && (
+                    <span>Fetching personalized announcements...</span>
+                  )}
+                  {isProfileLoading && isAnnouncementsLoading && (
+                    <span>Preparing your announcements...</span>
+                  )}
+                  {!isProfileLoading && !isAnnouncementsLoading && (
+                    <span>Loading announcements...</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Skeleton Loading Cards */}
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
@@ -185,15 +239,15 @@ const LogisticsAnnouncementsPage = () => {
         {/* Empty State */}
         {!isLoading && announcements.length === 0 && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-            <div className="w-16 h-16 bg-purple-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-              <FaTruck className="h-8 w-8 text-purple-400" />
+            <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+              <FaTruck className="h-8 w-8 text-gray-400" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               No Announcements Yet
             </h3>
             <p className="text-gray-600">
-              You're all caught up! New logistics announcements will appear here
-              when available.
+              You're all caught up! New announcements will appear here when
+              available.
             </p>
           </div>
         )}
@@ -210,7 +264,7 @@ const LogisticsAnnouncementsPage = () => {
                 <div className="flex items-start space-x-4">
                   {/* Icon */}
                   <div className="flex-shrink-0">
-                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-400 rounded-lg flex items-center justify-center">
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
                       <FaTruck className="h-6 w-6 text-white" />
                     </div>
                   </div>

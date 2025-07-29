@@ -17,6 +17,7 @@ import PhoneInput from "react-phone-input-2";
 import useCreateBilling from "../../hooks/billing/useCreateBilling";
 import useAddMultipleCart from "../../hooks/cart/useAddMultipleCart";
 import useApplyCoupon from "../../hooks/coupon/useApplyCoupon";
+import useGetDeliveryFee from "../../hooks/delivery/useGetDeleiveryFee";
 import {
   X,
   Download,
@@ -51,12 +52,12 @@ const CartPage = () => {
 
   const totalProductQuantity = items?.reduce(
     (total, item) => total + (item?.product?.quantity || 0),
-    0,
+    0
   );
 
   const totalStyleQuantity = items?.reduce(
     (total, item) => total + (item?.product?.style?.measurement?.length || 0),
-    0,
+    0
   );
 
   const totalQuantity = totalProductQuantity + totalStyleQuantity;
@@ -75,6 +76,10 @@ const CartPage = () => {
     }, 0) ?? 0;
 
   const [discountedPrice, setDiscountedPrice] = useState("");
+
+  const { data } = useGetDeliveryFee();
+
+  console.log(data);
 
   const updatedAmount = totalAmount + totalStyleAmount - discountedPrice;
 
@@ -139,7 +144,7 @@ const CartPage = () => {
               setVerifyPayment("");
               navigate(`/${currentUrl}/orders`);
             },
-          },
+          }
         );
         // 🔁 You can call your backend here to verify & process the payment
       },
@@ -237,7 +242,7 @@ const CartPage = () => {
                   payment_id: data?.data?.data?.payment_id,
                 });
               },
-            },
+            }
           );
         },
       });
@@ -404,7 +409,7 @@ const CartPage = () => {
                             ₦
                             {Math.max(
                               item?.product?.price_at_time || 0,
-                              item?.product?.style?.price_at_time || 0,
+                              item?.product?.style?.price_at_time || 0
                             ).toLocaleString()}
                           </p>
                         </div>
@@ -507,7 +512,7 @@ const CartPage = () => {
                           ₦
                           {Math.max(
                             item?.product?.price_at_time || 0,
-                            item?.product?.style?.price_at_time || 0,
+                            item?.product?.style?.price_at_time || 0
                           ).toLocaleString()}
                         </div>
                         <div className="text-xs text-gray-500">per unit</div>
@@ -555,14 +560,14 @@ const CartPage = () => {
                         onClick={() => {
                           if (!token || !carybinUser) {
                             toastSuccess(
-                              "You need to have a Customer Account to apply coupon",
+                              "You need to have a Customer Account to apply coupon"
                             );
                             const currentPath =
                               location.pathname + location.search;
                             navigate(
                               `/login?redirect=${encodeURIComponent(
-                                currentPath,
-                              )}`,
+                                currentPath
+                              )}`
                             );
                           } else {
                             applyCouponMutate(
@@ -576,7 +581,7 @@ const CartPage = () => {
                               {
                                 onSuccess: (data) => {
                                   setDiscountedPrice(
-                                    data?.data?.data?.discount,
+                                    data?.data?.data?.discount
                                   );
                                 },
                                 onError: () => {
@@ -667,11 +672,11 @@ const CartPage = () => {
                     onClick={() => {
                       if (!token || !carybinUser) {
                         toastSuccess(
-                          "You need to have a Customer Account to make an order",
+                          "You need to have a Customer Account to make an order"
                         );
                         const currentPath = location.pathname + location.search;
                         navigate(
-                          `/login?redirect=${encodeURIComponent(currentPath)}`,
+                          `/login?redirect=${encodeURIComponent(currentPath)}`
                         );
                       } else if (carybinUser?.role?.role_id !== "user") {
                         toastSuccess(
@@ -702,7 +707,7 @@ const CartPage = () => {
                             onSuccess: () => {
                               setShowCheckoutModal(true);
                             },
-                          },
+                          }
                         );
                       }
                     }}
@@ -712,7 +717,7 @@ const CartPage = () => {
                     {addCartPending
                       ? "Processing..."
                       : `Proceed to Checkout • ₦${Math.round(
-                          updatedAmount,
+                          updatedAmount
                         ).toLocaleString()}`}
                   </button>
 
@@ -845,7 +850,7 @@ const CartPage = () => {
                         options={[{ value: "NG", label: "Nigeria" }]}
                         name="country"
                         value={[{ value: "NG", label: "Nigeria" }]?.find(
-                          (opt) => opt.value === values.country,
+                          (opt) => opt.value === values.country
                         )}
                         onChange={(selectedOption) =>
                           setFieldValue("country", selectedOption.value)
@@ -882,7 +887,7 @@ const CartPage = () => {
                           options={nigeriaStates}
                           name="state"
                           value={nigeriaStates?.find(
-                            (opt) => opt.value === values.state,
+                            (opt) => opt.value === values.state
                           )}
                           onChange={(selectedOption) =>
                             setFieldValue("state", selectedOption.value)

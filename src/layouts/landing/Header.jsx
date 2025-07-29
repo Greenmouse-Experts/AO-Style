@@ -360,9 +360,9 @@ export default function Navbar() {
                   <MagnifyingGlassIcon className="h-5 w-5 text-[#545252] cursor-pointer md:hidden hidden" />
                   <Link to={`/view-cart`} className="transition relative">
                     <ShoppingCartIcon className="h-5 w-5 text-[#545252] cursor-pointer" />
-                    {totalQuantity > 0 ? (
+                    {items?.length > 0 ? (
                       <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                        {totalQuantity}
+                        {items?.length}
                       </span>
                     ) : (
                       <></>

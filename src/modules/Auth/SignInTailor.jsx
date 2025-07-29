@@ -576,7 +576,7 @@ export default function SignInAsCustomer() {
                 >
                   {isPending
                     ? "Please wait..."
-                    : "Sign Up As A Fashion Designer"}
+                    : "Sign Up As A Tailor/Fashion Designer"}
                 </button>
               </>
             )}

@@ -117,7 +117,7 @@ export default function MarketplaceSection() {
   // Filter by search term, category, and price range
   const filteredProducts = products.filter((product) => {
     const productPrice = parseInt(
-      product.price.replace("₦", "").replace(",", "")
+      product.price.replace("₦", "").replace(",", ""),
     );
     return (
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
@@ -170,7 +170,7 @@ export default function MarketplaceSection() {
         q: debounceSearch,
         status: "PUBLISHED",
       },
-      "STYLE"
+      "STYLE",
     );
 
   const styleData = getStyleProductGeneralData?.data;
@@ -180,9 +180,9 @@ export default function MarketplaceSection() {
   return (
     <>
       <Breadcrumb
-        title="OAStyles"
+        title="Carybin"
         subtitle="Products"
-        just="> OAStyles"
+        just="> Carybin"
         backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1743712882/AoStyle/image_lslmok.png"
       />
       <section className="Resizer section px-4">

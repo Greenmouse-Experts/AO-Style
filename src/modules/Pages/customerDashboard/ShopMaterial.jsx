@@ -175,7 +175,7 @@ export default function ShopMaterials() {
 
   const maxIndex = useMemo(
     () => marketPlacePublic?.length - itemsPerPage,
-    [marketPlacePublic]
+    [marketPlacePublic],
   );
 
   console.log(marketPlacePublic);
@@ -199,14 +199,14 @@ export default function ShopMaterials() {
   // Ensure nextSlide stops at last full slide
   const nextSlide = () => {
     setIndex((prevIndex) =>
-      prevIndex + itemsPerPage > maxIndex ? maxIndex : prevIndex + itemsPerPage
+      prevIndex + itemsPerPage > maxIndex ? maxIndex : prevIndex + itemsPerPage,
     );
   };
 
   // Ensure prevSlide stops at the start
   const prevSlide = () => {
     setIndex((prevIndex) =>
-      prevIndex - itemsPerPage < 0 ? 0 : prevIndex - itemsPerPage
+      prevIndex - itemsPerPage < 0 ? 0 : prevIndex - itemsPerPage,
     );
   };
 
@@ -214,7 +214,7 @@ export default function ShopMaterials() {
   useEffect(() => {
     const interval = setInterval(() => {
       setIndex((prevIndex) =>
-        prevIndex + itemsPerPage > maxIndex ? 0 : prevIndex + itemsPerPage
+        prevIndex + itemsPerPage > maxIndex ? 0 : prevIndex + itemsPerPage,
       );
     }, 3000);
 
@@ -286,11 +286,11 @@ export default function ShopMaterials() {
         min_price: debounceMin,
         max_price: debounceMax,
       },
-      "FABRIC"
+      "FABRIC",
     );
 
   const totalPages = Math.ceil(
-    getProductData?.count / (queryParams["pagination[limit]"] ?? 10)
+    getProductData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
   console.log(getProductData?.data?.length);
@@ -430,8 +430,7 @@ export default function ShopMaterials() {
             <div className="grid grid-cols-2 mt-20 mb-5 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {getProductData?.data?.map((product, index) => (
                 <Link
-                  to={`/shop-details`}
-                  state={{ info: product?.fabric?.id }}
+                  to={`/shop-details/${product?.fabric?.id}`}
                   key={product.id}
                 >
                   <motion.div

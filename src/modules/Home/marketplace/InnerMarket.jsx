@@ -146,11 +146,7 @@ export default function MarketplacePage() {
           ) : getMarketPlaceFabricData?.data?.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
               {getMarketPlaceFabricData?.data?.map((product, index) => (
-                <Link
-                  to={`/shop-details`}
-                  state={{ info: product?.id }}
-                  key={product.id}
-                >
+                <Link to={`/shop-details/${product?.id}`} key={product.id}>
                   <motion.div
                     className="text-center"
                     initial={{ opacity: 0, y: 50 }}

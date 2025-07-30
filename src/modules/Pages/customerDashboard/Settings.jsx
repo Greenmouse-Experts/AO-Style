@@ -178,7 +178,7 @@ const Settings = () => {
           onSuccess: () => {
             resetForm();
           },
-        }
+        },
       );
     },
   });
@@ -205,7 +205,7 @@ const Settings = () => {
               onSuccess: () => {
                 setProfileIsLoading(false);
               },
-            }
+            },
           );
         },
       });
@@ -444,7 +444,7 @@ const Settings = () => {
                           options={countriesOptions}
                           name="country"
                           value={countriesOptions?.find(
-                            (opt) => opt.value === values.country
+                            (opt) => opt.value === values.country,
                           )}
                           onChange={(selectedOption) => {
                             setFieldValue("country", selectedOption.value);
@@ -481,7 +481,7 @@ const Settings = () => {
                           options={statesOptions}
                           name="state"
                           value={statesOptions?.find(
-                            (opt) => opt.value === values.state
+                            (opt) => opt.value === values.state,
                           )}
                           onChange={(selectedOption) => {
                             setFieldValue("state", selectedOption.value);
@@ -1034,7 +1034,7 @@ const Settings = () => {
                           >
                             {updateIsPending
                               ? "Please wait..."
-                              : "  Update Lower Body"}
+                              : "  Update Full Body"}
                           </button>
                         </div>
                       </form>

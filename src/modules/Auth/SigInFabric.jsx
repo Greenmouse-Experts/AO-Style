@@ -50,6 +50,24 @@ export default function SignInAsCustomer() {
   const [fabricVendorAgreement, setFabricVendorAgreement] = useState(false);
   const [termsAgreement, setTermsAgreement] = useState(false);
 
+  const handleAgreementClick = (e) => {
+    e.preventDefault();
+
+    // Check if it's a mobile device (screen width less than 768px)
+    const isMobile = window.innerWidth < 768;
+
+    if (isMobile) {
+      // On mobile, open PDF directly in new tab
+      window.open(
+        "https://gray-daphene-38.tiiny.site/Agreement-between-Carybin-and-Fabric-Vendors.pdf",
+        "_blank",
+      );
+    } else {
+      // On desktop, show modal
+      setShowAgreementModal(true);
+    }
+  };
+
   const {
     handleSubmit,
     touched,
@@ -439,7 +457,7 @@ export default function SignInAsCustomer() {
                       <button
                         type="button"
                         className="text-gradient underline cursor-pointer hover:text-purple-500 transition duration-200 ease-in-out"
-                        onClick={() => setShowAgreementModal(true)}
+                        onClick={handleAgreementClick}
                         tabIndex={0}
                       >
                         CARYBIN and Fabric Vendor Agreement

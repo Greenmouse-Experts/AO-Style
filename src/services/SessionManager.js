@@ -58,6 +58,7 @@ class SessionManager {
         refreshTokenExpiry,
         tokenExpiry: this.decodeTokenExpiry(accessToken),
       };
+      console.log(this.authData);
       return this.authData;
     }
 
@@ -166,12 +167,15 @@ class SessionManager {
         refresh_token: authData.refreshToken,
       });
 
-      if (response.data && response.data.accessToken) {
-        console.log("✅ SessionManager: Token refresh successful");
+      if (response.data) {
+        console.log(
+          "✅ SessionManager: Token refresh successful",
+          response.data,
+        );
 
         // Update stored auth data with new tokens
         this.setAuthData({
-          accessToken: response.data.accessToken,
+          accessToken: response.data.data.accessToken,
           refreshToken: response.data.refreshToken || authData.refreshToken,
           refreshTokenExpiry:
             response.data.refreshTokenExpiry || authData.refreshTokenExpiry,

@@ -28,6 +28,8 @@ const ViewMarketDetails = () => {
 
   const tailorInfo = location?.state?.info;
 
+  console.log(tailorInfo);
+
   const queryParams = new URLSearchParams(location.search);
   const initialTab = queryParams.get("tab") || "personal";
 
@@ -170,37 +172,77 @@ const ViewMarketDetails = () => {
                     className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                   />
                 </div>
+              </div>
 
-                {/* <div className="relative">
-                  <label className="block text-gray-700 mb-4">Password</label>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter the vendor password"
-                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                  />
-                  <span
-                    className="absolute right-3 top-14 text-gray-400 cursor-pointer"
-                    onClick={togglePassword}
-                  >
-                    {showPassword ? "🙈" : "👁️"}
-                  </span>
-                </div>
-                <div className="relative">
+              <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
                   <label className="block text-gray-700 mb-4">
-                    Confirm Password
+                    Phone Number
                   </label>
                   <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Re-enter the vendor password"
+                    value={tailorInfo?.phone}
+                    type="text"
+                    placeholder="Enter your phone number"
                     className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                   />
-                  <span
-                    className="absolute right-3 top-14 text-gray-400 cursor-pointer"
-                    onClick={toggleConfirmPassword}
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-4">
+                    Alternate Phone Number
+                  </label>
+                  <input
+                    value={tailorInfo?.alternative_phone}
+                    type="text"
+                    placeholder="Alternate phone number"
+                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                  />
+                </div>
+              </div>
+
+              <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-gray-700 mb-4">
+                    Years of Experience in Sales{" "}
+                  </label>
+                  <input
+                    value={tailorInfo?.profile?.years_of_experience}
+                    type="text"
+                    placeholder="Years of experience"
+                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-4">Address</label>
+                  <input
+                    value={tailorInfo?.profile?.address}
+                    type="text"
+                    placeholder="Alternate phone number"
+                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                  />
+                </div>
+              </div>
+
+              <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-gray-700 mb-4">
+                    How did you hear about us?
+                  </label>
+                  <select
+                    name={"referral_source"}
+                    value={tailorInfo.referral_source}
+                    className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg text-gray-500"
                   >
-                    {showConfirmPassword ? "🙈" : "👁️"}
-                  </span>
-                </div> */}
+                    <option value="" disabled selected>
+                      Select option
+                    </option>
+                    <option value="Social Media">Social Media</option>
+                    <option value="Radio/TV Ads">Radio / TV Ads</option>
+                    <option value="Blogs/Articles">Blogs/Articles</option>
+                    <option value="Personal Referral">Personal Referral</option>
+                    <option value="Just got here">Just got here</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
               </div>
             </div>
 

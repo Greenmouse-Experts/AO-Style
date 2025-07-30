@@ -18,6 +18,13 @@ import { useState } from "react";
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
+  const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+    return null;
+  };
+
   const handleClick = () => {
     window.scrollTo(0, 0);
     if (window.innerWidth < 768) {
@@ -30,6 +37,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { toastSuccess } = useToast();
 
   const { carybinUser, logOut } = useCarybinUserStore();
+  const approvedByAdmin = getCookie("approvedByAdmin");
 
   const handleSignOut = () => {
     toastSuccess("Logout Successfully");
@@ -39,7 +47,14 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   };
 
   return (
-    <div className="relative">
+    <div
+      className="relative"
+      style={
+        approvedByAdmin === "false"
+          ? { pointerEvents: "none", opacity: 0.6 }
+          : {}
+      }
+    >
       {/* Sidebar */}
       <div
         className={`fixed lg:relative top-0 left-0 h-screen bg-gradient p-5 flex flex-col transition-transform duration-300 z-40 ${

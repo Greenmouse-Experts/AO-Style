@@ -23,15 +23,29 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const navigate = useNavigate();
   const { toastSuccess } = useToast();
 
+  const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+    return null;
+  };
+
   const handleSignOut = () => {
     toastSuccess("Logout Successfully");
     logOut();
     Cookies.remove("token");
     window.location.replace("/login");
   };
-
+  const approvedByAdmin = getCookie("approvedByAdmin");
   return (
-    <div className="relative">
+    <div
+      className="relative"
+      style={
+        approvedByAdmin === "false"
+          ? { pointerEvents: "none", opacity: 0.6 }
+          : {}
+      }
+    >
       {/* Sidebar */}
       <div
         className={`fixed lg:relative top-0 left-0 h-screen bg-gradient p-5 flex flex-col transition-transform duration-300 z-40 ${

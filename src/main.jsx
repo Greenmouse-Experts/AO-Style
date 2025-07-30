@@ -8,11 +8,8 @@ import "react-toastify/dist/ReactToastify.css";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-
 import { ToastContainer } from "react-toastify";
 import AppWrapper from "./AppWrapper.jsx";
-
-const router = createBrowserRouter(routes);
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker
@@ -21,11 +18,15 @@ if ("serviceWorker" in navigator) {
     .catch(() => {});
 }
 
+// Create the router with your existing routes
+const router = createBrowserRouter(routes);
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_LOGIN}>
       <QueryProvider>
         <RouterProvider router={router} />
+        <AppWrapper />
         <ToastContainer
           position="top-right"
           autoClose={5000}
@@ -38,7 +39,6 @@ createRoot(document.getElementById("root")).render(
           pauseOnHover={false}
           theme="colored"
         />
-        <AppWrapper />
       </QueryProvider>
     </GoogleOAuthProvider>
   </StrictMode>,

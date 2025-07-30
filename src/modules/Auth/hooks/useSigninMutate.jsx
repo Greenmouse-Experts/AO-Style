@@ -30,12 +30,18 @@ const useSignIn = (email, resendCodeMutate) => {
         toastSuccess(data?.data?.message);
         // Cookies.set("token", data?.data?.accessToken);
         Cookies.set("adminToken", data?.data?.accessToken);
+        Cookies.set(
+          "approvedByAdmin",
+          data?.data?.data?.profile.approved_by_admin,
+        );
 
         // Store auth data in session manager
         setAuthData({
           accessToken: data?.data?.accessToken,
           refreshToken: data?.data?.refreshToken,
           refreshTokenExpiry: data?.data?.refreshTokenExpiry,
+          user: data?.data?.data, // Include user data
+          userType: data?.data?.data?.role, // Include role
         });
 
         navigate("/admin", { replace: true });
@@ -51,11 +57,20 @@ const useSignIn = (email, resendCodeMutate) => {
         toastSuccess(data?.data?.message);
         Cookies.set("token", data?.data?.accessToken);
 
+        // Set approvedByAdmin cookie for all regular users
+        Cookies.set(
+          "approvedByAdmin",
+          data?.data?.data?.profile?.approved_by_admin,
+        );
+        console.log(data.data.approved_by_admin);
+
         // Store auth data in session manager
         setAuthData({
           accessToken: data?.data?.accessToken,
           refreshToken: data?.data?.refreshToken,
           refreshTokenExpiry: data?.data?.refreshTokenExpiry,
+          user: data?.data?.data, // Include user data
+          userType: data?.data?.data?.role, // Include role
         });
 
         if (data?.data?.data?.role === "fabric-vendor") {

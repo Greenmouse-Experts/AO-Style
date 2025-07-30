@@ -248,19 +248,21 @@ const Settings = () => {
         {/* Sidebar */}
         <div className="w-full md:w-1/5 bg-white md:mb-0 mb-6 h-fit p-4 rounded-lg">
           <ul className="space-y-2 text-gray-600">
-            {["Profile", "Security"].map((item) => (
-              <li
-                key={item}
-                className={`cursor-pointer px-4 py-3 rounded-lg transition-colors duration-300 ${
-                  activeSection === item
-                    ? "font-medium text-purple-600 bg-purple-100"
-                    : "hover:text-purple-600"
-                }`}
-                onClick={() => setActiveSection(item)}
-              >
-                {item}
-              </li>
-            ))}
+            {["Profile", "KYC Verification", "Bank Details", "Security"].map(
+              (item) => (
+                <li
+                  key={item}
+                  className={`cursor-pointer px-4 py-3 rounded-lg transition-colors duration-300 ${
+                    activeSection === item
+                      ? "font-medium text-purple-600 bg-purple-100"
+                      : "hover:text-purple-600"
+                  }`}
+                  onClick={() => setActiveSection(item)}
+                >
+                  {item}
+                </li>
+              ),
+            )}
           </ul>
         </div>
 
@@ -348,15 +350,6 @@ const Settings = () => {
                         <label className="block text-gray-700 mb-4">
                           Phone Number
                         </label>
-                        {/* <input
-                          type="tel"
-                          className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                          placeholder="0700 000 0000"
-                          required
-                          name={"phone"}
-                          value={values.phone}
-                          onChange={handleChange}
-                        /> */}
                         <PhoneInput
                           country={"ng"}
                           value={values.phone}
@@ -769,7 +762,6 @@ const Settings = () => {
                             type="submit"
                             className="w-full sm:w-auto mt-4 bg-gradient text-white px-6 py-2"
                           >
-                            {" "}
                             {updateIsPending
                               ? "Please wait..."
                               : "Update Upper Body"}
@@ -943,9 +935,6 @@ const Settings = () => {
                         </div>
 
                         <div className="sm:col-span-2 flex flex-col sm:flex-row justify-between gap-4 mt-2">
-                          {/* <button className="w-full sm:w-auto bg-gray-400 text-white px-6 py-2">
-                            Back
-                          </button> */}
                           <button
                             disabled={updateIsPending}
                             type="submit"
@@ -1027,9 +1016,6 @@ const Settings = () => {
                           </div>
                         </div>
                         <div className="sm:col-span-2 flex flex-col sm:flex-row justify-between gap-4 mt-2">
-                          {/* <button className="w-full sm:w-auto bg-gray-400 text-white px-6 py-2">
-                            Back
-                          </button> */}
                           <button
                             disabled={updateIsPending}
                             type="submit"
@@ -1048,32 +1034,30 @@ const Settings = () => {
             </div>
           )}
 
-          {activeSection === "KYC" && (
-            <div className="">
-              <KYCVerificationUpdate />
+          {activeSection === "KYC Verification" && (
+            <div>
+              <h2 className="text-xl font-medium mb-4">KYC Verification</h2>
+              <KYCVerification />
             </div>
           )}
 
           {activeSection === "Bank Details" && (
-            <div className="">
-              <BankDetailsUpdate />
+            <div>
+              <h2 className="text-xl font-medium mb-4">Bank Details</h2>
+              <BankDetails />
             </div>
           )}
 
           {activeSection === "Security" && (
-            <div className="">
+            <div>
+              <h2 className="text-xl font-medium mb-4">Security Settings</h2>
               <SecuritySettings />
             </div>
-          )}
-          {activeSection === "Settings" && (
-            <h2 className="text-xl font-medium">General Settings</h2>
-          )}
-          {activeSection === "Support" && (
-            <h2 className="text-xl font-medium">Support & Help</h2>
           )}
         </div>
       </div>
     </>
   );
 };
+
 export default Settings;

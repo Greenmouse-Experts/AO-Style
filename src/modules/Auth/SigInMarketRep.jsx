@@ -47,8 +47,8 @@ export default function SignInAsCustomer() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      const phoneno = `${val.phoneCode + val.phone}`;
-      const altno = `${val.altCode + val.alternative_phone}`;
+      const phoneno = `${val.phone}`;
+      const altno = `${val.alternative_phone}`;
 
       if (values.password_confirmation !== values.password) {
         return toastError("Password must match");
@@ -66,7 +66,7 @@ export default function SignInAsCustomer() {
           onSuccess: () => {
             resetForm();
           },
-        },
+        }
       );
     },
   });

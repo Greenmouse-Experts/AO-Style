@@ -1,12 +1,10 @@
 import { useMemo, useState } from "react";
 import { FaEllipsisV } from "react-icons/fa";
 // import useGetCustomerRecentOrdersStat from "../../../../hooks/analytics/useGetCustomerRecentOrders";
-import { formatDateStr } from "../../../../lib/helper";
+import { formatDateStr, formatNumberWithCommas } from "../../../../lib/helper";
 import ReusableTable from "../../adminDashboard/components/ReusableTable";
 
 const OrdersTable = (customerRecentOrderStat) => {
-  console.log(customerRecentOrderStat?.customerRecentOrderStat);
-
   const [orders] = useState([
     {
       id: "01",
@@ -72,7 +70,9 @@ const OrdersTable = (customerRecentOrderStat) => {
               return {
                 ...details,
                 transactionId: `${details?.payment?.transaction_id}`,
-                amount: `${details?.payment?.amount}`,
+                amount: `${formatNumberWithCommas(
+                  details?.payment?.amount ?? 0
+                )}`,
                 status: `${details?.payment?.payment_status}`,
                 dateAdded: `${
                   details?.created_at

@@ -424,6 +424,11 @@ const KYCVerificationUpdate = () => {
               onChange={(e) => {
                 const city = e.target.value;
 
+                if (city === "") {
+                  setFieldValue("city", "");
+                  return;
+                }
+
                 const validChars = /^[a-zA-Z\s\-']*$/;
                 if (!validChars.test(city)) return;
 
@@ -441,22 +446,12 @@ const KYCVerificationUpdate = () => {
             <label className="block text-gray-700 mb-2">Business Address</label>
             <input
               type="text"
-              name={"location"}
+              name="location"
               required
               value={values.location}
-              onChange={(e) => {
-                const city = e.target.value;
-
-                const validChars = /^[a-zA-Z\s\-']*$/;
-                if (!validChars.test(city)) return;
-
-                const onlySpecialOrNumeric = /^[^a-zA-Z]*$/;
-                if (onlySpecialOrNumeric.test(city)) return;
-
-                setFieldValue("location", city);
-              }}
-              className="mb-6 w-full p-4  border border-[#CCCCCC] outline-none rounded-lg text-sm"
-              placeholder="address"
+              onChange={handleChange}
+              className="mb-6 w-full p-4 border border-[#CCCCCC] outline-none rounded-lg text-sm"
+              placeholder="Address"
             />
           </div>
         </div>

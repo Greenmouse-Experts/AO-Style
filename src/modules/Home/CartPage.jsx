@@ -17,6 +17,7 @@ import PhoneInput from "react-phone-input-2";
 import useCreateBilling from "../../hooks/billing/useCreateBilling";
 import useAddMultipleCart from "../../hooks/cart/useAddMultipleCart";
 import useApplyCoupon from "../../hooks/coupon/useApplyCoupon";
+import useGetDeliveryFee from "../../hooks/delivery/useGetDeleiveryFee";
 import {
   X,
   Download,
@@ -25,6 +26,7 @@ import {
   Maximize2,
   Minimize2,
 } from "lucide-react";
+import { formatNumberWithCommas } from "../../lib/helper";
 
 const initialValues = {
   address: "",
@@ -51,12 +53,12 @@ const CartPage = () => {
 
   const totalProductQuantity = items?.reduce(
     (total, item) => total + (item?.product?.quantity || 0),
-    0,
+    0
   );
 
   const totalStyleQuantity = items?.reduce(
     (total, item) => total + (item?.product?.style?.measurement?.length || 0),
-    0,
+    0
   );
 
   const totalQuantity = totalProductQuantity + totalStyleQuantity;
@@ -74,9 +76,26 @@ const CartPage = () => {
       return total + measurements.length * pricePerMeasurement;
     }, 0) ?? 0;
 
-  const [discountedPrice, setDiscountedPrice] = useState("");
+  const [discountedPrice, setDiscountedPrice] = useState("0");
 
-  const updatedAmount = totalAmount + totalStyleAmount - discountedPrice;
+  const { data } = useGetDeliveryFee();
+
+  console.log(data?.data?.data?.delivery_fee, "fee");
+
+  const delivery_fee = data?.data?.data?.delivery_fee ?? 0;
+
+  console.log(delivery_fee);
+
+  const estimatedVat = (totalAmount + totalStyleAmount) * 0.075;
+  const charges = (totalAmount + totalStyleAmount) * 0.015;
+
+  const updatedAmount =
+    totalAmount +
+    totalStyleAmount -
+    discountedPrice +
+    delivery_fee +
+    estimatedVat +
+    charges;
 
   const actualWithoutDiscountAmount = totalAmount + totalStyleAmount;
 
@@ -139,7 +158,7 @@ const CartPage = () => {
               setVerifyPayment("");
               navigate(`/${currentUrl}/orders`);
             },
-          },
+          }
         );
         // 🔁 You can call your backend here to verify & process the payment
       },
@@ -237,7 +256,7 @@ const CartPage = () => {
                   payment_id: data?.data?.data?.payment_id,
                 });
               },
-            },
+            }
           );
         },
       });
@@ -404,7 +423,7 @@ const CartPage = () => {
                             ₦
                             {Math.max(
                               item?.product?.price_at_time || 0,
-                              item?.product?.style?.price_at_time || 0,
+                              item?.product?.style?.price_at_time || 0
                             ).toLocaleString()}
                           </p>
                         </div>
@@ -507,7 +526,7 @@ const CartPage = () => {
                           ₦
                           {Math.max(
                             item?.product?.price_at_time || 0,
-                            item?.product?.style?.price_at_time || 0,
+                            item?.product?.style?.price_at_time || 0
                           ).toLocaleString()}
                         </div>
                         <div className="text-xs text-gray-500">per unit</div>
@@ -555,14 +574,14 @@ const CartPage = () => {
                         onClick={() => {
                           if (!token || !carybinUser) {
                             toastSuccess(
-                              "You need to have a Customer Account to apply coupon",
+                              "You need to have a Customer Account to apply coupon"
                             );
                             const currentPath =
                               location.pathname + location.search;
                             navigate(
                               `/login?redirect=${encodeURIComponent(
-                                currentPath,
-                              )}`,
+                                currentPath
+                              )}`
                             );
                           } else {
                             applyCouponMutate(
@@ -576,7 +595,7 @@ const CartPage = () => {
                               {
                                 onSuccess: (data) => {
                                   setDiscountedPrice(
-                                    data?.data?.data?.discount,
+                                    data?.data?.data?.discount
                                   );
                                 },
                                 onError: () => {
@@ -604,24 +623,39 @@ const CartPage = () => {
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Discount</span>
                       <span className="font-medium text-green-600">
-                        -₦{discountedPrice}
+                        -₦
+                        {discountedPrice
+                          ? formatNumberWithCommas(discountedPrice ?? 0)
+                          : 0}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Delivery</span>
-                      <span className="font-medium text-green-600">Free</span>
+                      <span className="font-medium text-green-600">
+                        ₦
+                        {delivery_fee
+                          ? formatNumberWithCommas(delivery_fee ?? 0)
+                          : 0}
+                      </span>
                     </div>
                     <div className="flex justify-between text-sm text-gray-700 mt-2">
-                      <span>Estimated sales VAT</span>
+                      <span>Estimated sales VAT(7.5)</span>
                       <span>
-                        <span className="font-medium text-green-600">₦0</span>
+                        <span className="font-medium text-green-600">
+                          ₦
+                          {estimatedVat
+                            ? formatNumberWithCommas(estimatedVat ?? 0)
+                            : 0}
+                        </span>
                       </span>
                     </div>
 
                     <div className="flex justify-between text-sm text-gray-700 mt-2">
-                      <span>Charges</span>
+                      <span>Charges(1.5)</span>
                       <span>
-                        <span className="font-medium text-green-600">₦0</span>
+                        <span className="font-medium text-green-600">
+                          ₦{charges ? formatNumberWithCommas(charges ?? 0) : 0}
+                        </span>
                       </span>
                     </div>
                     <div className="border-t border-gray-200 pt-3">
@@ -630,7 +664,10 @@ const CartPage = () => {
                           Total
                         </span>
                         <span className="text-xl font-bold text-purple-600">
-                          ₦{Math.round(updatedAmount).toLocaleString()}
+                          ₦
+                          {updatedAmount
+                            ? Math.round(updatedAmount).toLocaleString()
+                            : 0}
                         </span>
                       </div>
                     </div>
@@ -667,11 +704,11 @@ const CartPage = () => {
                     onClick={() => {
                       if (!token || !carybinUser) {
                         toastSuccess(
-                          "You need to have a Customer Account to make an order",
+                          "You need to have a Customer Account to make an order"
                         );
                         const currentPath = location.pathname + location.search;
                         navigate(
-                          `/login?redirect=${encodeURIComponent(currentPath)}`,
+                          `/login?redirect=${encodeURIComponent(currentPath)}`
                         );
                       } else if (carybinUser?.role?.role_id !== "user") {
                         toastSuccess(
@@ -702,7 +739,7 @@ const CartPage = () => {
                             onSuccess: () => {
                               setShowCheckoutModal(true);
                             },
-                          },
+                          }
                         );
                       }
                     }}
@@ -712,7 +749,7 @@ const CartPage = () => {
                     {addCartPending
                       ? "Processing..."
                       : `Proceed to Checkout • ₦${Math.round(
-                          updatedAmount,
+                          updatedAmount
                         ).toLocaleString()}`}
                   </button>
 
@@ -845,7 +882,7 @@ const CartPage = () => {
                         options={[{ value: "NG", label: "Nigeria" }]}
                         name="country"
                         value={[{ value: "NG", label: "Nigeria" }]?.find(
-                          (opt) => opt.value === values.country,
+                          (opt) => opt.value === values.country
                         )}
                         onChange={(selectedOption) =>
                           setFieldValue("country", selectedOption.value)
@@ -882,7 +919,7 @@ const CartPage = () => {
                           options={nigeriaStates}
                           name="state"
                           value={nigeriaStates?.find(
-                            (opt) => opt.value === values.state,
+                            (opt) => opt.value === values.state
                           )}
                           onChange={(selectedOption) =>
                             setFieldValue("state", selectedOption.value)
@@ -965,23 +1002,47 @@ const CartPage = () => {
                     <div className="flex justify-between mt-2 text-sm text-gray-700">
                       <span className="">Discount</span>
                       <span className=" text-green-600">
-                        -₦{discountedPrice}
+                        -₦
+                        {discountedPrice
+                          ? formatNumberWithCommas(discountedPrice ?? 0)
+                          : 0}
                       </span>
                     </div>
-                    {/* <div className="flex justify-between text-sm text-gray-700 mt-2">
-                      <span>Estimated sales VAT (7.5)</span>
-                      <span>
-                        NGN {Math.round(updatedAmount).toLocaleString()}
-                      </span>
-                    </div> */}
                     <div className="flex justify-between text-sm text-gray-700 mt-2">
                       <span>DELIVERY FEE</span>
-                      <span>NGN 0</span>
+                      <span>
+                        {" "}
+                        ₦
+                        {delivery_fee
+                          ? formatNumberWithCommas(delivery_fee ?? 0)
+                          : 0}
+                      </span>
                     </div>
+                    <div className="flex justify-between text-sm text-gray-700 mt-2">
+                      <span>Estimated sales VAT (7.5)</span>
+                      <span>
+                        ₦
+                        {estimatedVat
+                          ? formatNumberWithCommas(estimatedVat ?? 0)
+                          : 0}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-sm text-gray-700 mt-2">
+                      <span>Charges(1.5)</span>
+                      <span>
+                        {" "}
+                        ₦{charges ? formatNumberWithCommas(charges ?? 0) : 0}
+                      </span>
+                    </div>
+
                     <div className="flex justify-between text-lg font-medium text-gray-700 mt-2">
                       <span>TOTAL</span>
                       <span>
-                        NGN ₦{Math.round(updatedAmount).toLocaleString()}
+                        ₦
+                        {updatedAmount
+                          ? Math.round(updatedAmount).toLocaleString()
+                          : 0}
                       </span>
                     </div>
                   </div>

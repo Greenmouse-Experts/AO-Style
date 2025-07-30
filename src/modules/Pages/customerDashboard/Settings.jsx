@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import SecuritySettings from "./components/SecuritySettings";
 import BankDetails from "./components/BankDetails";
 import KYCVerification from "./components/KYCVerification";
@@ -20,10 +20,13 @@ import useToast from "../../../hooks/useToast";
 import { usePlacesWidget } from "react-google-autocomplete";
 
 const Settings = () => {
+  const query = new URLSearchParams(useLocation().search);
+
+  const q = query.get("q");
+
   const [activeTab, setActiveTab] = useState("personalDetails");
   const [bodyTab, setBodyTab] = useState("upperBody");
-  const [activeSection, setActiveSection] = useState("Profile");
-
+  const [activeSection, setActiveSection] = useState(q ?? "Profile");
   const { data: countries, isLoading: loadingCountries } = useCountries();
 
   const countriesOptions =
@@ -1034,7 +1037,7 @@ const Settings = () => {
                           >
                             {updateIsPending
                               ? "Please wait..."
-                              : "  Update Full Body"}
+                              : "Update Full Body"}
                           </button>
                         </div>
                       </form>

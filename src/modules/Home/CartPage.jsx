@@ -26,6 +26,7 @@ import {
   Maximize2,
   Minimize2,
 } from "lucide-react";
+import { formatNumberWithCommas } from "../../lib/helper";
 
 const initialValues = {
   address: "",
@@ -75,13 +76,27 @@ const CartPage = () => {
       return total + measurements.length * pricePerMeasurement;
     }, 0) ?? 0;
 
-  const [discountedPrice, setDiscountedPrice] = useState("");
+  const [discountedPrice, setDiscountedPrice] = useState("0");
 
   const { data } = useGetDeliveryFee();
 
-  console.log(data);
+  console.log(data?.data?.data?.delivery_fee, "fee");
 
-  const updatedAmount = totalAmount + totalStyleAmount - discountedPrice;
+  const delivery_fee = data?.data?.data?.delivery_fee ?? 0;
+
+  console.log(delivery_fee);
+
+  const estimatedVat = (totalAmount + totalStyleAmount) * 0.075;
+  const charges = (totalAmount + totalStyleAmount) * 0.015;
+
+  console.log(charges, "vat");
+
+  const updatedAmount =
+    totalAmount +
+    totalStyleAmount -
+    discountedPrice +
+    delivery_fee +
+    estimatedVat;
 
   const actualWithoutDiscountAmount = totalAmount + totalStyleAmount;
 
@@ -609,24 +624,30 @@ const CartPage = () => {
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Discount</span>
                       <span className="font-medium text-green-600">
-                        -₦{discountedPrice}
+                        -₦{formatNumberWithCommas(discountedPrice ?? 0)}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Delivery</span>
-                      <span className="font-medium text-green-600">Free</span>
+                      <span className="font-medium text-green-600">
+                        ₦{formatNumberWithCommas(delivery_fee ?? 0)}
+                      </span>
                     </div>
                     <div className="flex justify-between text-sm text-gray-700 mt-2">
-                      <span>Estimated sales VAT</span>
+                      <span>Estimated sales VAT(7.5)</span>
                       <span>
-                        <span className="font-medium text-green-600">₦0</span>
+                        <span className="font-medium text-green-600">
+                          ₦{formatNumberWithCommas(estimatedVat ?? 0)}
+                        </span>
                       </span>
                     </div>
 
                     <div className="flex justify-between text-sm text-gray-700 mt-2">
-                      <span>Charges</span>
+                      <span>Charges(1.5)</span>
                       <span>
-                        <span className="font-medium text-green-600">₦0</span>
+                        <span className="font-medium text-green-600">
+                          ₦{formatNumberWithCommas(charges ?? 0)}
+                        </span>
                       </span>
                     </div>
                     <div className="border-t border-gray-200 pt-3">
@@ -970,19 +991,23 @@ const CartPage = () => {
                     <div className="flex justify-between mt-2 text-sm text-gray-700">
                       <span className="">Discount</span>
                       <span className=" text-green-600">
-                        -₦{discountedPrice}
+                        -₦{formatNumberWithCommas(discountedPrice ?? 0)}
                       </span>
                     </div>
-                    {/* <div className="flex justify-between text-sm text-gray-700 mt-2">
-                      <span>Estimated sales VAT (7.5)</span>
-                      <span>
-                        NGN {Math.round(updatedAmount).toLocaleString()}
-                      </span>
-                    </div> */}
                     <div className="flex justify-between text-sm text-gray-700 mt-2">
                       <span>DELIVERY FEE</span>
-                      <span>NGN 0</span>
+                      <span> ₦{formatNumberWithCommas(delivery_fee ?? 0)}</span>
                     </div>
+                    <div className="flex justify-between text-sm text-gray-700 mt-2">
+                      <span>Estimated sales VAT (7.5)</span>
+                      <span>₦{formatNumberWithCommas(estimatedVat ?? 0)}</span>
+                    </div>
+
+                    <div className="flex justify-between text-sm text-gray-700 mt-2">
+                      <span>Charges(1.5)</span>
+                      <span> ₦{formatNumberWithCommas(charges ?? 0)}</span>
+                    </div>
+
                     <div className="flex justify-between text-lg font-medium text-gray-700 mt-2">
                       <span>TOTAL</span>
                       <span>

@@ -12,6 +12,7 @@ import {
 import useGetUser from "../../../../hooks/user/useGetSingleUser";
 import Loader from "../../../../components/ui/Loader";
 import { formatDateStr } from "../../../../lib/helper";
+import useGetFabricProduct from "../../../../hooks/fabric/useGetFabric";
 
 const catalogData = [
   {
@@ -100,7 +101,14 @@ const ViewFabric = () => {
 
   const businessData = data?.data?.business;
 
-  console.log(businessData);
+  console.log(businessData?.id);
+
+  const { data: getAllFabricData } = useGetFabricProduct({
+    type: "FABRIC",
+    id: businessData?.id,
+  });
+
+  console.log(getAllFabricData);
 
   const [catalogFilter, setCatalogFilter] = useState("all");
   const [ordersFilter, setOrdersFilter] = useState("all");

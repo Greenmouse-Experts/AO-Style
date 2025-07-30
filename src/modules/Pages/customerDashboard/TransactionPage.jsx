@@ -7,7 +7,7 @@ import useQueryParams from "../../../hooks/useQueryParams";
 import useGetMyPayment from "../../../hooks/payment/useGetPayment";
 import useDebounce from "../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
-import { formatDateStr } from "../../../lib/helper";
+import { formatDateStr, formatNumberWithCommas } from "../../../lib/helper";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
@@ -109,7 +109,7 @@ export default function TransactionPage() {
             return {
               ...details,
               transactionId: `${details?.transaction_id}`,
-              amount: `${details?.amount}`,
+              amount: `${formatNumberWithCommas(details?.amount)}`,
               status: `${details?.payment_status}`,
               dateAdded: `${
                 details?.created_at
@@ -225,7 +225,13 @@ export default function TransactionPage() {
         <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
           <div className="flex flex-wrap space-x-6 text-gray-600 text-sm font-medium">
             <button
-              onClick={() => setFilter("all")}
+              onClick={() => {
+                setFilter("all");
+                updateQueryParams({
+                  ...queryParams,
+                  payment_status: undefined,
+                });
+              }}
               className={`font-medium ${
                 filter === "all"
                   ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
@@ -235,7 +241,13 @@ export default function TransactionPage() {
               All Transaction
             </button>
             <button
-              onClick={() => setFilter("completed")}
+              onClick={() => {
+                setFilter("completed");
+                updateQueryParams({
+                  ...queryParams,
+                  payment_status: "SUCCESS",
+                });
+              }}
               className={`font-medium ${
                 filter === "completed"
                   ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
@@ -245,7 +257,13 @@ export default function TransactionPage() {
               Completed
             </button>
             <button
-              onClick={() => setFilter("pending")}
+              onClick={() => {
+                setFilter("pending");
+                updateQueryParams({
+                  ...queryParams,
+                  payment_status: "PENDING",
+                });
+              }}
               className={`font-medium ${
                 filter === "pending"
                   ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
@@ -255,7 +273,13 @@ export default function TransactionPage() {
               Pending
             </button>
             <button
-              onClick={() => setFilter("failed")}
+              onClick={() => {
+                setFilter("failed");
+                updateQueryParams({
+                  ...queryParams,
+                  payment_status: "FAILED",
+                });
+              }}
               className={`font-medium ${
                 filter === "failed"
                   ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"

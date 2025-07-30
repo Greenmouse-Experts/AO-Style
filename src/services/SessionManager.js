@@ -58,7 +58,7 @@ class SessionManager {
         refreshTokenExpiry,
         tokenExpiry: this.decodeTokenExpiry(accessToken),
       };
-      console.log(this.authData);
+      console.log("🔍 SessionManager: Retrieved auth data", this.authData);
       return this.authData;
     }
 
@@ -183,7 +183,10 @@ class SessionManager {
 
         return true;
       } else {
-        console.log("❌ SessionManager: Invalid refresh response");
+        console.log(
+          "❌ SessionManager: Invalid refresh response",
+          response.data,
+        );
         return false;
       }
     } catch (error) {

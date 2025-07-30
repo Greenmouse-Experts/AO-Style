@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import useSessionManager from "../hooks/useSessionManager";
 import sessionManager from "../services/SessionManager";
+import Cookies from "js-cookie";
 
 const SessionTestComponent = () => {
   const [tokenInfo, setTokenInfo] = useState(null);
@@ -26,6 +27,10 @@ const SessionTestComponent = () => {
         const refreshExpiry = new Date(authData.refreshTokenExpiry).getTime();
         const now = Date.now();
 
+        // Also check cookie tokens for comparison
+        const cookieToken = Cookies.get("token");
+        const adminCookieToken = Cookies.get("adminToken");
+
         setTokenInfo({
           accessTokenExpiry: tokenExpiry
             ? new Date(tokenExpiry).toISOString()
@@ -41,6 +46,14 @@ const SessionTestComponent = () => {
           isAccessTokenExpired: sessionManager.isTokenExpired(),
           isRefreshTokenExpired: sessionManager.isRefreshTokenExpired(),
           authenticated: isAuthenticated,
+          // Debug info
+          sessionManagerToken: authData.accessToken?.substring(0, 20) + "...",
+          cookieToken: cookieToken?.substring(0, 20) + "..." || "None",
+          adminCookieToken:
+            adminCookieToken?.substring(0, 20) + "..." || "None",
+          tokensMatch:
+            authData.accessToken === cookieToken ||
+            authData.accessToken === adminCookieToken,
         });
       } else {
         setTokenInfo(null);
@@ -128,6 +141,25 @@ const SessionTestComponent = () => {
     setTestResult(
       "✅ Refresh token expired - Modal will appear immediately (since you're active)!",
     );
+  };
+
+  const testApiRequest = async () => {
+    try {
+      setTestResult("🔄 Testing API request...");
+
+      // Import the API service dynamically to avoid circular imports
+      const { GetUser } = await import("../services/api/auth");
+
+      const response = await GetUser();
+      setTestResult(
+        "✅ API request successful: " + response.data?.message || "Success",
+      );
+    } catch (error) {
+      setTestResult(
+        "❌ API request failed: " +
+          (error?.data?.message || error?.message || "Unknown error"),
+      );
+    }
   };
 
   if (!isAuthenticated && !tokenInfo) {
@@ -250,6 +282,45 @@ const SessionTestComponent = () => {
             </div>
           )}
 
+          {/* Debug Info */}
+          {tokenInfo && (
+            <div className="mb-4 p-3 bg-yellow-50 rounded">
+              <h4 className="font-semibold text-yellow-700 mb-2">
+                Debug Token Info
+              </h4>
+              <div className="text-xs space-y-1">
+                <p>
+                  🔍 SessionManager Token:{" "}
+                  <span className="font-mono text-blue-600">
+                    {tokenInfo.sessionManagerToken}
+                  </span>
+                </p>
+                <p>
+                  🍪 Cookie Token:{" "}
+                  <span className="font-mono text-green-600">
+                    {tokenInfo.cookieToken}
+                  </span>
+                </p>
+                <p>
+                  🔑 Admin Cookie Token:{" "}
+                  <span className="font-mono text-purple-600">
+                    {tokenInfo.adminCookieToken}
+                  </span>
+                </p>
+                <p>
+                  ✅ Tokens Match:{" "}
+                  <span
+                    className={
+                      tokenInfo.tokensMatch ? "text-green-600" : "text-red-600"
+                    }
+                  >
+                    {tokenInfo.tokensMatch ? "Yes" : "No"}
+                  </span>
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Test Actions */}
           <div className="mb-4 space-y-2">
             <h4 className="font-semibold text-gray-700">Test Actions</h4>
@@ -282,6 +353,12 @@ const SessionTestComponent = () => {
               className="w-full bg-gray-500 text-white py-2 px-3 rounded text-sm hover:bg-gray-600"
             >
               🚪 Manual Logout
+            </button>
+            <button
+              onClick={testApiRequest}
+              className="w-full bg-blue-500 text-white py-2 px-3 rounded text-sm hover:bg-blue-600"
+            >
+              🧪 Test API Request
             </button>
           </div>
 

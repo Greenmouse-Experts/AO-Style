@@ -1,25 +1,33 @@
 import { useState } from "react";
 import { FaEye, FaEyeSlash, FaArrowUp, FaArrowDown } from "react-icons/fa";
 import WithdrawalModal from "./WithdrawalModal";
+import useGetBusinessDetails from "../../../../hooks/settings/useGetBusinessDetails";
+import { formatNumberWithCommas } from "../../../../lib/helper";
 
 const WalletPage = () => {
   const [showBalance, setShowBalance] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const { data: businessData } = useGetBusinessDetails();
+
+  const businessWallet = businessData?.data?.business_wallet?.balance;
 
   return (
     <div className="bg-white p-6 rounded-xl lg:max-w-md md:max-w-auto mx-auto">
       {/* Wallet Header */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg font-semibold">Wallet</h2>
-        <button className="bg-gray-100 px-3 py-1 rounded-md text-gray-700 text-sm">
+        {/* <button className="bg-gray-100 px-3 py-1 rounded-md text-gray-700 text-sm">
           Monthly ▾
-        </button>
+        </button> */}
       </div>
       {/* Balance Card */}
       <div className="bg-gradient text-white p-6 h-28 rounded-lg relative">
         <p className="text-sm mb-3">TOTAL BALANCE</p>
         <h1 className="text-3xl font-bold">
-          {showBalance ? "N 120,000" : "******"}
+          {showBalance
+            ? `₦ ${formatNumberWithCommas(businessWallet ?? 0)}`
+            : "******"}
         </h1>
         <button
           className="absolute top-6 right-6 text-white text-xl"

@@ -189,35 +189,6 @@ export default function ShopDetails() {
         </div>
       ) : (
         <section className="Resizer section px-4">
-          {item ? (
-            <div className="bg-[#FFF2FF] p-4 rounded-lg mb-6">
-              <h2 className="text-sm font-medium text-gray-500 mb-4">STYLE</h2>
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <img
-                    src={item?.product?.style?.image}
-                    alt="product"
-                    className="w-20 h-20 rounded object-cover"
-                  />
-                </div>
-                <div className="ml-4 flex-1">
-                  <h3 className="font-medium">{item?.product?.style?.name}</h3>
-                  <p className="mt-1 text-sm">
-                    X {item?.product?.style?.measurement?.length}{" "}
-                    {item?.product?.style?.measurement?.length > 1
-                      ? "Pieces"
-                      : "Piece"}
-                  </p>
-                  <p className="mt-1 text-[#0f0f11] text-sm">
-                    N {item?.product?.style?.price_at_time?.toLocaleString()}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <></>
-          )}
-
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
             {/* Image Section - Enhanced layout */}
             <div className="space-y-4">
@@ -736,7 +707,6 @@ export default function ShopDetails() {
               )}
             </div>
           </div>
-
           {/* Enhanced Tabs Section */}
           <div className="mt-12 bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div className="border-b border-gray-200">
@@ -867,7 +837,6 @@ export default function ShopDetails() {
               )}
             </div>
           </div>
-
           {/* Enhanced Related Products */}
           {filteredData?.length > 0 && (
             <div className="mt-12">

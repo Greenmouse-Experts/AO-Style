@@ -7,8 +7,19 @@ import Loader from "../../../components/ui/Loader";
 import useToast from "../../../hooks/useToast";
 import { useNavigate } from "react-router-dom";
 import { useCarybinAdminUserStore } from "../../../store/carybinAdminUserStore";
+import useSessionManager from "../../../hooks/useSessionManager";
+import SessionExpiryModal from "../../../components/SessionExpiryModal";
 
 export default function DashboardLayout() {
+  // Session management
+  const {
+    isSessionModalOpen,
+    timeRemaining,
+    isRefreshing,
+    handleExtendSession,
+    handleLogout,
+  } = useSessionManager();
+
   useEffect(() => {
     window.history.pushState(null, "", window.location.href);
 
@@ -88,6 +99,14 @@ export default function DashboardLayout() {
           <Outlet />
         </main>
       </div>
+      {/* Session Expiry Modal */}
+      <SessionExpiryModal
+        isOpen={isSessionModalOpen}
+        onExtendSession={handleExtendSession}
+        onLogout={handleLogout}
+        timeRemaining={timeRemaining}
+        isRefreshing={isRefreshing}
+      />
     </div>
   );
 }

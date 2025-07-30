@@ -36,6 +36,10 @@ const acceptInvite = (payload) => {
   return CaryBinApi.post(`/contact/accept-invite`, payload);
 };
 
+const refreshToken = (payload) => {
+  return CaryBinApi.post(`/auth/refresh-token`, payload);
+};
+
 const AuthService = {
   googleSignin,
   signinUser,
@@ -46,6 +50,7 @@ const AuthService = {
   changePassword,
   resendCode,
   acceptInvite,
+  refreshToken,
 };
 
 export default AuthService;

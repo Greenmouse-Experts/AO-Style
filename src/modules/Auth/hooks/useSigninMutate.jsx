@@ -3,12 +3,14 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import AuthService from "../../../services/api/auth";
 import useToast from "../../../hooks/useToast";
+import useSessionManager from "../../../hooks/useSessionManager";
 
 const useSignIn = (email, resendCodeMutate) => {
   const { toastError, toastSuccess } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.pathname;
+  const { setAuthData } = useSessionManager();
 
   const redirectPath = new URLSearchParams(location.search).get("redirect");
 
@@ -29,6 +31,13 @@ const useSignIn = (email, resendCodeMutate) => {
         // Cookies.set("token", data?.data?.accessToken);
         Cookies.set("adminToken", data?.data?.accessToken);
 
+        // Store auth data in session manager
+        setAuthData({
+          accessToken: data?.data?.accessToken,
+          refreshToken: data?.data?.refreshToken,
+          refreshTokenExpiry: data?.data?.refreshTokenExpiry,
+        });
+
         navigate("/admin", { replace: true });
       } else if (
         data?.data?.data?.role !== "owner-super-administrator" &&
@@ -41,6 +50,14 @@ const useSignIn = (email, resendCodeMutate) => {
       ) {
         toastSuccess(data?.data?.message);
         Cookies.set("token", data?.data?.accessToken);
+
+        // Store auth data in session manager
+        setAuthData({
+          accessToken: data?.data?.accessToken,
+          refreshToken: data?.data?.refreshToken,
+          refreshTokenExpiry: data?.data?.refreshTokenExpiry,
+        });
+
         if (data?.data?.data?.role === "fabric-vendor") {
           navigate(redirectPath ?? "/fabric", {
             state: { info: parsedProduct },
@@ -97,7 +114,7 @@ const useSignIn = (email, resendCodeMutate) => {
               localStorage.setItem("verifyemail", email);
               navigate("/verify-account");
             },
-          }
+          },
         );
       }
     },

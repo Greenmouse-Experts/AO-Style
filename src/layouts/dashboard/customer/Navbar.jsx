@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Bell, Menu } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import useToast from "../../../hooks/useToast";
-import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import Cookies from "js-cookie";
+import { useCarybinUserStore } from "../../../store/carybinUserStore";
+import useSessionManager from "../../../hooks/useSessionManager";
 import useGetNotification from "../../../hooks/notification/useGetNotification";
 
 export default function Navbar({ toggleSidebar }) {
@@ -15,11 +16,12 @@ export default function Navbar({ toggleSidebar }) {
   const navigate = useNavigate();
 
   const { carybinUser, logOut } = useCarybinUserStore();
+  const { clearAuthData } = useSessionManager();
 
   const handleSignOut = () => {
     toastSuccess("Logout Successfully");
     logOut();
-    Cookies.remove("token");
+    clearAuthData();
     localStorage.setItem("logout", Date.now().toString());
     window.location.replace("/login");
   };

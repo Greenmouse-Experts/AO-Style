@@ -7,9 +7,20 @@ import useGetUserProfile from "../../../modules/Auth/hooks/useGetProfile";
 import Loader from "../../../components/ui/Loader";
 import useToast from "../../../hooks/useToast";
 import useCrossTabLogout from "../../../hooks/useGlobalLayout";
+import useSessionManager from "../../../hooks/useSessionManager";
+import SessionExpiryModal from "../../../components/SessionExpiryModal";
 
 export default function DashboardLayout() {
   useCrossTabLogout();
+
+  // Session management
+  const {
+    showExpiryModal,
+    timeUntilExpiry,
+    isRefreshing,
+    extendSession,
+    closeExpiryModal,
+  } = useSessionManager();
 
   useEffect(() => {
     window.history.pushState(null, "", window.location.href);
@@ -27,6 +38,10 @@ export default function DashboardLayout() {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
 
   const navigate = useNavigate();
 
@@ -94,6 +109,15 @@ export default function DashboardLayout() {
           </div>
         </main>
       </div>
+
+      {/* Session Expiry Modal */}
+      <SessionExpiryModal
+        isOpen={showExpiryModal}
+        onExtendSession={extendSession}
+        onLogout={closeExpiryModal}
+        timeRemaining={timeUntilExpiry}
+        isRefreshing={isRefreshing}
+      />
     </div>
   );
 }

@@ -13,6 +13,7 @@ import {
 } from "react-icons/fa";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useToast from "../../../hooks/useToast";
+import useSessionManager from "../../../hooks/useSessionManager";
 import Cookies from "js-cookie";
 import { useState } from "react";
 
@@ -29,13 +30,15 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const navigate = useNavigate();
 
   const { carybinUser, logOut } = useCarybinUserStore();
+  const { clearAuthData } = useSessionManager();
 
   const { toastSuccess } = useToast();
 
   const handleSignOut = () => {
     logOut();
-    Cookies.remove("token");
+    clearAuthData();
     toastSuccess("Logout Successfully");
+    localStorage.setItem("logout", Date.now().toString());
     window.location.replace("/login");
   };
 

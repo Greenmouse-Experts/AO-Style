@@ -89,14 +89,13 @@ const CartPage = () => {
   const estimatedVat = (totalAmount + totalStyleAmount) * 0.075;
   const charges = (totalAmount + totalStyleAmount) * 0.015;
 
-  console.log(charges, "vat");
-
   const updatedAmount =
     totalAmount +
     totalStyleAmount -
     discountedPrice +
     delivery_fee +
-    estimatedVat;
+    estimatedVat +
+    charges;
 
   const actualWithoutDiscountAmount = totalAmount + totalStyleAmount;
 

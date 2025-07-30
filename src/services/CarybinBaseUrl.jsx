@@ -16,13 +16,33 @@ const onRequest = (request) => {
   if (!navigator.onLine) {
     return Promise.reject(new Error("No internet connection"));
   }
-  // * get the user data if loggedin to access the token and pass it to the header authorization
 
-  const isAdminRoute = window.location.pathname.includes("/admin");
-  const accessToken = isAdminRoute
-    ? Cookies.get("adminToken")
-    : Cookies.get("token");
-  request.headers.Authorization = `Bearer ${accessToken || ""}`;
+  // Get fresh token from SessionManager first, fallback to cookies
+  const authData = sessionManager.getAuthData();
+  let accessToken = null;
+  let tokenSource = "";
+
+  if (authData && authData.accessToken) {
+    accessToken = authData.accessToken;
+    tokenSource = "SessionManager";
+  } else {
+    // Fallback to cookies if SessionManager doesn't have data
+    const isAdminRoute = window.location.pathname.includes("/admin");
+    accessToken = isAdminRoute
+      ? Cookies.get("adminToken")
+      : Cookies.get("token");
+    tokenSource = "Cookies";
+  }
+
+  if (accessToken) {
+    request.headers.Authorization = `Bearer ${accessToken}`;
+    console.log(
+      `🔑 Request: Using token from ${tokenSource} for ${request.url}`,
+    );
+  } else {
+    console.log(`❌ Request: No token available for ${request.url}`);
+  }
+
   return request;
 };
 
@@ -49,18 +69,49 @@ const onResponseError = async (error) => {
     originalRequest._retry = true;
 
     try {
-      console.log("🔄 API Interceptor: Attempting token refresh for 401 error");
+      console.log(
+        `🔄 API Interceptor: Attempting token refresh for 401 error on ${originalRequest.url}`,
+      );
+
+      // Check if we have auth data first
+      const authData = sessionManager.getAuthData();
+      if (!authData || !authData.refreshToken) {
+        console.log(
+          "❌ API Interceptor: No auth data or refresh token, logging out",
+        );
+        sessionManager.handleSessionExpiry();
+        return Promise.reject(error?.response);
+      }
+
+      console.log("🔍 API Interceptor: Current auth data before refresh:", {
+        hasAccessToken: !!authData.accessToken,
+        hasRefreshToken: !!authData.refreshToken,
+        accessTokenLength: authData.accessToken?.length,
+        refreshTokenExpiry: authData.refreshTokenExpiry,
+      });
 
       // Try to refresh the token
       const refreshSuccess = await sessionManager.refreshAccessToken();
 
       if (refreshSuccess) {
         // Get the new token and retry the original request
-        const authData = sessionManager.getAuthData();
-        originalRequest.headers.Authorization = `Bearer ${authData.accessToken}`;
+        const newAuthData = sessionManager.getAuthData();
+        console.log("🔍 API Interceptor: Auth data after refresh:", {
+          hasAccessToken: !!newAuthData?.accessToken,
+          accessTokenLength: newAuthData?.accessToken?.length,
+          tokenChanged: authData.accessToken !== newAuthData?.accessToken,
+        });
 
-        console.log("✅ API Interceptor: Token refreshed, retrying request");
-        return CaryBinApi(originalRequest);
+        if (newAuthData && newAuthData.accessToken) {
+          originalRequest.headers.Authorization = `Bearer ${newAuthData.accessToken}`;
+          console.log(
+            `✅ API Interceptor: Token refreshed, retrying request to ${originalRequest.url}`,
+          );
+          return CaryBinApi(originalRequest);
+        } else {
+          console.log("❌ API Interceptor: No new token after refresh");
+          sessionManager.handleSessionExpiry();
+        }
       } else {
         // Refresh failed, session expired
         console.log(

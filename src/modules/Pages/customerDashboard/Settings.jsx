@@ -1037,7 +1037,7 @@ const Settings = () => {
                           >
                             {updateIsPending
                               ? "Please wait..."
-                              : "  Update Lower Body"}
+                              : "Update Full Body"}
                           </button>
                         </div>
                       </form>

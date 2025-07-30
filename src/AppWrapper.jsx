@@ -20,7 +20,7 @@ const VerificationBanner = ({ onLogout, onGoToKYC }) => {
       <div className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-50 z-[998]" />
 
       {/* Verification Banner */}
-      <div className="verification-banner fixed top-0 left-0 right-0 bg-gradient-to-r from-orange-400 to-yellow-500 text-white px-4 py-3 shadow-lg z-[999]">
+      <div className="verification-banner fixed top-0 left-0 right-0 bg-gradient-to-r from-purple-500 to-purple-500 text-white px-4 py-3 shadow-lg z-[999]">
         <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
             {/* Warning Icon */}
@@ -168,7 +168,9 @@ const AppWrapper = () => {
 
   // Check if we should show the verification banner
   const shouldShowBanner =
-    needsVerification && !window.location.pathname.includes("/settings");
+    needsVerification &&
+    !window.location.pathname.includes("/settings") &&
+    (userType === "tailor" || userType === "fabric");
 
   useEffect(() => {
     if (

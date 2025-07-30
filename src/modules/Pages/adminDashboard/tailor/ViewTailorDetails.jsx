@@ -33,7 +33,7 @@ const ViewTailorDetails = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  console.log(tailorInfo?.country);
+  console.log(tailorInfo, "here");
 
   const togglePassword = () => setShowPassword(!showPassword);
   const toggleConfirmPassword = () =>
@@ -176,6 +176,7 @@ const ViewTailorDetails = () => {
                     className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                   />
                 </div>
+
                 {/* <div className="relative">
                   <label className="block text-gray-700 mb-4">Password</label>
                   <input
@@ -206,6 +207,54 @@ const ViewTailorDetails = () => {
                     {showConfirmPassword ? "🙈" : "👁️"}
                   </span>
                 </div> */}
+              </div>
+
+              <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-gray-700 mb-4">
+                    Phone Number
+                  </label>
+                  <input
+                    value={tailorInfo?.phone}
+                    type="text"
+                    placeholder="Enter your phone number"
+                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-4">
+                    Alternate Phone Number
+                  </label>
+                  <input
+                    value={tailorInfo?.alternative_phone}
+                    type="text"
+                    placeholder="Alternate phone number"
+                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                  />
+                </div>
+              </div>
+
+              <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-gray-700 mb-4">
+                    How did you hear about us?
+                  </label>
+                  <select
+                    name={"referral_source"}
+                    value={tailorInfo.referral_source}
+                    className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg text-gray-500"
+                  >
+                    <option value="" disabled selected>
+                      Select option
+                    </option>
+                    <option value="Social Media">Social Media</option>
+                    <option value="Radio/TV Ads">Radio / TV Ads</option>
+                    <option value="Blogs/Articles">Blogs/Articles</option>
+                    <option value="Personal Referral">Personal Referral</option>
+                    <option value="Just got here">Just got here</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -244,25 +293,27 @@ const ViewTailorDetails = () => {
               />
             </div>
             <div>
-              <label className="block text-gray-700 mb-4">Phone Number</label>
-              <input
-                value={tailorInfo?.phone}
-                type="text"
-                placeholder="Enter your phone number"
-                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-              />
+              <label className="block text-gray-700 mb-4">Business type</label>
+              <select
+                name={"business_type"}
+                value={tailorInfo.business_type}
+                className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg text-gray-500"
+                required
+              >
+                <option value="" disabled selected>
+                  Select your business type
+                </option>
+                <option value="sole-proprietorship">Sole Proprietorship</option>
+                <option value="partnership">Partnership</option>
+                <option value="llc">Limited Liability Company (LLC)</option>
+                <option value="corporation">
+                  Corporation (C Corp & S Corp)
+                </option>
+                <option value="nonprofit">Nonprofit Organization</option>
+                <option value="franchise">Franchise</option>
+              </select>
             </div>
-            <div>
-              <label className="block text-gray-700 mb-4">City</label>
-              <input
-                type="text"
-                name={"city"}
-                value={tailorInfo?.city}
-                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                placeholder="City"
-              />
-            </div>
-            <div className="col-span-2">
+            <div className="">
               <label className="block text-gray-700 mb-4">
                 Business Address
               </label>
@@ -273,7 +324,8 @@ const ViewTailorDetails = () => {
                 className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
               />
             </div>
-            <div>
+
+            {/* <div>
               <label className="block text-gray-700 mb-4">State</label>
               <Select
                 options={statesOptions}
@@ -336,7 +388,7 @@ const ViewTailorDetails = () => {
                   }),
                 }}
               />{" "}
-            </div>
+            </div> */}
           </div>
         )}
 

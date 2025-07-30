@@ -181,6 +181,7 @@ const ViewFabricDetails = () => {
                     className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                   />
                 </div>
+
                 {/* <div className="relative">
                   <label className="block text-gray-700 mb-4">Password</label>
                   <input
@@ -211,6 +212,54 @@ const ViewFabricDetails = () => {
                     {showConfirmPassword ? "🙈" : "👁️"}
                   </span>
                 </div> */}
+              </div>
+
+              <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-gray-700 mb-4">
+                    Phone Number
+                  </label>
+                  <input
+                    value={tailorInfo?.phone}
+                    type="text"
+                    placeholder="Enter your phone number"
+                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-4">
+                    Alternate Phone Number
+                  </label>
+                  <input
+                    value={tailorInfo?.alternative_phone}
+                    type="text"
+                    placeholder="Alternate phone number"
+                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                  />
+                </div>
+              </div>
+
+              <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-gray-700 mb-4">
+                    How did you hear about us?
+                  </label>
+                  <select
+                    name={"referral_source"}
+                    value={tailorInfo.referral_source}
+                    className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg text-gray-500"
+                  >
+                    <option value="" disabled selected>
+                      Select option
+                    </option>
+                    <option value="Social Media">Social Media</option>
+                    <option value="Radio/TV Ads">Radio / TV Ads</option>
+                    <option value="Blogs/Articles">Blogs/Articles</option>
+                    <option value="Personal Referral">Personal Referral</option>
+                    <option value="Just got here">Just got here</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -249,24 +298,27 @@ const ViewFabricDetails = () => {
               />
             </div>
             <div>
-              <label className="block text-gray-700 mb-4">Phone Number</label>
-              <input
-                value={tailorInfo?.phone}
-                type="text"
-                placeholder="Enter your phone number"
-                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 mb-4">City</label>
-              <select className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg">
-                <option>Choose the city</option>
-                <option>Lagos</option>
-                <option>Abuja</option>
-                <option>Port Harcourt</option>
+              <label className="block text-gray-700 mb-4">Business type</label>
+              <select
+                name={"business_type"}
+                value={tailorInfo.business_type}
+                className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg text-gray-500"
+                required
+              >
+                <option value="" disabled selected>
+                  Select your business type
+                </option>
+                <option value="sole-proprietorship">Sole Proprietorship</option>
+                <option value="partnership">Partnership</option>
+                <option value="llc">Limited Liability Company (LLC)</option>
+                <option value="corporation">
+                  Corporation (C Corp & S Corp)
+                </option>
+                <option value="nonprofit">Nonprofit Organization</option>
+                <option value="franchise">Franchise</option>
               </select>
             </div>
-            <div className="col-span-2">
+            <div className="">
               <label className="block text-gray-700 mb-4">
                 Business Address
               </label>
@@ -277,25 +329,71 @@ const ViewFabricDetails = () => {
                 className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
               />
             </div>
-            <div>
+
+            {/* <div>
               <label className="block text-gray-700 mb-4">State</label>
-              <select className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg">
-                <option>Choose the state</option>
-                <option>Lagos</option>
-                <option>Abuja</option>
-              </select>
+              <Select
+                options={statesOptions}
+                name="state"
+                value={statesOptions?.find(
+                  (opt) => opt.value === tailorInfo?.state
+                )}
+                onChange={(selectedOption) => {}}
+                placeholder="Select"
+                className="p-2 w-full mb-6 border border-[#CCCCCC] outline-none rounded-lg"
+                styles={{
+                  control: (base, state) => ({
+                    ...base,
+                    border: "none",
+                    boxShadow: "none",
+                    outline: "none",
+                    backgroundColor: "#fff",
+                    "&:hover": {
+                      border: "none",
+                    },
+                  }),
+                  indicatorSeparator: () => ({
+                    display: "none",
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    zIndex: 9999,
+                  }),
+                }}
+              />{" "}
             </div>
             <div>
               <label className="block text-gray-700 mb-4">Country</label>
-              <select
-                value={tailorInfo?.country}
-                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-              >
-                <option>Choose the country</option>
-                <option>Nigeria</option>
-                <option>Ghana</option>
-              </select>
-            </div>
+              <Select
+                options={countriesOptions}
+                name="country"
+                value={countriesOptions?.find(
+                  (opt) => opt.value === tailorInfo?.country
+                )}
+                onChange={(selectedOption) => {}}
+                placeholder="Select"
+                className="p-2 w-full mb-6 border border-[#CCCCCC] outline-none rounded-lg"
+                styles={{
+                  control: (base, state) => ({
+                    ...base,
+                    border: "none",
+                    boxShadow: "none",
+                    outline: "none",
+                    backgroundColor: "#fff",
+                    "&:hover": {
+                      border: "none",
+                    },
+                  }),
+                  indicatorSeparator: () => ({
+                    display: "none",
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    zIndex: 9999,
+                  }),
+                }}
+              />{" "}
+            </div> */}
           </div>
         )}
 

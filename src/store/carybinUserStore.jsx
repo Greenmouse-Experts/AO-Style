@@ -11,3 +11,11 @@ export const useCarybinUserStore = create((set) => ({
     set({ carybinUser: null });
   },
 }));
+
+// Register store with session manager for cleanup
+if (typeof window !== "undefined") {
+  if (!window.zustandStores) {
+    window.zustandStores = [];
+  }
+  window.zustandStores.push(useCarybinUserStore);
+}

@@ -39,7 +39,7 @@ export const useCartStore = create(
                       ...item.product,
                     },
                   }
-                : i
+                : i,
             ),
           });
         } else {
@@ -80,7 +80,7 @@ export const useCartStore = create(
                     quantity: newQty,
                   },
                 }
-              : i
+              : i,
           ),
         });
       },
@@ -95,9 +95,19 @@ export const useCartStore = create(
           cartMeta,
           user: user ?? get().user,
         }),
+
+      logOut: () => set({ items: [], cartMeta: undefined, user: undefined }),
     }),
     {
       name: "cart-storage",
-    }
-  )
+    },
+  ),
 );
+
+// Register store with session manager for cleanup
+if (typeof window !== "undefined") {
+  if (!window.zustandStores) {
+    window.zustandStores = [];
+  }
+  window.zustandStores.push(useCartStore);
+}

@@ -1,5 +1,6 @@
 import axios from "axios";
 import Cookies from "js-cookie";
+import sessionManager from "./SessionManager.js";
 
 const baseURL = import.meta.env.VITE_APP_CaryBin_API_URL;
 
@@ -33,20 +34,49 @@ const onResponse = (response) => {
   return response;
 };
 
-const onResponseError = (error) => {
-  // * detect the current HTTP status code;
+const onResponseError = async (error) => {
+  const originalRequest = error.config;
   const statusCode = error?.response?.status;
-  // *401 means unauthorized. if unauthorized, it logs the current user out.
-  // if (
-  //   statusCode === 401 ||
-  //   // @ts-ignore
-  //   error?.response?.data?.message === "Unauthorized." ||
-  //   // @ts-ignore
-  //   error?.response?.data?.message === "Unauthenticated."
-  // ) {
-  //   Cookies.remove("token");
-  //   window.location.href = "/login";
-  // }
+
+  // Handle 401 Unauthorized errors
+  if (
+    statusCode === 401 &&
+    !originalRequest._retry &&
+    (error?.response?.data?.message === "Unauthorized." ||
+      error?.response?.data?.message === "Unauthenticated." ||
+      error?.response?.data?.message === "jwt expired")
+  ) {
+    originalRequest._retry = true;
+
+    try {
+      console.log("🔄 API Interceptor: Attempting token refresh for 401 error");
+
+      // Try to refresh the token
+      const refreshSuccess = await sessionManager.refreshAccessToken();
+
+      if (refreshSuccess) {
+        // Get the new token and retry the original request
+        const authData = sessionManager.getAuthData();
+        originalRequest.headers.Authorization = `Bearer ${authData.accessToken}`;
+
+        console.log("✅ API Interceptor: Token refreshed, retrying request");
+        return CaryBinApi(originalRequest);
+      } else {
+        // Refresh failed, session expired
+        console.log(
+          "❌ API Interceptor: Token refresh failed, handling session expiry",
+        );
+        sessionManager.handleSessionExpiry();
+      }
+    } catch (refreshError) {
+      console.error(
+        "❌ API Interceptor: Error during token refresh",
+        refreshError,
+      );
+      sessionManager.handleSessionExpiry();
+    }
+  }
+
   return Promise.reject(error?.response);
 };
 

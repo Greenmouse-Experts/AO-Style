@@ -10,7 +10,7 @@ import "slick-carousel/slick/slick-theme.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import { ToastContainer } from "react-toastify";
-import App from "./App.jsx";
+import AppWrapper from "./AppWrapper.jsx";
 
 const router = createBrowserRouter(routes);
 
@@ -38,8 +38,8 @@ createRoot(document.getElementById("root")).render(
           pauseOnHover={false}
           theme="colored"
         />
-        <App />
+        <AppWrapper />
       </QueryProvider>
     </GoogleOAuthProvider>
-  </StrictMode>
+  </StrictMode>,
 );

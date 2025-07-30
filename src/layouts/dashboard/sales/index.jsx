@@ -5,9 +5,23 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useGetUserProfile from "../../../modules/Auth/hooks/useGetProfile";
 import useToast from "../../../hooks/useToast";
+import useCrossTabLogout from "../../../hooks/useGlobalLayout";
+import useSessionManager from "../../../hooks/useSessionManager";
+import SessionExpiryModal from "../../../components/SessionExpiryModal";
 import Loader from "../../../components/ui/Loader";
 
 export default function DashboardLayout() {
+  useCrossTabLogout();
+
+  // Session management
+  const {
+    isSessionModalOpen,
+    timeRemaining,
+    isRefreshing,
+    handleExtendSession,
+    handleLogout,
+  } = useSessionManager();
+
   useEffect(() => {
     window.history.pushState(null, "", window.location.href);
 
@@ -89,6 +103,15 @@ export default function DashboardLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Session Expiry Modal */}
+      <SessionExpiryModal
+        isOpen={isSessionModalOpen}
+        onExtendSession={handleExtendSession}
+        onLogout={handleLogout}
+        timeRemaining={timeRemaining}
+        isRefreshing={isRefreshing}
+      />
     </div>
   );
 }

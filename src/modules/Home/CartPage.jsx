@@ -623,20 +623,29 @@ const CartPage = () => {
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Discount</span>
                       <span className="font-medium text-green-600">
-                        -₦{formatNumberWithCommas(discountedPrice ?? 0)}
+                        -₦
+                        {discountedPrice
+                          ? formatNumberWithCommas(discountedPrice ?? 0)
+                          : 0}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Delivery</span>
                       <span className="font-medium text-green-600">
-                        ₦{formatNumberWithCommas(delivery_fee ?? 0)}
+                        ₦
+                        {delivery_fee
+                          ? formatNumberWithCommas(delivery_fee ?? 0)
+                          : 0}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm text-gray-700 mt-2">
                       <span>Estimated sales VAT(7.5)</span>
                       <span>
                         <span className="font-medium text-green-600">
-                          ₦{formatNumberWithCommas(estimatedVat ?? 0)}
+                          ₦
+                          {estimatedVat
+                            ? formatNumberWithCommas(estimatedVat ?? 0)
+                            : 0}
                         </span>
                       </span>
                     </div>
@@ -645,7 +654,7 @@ const CartPage = () => {
                       <span>Charges(1.5)</span>
                       <span>
                         <span className="font-medium text-green-600">
-                          ₦{formatNumberWithCommas(charges ?? 0)}
+                          ₦{charges ? formatNumberWithCommas(charges ?? 0) : 0}
                         </span>
                       </span>
                     </div>
@@ -655,7 +664,10 @@ const CartPage = () => {
                           Total
                         </span>
                         <span className="text-xl font-bold text-purple-600">
-                          ₦{Math.round(updatedAmount).toLocaleString()}
+                          ₦
+                          {updatedAmount
+                            ? Math.round(updatedAmount).toLocaleString()
+                            : 0}
                         </span>
                       </div>
                     </div>
@@ -990,27 +1002,47 @@ const CartPage = () => {
                     <div className="flex justify-between mt-2 text-sm text-gray-700">
                       <span className="">Discount</span>
                       <span className=" text-green-600">
-                        -₦{formatNumberWithCommas(discountedPrice ?? 0)}
+                        -₦
+                        {discountedPrice
+                          ? formatNumberWithCommas(discountedPrice ?? 0)
+                          : 0}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm text-gray-700 mt-2">
                       <span>DELIVERY FEE</span>
-                      <span> ₦{formatNumberWithCommas(delivery_fee ?? 0)}</span>
+                      <span>
+                        {" "}
+                        ₦
+                        {delivery_fee
+                          ? formatNumberWithCommas(delivery_fee ?? 0)
+                          : 0}
+                      </span>
                     </div>
                     <div className="flex justify-between text-sm text-gray-700 mt-2">
                       <span>Estimated sales VAT (7.5)</span>
-                      <span>₦{formatNumberWithCommas(estimatedVat ?? 0)}</span>
+                      <span>
+                        ₦
+                        {estimatedVat
+                          ? formatNumberWithCommas(estimatedVat ?? 0)
+                          : 0}
+                      </span>
                     </div>
 
                     <div className="flex justify-between text-sm text-gray-700 mt-2">
                       <span>Charges(1.5)</span>
-                      <span> ₦{formatNumberWithCommas(charges ?? 0)}</span>
+                      <span>
+                        {" "}
+                        ₦{charges ? formatNumberWithCommas(charges ?? 0) : 0}
+                      </span>
                     </div>
 
                     <div className="flex justify-between text-lg font-medium text-gray-700 mt-2">
                       <span>TOTAL</span>
                       <span>
-                        NGN ₦{Math.round(updatedAmount).toLocaleString()}
+                        ₦
+                        {updatedAmount
+                          ? Math.round(updatedAmount).toLocaleString()
+                          : 0}
                       </span>
                     </div>
                   </div>

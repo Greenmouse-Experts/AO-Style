@@ -51,14 +51,32 @@ const CartPage = () => {
 
   const removeFromCart = useCartStore((state) => state.removeFromCart);
 
+  const handleAgreementClick = (e) => {
+    e.preventDefault();
+
+    // Check if it's a mobile device (screen width less than 768px)
+    const isMobile = window.innerWidth < 768;
+
+    if (isMobile) {
+      // On mobile, open PDF directly in new tab
+      window.open(
+        "https://gray-daphene-38.tiiny.site/Checkout-agreement.pdf",
+        "_blank",
+      );
+    } else {
+      // On desktop, show modal
+      setShowPolicyModal(true);
+    }
+  };
+
   const totalProductQuantity = items?.reduce(
     (total, item) => total + (item?.product?.quantity || 0),
-    0
+    0,
   );
 
   const totalStyleQuantity = items?.reduce(
     (total, item) => total + (item?.product?.style?.measurement?.length || 0),
-    0
+    0,
   );
 
   const totalQuantity = totalProductQuantity + totalStyleQuantity;
@@ -158,7 +176,7 @@ const CartPage = () => {
               setVerifyPayment("");
               navigate(`/${currentUrl}/orders`);
             },
-          }
+          },
         );
         // 🔁 You can call your backend here to verify & process the payment
       },
@@ -256,7 +274,7 @@ const CartPage = () => {
                   payment_id: data?.data?.data?.payment_id,
                 });
               },
-            }
+            },
           );
         },
       });
@@ -423,7 +441,7 @@ const CartPage = () => {
                             ₦
                             {Math.max(
                               item?.product?.price_at_time || 0,
-                              item?.product?.style?.price_at_time || 0
+                              item?.product?.style?.price_at_time || 0,
                             ).toLocaleString()}
                           </p>
                         </div>
@@ -526,7 +544,7 @@ const CartPage = () => {
                           ₦
                           {Math.max(
                             item?.product?.price_at_time || 0,
-                            item?.product?.style?.price_at_time || 0
+                            item?.product?.style?.price_at_time || 0,
                           ).toLocaleString()}
                         </div>
                         <div className="text-xs text-gray-500">per unit</div>
@@ -574,14 +592,14 @@ const CartPage = () => {
                         onClick={() => {
                           if (!token || !carybinUser) {
                             toastSuccess(
-                              "You need to have a Customer Account to apply coupon"
+                              "You need to have a Customer Account to apply coupon",
                             );
                             const currentPath =
                               location.pathname + location.search;
                             navigate(
                               `/login?redirect=${encodeURIComponent(
-                                currentPath
-                              )}`
+                                currentPath,
+                              )}`,
                             );
                           } else {
                             applyCouponMutate(
@@ -595,13 +613,13 @@ const CartPage = () => {
                               {
                                 onSuccess: (data) => {
                                   setDiscountedPrice(
-                                    data?.data?.data?.discount
+                                    data?.data?.data?.discount,
                                   );
                                 },
                                 onError: () => {
                                   setDiscountedPrice("0");
                                 },
-                              }
+                              },
                             );
                           }
                         }}
@@ -689,10 +707,7 @@ const CartPage = () => {
                       <button
                         type="button"
                         className="font-semibold text-grey-600 hover:text-purple-600 hover:underline cursor-pointer"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setShowPolicyModal(true);
-                        }}
+                        onClick={handleAgreementClick}
                         tabIndex={0}
                       >
                         CARYBIN checkout policy
@@ -704,19 +719,19 @@ const CartPage = () => {
                     onClick={() => {
                       if (!token || !carybinUser) {
                         toastSuccess(
-                          "You need to have a Customer Account to make an order"
+                          "You need to have a Customer Account to make an order",
                         );
                         const currentPath = location.pathname + location.search;
                         navigate(
-                          `/login?redirect=${encodeURIComponent(currentPath)}`
+                          `/login?redirect=${encodeURIComponent(currentPath)}`,
                         );
                       } else if (carybinUser?.role?.role_id !== "user") {
                         toastSuccess(
-                          "Access Denied, Create Customer Account to Proceed"
+                          "Access Denied, Create Customer Account to Proceed",
                         );
                         const currentPath = location.pathname + location.search;
                         navigate(
-                          `/login?redirect=${encodeURIComponent(currentPath)}`
+                          `/login?redirect=${encodeURIComponent(currentPath)}`,
                         );
                       } else {
                         const updatedItem = items?.map((item) => {
@@ -739,7 +754,7 @@ const CartPage = () => {
                             onSuccess: () => {
                               setShowCheckoutModal(true);
                             },
-                          }
+                          },
                         );
                       }
                     }}
@@ -749,7 +764,7 @@ const CartPage = () => {
                     {addCartPending
                       ? "Processing..."
                       : `Proceed to Checkout • ₦${Math.round(
-                          updatedAmount
+                          updatedAmount,
                         ).toLocaleString()}`}
                   </button>
 
@@ -882,7 +897,7 @@ const CartPage = () => {
                         options={[{ value: "NG", label: "Nigeria" }]}
                         name="country"
                         value={[{ value: "NG", label: "Nigeria" }]?.find(
-                          (opt) => opt.value === values.country
+                          (opt) => opt.value === values.country,
                         )}
                         onChange={(selectedOption) =>
                           setFieldValue("country", selectedOption.value)
@@ -919,7 +934,7 @@ const CartPage = () => {
                           options={nigeriaStates}
                           name="state"
                           value={nigeriaStates?.find(
-                            (opt) => opt.value === values.state
+                            (opt) => opt.value === values.state,
                           )}
                           onChange={(selectedOption) =>
                             setFieldValue("state", selectedOption.value)

@@ -96,7 +96,8 @@ const CartPage = () => {
     totalStyleAmount -
     discountedPrice +
     delivery_fee +
-    estimatedVat;
+    estimatedVat +
+    charges;
 
   const actualWithoutDiscountAmount = totalAmount + totalStyleAmount;
 

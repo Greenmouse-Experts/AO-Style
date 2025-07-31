@@ -163,28 +163,28 @@ const SessionTestComponent = () => {
   };
 
   if (!isAuthenticated && !tokenInfo) {
-    return (
-      <div className="fixed bottom-4 right-4 bg-gray-800 text-white p-4 rounded-lg shadow-lg">
-        <p>Please log in to test session management</p>
-      </div>
-    );
+    // return (
+    //   // <div className="fixed bottom-4 right-4 bg-gray-800 text-white p-4 rounded-lg shadow-lg">
+    //   //   <p>Please log in to test session management</p>
+    //   // </div>
+    // );
   }
 
   return (
     <>
       {/* Toggle Button */}
-      <button
+      {/* <button
         onClick={() => setIsVisible(!isVisible)}
         className="fixed bottom-4 right-4 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 z-50"
         title="Toggle Session Test Panel"
       >
         🔧
-      </button>
+      </button> */}
 
       {/* Test Panel */}
-      {isVisible && (
-        <div className="fixed bottom-16 right-4 bg-white border-2 border-gray-300 rounded-lg shadow-xl p-4 w-96 max-h-96 overflow-y-auto z-40">
-          <div className="flex justify-between items-center mb-4">
+      {/* {isVisible && (
+        <div className="fixed bottom-16 right-4 bg-white border-2 border-gray-300 rounded-lg shadow-xl p-4 w-96 max-h-96 overflow-y-auto z-40"> */}
+      {/* <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-bold text-gray-800">
               Session Test Panel
             </h3>
@@ -194,10 +194,10 @@ const SessionTestComponent = () => {
             >
               ✕
             </button>
-          </div>
+          </div> */}
 
-          {/* Current Status */}
-          <div className="mb-4 p-3 bg-gray-50 rounded">
+      {/* Current Status */}
+      {/* <div className="mb-4 p-3 bg-gray-50 rounded">
             <h4 className="font-semibold text-gray-700 mb-2">Current Status</h4>
             <div className="text-sm space-y-1">
               <p>
@@ -227,10 +227,10 @@ const SessionTestComponent = () => {
                 </span>
               </p>
             </div>
-          </div>
+          </div> */}
 
-          {/* Token Info */}
-          {tokenInfo && (
+      {/* Token Info */}
+      {/* {tokenInfo && (
             <div className="mb-4 p-3 bg-blue-50 rounded">
               <h4 className="font-semibold text-blue-700 mb-2">
                 Token Details
@@ -280,10 +280,10 @@ const SessionTestComponent = () => {
                 </p>
               </div>
             </div>
-          )}
+          )} */}
 
-          {/* Debug Info */}
-          {tokenInfo && (
+      {/* Debug Info */}
+      {/* {tokenInfo && (
             <div className="mb-4 p-3 bg-yellow-50 rounded">
               <h4 className="font-semibold text-yellow-700 mb-2">
                 Debug Token Info
@@ -319,10 +319,10 @@ const SessionTestComponent = () => {
                 </p>
               </div>
             </div>
-          )}
+          )} */}
 
-          {/* Test Actions */}
-          <div className="mb-4 space-y-2">
+      {/* Test Actions */}
+      {/* <div className="mb-4 space-y-2">
             <h4 className="font-semibold text-gray-700">Test Actions</h4>
             <button
               onClick={createInstantExpiryToken}
@@ -360,17 +360,17 @@ const SessionTestComponent = () => {
             >
               🧪 Test API Request
             </button>
-          </div>
+          </div> */}
 
-          {/* Test Result */}
-          {testResult && (
+      {/* Test Result */}
+      {/* {testResult && (
             <div className="p-2 bg-yellow-50 border border-yellow-200 rounded text-sm">
               <p>{testResult}</p>
             </div>
-          )}
+          )} */}
 
-          {/* Instructions */}
-          <div className="mt-4 p-2 bg-gray-100 rounded text-xs text-gray-600">
+      {/* Instructions */}
+      {/* <div className="mt-4 p-2 bg-gray-100 rounded text-xs text-gray-600">
             <h5 className="font-semibold mb-1">Test Instructions:</h5>
             <ol className="list-decimal list-inside space-y-1">
               <li>
@@ -394,9 +394,9 @@ const SessionTestComponent = () => {
               </li>
               <li>Refresh the page to test token validation on startup</li>
             </ol>
-          </div>
-        </div>
-      )}
+          </div> */}
+      {/* </div>
+      )} */}
     </>
   );
 };

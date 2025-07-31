@@ -34,6 +34,7 @@ const useSignIn = (email, resendCodeMutate) => {
           "approvedByAdmin",
           data?.data?.data?.profile.approved_by_admin,
         );
+        console.log(data.data);
 
         // Store auth data in session manager
         setAuthData({
@@ -62,7 +63,7 @@ const useSignIn = (email, resendCodeMutate) => {
           "approvedByAdmin",
           data?.data?.data?.profile?.approved_by_admin,
         );
-        console.log(data.data.approved_by_admin);
+        console.log(data);
 
         // Store auth data in session manager
         setAuthData({

@@ -36,7 +36,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     Cookies.remove("token");
     window.location.replace("/login");
   };
-  const approvedByAdmin = getCookie("approvedByAdmin");
+  const approvedByAdmin = getCookie("isVerified");
   return (
     <div
       className="relative"

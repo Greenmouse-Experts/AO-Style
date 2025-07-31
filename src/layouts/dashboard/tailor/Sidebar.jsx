@@ -37,7 +37,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { toastSuccess } = useToast();
 
   const { carybinUser, logOut } = useCarybinUserStore();
-  const approvedByAdmin = getCookie("approvedByAdmin");
+  const approvedByAdmin = getCookie("isVerified");
 
   const handleSignOut = () => {
     toastSuccess("Logout Successfully");

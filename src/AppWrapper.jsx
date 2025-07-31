@@ -13,6 +13,8 @@ import SessionTestComponent from "./components/SessionTestComponent.jsx";
 import sessionManager from "./services/SessionManager.js";
 // Import your API service - adjust the path as needed
 import AuthService from "./services/api/auth/index.jsx";
+import { Cookie } from "lucide-react";
+import Cookies from "js-cookie";
 
 // Verification Banner Component
 const VerificationBanner = ({ onLogout, onGoToKYC }) => {
@@ -95,7 +97,8 @@ const AppWrapper = () => {
     if (parts.length === 2) return parts.pop().split(";").shift();
     return null;
   };
-
+  // const userTypeUrl = getCookie("currUserUrl");
+  // setUserType(userTypeUrl);
   // Get auth data to determine if user is logged in
   const authData = sessionManager.getAuthData();
   const isLoggedIn = !!authData;
@@ -153,6 +156,7 @@ const AppWrapper = () => {
 
       // Use KYC data from API instead of cookie
       if (kycData && !kycLoading && !kycError) {
+        Cookies.set("isVerified", kycData?.data?.data?.is_approved);
         // Adjust this based on the actual structure of your KYC API response
         const isApproved =
           kycData?.data?.data?.is_approved === true ||
@@ -187,6 +191,7 @@ const AppWrapper = () => {
       const userTypeUrl = getCookie("currUserUrl");
       if (userTypeUrl) {
         setUserType(userTypeUrl);
+        console.log(userType);
       }
     } catch (error) {
       console.error("Error checking approval status:", error);

@@ -100,7 +100,7 @@ const ViewCustomer = () => {
 
   const businessData = data?.data?.business;
 
-  console.log(businessData);
+  console.log(businessData?.id, "id");
 
   const navigate = useNavigate();
 

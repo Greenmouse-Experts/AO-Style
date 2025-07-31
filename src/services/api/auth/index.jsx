@@ -39,6 +39,9 @@ const acceptInvite = (payload) => {
 const refreshToken = (payload) => {
   return CaryBinApi.post(`/auth/refresh-token`, payload);
 };
+const getKycStatus = (payload) => {
+  return CaryBinApi.get(`/onboard/kyc`, payload);
+};
 
 const AuthService = {
   googleSignin,
@@ -51,6 +54,7 @@ const AuthService = {
   resendCode,
   acceptInvite,
   refreshToken,
+  getKycStatus,
 };
 
 export default AuthService;

@@ -49,8 +49,13 @@ const ViewFabricDetails = () => {
     setShowConfirmPassword(!showConfirmPassword);
 
   const handleProceed = () => {
-    if (activeTab === "personal") setActiveTab("business");
-    else if (activeTab === "business") setActiveTab("kyc");
+    if (activeTab === "personal") {
+      if (tailorInfo?.business_name) {
+        setActiveTab("business");
+      } else {
+        setActiveTab("kyc");
+      }
+    } else if (activeTab === "business") setActiveTab("kyc");
     else if (activeTab === "kyc") {
       // Handle KYC approval logic here
       approveKycMutate(
@@ -71,10 +76,16 @@ const ViewFabricDetails = () => {
 
   const handleBack = () => {
     if (activeTab === "business") setActiveTab("personal");
-    else if (activeTab === "kyc") setActiveTab("business");
+    else if (activeTab === "kyc") {
+      if (tailorInfo?.business_name) {
+        setActiveTab("business");
+      } else {
+        setActiveTab("personal");
+      }
+    }
   };
 
-  console.log("Tailor Info:", tailorInfo);
+  console.log("Tailor Info:", tailorInfo?.business_name);
 
   const { data: states, isLoading: loadingStates } = useStates(
     tailorInfo?.kyc?.country
@@ -105,16 +116,21 @@ const ViewFabricDetails = () => {
           >
             Personal Info
           </button>
-          <button
-            onClick={() => setActiveTab("business")}
-            className={`py-2 px-4 ${
-              activeTab === "business"
-                ? "text-purple-600 border-b-2 border-purple-600"
-                : "text-gray-500"
-            }`}
-          >
-            Business Info
-          </button>
+          {tailorInfo?.business_name ? (
+            <button
+              onClick={() => setActiveTab("business")}
+              className={`py-2 px-4 ${
+                activeTab === "business"
+                  ? "text-purple-600 border-b-2 border-purple-600"
+                  : "text-gray-500"
+              }`}
+            >
+              Business Info
+            </button>
+          ) : (
+            <></>
+          )}
+
           <button
             onClick={() => setActiveTab("kyc")}
             className={`py-2 px-4 ${
@@ -684,7 +700,9 @@ const ViewFabricDetails = () => {
               onClick={handleProceed}
               className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
             >
-              Proceed to Business Info
+              {tailorInfo?.business_name
+                ? "Proceed to Business Info"
+                : " Proceed to KYC"}
             </button>
           )}
           {activeTab === "business" && (

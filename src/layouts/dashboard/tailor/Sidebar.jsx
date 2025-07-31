@@ -50,7 +50,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     <div
       className="relative"
       style={
-        approvedByAdmin === "false"
+        approvedByAdmin?.is_approved === "false" ||
+        // approvedByAdmin?.is_approved === undefined ||
+        approvedByAdmin?.is_approved === null
           ? { pointerEvents: "none", opacity: 0.6 }
           : {}
       }

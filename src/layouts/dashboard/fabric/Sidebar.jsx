@@ -37,11 +37,14 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     window.location.replace("/login");
   };
   const approvedByAdmin = getCookie("isVerified");
+  const actualApprovedByAdmin = approvedByAdmin?.is_approved;
   return (
     <div
       className="relative"
       style={
-        approvedByAdmin === "false"
+        actualApprovedByAdmin === false ||
+        actualApprovedByAdmin === undefined ||
+        actualApprovedByAdmin === null
           ? { pointerEvents: "none", opacity: 0.6 }
           : {}
       }

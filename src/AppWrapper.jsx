@@ -5,7 +5,7 @@ import {
   requestNotificationPermission,
 } from "./notifications/firebase.js";
 import { onMessage } from "firebase/messaging";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import useToast from "./hooks/useToast.jsx";
 import useSessionManager from "./hooks/useSessionManager.jsx";
 import SessionExpiryModal from "./components/SessionExpiryModal.jsx";
@@ -158,15 +158,12 @@ const AppWrapper = () => {
       if (kycData && !kycLoading && !kycError) {
         Cookies.set("isVerified", kycData?.data?.data?.is_approved);
         // Adjust this based on the actual structure of your KYC API response
-        const isApproved =
-          kycData?.data?.data?.is_approved === true ||
-          kycData?.approved_by_admin === true ||
-          kycData?.data?.data?.approved_by_admin === true;
+        const isApproved = kycData?.data?.data?.is_approved === true;
 
         const isNonAdmin =
-          currentUserType &&
-          currentUserType !== "owner-super-administrator" &&
-          currentUserType !== "owner-administrator";
+          userType &&
+          userType !== "owner-super-administrator" &&
+          userType !== "owner-administrator";
 
         console.log("🔍 Checking approval status via API:");
         console.log("Current user type:", currentUserType);

@@ -605,16 +605,10 @@ export default function SignInAsCustomer() {
       </div>
     </div>
   );
+  //AGREEMENT MODAL
   function AgreementModal({ open, onClose }) {
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [isFullscreen, setIsFullscreen] = useState(false);
-    const [zoom, setZoom] = useState(100);
-
     useEffect(() => {
       if (open) {
-        setIsLoading(true);
-        setError(null);
         document.body.style.overflow = "hidden";
       } else {
         document.body.style.overflow = "unset";
@@ -622,26 +616,8 @@ export default function SignInAsCustomer() {
 
       const handleKeyDown = (event) => {
         if (!open) return;
-
-        switch (event.key) {
-          case "Escape":
-            onClose();
-            break;
-          case "=":
-          case "+":
-            if (event.ctrlKey || event.metaKey) {
-              event.preventDefault();
-              handleZoomIn();
-            }
-            break;
-          case "-":
-            if (event.ctrlKey || event.metaKey) {
-              event.preventDefault();
-              handleZoomOut();
-            }
-            break;
-          default:
-            break;
+        if (event.key === "Escape") {
+          onClose();
         }
       };
 
@@ -651,47 +627,13 @@ export default function SignInAsCustomer() {
         document.body.style.overflow = "unset";
         document.removeEventListener("keydown", handleKeyDown);
       };
-    }, [open]);
-
-    const handleDownload = () => {
-      const link = document.createElement("a");
-      link.href = agreementPdf;
-      link.download = "Agreement between Carybin and Fabric Vendors.pdf";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    };
-
-    const handleZoomIn = () => {
-      setZoom((prev) => Math.min(prev + 25, 200));
-    };
-
-    const handleZoomOut = () => {
-      setZoom((prev) => Math.max(prev - 25, 50));
-    };
-
-    const toggleFullscreen = () => {
-      setIsFullscreen(!isFullscreen);
-    };
-
-    const handleIframeLoad = () => {
-      setIsLoading(false);
-    };
-
-    const handleIframeError = () => {
-      setIsLoading(false);
-      setError("Failed to load PDF. Please try downloading the file instead.");
-    };
+    }, [open, onClose]);
 
     if (!open) return null;
 
     return (
-      <div className="h-screen fixed inset-0 z-[9999] bg-black/40 backdrop-blur-sm bg-opacity-75 flex items-center justify-center p-4">
-        <div
-          className={`fadeInUp bg-white rounded-lg shadow-2xl flex flex-col transition-all duration-300 ${
-            isFullscreen ? "w-full h-full" : "w-full max-w-6xl h-[90vh]"
-          }`}
-        >
+      <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col animate-fade-in-up">
           <style>
             {`
               @keyframes fadeInUp {
@@ -705,138 +647,322 @@ export default function SignInAsCustomer() {
                 }
               }
               .animate-fade-in-up {
-                animation: fadeInUp 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+                animation: fadeInUp 0.4s cubic-bezier(0.22, 1, 0.36, 1);
               }
             `}
           </style>
 
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b bg-gray-50 rounded-t-lg">
-            <div className="flex items-center space-x-4">
-              <h2 className="text-lg font-semibold text-[#2B21E5] truncate">
-                CARYBIN AND FABRIC VENDOR AGREEMENT
-              </h2>
-              <span className="text-sm text-gray-500">{zoom}%</span>
-            </div>
-
-            {/* Controls */}
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={handleZoomOut}
-                className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
-                title="Zoom Out"
-                disabled={zoom <= 50}
-              >
-                <ZoomOut
-                  size={18}
-                  className={zoom <= 50 ? "text-gray-400" : "text-gray-600"}
-                />
-              </button>
-
-              <button
-                onClick={handleZoomIn}
-                className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
-                title="Zoom In"
-                disabled={zoom >= 200}
-              >
-                <ZoomIn
-                  size={18}
-                  className={zoom >= 200 ? "text-gray-400" : "text-gray-600"}
-                />
-              </button>
-
-              {/* <button
-                onClick={handleDownload}
-                className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
-                title="Download PDF"
-              >
-                <Download size={18} className="text-gray-600" />
-              </button> */}
-
-              <button
-                onClick={toggleFullscreen}
-                className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
-                title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-              >
-                {isFullscreen ? (
-                  <Minimize2 size={18} className="text-gray-600" />
-                ) : (
-                  <Maximize2 size={18} className="text-gray-600" />
-                )}
-              </button>
-
-              <butto
-                onClick={onClose}
-                className="p-2 hover:bg-red-100 rounded-lg transition-colors"
-                title="Close"
-              >
-                <X size={18} className="text-red-600" />
-              </butto>
-            </div>
+          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-purple-600">
+              Service Level Agreement (SLA)
+            </h2>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Close"
+            >
+              <X size={20} className="text-gray-500" />
+            </button>
           </div>
 
           {/* Content */}
-          <div className="flex-1 relative overflow-hidden">
-            {isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
-                <div className="flex flex-col items-center space-y-4">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2B21E5]"></div>
-                  <p className="text-gray-600">Loading PDF...</p>
-                </div>
+          <div className="flex-1 overflow-y-auto p-6">
+            <div className="prose prose-sm max-w-none">
+              <div className="text-center mb-8">
+                <h1 className="text-2xl font-bold text-gray-800 mb-2">
+                  Service Level Agreement (SLA)
+                </h1>
+                <p className="text-lg text-gray-600">
+                  Between Carybin Limited and Fabric Vendors
+                </p>
+                <p className="text-sm text-gray-500 mt-2">
+                  <strong>Effective Date:</strong> [Upon Sign Up]
+                </p>
               </div>
-            )}
 
-            {error && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
-                <div className="text-center space-y-4">
-                  <div className="text-red-500 text-xl">⚠️</div>
-                  <p className="text-gray-600 max-w-md">{error}</p>
-                  <button
-                    onClick={handleDownload}
-                    className="px-4 py-2 bg-[#2B21E5] text-white rounded-lg hover:bg-purple-700 transition-colors"
-                  >
-                    Download PDF Instead
-                  </button>
+              <section className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                  Parties:
+                </h3>
+                <ol className="list-decimal list-inside space-y-1 ml-4">
+                  <li>
+                    <strong>E-Commerce Platform Host:</strong> [Carybin Limited]
+                  </li>
+                  <li>
+                    <strong>Fabric Vendors:</strong> [Insert Fabric Vendor
+                    Name/Business Name]
+                  </li>
+                </ol>
+              </section>
+
+              <section className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                  1. Purpose
+                </h3>
+                <p className="text-gray-700 leading-relaxed">
+                  This SLA defines the terms and conditions under which fabric
+                  vendors will supply fabrics to customers and tailors through
+                  the Carybin (Oastyles platform). It outlines performance
+                  standards, responsibilities, and remedies for service
+                  failures.
+                </p>
+              </section>
+
+              <section className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                  2. Scope
+                </h3>
+                <p className="text-gray-700 mb-3">
+                  This SLA covers the following services:
+                </p>
+                <ul className="list-disc list-inside space-y-1 ml-4 text-gray-700">
+                  <li>Supply of fabrics as per customer orders.</li>
+                  <li>Timely fulfillment and delivery of fabric orders.</li>
+                  <li>Quality assurance for supplied fabrics.</li>
+                  <li>Communication with customers and the platform.</li>
+                </ul>
+              </section>
+
+              <section className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                  3. Service Levels and Performance Metrics
+                </h3>
+
+                <div className="mb-4">
+                  <h4 className="font-semibold text-gray-800 mb-2">
+                    3.1 Order Acknowledgment
+                  </h4>
+                  <p className="text-gray-700 ml-4">
+                    Fabric vendors must acknowledge orders within{" "}
+                    <strong>2 hours</strong> of receipt.
+                  </p>
                 </div>
-              </div>
-            )}
 
-            <div
-              className="w-full h-full overflow-auto"
-              style={{
-                transform: `scale(${zoom / 100})`,
-                transformOrigin: "top left",
-                width: `${10000 / zoom}%`,
-                height: `${10000 / zoom}%`,
-              }}
-            >
-              <iframe
-                src={`https://gray-daphene-38.tiiny.site/Agreement-between-Carybin-and-Fabric-Vendors.pdf#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
-                className="w-full h-full border-0"
-                title="CARYBIN Fabric Vendor Agreement"
-                onLoad={handleIframeLoad}
-                onError={handleIframeError}
-                style={{
-                  minHeight: "600px",
-                }}
-              />
+                <div className="mb-4">
+                  <h4 className="font-semibold text-gray-800 mb-2">
+                    3.2 Order Fulfillment Time
+                  </h4>
+                  <p className="text-gray-700 mb-2 ml-4">
+                    Fabric orders must be filled and ready for pickup/delivery
+                    within the agreed timeframe:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 ml-8 text-gray-700">
+                    <li>
+                      <strong>Standard Orders:</strong> 2 hours.
+                    </li>
+                    <li>
+                      <strong>Express Orders:</strong> Immediately
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="mb-4">
+                  <h4 className="font-semibold text-gray-800 mb-2">
+                    3.3 Quality Standards
+                  </h4>
+                  <ul className="list-disc list-inside space-y-1 ml-4 text-gray-700">
+                    <li>
+                      Supplied fabrics must meet the quality standards as
+                      uploaded on the platform.
+                    </li>
+                    <li>
+                      Minimum defects are allowed (e.g., damage, incorrect
+                      fabric type, or colour).
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="mb-4">
+                  <h4 className="font-semibold text-gray-800 mb-2">
+                    3.4 Communication
+                  </h4>
+                  <p className="text-gray-700 ml-4">
+                    Fabric vendors must respond to customer inquiries or
+                    requests for updates within <strong>12 hours</strong>{" "}
+                    through the customer service.
+                  </p>
+                </div>
+              </section>
+
+              <section className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                  4. Responsibilities
+                </h3>
+
+                <div className="mb-4">
+                  <h4 className="font-semibold text-gray-800 mb-2">
+                    4.1 E-Commerce Platform Host
+                  </h4>
+                  <ul className="list-disc list-inside space-y-1 ml-4 text-gray-700">
+                    <li>
+                      Provide accurate customer orders and specifications to the
+                      fabric vendor.
+                    </li>
+                    <li>
+                      Handle customer complaints and disputes related to
+                      platform issues.
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="mb-4">
+                  <h4 className="font-semibold text-gray-800 mb-2">
+                    4.2 Fabric Vendors
+                  </h4>
+                  <ul className="list-disc list-inside space-y-1 ml-4 text-gray-700">
+                    <li>
+                      Supply high-quality fabrics as per customer orders and as
+                      uploaded on the platform.
+                    </li>
+                    <li>
+                      Ensure timely fulfillment and delivery of fabric orders.
+                    </li>
+                    <li>
+                      Communicate any delays or issues to customer service
+                      through the platform, WhatsApp, or contact form promptly.
+                    </li>
+                    <li>
+                      Package fabrics securely for pickup/delivery with
+                      allocated official Carybin branding materials.
+                    </li>
+                  </ul>
+                </div>
+              </section>
+
+              <section className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                  5. Dispute Resolution
+                </h3>
+                <p className="text-gray-700 leading-relaxed ml-4">
+                  Disputes related to fabric supply (e.g., quality, delays) will
+                  be resolved through the platforms despite the resolution
+                  mechanism and the fabric vendor hereby agrees to have read and
+                  therefore accepts the dispute resolution mechanism of the
+                  platform and any decision given by the platform hosts.
+                </p>
+              </section>
+
+              <section className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                  6. Penalties and Remedies
+                </h3>
+
+                <div className="mb-4">
+                  <h4 className="font-semibold text-gray-800 mb-2">
+                    6.1 Late Order Fulfillment
+                  </h4>
+                  <p className="text-gray-700 ml-4">
+                    For orders fulfilled after the agreed time frame, the fabric
+                    vendor will issue a <strong>10% discount</strong> on the
+                    order value.
+                  </p>
+                </div>
+
+                <div className="mb-4">
+                  <h4 className="font-semibold text-gray-800 mb-2">
+                    6.2 Defective Fabrics
+                  </h4>
+                  <ul className="list-disc list-inside space-y-1 ml-4 text-gray-700">
+                    <li>
+                      Defective fabrics will be replaced by the fabric vendor at
+                      no additional cost to the customer.
+                    </li>
+                    <li>
+                      If the defect cannot be resolved, the fabric vendor will
+                      issue a <strong>full refund</strong> for the order.
+                    </li>
+                    <li>
+                      Where the defective fabric is discovered by the tailor or
+                      customer end, the cost of logistics is applied to the
+                      vendor's account.
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="mb-4">
+                  <h4 className="font-semibold text-gray-800 mb-2">
+                    6.3 Failure to Communicate
+                  </h4>
+                  <p className="text-gray-700 ml-4">
+                    Failure to respond to customer inquiries through the
+                    platform host within the agreed timeframe will result in a{" "}
+                    <strong>5% penalty</strong> on the order value.
+                  </p>
+                </div>
+              </section>
+
+              <section className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                  7. Termination
+                </h3>
+                <ul className="list-disc list-inside space-y-1 ml-4 text-gray-700">
+                  <li>
+                    This platform host reserves the right to terminate this SLA
+                    may be terminated at any time with or without notice to the
+                    Fabric vendor provided that the Vendor is not being owed by
+                    the platform.
+                  </li>
+                  <li>Termination due to breach of terms will be immediate.</li>
+                </ul>
+              </section>
+
+              <section className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                  8. Amendments
+                </h3>
+                <p className="text-gray-700 leading-relaxed ml-4">
+                  Any changes to this SLA must be communicated to the Fabric
+                  Vendor and asked to give consent failure of which the Vendor's
+                  account may be suspended.
+                </p>
+              </section>
+
+              <section className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                  9. Governing Law
+                </h3>
+                <p className="text-gray-700 ml-4">
+                  This SLA is governed by the laws of Federal Republic of
+                  Nigeria
+                </p>
+              </section>
+
+              <section className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                  10. Withdrawals
+                </h3>
+                <p className="text-gray-700 leading-relaxed ml-4">
+                  The Fabric Vendor agrees to the platform's form policy of
+                  withdrawals on bi-weekly basis but subjects to the terms and
+                  conditions of the platform as maybe prescribed from time to
+                  time
+                </p>
+              </section>
+
+              <hr className="my-8 border-gray-300" />
+
+              <section className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                  11. Signatures
+                </h3>
+                <p className="text-gray-700 ml-4">
+                  By ticking the box below, the Vendor agrees to these terms and
+                  conditions outlined in this SLA.
+                </p>
+              </section>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between p-3 border-t bg-gray-50 text-sm text-gray-500 rounded-b-lg">
-            <div className="flex items-center space-x-4">
-              <span>Use mouse wheel or zoom controls to adjust size</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span>Press ESC to close • Ctrl/Cmd + Plus/Minus to zoom</span>
-              <button
-                onClick={onClose}
-                className="bg-gradient text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity"
-              >
-                Close
-              </button>
-            </div>
+          <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
+            <div className="text-sm text-gray-500">Press ESC to close</div>
+            <button
+              onClick={onClose}
+              className="bg-purple-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-purple-600 transition-colors"
+            >
+              Close
+            </button>
           </div>
         </div>
       </div>

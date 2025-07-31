@@ -51,10 +51,11 @@ export default function SignInAsCustomer() {
 
     if (isMobile) {
       // On mobile, open PDF directly in new tab
-      window.open(
-        "https://gray-daphene-38.tiiny.site/Agreement-between-Carybin-and-Tailor.pdf",
-        "_blank",
-      );
+      // window.open(
+      //   "https://gray-daphene-38.tiiny.site/Agreement-between-Carybin-and-Tailor.pdf",
+      //   "_blank",
+      // );
+      setShowAgreementModal(true);
     } else {
       // On desktop, show modal
       setShowAgreementModal(true);

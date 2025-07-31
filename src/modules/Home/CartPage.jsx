@@ -59,10 +59,11 @@ const CartPage = () => {
 
     if (isMobile) {
       // On mobile, open PDF directly in new tab
-      window.open(
-        "https://gray-daphene-38.tiiny.site/Checkout-agreement.pdf",
-        "_blank",
-      );
+      // window.open(
+      //   "https://gray-daphene-38.tiiny.site/Checkout-agreement.pdf",
+      //   "_blank",
+      // );
+      setShowPolicyModal(true);
     } else {
       // On desktop, show modal
       setShowPolicyModal(true);

@@ -1,4 +1,4 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import "react-phone-input-2/lib/style.css";
 import {
   messaging,
@@ -11,6 +11,8 @@ import useSessionManager from "./hooks/useSessionManager.jsx";
 import SessionExpiryModal from "./components/SessionExpiryModal.jsx";
 import SessionTestComponent from "./components/SessionTestComponent.jsx";
 import sessionManager from "./services/SessionManager.js";
+// Import your API service - adjust the path as needed
+import AuthService from "./services/api/auth/index.jsx";
 
 // Verification Banner Component
 const VerificationBanner = ({ onLogout, onGoToKYC }) => {
@@ -94,16 +96,48 @@ const AppWrapper = () => {
     return null;
   };
 
-  // Function to check admin approval status
+  // Get auth data to determine if user is logged in
+  const authData = sessionManager.getAuthData();
+  const isLoggedIn = !!authData;
+
+  // Query to fetch KYC status from API
+  const {
+    data: kycData,
+    isLoading: kycLoading,
+    error: kycError,
+  } = useQuery({
+    queryKey: ["kyc-status"],
+    queryFn: () => AuthService.getKycStatus(), // You'll need to add this method to your AuthService
+    enabled: isLoggedIn, // Only fetch if user is logged in and not admin
+    refetchInterval: 30000, // Refetch every 30 seconds (adjust as needed)
+    retry: 3,
+    staleTime: 10000, // Consider data stale after 10 seconds
+  });
+
+  // Helper function to check if user is admin
+  const isAdminUser = (authData) => {
+    if (!authData) return false;
+    const currentUserType =
+      authData.user?.role ||
+      authData.userType ||
+      authData.user?.userType ||
+      authData.role;
+    return (
+      currentUserType === "owner-super-administrator" ||
+      currentUserType === "owner-administrator"
+    );
+  };
+
+  // Function to check admin approval status using API data
   const checkApprovalStatus = () => {
     try {
-      const authData = sessionManager.getAuthData();
       if (!authData) {
         setNeedsVerification(false);
+        setUserType(null);
         return;
       }
 
-      // Get user type from auth data - try multiple possible locations
+      // Get user type from auth data
       const currentUserType =
         authData.user?.role ||
         authData.userType ||
@@ -112,42 +146,48 @@ const AppWrapper = () => {
       setUserType(currentUserType);
 
       // Skip verification check for admin users
-      if (
-        currentUserType === "owner-super-administrator" ||
-        currentUserType === "owner-administrator"
-      ) {
+      if (isAdminUser(authData)) {
         setNeedsVerification(false);
         return;
       }
 
-      // Get approvedByAdmin from cookie
-      const approvedByAdmin = getCookie("approvedByAdmin");
+      // Use KYC data from API instead of cookie
+      if (kycData && !kycLoading && !kycError) {
+        // Adjust this based on the actual structure of your KYC API response
+        const isApproved =
+          kycData?.data?.data?.is_approved === true ||
+          kycData?.approved_by_admin === true ||
+          kycData?.data?.data?.approved_by_admin === true;
+
+        const isNonAdmin =
+          currentUserType &&
+          currentUserType !== "owner-super-administrator" &&
+          currentUserType !== "owner-administrator";
+
+        console.log("🔍 Checking approval status via API:");
+        console.log("Current user type:", currentUserType);
+        console.log("KYC API response:", kycData);
+        console.log("Is approved:", isApproved);
+        console.log("Is non-admin:", isNonAdmin);
+        console.log("Needs verification:", isNonAdmin && !isApproved);
+
+        // Set verification status based on API response
+        if (isNonAdmin && !isApproved) {
+          setNeedsVerification(true);
+        } else {
+          setNeedsVerification(false);
+        }
+      } else if (kycError) {
+        console.error("Error fetching KYC status:", kycError);
+        // Fallback to not showing banner if API fails
+        setNeedsVerification(false);
+      }
+
+      // Get userType from cookie for URL routing (keep this for navigation)
       const userTypeUrl = getCookie("currUserUrl");
-      setNeedsVerification(approvedByAdmin);
-      setUserType(userTypeUrl);
-      // Debug logs
-      console.log("🔍 Checking approval status:");
-      console.log("Current user type:", currentUserType);
-      console.log("ApprovedByAdmin cookie:", approvedByAdmin);
-      console.log("Auth data:", authData);
-      console.log("All cookies:", document.cookie);
-
-      // Check if user needs verification (not admin and not approved)
-      const isApproved = approvedByAdmin === "true";
-      const isNonAdmin =
-        currentUserType &&
-        currentUserType !== "owner-super-administrator" &&
-        currentUserType !== "owner-administrator";
-
-      console.log("Is approved:", isApproved);
-      console.log("Is non-admin:", isNonAdmin);
-      console.log("Needs verification:", isNonAdmin && !isApproved);
-
-      // if (isNonAdmin && !isApproved) {
-      //   setNeedsVerification(true);
-      // } else {
-      //   setNeedsVerification(false);
-      // }
+      if (userTypeUrl) {
+        setUserType(userTypeUrl);
+      }
     } catch (error) {
       console.error("Error checking approval status:", error);
       setNeedsVerification(false);
@@ -158,7 +198,7 @@ const AppWrapper = () => {
   const handleLogout = () => {
     sessionManager.performLogout();
     setNeedsVerification(false);
-    window.location.href = "/login"; // Force redirect to login
+    window.location.href = "/login";
   };
 
   // Handle navigation to KYC page
@@ -206,25 +246,22 @@ const AppWrapper = () => {
     checkInitialAuth();
   }, []);
 
-  // Check approval status on mount and when auth changes
+  // Check approval status when KYC data changes
   useEffect(() => {
     checkApprovalStatus();
+  }, [kycData, kycLoading, kycError, authData]);
 
-    // Set up interval to check approval status periodically
-    const interval = setInterval(checkApprovalStatus, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Listen for cookie changes and URL changes
+  // Listen for auth changes and URL changes
   useEffect(() => {
     const handleStorageChange = () => {
-      checkApprovalStatus();
+      // Invalidate KYC query to refetch data
+      queryClient.invalidateQueries({ queryKey: ["kyc-status"] });
     };
 
-    // Also check when the URL changes (user navigates)
     const handleLocationChange = () => {
-      setTimeout(checkApprovalStatus, 100); // Small delay to ensure auth data is loaded
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["kyc-status"] });
+      }, 100);
     };
 
     window.addEventListener("storage", handleStorageChange);
@@ -234,9 +271,9 @@ const AppWrapper = () => {
       window.removeEventListener("storage", handleStorageChange);
       window.removeEventListener("popstate", handleLocationChange);
     };
-  }, []);
+  }, [queryClient]);
 
-  // Improved body styling management - only apply when banner should actually show
+  // Body styling management
   useEffect(() => {
     if (shouldShowBanner) {
       const originalOverflow = document.body.style.overflow;
@@ -245,13 +282,11 @@ const AppWrapper = () => {
       document.body.style.overflow = "hidden";
       document.body.style.paddingTop = "80px";
 
-      // Cleanup function to restore original styles
       return () => {
         document.body.style.overflow = originalOverflow;
         document.body.style.paddingTop = originalPaddingTop;
       };
     } else {
-      // Ensure styles are cleared when banner shouldn't show
       document.body.style.overflow = "";
       document.body.style.paddingTop = "";
     }
@@ -259,12 +294,12 @@ const AppWrapper = () => {
 
   return (
     <>
-      {/* Verification Banner - shows when user needs verification and not on settings page */}
+      {/* Verification Banner */}
       {shouldShowBanner && (
         <VerificationBanner onLogout={handleLogout} onGoToKYC={handleGoToKYC} />
       )}
 
-      {/* Main app content overlay - disable interactions when verification needed */}
+      {/* Main app content overlay */}
       {shouldShowBanner && (
         <style jsx global>{`
           body > div:first-child > * {

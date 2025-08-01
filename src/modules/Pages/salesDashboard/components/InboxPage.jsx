@@ -155,6 +155,19 @@ export default function InboxPage() {
         toastSuccess(data?.message || "Message delivered successfully");
       });
 
+      // Listen for user-specific message sent events
+      socketInstance.on(`messageSent:${userId}`, (data) => {
+        console.log("🎉 === SALES MESSAGE SENT EVENT RECEIVED === 🎉");
+        console.log("User ID:", userId);
+        console.log("Raw data:", data);
+        console.log("Formatted data:", JSON.stringify(data, null, 2));
+        console.log("Status:", data?.status);
+        console.log("Message:", data?.message);
+        console.log("Data object:", data?.data);
+        console.log("🎉 ========================================= 🎉");
+        toastSuccess(data?.message || "Message delivered successfully");
+      });
+
       socketInstance.on("chatsRetrieved", (data) => {
         console.log("=== SALES CHATS RETRIEVED ON LOAD ===");
         console.log("Full response:", JSON.stringify(data, null, 2));
@@ -227,6 +240,7 @@ export default function InboxPage() {
                 minute: "2-digit",
                 hour12: true,
               }),
+              timestamp: msg.created_at,
               type:
                 msg.initiator_id === currentSelectedChat?.chat_buddy?.id
                   ? "received"
@@ -235,7 +249,11 @@ export default function InboxPage() {
             }));
 
             console.log("Formatted messages with types:", formattedMessages);
-            setMessageList(formattedMessages);
+            // Sort messages by created_at (oldest first for chat display)
+            const sortedMessages = formattedMessages.sort(
+              (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
+            );
+            setMessageList(sortedMessages);
           }
         });
 
@@ -270,6 +288,7 @@ export default function InboxPage() {
                   minute: "2-digit",
                   hour12: true,
                 }),
+                timestamp: msg.created_at,
                 type:
                   msg.initiator_id === currentSelectedChat?.chat_buddy?.id
                     ? "received"
@@ -278,7 +297,11 @@ export default function InboxPage() {
               }));
 
               console.log("Formatted messages with types:", formattedMessages);
-              setMessageList(formattedMessages);
+              // Sort messages by created_at (oldest first for chat display)
+              const sortedMessages = formattedMessages.sort(
+                (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
+              );
+              setMessageList(sortedMessages);
             }
           });
         };
@@ -304,12 +327,15 @@ export default function InboxPage() {
               );
               if (existingChatIndex >= 0) {
                 const updatedChats = [...prevChats];
-                updatedChats[existingChatIndex] = {
+                const updatedChat = {
                   ...updatedChats[existingChatIndex],
                   last_message: data.data.last_message,
                   created_at: data.data.created_at,
+                  updated_at: data.data.updated_at || data.data.created_at,
                 };
-                return updatedChats;
+                // Remove from current position and add to top
+                updatedChats.splice(existingChatIndex, 1);
+                return [updatedChat, ...updatedChats];
               } else {
                 return [data.data, ...prevChats];
               }
@@ -333,7 +359,7 @@ export default function InboxPage() {
       }
 
       socketInstance.on("messagesRetrieved", (data) => {
-        console.log("=== SALES MESSAGES RETRIEVED ===");
+        console.log("=== SALES GENERAL MESSAGES RETRIEVED ===");
         console.log("Full response:", JSON.stringify(data, null, 2));
         console.log("Status:", data?.status);
         console.log("Messages array:", data?.data?.result);
@@ -353,6 +379,7 @@ export default function InboxPage() {
               minute: "2-digit",
               hour12: true,
             }),
+            timestamp: msg.created_at,
             type:
               msg.initiator_id === currentSelectedChat?.chat_buddy?.id
                 ? "received"
@@ -361,7 +388,11 @@ export default function InboxPage() {
           }));
 
           console.log("Formatted messages with types:", formattedMessages);
-          setMessageList(formattedMessages);
+          // Sort messages by created_at (oldest first for chat display)
+          const sortedMessages = formattedMessages.sort(
+            (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
+          );
+          setMessageList(sortedMessages);
         }
       });
 
@@ -379,12 +410,15 @@ export default function InboxPage() {
             );
             if (existingChatIndex >= 0) {
               const updatedChats = [...prevChats];
-              updatedChats[existingChatIndex] = {
+              const updatedChat = {
                 ...updatedChats[existingChatIndex],
                 last_message: data.data.last_message,
                 created_at: data.data.created_at,
+                updated_at: data.data.updated_at || data.data.created_at,
               };
-              return updatedChats;
+              // Remove from current position and add to top
+              updatedChats.splice(existingChatIndex, 1);
+              return [updatedChat, ...updatedChats];
             } else {
               return [data.data, ...prevChats];
             }
@@ -467,39 +501,74 @@ export default function InboxPage() {
   }, [socket, isConnected, selectedChat, userToken, userId]);
 
   const sendMessage = () => {
-    if (!newMessage.trim() || !socket || !selectedChat || !userId) {
-      if (!userId) {
-        toastError("User profile not loaded. Please wait...");
-      } else if (!selectedChat) {
-        toastError("Please select a chat first");
-      } else if (!newMessage.trim()) {
-        toastError("Please enter a message");
-      } else {
-        toastError("Socket not connected");
-      }
+    if (!newMessage.trim() || !selectedChat) return;
+
+    console.log("=== SALES SENDING MESSAGE VIA SOCKET ===");
+    console.log("Socket ID:", socket?.id);
+    console.log("Selected chat:", selectedChat.id);
+    console.log("Message:", newMessage);
+    console.log("Socket connected:", socket?.connected);
+    console.log("User ID from profile:", userId);
+    console.log("======================================");
+
+    if (!userId) {
+      toastError("User profile not loaded. Please wait and try again.");
       return;
     }
 
-    console.log("📤 === SENDING SALES MESSAGE ===");
-    console.log("Message:", newMessage);
-    console.log("Chat ID:", selectedChat.id);
-    console.log("User ID:", userId);
-    console.log("Socket connected:", socket.connected);
-    console.log("==============================");
+    if (socket && isConnected) {
+      const messageData = {
+        token: userToken,
+        chatBuddy: selectedChat.chat_buddy?.id || selectedChat.id,
+        message: newMessage.trim(),
+      };
 
-    const messageData = {
-      chatId: selectedChat.id,
-      message: newMessage,
-      userId: userId,
-    };
-
-    try {
+      console.log("Message data to send:", messageData);
       socket.emit("sendMessage", messageData);
-      console.log("✅ Message emitted successfully");
+
+      // Add message to local state immediately
+      const newMsg = {
+        id: Date.now(),
+        sender: "You",
+        text: newMessage.trim(),
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        }),
+        timestamp: new Date().toISOString(),
+        type: "sent",
+        read: true,
+      };
+      setMessageList((prev) => [...prev, newMsg]);
+
+      // Update chat list to move this chat to top with latest message
+      setChats((prevChats) => {
+        const currentChatIndex = prevChats.findIndex(
+          (chat) => chat.id === selectedChat.id,
+        );
+        if (currentChatIndex >= 0) {
+          const updatedChats = [...prevChats];
+          const updatedChat = {
+            ...updatedChats[currentChatIndex],
+            last_message: newMessage.trim(),
+            updated_at: new Date().toISOString(),
+          };
+          // Remove from current position and add to top
+          updatedChats.splice(currentChatIndex, 1);
+          return [updatedChat, ...updatedChats];
+        }
+        return prevChats;
+      });
       setNewMessage("");
-    } catch (error) {
-      console.error("❌ Error sending message:", error);
-      toastError("Failed to send message: " + error.message);
+      toastSuccess("Message sent successfully!");
+    } else {
+      console.error("=== SOCKET NOT CONNECTED ===");
+      console.error("Socket exists:", !!socket);
+      console.error("Is connected:", isConnected);
+      console.error("Socket state:", socket?.connected);
+      console.error("============================");
+      toastError("Socket not connected. Please check your connection.");
     }
   };
 
@@ -546,7 +615,7 @@ export default function InboxPage() {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading sales user profile...</p>
         </div>
       </div>
@@ -567,7 +636,7 @@ export default function InboxPage() {
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
           >
             Retry
           </button>
@@ -611,7 +680,7 @@ export default function InboxPage() {
             <input
               type="text"
               placeholder="Search conversations..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
         </div>
@@ -628,7 +697,7 @@ export default function InboxPage() {
                 key={chat.id}
                 onClick={() => handleChatClick(chat)}
                 className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
-                  selectedChat?.id === chat.id ? "bg-blue-50" : ""
+                  selectedChat?.id === chat.id ? "bg-purple-50" : ""
                 }`}
               >
                 <div className="flex items-center space-x-3">
@@ -643,19 +712,27 @@ export default function InboxPage() {
                         {chat.chat_buddy?.name || "Unknown User"}
                       </h3>
                       <span className="text-xs text-gray-500">
-                        {chat.last_message?.created_at
+                        {chat.updated_at || chat.created_at
                           ? new Date(
-                              chat.last_message.created_at,
+                              chat.updated_at || chat.created_at,
                             ).toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",
+                              hour12: true,
                             })
                           : ""}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-500 truncate">
-                      {chat.last_message?.message || "No messages yet"}
-                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-gray-500 truncate flex-1">
+                        {chat.last_message || "No messages yet"}
+                      </p>
+                      {chat.unread_count > 0 && (
+                        <span className="inline-flex items-center justify-center w-5 h-5 bg-red-500 text-white text-xs rounded-full ml-2">
+                          {chat.unread_count}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -713,20 +790,25 @@ export default function InboxPage() {
                     <div
                       className={`inline-block max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
                         message.type === "sent"
-                          ? "bg-blue-500 text-white"
+                          ? "bg-purple-500 text-white"
                           : "bg-white text-gray-900"
                       }`}
                     >
                       <p className="text-sm">{message.text}</p>
-                      <p
-                        className={`text-xs mt-1 ${
+                      <div
+                        className={`flex items-center justify-between mt-1 ${
                           message.type === "sent"
-                            ? "text-blue-100"
+                            ? "text-purple-100"
                             : "text-gray-500"
                         }`}
                       >
-                        {message.time}
-                      </p>
+                        <p className="text-xs">{message.time}</p>
+                        {message.type === "sent" && (
+                          <p className="text-xs ml-2">
+                            {message.read ? "✓✓" : "✓"}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))
@@ -768,7 +850,7 @@ export default function InboxPage() {
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="Type a message..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500"
                     disabled={!isConnected || !userId}
                   />
                 </div>
@@ -788,7 +870,7 @@ export default function InboxPage() {
                 <button
                   onClick={sendMessage}
                   disabled={!newMessage.trim() || !isConnected || !userId}
-                  className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  className="p-2 bg-purple-500 text-white rounded-full hover:bg-purple-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
                   <FaPaperPlane className="w-4 h-4" />
                 </button>
@@ -809,7 +891,7 @@ export default function InboxPage() {
               </p>
               <button
                 onClick={() => setShowSidebar(true)}
-                className="md:hidden mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                className="md:hidden mt-4 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
               >
                 Show Conversations
               </button>

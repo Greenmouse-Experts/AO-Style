@@ -49,20 +49,20 @@ export default function SavedMeasurementsDisplay({
   return (
     <div className="">
       {/* Header */}
-      <div className="flex justify-between my-10">
-        <div className="text-center ">
-          <h2 className="text-2xl font-medium text-purple-500">
+      <div className="flex flex-col gap-6 my-10 px-4">
+        <div className="text-center">
+          <h2 className="text-xl sm:text-2xl font-medium text-purple-500">
             Your Measurement
           </h2>
-          <div className="mt-2 w-64 h-0.5 bg-purple-500 mx-auto"></div>
+          <div className="mt-2 w-32 sm:w-64 h-0.5 bg-purple-500 mx-auto"></div>
         </div>
-        <div className=" flex justify-center">
+        <div className="flex justify-center">
           <SubmitStyleModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
           />
           <button
-            className="bg-purple-500 cursor-pointer hover:bg-purple-600 text-white font-medium py-3 px-12 rounded-md"
+            className="w-full max-w-sm bg-purple-500 cursor-pointer hover:bg-purple-600 text-white font-medium py-4 px-6 rounded-md"
             onClick={() => {
               if (item) {
                 setIsModalOpen(true);
@@ -79,7 +79,7 @@ export default function SavedMeasurementsDisplay({
                       },
                     },
                   },
-                  item
+                  item,
                 );
                 localStorage.removeItem("cart_id");
               } else {
@@ -96,7 +96,7 @@ export default function SavedMeasurementsDisplay({
                       },
                     },
                   },
-                  id
+                  id,
                 );
 
                 navigate("/shop");
@@ -110,168 +110,181 @@ export default function SavedMeasurementsDisplay({
       </div>
 
       {/* Measurement Cards */}
-      {measurementArr?.map((measurement, id) => (
-        <div key={measurement.id} className="mb-8 bg-purple-50 rounded-lg p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-medium">
-              {id + 1} - {measurement.customer_name}
-            </h3>
-            <div className="flex gap-2">
-              <button
-                className="p-2"
-                onClick={() => {
-                  setCurrMeasurement(measurement);
-                  onAddNewMeasurement();
-                }}
-              >
-                <Pencil className="w-5 h-5 text-gray-700" />
-              </button>
-              <button
-                className="p-2 cursor-pointer"
-                onClick={() => {
-                  removeMeasurementById(measurement.id);
-                }}
-              >
-                <Trash2 className="w-5 h-5 text-gray-700" />
-              </button>
+      <div className="px-4">
+        {measurementArr?.map((measurement, id) => (
+          <div
+            key={measurement.id}
+            className="mb-6 bg-purple-50 rounded-lg p-4 sm:p-6"
+          >
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-3">
+              <h3 className="text-base sm:text-lg font-medium">
+                {id + 1} - {measurement.customer_name}
+              </h3>
+              <div className="flex gap-2 justify-end">
+                <button
+                  className="p-2 bg-white rounded-md hover:bg-gray-50"
+                  onClick={() => {
+                    setCurrMeasurement(measurement);
+                    onAddNewMeasurement();
+                  }}
+                >
+                  <Pencil className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />
+                </button>
+                <button
+                  className="p-2 bg-white rounded-md hover:bg-gray-50 cursor-pointer"
+                  onClick={() => {
+                    removeMeasurementById(measurement.id);
+                  }}
+                >
+                  <Trash2 className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />
+                </button>
+              </div>
+            </div>
+
+            {/* Measurement Sections */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+              <div>
+                <h4 className="font-bold text-gray-700 mb-4 text-sm sm:text-base">
+                  Upper Body
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
+                    <span className="text-gray-800 text-sm">
+                      Bust Circumference:
+                    </span>
+                    <span className="font-medium text-sm">
+                      {measurement?.upper_body?.bust_circumference}{" "}
+                      {measurement?.upper_body?.bust_circumference_unit}
+                    </span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
+                    <span className="text-gray-800 text-sm">
+                      Shoulder Width:
+                    </span>
+                    <span className="font-medium text-sm">
+                      {measurement?.upper_body?.shoulder_width}{" "}
+                      {measurement?.upper_body?.shoulder_width_unit}
+                    </span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
+                    <span className="text-gray-800 text-sm">
+                      Armhole Circumference:
+                    </span>
+                    <span className="font-medium text-sm">
+                      {measurement?.upper_body?.armhole_circumference}{" "}
+                      {measurement?.upper_body?.armhole_circumference_unit}
+                    </span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
+                    <span className="text-gray-800 text-sm">
+                      Sleeve Length:
+                    </span>
+                    <span className="font-medium text-sm">
+                      {measurement?.upper_body?.sleeve_length}{" "}
+                      {measurement?.upper_body?.sleeve_length_unit}
+                    </span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
+                    <span className="text-gray-800 text-sm">
+                      Bicep Circumference:
+                    </span>
+                    <span className="font-medium text-sm">
+                      {measurement?.upper_body?.bicep_circumference}{" "}
+                      {measurement?.upper_body?.bicep_circumference_unit}
+                    </span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
+                    <span className="text-gray-800 text-sm">
+                      Wrist Circumference:
+                    </span>
+                    <span className="font-medium text-sm">
+                      {measurement?.upper_body?.waist_circumference}{" "}
+                      {measurement?.upper_body?.waist_circumference_unit}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-gray-700 mb-4 text-sm sm:text-base">
+                  Lower Body
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
+                    <span className="text-gray-800 text-sm">
+                      Waist Circumference:
+                    </span>
+                    <span className="font-medium text-sm">
+                      {measurement?.lower_body?.waist_circumference}{" "}
+                      {measurement?.lower_body?.waist_circumference_unit}
+                    </span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
+                    <span className="text-gray-800 text-sm">
+                      Hip Circumference:
+                    </span>
+                    <span className="font-medium text-sm">
+                      {measurement?.lower_body?.hip_circumference}{" "}
+                      {measurement?.lower_body?.hip_circumference_unit}
+                    </span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
+                    <span className="text-gray-800 text-sm">
+                      Thigh Circumference:
+                    </span>
+                    <span className="font-medium text-sm">
+                      {measurement?.lower_body?.thigh_circumference}{" "}
+                      {measurement?.lower_body?.thigh_circumference_unit}
+                    </span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
+                    <span className="text-gray-800 text-sm">
+                      Knee Circumference:
+                    </span>
+                    <span className="font-medium text-sm">
+                      {measurement?.lower_body?.knee_circumference}{" "}
+                      {measurement?.lower_body?.knee_circumference_unit}
+                    </span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
+                    <span className="text-gray-800 text-sm">
+                      Trouser Length:
+                    </span>
+                    <span className="font-medium text-sm">
+                      {measurement?.lower_body?.trouser_length}{" "}
+                      {measurement?.lower_body?.trouser_length_unit}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-gray-700 mb-4 text-sm sm:text-base">
+                  Full Body
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
+                    <span className="text-gray-800 text-sm">Height:</span>
+                    <span className="font-medium text-sm">
+                      {measurement?.full_body?.height}{" "}
+                      {measurement?.full_body?.height_unit}
+                    </span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
+                    <span className="text-gray-800 text-sm">
+                      Dress/Gown Length:
+                    </span>
+                    <span className="font-medium text-sm">
+                      {measurement?.full_body?.dress_length}{" "}
+                      {measurement?.full_body?.dress_length_unit}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-
-          {/* Measurement Sections */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <h4 className="font-bold text-gray-700 mb-4">Upper Body</h4>
-              <div className="space-y-4 mb-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-800">Bust Circumference :</span>
-                  <span className="font-medium">
-                    {measurement?.upper_body?.bust_circumference}{" "}
-                    {measurement?.upper_body?.bust_circumference_unit}
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-4 mb-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-800">Shoulder Width :</span>
-                  <span className="font-medium">
-                    {measurement?.upper_body?.shoulder_width}{" "}
-                    {measurement?.upper_body?.shoulder_width_unit}
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-4 mb-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-800">Armhole Circumference :</span>
-                  <span className="font-medium">
-                    {measurement?.upper_body?.armhole_circumference}{" "}
-                    {measurement?.upper_body?.armhole_circumference_unit}
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-4 mb-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-800">Sleeve Length :</span>
-                  <span className="font-medium">
-                    {measurement?.upper_body?.sleeve_length}{" "}
-                    {measurement?.upper_body?.sleeve_length_unit}
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-4 mb-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-800">Bicep Circumference:</span>
-                  <span className="font-medium">
-                    {measurement?.upper_body?.bicep_circumference}{" "}
-                    {measurement?.upper_body?.bicep_circumference_unit}
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-4 mb-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-800">Wrist Circumference :</span>
-                  <span className="font-medium">
-                    {measurement?.upper_body?.waist_circumference}{" "}
-                    {measurement?.upper_body?.waist_circumference_unit}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="font-bold text-gray-700 mb-4">Lower Body</h4>
-              <div className="space-y-4 mb-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-800">Waist Circumference :</span>
-                  <span className="font-medium">
-                    {measurement?.lower_body?.waist_circumference}{" "}
-                    {measurement?.lower_body?.waist_circumference_unit}
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-4 mb-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-800">Hip Circumference :</span>
-                  <span className="font-medium">
-                    {measurement?.lower_body?.hip_circumference}{" "}
-                    {measurement?.lower_body?.hip_circumference_unit}
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-4 mb-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-800">Thigh Circumference :</span>
-                  <span className="font-medium">
-                    {measurement?.lower_body?.thigh_circumference}{" "}
-                    {measurement?.lower_body?.thigh_circumference_unit}
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-4 mb-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-800">Knee Circumference :</span>
-                  <span className="font-medium">
-                    {measurement?.lower_body?.knee_circumference}{" "}
-                    {measurement?.lower_body?.knee_circumference_unit}
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-4 mb-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-800">
-                    Trouser Length (Waist to Ankle) :
-                  </span>
-                  <span className="font-medium">
-                    {measurement?.lower_body?.trouser_length}{" "}
-                    {measurement?.lower_body?.trouser_length_unit}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="font-bold text-gray-700 mb-4">Full Body</h4>
-              <div className="space-y-4 mb-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-800">Height :</span>
-                  <span className="font-medium">
-                    {measurement?.full_body?.height}{" "}
-                    {measurement?.full_body?.height_unit}
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-4 mb-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-800">Dress/Gown Length :</span>
-                  <span className="font-medium">
-                    {measurement?.full_body?.dress_length}{" "}
-                    {measurement?.full_body?.dress_length_unit}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
       {/* Add New Measurement Button */}
       {/* <div
@@ -363,7 +376,9 @@ export default function SavedMeasurementsDisplay({
                 className="bg-gradient text-white px-4 py-2"
                 onClick={() => {
                   setMeasurements((prev) =>
-                    prev.map((m) => (m.id === currentEdit.id ? currentEdit : m))
+                    prev.map((m) =>
+                      m.id === currentEdit.id ? currentEdit : m,
+                    ),
                   );
                   closeEditModal();
                 }}

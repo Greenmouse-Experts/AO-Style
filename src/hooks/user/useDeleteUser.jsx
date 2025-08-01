@@ -20,7 +20,7 @@ const useDeleteUser = () => {
 
       // Optimistically remove the user from all matching queries
       queries.forEach(([queryKey, queryData]) => {
-        if (queryData?.data) {
+        if (queryData?.data && Array.isArray(queryData.data)) {
           const updatedData = {
             ...queryData,
             data: queryData.data.filter((user) => user.id !== userId),
@@ -62,7 +62,9 @@ const useDeleteUser = () => {
       // Rollback optimistic updates on error
       if (context?.previousQueries) {
         context.previousQueries.forEach(([queryKey, queryData]) => {
-          queryClient.setQueryData(queryKey, queryData);
+          if (queryData) {
+            queryClient.setQueryData(queryKey, queryData);
+          }
         });
       }
 

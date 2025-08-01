@@ -13,14 +13,19 @@ const getUser = (id) => {
 const approveUserKyc = (payload) => {
   return CaryBinApi.patch(
     `/onboard/review-kyc/${payload.business_id}`,
-    payload
+    payload,
   );
+};
+
+const deleteUser = (id) => {
+  return CaryBinApi.delete(`/delete-user/${id}`);
 };
 
 const UserService = {
   getUsersByRole,
   getUser,
   approveUserKyc,
+  deleteUser,
 };
 
 export default UserService;

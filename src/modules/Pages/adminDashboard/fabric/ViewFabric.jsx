@@ -13,6 +13,7 @@ import useGetUser from "../../../../hooks/user/useGetSingleUser";
 import Loader from "../../../../components/ui/Loader";
 import { formatDateStr } from "../../../../lib/helper";
 import useGetFabricProduct from "../../../../hooks/fabric/useGetFabric";
+import useGetAdminFabricProduct from "../../../../hooks/fabric/useGetAdminFabricProduct";
 
 const catalogData = [
   {
@@ -102,6 +103,13 @@ const ViewFabric = () => {
   const businessData = data?.data?.business;
 
   console.log(businessData?.id);
+
+  const { data: getAllFabricFabricData, isPending: adminProductIsPending } =
+    useGetAdminFabricProduct({
+      business_id: businessData?.id,
+    });
+
+  console.log(getAllFabricFabricData, "fabricdata");
 
   const { data: getAllFabricData } = useGetFabricProduct({
     type: "FABRIC",

@@ -15,6 +15,7 @@ import useUpdateFabric from "../../../hooks/fabric/useUpdateFabric";
 import useCreateAdminFabricProduct from "../../../hooks/fabric/useCreateAdminFabricProduct";
 import useUpdateAdminFabric from "../../../hooks/fabric/useUpdateAdminFabric";
 import useToast from "../../../hooks/useToast";
+import useGetAdminBusinessDetails from "../../../hooks/settings/useGetAdmnBusinessInfo";
 
 const AddProduct = () => {
   const location = useLocation();
@@ -63,6 +64,7 @@ const AddProduct = () => {
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState("");
 
+  const { data: businessAdminDetails } = useGetAdminBusinessDetails();
   const { data: businessDetails } = useGetBusinessDetails();
 
   const increaseColorCount = () => {
@@ -79,7 +81,7 @@ const AddProduct = () => {
   );
 
   const { isPending: createAdminIsPending, createAdminFabricProductMutate } =
-    useCreateAdminFabricProduct();
+    useCreateAdminFabricProduct(businessAdminDetails?.data?.id);
 
   const { data } = useGetMarket({
     "pagination[limit]": 10000,

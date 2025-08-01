@@ -676,8 +676,10 @@ const SubscriptionsPlansTable = () => {
   };
 
   const totalPages = Math.ceil(
-    subscriptionRes?.count / (queryParams["pagination[limit]"] ?? 10)
+    subscriptionData?.count / (queryParams["pagination[limit]"] ?? 10)
   );
+
+  console.log(totalPages);
 
   return (
     <div className="bg-white p-6 rounded-xl overflow-x-auto">

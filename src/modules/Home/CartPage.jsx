@@ -282,8 +282,6 @@ const CartPage = () => {
     },
   });
 
-  console.log(carybinUser);
-
   return (
     <>
       <Breadcrumb
@@ -658,7 +656,7 @@ const CartPage = () => {
                       </span>
                     </div>
                     <div className="flex justify-between text-sm text-gray-700 mt-2">
-                      <span>Estimated sales VAT(7.5)</span>
+                      <span>Estimated sales VAT(7.5%)</span>
                       <span>
                         <span className="font-medium text-green-600">
                           ₦
@@ -670,7 +668,7 @@ const CartPage = () => {
                     </div>
 
                     <div className="flex justify-between text-sm text-gray-700 mt-2">
-                      <span>Charges(1.5)</span>
+                      <span>Charges(1.5%)</span>
                       <span>
                         <span className="font-medium text-green-600">
                           ₦{charges ? formatNumberWithCommas(charges ?? 0) : 0}
@@ -1035,7 +1033,7 @@ const CartPage = () => {
                       </span>
                     </div>
                     <div className="flex justify-between text-sm text-gray-700 mt-2">
-                      <span>Estimated sales VAT (7.5)</span>
+                      <span>Estimated sales VAT (7.5%)</span>
                       <span>
                         ₦
                         {estimatedVat
@@ -1045,7 +1043,7 @@ const CartPage = () => {
                     </div>
 
                     <div className="flex justify-between text-sm text-gray-700 mt-2">
-                      <span>Charges(1.5)</span>
+                      <span>Charges(1.5%)</span>
                       <span>
                         {" "}
                         ₦{charges ? formatNumberWithCommas(charges ?? 0) : 0}

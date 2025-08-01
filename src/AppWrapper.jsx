@@ -210,7 +210,10 @@ const AppWrapper = () => {
     needsVerification &&
     !isAdminUser() &&
     !window.location.pathname.includes("/settings") &&
-    (userType === "tailor" || userType === "fabric");
+    (userType === "tailor" ||
+      userType === "fabric" ||
+      userType === "logistics" ||
+      userType === "sales");
 
   useEffect(() => {
     if (

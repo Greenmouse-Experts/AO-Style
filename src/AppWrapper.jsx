@@ -44,11 +44,12 @@ const VerificationBanner = ({ onLogout, onGoToKYC }) => {
 
             <div>
               <h3 className="font-semibold text-lg">
-                Account Verification Required
+                KYC Verification Required
               </h3>
               <p className="text-sm opacity-90">
-                Your account needs admin approval to continue using the
-                platform. Please complete verification to proceed.
+                To continue using the platform, your account must be verified by
+                an admin. Please complete your KYC (Know Your Customer) process
+                to proceed.
               </p>
             </div>
           </div>
@@ -64,7 +65,7 @@ const VerificationBanner = ({ onLogout, onGoToKYC }) => {
               onClick={onGoToKYC}
               className="cursor-pointer px-6 py-2 bg-white text-purple-500 hover:bg-gray-100 rounded-lg font-semibold transition-all duration-200 text-sm shadow-md"
             >
-              Complete Verification
+              Complete KYC
             </button>
           </div>
         </div>

@@ -345,18 +345,34 @@ export default function StyleForm() {
     <>
       <div className="bg-white p-6 mb-6 rounded-lg">
         <h1 className="text-xl md:text-2xl font-medium mb-3">
-          {styleInfo ? "Edit" : "Add"} Styles
+          {styleInfo && !isAdminEditRoute
+            ? "Edit"
+            : isAdminEditRoute
+            ? "View"
+            : "Add"}{" "}
+          Styles
         </h1>
         <p className="text-gray-500 text-sm">
           <Link to="/tailor" className="text-blue-500 hover:underline">
             Dashboard
           </Link>{" "}
-          &gt; My Catalog &gt; Add Style
+          &gt; My Catalog &gt;{" "}
+          {styleInfo && !isAdminEditRoute
+            ? "Edit"
+            : isAdminEditRoute
+            ? "View"
+            : "Add"}{" "}
+          Style
         </p>
       </div>
       <div className="bg-white p-6 rounded-lg max-w-2xl">
         <h1 className="text-lg font-semibold text-black mb-4">
-          {styleInfo ? "Edit" : "Submit New"} Style
+          {styleInfo && !isAdminEditRoute
+            ? "Edit"
+            : isAdminEditRoute
+            ? "View"
+            : "Submit New"}{" "}
+          Style
         </h1>
 
         <div className="space-y-4">
@@ -887,30 +903,38 @@ export default function StyleForm() {
               isOpen={isModalOpen}
               onClose={() => setIsModalOpen(false)}
             />
-            <button
-              disabled={
-                isPending ||
-                uploadVideoIsPending ||
-                uploadFrontIsPending ||
-                uploadBackIsPending ||
-                uploadRightIsPending ||
-                uploadLeftIsPending ||
-                updateIsPending ||
-                updateAdminIsPending ||
-                createIsPending
-              }
-              type="submit"
-              className="bg-gradient text-white px-6 py-2 rounded w-full md:w-fit mt-4 cursor-pointer"
-            >
-              {isPending ||
-              updateIsPending ||
-              updateAdminIsPending ||
-              createIsPending
-                ? "Please wait..."
-                : styleInfo
-                ? "Edit Style"
-                : "Submit Style"}
-            </button>
+
+            {isAdminEditRoute ? (
+              <></>
+            ) : (
+              <>
+                {" "}
+                <button
+                  disabled={
+                    isPending ||
+                    uploadVideoIsPending ||
+                    uploadFrontIsPending ||
+                    uploadBackIsPending ||
+                    uploadRightIsPending ||
+                    uploadLeftIsPending ||
+                    updateIsPending ||
+                    updateAdminIsPending ||
+                    createIsPending
+                  }
+                  type="submit"
+                  className="bg-gradient text-white px-6 py-2 rounded w-full md:w-fit mt-4 cursor-pointer"
+                >
+                  {isPending ||
+                  updateIsPending ||
+                  updateAdminIsPending ||
+                  createIsPending
+                    ? "Please wait..."
+                    : styleInfo
+                    ? "Edit Style"
+                    : "Submit Style"}
+                </button>
+              </>
+            )}
           </form>
         </div>
       </div>

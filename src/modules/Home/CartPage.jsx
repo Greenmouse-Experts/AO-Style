@@ -281,8 +281,6 @@ const CartPage = () => {
     },
   });
 
-  console.log(items);
-
   return (
     <>
       <Breadcrumb
@@ -607,7 +605,10 @@ const CartPage = () => {
                                 email: carybinUser?.email,
                                 code: coupon,
                                 amount: (
-                                  totalAmount + totalStyleAmount
+                                  totalAmount +
+                                  totalStyleAmount +
+                                  delivery_fee +
+                                  estimatedVat
                                 )?.toString(),
                               },
                               {

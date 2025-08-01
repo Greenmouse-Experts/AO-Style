@@ -22,6 +22,8 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
+import ConfirmationModal from "../../../../components/ui/ConfirmationModal";
+import useDeleteUser from "../../../../hooks/user/useDeleteUser";
 import useToast from "../../../../hooks/useToast";
 
 const MarketsTable = () => {
@@ -31,6 +33,8 @@ const MarketsTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const [newCategory, setNewCategory] = useState();
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   const [type, setType] = useState("Add");
 
@@ -41,6 +45,7 @@ const MarketsTable = () => {
   };
 
   const { isPending: createIsPending, createMarketMutate } = useCreateMarket();
+  const { isPending: deleteUserIsPending, deleteUserMutate } = useDeleteUser();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
@@ -150,7 +155,7 @@ const MarketsTable = () => {
             };
           })
         : [],
-    [data?.data]
+    [data?.data],
   );
 
   const columns = useMemo(
@@ -204,7 +209,7 @@ const MarketsTable = () => {
         ),
       },
     ],
-    [openDropdown]
+    [openDropdown],
   );
 
   const [upload, setUpload] = useState(null);
@@ -245,7 +250,7 @@ const MarketsTable = () => {
               resetForm();
               setType("Add");
             },
-          }
+          },
         );
 
         // If editing an existing style category
@@ -269,7 +274,7 @@ const MarketsTable = () => {
               resetForm();
               setType("Add");
             },
-          }
+          },
         );
       } else {
         deleteMarketMutate(
@@ -282,7 +287,7 @@ const MarketsTable = () => {
               resetForm();
               setType("Add");
             },
-          }
+          },
         );
       }
     },
@@ -295,7 +300,7 @@ const MarketsTable = () => {
   const actionText = `${type}  Marketplace`;
 
   const totalPages = Math.ceil(
-    data?.count / (queryParams["pagination[limit]"] ?? 10)
+    data?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
   const handleExport = (e) => {
@@ -612,7 +617,7 @@ const MarketsTable = () => {
                               onSuccess: (data) => {
                                 setFieldValue(
                                   "multimedia_url",
-                                  data?.data?.data?.url
+                                  data?.data?.data?.url,
                                 );
                               },
                             });

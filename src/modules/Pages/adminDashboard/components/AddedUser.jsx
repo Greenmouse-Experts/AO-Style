@@ -12,6 +12,8 @@ import useGetAllUsersByRole from "../../../../hooks/admin/useGetAllUserByRole";
 import useDebounce from "../../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../../hooks/useUpdatedEffect";
 import useApproveMarketRep from "../../../../hooks/marketRep/useApproveMarketRep";
+import ConfirmationModal from "../../../../components/ui/ConfirmationModal";
+import useDeleteUser from "../../../../hooks/user/useDeleteUser";
 import useToast from "../../../../hooks/useToast";
 
 const NewlyAddedUsers = () => {
@@ -27,11 +29,15 @@ const NewlyAddedUsers = () => {
   const { isPending: approoveIsPending, approveMarketRepMutate } =
     useApproveMarketRep();
 
+  const { isPending: deleteIsPending, deleteUserMutate } = useDeleteUser();
+
   const [reason, setReason] = useState("");
 
   const { toastError } = useToast();
 
   const [suspendModalOpen, setSuspendModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   const [newCategory, setNewCategory] = useState();
 
@@ -75,11 +81,11 @@ const NewlyAddedUsers = () => {
   }, [debouncedSearchTerm]);
 
   const totalPages = Math.ceil(
-    getAllMarketRepData?.count / (queryParams["pagination[limit]"] ?? 10)
+    getAllMarketRepData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
   const totalallInvitePages = Math.ceil(
-    getAllInviteData?.count / (queryParams["pagination[limit]"] ?? 10)
+    getAllInviteData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
   const totalPageCount =
@@ -101,8 +107,28 @@ const NewlyAddedUsers = () => {
             };
           })
         : [],
-    [getAllMarketRepData?.data]
+    [getAllMarketRepData?.data],
   );
+
+  const handleDeleteUser = (user) => {
+    setUserToDelete(user);
+    setDeleteModalOpen(true);
+    setOpenDropdown(null);
+  };
+
+  const confirmDeleteUser = () => {
+    if (userToDelete) {
+      deleteUserMutate(userToDelete.id, {
+        onSuccess: () => {
+          setDeleteModalOpen(false);
+          setUserToDelete(null);
+        },
+        onError: () => {
+          // Error is handled in the hook
+        },
+      });
+    }
+  };
 
   const InviteData = useMemo(
     () =>
@@ -120,7 +146,7 @@ const NewlyAddedUsers = () => {
             };
           })
         : [],
-    [getAllInviteData?.data]
+    [getAllInviteData?.data],
   );
 
   // Toggle dropdown function
@@ -143,15 +169,15 @@ const NewlyAddedUsers = () => {
               row.profile?.approved_by_admin
                 ? "bg-green-100 text-green-600"
                 : row.profile?.approved_by_admin == null
-                ? "bg-yellow-100 text-yellow-600"
-                : "bg-red-100 text-red-600"
+                  ? "bg-yellow-100 text-yellow-600"
+                  : "bg-red-100 text-red-600"
             }`}
           >
             {row.profile?.approved_by_admin == null
               ? "Pending"
               : row.profile?.approved_by_admin
-              ? "Approved"
-              : "Rejected"}
+                ? "Approved"
+                : "Rejected"}
           </span>
         ),
       },
@@ -212,13 +238,19 @@ const NewlyAddedUsers = () => {
                 ) : (
                   <></>
                 )}
+                <button
+                  onClick={() => handleDeleteUser(row)}
+                  className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center"
+                >
+                  Delete Market Rep
+                </button>
               </div>
             )}
           </div>
         ),
       },
     ],
-    [toggleDropdown, openDropdown]
+    [toggleDropdown, openDropdown],
   );
 
   const inviteRepColumn = useMemo(
@@ -235,15 +267,15 @@ const NewlyAddedUsers = () => {
               row?.status == "active"
                 ? "bg-green-100 text-green-600"
                 : row?.status == "pending"
-                ? "bg-yellow-100 text-yellow-600"
-                : "bg-red-100 text-red-600"
+                  ? "bg-yellow-100 text-yellow-600"
+                  : "bg-red-100 text-red-600"
             }`}
           >
             {row?.status == "pending"
               ? "Pending"
               : row?.status == "active"
-              ? "Active"
-              : "Rejected"}
+                ? "Active"
+                : "Rejected"}
           </span>
         ),
       },
@@ -283,7 +315,7 @@ const NewlyAddedUsers = () => {
         ),
       },
     ],
-    [toggleDropdown, openDropdown]
+    [toggleDropdown, openDropdown],
   );
 
   // Close dropdown when clicking outside
@@ -463,7 +495,7 @@ const NewlyAddedUsers = () => {
               onSubmit={(e) => {
                 if (!navigator.onLine) {
                   toastError(
-                    "No internet connection. Please check your network."
+                    "No internet connection. Please check your network.",
                   );
                   return;
                 }
@@ -482,7 +514,7 @@ const NewlyAddedUsers = () => {
                       setNewCategory(null);
                       setReason("");
                     },
-                  }
+                  },
                 );
               }}
             >
@@ -512,13 +544,29 @@ const NewlyAddedUsers = () => {
                 {approoveIsPending
                   ? "Please wait..."
                   : newCategory?.profile?.approved_by_admin
-                  ? "Suspend"
-                  : "Unsuspend"}
+                    ? "Suspend"
+                    : "Unsuspend"}
               </button>
             </form>
           </div>
         </div>
       )}
+
+      {/* Delete User Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setUserToDelete(null);
+        }}
+        onConfirm={confirmDeleteUser}
+        title="Delete Market Representative"
+        message={`Are you sure you want to delete ${userToDelete?.name}? This action cannot be undone and will permanently remove the market representative from the system.`}
+        confirmText="Delete Market Rep"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={deleteIsPending}
+      />
     </div>
   );
 };

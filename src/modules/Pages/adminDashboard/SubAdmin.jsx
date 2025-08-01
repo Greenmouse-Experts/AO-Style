@@ -19,6 +19,8 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
+import ConfirmationModal from "../../../components/ui/ConfirmationModal";
+import useDeleteUser from "../../../hooks/user/useDeleteUser";
 import useToast from "../../../hooks/useToast";
 
 const CustomersTable = () => {
@@ -33,6 +35,8 @@ const CustomersTable = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const [suspendModalOpen, setSuspendModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   const handleDropdownToggle = (id) => {
     setOpenDropdown(openDropdown === id ? null : id);
@@ -78,7 +82,7 @@ const CustomersTable = () => {
             };
           })
         : [],
-    [getAllAdminData?.data]
+    [getAllAdminData?.data],
   );
 
   const [newCategory, setNewCategory] = useState();
@@ -178,12 +182,38 @@ const CustomersTable = () => {
               >
                 Remove Admin
               </button>
+              <button
+                onClick={() => handleDeleteUser(row)}
+                className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center"
+              >
+                Delete Admin
+              </button>
             </div>
           )}
         </div>
       ),
     },
   ];
+
+  const handleDeleteUser = (user) => {
+    setUserToDelete(user);
+    setDeleteModalOpen(true);
+    setOpenDropdown(null);
+  };
+
+  const confirmDeleteUser = () => {
+    if (userToDelete) {
+      deleteUserMutate(userToDelete.id, {
+        onSuccess: () => {
+          setDeleteModalOpen(false);
+          setUserToDelete(null);
+        },
+        onError: () => {
+          // Error is handled in the hook
+        },
+      });
+    }
+  };
 
   const toggleDropdown = (rowId) => {
     setOpenDropdown(openDropdown === rowId ? null : rowId);
@@ -200,11 +230,13 @@ const CustomersTable = () => {
   }, []);
 
   const totalPages = Math.ceil(
-    getAllAdminData?.count / (queryParams["pagination[limit]"] ?? 10)
+    getAllAdminData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
   const { isPending: deleteIsPending, deleteSubAdminMutate } =
     useDeleteSubAdmin();
+
+  const { isPending: deleteUserIsPending, deleteUserMutate } = useDeleteUser();
 
   const { data: businessDetails } = useGetBusinessDetails();
 
@@ -502,7 +534,7 @@ const CustomersTable = () => {
               onSubmit={(e) => {
                 if (!navigator.onLine) {
                   toastError(
-                    "No internet connection. Please check your network."
+                    "No internet connection. Please check your network.",
                   );
                   return;
                 }
@@ -516,7 +548,7 @@ const CustomersTable = () => {
                       setIsAddModalOpen(false);
                       setNewCategory(null);
                     },
-                  }
+                  },
                 );
               }}
             >
@@ -580,7 +612,7 @@ const CustomersTable = () => {
               onSubmit={(e) => {
                 if (!navigator.onLine) {
                   toastError(
-                    "No internet connection. Please check your network."
+                    "No internet connection. Please check your network.",
                   );
                   return;
                 }
@@ -599,7 +631,7 @@ const CustomersTable = () => {
                       setNewCategory(null);
                       setReason("");
                     },
-                  }
+                  },
                 );
               }}
             >
@@ -629,13 +661,29 @@ const CustomersTable = () => {
                 {suspendIsPending || approoveIsPending
                   ? "Please wait..."
                   : newCategory?.profile?.approved_by_admin
-                  ? "Suspend"
-                  : "Unsuspend"}
+                    ? "Suspend"
+                    : "Unsuspend"}
               </button>
             </form>
           </div>
         </div>
       )}
+
+      {/* Delete User Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setUserToDelete(null);
+        }}
+        onConfirm={confirmDeleteUser}
+        title="Delete Sub Admin"
+        message={`Are you sure you want to delete ${userToDelete?.name}? This action cannot be undone and will permanently remove the sub admin from the system.`}
+        confirmText="Delete Admin"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={deleteUserIsPending}
+      />
     </>
   );
 };

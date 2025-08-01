@@ -63,6 +63,7 @@ const WalletPage = () => {
       <div className="mt-6 text-center">
         <WithdrawalModal
           isOpen={isModalOpen}
+          businessWallet={businessData?.data?.business_wallet}
           onClose={() => setIsModalOpen(false)}
         />
         <button

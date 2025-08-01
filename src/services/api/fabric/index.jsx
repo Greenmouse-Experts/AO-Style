@@ -8,8 +8,12 @@ const createFabricProduct = (payload, business_id) => {
   });
 };
 
-const createAdminFabricProduct = (payload) => {
-  return CaryBinApi.post(`/manage-fabric/create`, payload, {});
+const createAdminFabricProduct = (payload, business_id) => {
+  return CaryBinApi.post(`/manage-fabric/create`, payload, {
+    headers: {
+      "Business-id": business_id,
+    },
+  });
 };
 
 const getFabricProduct = (params) => {

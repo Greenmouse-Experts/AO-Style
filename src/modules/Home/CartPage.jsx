@@ -113,8 +113,7 @@ const CartPage = () => {
     totalStyleAmount -
     discountedPrice +
     delivery_fee +
-    estimatedVat +
-    charges;
+    estimatedVat;
 
   const actualWithoutDiscountAmount = totalAmount + totalStyleAmount;
 
@@ -667,14 +666,14 @@ const CartPage = () => {
                       </span>
                     </div>
 
-                    <div className="flex justify-between text-sm text-gray-700 mt-2">
+                    {/* <div className="flex justify-between text-sm text-gray-700 mt-2">
                       <span>Charges(1.5%)</span>
                       <span>
                         <span className="font-medium text-green-600">
                           ₦{charges ? formatNumberWithCommas(charges ?? 0) : 0}
                         </span>
                       </span>
-                    </div>
+                    </div> */}
                     <div className="border-t border-gray-200 pt-3">
                       <div className="flex justify-between">
                         <span className="text-base font-semibold text-gray-900">
@@ -1042,13 +1041,13 @@ const CartPage = () => {
                       </span>
                     </div>
 
-                    <div className="flex justify-between text-sm text-gray-700 mt-2">
+                    {/* <div className="flex justify-between text-sm text-gray-700 mt-2">
                       <span>Charges(1.5%)</span>
                       <span>
                         {" "}
                         ₦{charges ? formatNumberWithCommas(charges ?? 0) : 0}
                       </span>
-                    </div>
+                    </div> */}
 
                     <div className="flex justify-between text-lg font-medium text-gray-700 mt-2">
                       <span>TOTAL</span>

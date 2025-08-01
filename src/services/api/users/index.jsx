@@ -18,7 +18,7 @@ const approveUserKyc = (payload) => {
 };
 
 const deleteUser = (id) => {
-  return CaryBinApi.delete(`/delete-user/${id}`);
+  return CaryBinApi.delete(`/auth/delete-user/${id}`);
 };
 
 const UserService = {

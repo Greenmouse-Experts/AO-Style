@@ -117,18 +117,10 @@ const AppWrapper = () => {
     staleTime: 10000, // Consider data stale after 10 seconds
   });
 
-  // Helper function to check if user is admin
-  const isAdminUser = (authData) => {
-    if (!authData) return false;
-    const currentUserType =
-      authData.user?.role ||
-      authData.userType ||
-      authData.user?.userType ||
-      authData.role;
-    return (
-      currentUserType === "owner-super-administrator" ||
-      currentUserType === "owner-administrator"
-    );
+  // Helper function to check if user is admin using currUserUrl cookie
+  const isAdminUser = () => {
+    const userTypeUrl = getCookie("currUserUrl");
+    return userTypeUrl === "admin" || userTypeUrl === "super-admin";
   };
 
   // Function to check admin approval status using API data
@@ -149,7 +141,7 @@ const AppWrapper = () => {
       setUserType(currentUserType);
 
       // Skip verification check for admin users
-      if (isAdminUser(authData)) {
+      if (isAdminUser()) {
         setNeedsVerification(false);
         return;
       }
@@ -173,7 +165,12 @@ const AppWrapper = () => {
         console.log("Needs verification:", isNonAdmin && !isApproved);
 
         // Set verification status based on API response
-        if (isNonAdmin && !isApproved) {
+        // Show banner only if user is non-admin AND (not approved OR kycData.data.data is null)
+        if (
+          isNonAdmin &&
+          !isAdminUser() &&
+          (!isApproved || kycData?.data?.data === null)
+        ) {
           setNeedsVerification(true);
         } else {
           setNeedsVerification(false);
@@ -211,6 +208,7 @@ const AppWrapper = () => {
   // Check if we should show the verification banner
   const shouldShowBanner =
     needsVerification &&
+    !isAdminUser() &&
     !window.location.pathname.includes("/settings") &&
     (userType === "tailor" || userType === "fabric");
 

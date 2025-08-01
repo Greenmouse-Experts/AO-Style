@@ -14,16 +14,43 @@ import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useToast from "../../../hooks/useToast";
 import Cookies from "js-cookie";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import AuthService from "../../../services/api/auth";
+import sessionManager from "../../../services/SessionManager";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
+  // Get auth data to determine if user is logged in
+  const authData = sessionManager.getAuthData();
+  const isLoggedIn = !!authData;
+
+  // Helper function to check if user is admin using currUserUrl cookie
   const getCookie = (name) => {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(";").shift();
     return null;
   };
+
+  const isAdminUser = () => {
+    const userTypeUrl = getCookie("currUserUrl");
+    return userTypeUrl === "admin" || userTypeUrl === "super-admin";
+  };
+
+  // Query to fetch KYC status from API
+  const {
+    data: kycData,
+    isLoading: kycLoading,
+    error: kycError,
+  } = useQuery({
+    queryKey: ["kyc-status"],
+    queryFn: () => AuthService.getKycStatus(),
+    enabled: isLoggedIn && !isAdminUser(),
+    refetchInterval: 30000,
+    retry: 3,
+    staleTime: 10000,
+  });
 
   const handleClick = () => {
     window.scrollTo(0, 0);
@@ -37,7 +64,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { toastSuccess } = useToast();
 
   const { carybinUser, logOut } = useCarybinUserStore();
-  const approvedByAdmin = getCookie("isVerified");
 
   const handleSignOut = () => {
     toastSuccess("Logout Successfully");
@@ -46,15 +72,17 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     window.location.replace("/login");
   };
 
+  // Determine if sidebar should be disabled based on KYC approval status
+  // Admin users should never have disabled sidebar
+  const isApproved = kycData?.data?.data?.is_approved === true;
+  const shouldDisableSidebar =
+    !isAdminUser() && !kycLoading && !kycError && !isApproved;
+
   return (
     <div
       className="relative"
       style={
-        approvedByAdmin?.is_approved === "false" ||
-        // approvedByAdmin?.is_approved === undefined ||
-        approvedByAdmin?.is_approved === null
-          ? { pointerEvents: "none", opacity: 0.6 }
-          : {}
+        shouldDisableSidebar ? { pointerEvents: "none", opacity: 0.6 } : {}
       }
     >
       {/* Sidebar */}

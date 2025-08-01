@@ -281,6 +281,8 @@ const CartPage = () => {
     },
   });
 
+  console.log(items);
+
   return (
     <>
       <Breadcrumb
@@ -615,6 +617,7 @@ const CartPage = () => {
                                   );
                                 },
                                 onError: () => {
+                                  setCoupon("");
                                   setDiscountedPrice("0");
                                 },
                               },

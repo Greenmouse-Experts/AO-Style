@@ -418,18 +418,34 @@ const AddProduct = () => {
     <>
       <div className="bg-white px-6 py-4 mb-6 relative">
         <h1 className="text-2xl font-medium mb-3">
-          {productInfo ? "Edit" : "Add"} Product
+          {productInfo && !isAdminEditFabricRoute
+            ? "Edit"
+            : isAdminEditFabricRoute
+            ? "View"
+            : "Add"}{" "}
+          Product
         </h1>
         <p className="text-gray-500">
           <Link to="/fabric" className="text-blue-500 hover:underline">
             Dashboard
           </Link>{" "}
-          &gt; My Product &gt; {productInfo ? "Edit" : "Add"} Product
+          &gt; My Product &gt;{" "}
+          {productInfo && !isAdminEditFabricRoute
+            ? "Edit"
+            : isAdminEditFabricRoute
+            ? "View"
+            : "Add"}{" "}
+          Product
         </p>
       </div>
       <div className="bg-white p-6 rounded-xl overflow-x-auto">
         <h2 className="text-lg font-semibold mb-6">
-          {productInfo ? "Edit" : "Add"} Product
+          {productInfo && !isAdminEditFabricRoute
+            ? "Edit"
+            : isAdminEditFabricRoute
+            ? "View"
+            : "Add"}{" "}
+          Product
         </h2>
 
         <form className="" onSubmit={handleSubmit}>
@@ -1182,34 +1198,41 @@ const AddProduct = () => {
             </div>
 
             {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={
-                isPending ||
-                uploadVideoIsPending ||
-                updateIsPending ||
-                closeUpViewIsPending ||
-                spreadOutViewIsPending ||
-                manufacturersIsPending ||
-                fabricIsPending ||
-                createAdminIsPending ||
-                updateAdminIsPending
-              }
-              className="mt-6 w-full cursor-pointer py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-md hover:opacity-90"
-            >
-              {isPending ||
-              updateIsPending ||
-              closeUpViewIsPending ||
-              spreadOutViewIsPending ||
-              manufacturersIsPending ||
-              fabricIsPending ||
-              createAdminIsPending ||
-              updateAdminIsPending
-                ? "Please wait..."
-                : productInfo
-                ? "Update Fabric"
-                : "Upload Fabric"}
-            </button>
+            {isAdminEditFabricRoute ? (
+              <></>
+            ) : (
+              <>
+                {" "}
+                <button
+                  type="submit"
+                  disabled={
+                    isPending ||
+                    uploadVideoIsPending ||
+                    updateIsPending ||
+                    closeUpViewIsPending ||
+                    spreadOutViewIsPending ||
+                    manufacturersIsPending ||
+                    fabricIsPending ||
+                    createAdminIsPending ||
+                    updateAdminIsPending
+                  }
+                  className="mt-6 w-full cursor-pointer py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-md hover:opacity-90"
+                >
+                  {isPending ||
+                  updateIsPending ||
+                  closeUpViewIsPending ||
+                  spreadOutViewIsPending ||
+                  manufacturersIsPending ||
+                  fabricIsPending ||
+                  createAdminIsPending ||
+                  updateAdminIsPending
+                    ? "Please wait..."
+                    : productInfo
+                    ? "Update Fabric"
+                    : "Upload Fabric"}
+                </button>
+              </>
+            )}
           </div>
         </form>
       </div>

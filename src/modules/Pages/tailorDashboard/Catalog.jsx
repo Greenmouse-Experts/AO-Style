@@ -399,7 +399,7 @@ export default function StylesTable() {
                         </button>
                         {openDropdown === style.id && (
                           <div className="absolute cursor-pointer right-0 mt-2 bg-white shadow-md rounded-md py-2 w-32 z-50">
-                            {!isAdminStyleRoute ? (
+                            {!isAdminStyleRoute || isAdminStyleRoute ? (
                               <Link
                                 to={
                                   isAdminStyleRoute
@@ -409,7 +409,7 @@ export default function StylesTable() {
                                 state={{ info: style }}
                                 className="block  cursor-pointer w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
                               >
-                                Edit
+                                {isAdminStyleRoute ? "View" : "Edit"}
                               </Link>
                             ) : currProd == "all" ? (
                               <></>

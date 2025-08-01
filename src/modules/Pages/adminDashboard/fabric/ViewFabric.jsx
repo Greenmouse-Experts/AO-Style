@@ -292,7 +292,13 @@ const ViewFabric = () => {
                     {updateAdminIsPending ? "Please wait" : "Draft Product"}
                   </button>
                 ) : null}
-
+                <Link
+                  state={{ info: row }}
+                  to={"/admin/fabric/edit-product"}
+                  className="block cursor-pointer text-center px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
+                >
+                  {"View Product"}
+                </Link>
                 <button
                   onClick={() => {
                     setNewCategory(row);

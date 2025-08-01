@@ -360,8 +360,6 @@ const ProductPage = () => {
     doc.save("MyProducts.pdf");
   };
 
-  console.log(currProd);
-
   const { toastError } = useToast();
 
   return (

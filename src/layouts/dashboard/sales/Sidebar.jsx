@@ -13,6 +13,9 @@ import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useToast from "../../../hooks/useToast";
 import Cookies from "js-cookie";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import AuthService from "../../../services/api/auth";
+import sessionManager from "../../../services/SessionManager";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { carybinUser, logOut } = useCarybinUserStore();
@@ -21,6 +24,37 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const navigate = useNavigate();
   const { toastSuccess } = useToast();
 
+  // Get auth data to determine if user is logged in
+  const authData = sessionManager.getAuthData();
+  const isLoggedIn = !!authData;
+
+  // Helper function to check if user is admin using currUserUrl cookie
+  const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+    return null;
+  };
+
+  const isAdminUser = () => {
+    const userTypeUrl = getCookie("currUserUrl");
+    return userTypeUrl === "admin" || userTypeUrl === "super-admin";
+  };
+
+  // Query to fetch KYC status from API
+  const {
+    data: kycData,
+    isLoading: kycLoading,
+    error: kycError,
+  } = useQuery({
+    queryKey: ["kyc-status"],
+    queryFn: () => AuthService.getKycStatus(),
+    enabled: isLoggedIn && !isAdminUser(),
+    refetchInterval: 30000,
+    retry: 3,
+    staleTime: 10000,
+  });
+
   const handleSignOut = () => {
     toastSuccess("Logout Successfully");
     logOut();
@@ -28,8 +62,19 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     window.location.replace("/login");
   };
 
+  // Determine if sidebar should be disabled based on KYC approval status
+  // Admin users should never have disabled sidebar
+  const isApproved = kycData?.data?.data?.is_approved === true;
+  const shouldDisableSidebar =
+    !isAdminUser() && !kycLoading && !kycError && !isApproved;
+
   return (
-    <div className="relative">
+    <div
+      className="relative"
+      style={
+        shouldDisableSidebar ? { pointerEvents: "none", opacity: 0.6 } : {}
+      }
+    >
       {/* Sidebar */}
       <div
         className={`fixed lg:relative top-0 left-0 h-screen bg-gradient p-5 flex flex-col transition-transform duration-300 z-40 ${

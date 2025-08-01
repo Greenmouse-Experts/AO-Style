@@ -20,7 +20,6 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
 import ConfirmationModal from "../../../components/ui/ConfirmationModal";
-import useDeleteUser from "../../../hooks/user/useDeleteUser";
 import useToast from "../../../hooks/useToast";
 
 const CustomersTable = () => {
@@ -172,7 +171,7 @@ const CustomersTable = () => {
                 </>
               )}
 
-              <button
+              {/* <button
                 onClick={() => {
                   setNewCategory(row);
                   setIsAddModalOpen(true);
@@ -181,7 +180,7 @@ const CustomersTable = () => {
                 className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center"
               >
                 Remove Admin
-              </button>
+              </button> */}
               <button
                 onClick={() => handleDeleteUser(row)}
                 className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center"
@@ -203,15 +202,20 @@ const CustomersTable = () => {
 
   const confirmDeleteUser = () => {
     if (userToDelete) {
-      deleteUserMutate(userToDelete.id, {
-        onSuccess: () => {
-          setDeleteModalOpen(false);
-          setUserToDelete(null);
+      deleteSubAdminMutate(
+        {
+          id: userToDelete.id,
         },
-        onError: () => {
-          // Error is handled in the hook
+        {
+          onSuccess: () => {
+            setDeleteModalOpen(false);
+            setUserToDelete(null);
+          },
+          onError: () => {
+            // Error is handled in the hook
+          },
         },
-      });
+      );
     }
   };
 
@@ -235,8 +239,6 @@ const CustomersTable = () => {
 
   const { isPending: deleteIsPending, deleteSubAdminMutate } =
     useDeleteSubAdmin();
-
-  const { isPending: deleteUserIsPending, deleteUserMutate } = useDeleteUser();
 
   const { data: businessDetails } = useGetBusinessDetails();
 
@@ -682,7 +684,7 @@ const CustomersTable = () => {
         confirmText="Delete Admin"
         cancelText="Cancel"
         type="danger"
-        isLoading={deleteUserIsPending}
+        isLoading={deleteIsPending}
       />
     </>
   );

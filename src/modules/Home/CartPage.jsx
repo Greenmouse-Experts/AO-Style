@@ -262,8 +262,6 @@ const CartPage = () => {
     },
   });
 
-  console.log(items);
-
   return (
     <>
       <Breadcrumb

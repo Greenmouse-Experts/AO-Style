@@ -71,6 +71,13 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             text="My Catalog"
             onClick={handleClick}
           />
+
+          <SidebarItem
+            to="/tailor/orders"
+            icon={<FaStar />}
+            text="Orders"
+            onClick={handleClick}
+          />
           {/* <SidebarItem
             to="/tailor/coupons"
             icon={<FaClipboardList />}

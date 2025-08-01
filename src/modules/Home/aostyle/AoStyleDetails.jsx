@@ -320,8 +320,8 @@ export default function AnkaraGownPage() {
         <div>
           <div className="p-2 sm:p-6">
             {/* Conditionally render the Fabric section */}
-            {item ? (
-              <div className="bg-[#FFF2FF] p-4 rounded-lg mb-6">
+            {/* {item ? ( */}
+            {/* <div className="bg-[#FFF2FF] p-4 rounded-lg mb-6">
                 <h2 className="text-sm font-medium text-gray-500 mb-4">
                   FABRIC
                 </h2>
@@ -343,10 +343,10 @@ export default function AnkaraGownPage() {
                     </p>
                   </div>
                 </div>
-              </div>
-            ) : (
+              </div> */}
+            {/* ) : (
               <></>
-            )}
+            )} */}
 
             <div className="flex flex-col md:flex-row gap-4 md:gap-6 max-w-6xl mx-auto p-2 sm:p-4">
               {/* Image Gallery */}
@@ -580,7 +580,7 @@ export default function AnkaraGownPage() {
                       setCurrMeasurement(null);
                       setSelectedTab("Upper Body");
                     }}
-                    className="w-full max-w-sm bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-8 rounded-lg transition-colors"
+                    className="cursor-pointer w-full max-w-sm bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-8 rounded-lg transition-colors"
                   >
                     Add New Measurement
                   </button>

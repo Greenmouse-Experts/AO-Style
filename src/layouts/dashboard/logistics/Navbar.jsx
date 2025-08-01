@@ -131,7 +131,7 @@ export default function Navbar({ toggleSidebar }) {
 
       {isAddModalOpen && (
         <div
-          className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
+          className="fixed inset-0 flex justify-center items-center z-[999] backdrop-blur-sm"
           onClick={() => {
             setIsAddModalOpen(false);
           }}

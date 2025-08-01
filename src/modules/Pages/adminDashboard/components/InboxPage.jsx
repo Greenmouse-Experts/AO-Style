@@ -303,11 +303,8 @@ export default function InboxPage() {
             }
           });
 
-          // Only auto-refresh messages if this chat is currently selected AND it's the same chat buddy
-          if (
-            currentSelectedChat &&
-            currentSelectedChat.chat_buddy?.id === data.data.chat_buddy?.id
-          ) {
+          // Auto-refresh messages if this chat is currently selected
+          if (currentSelectedChat && currentSelectedChat.id === data.data.id) {
             console.log(
               "🔄 Auto-refreshing messages for currently selected admin chat",
             );
@@ -480,11 +477,8 @@ export default function InboxPage() {
             }
           });
 
-          // Auto-refresh messages if this chat is currently selected AND it's the same chat buddy
-          if (
-            currentSelectedChat &&
-            currentSelectedChat.chat_buddy?.id === data.data.chat_buddy?.id
-          ) {
+          // Auto-refresh messages if this chat is currently selected
+          if (currentSelectedChat && currentSelectedChat.id === data.data.id) {
             console.log(
               "🔄 Auto-refreshing messages for currently selected admin chat (general event)",
             );

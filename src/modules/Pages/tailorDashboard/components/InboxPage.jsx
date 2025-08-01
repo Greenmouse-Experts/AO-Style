@@ -160,8 +160,21 @@ export default function InboxPage() {
         toastSuccess(data?.message || "Message delivered successfully");
       });
 
+      // Listen for user-specific message sent events
+      socketInstance.on(`messageSent:${userId}`, (data) => {
+        console.log("🎉 === TAILOR MESSAGE SENT EVENT RECEIVED === 🎉");
+        console.log("User ID:", userId);
+        console.log("Raw data:", data);
+        console.log("Formatted data:", JSON.stringify(data, null, 2));
+        console.log("Status:", data?.status);
+        console.log("Message:", data?.message);
+        console.log("Data object:", data?.data);
+        console.log("🎉 ========================================= 🎉");
+        toastSuccess(data?.message || "Message delivered successfully");
+      });
+
       socketInstance.on("chatsRetrieved", (data) => {
-        console.log("=== CHATS RETRIEVED ON LOAD ===");
+        console.log("=== TAILOR CHATS RETRIEVED ON LOAD ===");
         console.log("Full response:", JSON.stringify(data, null, 2));
         console.log("Status:", data?.status);
         console.log("Message:", data?.message);
@@ -182,12 +195,14 @@ export default function InboxPage() {
         console.log(
           `🎯 Setting up user-specific event listeners for user: ${userId}`,
         );
-        console.log(`🎯 Listening for: chatsRetrieved.${userId}`);
-        console.log(`🎯 Listening for: messagesRetrieved.${userId}`);
-        console.log(`🎯 Listening for: recentChatRetrieved.${userId}`);
+        console.log(`🎯 Listening for: chatsRetrieved:${userId}`);
+        console.log(`🎯 Listening for: messagesRetrieved:${userId}`);
+        console.log(`🎯 Listening for: recentChatRetrieved:${userId}`);
 
         socketInstance.on(`chatsRetrieved:${userId}`, (data) => {
-          console.log(`=== USER-SPECIFIC CHATS RETRIEVED (${userId}) ===`);
+          console.log(
+            `=== TAILOR USER-SPECIFIC CHATS RETRIEVED (${userId}) ===`,
+          );
           console.log("Full response:", JSON.stringify(data, null, 2));
           console.log("Status:", data?.status);
           console.log("Message:", data?.message);
@@ -204,7 +219,9 @@ export default function InboxPage() {
         });
 
         socketInstance.on(`messagesRetrieved:${userId}`, (data) => {
-          console.log(`=== USER-SPECIFIC MESSAGES RETRIEVED (${userId}) ===`);
+          console.log(
+            `=== TAILOR USER-SPECIFIC MESSAGES RETRIEVED (${userId}) ===`,
+          );
           console.log("Full response:", JSON.stringify(data, null, 2));
           console.log("Status:", data?.status);
           console.log("Messages array:", data?.data?.result);
@@ -244,7 +261,7 @@ export default function InboxPage() {
 
           socketInstance.on(eventName, (data) => {
             console.log(
-              `=== CHAT-SPECIFIC MESSAGES RETRIEVED (${chatId}:${userId}) ===`,
+              `=== TAILOR CHAT-SPECIFIC MESSAGES RETRIEVED (${chatId}:${userId}) ===`,
             );
             console.log("Full response:", JSON.stringify(data, null, 2));
             console.log("Status:", data?.status);
@@ -330,7 +347,7 @@ export default function InboxPage() {
       }
 
       socketInstance.on("messagesRetrieved", (data) => {
-        console.log("=== MESSAGES RETRIEVED ===");
+        console.log("=== TAILOR MESSAGES RETRIEVED ===");
         console.log("Full response:", JSON.stringify(data, null, 2));
         console.log("Status:", data?.status);
         console.log("Messages array:", data?.data?.result);
@@ -363,7 +380,7 @@ export default function InboxPage() {
       });
 
       socketInstance.on("recentChatRetrieved", (data) => {
-        console.log("=== TAILOR RECENT CHAT RETRIEVED ===");
+        console.log("=== TAILOR GENERAL RECENT CHAT RETRIEVED ===");
         console.log("Chat data:", JSON.stringify(data, null, 2));
         console.log("====================================");
 
@@ -390,7 +407,7 @@ export default function InboxPage() {
           // Auto-refresh messages if this chat is currently selected
           if (currentSelectedChat && currentSelectedChat.id === data.data.id) {
             console.log(
-              "🔄 Auto-refreshing messages for currently selected tailor chat",
+              "🔄 Auto-refreshing messages for currently selected tailor chat (general event)",
             );
             socketInstance.emit("retrieveMessages", {
               token: userToken,
@@ -401,7 +418,7 @@ export default function InboxPage() {
       });
 
       socketInstance.on("connect_error", (error) => {
-        console.error("=== CUSTOMER SOCKET CONNECTION ERROR ===");
+        console.error("=== TAILOR SOCKET CONNECTION ERROR ===");
         console.error("Error:", error);
         console.error("Error message:", error.message);
         console.error("========================================");

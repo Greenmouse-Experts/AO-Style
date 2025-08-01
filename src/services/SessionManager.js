@@ -353,7 +353,7 @@ class SessionManager {
         );
         this.handleSessionExpiry();
       }
-    }, 30000); // Check every 30 seconds
+    }, 3600000); // Check every 1 hour (3600000 ms)
   }
 }
 

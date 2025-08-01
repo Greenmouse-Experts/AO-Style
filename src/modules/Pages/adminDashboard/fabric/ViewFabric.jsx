@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import ReusableTable from "../components/ReusableTable";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
@@ -11,9 +11,18 @@ import {
 } from "lucide-react";
 import useGetUser from "../../../../hooks/user/useGetSingleUser";
 import Loader from "../../../../components/ui/Loader";
-import { formatDateStr } from "../../../../lib/helper";
+import { formatDateStr, formatNumberWithCommas } from "../../../../lib/helper";
 import useGetFabricProduct from "../../../../hooks/fabric/useGetFabric";
 import useGetAdminFabricProduct from "../../../../hooks/fabric/useGetAdminFabricProduct";
+import useUpdateAdminFabric from "../../../../hooks/fabric/useUpdateAdminFabric";
+import { FaEllipsisH } from "react-icons/fa";
+import useDebounce from "../../../../hooks/useDebounce";
+import useUpdatedEffect from "../../../../hooks/useUpdatedEffect";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import { CSVLink } from "react-csv";
 
 const catalogData = [
   {
@@ -104,9 +113,26 @@ const ViewFabric = () => {
 
   console.log(businessData?.id);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
+
+  const [newCategory, setNewCategory] = useState();
+
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  const [status, setStatus] = useState(undefined);
+
+  const [queryString, setQueryString] = useState("");
+
+  const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
+
   const { data: getAllFabricFabricData, isPending: adminProductIsPending } =
     useGetAdminFabricProduct({
       business_id: businessData?.id,
+      "pagination[page]": currentPage,
+      "pagination[limit]": pageSize,
+      status,
+      q: debouncedSearchTerm.trim() || undefined,
     });
 
   console.log(getAllFabricFabricData, "fabricdata");
@@ -116,12 +142,22 @@ const ViewFabric = () => {
     id: businessData?.id,
   });
 
-  console.log(getAllFabricData);
+  const { isPending: updateAdminIsPending, updateAdminFabricMutate } =
+    useUpdateAdminFabric();
+
+  console.log(getAllFabricData, "all fabric");
 
   const [catalogFilter, setCatalogFilter] = useState("all");
   const [ordersFilter, setOrdersFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [openDropdown, setOpenDropdown] = useState(null);
+
+  const toggleDropdown = (id) => {
+    setOpenDropdown(openDropdown === id ? null : id);
+  };
+
+  const dropdownRef = useRef(null);
+
   const [catalogPage, setCatalogPage] = useState(1);
   const [ordersPage, setOrdersPage] = useState(1);
   const itemsPerPage = 4;
@@ -141,61 +177,133 @@ const ViewFabric = () => {
       order.orderId.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const catalogColumns = [
-    { label: "S/N", key: "id" },
-    {
-      label: "Thumbnail Image ",
-      key: "thumbnail",
-      render: (thumbnail) => (
-        <img src={thumbnail} alt="style" className="w-15 h-15 rounded-md" />
-      ),
-    },
-    { label: "Style Name", key: "styleName" },
-    { label: "Categories", key: "category" },
-    { label: "Sewing Time", key: "sewingTime" },
-    { label: "Price", key: "price" },
-    {
-      label: "Status ",
-      key: "status",
-      render: (status) => (
-        <span className="px-3 py-1 text-sm rounded-full bg-green-100 text-green-700">
-          {status}
-        </span>
-      ),
-    },
-    {
-      label: "Action",
-      key: "action",
-      render: (_, row) => (
-        <div className="relative">
-          <button
-            onClick={() =>
-              setOpenDropdown(
-                openDropdown === `catalog-${row.id}`
-                  ? null
-                  : `catalog-${row.id}`
-              )
-            }
-            className="px-2 py-1 cursor-pointer rounded-md text-gray-600"
+  const columns = useMemo(
+    () => [
+      { label: "SKU", key: "sku" },
+      { label: "Product Name", key: "name" },
+      {
+        label: "Image",
+        key: "image",
+        render: (image, row) => (
+          <div>
+            {row?.fabric?.photos[0] ? (
+              <img
+                src={row?.fabric?.photos[0]}
+                alt="product"
+                className="w-10 h-10 rounded"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded bg-gray-300 flex items-center justify-center font-medium text-white">
+                {row?.name?.charAt(0).toUpperCase() || "?"}
+              </div>
+            )}
+          </div>
+        ),
+      },
+      { label: "Category", key: "category" },
+      { label: "Price", key: "price" },
+      { label: "Qty", key: "qty" },
+      {
+        label: "Status",
+        key: "status",
+        render: (status) => (
+          <span
+            className={`px-3 py-1 text-sm rounded-full ${
+              status === "PUBLISHED"
+                ? "bg-green-100 text-green-700"
+                : status === "Cancelled"
+                ? "bg-red-100 text-red-700"
+                : "bg-yellow-100 text-yellow-700"
+            }`}
           >
-            •••
-          </button>
-          {openDropdown === `catalog-${row.id}` && (
-            <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
-              <Link to={`/tailor/catalog/${row.id}`}>
-                <button className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
-                  View Details
+            {status}
+          </span>
+        ),
+      },
+      {
+        label: "Action",
+        key: "action",
+        render: (_, row) => (
+          <div className="relative" ref={dropdownRef}>
+            <button
+              className="text-gray-500 px-3 py-1 cursor-pointer rounded-md"
+              onClick={() => toggleDropdown(row.id)}
+            >
+              <FaEllipsisH />
+            </button>
+            {openDropdown === row.id && (
+              <div className="absolute cursor-pointer right-0 mt-2 w-40 bg-white rounded-md z-10">
+                {row?.status === "DRAFT" ? (
+                  <button
+                    onClick={() => {
+                      updateAdminFabricMutate(
+                        {
+                          id: row?.id,
+                          product: {
+                            name: row?.name,
+                            sku: row?.sku,
+                            category_id: row?.category_id,
+                            status: "PUBLISHED",
+                            approval_status: "PUBLISHED",
+                          },
+                        },
+                        {
+                          onSuccess: () => {
+                            setOpenDropdown(null);
+                          },
+                        }
+                      );
+                    }}
+                    className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
+                  >
+                    {updateAdminIsPending ? "Please wait" : "Publish Product"}
+                  </button>
+                ) : null}
+                {row?.status === "PUBLISHED" ? (
+                  <button
+                    onClick={() => {
+                      updateAdminFabricMutate(
+                        {
+                          id: row?.id,
+                          product: {
+                            name: row?.name,
+                            sku: row?.sku,
+                            category_id: row?.category_id,
+                            status: "DRAFT",
+                            approval_status: "DRAFT",
+                          },
+                        },
+                        {
+                          onSuccess: () => {
+                            setOpenDropdown(null);
+                          },
+                        }
+                      );
+                    }}
+                    className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
+                  >
+                    {updateAdminIsPending ? "Please wait" : "Draft Product"}
+                  </button>
+                ) : null}
+
+                <button
+                  onClick={() => {
+                    setNewCategory(row);
+                    setIsAddModalOpen(true);
+                    setOpenDropdown(null);
+                  }}
+                  className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full"
+                >
+                  Remove Product
                 </button>
-              </Link>
-              <button className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
-                Edit Style
-              </button>
-            </div>
-          )}
-        </div>
-      ),
-    },
-  ];
+              </div>
+            )}
+          </div>
+        ),
+      },
+    ],
+    [openDropdown, toggleDropdown]
+  );
 
   const ordersColumns = [
     { label: "S/N", key: "id" },
@@ -339,6 +447,28 @@ const ViewFabric = () => {
     [openDropdown, businessData]
   );
 
+  const FabricData = useMemo(
+    () =>
+      getAllFabricFabricData?.data
+        ? getAllFabricFabricData?.data?.map((details) => {
+            return {
+              ...details,
+              category_id: `${details?.category?.id ?? ""}`,
+              name: `${details?.name ?? ""}`,
+              category: `${details?.category?.name ?? ""}`,
+              qty: `${details?.fabric?.quantity ?? ""}`,
+              price: `${formatNumberWithCommas(details?.price ?? 0)}`,
+              created_at: `${
+                details?.created_at
+                  ? formatDateStr(details?.created_at.split(".").shift())
+                  : ""
+              }`,
+            };
+          })
+        : [],
+    [getAllFabricFabricData]
+  );
+
   const customerData = React.useMemo(
     () => [
       {
@@ -386,20 +516,63 @@ const ViewFabric = () => {
     setOrdersPage(1);
   }, [ordersFilter]);
 
+  const handleExport = (e) => {
+    const value = e.target.value;
+    if (value === "excel") exportToExcel();
+    if (value === "pdf") exportToPDF();
+    if (value === "csv") document.getElementById("csvDownload").click();
+  };
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(FabricData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const blob = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    saveAs(blob, "FabricProducts.xlsx");
+  };
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    autoTable(doc, {
+      head: [["SKU", "Product Name", "Category", "Price", "Qty", "Status"]],
+      body: FabricData?.map((row) => [
+        row.sku,
+        row.name,
+        row.category,
+        row.qty,
+        row.status,
+      ]),
+      headStyles: {
+        fillColor: [209, 213, 219],
+        textColor: [0, 0, 0],
+        halign: "center",
+        valign: "middle",
+        fontSize: 10,
+      },
+    });
+    doc.save("FabricProducts.pdf");
+  };
+
   // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      // Only close if the click is outside any dropdown or dropdown button
-      if (
-        !event.target.closest(".dropdown-menu") &&
-        !event.target.closest(".dropdown-trigger")
-      ) {
-        setOpenDropdown(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  // useEffect(() => {
+  //   const handleClickOutside = (event) => {
+  //     // Only close if the click is outside any dropdown or dropdown button
+  //     if (
+  //       !event.target.closest(".dropdown-menu") &&
+  //       !event.target.closest(".dropdown-trigger")
+  //     ) {
+  //       setOpenDropdown(null);
+  //     }
+  //   };
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   return () => document.removeEventListener("mousedown", handleClickOutside);
+  // }, []);
   if (isPending) {
     return (
       <div className="m-auto flex h-[80vh] items-center justify-center">
@@ -632,21 +805,34 @@ const ViewFabric = () => {
       {/* Tailor/Designer Catalog */}
       <div className="bg-white p-6 rounded-lg mb-6">
         <h2 className="font-medium text-gray-800 mb-4">
-          Tailor/Designer Catalog
+          Fabric Vendor Products
         </h2>
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pb-3 mb-4 gap-4">
           <div className="flex flex-wrap justify-center sm:justify-start gap-3 text-gray-600 text-sm font-medium">
             {["all", "published", "unpublished"].map((tab) => (
               <button
                 key={tab}
-                onClick={() => setCatalogFilter(tab)}
+                onClick={() => {
+                  setCatalogFilter(tab);
+
+                  if (tab === "all") {
+                    setStatus(undefined);
+                  }
+                  if (tab === "published") {
+                    setStatus("PUBLISHED");
+                  }
+
+                  if (tab === "unpublished") {
+                    setStatus("DRAFT");
+                  }
+                }}
                 className={`font-medium capitalize px-3 py-1 ${
                   catalogFilter === tab
                     ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
                     : "text-gray-500"
                 }`}
               >
-                {tab} Styles
+                {tab} Product
               </button>
             ))}
           </div>
@@ -660,56 +846,145 @@ const ViewFabric = () => {
                 type="text"
                 placeholder="Search"
                 className="w-full sm:w-[200px] pl-10 pr-4 py-2 border border-gray-200 rounded-md outline-none text-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={queryString}
+                onChange={(evt) =>
+                  setQueryString(
+                    evt.target.value ? evt.target.value : undefined
+                  )
+                }
               />
             </div>
-            <button className="w-full sm:w-auto px-4 py-2 bg-purple-600 text-white rounded-md text-sm">
-              Export As ▼
-            </button>
-            <button className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md text-sm">
+            <select
+              onChange={handleExport}
+              className="bg-gray-100 outline-none text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
+            >
+              <option value="" disabled selected>
+                Export As
+              </option>
+              <option value="csv">Export to CSV</option>{" "}
+              <option value="excel">Export to Excel</option>{" "}
+              <option value="pdf">Export to PDF</option>{" "}
+            </select>
+            <CSVLink
+              id="csvDownload"
+              data={FabricData?.map((row) => ({
+                SKU: row.sku,
+                "Product Name": row.name,
+                Category: row.category,
+                qty: row.location,
+                Status: row.status,
+              }))}
+              filename="MyProducts.csv"
+              className="hidden"
+            />{" "}
+            {/* <button className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md text-sm">
               Sort: Newest First ▼
-            </button>
+            </button> */}
           </div>
         </div>
-        <ReusableTable columns={catalogColumns} data={catalogCurrentItems} />
-        <div className="flex justify-between items-center mt-4">
-          <p className="text-sm text-gray-600">
-            Showing 1 to {catalogCurrentItems.length} of{" "}
-            {filteredCatalog.length} entries
-          </p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setCatalogPage((page) => Math.max(page - 1, 1))}
-              disabled={catalogPage === 1}
-              className="p-2 bg-gray-200 rounded-full"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            {[...Array(catalogTotalPages)].map((_, i) => (
-              <button
-                key={i + 1}
-                onClick={() => setCatalogPage(i + 1)}
-                className={`px-3 py-1 rounded-full ${
-                  catalogPage === i + 1
-                    ? "bg-purple-600 text-white"
-                    : "bg-gray-200"
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
-            <button
-              onClick={() =>
-                setCatalogPage((page) => Math.min(page + 1, catalogTotalPages))
-              }
-              disabled={catalogPage === catalogTotalPages}
-              className="p-2 bg-gray-200 rounded-full"
-            >
-              <ChevronRight size={16} />
-            </button>
+        <ReusableTable
+          loading={adminProductIsPending}
+          columns={columns}
+          data={FabricData}
+        />
+        {/* Pagination for Admin FAQs */}
+        {getAllFabricFabricData?.count > pageSize && (
+          <div className="mt-6 border-t border-gray-100 pt-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+              <div className="text-sm text-gray-500">
+                Showing {(currentPage - 1) * pageSize + 1}-
+                {Math.min(
+                  currentPage * pageSize,
+                  getAllFabricFabricData?.count || 0
+                )}{" "}
+                of {getAllFabricFabricData?.count || 0} Products
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(1, prev - 1))
+                  }
+                  disabled={currentPage === 1 || adminProductIsPending}
+                  className={`px-3 py-1 rounded text-sm transition-all duration-200 ${
+                    currentPage === 1 || adminProductIsPending
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-white border border-gray-300 text-gray-700 hover:bg-[#9847FE] hover:text-white hover:border-[#9847FE]"
+                  }`}
+                >
+                  Previous
+                </button>
+
+                {(() => {
+                  const totalPages = Math.ceil(
+                    (getAllFabricFabricData?.count || 0) / pageSize
+                  );
+                  const maxVisiblePages = 5;
+                  let startPage = Math.max(
+                    1,
+                    currentPage - Math.floor(maxVisiblePages / 2)
+                  );
+                  let endPage = Math.min(
+                    totalPages,
+                    startPage + maxVisiblePages - 1
+                  );
+
+                  if (endPage - startPage + 1 < maxVisiblePages) {
+                    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                  }
+
+                  const pages = [];
+                  for (let i = startPage; i <= endPage; i++) {
+                    pages.push(i);
+                  }
+
+                  return pages.map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      disabled={adminProductIsPending}
+                      className={`px-3 py-1 rounded text-sm transition-all duration-200 ${
+                        page === currentPage
+                          ? "bg-[#9847FE] text-white border border-[#9847FE]"
+                          : "bg-white border border-gray-300 text-gray-700 hover:bg-[#9847FE] hover:text-white hover:border-[#9847FE]"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ));
+                })()}
+
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) =>
+                      Math.min(
+                        Math.ceil(
+                          (getAllFabricFabricData?.count || 0) / pageSize
+                        ),
+                        prev + 1
+                      )
+                    )
+                  }
+                  disabled={
+                    currentPage ===
+                      Math.ceil(
+                        (getAllFabricFabricData?.count || 0) / pageSize
+                      ) || adminProductIsPending
+                  }
+                  className={`px-3 py-1 rounded text-sm transition-all duration-200 ${
+                    currentPage ===
+                      Math.ceil(
+                        (getAllFabricFabricData?.count || 0) / pageSize
+                      ) || adminProductIsPending
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-white border border-gray-300 text-gray-700 hover:bg-[#9847FE] hover:text-white hover:border-[#9847FE]"
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Orders Handled */}

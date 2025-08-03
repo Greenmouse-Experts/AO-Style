@@ -1,17 +1,21 @@
-import { Phone, MessageSquare, Mail, X } from "lucide-react";
+import { Phone, MessageSquare, Mail, X, Star } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import useGetSingleOrder from "../../../hooks/order/useGetSingleOrder";
 import Loader from "../../../components/ui/Loader";
+import ReviewList from "../../../components/reviews/ReviewList";
+import { formatDateStr, formatNumberWithCommas } from "../../../lib/helper";
 
 const OrderDetails = () => {
   const [showUploadPopup, setShowUploadPopup] = useState(false);
   const [markReceivedChecked, setMarkReceivedChecked] = useState(false);
   const [markSentChecked, setMarkSentChecked] = useState(false);
+  const [activeReviewModal, setActiveReviewModal] = useState(null);
 
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get("id");
 
+  // Using the same getSingleOrder hook since the data structure is similar
   const { isPending: getOrderIsPending, data } = useGetSingleOrder(orderId);
 
   if (getOrderIsPending) {
@@ -23,10 +27,10 @@ const OrderDetails = () => {
   }
 
   const orderInfo = data?.data;
-
   const orderPurchase = data?.data?.payment?.purchase?.items;
 
-  console.log(orderInfo);
+  console.log("Vendor Order Details:", orderInfo);
+  console.log("Order Purchase Items:", orderPurchase);
 
   const handleCheckboxChange = (type) => {
     if (type === "received") {
@@ -52,10 +56,13 @@ const OrderDetails = () => {
     <div className="">
       <div className="bg-white rounded-lg px-6 py-4 mb-6">
         <h1 className="text-xl font-semibold mb-4">
-          Order Details : <span className="text-gray-600">{orderInfo?.id}</span>
+          Vendor Order Details :{" "}
+          <span className="text-gray-600">
+            #{orderInfo?.id?.slice(-8)?.toUpperCase()}
+          </span>
         </h1>
         <p className="text-gray-500 text-sm">
-          <Link to="/admin" className="text-blue-500 hover:underline">
+          <Link to="/fabric" className="text-blue-500 hover:underline">
             Dashboard
           </Link>{" "}
           &gt; Orders &gt; Order Details
@@ -64,124 +71,227 @@ const OrderDetails = () => {
 
       <div className="space-y-6">
         {/* Order Details and Status */}
-        <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Order Details */}
           <div className="bg-white p-6 rounded-lg md:col-span-2">
             <h5 className="text-lg font-medium border-b border-gray-200 pb-3 mb-6">
-              Order Details
+              Vendor Order Details
             </h5>
-            <div className="flex justify-between w-full items-center mb-5">
-              {[
-                { key: "product", label: "Product" },
-                { key: "measurement", label: "Measurement" },
-              ].map((tab) => (
-                <div
-                  key={tab.key}
-                  className={`text-base w-full font-normal text-gray-500`}
-                  onClick={() => {}}
-                >
-                  {tab.label}
+
+            {/* Order Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="space-y-4">
+                <h6 className="font-semibold text-gray-800">
+                  Order Information
+                </h6>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Order ID:</span>
+                    <span className="font-medium">
+                      #{orderInfo?.id?.slice(-8)?.toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Customer Email:</span>
+                    <span className="font-medium">
+                      {orderInfo?.user?.email || "N/A"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Transaction ID:</span>
+                    <span className="font-medium">
+                      {orderInfo?.payment?.transaction_id
+                        ?.slice(-8)
+                        ?.toUpperCase() || "N/A"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Order Date:</span>
+                    <span className="font-medium">
+                      {orderInfo?.created_at
+                        ? formatDateStr(
+                            orderInfo.created_at.split(".").shift(),
+                            "D MMM YYYY",
+                          )
+                        : "N/A"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h6 className="font-semibold text-gray-800">
+                  Payment & Status
+                </h6>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Order Status:</span>
+                    <span
+                      className={`px-2 py-1 rounded text-sm ${
+                        orderInfo?.status === "DELIVERED"
+                          ? "bg-green-100 text-green-600"
+                          : orderInfo?.status === "CANCELLED"
+                            ? "bg-red-100 text-red-600"
+                            : "bg-yellow-100 text-yellow-600"
+                      }`}
+                    >
+                      {orderInfo?.status || "PENDING"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Payment Status:</span>
+                    <span
+                      className={`px-2 py-1 rounded text-sm ${
+                        orderInfo?.payment?.payment_status === "SUCCESS"
+                          ? "bg-green-100 text-green-600"
+                          : "bg-yellow-100 text-yellow-600"
+                      }`}
+                    >
+                      {orderInfo?.payment?.payment_status || "PENDING"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Total Amount:</span>
+                    <span className="font-medium">
+                      ₦
+                      {formatNumberWithCommas(
+                        orderInfo?.total_amount ||
+                          orderInfo?.payment?.amount ||
+                          0,
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Product Items */}
+            <div className="space-y-4">
+              <h6 className="font-semibold text-gray-800">Ordered Products</h6>
+              {orderPurchase?.map((order, id) => (
+                <div key={id} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-start gap-4">
+                    <img
+                      src={
+                        order?.purchase_type === "FABRIC"
+                          ? "https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170603/AoStyle/image1_s3s2sd.jpg"
+                          : "https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170600/AoStyle/image_bwjfib.jpg"
+                      }
+                      alt={order?.name || "Product"}
+                      className="w-20 h-20 rounded-md object-cover"
+                    />
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-semibold">
+                            {order?.name || "Product Item"}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {order?.purchase_type}
+                          </p>
+                          <p className="text-gray-600">
+                            Quantity: {order?.quantity || 1}{" "}
+                            {order?.purchase_type === "FABRIC"
+                              ? "Yards"
+                              : "Piece(s)"}
+                          </p>
+                          <p className="text-blue-600 font-medium">
+                            ₦{formatNumberWithCommas(order?.price || 0)}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() =>
+                            setActiveReviewModal(order?.product_id || order?.id)
+                          }
+                          className="flex items-center gap-1 px-3 py-1 text-sm bg-purple-500 text-white rounded hover:bg-purple-600 transition"
+                        >
+                          <Star size={14} />
+                          View Reviews
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
-
-            <div className="w-full flex flex-col gap-6">
-              {orderPurchase?.map((order, id) => {
-                return (
-                  <div key={id} className="flex w-full justify-between">
-                    <div className="flex items-center gap-4  w-full">
-                      <div className="w-full">
-                        <div className="text-xs text-gray-400 italic px-3 py-2 rounded">
-                          {order?.purchase_type}
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <img
-                            src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170600/AoStyle/image_bwjfib.jpg"
-                            alt="Ankara Gown"
-                            className="w-24 h-24 rounded-md"
-                          />
-                          <div>
-                            <p className="font-semibold">{order?.name}</p>
-                            {order?.purchase_type == "FABRIC" ? (
-                              <p className="text-gray-500">
-                                x {order?.quantity} Yards
-                              </p>
-                            ) : (
-                              <p className="text-gray-500">
-                                x {order?.quantity} Piece
-                              </p>
-                            )}
-                            <p className="text-blue-600">N {order?.price}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* <div className="flex w-full gap-4">
-                        <a href="#" className="text-blue-700 underline text-sm">
-                          See measurement
-                        </a>
-                      </div> */}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="flex justify-between items-center mt-5">
-              <span className="text-gray-700 mb-4 font-medium">
-                Order Total:{" "}
-                <span className="font-medium">
-                  N {orderInfo?.total_amount?.toLocaleString()}
-                </span>
-                <span className="ml-2 px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm">
-                  Pending
-                </span>
-              </span>
-            </div>
           </div>
 
-          {/* Order Status */}
-          <div className="bg-white p-6 rounded-lg">
-            <h5 className="text-lg font-medium border-b border-gray-200 pb-3 mb-6">
-              Order Status
-            </h5>
-            <div className="space-y-4">
-              <div>
-                <p className="text-gray-700 mb-3">FABRIC</p>
-                <label className="flex items-center gap-2 mb-4">
-                  <span className="text-sm w-full">Mark as Delivered</span>
-                  <input
-                    type="checkbox"
-                    className="accent-purple-500 w-5 h-5"
-                    checked={markReceivedChecked}
-                    onChange={() => handleCheckboxChange("received")}
-                  />
-                </label>
+          {/* Vendor Actions */}
+          <div className="space-y-6">
+            <div className="bg-white p-6 rounded-lg">
+              <h5 className="text-lg font-medium border-b border-gray-200 pb-3 mb-6">
+                Vendor Actions
+              </h5>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-gray-700 mb-3 font-medium">
+                    Order Status Updates
+                  </p>
+                  <label className="flex items-center gap-2 mb-4">
+                    <span className="text-sm w-full">
+                      Mark Order as Delivered
+                    </span>
+                    <input
+                      type="checkbox"
+                      className="accent-purple-500 w-5 h-5"
+                      checked={markReceivedChecked}
+                      onChange={() => handleCheckboxChange("received")}
+                    />
+                  </label>
+                </div>
               </div>
+            </div>
 
-              {/* <div>
-                                <p className="text-gray-700 mb-3">TAILORING</p>
-                                <label className="flex items-center gap-2 mb-4">
-                                    <span className="text-sm w-full">Mark as Completed</span>
-                                    <input
-                                        type="checkbox"
-                                        className="accent-purple-500 w-5 h-5"
-                                        disabled
-                                    />
-                                </label>
-                            </div>
-                            <div>
-                                <p className="text-gray-700 mb-3">OUT FOR DELIVERY</p>
-                                <label className="flex items-center gap-2 mb-4">
-                                    <span className="text-sm w-full">Mark as Sent</span>
-                                    <input
-                                        type="checkbox"
-                                        className="accent-purple-500 w-5 h-5"
-                                        checked={markSentChecked}
-                                        onChange={() => handleCheckboxChange("sent")}
-                                    />
-                                </label>
-                            </div> */}
+            <div className="bg-white p-6 rounded-lg">
+              <h5 className="text-lg font-medium border-b border-gray-200 pb-3 mb-6">
+                Customer Information
+              </h5>
+              <div className="space-y-3">
+                <div>
+                  <span className="text-sm text-gray-500">Customer Email:</span>
+                  <p className="font-medium">
+                    {orderInfo?.user?.email || "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Customer Phone:</span>
+                  <p className="font-medium">
+                    {orderInfo?.user?.phone || "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Order Date:</span>
+                  <p className="font-medium">
+                    {orderInfo?.created_at
+                      ? formatDateStr(
+                          orderInfo.created_at.split(".").shift(),
+                          "D MMM YYYY h:mm A",
+                        )
+                      : "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-500">Payment Method:</span>
+                  <p className="font-medium">
+                    {orderInfo?.payment?.payment_method || "N/A"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg">
+              <h5 className="text-lg font-medium border-b border-gray-200 pb-3 mb-6">
+                Support
+              </h5>
+              <p className="font-medium mb-4">Need help with this order?</p>
+              <div className="flex space-x-6 mt-2">
+                <Phone className="text-purple-500 cursor-pointer" size={24} />
+                <MessageSquare
+                  className="text-purple-500 cursor-pointer"
+                  size={24}
+                />
+                <Mail className="text-purple-500 cursor-pointer" size={24} />
+              </div>
             </div>
           </div>
         </div>
@@ -325,6 +435,29 @@ const OrderDetails = () => {
           </div>
         </div>
       </div>
+
+      {/* Review Modal */}
+      {activeReviewModal && (
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-20 backdrop-blur-lg backdrop-brightness-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-y-auto shadow-2xl">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Product Reviews</h3>
+                <button
+                  onClick={() => setActiveReviewModal(null)}
+                  className="text-gray-500 hover:text-gray-700 text-xl"
+                >
+                  ×
+                </button>
+              </div>
+              <ReviewList
+                productId={activeReviewModal}
+                className="max-h-96 overflow-y-auto"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

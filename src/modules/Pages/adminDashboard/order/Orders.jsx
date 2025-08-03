@@ -2,6 +2,10 @@ import { useState, useRef, useEffect } from "react";
 import ReusableTable from "../components/ReusableTable";
 import OrdersSummary from "../components/OrdersSummary";
 import { Link } from "react-router-dom";
+import useGetOrder from "../../../../hooks/order/useGetOrder";
+import Loader from "../../../../components/ui/Loader";
+import { formatDateStr } from "../../../../lib/helper";
+import ReviewList from "../../../../components/reviews/ReviewList";
 
 const OrdersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -9,22 +13,32 @@ const OrdersTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [activeReviewModal, setActiveReviewModal] = useState(null);
 
-  const data = Array.from({ length: 100 }, (_, i) => ({
-    id: i + 1,
-    customerName: [
-      "Samuel Johnson",
-      "Francis Doe",
-      "Christian Dior",
-      "Janet Adebayo",
-    ][i % 4],
-    orderDate: "12 Aug 2022 - 12:25 am",
-    product: "Red Fabric",
-    trackingId: `9348f7${i % 3}`,
-    orderTotal: "₦25,000.00",
-    action: "View Order",
-    status: ["In Progress", "Pending", "Completed"][i % 3],
-  }));
+  const { isPending: ordersLoading, data: ordersResponse } = useGetOrder();
+
+  // Console log the admin orders data
+  console.log("🔍 Admin Orders - Full API Response:", ordersResponse);
+  console.log("🔍 Admin Orders - Data Array:", ordersResponse?.data);
+  console.log("🔍 Admin Orders - Data Length:", ordersResponse?.data?.length);
+
+  if (ordersResponse?.data?.length > 0) {
+    console.log(
+      "🔍 Admin Orders - First Order Sample:",
+      ordersResponse.data[0],
+    );
+    console.log(
+      "🔍 Admin Orders - Payment Structure:",
+      ordersResponse.data[0]?.payment,
+    );
+    console.log(
+      "🔍 Admin Orders - Purchase Items:",
+      ordersResponse.data[0]?.payment?.purchase?.items,
+    );
+  }
+
+  // Process real order data
+  const data = ordersResponse?.data || [];
 
   const toggleDropdown = (rowId) => {
     setOpenDropdown(openDropdown === rowId ? null : rowId);
@@ -42,28 +56,100 @@ const OrdersTable = () => {
 
   const columns = [
     {
-      label: "Customer Name",
-      key: "customerName",
+      label: "Customer",
+      key: "customer",
       render: (_, row) => (
         <div className="flex items-center">
           <input type="checkbox" className="mr-2" />
-          {row.customerName}
+          <span className="text-sm">
+            {row.payment?.user?.email?.split("@")[0] ||
+              `User ${row.user_id?.slice(-8)}`}
+          </span>
         </div>
       ),
     },
-    { label: "Order Date", key: "orderDate" },
-    { label: "Product", key: "product" },
-    { label: "Tracking ID", key: "trackingId" },
-    { label: "Order Total", key: "orderTotal" },
+    {
+      label: "Order ID",
+      key: "id",
+      render: (value) => (
+        <span className="font-mono text-xs text-gray-600">
+          {value.slice(-8)}
+        </span>
+      ),
+    },
+    {
+      label: "Order Date",
+      key: "created_at",
+      render: (value) => (
+        <span className="text-sm text-gray-600">{formatDateStr(value)}</span>
+      ),
+    },
+    {
+      label: "Product",
+      key: "product",
+      render: (_, row) => {
+        const firstItem = row.payment?.purchase?.items?.[0];
+        return (
+          <div className="truncate max-w-32" title={firstItem?.name || "N/A"}>
+            {firstItem?.name || "N/A"}
+          </div>
+        );
+      },
+    },
+    {
+      label: "Transaction ID",
+      key: "transaction_id",
+      render: (_, row) => (
+        <span className="font-mono text-xs text-gray-600">
+          {row.payment?.transaction_id?.slice(-8) || "N/A"}
+        </span>
+      ),
+    },
+    {
+      label: "Order Total",
+      key: "total_amount",
+      render: (_, row) => (
+        <span className="font-medium text-gray-900">
+          ₦{(row.total_amount || row.payment?.amount || 0).toLocaleString()}
+        </span>
+      ),
+    },
     {
       label: "Action",
       key: "action",
       render: (_, row) => (
-        <Link to={`/admin/orders-details`}>
-          <button className="text-purple-500 text-sm hover:underline">
-            {row.action}
+        <div className="relative">
+          <button
+            onClick={() => toggleDropdown(row.id)}
+            className="text-gray-500 hover:text-gray-700 p-1"
+          >
+            ⋮
           </button>
-        </Link>
+          {openDropdown === row.id && (
+            <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md z-10 border border-gray-200">
+              <Link
+                to={`/admin/orders/order-details?id=${row.id}`}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+              >
+                View Details
+              </Link>
+              {row.payment?.purchase?.items &&
+                row.payment.purchase.items.length > 0 && (
+                  <button
+                    onClick={() => {
+                      setActiveReviewModal(
+                        row.payment.purchase.items[0].product_id,
+                      );
+                      setOpenDropdown(null);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                  >
+                    View Reviews
+                  </button>
+                )}
+            </div>
+          )}
+        </div>
       ),
     },
     {
@@ -71,27 +157,52 @@ const OrdersTable = () => {
       key: "status",
       render: (status) => (
         <span
-          className={`text-sm ${
-            status === "In Progress"
-              ? "text-blue-500"
-              : status === "Pending"
-              ? "text-yellow-500"
-              : "text-green-500"
+          className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+            status === "DELIVERED"
+              ? "bg-green-100 text-green-600"
+              : [
+                    "PROCESSING",
+                    "SHIPPED",
+                    "IN_TRANSIT",
+                    "OUT_FOR_DELIVERY",
+                  ].includes(status)
+                ? "bg-blue-100 text-blue-600"
+                : status === "CANCELLED"
+                  ? "bg-red-100 text-red-600"
+                  : "bg-yellow-100 text-yellow-600"
           }`}
         >
-          {status}
+          {status === "DELIVERED"
+            ? "Completed"
+            : [
+                  "PROCESSING",
+                  "SHIPPED",
+                  "IN_TRANSIT",
+                  "OUT_FOR_DELIVERY",
+                ].includes(status)
+              ? "In Progress"
+              : status === "CANCELLED"
+                ? "Cancelled"
+                : status}
         </span>
       ),
     },
   ];
 
-  const filteredData = data.filter((order) =>
-    Object.values(order).some(
-      (value) =>
-        typeof value === "string" &&
-        value.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
+  const filteredData = data.filter((order) => {
+    if (!searchTerm) return true;
+
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      order.id?.toLowerCase().includes(searchLower) ||
+      order.payment?.transaction_id?.toLowerCase().includes(searchLower) ||
+      order.payment?.user?.email?.toLowerCase().includes(searchLower) ||
+      order.payment?.purchase?.items?.[0]?.name
+        ?.toLowerCase()
+        .includes(searchLower) ||
+      order.status?.toLowerCase().includes(searchLower)
+    );
+  });
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -116,6 +227,14 @@ const OrdersTable = () => {
     setItemsPerPage(Number(e.target.value));
     setCurrentPage(1);
   };
+
+  if (ordersLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -181,6 +300,26 @@ const OrdersTable = () => {
           </div>
         </div>
       </div>
+
+      {/* Review Modal */}
+      {activeReviewModal && (
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-20 backdrop-blur-lg backdrop-brightness-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-y-auto shadow-2xl">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Product Reviews</h3>
+                <button
+                  onClick={() => setActiveReviewModal(null)}
+                  className="text-gray-500 hover:text-gray-700 text-xl"
+                >
+                  ×
+                </button>
+              </div>
+              <ReviewList productId={activeReviewModal} />
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

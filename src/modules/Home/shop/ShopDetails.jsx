@@ -1,6 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { ShoppingCart } from "lucide-react";
-import { Facebook, Twitter, Instagram, Star, Music2 } from "lucide-react";
+import {
+  Facebook,
+  Twitter,
+  Instagram,
+  Star,
+  Music2,
+  MessageSquare,
+} from "lucide-react";
 import CheckModal from "../components/CheckModal";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import Breadcrumb from "../components/Breadcrumb";
@@ -14,6 +21,7 @@ import { useCartStore } from "../../../store/carybinUserCartStore";
 import SubmitProductModal from "../components/SubmitProduct";
 import { generateUniqueId } from "../../../lib/helper";
 import { Tooltip } from "antd";
+import { ProductReviews } from "../../../components/reviews";
 
 const product = {
   name: "Luxury Embellished Lace Fabrics",
@@ -84,11 +92,15 @@ export default function ShopDetails() {
   const [selectedColor, setSelectedColor] = useState(null);
 
   const ratingStats = [2, 3, 0, 0, 0];
+  const reviewsRef = useRef(null);
 
   const location = useLocation();
   const params = useParams();
 
   const productInfo = params.id;
+
+  console.log("🔍 ShopDetails: URL params:", params);
+  console.log("🔍 ShopDetails: Product ID from URL:", productInfo);
 
   const { isPending: addCartPending, addCartMutate } = useAddCart();
 
@@ -96,6 +108,53 @@ export default function ShopDetails() {
     useSingleProductGeneral("FABRIC", productInfo);
 
   const productVal = getSingleProductData?.data;
+
+  // Console log the fetched product details
+  console.log(
+    "📦 ShopDetails: Raw product data from API:",
+    getSingleProductData,
+  );
+  console.log("📦 ShopDetails: Processed productVal:", productVal);
+  console.log("📦 ShopDetails: Product structure:", {
+    hasData: !!productVal,
+    productKeys: productVal ? Object.keys(productVal) : null,
+    fabricId: productVal?.fabric?.id,
+    productId: productVal?.product_id,
+    productData: productVal?.product,
+    fabricData: productVal?.fabric,
+  });
+
+  // Log product data changes
+  useEffect(() => {
+    if (getSingleProductData) {
+      console.log("🔄 ShopDetails: Product data updated:", {
+        loading: productIsPending,
+        hasData: !!getSingleProductData,
+        dataStructure: getSingleProductData
+          ? Object.keys(getSingleProductData)
+          : null,
+        productVal: productVal,
+        productValKeys: productVal ? Object.keys(productVal) : null,
+      });
+
+      // Specific logging for review product ID
+      const correctProductId = productVal?.product_id;
+      console.log("⭐ ShopDetails: Review product ID analysis:", {
+        urlProductId: productInfo,
+        fabricId: productVal?.fabric?.id,
+        productId: productVal?.product_id,
+        productMainId: productVal?.id,
+        productProductId: productVal?.product?.id,
+        correctIdToUse: correctProductId,
+        reviewProductIdBeingPassed: correctProductId,
+        usingProductIdField: "productVal.product_id",
+      });
+      console.log(
+        "🎯 ShopDetails: USING CORRECT PRODUCT ID FOR REVIEWS:",
+        correctProductId,
+      );
+    }
+  }, [getSingleProductData, productVal, productIsPending]);
 
   // useEffect(() => {
   //   setQuantity(productVal?.minimum_yards);
@@ -173,6 +232,13 @@ export default function ShopDetails() {
 
   const id = useMemo(() => generateUniqueId(), []);
 
+  const scrollToReviews = () => {
+    reviewsRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
   return (
     <>
       <Breadcrumb
@@ -231,6 +297,7 @@ export default function ShopDetails() {
                 <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">
                   {productVal?.product?.name}
                 </h1>
+
                 <div className="flex items-baseline space-x-2">
                   <span className="text-3xl font-bold text-purple-600">
                     ₦{productVal?.product?.price?.toLocaleString()}
@@ -451,8 +518,14 @@ export default function ShopDetails() {
                 </button>
 
                 {/* Additional CTA buttons */}
-                <div className="grid grid-cols-1 gap-3 mt-3">
-                  {/* Wishlist button removed as requested */}
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                  <button
+                    onClick={scrollToReviews}
+                    className="py-3 px-4 border-2 border-purple-600 text-purple-600 rounded-lg font-medium hover:bg-purple-50 hover:border-purple-700 hover:text-purple-700 transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                  >
+                    <MessageSquare size={18} />
+                    <span>Ratings & Reviews</span>
+                  </button>
                   <button
                     onClick={() => setIsShareModalOpen(true)}
                     disabled={!productVal}
@@ -900,6 +973,22 @@ export default function ShopDetails() {
               </div>
             </div>
           )}
+        </section>
+      )}
+
+      {/* Product Reviews Section - Always show when productInfo exists */}
+      {productInfo && productVal?.product_id && (
+        <section
+          ref={reviewsRef}
+          className="Resizer section px-4 py-8 bg-gray-50"
+        >
+          <div className="max-w-6xl mx-auto">
+            <ProductReviews
+              productId={productVal.product_id}
+              initiallyExpanded={true}
+              className="bg-white rounded-lg p-6 shadow-sm border border-gray-200"
+            />
+          </div>
         </section>
       )}
     </>

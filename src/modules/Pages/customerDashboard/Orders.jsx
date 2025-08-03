@@ -1,8 +1,19 @@
+/**
+ * Customer Orders Page
+ *
+ * Updated to use the /orders/fetch endpoint instead of static data.
+ * Features:
+ * - Displays orders with proper data mapping from API
+ * - View Details button that navigates to order details page
+ * - Correct status handling (PENDING, SHIPPED, DELIVERED, CANCELLED)
+ * - Export functionality for orders data
+ * - Search and pagination support
+ */
 import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Search } from "lucide-react";
 import ReusableTable from "../adminDashboard/components/ReusableTable";
-import useGetAllOrder from "../../../hooks/order/useGetOrder";
+import useGetOrder from "../../../hooks/order/useGetOrder";
 import { formatDateStr, formatNumberWithCommas } from "../../../lib/helper";
 import useQueryParams from "../../../hooks/useQueryParams";
 import useDebounce from "../../../hooks/useDebounce";
@@ -14,62 +25,63 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
 
-const orders = [
-  {
-    id: "01",
-    orderId: "QWER123DFDG324R",
-    date: "15-02-25",
-    vendor: "Sandra Fabrics",
-    designer: "Jude Stitches",
-    delivery: "21-05-25",
-    status: "Ongoing",
-  },
-  {
-    id: "02",
-    orderId: "QWER123DFDG324R",
-    date: "15-02-25",
-    vendor: "Sandra Fabrics",
-    designer: "Hamzat Stitches",
-    delivery: "21-05-25",
-    status: "Ongoing",
-  },
-  {
-    id: "03",
-    orderId: "QWER123DFDG324R",
-    date: "15-02-25",
-    vendor: "Sandra Fabrics",
-    designer: "Jude Stitches",
-    delivery: "21-05-25",
-    status: "Ongoing",
-  },
-  {
-    id: "04",
-    orderId: "QWER123DFDG324R",
-    date: "15-02-25",
-    vendor: "Sandra Fabrics",
-    designer: "Jude Stitches",
-    delivery: "21-05-25",
-    status: "Cancelled",
-  },
-  {
-    id: "05",
-    orderId: "QWER123DFDG324R",
-    date: "15-02-25",
-    vendor: "Sandra Fabrics",
-    designer: "Jude Stitches",
-    delivery: "21-05-25",
-    status: "Ongoing",
-  },
-  {
-    id: "06",
-    orderId: "QWER123DFDG324R",
-    date: "15-02-25",
-    vendor: "Sandra Fabrics",
-    designer: "Jude Stitches",
-    delivery: "21-05-25",
-    status: "Completed",
-  },
-];
+// Static data commented out - now using API endpoint
+// const orders = [
+//   {
+//     id: "01",
+//     orderId: "QWER123DFDG324R",
+//     date: "15-02-25",
+//     vendor: "Sandra Fabrics",
+//     designer: "Jude Stitches",
+//     delivery: "21-05-25",
+//     status: "Ongoing",
+//   },
+//   {
+//     id: "02",
+//     orderId: "QWER123DFDG324R",
+//     date: "15-02-25",
+//     vendor: "Sandra Fabrics",
+//     designer: "Hamzat Stitches",
+//     delivery: "21-05-25",
+//     status: "Ongoing",
+//   },
+//   {
+//     id: "03",
+//     orderId: "QWER123DFDG324R",
+//     date: "15-02-25",
+//     vendor: "Sandra Fabrics",
+//     designer: "Jude Stitches",
+//     delivery: "21-05-25",
+//     status: "Ongoing",
+//   },
+//   {
+//     id: "04",
+//     orderId: "QWER123DFDG324R",
+//     date: "15-02-25",
+//     vendor: "Sandra Fabrics",
+//     designer: "Jude Stitches",
+//     delivery: "21-05-25",
+//     status: "Cancelled",
+//   },
+//   {
+//     id: "05",
+//     orderId: "QWER123DFDG324R",
+//     date: "15-02-25",
+//     vendor: "Sandra Fabrics",
+//     designer: "Jude Stitches",
+//     delivery: "21-05-25",
+//     status: "Ongoing",
+//   },
+//   {
+//     id: "06",
+//     orderId: "QWER123DFDG324R",
+//     date: "15-02-25",
+//     vendor: "Sandra Fabrics",
+//     designer: "Jude Stitches",
+//     delivery: "21-05-25",
+//     status: "Completed",
+//   },
+// ];
 
 const OrderPage = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -83,7 +95,7 @@ const OrderPage = () => {
     isLoading,
     isError,
     data: orderData,
-  } = useGetAllOrder({
+  } = useGetOrder({
     ...queryParams,
   });
 
@@ -91,26 +103,27 @@ const OrderPage = () => {
 
   const columns = useMemo(
     () => [
+      { key: "orderId", label: "Order ID" },
       { key: "transactionId", label: "Transaction ID" },
-
       { key: "product", label: "Product" },
       { key: "amount", label: "Amount" },
       {
         label: "Order Date",
         key: "dateAdded",
       },
-
       {
         label: "Status",
         key: "status",
         render: (value) => (
           <span
             className={`px-3 py-1 text-sm font-light rounded-md ${
-              value === "PENDING"
+              value === "PENDING" || value === "SHIPPED"
                 ? "bg-yellow-100 text-yellow-600"
-                : value === "Cancelled"
-                ? "bg-red-100 text-red-600"
-                : "bg-green-100 text-green-600"
+                : value === "CANCELLED"
+                  ? "bg-red-100 text-red-600"
+                  : value === "DELIVERED" || value === "SUCCESS"
+                    ? "bg-green-100 text-green-600"
+                    : "bg-blue-100 text-blue-600"
             }`}
           >
             {value}
@@ -146,7 +159,7 @@ const OrderPage = () => {
         ),
       },
     ],
-    [openDropdown]
+    [openDropdown],
   );
 
   const customersOrderData = useMemo(
@@ -155,30 +168,34 @@ const OrderPage = () => {
         ? orderData?.data.map((details) => {
             return {
               ...details,
-              transactionId: `${details?.payment?.transaction_id}`,
+              orderId: `#${details?.id?.slice(-8).toUpperCase()}`,
+              transactionId: `${details?.payment?.transaction_id || "N/A"}`,
               product:
-                details?.payment?.purchase?.items[0]?.name?.length > 15
-                  ? `${details?.payment?.purchase?.items[0]?.name.slice(
-                      0,
-                      15
-                    )}...`
-                  : details?.payment?.purchase?.items[0]?.name,
-              amount: `${formatNumberWithCommas(
-                details?.payment?.amount ?? 0
+                details?.payment?.purchase?.items &&
+                details?.payment?.purchase?.items.length > 0
+                  ? details?.payment?.purchase?.items[0]?.name?.length > 15
+                    ? `${details?.payment?.purchase?.items[0]?.name.slice(
+                        0,
+                        15,
+                      )}...`
+                    : details?.payment?.purchase?.items[0]?.name
+                  : "No items",
+              amount: `N ${formatNumberWithCommas(
+                details?.total_amount ?? details?.payment?.amount ?? 0,
               )}`,
-              status: `${details?.payment?.payment_status}`,
+              status: `${details?.status || details?.payment?.payment_status || "PENDING"}`,
               dateAdded: `${
                 details?.created_at
                   ? formatDateStr(
                       details?.created_at.split(".").shift(),
-                      "D/M/YYYY h:mm A"
+                      "D/M/YYYY h:mm A",
                     )
                   : ""
               }`,
             };
           })
         : [],
-    [orderData?.data]
+    [orderData?.data],
   );
 
   const [filter, setFilter] = useState("all");
@@ -195,7 +212,8 @@ const OrderPage = () => {
   }, [debouncedSearchTerm]);
 
   const totalPages = Math.ceil(
-    customersOrderData?.count / (queryParams["pagination[limit]"] ?? 10)
+    (orderData?.count || customersOrderData?.length || 0) /
+      (queryParams["pagination[limit]"] ?? 10),
   );
 
   const handleExport = (e) => {
@@ -222,8 +240,11 @@ const OrderPage = () => {
   const exportToPDF = () => {
     const doc = new jsPDF();
     autoTable(doc, {
-      head: [["Transaction ID", "Product", "Amount", "Date", "Qty", "Status"]],
+      head: [
+        ["Order ID", "Transaction ID", "Product", "Amount", "Date", "Status"],
+      ],
       body: customersOrderData?.map((row) => [
+        row.orderId,
         row.transactionId,
         row.product,
         row.amount,
@@ -286,7 +307,7 @@ const OrderPage = () => {
                 value={queryString}
                 onChange={(evt) =>
                   setQueryString(
-                    evt.target.value ? evt.target.value : undefined
+                    evt.target.value ? evt.target.value : undefined,
                   )
                 }
               />
@@ -308,6 +329,7 @@ const OrderPage = () => {
             <CSVLink
               id="csvDownload"
               data={customersOrderData?.map((row) => ({
+                "Order ID": row.orderId,
                 "Transaction ID": row.transactionId,
                 Product: row.product,
                 Amount: row.amount,
@@ -316,7 +338,7 @@ const OrderPage = () => {
               }))}
               filename="MyOrders.csv"
               className="hidden"
-            />{" "}
+            />
             <button className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md text-sm">
               Sort: Newest First ▼
             </button>

@@ -3,87 +3,92 @@ import ReusableTable from "../components/ReusableTable";
 import { Link, useParams } from "react-router-dom";
 import { Search } from "lucide-react";
 import useGetUser from "../../../../hooks/user/useGetSingleUser";
+import useGetOrder from "../../../../hooks/order/useGetOrder";
 import Loader from "../../../../components/ui/Loader";
 import { formatDateStr } from "../../../../lib/helper";
+import ReviewList from "../../../../components/reviews/ReviewList";
 
-const orders = [
-  {
-    id: "01",
-    orderId: "QWER123DFDG324R",
-    date: "15-02-25",
-    vendor: "Sandra Fabrics",
-    designer: "Jude Stitches",
-    delivery: "21-05-25",
-    status: "Ongoing",
-  },
-  {
-    id: "02",
-    orderId: "QWER123DFDG324R",
-    date: "15-02-25",
-    vendor: "Sandra Fabrics",
-    designer: "Hamzat Stitches",
-    delivery: "21-05-25",
-    status: "Ongoing",
-  },
-  {
-    id: "03",
-    orderId: "QWER123DFDG324R",
-    date: "15-02-25",
-    vendor: "Sandra Fabrics",
-    designer: "Jude Stitches",
-    delivery: "21-05-25",
-    status: "Ongoing",
-  },
-  {
-    id: "04",
-    orderId: "QWER123DFDG324R",
-    date: "15-02-25",
-    vendor: "Sandra Fabrics",
-    designer: "Jude Stitches",
-    delivery: "21-05-25",
-    status: "Cancelled",
-  },
-  {
-    id: "05",
-    orderId: "QWER123DFDG324R",
-    date: "15-02-25",
-    vendor: "Sandra Fabrics",
-    designer: "Jude Stitches",
-    delivery: "21-05-25",
-    status: "Ongoing",
-  },
-  {
-    id: "06",
-    orderId: "QWER123DFDG324R",
-    date: "15-02-25",
-    vendor: "Sandra Fabrics",
-    designer: "Jude Stitches",
-    delivery: "21-05-25",
-    status: "Completed",
-  },
-];
+// Static orders removed - now using real API data
 
 const ViewCustomer = () => {
   const { id } = useParams();
 
   const { isPending: getUserIsPending, data } = useGetUser(id);
+  const { isPending: ordersLoading, data: ordersData } = useGetOrder();
+  const [activeReviewModal, setActiveReviewModal] = useState(null);
+  const [openDropdown, setOpenDropdown] = useState(null);
 
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [openDropdown, setOpenDropdown] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
-  const filteredOrders = orders.filter(
-    (order) =>
-      (filter === "all" || order.status.toLowerCase() === filter) &&
-      order.orderId.toLowerCase().includes(searchTerm.toLowerCase())
+  // Console log the admin customer orders data
+  console.log("🔍 Admin ViewCustomer - Full API Response:", ordersData);
+  console.log("🔍 Admin ViewCustomer - All Orders Data:", ordersData?.data);
+  console.log(
+    "🔍 Admin ViewCustomer - Total Orders Count:",
+    ordersData?.data?.length,
   );
+  console.log("🔍 Admin ViewCustomer - Customer ID:", id);
+
+  // Process real order data
+  const allOrders = ordersData?.data || [];
+
+  // Filter orders for this specific customer
+  const customerOrders = allOrders.filter((order) => order.user_id === id);
+
+  console.log("🔍 Admin ViewCustomer - Customer Orders:", customerOrders);
+  console.log(
+    "🔍 Admin ViewCustomer - Customer Orders Count:",
+    customerOrders.length,
+  );
+
+  if (customerOrders.length > 0) {
+    console.log(
+      "🔍 Admin ViewCustomer - First Customer Order:",
+      customerOrders[0],
+    );
+    console.log(
+      "🔍 Admin ViewCustomer - Payment Structure:",
+      customerOrders[0]?.payment,
+    );
+    console.log(
+      "🔍 Admin ViewCustomer - Purchase Items:",
+      customerOrders[0]?.payment?.purchase?.items,
+    );
+  }
+
+  const filteredOrders = customerOrders.filter((order) => {
+    const statusMatch =
+      filter === "all" ||
+      (filter === "ongoing" &&
+        ["PROCESSING", "SHIPPED", "IN_TRANSIT", "OUT_FOR_DELIVERY"].includes(
+          order.status,
+        )) ||
+      (filter === "completed" && order.status === "DELIVERED") ||
+      (filter === "cancelled" && order.status === "CANCELLED");
+
+    const searchMatch =
+      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.payment?.transaction_id
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      order.payment?.purchase?.items?.[0]?.name
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+    return statusMatch && searchMatch;
+  });
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+
+  const toggleDropdown = (rowId) => {
+    setOpenDropdown(openDropdown === rowId ? null : rowId);
+  };
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {
@@ -103,52 +108,129 @@ const ViewCustomer = () => {
   };
 
   const columns = [
-    { label: "#", key: "id" },
-    { label: "Order ID", key: "orderId" },
-    { label: "Order Date", key: "date" },
-    { label: "Fabric Vendor", key: "vendor" },
-    { label: "Tailor/Fashion Designer", key: "designer" },
-    { label: "Delivery Date", key: "delivery" },
+    {
+      label: "#",
+      key: "index",
+      render: (_, row, index) => (
+        <span className="font-mono text-xs text-gray-600">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+      ),
+    },
+    {
+      label: "Order ID",
+      key: "id",
+      render: (value) => (
+        <span className="font-mono text-xs text-gray-600">
+          {value.slice(-8)}
+        </span>
+      ),
+    },
+    {
+      label: "Transaction ID",
+      key: "transaction_id",
+      render: (_, row) => (
+        <span className="font-mono text-xs text-gray-600">
+          {row.payment?.transaction_id?.slice(-8) || "N/A"}
+        </span>
+      ),
+    },
+    {
+      label: "Product",
+      key: "product",
+      render: (_, row) => {
+        const firstItem = row.payment?.purchase?.items?.[0];
+        return (
+          <div className="truncate max-w-32" title={firstItem?.name || "N/A"}>
+            {firstItem?.name || "N/A"}
+          </div>
+        );
+      },
+    },
+    {
+      label: "Amount",
+      key: "amount",
+      render: (_, row) => (
+        <span className="font-medium text-gray-900">
+          ₦{(row.total_amount || row.payment?.amount || 0).toLocaleString()}
+        </span>
+      ),
+    },
+    {
+      label: "Date",
+      key: "created_at",
+      render: (value) => (
+        <span className="text-sm text-gray-600">{formatDateStr(value)}</span>
+      ),
+    },
     {
       label: "Status",
       key: "status",
       render: (status) => (
         <span
-          className={`px-3 py-1 text-sm rounded-full ${
-            status === "Ongoing"
-              ? "bg-yellow-100 text-yellow-700"
-              : status === "Cancelled"
-              ? "bg-red-100 text-red-700"
-              : "bg-green-100 text-green-700"
+          className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+            status === "DELIVERED"
+              ? "bg-green-100 text-green-600"
+              : [
+                    "PROCESSING",
+                    "SHIPPED",
+                    "IN_TRANSIT",
+                    "OUT_FOR_DELIVERY",
+                  ].includes(status)
+                ? "bg-blue-100 text-blue-600"
+                : status === "CANCELLED"
+                  ? "bg-red-100 text-red-600"
+                  : "bg-yellow-100 text-yellow-600"
           }`}
         >
-          {status}
+          {status === "DELIVERED"
+            ? "Completed"
+            : [
+                  "PROCESSING",
+                  "SHIPPED",
+                  "IN_TRANSIT",
+                  "OUT_FOR_DELIVERY",
+                ].includes(status)
+              ? "Ongoing"
+              : status === "CANCELLED"
+                ? "Cancelled"
+                : status}
         </span>
       ),
     },
     {
       label: "Action",
       key: "action",
-      render: (_, row) => (
+      render: (value, row) => (
         <div className="relative">
           <button
-            onClick={() =>
-              setOpenDropdown(openDropdown === row.id ? null : row.id)
-            }
-            className="px-2 py-1 cursor-pointer rounded-md"
+            onClick={() => toggleDropdown(row.id)}
+            className="text-gray-500 hover:text-gray-700 p-1"
           >
-            •••
+            ⋮
           </button>
           {openDropdown === row.id && (
-            <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
-              <Link to="/customer/orders/orders-details">
-                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
-                  View Details
-                </button>
+            <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md z-10 border border-gray-200">
+              <Link
+                to={`/admin/orders/order-details?id=${row.id}`}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+              >
+                View Details
               </Link>
-              <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
-                Cancel Order
-              </button>
+              {row.payment?.purchase?.items &&
+                row.payment.purchase.items.length > 0 && (
+                  <button
+                    onClick={() => {
+                      setActiveReviewModal(
+                        row.payment.purchase.items[0].product_id,
+                      );
+                      setOpenDropdown(null);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                  >
+                    View Reviews
+                  </button>
+                )}
             </div>
           )}
         </div>
@@ -156,17 +238,15 @@ const ViewCustomer = () => {
     },
   ];
 
-  if (getUserIsPending) {
+  if (getUserIsPending || ordersLoading) {
     return (
-      <div className="m-auto flex h-[80vh] items-center justify-center">
+      <div className="flex justify-center items-center h-64">
         <Loader />
       </div>
     );
   }
 
-
   const customer = data?.data?.user;
-
 
   return (
     <div>
@@ -228,7 +308,7 @@ const ViewCustomer = () => {
                 <td className="p-4">
                   {data?.data?.user?.created_at
                     ? formatDateStr(
-                        data?.data?.user?.created_at.split(".").shift()
+                        data?.data?.user?.created_at.split(".").shift(),
                       )
                     : ""}
                 </td>
@@ -319,6 +399,26 @@ const ViewCustomer = () => {
           </div>
         </div>
       </div>
+
+      {/* Review Modal */}
+      {activeReviewModal && (
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-20 backdrop-blur-lg backdrop-brightness-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-y-auto shadow-2xl">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Product Reviews</h3>
+                <button
+                  onClick={() => setActiveReviewModal(null)}
+                  className="text-gray-500 hover:text-gray-700 text-xl"
+                >
+                  ×
+                </button>
+              </div>
+              <ReviewList productId={activeReviewModal} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

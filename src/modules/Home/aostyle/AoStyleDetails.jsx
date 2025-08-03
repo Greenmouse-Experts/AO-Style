@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { ChevronDown } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { ChevronDown, MessageSquare } from "lucide-react";
 import SavedMeasurementsDisplay from "../components/SavedMeasurementsDisplay";
 import Breadcrumb from "../components/Breadcrumb";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -8,6 +8,7 @@ import { useCartStore } from "../../../store/carybinUserCartStore";
 import { useFormik } from "formik";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import Cookies from "js-cookie";
+import { ProductReviews } from "../../../components/reviews";
 
 export default function AnkaraGownPage() {
   const location = useLocation();
@@ -17,10 +18,34 @@ export default function AnkaraGownPage() {
   const [measurementsSubmitted, setMeasurementsSubmitted] = useState(false);
   const [showMeasurementForm, setShowMeasurementForm] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const reviewsRef = useRef(null);
 
   const styleInfo = location?.state?.info;
 
-  console.log(styleInfo);
+  console.log("🔍 AoStyleDetails: styleInfo:", styleInfo);
+  console.log("🔍 AoStyleDetails: Product ID from styleInfo:", styleInfo?.id);
+  console.log("📦 AoStyleDetails: Full styleInfo structure:", {
+    hasData: !!styleInfo,
+    styleInfoKeys: styleInfo ? Object.keys(styleInfo) : null,
+    id: styleInfo?.id,
+    product_id: styleInfo?.product_id,
+    styleData: styleInfo?.style,
+    productData: styleInfo?.product,
+  });
+
+  // Determine correct product ID for reviews - prefer product_id for API consistency
+  const correctProductId = styleInfo?.product_id || styleInfo?.id;
+  console.log(
+    "🎯 AoStyleDetails: USING CORRECT PRODUCT ID FOR REVIEWS:",
+    correctProductId,
+  );
+
+  const scrollToReviews = () => {
+    reviewsRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
 
   const images = [
     "https://res.cloudinary.com/greenmouse-tech/image/upload/v1744094281/AoStyle/image_ijkebh.png",
@@ -416,6 +441,15 @@ export default function AnkaraGownPage() {
                   <span className="text-2xl font-bold text-purple-600">
                     ₦{styleInfo?.price?.toLocaleString()}
                   </span>
+
+                  {/* Rate & Review Button */}
+                  <button
+                    onClick={scrollToReviews}
+                    className="mt-3 py-2 px-4 border-2 border-purple-600 text-purple-600 rounded-lg font-medium hover:bg-purple-50 hover:border-purple-700 hover:text-purple-700 transition-all duration-200 cursor-pointer flex items-center gap-2 shadow-sm hover:shadow-md"
+                  >
+                    <MessageSquare size={18} />
+                    <span>Ratings & Reviews</span>
+                  </button>
                 </div>
 
                 {styleInfo?.description && (
@@ -1148,6 +1182,34 @@ export default function AnkaraGownPage() {
           </div>
         </div>
       </section>
+
+      {/* Product Reviews Section */}
+      {correctProductId && (
+        <section
+          ref={reviewsRef}
+          className="Resizer section px-4 py-8 bg-gray-50"
+        >
+          <div className="max-w-6xl mx-auto">
+            <ProductReviews
+              productId={correctProductId}
+              initiallyExpanded={true}
+              className="bg-white rounded-lg p-6 shadow-sm"
+            />
+            {/* Debug info */}
+            <div className="mt-4 p-4 bg-gray-100 rounded text-sm">
+              <p>
+                <strong>Debug:</strong> Product ID being passed to reviews:{" "}
+                <code>{correctProductId}</code>
+              </p>
+              <p className="mt-1">
+                <strong>Available IDs:</strong> Main ID:{" "}
+                <code>{styleInfo?.id}</code>, Product ID:{" "}
+                <code>{styleInfo?.product_id}</code>
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm">
         <div className="bg-white p-6 rounded-lg w-[100%] sm:w-[500px]">

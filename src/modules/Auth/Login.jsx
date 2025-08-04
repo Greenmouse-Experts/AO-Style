@@ -75,6 +75,7 @@ export default function SignInCustomer() {
     const payload = {
       token: cred?.credential,
       provider: "google",
+      action_type: "SIGNIN",
     };
 
     googleSigninMutate(payload, {

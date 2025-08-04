@@ -12,6 +12,12 @@ const getVendorOrder = (params) => {
   });
 };
 
+const getFetchVendorOrder = (params) => {
+  return CaryBinApi.get(`/orders/fetch-vendor-orders`, {
+    params,
+  });
+};
+
 const getSingleOrder = (id) => {
   return CaryBinApi.get(`/orders/${id}`);
 };
@@ -20,6 +26,7 @@ const OrderService = {
   getAllOrder,
   getSingleOrder,
   getVendorOrder,
+  getFetchVendorOrder,
 };
 
 export default OrderService;

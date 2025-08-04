@@ -8,6 +8,7 @@ import useToast from "../../hooks/useToast";
 import { countryCodes } from "../../constant";
 import Select from "react-select";
 import PhoneInput from "react-phone-input-2";
+import { usePlacesWidget } from "react-google-autocomplete";
 
 const initialValues = {
   name: "",
@@ -69,6 +70,10 @@ export default function SignUpAsLogisticsAgent() {
                 val?.alternative_phone === "" ? undefined : altno,
               allowOtp: true,
               location: val.location,
+              coordinates: {
+                longitude: val.longitude,
+                latitude: val.latitude,
+              },
             }
           : {
               ...val,
@@ -77,14 +82,33 @@ export default function SignUpAsLogisticsAgent() {
               alternative_phone:
                 val?.alternative_phone === "" ? undefined : altno,
               allowOtp: true,
+              location: val.location,
+              coordinates: {
+                longitude: val.longitude,
+                latitude: val.latitude,
+              },
+
               business: {
                 business_name: val.business_name,
                 business_type: val.business_type,
                 business_registration_number: val.business_registration_number,
                 location: val.location,
               },
-            },
+            }
       );
+    },
+  });
+
+  const { ref } = usePlacesWidget({
+    apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
+    onPlaceSelected: (place) => {
+      setFieldValue("location", place.formatted_address);
+      setFieldValue("latitude", place.geometry?.location?.lat().toString());
+      setFieldValue("longitude", place.geometry?.location?.lng().toString());
+    },
+    options: {
+      componentRestrictions: { country: "ng" },
+      types: [],
     },
   });
 
@@ -310,12 +334,17 @@ export default function SignUpAsLogisticsAgent() {
               <label className="block text-gray-700 mb-1">Address</label>
               <input
                 type="text"
-                placeholder="Enter your home address"
-                className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
+                ref={ref}
+                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                placeholder="Enter full detailed address"
                 required
-                name={"location"}
+                name="location"
+                onChange={(e) => {
+                  setFieldValue("location", e.currentTarget.value);
+                  setFieldValue("latitude", "");
+                  setFieldValue("longitude", "");
+                }}
                 value={values.location}
-                onChange={handleChange}
               />
             </div>
 

@@ -16,6 +16,7 @@ import useToast from "../../hooks/useToast";
 import { countryCodes } from "../../constant";
 import Select from "react-select";
 import PhoneInput from "react-phone-input-2";
+import { usePlacesWidget } from "react-google-autocomplete";
 
 const initialValues = {
   name: "",
@@ -82,6 +83,11 @@ export default function SignInAsCustomer() {
         phone: phoneno,
         alternative_phone: val?.alternative_phone === "" ? undefined : altno,
         allowOtp: true,
+        location: val.location,
+        coordinates: {
+          longitude: val.longitude,
+          latitude: val.latitude,
+        },
         business: {
           business_name: val.business_name,
           business_type: val.business_type,
@@ -121,6 +127,19 @@ export default function SignInAsCustomer() {
     "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741615921/AoStyle/image_1_m2zq1t.png";
   const businessImage =
     "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741615921/AoStyle/image_1_m2zq1t.png";
+
+  const { ref } = usePlacesWidget({
+    apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
+    onPlaceSelected: (place) => {
+      setFieldValue("location", place.formatted_address);
+      setFieldValue("latitude", place.geometry?.location?.lat().toString());
+      setFieldValue("longitude", place.geometry?.location?.lng().toString());
+    },
+    options: {
+      componentRestrictions: { country: "ng" },
+      types: [],
+    },
+  });
 
   return (
     <div className="flex flex-col md:flex-row h-screen">
@@ -537,12 +556,17 @@ export default function SignInAsCustomer() {
                 <label className="block text-gray-700">Business Address</label>
                 <input
                   type="text"
-                  placeholder="Enter your business address"
-                  className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
+                  ref={ref}
+                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                  placeholder="Enter full detailed address"
                   required
-                  name={"location"}
+                  name="location"
+                  onChange={(e) => {
+                    setFieldValue("location", e.currentTarget.value);
+                    setFieldValue("latitude", "");
+                    setFieldValue("longitude", "");
+                  }}
                   value={values.location}
-                  onChange={handleChange}
                 />
 
                 <label className="block text-gray-700">

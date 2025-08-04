@@ -25,6 +25,7 @@ import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
 import useDeleteAdminFabric from "../../../../hooks/fabric/useDeleteAdminFabric";
 import useToast from "../../../../hooks/useToast";
+import useFetchVendorOrders from "../../../../hooks/order/useAdminFetchVendorOrders";
 
 const catalogData = [
   {
@@ -316,6 +317,120 @@ const ViewFabric = () => {
       },
     ],
     [openDropdown, toggleDropdown]
+  );
+
+  const [queryOrderString, setQueryOrderString] = useState("");
+
+  const debouncedOrderSearchTerm = useDebounce(queryOrderString ?? "", 1000);
+
+  const [orderCurrentPage, setOrderCurrentPage] = useState(1);
+  const [orderPageSize] = useState(10);
+
+  const [orderStatus, setOrderStatus] = useState(undefined);
+
+  const { data: fetchVendorOrders, isPending: fetchIsPending } =
+    useFetchVendorOrders({
+      business_id: businessData?.id,
+      "pagination[page]": orderCurrentPage,
+      "pagination[limit]": orderPageSize,
+      status: orderStatus,
+      q: debouncedOrderSearchTerm.trim() || undefined,
+      role: "fashion-designer",
+      user_id: tailorId,
+    });
+
+  const updatedColumn = useMemo(
+    () => [
+      { label: "Product", key: "product" },
+      { label: "Amount", key: "amount" },
+      //   { label: "Location", key: "location" },
+      { label: "Order Date", key: "dateAdded" },
+      {
+        label: "Status",
+        key: "status",
+        render: (status) => (
+          <span
+            className={`px-3 py-1 text-sm rounded-full ${
+              status === "Ongoing"
+                ? "bg-yellow-100 text-yellow-700"
+                : status === "Cancelled"
+                ? "bg-red-100 text-red-700"
+                : "bg-green-100 text-green-700"
+            }`}
+          >
+            {status}
+          </span>
+        ),
+      },
+      {
+        label: "Action",
+        key: "action",
+        render: (_, row) => (
+          <div className="relative">
+            <button
+              onClick={() =>
+                setOpenDropdown(openDropdown === row.id ? null : row.id)
+              }
+              className="px-2 py-1 cursor-pointer rounded-md"
+            >
+              •••
+            </button>
+            {openDropdown === row.id && (
+              <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
+                <Link
+                  to={`/admin/fabric/orders/orders-details?id=${row.order_id}`}
+                >
+                  <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                    View Details
+                  </button>
+                </Link>
+                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                  Cancel Order
+                </button>
+                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                  Track Order
+                </button>
+              </div>
+            )}
+          </div>
+        ),
+      },
+    ],
+    [openDropdown]
+  );
+
+  const fabricOrderData = useMemo(
+    () =>
+      fetchVendorOrders?.data
+        ? fetchVendorOrders?.data.map((details) => {
+            return {
+              ...details,
+              transactionId: `${details?.payment?.transaction_id}`,
+              customer:
+                details?.user?.email?.length > 15
+                  ? `${details?.user?.email.slice(0, 15)}...`
+                  : details?.user?.email,
+              product:
+                details?.product?.name?.length > 15
+                  ? `${details?.product?.name?.slice(0, 15)}...`
+                  : details?.product?.name,
+              amount: `${formatNumberWithCommas(
+                details?.order?.total_amount ?? 0
+              )}`,
+
+              status: `${details?.order?.status}`,
+              dateAdded: `${
+                details?.created_at
+                  ? formatDateStr(
+                      details?.created_at.split(".").shift(),
+                      "D/M/YYYY h:mm A"
+                    )
+                  : ""
+              }`,
+            };
+          })
+        : [],
+    [fetchVendorOrders?.data]
   );
 
   const ordersColumns = [
@@ -1012,7 +1127,24 @@ const ViewFabric = () => {
               {["all", "ongoing", "completed", "cancelled"].map((tab) => (
                 <button
                   key={tab}
-                  onClick={() => setOrdersFilter(tab)}
+                  onClick={() => {
+                    setOrdersFilter(tab);
+
+                    if (tab === "all") {
+                      setOrderStatus(undefined);
+                    }
+                    if (tab === "ongoing") {
+                      setOrderStatus("PROCESSING");
+                    }
+
+                    if (tab === "completed") {
+                      setOrderStatus("DELIVERED");
+                    }
+
+                    if (tab === "cancelled") {
+                      setOrderStatus("CANCELLED");
+                    }
+                  }}
                   className={`font-medium capitalize px-3 py-1 ${
                     ordersFilter === tab
                       ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
@@ -1033,56 +1165,124 @@ const ViewFabric = () => {
                   type="text"
                   placeholder="Search"
                   className="w-full sm:w-[200px] pl-10 pr-4 py-2 border border-gray-200 rounded-md outline-none text-sm"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={queryOrderString}
+                  onChange={(evt) =>
+                    setQueryOrderString(
+                      evt.target.value ? evt.target.value : undefined
+                    )
+                  }
                 />
               </div>
-              <button className="w-full sm:w-auto px-4 py-2 bg-purple-600 text-white rounded-md text-sm">
+              {/* <button className="w-full sm:w-auto px-4 py-2 bg-purple-600 text-white rounded-md text-sm">
                 Export As ▼
               </button>
               <button className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md text-sm">
                 Sort: Newest First ▼
-              </button>
+              </button> */}
             </div>
           </div>
-          <ReusableTable columns={ordersColumns} data={ordersCurrentItems} />
-          <div className="flex justify-between items-center mt-4">
-            <p className="text-sm text-gray-600">
-              Showing 1 to {ordersCurrentItems.length} of{" "}
-              {filteredOrders.length} entries
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setOrdersPage((page) => Math.max(page - 1, 1))}
-                disabled={ordersPage === 1}
-                className="p-2 bg-gray-200 rounded-full"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              {[...Array(ordersTotalPages)].map((_, i) => (
-                <button
-                  key={i + 1}
-                  onClick={() => setOrdersPage(i + 1)}
-                  className={`px-3 py-1 rounded-full ${
-                    ordersPage === i + 1
-                      ? "bg-purple-600 text-white"
-                      : "bg-gray-200"
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-              <button
-                onClick={() =>
-                  setOrdersPage((page) => Math.min(page + 1, ordersTotalPages))
-                }
-                disabled={ordersPage === ordersTotalPages}
-                className="p-2 bg-gray-200 rounded-full"
-              >
-                <ChevronRight size={16} />
-              </button>
+          <ReusableTable
+            loading={fetchIsPending}
+            columns={updatedColumn}
+            data={fabricOrderData}
+          />
+          {fetchVendorOrders?.count > orderPageSize && (
+            <div className="mt-6 border-t border-gray-100 pt-6">
+              <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+                <div className="text-sm text-gray-500">
+                  Showing {(orderCurrentPage - 1) * orderPageSize + 1}-
+                  {Math.min(
+                    orderCurrentPage * orderPageSize,
+                    fetchVendorOrders?.count || 0
+                  )}{" "}
+                  of {fetchVendorOrders?.count || 0} Orders
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(1, prev - 1))
+                    }
+                    disabled={orderCurrentPage === 1 || fetchIsPending}
+                    className={`px-3 py-1 rounded text-sm transition-all duration-200 ${
+                      orderCurrentPage === 1 || fetchIsPending
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-white border border-gray-300 text-gray-700 hover:bg-[#9847FE] hover:text-white hover:border-[#9847FE]"
+                    }`}
+                  >
+                    Previous
+                  </button>
+
+                  {(() => {
+                    const totalPages = Math.ceil(
+                      (fetchVendorOrders?.count || 0) / orderPageSize
+                    );
+                    const maxVisiblePages = 5;
+                    let startPage = Math.max(
+                      1,
+                      orderCurrentPage - Math.floor(maxVisiblePages / 2)
+                    );
+                    let endPage = Math.min(
+                      totalPages,
+                      startPage + maxVisiblePages - 1
+                    );
+
+                    if (endPage - startPage + 1 < maxVisiblePages) {
+                      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                    }
+
+                    const pages = [];
+                    for (let i = startPage; i <= endPage; i++) {
+                      pages.push(i);
+                    }
+
+                    return pages.map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        disabled={fetchIsPending}
+                        className={`px-3 py-1 rounded text-sm transition-all duration-200 ${
+                          page === currentPage
+                            ? "bg-[#9847FE] text-white border border-[#9847FE]"
+                            : "bg-white border border-gray-300 text-gray-700 hover:bg-[#9847FE] hover:text-white hover:border-[#9847FE]"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ));
+                  })()}
+
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) =>
+                        Math.min(
+                          Math.ceil(
+                            (fetchVendorOrders?.count || 0) / orderPageSize
+                          ),
+                          prev + 1
+                        )
+                      )
+                    }
+                    disabled={
+                      orderCurrentPage ===
+                        Math.ceil(
+                          (fetchVendorOrders?.count || 0) / orderPageSize
+                        ) || fetchIsPending
+                    }
+                    className={`px-3 py-1 rounded text-sm transition-all duration-200 ${
+                      orderCurrentPage ===
+                        Math.ceil(
+                          (fetchVendorOrders?.count || 0) / orderPageSize
+                        ) || fetchIsPending
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-white border border-gray-300 text-gray-700 hover:bg-[#9847FE] hover:text-white hover:border-[#9847FE]"
+                    }`}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 

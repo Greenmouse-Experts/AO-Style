@@ -803,362 +803,221 @@ const CartPage = () => {
               </div>
             </div>
           </div>
-
-          {/* Checkout Modal */}
-          {showCheckoutModal && (
-            <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 pt-20">
-              <div className="bg-white rounded-lg p-6 w-full max-h-[80vh] overflow-y-auto max-w-3xl relative">
-                <button
-                  onClick={() => {
-                    setShowCheckoutModal(false);
-                    handleSubmit();
-                  }}
-                  className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-                >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M6 18L18 6M6 6l12 12"
-                    ></path>
-                  </svg>
-                </button>
-                <h2 className="text-xl font-semibold mb-4">
-                  Receiver’s Information
-                </h2>
-                <form className="space-y-4" onSubmit={handleSubmit}>
-                  {/* <div>
-                    <label className="block text-sm text-black">
-                      Delivery Address Option *
-                      <select className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none">
-                        <option>Chose from previously used address</option>
-                        <option>Standard Delivery</option>
-                        <option>Express Delivery</option>
-                      </select>
-                    </label>
-                  </div> */}
-                  {/* <div>
-                    <label className="block text-sm text-black">
-                      Name *
-                      <input
-                        type="text"
-                        placeholder="Enter contact name"
-                        className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
-                        // required
-                      />
-                    </label>
-                  </div> */}
-                  {/* <div>
-                    <label className="block text-sm text-black">
-                      Email *
-                      <input
-                        type="email"
-                        placeholder="Enter contact email"
-                        className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
-                        // required
-                      />
-                    </label>
-                  </div> */}
-                  {/* <div className="flex gap-4">
-                    <div className="w-full">
-                      <label className="block text-sm text-black">
-                        Phone Number *
-                        <PhoneInput
-                          country={"ng"}
-                          value={values.phone}
-                          inputProps={{
-                            name: "phone",
-                            required: true,
-                          }}
-                          onChange={(value) => {
-                            // Ensure `+` is included and validate
-                            if (!value.startsWith("+")) {
-                              value = "+" + value;
-                            }
-                            setFieldValue("phone", value);
-                          }}
-                          containerClass="w-full disabled:bg-gray-100"
-                          dropdownClass="flex flex-col gap-2 text-black disabled:bg-gray-100"
-                          buttonClass="bg-gray-100 !border !border-gray-100 hover:!bg-gray-100 disabled:bg-gray-100"
-                          inputClass="!w-full px-2 font-sans disabled:bg-gray-100  !h-[50px] !py-2 border border-gray-300 !rounded-md focus:outline-none"
-                        />
-                      </label>
-                    </div>
-                  </div> */}
-                  <div>
-                    <label className="block text-sm text-black">
-                      Country *
-                      <Select
-                        options={[{ value: "NG", label: "Nigeria" }]}
-                        name="country"
-                        value={[{ value: "NG", label: "Nigeria" }]?.find(
-                          (opt) => opt.value === values.country,
-                        )}
-                        onChange={(selectedOption) =>
-                          setFieldValue("country", selectedOption.value)
-                        }
-                        placeholder="Select"
-                        className="p-1 w-full mt-1 border border-[#CCCCCC] outline-none rounded-lg"
-                        styles={{
-                          control: (base, state) => ({
-                            ...base,
-                            border: "none",
-                            boxShadow: "none",
-                            outline: "none",
-                            backgroundColor: "#fff",
-                            "&:hover": {
-                              border: "none",
-                            },
-                          }),
-                          indicatorSeparator: () => ({
-                            display: "none",
-                          }),
-                          menu: (base) => ({
-                            ...base,
-                            zIndex: 9999,
-                          }),
-                        }}
-                      />{" "}
-                    </label>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="w-1/2">
-                      <label className="block text-sm text-black">
-                        State *
-                        <Select
-                          options={nigeriaStates}
-                          name="state"
-                          value={nigeriaStates?.find(
-                            (opt) => opt.value === values.state,
-                          )}
-                          onChange={(selectedOption) =>
-                            setFieldValue("state", selectedOption.value)
-                          }
-                          placeholder="Select"
-                          className="p-1 w-full mt-1 border border-[#CCCCCC] outline-none rounded-lg"
-                          styles={{
-                            control: (base, state) => ({
-                              ...base,
-                              border: "none",
-                              boxShadow: "none",
-                              outline: "none",
-                              backgroundColor: "#fff",
-                              "&:hover": {
-                                border: "none",
-                              },
-                            }),
-                            indicatorSeparator: () => ({
-                              display: "none",
-                            }),
-                            menu: (base) => ({
-                              ...base,
-                              zIndex: 9999,
-                            }),
-                          }}
-                        />{" "}
-                      </label>
-                    </div>
-                    <div className="w-1/2">
-                      <label className="block text-sm text-black">
-                        City*
-                        <input
-                          type="text"
-                          placeholder="Enter your city"
-                          className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
-                          required
-                          name={"city"}
-                          value={values.city}
-                          onChange={handleChange}
-                        />
-                      </label>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm text-black">
-                      Delivery Address *
-                      <input
-                        type="text"
-                        placeholder="Enter your delivery address"
-                        className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
-                        required
-                        name={"address"}
-                        maxLength={150}
-                        value={values.address}
-                        onChange={handleChange}
-                      />
-                    </label>
-                  </div>
-                  <div>
-                    <label className="block text-sm text-black">
-                      Postal Code *
-                      <input
-                        type="text"
-                        placeholder="Postal code"
-                        className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
-                        required
-                        name={"postal_code"}
-                        value={values.postal_code}
-                        onChange={handleChange}
-                      />
-                    </label>
-                  </div>
-                  <div className="border-t border-gray-300 pt-4">
-                    <div className="flex justify-between text-sm text-gray-700">
-                      <span>SUBTOTAL</span>
-                      <span>
-                        NGN {(totalAmount + totalStyleAmount).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between mt-2 text-sm text-gray-700">
-                      <span className="">Discount</span>
-                      <span className=" text-green-600">
-                        -₦
-                        {discountedPrice
-                          ? formatNumberWithCommas(discountedPrice ?? 0)
-                          : 0}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm text-gray-700 mt-2">
-                      <span>DELIVERY FEE</span>
-                      <span>
-                        {" "}
-                        ₦
-                        {delivery_fee
-                          ? formatNumberWithCommas(delivery_fee ?? 0)
-                          : 0}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm text-gray-700 mt-2">
-                      <span>Estimated sales VAT (7.5%)</span>
-                      <span>
-                        ₦
-                        {estimatedVat
-                          ? formatNumberWithCommas(estimatedVat ?? 0)
-                          : 0}
-                      </span>
-                    </div>
-
-                    {/* <div className="flex justify-between text-sm text-gray-700 mt-2">
-                      <span>Charges(1.5%)</span>
-                      <span>
-                        {" "}
-                        ₦{charges ? formatNumberWithCommas(charges ?? 0) : 0}
-                      </span>
-                    </div> */}
-
-                    <div className="flex justify-between text-lg font-medium text-gray-700 mt-2">
-                      <span>TOTAL</span>
-                      <span>
-                        ₦
-                        {updatedAmount
-                          ? Math.round(updatedAmount).toLocaleString()
-                          : 0}
-                      </span>
-                    </div>
-                  </div>
-
-                  <button
-                    disabled={billingPending}
-                    onClick={() => {
-                      // const updatedCart = cartData?.data?.items?.map((item) => {
-                      //   return {
-                      //     purchase_id: item?.product_id,
-                      //     quantity: item?.quantity,
-                      //     purchase_type: item?.product_type,
-                      //   };
-                      // });
-                      // createPaymentMutate(
-                      //   {
-                      //     purchases: updatedCart,
-                      //     amount: totalAmount,
-                      //     currency: "NGN",
-                      //     email: carybinUser?.email,
-                      //   },
-                      //   {
-                      //     onSuccess: (data) => {
-                      //       payWithPaystack({
-                      //         amount: totalAmount,
-                      //         payment_id: data?.data?.data?.payment_id,
-                      //       });
-                      //     },
-                      //   }
-                      // );
-                    }}
-                    type="submit"
-                    className="w-full cursor-pointer mt-6 py-3 bg-gradient text-white hover:from-purple-600 hover:to-pink-600 transition"
-                  >
-                    {billingPending || createPaymentPending
-                      ? "Please wait..."
-                      : "Proceed to Payment"}
-                  </button>
-                </form>
-              </div>
-            </div>
-          )}
-
-          {isAddModalOpen && (
-            <div
-              className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
-              onClick={() => {
-                setIsAddModalOpen(false);
-                setNewCategory(null);
-              }}
-            >
-              <div
-                className="bg-white rounded-xl p-6 w-full max-w-lg"
-                onClick={(e) => e.stopPropagation()}
+        </div>
+      )}
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Remove Item
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to remove this item from your cart?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setItemToDelete(null);
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
               >
-                <div className="flex justify-between items-center border-b border-gray-200 pb-4 mb-4">
-                  <h2 className="text-lg font-semibold text-gray-800">
-                    Remove Cart
-                  </h2>
-                  <button
-                    onClick={() => {
-                      setNewCategory(null);
-                      setIsAddModalOpen(false);
+                Cancel
+              </button>
+              <button
+                onClick={() => handleRemoveItem(itemToDelete)}
+                disabled={deleteIsPending}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+              >
+                {deleteIsPending ? "Removing..." : "Remove"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Checkout Modal */}
+      {showCheckoutModal && (
+        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 pt-20">
+          <div className="bg-white rounded-lg p-6 w-full max-h-[80vh] overflow-y-auto max-w-3xl relative">
+            <button
+              onClick={() => setShowCheckoutModal(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M6 18L18 6M6 6l12 12"
+                ></path>
+              </svg>
+            </button>
+            <h2 className="text-xl font-semibold mb-4">
+              Receiver's Information
+            </h2>
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              <div>
+                <label className="block text-sm text-black">
+                  Country *
+                  <Select
+                    options={[{ value: "NG", label: "Nigeria" }]}
+                    name="country"
+                    value={[{ value: "NG", label: "Nigeria" }]?.find(
+                      (opt) => opt.value === values.country,
+                    )}
+                    onChange={(selectedOption) =>
+                      setFieldValue("country", selectedOption.value)
+                    }
+                    placeholder="Select"
+                    className="p-1 w-full mt-1 border border-[#CCCCCC] outline-none rounded-lg"
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        border: "none",
+                        boxShadow: "none",
+                        outline: "none",
+                        backgroundColor: "#fff",
+                        "&:hover": {
+                          border: "none",
+                        },
+                      }),
+                      indicatorSeparator: () => ({
+                        display: "none",
+                      }),
+                      menu: (base) => ({
+                        ...base,
+                        zIndex: 9999,
+                      }),
                     }}
-                    className="text-gray-500 cursor-pointer hover:text-gray-700 text-2xl"
-                  >
-                    ✕
-                  </button>
-                </div>
-                <div className="max-h-[80vh] overflow-y-auto px-1">
-                  {" "}
-                  <label className="block text-sm font-medium text-gray-700 mb-4">
-                    Are you sure you want to Remove
+                  />{" "}
+                </label>
+              </div>
+              <div className="flex gap-4">
+                <div className="w-1/2">
+                  <label className="block text-sm text-black">
+                    State *
+                    <Select
+                      options={nigeriaStates}
+                      name="state"
+                      value={nigeriaStates?.find(
+                        (opt) => opt.value === values.state,
+                      )}
+                      onChange={(selectedOption) =>
+                        setFieldValue("state", selectedOption.value)
+                      }
+                      placeholder="Select"
+                      className="p-1 w-full mt-1 border border-[#CCCCCC] outline-none rounded-lg"
+                      styles={{
+                        control: (base, state) => ({
+                          ...base,
+                          border: "none",
+                          boxShadow: "none",
+                          outline: "none",
+                          backgroundColor: "#fff",
+                          "&:hover": {
+                            border: "none",
+                          },
+                        }),
+                        indicatorSeparator: () => ({
+                          display: "none",
+                        }),
+                        menu: (base) => ({
+                          ...base,
+                          zIndex: 9999,
+                        }),
+                      }}
+                    />{" "}
                   </label>
-                  <div className="flex justify-between mt-6 space-x-4">
-                    <button
-                      onClick={() => {
-                        setNewCategory(null);
-                        setIsAddModalOpen(false);
-                      }}
-                      className="w-full cursor-pointer bg-purple-400 text-white px-4 py-2 rounded-md text-sm font-medium"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => {
-                        removeFromCart(newCategory);
-                        toastSuccess("Item removed from cart successfully.");
-                        setIsAddModalOpen(false);
-                      }}
-                      className="w-full cursor-pointer bg-gradient text-white px-4 py-4 rounded-md text-sm font-medium"
-                    >
-                      {"Remove"}
-                    </button>
-                  </div>
+                </div>
+                <div className="w-1/2">
+                  <label className="block text-sm text-black">
+                    City*
+                    <input
+                      type="text"
+                      placeholder="Enter your city"
+                      className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
+                      required
+                      name={"city"}
+                      value={values.city}
+                      onChange={handleChange}
+                    />
+                  </label>
                 </div>
               </div>
-            </div>
-          )}
+              <div>
+                <label className="block text-sm text-black">
+                  Delivery Address *
+                  <input
+                    type="text"
+                    placeholder="Enter your delivery address"
+                    className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
+                    required
+                    name={"address"}
+                    maxLength={150}
+                    value={values.address}
+                    onChange={handleChange}
+                  />
+                </label>
+              </div>
+              <div>
+                <label className="block text-sm text-black">
+                  Postal Code *
+                  <input
+                    type="text"
+                    placeholder="Postal code"
+                    className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
+                    required
+                    name={"postal_code"}
+                    value={values.postal_code}
+                    onChange={handleChange}
+                  />
+                </label>
+              </div>
+              <div className="border-t border-gray-300 pt-4">
+                <div className="flex justify-between text-sm text-gray-700">
+                  <span>SUBTOTAL</span>
+                  <span>NGN {formatNumberWithCommas(totals.subtotal)}</span>
+                </div>
+                <div className="flex justify-between mt-2 text-sm text-gray-700">
+                  <span className="">Discount</span>
+                  <span className=" text-green-600">
+                    -₦{formatNumberWithCommas(discountAmount)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm text-gray-700 mt-2">
+                  <span>DELIVERY FEE</span>
+                  <span>₦{formatNumberWithCommas(delivery_fee)}</span>
+                </div>
+                <div className="flex justify-between text-sm text-gray-700 mt-2">
+                  <span>Estimated sales VAT (7.5%)</span>
+                  <span>₦{formatNumberWithCommas(estimatedVat)}</span>
+                </div>
+
+                <div className="flex justify-between text-lg font-medium text-gray-700 mt-2">
+                  <span>TOTAL</span>
+                  <span>₦{formatNumberWithCommas(finalTotal)}</span>
+                </div>
+              </div>
+
+              <button
+                disabled={billingPending || createPaymentPending}
+                type="submit"
+                className="w-full cursor-pointer mt-6 py-3 bg-gradient text-white hover:from-purple-600 hover:to-pink-600 transition"
+              >
+                {billingPending || createPaymentPending
+                  ? "Please wait..."
+                  : "Proceed to Payment"}
+              </button>
+            </form>
+          </div>
         </div>
       )}
 

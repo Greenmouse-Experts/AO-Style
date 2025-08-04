@@ -101,7 +101,7 @@ const CartPage = () => {
         itemCount: 0,
       };
     }
-
+    //GOOD
     const subtotal = items.reduce((total, item) => {
       const price = parseFloat(item.price_at_time || item.product?.price || 0);
       const quantity = parseInt(item.quantity || 1);

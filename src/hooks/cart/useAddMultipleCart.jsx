@@ -9,15 +9,12 @@ const useAddMultipleCart = () => {
   const { toastError, toastSuccess } = useToast();
 
   const { isPending, mutate: addMultipleCartMutate } = useMutation({
-    mutationFn: (payload) => CartService.addMultipleToCart(payload),
+    mutationFn: (payload) => CartService.addMultipleCartProduct(payload),
     mutationKey: ["addmultiple-cart"],
     onSuccess(data) {
-      toastSuccess(data?.data?.message || "Items added to cart successfully");
+      //   toastSuccess(data?.data?.message);
       queryClient.invalidateQueries({
         queryKey: ["get-cart"],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["get-cart-count"],
       });
     },
     onError: (error) => {
@@ -29,7 +26,7 @@ const useAddMultipleCart = () => {
       if (Array.isArray(error?.data?.message)) {
         toastError(error?.data?.message[0]);
       } else {
-        toastError(error?.data?.message || "Failed to add items to cart");
+        toastError(error?.data?.message);
       }
     },
   });

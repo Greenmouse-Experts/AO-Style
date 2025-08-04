@@ -1,69 +1,52 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { CheckCircle, ShoppingBag, Sparkles } from "lucide-react";
 
-const CheckModal = ({ isOpen, onClose, id, cartItemId }) => {
+const CheckModal = ({ isOpen, onClose, id }) => {
   const navigate = useNavigate();
 
   return (
     isOpen && (
-      <div className="fixed inset-0 flex justify-center items-center z-50 bg-black/50 backdrop-blur-sm p-4">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto animate-fade-in-up">
-          {/* Success Header */}
-          <div className="text-center pt-8 pb-6 px-6">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-8 h-8 text-green-600" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Added to Cart!
-            </h2>
-            <p className="text-gray-600">
-              Product successfully added to your cart
-            </p>
+      <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm">
+        <div className="bg-white p-6 rounded-lg w-[100%] sm:w-[500px]">
+          {/* Header */}
+          <div className="flex justify-between items-center border-b border-[#CCCCCC] outline-none pb-3  mb-4">
+            <h2 className="text-lg font-meduim">Continue Shopping</h2>
+            {/* <button onClick={onClose} className="text-gray-500 hover:text-black">
+                            ✕
+                        </button> */}
           </div>
-
-          {/* Content */}
-          <div className="px-6 pb-6">
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 mb-6">
-              <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0">
-                  <Sparkles className="w-6 h-6 text-purple-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Need a Tailor/Fashion Designer?
-                  </h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    Choose a style from our catalog of talented tailors and
-                    fashion designers to create something amazing with your
-                    selected material.
-                  </p>
-                </div>
-              </div>
+          {/* Form */}
+          <div className="space-y-3">
+            <div>
+              <h2 className="text-base font-meduim mb-3">
+                Do you need a Tailor/Fashion Designer ?
+              </h2>
+              <p className="text-sm leading-loose text-gray-500">
+                Choose a style from the catalog of the tailors/fashion designers
+                and have it made for you with your bought material
+              </p>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link to="/view-cart" className="flex-1">
+            {/* Buttons */}
+            <div className="flex justify-between pt-4">
+              <Link to="/view-cart">
                 <button
                   onClick={onClose}
-                  className="w-full flex items-center justify-center space-x-2 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
+                  className="border px-6 py-3 border-[#CCCCCC] text-gray-400 cursor-pointer"
                 >
-                  <ShoppingBag className="w-4 h-4" />
-                  <span>Go to Checkout</span>
+                  No, go to checkout
                 </button>
               </Link>
-              <Link to="/pickastyle" className="flex-1">
+              <Link to="/pickastyle">
                 <button
                   onClick={() => {
-                    localStorage.setItem("cart_id", id);
-                    localStorage.setItem("cart_item_id", cartItemId);
                     navigate("/pickastyle");
+
+                    localStorage.setItem("cart_id", id);
                   }}
-                  className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-gradient text-white rounded-xl font-semibold hover:bg-purple-700 transition-all duration-200 shadow-lg"
+                  className="bg-gradient text-white px-6 py-3 cursor-pointer"
                 >
-                  <Sparkles className="w-4 h-4" />
-                  <span>Pick a Style</span>
+                  Proceed to pick a style
                 </button>
               </Link>
             </div>

@@ -134,9 +134,7 @@ const OrderDetails = () => {
   });
   console.log("=========================");
 
-  const handleStepClick = (index) => {
-    setCurrentStep(index);
-  };
+  // Removed handleStepClick - customers should not be able to manually change order progress
 
   return (
     <div className="">
@@ -173,15 +171,14 @@ const OrderDetails = () => {
                 }`}
               ></div>
             )}
-            <button
-              className={`z-10 w-8 h-8 flex items-center justify-center rounded-full border-2 transition-all ${
+            <div
+              className={`z-10 w-8 h-8 flex items-center justify-center rounded-full border-2 ${
                 orderDetails?.status === "CANCELLED"
                   ? "bg-red-500 border-red-500 text-white"
                   : index <= currentStep
                     ? "bg-[#EC8B20] border-[#EC8B20] text-white"
                     : "bg-gray-200 border-gray-400 text-gray-600"
               }`}
-              onClick={() => handleStepClick(index)}
             >
               {orderDetails?.status === "CANCELLED" ? (
                 <X size={20} />
@@ -190,7 +187,7 @@ const OrderDetails = () => {
               ) : (
                 <Circle size={20} />
               )}
-            </button>
+            </div>
             <span
               className={`mt-2 text-sm font-medium ${
                 orderDetails?.status === "CANCELLED"

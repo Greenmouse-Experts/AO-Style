@@ -104,7 +104,7 @@ export default function ShopStyles() {
 
   const maxIndex = useMemo(
     () => marketPlacePublic?.length - itemsPerPage,
-    [marketPlacePublic]
+    [marketPlacePublic],
   );
 
   useEffect(() => {
@@ -126,14 +126,14 @@ export default function ShopStyles() {
   // Ensure nextSlide stops at last full slide
   const nextSlide = () => {
     setIndex((prevIndex) =>
-      prevIndex + itemsPerPage > maxIndex ? maxIndex : prevIndex + itemsPerPage
+      prevIndex + itemsPerPage > maxIndex ? maxIndex : prevIndex + itemsPerPage,
     );
   };
 
   // Ensure prevSlide stops at the start
   const prevSlide = () => {
     setIndex((prevIndex) =>
-      prevIndex - itemsPerPage < 0 ? 0 : prevIndex - itemsPerPage
+      prevIndex - itemsPerPage < 0 ? 0 : prevIndex - itemsPerPage,
     );
   };
 
@@ -141,7 +141,7 @@ export default function ShopStyles() {
   useEffect(() => {
     const interval = setInterval(() => {
       setIndex((prevIndex) =>
-        prevIndex + itemsPerPage > maxIndex ? 0 : prevIndex + itemsPerPage
+        prevIndex + itemsPerPage > maxIndex ? 0 : prevIndex + itemsPerPage,
       );
     }, 3000);
 
@@ -220,13 +220,13 @@ export default function ShopStyles() {
         min_price: debounceMin,
         max_price: debounceMax,
       },
-      "STYLE"
+      "STYLE",
     );
 
   const styleData = getStyleProductGeneralData?.data;
 
   const totalPages = Math.ceil(
-    getStyleProductData?.count / (queryParams["pagination[limit]"] ?? 10)
+    getStyleProductData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
   return (
@@ -376,8 +376,8 @@ export default function ShopStyles() {
                       ? product.name.slice(0, 20) + "..."
                       : product?.name}
                   </h3>
-                  <p className="text-[#2B21E5]  text-left font-light">
-                    {product?.price}{" "}
+                  <p className="text-[#2B21E5]  text-left font-bold">
+                    ₦{product?.price}{" "}
                     <span className="text-[#8A8A8A] font-medium">per unit</span>
                   </p>
                 </Link>

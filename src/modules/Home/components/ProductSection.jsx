@@ -107,7 +107,7 @@ export default function ProductSection() {
         category_id: selectedCategory == "1" ? undefined : selectedCategory,
         status: "PUBLISHED",
       },
-      "STYLE"
+      "STYLE",
     );
 
   const styleData = getStyleProductGeneralData?.data;
@@ -177,8 +177,8 @@ export default function ProductSection() {
                   ? product.name.slice(0, 20) + "..."
                   : product?.name}
               </h3>
-              <p className="text-[#2B21E5]  text-left font-light">
-                {product?.price}{" "}
+              <p className="text-[#2B21E5]  text-left font-bold">
+                ₦{product?.price}{" "}
                 <span className="text-[#8A8A8A] font-medium">per unit</span>
               </p>
             </Link>

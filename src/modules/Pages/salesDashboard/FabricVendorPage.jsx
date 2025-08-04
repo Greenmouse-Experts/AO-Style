@@ -30,7 +30,7 @@ export default function FabricVendorPage() {
     {
       ...queryParams,
     },
-    "fabric-vendor"
+    "fabric-vendor",
   );
 
   const [queryString, setQueryString] = useState(queryParams.q);
@@ -63,7 +63,7 @@ export default function FabricVendorPage() {
             };
           })
         : [],
-    [getAllFabVendorData?.data]
+    [getAllFabVendorData?.data],
   );
 
   const columns = [
@@ -106,9 +106,12 @@ export default function FabricVendorPage() {
 
           {openDropdown === row.id && (
             <div className="absolute cursor-pointer right-0 mt-2 w-40 bg-white rounded-md z-10">
-              <button className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
+              <Link
+                to={`/sales/view-vendor/${row.id}`}
+                className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
+              >
                 View Fabric Vendor
-              </button>
+              </Link>
               {/* <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
                 Edit Fabric Vendor
               </button>
@@ -123,7 +126,7 @@ export default function FabricVendorPage() {
   ];
 
   const totalPages = Math.ceil(
-    getAllFabVendorData?.count / (queryParams["pagination[limit]"] ?? 10)
+    getAllFabVendorData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
   return (
@@ -181,7 +184,7 @@ export default function FabricVendorPage() {
                 value={queryString}
                 onChange={(evt) =>
                   setQueryString(
-                    evt.target.value ? evt.target.value : undefined
+                    evt.target.value ? evt.target.value : undefined,
                   )
                 }
               />

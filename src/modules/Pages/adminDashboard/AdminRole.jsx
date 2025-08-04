@@ -42,12 +42,12 @@ const CustomersTable = () => {
     "pagination[page]": 1,
   });
 
-  const { data, isPending } = useGetAdminRoles({
+  const { data, isPending, refetch } = useGetAdminRoles({
     ...queryParams,
   });
 
-  const { isPending: deleteIsPending, deleteAdminRoleMutate } =
-    useDeleteAdminRole();
+  // const { isPending: deleteIsPending, deleteAdminRoleMutate } =
+  //   useDeleteAdminRole();
 
   const [queryString, setQueryString] = useState(queryParams.q);
 
@@ -100,6 +100,7 @@ const CustomersTable = () => {
       let resp = await CaryBinApi.delete(`/admin-role/${id}`);
       return resp.data;
     },
+    onSuccess: (res) => refetch(),
     onError: (err) => {
       console.log(err.data.message);
       toast.error(err.data.message);

@@ -3,7 +3,7 @@ import Cookies from "js-cookie";
 
 const baseURL = import.meta.env.VITE_APP_CaryBin_API_URL;
 
-const CaryBinApi = axios.create({
+export const CaryBinApi = axios.create({
   baseURL,
   headers: {
     "Content-Type": "application/json",

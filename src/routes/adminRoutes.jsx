@@ -47,6 +47,9 @@ import ViewFabric from "../modules/Pages/adminDashboard/fabric/ViewFabric";
 import ViewLogistics from "../modules/Pages/adminDashboard/components/ViewLogistics";
 import JobsManagementPage from "../modules/Pages/adminDashboard/JobsManagement";
 import Coupons from "../modules/Pages/Coupons";
+import OrdersDetails from "../modules/Pages/tailorDashboard/OrdersDetails";
+
+import OrdersFabricDetails from "../modules/Pages/fabricDashboard/OrdersDetails";
 
 export const adminRoutes = [
   {
@@ -85,6 +88,11 @@ export const adminRoutes = [
         element: <ViewTailor />,
       },
 
+      {
+        path: "/admin/tailors/orders-details",
+        element: <OrdersDetails />,
+      },
+
       // Fabric Routes
       {
         path: "/admin/fabric-vendor",
@@ -94,6 +102,11 @@ export const adminRoutes = [
       {
         path: "/admin/fabric-vendor/view/:tailorId",
         element: <ViewFabric />,
+      },
+
+      {
+        path: "/admin/fabric/orders/orders-details",
+        element: <OrdersFabricDetails />,
       },
 
       // Message Routes

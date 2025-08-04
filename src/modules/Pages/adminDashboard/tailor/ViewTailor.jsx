@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import ReusableTable from "../components/ReusableTable";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
@@ -24,6 +24,7 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
+import useFetchVendorOrders from "../../../../hooks/order/useAdminFetchVendorOrders";
 
 const catalogData = [
   {
@@ -106,6 +107,8 @@ const ordersData = [
 const ViewCustomer = () => {
   const { tailorId } = useParams();
 
+  console.log(tailorId, "id");
+
   const { toastError } = useToast();
 
   const { isPending: deleteAdminIsPending, deleteAdminStyleMutate } =
@@ -120,8 +123,6 @@ const ViewCustomer = () => {
 
   const businessData = data?.data?.business;
 
-  console.log(businessData?.id, "id");
-
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
 
@@ -131,10 +132,14 @@ const ViewCustomer = () => {
 
   const [queryString, setQueryString] = useState("");
 
+  const [queryOrderString, setQueryOrderString] = useState("");
+
   const { isPending: updateAdminIsPending, updateAdminStyleMutate } =
     useUpdateAdminStyle();
 
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
+
+  const debouncedOrderSearchTerm = useDebounce(queryOrderString ?? "", 1000);
 
   const { data: getAllFabricFabricData, isPending: adminProductIsPending } =
     useGetAdminFabricProduct({
@@ -145,7 +150,23 @@ const ViewCustomer = () => {
       q: debouncedSearchTerm.trim() || undefined,
     });
 
-  console.log(getAllFabricFabricData);
+  const [orderCurrentPage, setOrderCurrentPage] = useState(1);
+  const [orderPageSize] = useState(10);
+
+  const [orderStatus, setOrderStatus] = useState(undefined);
+
+  const { data: fetchVendorOrders, isPending: fetchIsPending } =
+    useFetchVendorOrders({
+      business_id: businessData?.id,
+      "pagination[page]": orderCurrentPage,
+      "pagination[limit]": orderPageSize,
+      status: orderStatus,
+      q: debouncedOrderSearchTerm.trim() || undefined,
+      role: "fashion-designer",
+      user_id: tailorId,
+    });
+
+  console.log(fetchVendorOrders, "vendor orders");
 
   const handleExport = (e) => {
     const value = e.target.value;
@@ -212,119 +233,107 @@ const ViewCustomer = () => {
       order.orderId.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const catalogColumns = [
-    { label: "S/N", key: "id" },
-    {
-      label: "Thumbnail Image ",
-      key: "thumbnail",
-      render: (thumbnail) => (
-        <img src={thumbnail} alt="style" className="w-15 h-15 rounded-md" />
-      ),
-    },
-    { label: "Style Name", key: "styleName" },
-    { label: "Categories", key: "category" },
-    { label: "Sewing Time", key: "sewingTime" },
-    { label: "Price", key: "price" },
-    {
-      label: "Status ",
-      key: "status",
-      render: (status) => (
-        <span className="px-3 py-1 text-sm rounded-full bg-green-100 text-green-700">
-          {status}
-        </span>
-      ),
-    },
-    {
-      label: "Action",
-      key: "action",
-      render: (_, row) => (
-        <div className="relative">
-          <button
-            onClick={() =>
-              setOpenDropdown(
-                openDropdown === `catalog-${row.id}`
-                  ? null
-                  : `catalog-${row.id}`
-              )
-            }
-            className="px-2 py-1 cursor-pointer rounded-md text-gray-600"
+  const columns = useMemo(
+    () => [
+      // { label: "Transaction ID", key: "transactionId" },
+      // { label: "Customer", key: "customer" },
+      { label: "Product", key: "product" },
+      // {
+      //   label: "Body Measurement",
+      //   key: "measurement",
+      //   render: (text) => (
+      //     <Link to="#" className="text-blue-500 hover:underline">
+      //       {text}
+      //     </Link>
+      //   ),
+      // },
+      { label: "Amount", key: "amount" },
+      { label: "Order Date", key: "dateAdded" },
+      {
+        label: "Status",
+        key: "status",
+        render: (status) => (
+          <span
+            className={`px-3 py-1 text-sm rounded-full ${
+              status === "Ongoing"
+                ? "bg-yellow-100 text-yellow-700"
+                : status === "Cancelled"
+                ? "bg-red-100 text-red-700"
+                : "bg-green-100 text-green-700"
+            }`}
           >
-            •••
-          </button>
-          {openDropdown === `catalog-${row.id}` && (
-            <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
-              <Link to={`/tailor/catalog/${row.id}`}>
-                <button className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
-                  View Details
+            {status}
+          </span>
+        ),
+      },
+      {
+        label: "Action",
+        key: "action",
+        render: (_, row) => (
+          <div className="relative">
+            <button
+              onClick={() =>
+                setOpenDropdown(openDropdown === row.id ? null : row.id)
+              }
+              className="px-2 py-1 cursor-pointer rounded-md"
+            >
+              •••
+            </button>
+            {openDropdown === row.id && (
+              <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
+                <Link to={`/admin/tailors/orders-details?id=${row.order_id}`}>
+                  <button className="block cursor-pointer w-full text-left px-4 py-2 hover:bg-gray-100">
+                    View Details
+                  </button>
+                </Link>
+                {/* <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                  Cancel Order
                 </button>
-              </Link>
-              <button className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
-                Edit Style
-              </button>
-            </div>
-          )}
-        </div>
-      ),
-    },
-  ];
+                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                  Track Order
+                </button> */}
+              </div>
+            )}
+          </div>
+        ),
+      },
+    ],
+    [openDropdown]
+  );
 
-  const ordersColumns = [
-    { label: "S/N", key: "id" },
-    { label: "ORDER ID", key: "orderId" },
-    { label: "CUSTOMER", key: "customer" },
-    { label: "STYLE NAME", key: "styleName" },
-    {
-      label: "STATUS",
-      key: "status",
-      render: (status) => (
-        <span
-          className={`px-3 py-1 text-sm rounded-full ${
-            status === "Ongoing"
-              ? "bg-yellow-100 text-yellow-700"
-              : status === "Cancelled"
-              ? "bg-red-100 text-red-700"
-              : status === "Completed"
-              ? "bg-green-100 text-green-700"
-              : "bg-green-100 text-green-700"
-          }`}
-        >
-          {status}
-        </span>
-      ),
-    },
-    { label: "DATE", key: "date" },
-    { label: "TOTAL", key: "total" },
-    {
-      label: "ACTION",
-      key: "action",
-      render: (_, row) => (
-        <div className="relative">
-          <button
-            onClick={() =>
-              setOpenDropdown(
-                openDropdown === `order-${row.id}` ? null : `order-${row.id}`
-              )
-            }
-            className="px-2 py-1 cursor-pointer rounded-md text-gray-600"
-          >
-            •••
-          </button>
-          {openDropdown === `order-${row.id}` && (
-            <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
-              <Link to={`/customer/orders/orders-details/${row.id}`}>
-                <button className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
-                  View Details
-                </button>
-              </Link>
-              <button className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
-                Cancel Order
-              </button>
-            </div>
-          )}
-        </div>
-      ),
-    },
-  ];
+  const fabricOrderData = useMemo(
+    () =>
+      fetchVendorOrders?.data
+        ? fetchVendorOrders?.data.map((details) => {
+            return {
+              ...details,
+              transactionId: `${details?.payment?.transaction_id}`,
+              customer:
+                details?.user?.email?.length > 15
+                  ? `${details?.user?.email.slice(0, 15)}...`
+                  : details?.user?.email,
+              product:
+                details?.product?.name?.length > 15
+                  ? `${details?.product?.name?.slice(0, 15)}...`
+                  : details?.product?.name,
+              amount: `${formatNumberWithCommas(
+                details?.order?.total_amount ?? 0
+              )}`,
+
+              status: `${details?.order?.status}`,
+              dateAdded: `${
+                details?.created_at
+                  ? formatDateStr(
+                      details?.created_at.split(".").shift(),
+                      "D/M/YYYY h:mm A"
+                    )
+                  : ""
+              }`,
+            };
+          })
+        : [],
+    [fetchVendorOrders?.data]
+  );
 
   const customerColumns = React.useMemo(
     (val) => [
@@ -435,7 +444,6 @@ const ViewCustomer = () => {
   );
 
   // Pagination for Orders
-  const ordersTotalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const ordersStartIndex = (ordersPage - 1) * itemsPerPage;
   const ordersCurrentItems = filteredOrders.slice(
     ordersStartIndex,
@@ -1055,6 +1063,11 @@ const ViewCustomer = () => {
               )}
             </>
           )}
+
+          {!adminProductIsPending &&
+            getAllFabricFabricData?.data?.length === 0 && (
+              <p className="text-center my-8">No Style catalog found</p>
+            )}
         </div>
 
         {/* Orders Handled */}
@@ -1065,7 +1078,24 @@ const ViewCustomer = () => {
               {["all", "ongoing", "completed", "cancelled"].map((tab) => (
                 <button
                   key={tab}
-                  onClick={() => setOrdersFilter(tab)}
+                  onClick={() => {
+                    setOrdersFilter(tab);
+
+                    if (tab === "all") {
+                      setOrderStatus(undefined);
+                    }
+                    if (tab === "ongoing") {
+                      setOrderStatus("PROCESSING");
+                    }
+
+                    if (tab === "completed") {
+                      setOrderStatus("DELIVERED");
+                    }
+
+                    if (tab === "cancelled") {
+                      setOrderStatus("CANCELLED");
+                    }
+                  }}
                   className={`font-medium capitalize px-3 py-1 ${
                     ordersFilter === tab
                       ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
@@ -1086,19 +1116,125 @@ const ViewCustomer = () => {
                   type="text"
                   placeholder="Search"
                   className="w-full sm:w-[200px] pl-10 pr-4 py-2 border border-gray-200 rounded-md outline-none text-sm"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={queryOrderString}
+                  onChange={(evt) =>
+                    setQueryOrderString(
+                      evt.target.value ? evt.target.value : undefined
+                    )
+                  }
                 />
               </div>
-              <button className="w-full sm:w-auto px-4 py-2 bg-purple-600 text-white rounded-md text-sm">
+              {/* <button className="w-full sm:w-auto px-4 py-2 bg-purple-600 text-white rounded-md text-sm">
                 Export As ▼
               </button>
               <button className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md text-sm">
                 Sort: Newest First ▼
-              </button>
+              </button> */}
             </div>
           </div>
-          <ReusableTable columns={ordersColumns} data={ordersCurrentItems} />
+          <ReusableTable
+            loading={fetchIsPending}
+            columns={columns}
+            data={fabricOrderData}
+          />
+
+          {fetchVendorOrders?.count > orderPageSize && (
+            <div className="mt-6 border-t border-gray-100 pt-6">
+              <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+                <div className="text-sm text-gray-500">
+                  Showing {(orderCurrentPage - 1) * orderPageSize + 1}-
+                  {Math.min(
+                    orderCurrentPage * orderPageSize,
+                    fetchVendorOrders?.count || 0
+                  )}{" "}
+                  of {fetchVendorOrders?.count || 0} Orders
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(1, prev - 1))
+                    }
+                    disabled={orderCurrentPage === 1 || fetchIsPending}
+                    className={`px-3 py-1 rounded text-sm transition-all duration-200 ${
+                      orderCurrentPage === 1 || fetchIsPending
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-white border border-gray-300 text-gray-700 hover:bg-[#9847FE] hover:text-white hover:border-[#9847FE]"
+                    }`}
+                  >
+                    Previous
+                  </button>
+
+                  {(() => {
+                    const totalPages = Math.ceil(
+                      (fetchVendorOrders?.count || 0) / orderPageSize
+                    );
+                    const maxVisiblePages = 5;
+                    let startPage = Math.max(
+                      1,
+                      orderCurrentPage - Math.floor(maxVisiblePages / 2)
+                    );
+                    let endPage = Math.min(
+                      totalPages,
+                      startPage + maxVisiblePages - 1
+                    );
+
+                    if (endPage - startPage + 1 < maxVisiblePages) {
+                      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                    }
+
+                    const pages = [];
+                    for (let i = startPage; i <= endPage; i++) {
+                      pages.push(i);
+                    }
+
+                    return pages.map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        disabled={fetchIsPending}
+                        className={`px-3 py-1 rounded text-sm transition-all duration-200 ${
+                          page === currentPage
+                            ? "bg-[#9847FE] text-white border border-[#9847FE]"
+                            : "bg-white border border-gray-300 text-gray-700 hover:bg-[#9847FE] hover:text-white hover:border-[#9847FE]"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ));
+                  })()}
+
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) =>
+                        Math.min(
+                          Math.ceil(
+                            (fetchVendorOrders?.count || 0) / orderPageSize
+                          ),
+                          prev + 1
+                        )
+                      )
+                    }
+                    disabled={
+                      orderCurrentPage ===
+                        Math.ceil(
+                          (fetchVendorOrders?.count || 0) / orderPageSize
+                        ) || fetchIsPending
+                    }
+                    className={`px-3 py-1 rounded text-sm transition-all duration-200 ${
+                      orderCurrentPage ===
+                        Math.ceil(
+                          (fetchVendorOrders?.count || 0) / orderPageSize
+                        ) || fetchIsPending
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-white border border-gray-300 text-gray-700 hover:bg-[#9847FE] hover:text-white hover:border-[#9847FE]"
+                    }`}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
       {isAddModalOpen && (

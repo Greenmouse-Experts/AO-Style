@@ -177,6 +177,7 @@ const OrderPage = () => {
     ],
     [openDropdown],
   );
+
   const columns = [
     { label: "#", key: "id" },
     { label: "Order ID", key: "orderId" },

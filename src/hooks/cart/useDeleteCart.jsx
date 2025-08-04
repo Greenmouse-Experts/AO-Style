@@ -9,17 +9,12 @@ const useDeleteCart = () => {
   const { toastError, toastSuccess } = useToast();
 
   const { isPending, mutate: deleteCartMutate } = useMutation({
-    mutationFn: (payload) => CartService.removeFromCart(payload),
+    mutationFn: (payload) => CartService.deleteCart(payload),
     mutationKey: ["delete-cart"],
     onSuccess(data) {
-      toastSuccess(
-        data?.data?.message || "Item removed from cart successfully",
-      );
+      toastSuccess(data?.data?.message);
       queryClient.invalidateQueries({
         queryKey: ["get-cart"],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["get-cart-count"],
       });
     },
     onError: (error) => {
@@ -31,7 +26,7 @@ const useDeleteCart = () => {
       if (Array.isArray(error?.data?.message)) {
         toastError(error?.data?.message[0]);
       } else {
-        toastError(error?.data?.message || "Failed to remove item from cart");
+        toastError(error?.data?.message);
       }
     },
   });

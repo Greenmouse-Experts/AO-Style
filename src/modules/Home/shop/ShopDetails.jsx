@@ -8,7 +8,7 @@ import {
   Music2,
   MessageSquare,
 } from "lucide-react";
-import CartSelectionModal from "../components/CartSelectionModal";
+import CheckModal from "../components/CheckModal";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import Breadcrumb from "../components/Breadcrumb";
 import Cookies from "js-cookie";
@@ -17,6 +17,7 @@ import useToast from "../../../hooks/useToast";
 import useAddCart from "../../../hooks/cart/useAddCart";
 import LoaderComponent from "../../../components/BeatLoader";
 import useProductGeneral from "../../../hooks/dashboard/useGetProductGeneral";
+import { useCartStore } from "../../../store/carybinUserCartStore";
 import SubmitProductModal from "../components/SubmitProduct";
 import { generateUniqueId } from "../../../lib/helper";
 import { Tooltip } from "antd";
@@ -177,49 +178,19 @@ export default function ShopDetails() {
     }
   }, [productVal?.minimum_yards]);
 
-  const [isCartSelectionModalOpen, setIsCartSelectionModalOpen] =
-    useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [isModalSubmitOpen, setIsModalSubmitOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [fabricData, setFabricData] = useState(null);
 
-  const handleShowCartSelection = () => {
-    // Store fabric data for later use
-    const fabricInfo = {
-      product_id: productVal?.product_id,
-      product_type: "FABRIC",
-      quantity: +quantity,
-      color: selectedColor,
-      // Add display info for style selection page
-      name: productVal?.name || "Selected Fabric",
-      price: productVal?.price || 0,
-      image: productVal?.photos?.[0] || productVal?.image,
-    };
-    setFabricData(fabricInfo);
-    setIsCartSelectionModalOpen(true);
-  };
+  const handleAddToCart = () => {
+    setIsSuccessModalOpen(true);
 
-  const handleDirectAddToCart = () => {
-    console.log("🛒 Adding fabric directly to cart:", fabricData);
-
-    addCartMutate(fabricData, {
-      onSuccess: (data) => {
-        setIsCartSelectionModalOpen(false);
-        setIsSuccessModalOpen(true);
-
-        // Auto-hide success modal after 3 seconds
-        setTimeout(() => {
-          setIsSuccessModalOpen(false);
-        }, 3000);
-      },
-    });
-  };
-
-  const handleSelectStylesFirst = () => {
-    // Store fabric data in localStorage for style selection
-    localStorage.setItem("pending_fabric", JSON.stringify(fabricData));
-    setIsCartSelectionModalOpen(false);
-    navigate("/pickastyle");
+    setTimeout(() => {
+      setIsSuccessModalOpen(false);
+      setIsModalOpen(true);
+    }, 2500);
   };
 
   useEffect(() => {
@@ -253,7 +224,11 @@ export default function ShopDetails() {
     (item) => item.fabric?.id !== productInfo,
   );
 
-  // API-based cart system already declared above
+  const addToCart = useCartStore((state) => state.addToCart);
+
+  const Cartid = localStorage.getItem("cart_id");
+
+  const item = useCartStore.getState().getItemByCartId(Cartid);
 
   const id = useMemo(() => generateUniqueId(), []);
 
@@ -478,13 +453,63 @@ export default function ShopDetails() {
               {/* Add to Cart Button */}
               <div className="pt-6 border-t border-gray-200">
                 <button
-                  disabled={!selectedColor || addCartPending}
-                  onClick={handleShowCartSelection}
-                  className={
-                    !selectedColor || addCartPending
-                      ? "w-full flex items-center justify-center space-x-3 py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 bg-gray-200 text-gray-500 cursor-not-allowed"
-                      : "w-full flex items-center justify-center space-x-3 py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 bg-gradient text-white hover:bg-purple-700 hover:shadow-lg transform hover:-translate-y-0.5"
-                  }
+                  disabled={!selectedColor}
+                  onClick={() => {
+                    if (Cartid) {
+                      addToCart(
+                        {
+                          product: {
+                            id: productVal?.product_id,
+                            name: productVal?.product?.name,
+                            type: "FABRIC",
+                            quantity: +quantity,
+                            price_at_time: productVal?.product?.price,
+                            image: mainImage,
+                            color: selectedColor,
+                          },
+                        },
+                        Cartid,
+                      );
+
+                      toastSuccess("Item saved in the cart");
+
+                      setIsSuccessModalOpen(true);
+
+                      setTimeout(() => {
+                        setIsSuccessModalOpen(false);
+                        setIsModalSubmitOpen(true);
+                      }, 2500);
+                    } else {
+                      addToCart(
+                        {
+                          product: {
+                            id: productVal?.product_id,
+                            name: productVal?.product?.name,
+                            type: "FABRIC",
+                            quantity: +quantity,
+                            price_at_time: productVal?.product?.price,
+                            image: mainImage,
+                            color: selectedColor,
+                          },
+                        },
+                        id,
+                      );
+
+                      toastSuccess("Item saved in the cart");
+
+                      setIsSuccessModalOpen(true);
+
+                      setTimeout(() => {
+                        setIsSuccessModalOpen(false);
+                        setIsModalOpen(true);
+                      }, 2500);
+                    }
+                  }}
+                  className={`w-full flex items-center justify-center space-x-3 py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 ${
+                    !selectedColor
+                      ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                      : "bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 hover:shadow-lg transform hover:-translate-y-0.5"
+                  }`}
                 >
                   <ShoppingCart size={20} />
                   <span>
@@ -512,57 +537,16 @@ export default function ShopDetails() {
               </div>
 
               {/* Modals */}
-              <CartSelectionModal
-                isOpen={isCartSelectionModalOpen}
-                onClose={() => setIsCartSelectionModalOpen(false)}
-                onAddToCart={handleDirectAddToCart}
-                onSelectStyles={handleSelectStylesFirst}
-                isPending={addCartPending}
+              <CheckModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                id={id}
               />
 
-              {/* Success Modal */}
-              {isSuccessModalOpen && (
-                <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm">
-                  <div className="bg-white rounded-2xl shadow-2xl p-8 w-[90%] max-w-md animate-fade-in-up">
-                    <div className="text-center">
-                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg
-                          className="w-8 h-8 text-green-600"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      </div>
-                      <h2 className="text-xl font-bold text-gray-900 mb-2">
-                        Added to Cart!
-                      </h2>
-                      <p className="text-gray-600 mb-6">
-                        Fabric has been successfully added to your cart.
-                      </p>
-                      <div className="flex gap-3">
-                        <button
-                          onClick={() => setIsSuccessModalOpen(false)}
-                          className="flex-1 py-3 px-6 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200"
-                        >
-                          Continue Shopping
-                        </button>
-                        <Link to="/view-cart" className="flex-1">
-                          <button className="w-full py-3 px-6 bg-gradient text-white rounded-xl font-semibold hover:bg-purple-700 transition-all duration-200">
-                            View Cart
-                          </button>
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+              <SubmitProductModal
+                isOpen={isModalSubmitOpen}
+                onClose={() => setIsModalSubmitOpen(false)}
+              />
 
               {/* Enhanced Share Modal */}
               {isShareModalOpen && (
@@ -770,6 +754,52 @@ export default function ShopDetails() {
                         className="px-6 py-2 text-gray-600 hover:text-gray-800 transition-colors font-medium"
                       >
                         Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Enhanced Success Modal */}
+              {isSuccessModalOpen && (
+                <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm">
+                  <div className="bg-white rounded-2xl shadow-2xl p-8 w-[90%] max-w-md animate-fade-in-up">
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg
+                          className="w-8 h-8 text-green-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      </div>
+                      <h2 className="text-xl font-bold text-gray-900 mb-2">
+                        Added to Cart!
+                      </h2>
+                      <p className="text-gray-600 mb-6">
+                        Product has been successfully added to your cart.
+                      </p>
+                      <button
+                        onClick={() => {
+                          if (item) {
+                            setIsSuccessModalOpen(false);
+                            setIsModalSubmitOpen(true);
+                            localStorage.removeItem("cart_id");
+                          } else {
+                            setIsSuccessModalOpen(false);
+                            setIsModalOpen(true);
+                          }
+                        }}
+                        className="w-full py-3 px-6 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-purple-800 transition-all duration-200"
+                      >
+                        Continue Shopping
                       </button>
                     </div>
                   </div>

@@ -117,7 +117,7 @@ export default function MarketplaceSection() {
   // Filter by search term, category, and price range
   const filteredProducts = products.filter((product) => {
     const productPrice = parseInt(
-      product.price.replace("₦", "").replace(",", "")
+      product.price.replace("₦", "").replace(",", ""),
     );
     return (
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
@@ -170,7 +170,7 @@ export default function MarketplaceSection() {
         q: debounceSearch,
         status: "PUBLISHED",
       },
-      "STYLE"
+      "STYLE",
     );
 
   const styleData = getStyleProductGeneralData?.data;
@@ -342,8 +342,8 @@ export default function MarketplaceSection() {
                     ? product.name.slice(0, 20) + "..."
                     : product?.name}
                 </h3>
-                <p className="text-[#2B21E5]  text-left font-light">
-                  {product?.price}{" "}
+                <p className="text-[#2B21E5]  text-left font-bold">
+                  ₦{product?.price}{" "}
                   <span className="text-[#8A8A8A] font-medium">per unit</span>
                 </p>
               </Link>

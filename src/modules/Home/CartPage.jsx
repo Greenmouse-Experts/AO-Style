@@ -42,14 +42,33 @@ const CartPage = () => {
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
   const [newCategory, setNewCategory] = useState();
 
   const { data: cartData, isPending } = useGetCart();
+  const { deleteCartMutate, isPending: deleteIsPending } = useDeleteCart();
 
   const items = useCartStore((state) => state.items);
 
   const removeFromCart = useCartStore((state) => state.removeFromCart);
+
+  // Handle item removal
+  const handleRemoveItem = (itemId) => {
+    if (!itemId) return;
+
+    deleteCartMutate(itemId, {
+      onSuccess: () => {
+        setIsDeleteModalOpen(false);
+        setItemToDelete(null);
+        // Refresh cart data if needed
+      },
+      onError: (error) => {
+        console.error("Failed to remove item:", error);
+      },
+    });
+  };
 
   const handleAgreementClick = (e) => {
     e.preventDefault();
@@ -116,8 +135,6 @@ const CartPage = () => {
     estimatedVat;
 
   const actualWithoutDiscountAmount = totalAmount + totalStyleAmount;
-
-  const { isPending: deleteIsPending, deleteCartMutate } = useDeleteCart();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
@@ -336,8 +353,8 @@ const CartPage = () => {
                     {/* Delete Icon - Top Right */}
                     <button
                       onClick={() => {
-                        setNewCategory(item?.cartId);
-                        setIsAddModalOpen(true);
+                        setItemToDelete(item?.cartId);
+                        setIsDeleteModalOpen(true);
                       }}
                       className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors z-10"
                       title="Remove item"

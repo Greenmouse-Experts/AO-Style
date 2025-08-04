@@ -21,6 +21,8 @@ export default function AnkaraGownPage() {
   const reviewsRef = useRef(null);
 
   const styleInfo = location?.state?.info;
+  const cartItemId =
+    location?.state?.cartItemId || localStorage.getItem("cart_item_id");
 
   console.log("🔍 AoStyleDetails: styleInfo:", styleInfo);
   console.log("🔍 AoStyleDetails: Product ID from styleInfo:", styleInfo?.id);
@@ -596,6 +598,7 @@ export default function AnkaraGownPage() {
                     styleInfo={styleInfo}
                     measurementArr={measurementArr}
                     removeMeasurementById={removeMeasurementById}
+                    cartItemId={cartItemId}
                     onAddNewMeasurement={() => {
                       setMeasurementsSubmitted(false);
                       setShowMeasurementForm(true);

@@ -10,6 +10,7 @@ import "slick-carousel/slick/slick-theme.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ToastContainer } from "react-toastify";
 import AppWrapper from "./AppWrapper.jsx";
+import { CartProvider } from "./contexts/CartContext.jsx";
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker
@@ -25,20 +26,22 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_LOGIN}>
       <QueryProvider>
-        <RouterProvider router={router} />
-        <AppWrapper />
-        <ToastContainer
-          position="top-right"
-          autoClose={5000}
-          hideProgressBar
-          newestOnTop={false}
-          closeOnClick={false}
-          rtl={false}
-          pauseOnFocusLoss
-          draggable={false}
-          pauseOnHover={false}
-          theme="colored"
-        />
+        <CartProvider>
+          <RouterProvider router={router} />
+          <AppWrapper />
+          <ToastContainer
+            position="top-right"
+            autoClose={5000}
+            hideProgressBar
+            newestOnTop={false}
+            closeOnClick={false}
+            rtl={false}
+            pauseOnFocusLoss
+            draggable={false}
+            pauseOnHover={false}
+            theme="colored"
+          />
+        </CartProvider>
       </QueryProvider>
     </GoogleOAuthProvider>
   </StrictMode>,

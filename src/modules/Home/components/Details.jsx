@@ -182,8 +182,26 @@ export default function MarketplaceSection() {
   const id = location?.state?.info;
 
   const cart_id = localStorage.getItem("cart_id");
+  const cart_item_id = localStorage.getItem("cart_item_id");
 
-  const item = useCartStore.getState().getItemByCartId(cart_id);
+  // Get pending fabric data if user came from style selection
+  const pendingFabricData = JSON.parse(
+    localStorage.getItem("pending_fabric") || "{}",
+  );
+
+  // Use either existing cart item or pending fabric data
+  const item =
+    useCartStore.getState().getItemByCartId(cart_id) ||
+    (pendingFabricData.product_id
+      ? {
+          product: {
+            name: pendingFabricData.name || "Selected Fabric",
+            quantity: pendingFabricData.quantity,
+            price_at_time: pendingFabricData.price || 0,
+            image: pendingFabricData.image,
+          },
+        }
+      : null);
 
   console.log(item);
 
@@ -191,31 +209,41 @@ export default function MarketplaceSection() {
     <>
       <section className="Resizer section px-4">
         {/* Conditionally render the Fabric section */}
-        {item ? (
-          <div className="bg-[#FFF2FF] p-4 rounded-lg mb-6">
-            <h2 className="text-sm font-medium text-gray-500 mb-4">FABRIC</h2>
+        {item?.product ? (
+          <div className="bg-purple-50 border border-purple-200 p-4 rounded-lg mb-6">
+            <h2 className="text-sm font-medium text-purple-700 mb-4">
+              SELECTED FABRIC
+            </h2>
             <div className="flex">
               <div className="flex-shrink-0">
                 <img
-                  src={item?.product?.image}
-                  alt="product"
-                  className="w-20 h-20 rounded object-cover"
+                  src={
+                    item.product.image ||
+                    "https://via.placeholder.com/80x80?text=Fabric"
+                  }
+                  alt="Selected fabric"
+                  className="w-20 h-20 rounded object-cover border"
                 />
               </div>
               <div className="ml-4 flex-1">
-                <h3 className="font-medium">{item?.product?.name}</h3>
-                <p className="mt-1 text-sm">
-                  X {item?.product?.quantity} Yards
+                <h3 className="font-medium text-gray-900">
+                  {item.product.name}
+                </h3>
+                <p className="mt-1 text-sm text-gray-600">
+                  Quantity: {item.product.quantity} Yards
                 </p>
-                <p className="mt-1 text-[#2B21E5] text-sm">
-                  N {item?.product?.price_at_time?.toLocaleString()}
+                <p className="mt-1 text-purple-600 text-sm font-semibold">
+                  ₦{item.product.price_at_time?.toLocaleString() || "0"}
                 </p>
+                {pendingFabricData.color && (
+                  <p className="mt-1 text-xs text-gray-500">
+                    Color: {pendingFabricData.color}
+                  </p>
+                )}
               </div>
             </div>
           </div>
-        ) : (
-          <></>
-        )}
+        ) : null}
 
         <div className="flex flex-col md:flex-row md:justify-between md:items-center text-left mb-6">
           <div>
@@ -328,7 +356,7 @@ export default function MarketplaceSection() {
             {getStyleProductData?.data?.map((product) => (
               <Link
                 to={`/aostyle-details`}
-                state={{ info: product, id }}
+                state={{ info: product, id, cartItemId: cart_item_id }}
                 key={product.id}
                 className=""
               >

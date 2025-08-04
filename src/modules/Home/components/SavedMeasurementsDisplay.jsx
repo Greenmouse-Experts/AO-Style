@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Pencil, Trash2, Plus, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import SubmitModal from "../components/SubmitModal";
-import useAddCart from "../../../hooks/cart/useAddCart";
+import { useCartStore } from "../../../store/carybinUserCartStore";
 import SubmitStyleModal from "./SubmitStyle";
 import { generateUniqueId } from "../../../lib/helper";
 
@@ -13,7 +13,6 @@ export default function SavedMeasurementsDisplay({
   item,
   styleInfo,
   setCurrMeasurement,
-  cartItemId,
 }) {
   const navigate = useNavigate();
 
@@ -43,14 +42,9 @@ export default function SavedMeasurementsDisplay({
     setCurrentEdit(null);
   };
 
-  const { addCartMutate, isPending: addCartPending } = useAddCart();
+  const addToCart = useCartStore((state) => state.addToCart);
 
   const id = useMemo(() => generateUniqueId(), []);
-
-  // Get pending fabric data from localStorage
-  const pendingFabricData = JSON.parse(
-    localStorage.getItem("pending_fabric") || "{}",
-  );
 
   return (
     <div className="">
@@ -68,43 +62,49 @@ export default function SavedMeasurementsDisplay({
             onClose={() => setIsModalOpen(false)}
           />
           <button
-            className="w-full max-w-sm bg-purple-500 cursor-pointer hover:bg-purple-600 text-white font-medium py-4 px-6 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={addCartPending || !pendingFabricData.product_id}
+            className="w-full max-w-sm bg-purple-500 cursor-pointer hover:bg-purple-600 text-white font-medium py-4 px-6 rounded-md"
             onClick={() => {
-              if (!pendingFabricData.product_id) {
-                console.error("❌ No pending fabric data found");
-                return;
+              if (item) {
+                setIsModalOpen(true);
+                addToCart(
+                  {
+                    product: {
+                      style: {
+                        id: styleInfo?.id,
+                        name: styleInfo?.name,
+                        type: "STYLE",
+                        price_at_time: styleInfo?.price,
+                        image: styleInfo?.style?.photos[0],
+                        measurement: measurementArr,
+                      },
+                    },
+                  },
+                  item,
+                );
+                localStorage.removeItem("cart_id");
+              } else {
+                addToCart(
+                  {
+                    product: {
+                      style: {
+                        id: styleInfo?.id,
+                        name: styleInfo?.name,
+                        type: "STYLE",
+                        price_at_time: styleInfo?.price,
+                        image: styleInfo?.style?.photos[0],
+                        measurement: measurementArr,
+                      },
+                    },
+                  },
+                  id,
+                );
+
+                navigate("/shop");
+                localStorage.setItem("cart_id", id);
               }
-
-              // Combine fabric, style, and measurements into single cart addition
-              const completeCartData = {
-                ...pendingFabricData,
-                style_product_id: styleInfo?.id,
-                measurement: measurementArr,
-              };
-
-              console.log(
-                "🛒 Adding complete item (fabric + style + measurements) to cart:",
-                completeCartData,
-              );
-
-              addCartMutate(completeCartData, {
-                onSuccess: () => {
-                  // Clear localStorage after successful addition
-                  localStorage.removeItem("pending_fabric");
-                  localStorage.removeItem("cart_id");
-                  setIsModalOpen(true);
-                },
-                onError: (error) => {
-                  console.error(
-                    "❌ Failed to add complete item to cart:",
-                    error,
-                  );
-                },
-              });
-            }}
+            }} // Opens the modal
           >
-            {addCartPending ? "Adding to Cart..." : "Submit Measurements"}
+            Submit Measurements
           </button>
         </div>
       </div>

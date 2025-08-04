@@ -14,7 +14,7 @@ import {
   ArrowRightIcon,
 } from "@heroicons/react/24/outline";
 import useGetCart from "../../hooks/cart/useGetCart";
-import { useCartStore } from "../../store/carybinUserCartStore";
+import useGetCartCount from "../../hooks/cart/useGetCartCount";
 import { useCarybinUserStore } from "../../store/carybinUserStore";
 import useToast from "../../hooks/useToast";
 
@@ -39,20 +39,15 @@ export default function Navbar() {
   const currUrl = Cookies.get("currUserUrl");
 
   const { data: cartData, isPending } = useGetCart();
+  const { count: cartCount, isLoading: cartCountLoading } = useGetCartCount();
 
-  const items = useCartStore((state) => state.items);
-
-  const totalProductQuantity = items?.reduce(
-    (total, item) => total + (item?.product?.quantity || 0),
+  // Get items from API cart data
+  const items = cartData?.data?.items || [];
+  const totalItemCount = items.length;
+  const totalQuantity = items.reduce(
+    (total, item) => total + (item.quantity || 1),
     0,
   );
-
-  const totalStyleQuantity = items?.reduce(
-    (total, item) => total + (item?.product?.style?.measurement?.length || 0),
-    0,
-  );
-
-  const totalQuantity = totalProductQuantity + totalStyleQuantity;
 
   const handleSignOut = () => {
     toastSuccess("Logout Successfully");
@@ -115,9 +110,9 @@ export default function Navbar() {
             </div> */}
               <Link to={`/view-cart`} className="transition relative">
                 <ShoppingCartIcon className="h-5 w-5 text-gray-800 cursor-pointer" />
-                {items?.length > 0 ? (
+                {totalItemCount > 0 ? (
                   <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                    {items?.length}
+                    {totalItemCount}
                   </span>
                 ) : (
                   <></>
@@ -360,9 +355,9 @@ export default function Navbar() {
                   <MagnifyingGlassIcon className="h-5 w-5 text-[#545252] cursor-pointer md:hidden hidden" />
                   <Link to={`/view-cart`} className="transition relative">
                     <ShoppingCartIcon className="h-5 w-5 text-[#545252] cursor-pointer" />
-                    {items?.length > 0 ? (
+                    {totalItemCount > 0 ? (
                       <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                        {items?.length}
+                        {totalItemCount}
                       </span>
                     ) : (
                       <></>

@@ -1,18 +1,16 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useToast from "../useToast";
-import FabricService from "../../services/api/fabric";
 import CartService from "../../services/api/cart";
 
-const useAddCart = () => {
+const useClearCart = () => {
   const queryClient = useQueryClient();
-
   const { toastError, toastSuccess } = useToast();
 
-  const { isPending, mutate: addCartMutate } = useMutation({
-    mutationFn: (payload) => CartService.addToCart(payload),
-    mutationKey: ["add-cart"],
+  const { isPending, mutate: clearCartMutate } = useMutation({
+    mutationFn: () => CartService.clearCart(),
+    mutationKey: ["clear-cart"],
     onSuccess(data) {
-      toastSuccess(data?.data?.message || "Item added to cart successfully");
+      toastSuccess(data?.data?.message || "Cart cleared successfully");
       queryClient.invalidateQueries({
         queryKey: ["get-cart"],
       });
@@ -29,11 +27,12 @@ const useAddCart = () => {
       if (Array.isArray(error?.data?.message)) {
         toastError(error?.data?.message[0]);
       } else {
-        toastError(error?.data?.message || "Failed to add item to cart");
+        toastError(error?.data?.message || "Failed to clear cart");
       }
     },
   });
-  return { isPending, addCartMutate };
+
+  return { isPending, clearCartMutate };
 };
 
-export default useAddCart;
+export default useClearCart;

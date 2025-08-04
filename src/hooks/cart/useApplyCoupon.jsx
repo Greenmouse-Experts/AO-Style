@@ -1,23 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useToast from "../useToast";
-import FabricService from "../../services/api/fabric";
 import CartService from "../../services/api/cart";
 
-const useAddCart = () => {
+const useApplyCoupon = () => {
   const queryClient = useQueryClient();
-
   const { toastError, toastSuccess } = useToast();
 
-  const { isPending, mutate: addCartMutate } = useMutation({
-    mutationFn: (payload) => CartService.addToCart(payload),
-    mutationKey: ["add-cart"],
+  const { isPending, mutate: applyCouponMutate } = useMutation({
+    mutationFn: (payload) => CartService.applyCoupon(payload),
+    mutationKey: ["apply-coupon"],
     onSuccess(data) {
-      toastSuccess(data?.data?.message || "Item added to cart successfully");
+      toastSuccess(data?.data?.message || "Coupon applied successfully");
       queryClient.invalidateQueries({
         queryKey: ["get-cart"],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["get-cart-count"],
       });
     },
     onError: (error) => {
@@ -29,11 +24,12 @@ const useAddCart = () => {
       if (Array.isArray(error?.data?.message)) {
         toastError(error?.data?.message[0]);
       } else {
-        toastError(error?.data?.message || "Failed to add item to cart");
+        toastError(error?.data?.message || "Failed to apply coupon");
       }
     },
   });
-  return { isPending, addCartMutate };
+
+  return { isPending, applyCouponMutate };
 };
 
-export default useAddCart;
+export default useApplyCoupon;

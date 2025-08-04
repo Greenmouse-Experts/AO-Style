@@ -2,12 +2,12 @@ import LogisticsLayout from "../layouts/dashboard/logistics";
 import LogisticsDashboard from "../modules/Pages/logisticsDashboard";
 import OrderRequested from "../modules/Pages/logisticsDashboard/OrderRequested";
 import Orders from "../modules/Pages/logisticsDashboard/Orders";
-import TransactionPage from "../modules/Pages/logisticsDashboard/TransactionPage";
 import NotificationPage from "../modules/Pages/logisticsDashboard/NotificationPage";
 import InboxPage from "../modules/Pages/logisticsDashboard/Inbox";
 import Settings from "../modules/Pages/logisticsDashboard/Settings";
 import LogisticsAnnouncementsPage from "../modules/Pages/logisticsDashboard/Announcements";
 import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
+import TransactionPage from "../modules/Pages/fabricDashboard/TransactionPage";
 
 export const logisticsRoutes = [
   {
@@ -34,7 +34,7 @@ export const logisticsRoutes = [
         path: "/logistics/inbox",
         element: <InboxPage />,
       },
-            {
+      {
         path: "/logistics/announcements",
         element: <LogisticsAnnouncementsPage />,
       },

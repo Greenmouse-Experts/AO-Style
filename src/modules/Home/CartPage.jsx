@@ -793,7 +793,6 @@ const CartPage = () => {
           </div>
         </div>
       )}
-
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50">

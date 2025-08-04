@@ -264,7 +264,7 @@ const ProductPage = () => {
                       : "Draft Product"}
                   </button>
                 ) : null}
-                {!isAdminFabricRoute ? (
+                {!isAdminFabricRoute || isAdminFabricRoute ? (
                   <Link
                     state={{ info: row }}
                     to={
@@ -274,7 +274,7 @@ const ProductPage = () => {
                     }
                     className="block cursor-pointer text-center px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
                   >
-                    {"Edit Product"}
+                    {isAdminFabricRoute ? "View Product" : "Edit Product"}
                   </Link>
                 ) : currProd == "all" ? (
                   <></>
@@ -359,8 +359,6 @@ const ProductPage = () => {
     });
     doc.save("MyProducts.pdf");
   };
-
-  console.log(currProd);
 
   const { toastError } = useToast();
 

@@ -15,6 +15,7 @@ import { countryCodes } from "../../constant";
 
 import Select from "react-select";
 import useGoogleSignin from "./hooks/useGoogleSignIn";
+import { usePlacesWidget } from "react-google-autocomplete";
 
 const initialValues = {
   name: "",
@@ -77,6 +78,11 @@ export default function SignInAsCustomer() {
         phone: phoneno,
         alternative_phone: val?.alternative_phone === "" ? undefined : altno,
         allowOtp: true,
+        location: val.location,
+        coordinates: {
+          longitude: val.longitude,
+          latitude: val.latitude,
+        },
       });
     },
   });
@@ -99,6 +105,7 @@ export default function SignInAsCustomer() {
       token: cred?.credential,
       provider: "google",
       role: "user",
+      action_type: "SIGNUP",
     };
 
     googleSigninMutate(payload, {
@@ -144,6 +151,19 @@ export default function SignInAsCustomer() {
       },
     });
   };
+
+  const { ref } = usePlacesWidget({
+    apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
+    onPlaceSelected: (place) => {
+      setFieldValue("location", place.formatted_address);
+      setFieldValue("latitude", place.geometry?.location?.lat().toString());
+      setFieldValue("longitude", place.geometry?.location?.lng().toString());
+    },
+    options: {
+      componentRestrictions: { country: "ng" },
+      types: [],
+    },
+  });
 
   return (
     <div className="h-screen flex overflow-hidden">
@@ -342,6 +362,25 @@ export default function SignInAsCustomer() {
                 />
               </div>
             </div>
+
+            <div>
+              <label className="block text-gray-700 mb-1">Address</label>
+              <input
+                type="text"
+                ref={ref}
+                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                placeholder="Enter full detailed address"
+                required
+                name="location"
+                onChange={(e) => {
+                  setFieldValue("location", e.currentTarget.value);
+                  setFieldValue("latitude", "");
+                  setFieldValue("longitude", "");
+                }}
+                value={values.location}
+              />
+            </div>
+
             <label className="block text-black">Password</label>
             <div className="relative">
               <input

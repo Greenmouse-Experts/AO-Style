@@ -1,20 +1,19 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import WithdrawalService from "../../services/api/withdrawal";
 import useToast from "../useToast";
-import FabricService from "../../services/api/fabric";
 
-const useCreateAdminFabricProduct = (business_id) => {
+const useRequestWithdrawal = () => {
   const queryClient = useQueryClient();
 
   const { toastError, toastSuccess } = useToast();
 
-  const { isPending, mutate: createAdminFabricProductMutate } = useMutation({
-    mutationFn: (payload) =>
-      FabricService.createAdminFabricProduct(payload, business_id),
-    mutationKey: ["create-adminfabric-product"],
+  const { isPending, mutate: requestWithdrawalMutate } = useMutation({
+    mutationFn: (payload) => WithdrawalService.createWithdrawal(payload),
+    mutationKey: ["request-withdrawal"],
     onSuccess(data) {
       toastSuccess(data?.data?.message);
       queryClient.invalidateQueries({
-        queryKey: ["get-adminfabric-product"],
+        queryKey: ["withdrawal-fetch"],
       });
     },
     onError: (error) => {
@@ -30,7 +29,7 @@ const useCreateAdminFabricProduct = (business_id) => {
       }
     },
   });
-  return { isPending, createAdminFabricProductMutate };
+  return { isPending, requestWithdrawalMutate };
 };
 
-export default useCreateAdminFabricProduct;
+export default useRequestWithdrawal;

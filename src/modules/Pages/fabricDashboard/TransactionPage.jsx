@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import ReusableTable from "./components/ReusableTable";
 import WalletPage from "./components/WalletPage";
 import BarChartComponent from "./components/BarChartComponent";
 import useQueryParams from "../../../hooks/useQueryParams";
@@ -14,6 +13,8 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
+import useFetchWithdrawal from "../../../hooks/withdrawal/useFetchWithdrawal";
+import ReusableTable from "../adminDashboard/components/ReusableTable";
 
 const transactions = [
   {
@@ -81,9 +82,11 @@ export default function TransactionPage() {
     "pagination[limit]": 10,
   });
 
-  const { data: getMyProductData, isPending } = useGetMyPayment({
+  const { data: getMyProductData, isPending } = useFetchWithdrawal({
     ...queryParams,
   });
+
+  console.log(getMyProductData?.data);
 
   const [queryString, setQueryString] = useState(queryParams.q);
 
@@ -110,9 +113,9 @@ export default function TransactionPage() {
         ? getMyProductData?.data.map((details) => {
             return {
               ...details,
-              transactionId: `${details?.transaction_id}`,
               amount: `${details?.amount}`,
-              status: `${details?.payment_status}`,
+              currency: `${details?.currency}`,
+              status: `${details?.status}`,
               dateAdded: `${
                 details?.created_at
                   ? formatDateStr(details?.created_at.split(".").shift())
@@ -126,10 +129,8 @@ export default function TransactionPage() {
 
   const columns = useMemo(
     () => [
-      { key: "transactionId", label: "Transaction ID" },
-
-      { key: "category", label: "Category" },
       { key: "amount", label: "Amount" },
+      { key: "currency", label: "currency" },
       {
         label: "Date",
         key: "date",
@@ -145,7 +146,9 @@ export default function TransactionPage() {
                 ? "bg-yellow-100 text-yellow-600"
                 : value === "Cancelled"
                 ? "bg-red-100 text-red-600"
-                : "bg-green-100 text-green-600"
+                : value === "APPROVED"
+                ? "bg-green-100 text-green-600"
+                : "bg-yellow-100 text-yellow-600"
             }`}
           >
             {value}
@@ -231,7 +234,13 @@ export default function TransactionPage() {
         <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
           <div className="flex flex-wrap space-x-6 text-gray-600 text-sm font-medium">
             <button
-              onClick={() => setFilter("all")}
+              onClick={() => {
+                setFilter("all");
+                updateQueryParams({
+                  ...queryParams,
+                  status: undefined,
+                });
+              }}
               className={`font-medium ${
                 filter === "all"
                   ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
@@ -241,7 +250,13 @@ export default function TransactionPage() {
               All Transaction
             </button>
             <button
-              onClick={() => setFilter("completed")}
+              onClick={() => {
+                setFilter("completed");
+                updateQueryParams({
+                  ...queryParams,
+                  status: "APPROVED",
+                });
+              }}
               className={`font-medium ${
                 filter === "completed"
                   ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
@@ -251,7 +266,13 @@ export default function TransactionPage() {
               Completed
             </button>
             <button
-              onClick={() => setFilter("pending")}
+              onClick={() => {
+                setFilter("pending");
+                updateQueryParams({
+                  ...queryParams,
+                  status: "PENDING",
+                });
+              }}
               className={`font-medium ${
                 filter === "pending"
                   ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
@@ -261,14 +282,20 @@ export default function TransactionPage() {
               Pending
             </button>
             <button
-              onClick={() => setFilter("failed")}
+              onClick={() => {
+                setFilter("rejected");
+                updateQueryParams({
+                  ...queryParams,
+                  status: "REJECTED",
+                });
+              }}
               className={`font-medium ${
-                filter === "failed"
+                filter === "rejected"
                   ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
                   : "text-gray-500"
               }`}
             >
-              Failed
+              Rejected
             </button>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -303,8 +330,8 @@ export default function TransactionPage() {
             <CSVLink
               id="csvDownload"
               data={transactionsData?.map((row) => ({
-                "Transaction ID": row.transactionId,
                 Amount: row.amount,
+                currency: row.currency,
                 Status: row?.status,
                 Date: row.dateAdded,
 
@@ -320,7 +347,11 @@ export default function TransactionPage() {
           </div>
         </div>
 
-        <ReusableTable columns={columns} data={transactionsData || []} />
+        <ReusableTable
+          loading={isPending}
+          columns={columns}
+          data={transactionsData || []}
+        />
       </div>
     </div>
   );

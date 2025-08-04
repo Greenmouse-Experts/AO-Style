@@ -87,7 +87,7 @@ const Subscriptions = () => {
 
   const { carybinUser } = useCarybinUserStore();
 
-  console.log(carybinUser?.subscription);
+  console.log(carybinUser, "sub");
 
   const {
     isPending,
@@ -101,8 +101,6 @@ const Subscriptions = () => {
     currUrl == "/fabric/subscription" ? "fabric-vendor" : "fashion-designer"
   );
 
-  console.log(subscriptionData?.data);
-
   const [queryString, setQueryString] = useState(queryParams.q);
 
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
@@ -114,6 +112,12 @@ const Subscriptions = () => {
             return {
               ...details,
               name: `${details?.name}`,
+              status: `${
+                details?.id === carybinUser?.subscriptions[0]?.plan_id
+                  ? "Active"
+                  : "Not-active"
+              }`,
+
               planValidity: `${
                 details?.subscription_plan_prices[0]?.period == "free"
                   ? "Free"
@@ -181,6 +185,21 @@ const Subscriptions = () => {
       { label: "Plan Description", key: "planDescription" },
       { label: "Plan Price", key: "amount" },
       { label: "Date added", key: "dateAdded" },
+      {
+        label: "STATUS",
+        key: "status",
+        render: (status) => (
+          <span
+            className={`px-3 py-1 text-sm rounded-full ${
+              status === "Active"
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
+            }`}
+          >
+            {status}
+          </span>
+        ),
+      },
 
       {
         label: "Action",
@@ -206,12 +225,14 @@ const Subscriptions = () => {
                 >
                   View plan
                 </button>
-                {carybinUser?.subscriptions?.length ||
-                row?.subscription_plan_prices[0]?.period === "free" ? (
+
+                {row?.subscription_plan_prices[0]?.period === "free" ||
+                carybinUser?.subscriptions[0]?.plan_id == row?.id ? (
                   <></>
                 ) : (
                   <button
                     onClick={() => {
+                      console.log(row, "sub");
                       subOpenModal();
                       setCurrentView(row);
                       setOpenDropdown(null);

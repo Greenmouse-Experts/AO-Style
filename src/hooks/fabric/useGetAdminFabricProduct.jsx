@@ -9,6 +9,7 @@ function useGetAdminFabricProduct(params) {
     {
       queryKey: ["get-adminfabric-product", params],
       queryFn: () => FabricService.getAdminFabricProduct(params),
+      keepPreviousData: true,
     }
   );
 

@@ -20,6 +20,8 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
 import useToast from "../../../hooks/useToast";
+import CaryBinApi from "../../../services/CarybinBaseUrl";
+import { toast } from "react-toastify";
 
 export default function StylesTable() {
   const [newCategory, setNewCategory] = useState();
@@ -426,7 +428,31 @@ export default function StylesTable() {
                                 Edit
                               </Link>
                             )}
-
+                            <button
+                              onClick={async (e) => {
+                                let error_mess = "";
+                                toast.promise(
+                                  async () => {
+                                    let resp = await CaryBinApi.patch(
+                                      "/style/" + style.id,
+                                      {
+                                        ...style,
+                                        status: "unpublished",
+                                      },
+                                    );
+                                    return resp.data;
+                                  },
+                                  {
+                                    success: "done",
+                                    pending: "unpublishing",
+                                    error: "failed",
+                                  },
+                                );
+                              }}
+                              className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
+                            >
+                              Unpublish
+                            </button>
                             {style?.status === "DRAFT" ? (
                               <button
                                 onClick={() => {

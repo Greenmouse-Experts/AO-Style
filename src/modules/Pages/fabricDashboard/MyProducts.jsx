@@ -26,6 +26,7 @@ import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
 import useGetAdminManageFabricProduct from "../../../hooks/fabric/useGetManageFabric";
 import useToast from "../../../hooks/useToast";
+import CaryBinApi from "../../../services/CarybinBaseUrl";
 
 const ProductPage = () => {
   const { data: businessDetails } = useGetBusinessDetails();
@@ -216,54 +217,7 @@ const ProductPage = () => {
                       : "Publish Product"}
                   </button>
                 ) : null}
-                {row?.status === "PUBLISHED" ? (
-                  <button
-                    onClick={() => {
-                      if (isAdminFabricRoute) {
-                        updateAdminFabricMutate(
-                          {
-                            id: row?.id,
-                            product: {
-                              name: row?.name,
-                              sku: row?.sku,
-                              category_id: row?.category_id,
-                              status: "DRAFT",
-                              approval_status: "DRAFT",
-                            },
-                          },
-                          {
-                            onSuccess: () => {
-                              setOpenDropdown(null);
-                            },
-                          },
-                        );
-                      } else {
-                        updateFabricMutate(
-                          {
-                            id: row?.id,
-                            business_id: businessDetails?.data?.id,
-                            product: {
-                              name: row?.name,
-                              sku: row?.sku,
-                              category_id: row?.category_id,
-                              status: "DRAFT",
-                            },
-                          },
-                          {
-                            onSuccess: () => {
-                              setOpenDropdown(null);
-                            },
-                          },
-                        );
-                      }
-                    }}
-                    className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
-                  >
-                    {updateIsPending || updateAdminIsPending
-                      ? "Please wait"
-                      : "Draft Product"}
-                  </button>
-                ) : null}
+                {row?.status === "PUBLISHED" ? <></> : null}
                 {!isAdminFabricRoute || isAdminFabricRoute ? (
                   <Link
                     state={{ info: row }}
@@ -291,12 +245,23 @@ const ProductPage = () => {
                     {"Edit Product"}
                   </Link>
                 )}
-                {/* <Link
-                  to={"/fabric/view-product/" + row.id}
+                <button
+                  onClick={async (e) => {
+                    try {
+                      console.log(row);
+                      let resp = await CaryBinApi.patch("/fabric/" + row.id, {
+                        ...row,
+                        status: "unpublished",
+                      });
+                      return resp.data;
+                    } catch (err) {
+                      console.log(err.data);
+                    }
+                  }}
                   className="block cursor-pointer text-center px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
                 >
-                  View Product
-                </Link>*/}
+                  Unpublish
+                </button>
                 <button
                   onClick={() => {
                     setNewCategory(row);

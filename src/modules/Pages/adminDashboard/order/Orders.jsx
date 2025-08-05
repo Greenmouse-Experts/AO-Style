@@ -6,6 +6,8 @@ import useGetOrder from "../../../../hooks/order/useGetOrder";
 import Loader from "../../../../components/ui/Loader";
 import { formatDateStr } from "../../../../lib/helper";
 import ReviewList from "../../../../components/reviews/ReviewList";
+import { useQuery } from "@tanstack/react-query";
+import CaryBinApi from "../../../../services/CarybinBaseUrl";
 
 const OrdersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -16,26 +18,18 @@ const OrdersTable = () => {
   const [activeReviewModal, setActiveReviewModal] = useState(null);
 
   const { isPending: ordersLoading, data: ordersResponse } = useGetOrder();
-
-  // Console log the admin orders data
-  console.log("🔍 Admin Orders - Full API Response:", ordersResponse);
-  console.log("🔍 Admin Orders - Data Array:", ordersResponse?.data);
-  console.log("🔍 Admin Orders - Data Length:", ordersResponse?.data?.length);
-
-  if (ordersResponse?.data?.length > 0) {
-    console.log(
-      "🔍 Admin Orders - First Order Sample:",
-      ordersResponse.data[0],
-    );
-    console.log(
-      "🔍 Admin Orders - Payment Structure:",
-      ordersResponse.data[0]?.payment,
-    );
-    console.log(
-      "🔍 Admin Orders - Purchase Items:",
-      ordersResponse.data[0]?.payment?.purchase?.items,
-    );
-  }
+  // const order_query = useQuery({
+  //   queryKey: ["order_data"],
+  //   queryFn: async () => {
+  //     let resp = await CaryBinApi.get("/customer-analytics/recent-orders");
+  //     return resp.data;
+  //   },
+  // });
+  // useEffect(() => {
+  //   if (order_query.data) {
+  //     console.log("orders_now", order_query.data);
+  //   }
+  // }, [order_query.isFetching]);
 
   // Process real order data
   const data = ordersResponse?.data || [];
@@ -282,6 +276,7 @@ const OrdersTable = () => {
               of {filteredData.length} items
             </p>
           </div>
+
           <div className="flex gap-1">
             <button
               onClick={handlePreviousPage}

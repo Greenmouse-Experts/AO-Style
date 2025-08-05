@@ -14,6 +14,7 @@ import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
 import ReusableTable from "../adminDashboard/components/ReusableTable";
 import useGetVendorOrder from "../../../hooks/order/useGetVendorOrder";
+import { useEffect } from "react";
 
 const orders = [
   {
@@ -80,7 +81,7 @@ const OrderPage = () => {
   const filteredOrders = orders.filter(
     (order) =>
       (filter === "all" || order.status.toLowerCase() === filter) &&
-      order.orderId.toLowerCase().includes(searchTerm.toLowerCase())
+      order.orderId.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const { queryParams, updateQueryParams } = useQueryParams({
@@ -122,8 +123,8 @@ const OrderPage = () => {
               status === "Ongoing"
                 ? "bg-yellow-100 text-yellow-700"
                 : status === "Cancelled"
-                ? "bg-red-100 text-red-700"
-                : "bg-green-100 text-green-700"
+                  ? "bg-red-100 text-red-700"
+                  : "bg-green-100 text-green-700"
             }`}
           >
             {status}
@@ -162,7 +163,7 @@ const OrderPage = () => {
         ),
       },
     ],
-    [openDropdown]
+    [openDropdown],
   );
 
   const fabricOrderData = useMemo(
@@ -180,11 +181,11 @@ const OrderPage = () => {
                 details?.payment?.purchase?.items[0]?.name?.length > 15
                   ? `${details?.payment?.purchase?.items[0]?.name.slice(
                       0,
-                      15
+                      15,
                     )}...`
                   : details?.payment?.purchase?.items[0]?.name,
               amount: `${formatNumberWithCommas(
-                details?.payment?.amount ?? 0
+                details?.payment?.amount ?? 0,
               )}`,
 
               status: `${details?.payment?.payment_status}`,
@@ -192,18 +193,18 @@ const OrderPage = () => {
                 details?.created_at
                   ? formatDateStr(
                       details?.created_at.split(".").shift(),
-                      "D/M/YYYY h:mm A"
+                      "D/M/YYYY h:mm A",
                     )
                   : ""
               }`,
             };
           })
         : [],
-    [orderData?.data]
+    [orderData?.data],
   );
 
   const totalPages = Math.ceil(
-    orderData?.count / (queryParams["pagination[limit]"] ?? 10)
+    orderData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
   const [queryString, setQueryString] = useState(queryParams.q);
@@ -335,7 +336,7 @@ const OrderPage = () => {
                 value={queryString}
                 onChange={(evt) =>
                   setQueryString(
-                    evt.target.value ? evt.target.value : undefined
+                    evt.target.value ? evt.target.value : undefined,
                   )
                 }
               />

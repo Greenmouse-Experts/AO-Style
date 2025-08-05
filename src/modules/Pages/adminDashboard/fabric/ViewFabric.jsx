@@ -153,7 +153,7 @@ const ViewFabric = () => {
   const { isPending: updateAdminIsPending, updateAdminFabricMutate } =
     useUpdateAdminFabric();
 
-  console.log(getAllFabricData, "all fabric");
+  console.log(getAllFabricData, "sall fabric");
 
   const [catalogFilter, setCatalogFilter] = useState("all");
   const [ordersFilter, setOrdersFilter] = useState("all");

@@ -28,10 +28,14 @@ import useGetAdminManageFabricProduct from "../../../hooks/fabric/useGetManageFa
 import useToast from "../../../hooks/useToast";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
 import { toast } from "react-toastify";
+import { useEffect } from "react";
 
 const ProductPage = () => {
   const { data: businessDetails } = useGetBusinessDetails();
   const location = useLocation();
+  useEffect(() => {
+    console.log(businessDetails, "details");
+  }, [businessDetails]);
 
   const isAdminFabricRoute = location.pathname === "/admin/fabrics-products";
 
@@ -113,7 +117,10 @@ const ProductPage = () => {
         : [],
     [updatedData],
   );
-
+  let admin_id = businessDetails?.data?.user_id;
+  // const admin_data =  FabricData.map((item)=> )
+  const admin_data =
+    FabricData.filter((item) => item.creator_id == admin_id) || [];
   const { isPending: deleteIsPending, deleteFabricMutate } = useDeleteFabric();
 
   const { isPending: deleteAdminIsPending, deleteAdminFabricMutate } =
@@ -253,6 +260,13 @@ const ProductPage = () => {
                     {"Edit Product"}
                   </Link>
                 )}
+                <button
+                  onClick={(e) => {
+                    console.log(row, admin_id, businessDetails.data);
+                  }}
+                >
+                  log{" "}
+                </button>
                 {/* <button
                   onClick={async (e) => {
                     try {
@@ -427,7 +441,7 @@ const ProductPage = () => {
                     : "text-gray-500"
                 }`}
               >
-                {tab == "all" ? "All" : tab} Products
+                {tab == "all" ? "All" : tab} Product
               </button>
             ))}{" "}
           </div>
@@ -531,12 +545,19 @@ const ProductPage = () => {
           data={currProd == "all" ? FabricData : []}
         />
         {!FabricData?.length &&
-        !(isAdminFabricRoute ? adminProductIsPending : isPending) ? (
+        (isAdminFabricRoute ? adminProductIsPending : isPending) ? (
           <p className="flex-1 text-center text-sm md:text-sm">
-            No product found.
+            No products found.
           </p>
         ) : (
-          <></>
+          <>
+            <ReusableTable
+              columns={columns}
+              loading={isAdminFabricRoute ? adminProductIsPending : isPending}
+              data={admin_data || []}
+              // data={currProd == "all" ? getAllAdminFabricData.data : []}
+            />
+          </>
         )}
       </div>
       {FabricData?.length ? (

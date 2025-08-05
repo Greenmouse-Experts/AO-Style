@@ -333,7 +333,6 @@ const Settings = () => {
                         />
                       </div>
                     </div>
-
                     <button
                       disabled={updateIsPending}
                       type="submit"

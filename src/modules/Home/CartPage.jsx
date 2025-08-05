@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Breadcrumb from "./components/Breadcrumb";
 import useGetCart from "../../hooks/cart/useGetCart";
 import LoaderComponent from "../../components/BeatLoader";
@@ -9,10 +9,6 @@ import { useCarybinUserStore } from "../../store/carybinUserStore";
 import useVerifyPayment from "../../hooks/cart/useVerifyPayment";
 import Cookies from "js-cookie";
 import useToast from "../../hooks/useToast";
-import { useFormik } from "formik";
-import Select from "react-select";
-import { nigeriaStates } from "../../constant";
-import PhoneInput from "react-phone-input-2";
 import useCreateBilling from "../../hooks/billing/useCreateBilling";
 import useApplyCoupon from "../../hooks/coupon/useApplyCoupon";
 import useGetDeliveryFee from "../../hooks/delivery/useGetDeleiveryFee";
@@ -35,17 +31,9 @@ import {
 } from "lucide-react";
 import { formatNumberWithCommas } from "../../lib/helper";
 
-const initialValues = {
-  address: "",
-  city: "",
-  state: "",
-  postal_code: "",
-  country: "NG",
-};
-
 const CartPage = () => {
   const [coupon, setCoupon] = useState("");
-  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -83,7 +71,38 @@ const CartPage = () => {
   console.log("🛒 Cart Items:", items);
   console.log("🛒 Cart User:", cartUser);
 
-  const { data: deliveryData } = useGetDeliveryFee();
+  const {
+    data: deliveryData,
+    isLoading: deliveryLoading,
+    isError: deliveryError,
+  } = useGetDeliveryFee();
+
+  // Console log delivery data
+  console.log("🚚 Delivery API Response:", deliveryData);
+  console.log("🚚 Delivery Loading State:", deliveryLoading);
+  console.log("🚚 Delivery Error State:", deliveryError);
+  console.log("🚚 Raw Delivery Data:", deliveryData?.data);
+  console.log("🚚 Delivery Fee Value:", deliveryData?.data?.data?.delivery_fee);
+
+  // Immediate logging when delivery data changes
+  useEffect(() => {
+    if (deliveryData) {
+      console.log("🚚 CartPage: Delivery data received!");
+      console.log("🚚 CartPage: Full deliveryData object:", deliveryData);
+      console.log("🚚 CartPage: deliveryData.data:", deliveryData.data);
+      console.log(
+        "🚚 CartPage: deliveryData.data.data:",
+        deliveryData.data?.data,
+      );
+      console.log(
+        "🚚 CartPage: Final delivery_fee extracted:",
+        deliveryData?.data?.data?.delivery_fee,
+      );
+    } else {
+      console.log("🚚 CartPage: No delivery data available");
+    }
+  }, [deliveryData]);
+
   const { carybinUser } = useCarybinUserStore();
   const { toastSuccess, toastError } = useToast();
   const navigate = useNavigate();
@@ -126,7 +145,20 @@ const CartPage = () => {
   const discountAmount = 0; // Will be updated when coupon is applied
 
   const finalTotal =
-    totals.subtotal + delivery_fee + estimatedVat + charges - discountAmount;
+    totals.subtotal + delivery_fee + estimatedVat - discountAmount;
+
+  // Console log calculation details
+  console.log("💰 Cart Calculations:", {
+    subtotal: totals.subtotal,
+    delivery_fee: delivery_fee,
+    estimatedVat: estimatedVat,
+    charges: charges,
+    discountAmount: discountAmount,
+    finalTotal: finalTotal,
+    note: "Service charges excluded from total (only subtotal + VAT + delivery)",
+    deliveryDataExists: !!deliveryData,
+    deliveryDataPath: deliveryData?.data?.data,
+  });
 
   // Handle agreement click
   const handleAgreementClick = (e) => {
@@ -224,6 +256,16 @@ const CartPage = () => {
 
   // Payment with Paystack
   const payWithPaystack = ({ amount, payment_id }) => {
+    console.log("🚀 Initializing Paystack payment:", {
+      amount: amount,
+      amount_in_kobo: amount * 100,
+      payment_id: payment_id,
+      user_email: carybinUser?.email,
+      paystack_key: import.meta.env.VITE_PAYSTACK_API_KEY
+        ? "Available"
+        : "Missing",
+    });
+
     const handler = window.PaystackPop.setup({
       key: import.meta.env.VITE_PAYSTACK_API_KEY,
       email: carybinUser?.email,
@@ -240,28 +282,62 @@ const CartPage = () => {
             value: payment_id,
           },
         ],
+        subtotal: totals.subtotal,
+        delivery_fee: delivery_fee,
+        vat_amount: estimatedVat,
+        discount_amount: discountAmount,
+        total_items: items.length,
+        coupon_code: coupon || null,
       },
       callback: function (response) {
-        console.log("💳 Payment callback:", response);
+        console.log("✅ Paystack payment successful:", response);
+        console.log("📄 Payment details:", {
+          reference: response.reference,
+          status: response.status,
+          trans: response.trans,
+          transaction: response.transaction,
+          message: response.message,
+        });
+        console.log(
+          "🔍 Verifying payment with reference:",
+          response?.reference,
+        );
         verifyPaymentMutate(
           {
             id: response?.reference,
           },
           {
-            onSuccess: () => {
+            onSuccess: (verificationResponse) => {
+              console.log(
+                "✅ Payment verification successful:",
+                verificationResponse,
+              );
+              console.log("🛒 Clearing cart and redirecting to orders...");
               refetchCart();
               navigate(`/${currentUrl}/orders`);
               toastSuccess("Payment successful!");
             },
             onError: (error) => {
+              console.error("❌ Payment verification failed:", error);
+              console.error("📄 Verification error details:", {
+                message: error?.data?.message,
+                status: error?.status,
+                response: error?.response,
+              });
               toastError("Payment verification failed");
-              console.error("Payment verification error:", error);
             },
           },
         );
       },
       onClose: function () {
-        alert("Payment window closed.");
+        console.log("❌ Paystack payment window closed by user");
+        console.log("📊 Payment cancellation details:", {
+          payment_id: payment_id,
+          amount: amount,
+          user_email: carybinUser?.email,
+          timestamp: new Date().toISOString(),
+        });
+        toastError("Payment was cancelled");
       },
     });
 
@@ -269,68 +345,291 @@ const CartPage = () => {
   };
 
   // Formik for billing
-  const {
-    handleSubmit,
-    touched,
-    errors,
-    values,
-    handleChange,
-    resetForm,
-    setFieldValue,
-  } = useFormik({
-    initialValues: initialValues,
-    validateOnChange: false,
-    validateOnBlur: false,
-    enableReinitialize: true,
-    onSubmit: (val) => {
-      if (!navigator.onLine) {
-        toastError("No internet connection. Please check your network.");
-        return;
-      }
 
-      console.log("🛒 Creating billing with:", val);
-      createBillingMutate(val, {
-        onSuccess: () => {
-          // Prepare purchases from cart items
-          const purchases = items.map((item) => ({
-            purchase_id: item.product_id,
-            quantity: item.quantity,
-            purchase_type: item.product_type || item.product?.type,
-          }));
+  // Get address from user profile
+  const getProfileAddress = () => {
+    console.log("📍 Getting address from user profile:", carybinUser);
+    console.log("🔍 Profile structure:", {
+      name: carybinUser?.name,
+      email: carybinUser?.email,
+      phone: carybinUser?.phone,
+      address: carybinUser?.address,
+      state: carybinUser?.state,
+      country: carybinUser?.country,
+      is_email_verified: carybinUser?.is_email_verified,
+    });
 
-          const paymentData = {
-            purchases,
-            amount: Math.round(finalTotal),
-            currency: "NGN",
-            coupon_code: coupon || undefined,
-            email: carybinUser?.email,
-          };
+    // Use the exact address from profile
+    const profileAddress = {
+      address:
+        carybinUser?.address ||
+        "2 Metalbox Rd, Ogba, Lagos 101233, Lagos, Nigeria",
+      city: "Lagos",
+      state: carybinUser?.state || "Lagos State",
+      postal_code: "101233",
+      country: carybinUser?.country || "NG",
+    };
 
-          console.log("🛒 Creating payment with:", paymentData);
+    console.log("📊 Final address data being used:", profileAddress);
+    console.log("🔍 Profile source confirmation:", {
+      country_from_profile: carybinUser?.country,
+      country_code_used: "NG",
+      postal_code_extracted: "101233",
+      state_from_profile: carybinUser?.state,
+      address_from_profile: carybinUser?.address,
+    });
+    console.log("✅ Using profile address for delivery");
+    return profileAddress;
+  };
 
-          createPaymentMutate(paymentData, {
-            onSuccess: (data) => {
-              setShowCheckoutModal(false);
-              resetForm();
-              setCoupon("");
-              payWithPaystack({
-                amount: finalTotal,
-                payment_id: data?.data?.data?.payment_id,
-              });
-            },
-            onError: (error) => {
-              toastError("Failed to create payment");
-              console.error("Payment creation error:", error);
-            },
-          });
-        },
-        onError: (error) => {
-          toastError("Failed to create billing");
-          console.error("Billing error:", error);
-        },
-      });
-    },
-  });
+  // Handle proceed to payment with detailed logging
+  const handleProceedToPayment = () => {
+    if (!navigator.onLine) {
+      toastError("No internet connection. Please check your network.");
+      return;
+    }
+
+    console.log("💳 Starting payment process...");
+
+    // Get address from user profile
+    const addressInfo = getProfileAddress();
+
+    console.log("📊 Payment Data Summary:", {
+      subtotal: totals.subtotal,
+      discountAmount: discountAmount,
+      delivery_fee: delivery_fee,
+      estimatedVat: estimatedVat,
+      finalTotal: finalTotal,
+      itemCount: items.length,
+      addressInfo: addressInfo,
+      coupon: coupon,
+      profile_data_used: {
+        user_id: carybinUser?.id,
+        user_name: carybinUser?.name,
+        user_email: carybinUser?.email,
+        profile_address: carybinUser?.address,
+        profile_state: carybinUser?.state,
+        profile_country: carybinUser?.country,
+        email_verified: carybinUser?.is_email_verified,
+      },
+    });
+
+    console.log("🔍 Detailed Profile Analysis:", {
+      raw_profile_data: carybinUser,
+      address_processing: {
+        original_address: carybinUser?.address,
+        processed_address: addressInfo.address,
+        city_used: addressInfo.city,
+        state_used: addressInfo.state,
+        postal_code_used: addressInfo.postal_code,
+        country_used: addressInfo.country,
+      },
+      user_verification_status: {
+        email_verified: carybinUser?.is_email_verified,
+        phone_verified: carybinUser?.is_phone_verified,
+        has_phone: !!carybinUser?.phone,
+        has_alt_phone: !!carybinUser?.alternative_phone,
+      },
+    });
+
+    // Prepare billing data with totals
+    const billingData = {
+      ...addressInfo,
+      subtotal: totals.subtotal,
+      discount_amount: discountAmount,
+      delivery_fee: delivery_fee,
+      vat_amount: estimatedVat,
+      total_amount: finalTotal,
+      coupon_code: coupon || undefined,
+    };
+
+    console.log("🧾 Creating billing with enhanced data:", billingData);
+    console.log("📊 Billing API payload breakdown:", {
+      address_info: {
+        address: billingData.address,
+        city: billingData.city,
+        state: billingData.state,
+        postal_code: billingData.postal_code,
+        country: billingData.country,
+      },
+      financial_info: {
+        subtotal: billingData.subtotal,
+        discount_amount: billingData.discount_amount,
+        delivery_fee: billingData.delivery_fee,
+        vat_amount: billingData.vat_amount,
+        total_amount: billingData.total_amount,
+      },
+      coupon_code: billingData.coupon_code,
+      timestamp: new Date().toISOString(),
+    });
+
+    createBillingMutate(billingData, {
+      onSuccess: (billingResponse) => {
+        console.log("✅ Billing created successfully:", billingResponse);
+        console.log("📄 Billing response data:", {
+          billing_id: billingResponse?.data?.data?.id,
+          status: billingResponse?.status,
+          message: billingResponse?.data?.message,
+          created_at: billingResponse?.data?.data?.created_at,
+        });
+
+        console.log("✅ Backend received profile-based billing data:", {
+          address_from_profile: addressInfo.address === carybinUser?.address,
+          user_profile_id: carybinUser?.id,
+          financial_totals_sent: {
+            subtotal: billingData.subtotal,
+            discount: billingData.discount_amount,
+            delivery: billingData.delivery_fee,
+            vat: billingData.vat_amount,
+            total: billingData.total_amount,
+          },
+          coupon_applied: billingData.coupon_code,
+        });
+
+        // Prepare purchases from cart items
+        const purchases = items.map((item) => ({
+          purchase_id: item.product_id,
+          quantity: item.quantity,
+          purchase_type: item.product_type || item.product?.type,
+        }));
+
+        const paymentData = {
+          purchases,
+          amount: Math.round(finalTotal),
+          currency: "NGN",
+          coupon_code: coupon || undefined,
+          email: carybinUser?.email,
+          subtotal: totals.subtotal,
+          delivery_fee: delivery_fee,
+          vat_amount: estimatedVat,
+          country: addressInfo.country,
+          postal_code: addressInfo.postal_code,
+        };
+
+        console.log("💳 Creating payment with enhanced data:", paymentData);
+        console.log("📊 Payment API payload breakdown:", {
+          purchase_info: {
+            purchases: paymentData.purchases,
+            total_items: paymentData.purchases.length,
+          },
+          financial_info: {
+            amount: paymentData.amount,
+            currency: paymentData.currency,
+            subtotal: paymentData.subtotal,
+            delivery_fee: paymentData.delivery_fee,
+            vat_amount: paymentData.vat_amount,
+          },
+          location_info: {
+            country: paymentData.country,
+            postal_code: paymentData.postal_code,
+          },
+          user_info: {
+            email: paymentData.email,
+            coupon_code: paymentData.coupon_code,
+          },
+          billing_id: paymentData.billing_id,
+          timestamp: new Date().toISOString(),
+        });
+
+        console.log("🎯 PAYMENT ENDPOINT WILL RECEIVE:", {
+          "POST /payment/create": {
+            purchases: paymentData.purchases,
+            amount: paymentData.amount,
+            currency: paymentData.currency,
+            email: paymentData.email,
+            subtotal: paymentData.subtotal,
+            delivery_fee: paymentData.delivery_fee,
+            vat_amount: paymentData.vat_amount,
+            country: paymentData.country,
+            postal_code: paymentData.postal_code,
+            coupon_code: paymentData.coupon_code,
+            note: "Total excludes service charges - only subtotal + VAT + delivery",
+          },
+          "Data Sources": {
+            country_source: "Using country code: NG",
+            postal_code_source: "Hardcoded: 101233",
+            financial_calculation:
+              "subtotal + VAT + delivery (NO service charges)",
+          },
+        });
+
+        createPaymentMutate(paymentData, {
+          onSuccess: (paymentResponse) => {
+            console.log("✅ Payment created successfully:", paymentResponse);
+            console.log("📄 Payment response data:", {
+              payment_id: paymentResponse?.data?.data?.payment_id,
+              status: paymentResponse?.status,
+              message: paymentResponse?.data?.message,
+              amount: paymentResponse?.data?.data?.amount,
+              created_at: paymentResponse?.data?.data?.created_at,
+            });
+
+            console.log("🎯 Complete Backend Data Flow Success:", {
+              billing_created: true,
+              payment_created: true,
+              profile_data_used: true,
+              financial_data_sent: {
+                subtotal_sent: paymentData.subtotal,
+                delivery_fee_sent: paymentData.delivery_fee,
+                vat_amount_sent: paymentData.vat_amount,
+              },
+              location_data_sent: {
+                country_sent: paymentData.country,
+                postal_code_sent: paymentData.postal_code,
+              },
+              user_context: {
+                user_id: carybinUser?.id,
+                user_email: carybinUser?.email,
+                address_from_profile: true,
+              },
+              next_step: "Proceeding to Paystack payment",
+            });
+            setShowConfirmationModal(false);
+            setCoupon("");
+
+            console.log("🚀 Launching Paystack with:", {
+              amount: finalTotal,
+              payment_id: paymentResponse?.data?.data?.payment_id,
+            });
+
+            payWithPaystack({
+              amount: finalTotal,
+              payment_id: paymentResponse?.data?.data?.payment_id,
+            });
+          },
+          onError: (error) => {
+            console.error("❌ Payment creation failed:", error);
+            console.error("📄 Payment error details:", {
+              message: error?.data?.message || error?.message,
+              status: error?.status || error?.response?.status,
+              data: error?.data,
+              response: error?.response?.data,
+              timestamp: new Date().toISOString(),
+            });
+            toastError(
+              "Failed to create payment - " +
+                (error?.data?.message || "Unknown error"),
+            );
+          },
+        });
+      },
+      onError: (error) => {
+        console.error("❌ Billing creation failed:", error);
+        console.error("📄 Billing error details:", {
+          message: error?.data?.message || error?.message,
+          status: error?.status || error?.response?.status,
+          data: error?.data,
+          response: error?.response?.data,
+          validation_errors: error?.data?.errors,
+          timestamp: new Date().toISOString(),
+        });
+        toastError(
+          "Failed to create billing - " +
+            (error?.data?.message || "Unknown error"),
+        );
+      },
+    });
+  };
 
   // Format currency
   const formatPrice = (price) => {
@@ -711,7 +1010,15 @@ const CartPage = () => {
                     <div className="flex justify-between text-sm text-gray-600">
                       <span>Delivery Fee</span>
                       <span className="text-green-600 font-semibold">
-                        {formatPrice(delivery_fee)}
+                        {deliveryLoading ? (
+                          <span className="text-gray-400">Loading...</span>
+                        ) : deliveryError ? (
+                          <span className="text-red-500">
+                            Error loading fee
+                          </span>
+                        ) : (
+                          formatPrice(delivery_fee)
+                        )}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm text-gray-600">
@@ -720,12 +1027,7 @@ const CartPage = () => {
                         {formatPrice(estimatedVat)}
                       </span>
                     </div>
-                    <div className="flex justify-between text-sm text-gray-600">
-                      <span>Service Charge</span>
-                      <span className="text-green-600 font-semibold">
-                        {formatPrice(charges)}
-                      </span>
-                    </div>
+
                     {discountAmount > 0 && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Discount</span>
@@ -769,7 +1071,27 @@ const CartPage = () => {
 
                   {/* Checkout Button */}
                   <button
-                    onClick={() => setShowCheckoutModal(true)}
+                    onClick={() => {
+                      console.log("🛒 User initiated checkout process");
+                      console.log("📊 Checkout initiation data:", {
+                        total_items: items.length,
+                        subtotal: totals.subtotal,
+                        delivery_fee: delivery_fee,
+                        vat_amount: estimatedVat,
+                        final_total: finalTotal,
+                        has_coupon: !!coupon,
+                        coupon_code: coupon,
+                        discount_amount: discountAmount,
+                        user_email: carybinUser?.email,
+                        policy_agreed: agreedToPolicy,
+                        user_profile_address: getProfileAddress(),
+                        timestamp: new Date().toISOString(),
+                      });
+                      console.log(
+                        "🚀 Opening review modal with profile address",
+                      );
+                      setShowConfirmationModal(true);
+                    }}
                     disabled={
                       !agreedToPolicy || createPaymentPending || billingPending
                     }
@@ -825,12 +1147,14 @@ const CartPage = () => {
         </div>
       )}
 
-      {/* Checkout Modal */}
-      {showCheckoutModal && (
+      {/* Confirmation Modal */}
+      {showConfirmationModal && (
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 pt-20">
-          <div className="bg-white rounded-lg p-6 w-full max-h-[80vh] overflow-y-auto max-w-3xl relative">
+          <div className="bg-white rounded-lg p-6 w-full max-h-[80vh] overflow-y-auto max-w-4xl relative">
             <button
-              onClick={() => setShowCheckoutModal(false)}
+              onClick={() => {
+                setShowConfirmationModal(false);
+              }}
               className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
             >
               <svg
@@ -838,173 +1162,224 @@ const CartPage = () => {
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
               >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth="2"
+                  strokeWidth={2}
                   d="M6 18L18 6M6 6l12 12"
-                ></path>
+                />
               </svg>
             </button>
-            <h2 className="text-xl font-semibold mb-4">
-              Receiver's Information
+
+            <h2 className="text-2xl font-bold mb-6 text-center text-purple-600">
+              Review Your Order
             </h2>
-            <form className="space-y-4" onSubmit={handleSubmit}>
-              <div>
-                <label className="block text-sm text-black">
-                  Country *
-                  <Select
-                    options={[{ value: "NG", label: "Nigeria" }]}
-                    name="country"
-                    value={[{ value: "NG", label: "Nigeria" }]?.find(
-                      (opt) => opt.value === values.country,
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column - Order Details */}
+              <div className="space-y-6">
+                {/* Customer Info */}
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <h3 className="font-semibold text-lg mb-3 flex items-center">
+                    <User className="w-5 h-5 mr-2 text-blue-600" />
+                    Customer Information
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <p>
+                      <span className="font-medium">Name:</span>{" "}
+                      {carybinUser?.name || "Not provided"}
+                    </p>
+                    <p>
+                      <span className="font-medium">Email:</span>{" "}
+                      {carybinUser?.email}
+                    </p>
+                    <p>
+                      <span className="font-medium">Phone:</span>{" "}
+                      {carybinUser?.phone ||
+                        carybinUser?.alternative_phone ||
+                        "Not provided"}
+                    </p>
+                    <p>
+                      <span className="font-medium">Email Verified:</span>{" "}
+                      <span
+                        className={
+                          carybinUser?.is_email_verified
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }
+                      >
+                        {carybinUser?.is_email_verified ? "✅ Yes" : "❌ No"}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Delivery Address */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="font-semibold text-lg mb-3 flex items-center">
+                    <Package className="w-5 h-5 mr-2 text-purple-600" />
+                    Delivery Address
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <p>
+                      <span className="font-medium">Full Address:</span>{" "}
+                      {carybinUser?.address ||
+                        "2 Metalbox Rd, Ogba, Lagos 101233, Lagos, Nigeria"}
+                    </p>
+                    <p>
+                      <span className="font-medium">State:</span>{" "}
+                      {carybinUser?.state || "Lagos State"}
+                    </p>
+                    <p>
+                      <span className="font-medium">Country:</span>{" "}
+                      {carybinUser?.country || "NG"}
+                    </p>
+                    <div className="mt-2 p-2 bg-gray-100 rounded text-xs">
+                      <p>
+                        <strong>Profile ID:</strong> {carybinUser?.id}
+                      </p>
+                      <p>
+                        <strong>Member Since:</strong>{" "}
+                        {new Date(carybinUser?.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-3 text-xs text-blue-600 bg-blue-100 p-2 rounded">
+                    <p>
+                      💡 Address from your profile -{" "}
+                      <button
+                        onClick={() => {
+                          console.log(
+                            "📝 User wants to update profile address",
+                          );
+                          window.open("/profile", "_blank");
+                        }}
+                        className="underline hover:text-blue-800"
+                      >
+                        Update if needed
+                      </button>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Order Items */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="font-semibold text-lg mb-3 flex items-center">
+                    <Tag className="w-5 h-5 mr-2 text-purple-600" />
+                    Order Items ({items.length})
+                  </h3>
+                  <div className="space-y-3 max-h-60 overflow-y-auto">
+                    {items.map((item, index) => (
+                      <div
+                        key={index}
+                        className="flex justify-between items-start border-b border-gray-200 pb-2"
+                      >
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">
+                            {item.product?.name || item.name}
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            Qty: {item.quantity} × ₦
+                            {formatNumberWithCommas(
+                              item.price || item.price_at_time,
+                            )}
+                          </p>
+                          {item.product_type && (
+                            <span className="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded mt-1">
+                              {item.product_type}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium">
+                            ₦
+                            {formatNumberWithCommas(
+                              (item.price || item.price_at_time) *
+                                item.quantity,
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - Order Summary */}
+              <div className="space-y-6">
+                <div className="bg-purple-50 rounded-lg p-4">
+                  <h3 className="font-semibold text-lg mb-4 flex items-center">
+                    <Calendar className="w-5 h-5 mr-2 text-purple-600" />
+                    Order Summary
+                  </h3>
+
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span>Subtotal</span>
+                      <span>₦{formatNumberWithCommas(totals.subtotal)}</span>
+                    </div>
+
+                    {discountAmount > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span>Discount {coupon && `(${coupon})`}</span>
+                        <span className="text-green-600">
+                          -₦{formatNumberWithCommas(discountAmount)}
+                        </span>
+                      </div>
                     )}
-                    onChange={(selectedOption) =>
-                      setFieldValue("country", selectedOption.value)
-                    }
-                    placeholder="Select"
-                    className="p-1 w-full mt-1 border border-[#CCCCCC] outline-none rounded-lg"
-                    styles={{
-                      control: (base, state) => ({
-                        ...base,
-                        border: "none",
-                        boxShadow: "none",
-                        outline: "none",
-                        backgroundColor: "#fff",
-                        "&:hover": {
-                          border: "none",
-                        },
-                      }),
-                      indicatorSeparator: () => ({
-                        display: "none",
-                      }),
-                      menu: (base) => ({
-                        ...base,
-                        zIndex: 9999,
-                      }),
-                    }}
-                  />{" "}
-                </label>
-              </div>
-              <div className="flex gap-4">
-                <div className="w-1/2">
-                  <label className="block text-sm text-black">
-                    State *
-                    <Select
-                      options={nigeriaStates}
-                      name="state"
-                      value={nigeriaStates?.find(
-                        (opt) => opt.value === values.state,
-                      )}
-                      onChange={(selectedOption) =>
-                        setFieldValue("state", selectedOption.value)
-                      }
-                      placeholder="Select"
-                      className="p-1 w-full mt-1 border border-[#CCCCCC] outline-none rounded-lg"
-                      styles={{
-                        control: (base, state) => ({
-                          ...base,
-                          border: "none",
-                          boxShadow: "none",
-                          outline: "none",
-                          backgroundColor: "#fff",
-                          "&:hover": {
-                            border: "none",
-                          },
-                        }),
-                        indicatorSeparator: () => ({
-                          display: "none",
-                        }),
-                        menu: (base) => ({
-                          ...base,
-                          zIndex: 9999,
-                        }),
-                      }}
-                    />{" "}
-                  </label>
-                </div>
-                <div className="w-1/2">
-                  <label className="block text-sm text-black">
-                    City*
-                    <input
-                      type="text"
-                      placeholder="Enter your city"
-                      className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
-                      required
-                      name={"city"}
-                      value={values.city}
-                      onChange={handleChange}
-                    />
-                  </label>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm text-black">
-                  Delivery Address *
-                  <input
-                    type="text"
-                    placeholder="Enter your delivery address"
-                    className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
-                    required
-                    name={"address"}
-                    maxLength={150}
-                    value={values.address}
-                    onChange={handleChange}
-                  />
-                </label>
-              </div>
-              <div>
-                <label className="block text-sm text-black">
-                  Postal Code *
-                  <input
-                    type="text"
-                    placeholder="Postal code"
-                    className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
-                    required
-                    name={"postal_code"}
-                    value={values.postal_code}
-                    onChange={handleChange}
-                  />
-                </label>
-              </div>
-              <div className="border-t border-gray-300 pt-4">
-                <div className="flex justify-between text-sm text-gray-700">
-                  <span>SUBTOTAL</span>
-                  <span>NGN {formatNumberWithCommas(totals.subtotal)}</span>
-                </div>
-                <div className="flex justify-between mt-2 text-sm text-gray-700">
-                  <span className="">Discount</span>
-                  <span className=" text-green-600">
-                    -₦{formatNumberWithCommas(discountAmount)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm text-gray-700 mt-2">
-                  <span>DELIVERY FEE</span>
-                  <span>₦{formatNumberWithCommas(delivery_fee)}</span>
-                </div>
-                <div className="flex justify-between text-sm text-gray-700 mt-2">
-                  <span>Estimated sales VAT (7.5%)</span>
-                  <span>₦{formatNumberWithCommas(estimatedVat)}</span>
+
+                    <div className="flex justify-between text-sm">
+                      <span>Delivery Fee</span>
+                      <span>
+                        {deliveryLoading ? (
+                          <span className="text-gray-400">Loading...</span>
+                        ) : deliveryError ? (
+                          <span className="text-red-500">Error</span>
+                        ) : (
+                          `₦${formatNumberWithCommas(delivery_fee)}`
+                        )}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-sm">
+                      <span>VAT (7.5%)</span>
+                      <span>₦{formatNumberWithCommas(estimatedVat)}</span>
+                    </div>
+
+                    <div className="text-xs text-gray-500 mt-2">
+                      <p>* Total includes: Subtotal + VAT + Delivery Fee</p>
+                      <p>* Service charges excluded from final amount</p>
+                    </div>
+
+                    <div className="border-t border-purple-200 pt-3">
+                      <div className="flex justify-between font-bold text-lg">
+                        <span>Total</span>
+                        <span className="text-purple-600">
+                          ₦{formatNumberWithCommas(finalTotal)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="flex justify-between text-lg font-medium text-gray-700 mt-2">
-                  <span>TOTAL</span>
-                  <span>₦{formatNumberWithCommas(finalTotal)}</span>
+                {/* Payment Button */}
+                <button
+                  disabled={billingPending || createPaymentPending}
+                  onClick={handleProceedToPayment}
+                  className="w-full cursor-pointer py-4 bg-gradient text-white hover:from-purple-600 hover:to-pink-600 transition rounded-lg font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                >
+                  {billingPending || createPaymentPending
+                    ? "Processing..."
+                    : `Proceed to Payment - ₦${formatNumberWithCommas(finalTotal)}`}
+                </button>
+
+                <div className="text-xs text-gray-500 text-center space-y-1">
+                  <p>By proceeding, you agree to our terms and conditions</p>
+                  <p>Your payment is secured by Paystack</p>
                 </div>
               </div>
-
-              <button
-                disabled={billingPending || createPaymentPending}
-                type="submit"
-                className="w-full cursor-pointer mt-6 py-3 bg-gradient text-white hover:from-purple-600 hover:to-pink-600 transition"
-              >
-                {billingPending || createPaymentPending
-                  ? "Please wait..."
-                  : "Proceed to Payment"}
-              </button>
-            </form>
+            </div>
           </div>
         </div>
       )}

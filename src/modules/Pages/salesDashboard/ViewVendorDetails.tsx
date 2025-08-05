@@ -217,7 +217,7 @@ export const BackButton = () => {
           console.log("clicked");
           window.history.back();
         }}
-        className="p-2 bg-white inline-flex items-center text-md px-4 shadow gap-2 text-gray-800"
+        className="p-2 bg-white cursor-pointer inline-flex items-center text-md px-4 shadow gap-2 text-gray-800"
       >
         <ChevronLeft size={18} /> Go Back
       </button>

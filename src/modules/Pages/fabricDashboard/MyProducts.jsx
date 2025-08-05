@@ -40,18 +40,25 @@ const ProductPage = () => {
     "pagination[limit]": 10,
   });
 
-  const { data: getAllFabricData, isPending } = useGetFabricProduct({
+  const {
+    data: getAllFabricData,
+    isPending,
+    refetch,
+  } = useGetFabricProduct({
     type: "FABRIC",
     id: businessDetails?.data?.id,
     ...queryParams,
   });
 
-  const { data: getAllAdminFabricData, isPending: adminProductIsPending } =
-    useGetAdminFabricProduct({
-      type: "FABRIC",
-      id: businessDetails?.data?.id,
-      ...queryParams,
-    });
+  const {
+    data: getAllAdminFabricData,
+    isPending: adminProductIsPending,
+    refetch: adRefetch,
+  } = useGetAdminFabricProduct({
+    type: "FABRIC",
+    id: businessDetails?.data?.id,
+    ...queryParams,
+  });
 
   const [queryString, setQueryString] = useState(queryParams.q);
 
@@ -249,15 +256,29 @@ const ProductPage = () => {
                 <button
                   onClick={async (e) => {
                     try {
-                      console.log(row);
                       toast.promise(
                         async () => {
-                          return (
-                            await CaryBinApi.patch("/fabric/" + row.id, {
-                              ...row,
-                              status: "unpublished",
-                            })
-                          ).data;
+                          let resp = await CaryBinApi.patch(
+                            "/fabric/" + row.id,
+                            {
+                              product: {
+                                status:
+                                  row.status == "PUBLISHED"
+                                    ? "ARCHIVED"
+                                    : "PUBLISHED",
+                              },
+                            },
+                            {
+                              headers: {
+                                "Business-Id": businessDetails.data.id,
+                              },
+                            },
+                          ).catch((err) => {
+                            console.log(err.data);
+                          });
+                          refetch();
+                          adRefetch();
+                          return resp.data;
                         },
                         {
                           pending: "unpublishing",
@@ -272,7 +293,7 @@ const ProductPage = () => {
                   }}
                   className="block cursor-pointer text-center px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
                 >
-                  Unpublish
+                  {row.status == "PUBLISHED" ? "Unpublish" : "publish"}
                 </button>
                 <button
                   onClick={() => {

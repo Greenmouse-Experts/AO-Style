@@ -42,7 +42,11 @@ export default function StylesTable() {
     "pagination[limit]": 10,
   });
 
-  const { data: getAllStylesData, isPending } = useGetFabricProduct({
+  const {
+    data: getAllStylesData,
+    isPending,
+    refetch,
+  } = useGetFabricProduct({
     type: "STYLE",
     id: businessDetails?.data?.id,
     ...queryParams,
@@ -430,28 +434,42 @@ export default function StylesTable() {
                             )}
                             <button
                               onClick={async (e) => {
-                                let error_mess = "";
+                                let buisnss_id = businessDetails.data;
+                                console.log(buisnss_id);
                                 toast.promise(
                                   async () => {
                                     let resp = await CaryBinApi.patch(
                                       "/style/" + style.id,
                                       {
-                                        ...style,
-                                        status: "unpublished",
+                                        product: {
+                                          status:
+                                            style.status == "PUBLISHED"
+                                              ? "ARCHIVED"
+                                              : "PUBLISHED",
+                                        },
+                                        style: {},
+                                      },
+                                      {
+                                        headers: {
+                                          "Business-Id": buisnss_id.id,
+                                        },
                                       },
                                     );
+                                    refetch();
                                     return resp.data;
                                   },
                                   {
-                                    success: "done",
-                                    pending: "unpublishing",
-                                    error: "failed",
+                                    pending: "pending",
+                                    success: "updated",
+                                    error: "error",
                                   },
                                 );
                               }}
                               className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
                             >
-                              Unpublish
+                              {style.status == "PUBLISHED"
+                                ? "Unpublish"
+                                : "publish"}
                             </button>
                             {style?.status === "DRAFT" ? (
                               <button

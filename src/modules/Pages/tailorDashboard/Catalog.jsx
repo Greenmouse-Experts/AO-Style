@@ -432,7 +432,7 @@ export default function StylesTable() {
                                 Edit
                               </Link>
                             )}
-                            <button
+                            {/* <button
                               onClick={async (e) => {
                                 let buisnss_id = businessDetails.data;
                                 console.log(buisnss_id);
@@ -470,7 +470,7 @@ export default function StylesTable() {
                               {style.status == "PUBLISHED"
                                 ? "Unpublish"
                                 : "publish"}
-                            </button>
+                            </button>*/}
                             {style?.status === "DRAFT" ? (
                               <button
                                 onClick={() => {

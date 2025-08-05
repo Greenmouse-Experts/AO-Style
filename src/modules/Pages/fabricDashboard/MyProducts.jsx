@@ -253,7 +253,7 @@ const ProductPage = () => {
                     {"Edit Product"}
                   </Link>
                 )}
-                <button
+                {/* <button
                   onClick={async (e) => {
                     try {
                       toast.promise(
@@ -294,7 +294,7 @@ const ProductPage = () => {
                   className="block cursor-pointer text-center px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
                 >
                   {row.status == "PUBLISHED" ? "Unpublish" : "publish"}
-                </button>
+                </button>*/}
                 <button
                   onClick={() => {
                     setNewCategory(row);

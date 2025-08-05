@@ -27,6 +27,7 @@ import { CSVLink } from "react-csv";
 import useGetAdminManageFabricProduct from "../../../hooks/fabric/useGetManageFabric";
 import useToast from "../../../hooks/useToast";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
+import { toast } from "react-toastify";
 
 const ProductPage = () => {
   const { data: businessDetails } = useGetBusinessDetails();
@@ -249,11 +250,22 @@ const ProductPage = () => {
                   onClick={async (e) => {
                     try {
                       console.log(row);
-                      let resp = await CaryBinApi.patch("/fabric/" + row.id, {
-                        ...row,
-                        status: "unpublished",
-                      });
-                      return resp.data;
+                      toast.promise(
+                        async () => {
+                          return (
+                            await CaryBinApi.patch("/fabric/" + row.id, {
+                              ...row,
+                              status: "unpublished",
+                            })
+                          ).data;
+                        },
+                        {
+                          pending: "unpublishing",
+                          error: "failed",
+                          success: "success",
+                        },
+                      );
+                      // return resp.data;
                     } catch (err) {
                       console.log(err.data);
                     }

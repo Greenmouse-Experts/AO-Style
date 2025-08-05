@@ -71,7 +71,7 @@ export default function StyleForm() {
   const { data: businessDetails } = useGetBusinessDetails();
 
   const { isPending, createStyleProductMutate } = useCreateStyleProduct(
-    businessDetails?.data?.id
+    businessDetails?.data?.id,
   );
 
   const { isPending: createIsPending, createAdminStyleProductMutate } =
@@ -170,7 +170,7 @@ export default function StyleForm() {
                 resetForm();
                 navigate(-1);
               },
-            }
+            },
           );
         } else {
           updateStyleMutate(
@@ -207,7 +207,7 @@ export default function StyleForm() {
                 resetForm();
                 navigate(-1);
               },
-            }
+            },
           );
         }
       } else {
@@ -243,7 +243,7 @@ export default function StyleForm() {
                 resetForm();
                 navigate(-1);
               },
-            }
+            },
           );
         } else {
           createStyleProductMutate(
@@ -277,7 +277,7 @@ export default function StyleForm() {
                 resetForm();
                 navigate(-1);
               },
-            }
+            },
           );
         }
       }
@@ -312,7 +312,7 @@ export default function StyleForm() {
     setTags(tags.filter((tag) => tag !== tagToRemove));
     setFieldValue(
       "tags",
-      tags.filter((tag) => tag !== tagToRemove)
+      tags.filter((tag) => tag !== tagToRemove),
     );
   };
 
@@ -348,8 +348,8 @@ export default function StyleForm() {
           {styleInfo && !isAdminEditRoute
             ? "Edit"
             : isAdminEditRoute
-            ? "View"
-            : "Add"}{" "}
+              ? "View"
+              : "Add"}{" "}
           Styles
         </h1>
         <p className="text-gray-500 text-sm">
@@ -360,8 +360,8 @@ export default function StyleForm() {
           {styleInfo && !isAdminEditRoute
             ? "Edit"
             : isAdminEditRoute
-            ? "View"
-            : "Add"}{" "}
+              ? "View"
+              : "Add"}{" "}
           Style
         </p>
       </div>
@@ -370,8 +370,8 @@ export default function StyleForm() {
           {styleInfo && !isAdminEditRoute
             ? "Edit"
             : isAdminEditRoute
-            ? "View"
-            : "Submit New"}{" "}
+              ? "View"
+              : "Submit New"}{" "}
           Style
         </h1>
 
@@ -430,7 +430,7 @@ export default function StyleForm() {
                   options={categoryList}
                   name="category_id"
                   value={categoryList?.find(
-                    (opt) => opt.value == values.category_id
+                    (opt) => opt.value == values.category_id,
                   )}
                   onChange={(selectedOption) => {
                     setFieldValue("category_id", selectedOption.value);
@@ -589,6 +589,16 @@ export default function StyleForm() {
                         View file upload
                       </a>
                     ) : null}
+
+                    {values?.front_url && (
+                      <>
+                        <img
+                          src={values.front_url}
+                          className="mx-auto h-40"
+                          alt=""
+                        />
+                      </>
+                    )}
                   </div>
                 </div>
                 <div
@@ -643,6 +653,15 @@ export default function StyleForm() {
                   ) : (
                     <></>
                   )}
+                  {values?.back_url && (
+                    <>
+                      <img
+                        src={values.back_url}
+                        className="mx-auto h-40"
+                        alt=""
+                      />
+                    </>
+                  )}
                 </div>
                 <div
                   onClick={() => document.getElementById("right").click()}
@@ -696,6 +715,15 @@ export default function StyleForm() {
                   ) : (
                     <></>
                   )}
+                  {values?.right_url && (
+                    <>
+                      <img
+                        src={values.front_url}
+                        className="mx-auto h-40"
+                        alt=""
+                      />
+                    </>
+                  )}
                 </div>
                 <div
                   onClick={() => document.getElementById("left").click()}
@@ -748,6 +776,15 @@ export default function StyleForm() {
                     </a>
                   ) : (
                     <></>
+                  )}
+                  {values?.left_url && (
+                    <>
+                      <img
+                        src={values.left_url}
+                        className="mx-auto h-40"
+                        alt=""
+                      />
+                    </>
                   )}
                 </div>
               </div>
@@ -811,6 +848,16 @@ export default function StyleForm() {
                     View file upload
                   </a>
                 ) : null}
+                {values?.video_url && (
+                  <>
+                    <video
+                      controls
+                      src={values.video_url}
+                      className="mt-4 mx-auto  h-40"
+                      alt=""
+                    />
+                  </>
+                )}
               </div>
             </div>
             <div>
@@ -930,8 +977,8 @@ export default function StyleForm() {
                   createIsPending
                     ? "Please wait..."
                     : styleInfo
-                    ? "Edit Style"
-                    : "Submit Style"}
+                      ? "Edit Style"
+                      : "Submit Style"}
                 </button>
               </>
             )}

@@ -82,7 +82,7 @@ export default function StylesTable() {
     : getAllStylesData;
 
   const totalPages = Math.ceil(
-    updatedData?.count / (queryParams["pagination[limit]"] ?? 10)
+    updatedData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
   const handleExport = (e) => {
@@ -269,7 +269,7 @@ export default function StylesTable() {
                 value={queryString}
                 onChange={(evt) =>
                   setQueryString(
-                    evt.target.value ? evt.target.value : undefined
+                    evt.target.value ? evt.target.value : undefined,
                   )
                 }
               />
@@ -360,7 +360,7 @@ export default function StylesTable() {
                             {style?.created_at
                               ? formatDateStr(
                                   style?.created_at?.split(".").shift(),
-                                  "DD-MM-YY"
+                                  "DD-MM-YY",
                                 )
                               : ""}
                           </p>
@@ -377,8 +377,8 @@ export default function StylesTable() {
                             style.status === "PUBLISHED"
                               ? "bg-green-100 text-green-600"
                               : style.status === "DRAFT"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-red-100 text-red-600"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : "bg-red-100 text-red-600"
                           }`}
                         >
                           {style.status}
@@ -391,7 +391,7 @@ export default function StylesTable() {
                           className="cursor-pointer"
                           onClick={() =>
                             setOpenDropdown(
-                              openDropdown === style.id ? null : style.id
+                              openDropdown === style.id ? null : style.id,
                             )
                           }
                         >
@@ -446,7 +446,7 @@ export default function StylesTable() {
                                         onSuccess: () => {
                                           setOpenDropdown(null);
                                         },
-                                      }
+                                      },
                                     );
                                   } else {
                                     updateStyleMutate(
@@ -464,7 +464,7 @@ export default function StylesTable() {
                                         onSuccess: () => {
                                           setOpenDropdown(null);
                                         },
-                                      }
+                                      },
                                     );
                                   }
                                 }}
@@ -476,7 +476,7 @@ export default function StylesTable() {
                               </button>
                             ) : null}
 
-                            {style?.status === "PUBLISHED" ? (
+                            {/* {style?.status === "PUBLISHED" ? (
                               <button
                                 onClick={() => {
                                   if (isAdminStyleRoute) {
@@ -495,7 +495,7 @@ export default function StylesTable() {
                                         onSuccess: () => {
                                           setOpenDropdown(null);
                                         },
-                                      }
+                                      },
                                     );
                                   } else {
                                     updateStyleMutate(
@@ -513,7 +513,7 @@ export default function StylesTable() {
                                         onSuccess: () => {
                                           setOpenDropdown(null);
                                         },
-                                      }
+                                      },
                                     );
                                   }
                                 }}
@@ -523,8 +523,13 @@ export default function StylesTable() {
                                   ? "Please wait..."
                                   : "Draft Style"}
                               </button>
-                            ) : null}
-
+                            ) : null}*/}
+                            {/* <Link
+                              to={"/tailor/catalog-view-style/" + style.id}
+                              className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
+                            >
+                              View Style
+                            </Link>*/}
                             <button
                               onClick={() => {
                                 setNewCategory(style);
@@ -635,7 +640,7 @@ export default function StylesTable() {
               onSubmit={(e) => {
                 if (!navigator.onLine) {
                   toastError(
-                    "No internet connection. Please check your network."
+                    "No internet connection. Please check your network.",
                   );
                   return;
                 }
@@ -650,7 +655,7 @@ export default function StylesTable() {
                         setIsAddModalOpen(false);
                         setNewCategory(null);
                       },
-                    }
+                    },
                   );
                 } else {
                   deleteStyleMutate(
@@ -663,7 +668,7 @@ export default function StylesTable() {
                         setIsAddModalOpen(false);
                         setNewCategory(null);
                       },
-                    }
+                    },
                   );
                 }
               }}

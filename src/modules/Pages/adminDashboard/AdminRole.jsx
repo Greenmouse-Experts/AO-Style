@@ -14,6 +14,10 @@ import useDeleteAdminRole from "../../../hooks/admin/useDeleteAdminRole";
 import useToast from "../../../hooks/useToast";
 import useUpdateAdminRole from "../../../hooks/admin/useUpdateAdminRole";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import CaryBinApi from "../../../services/CarybinBaseUrl";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "react-toastify";
 
 const roleOptions = [
   { label: "Fabric Vendor Dashboard", value: "fabric-vendor" },
@@ -38,12 +42,12 @@ const CustomersTable = () => {
     "pagination[page]": 1,
   });
 
-  const { data, isPending } = useGetAdminRoles({
+  const { data, isPending, refetch } = useGetAdminRoles({
     ...queryParams,
   });
 
-  const { isPending: deleteIsPending, deleteAdminRoleMutate } =
-    useDeleteAdminRole();
+  // const { isPending: deleteIsPending, deleteAdminRoleMutate } =
+  //   useDeleteAdminRole();
 
   const [queryString, setQueryString] = useState(queryParams.q);
 
@@ -79,7 +83,7 @@ const CustomersTable = () => {
             };
           })
         : [],
-    [data?.data]
+    [data?.data],
   );
 
   useEffect(() => {
@@ -91,7 +95,17 @@ const CustomersTable = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
+  const delete_mutation = useMutation({
+    mutationFn: async (id) => {
+      let resp = await CaryBinApi.delete(`/admin-role/${id}`);
+      return resp.data;
+    },
+    onSuccess: (res) => refetch(),
+    onError: (err) => {
+      console.log(err.data.message);
+      toast.error(err.data.message);
+    },
+  });
   // Table Columns
   const columns = useMemo(
     () => [
@@ -139,9 +153,16 @@ const CustomersTable = () => {
                 <button
                   className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full"
                   onClick={() => {
-                    openModal();
-                    toggleDropdown(null);
-                    setNewCategory(row);
+                    console.log("deleting");
+                    console.log(row);
+                    toast.promise(
+                      async () => await delete_mutation.mutateAsync(row.id),
+                      {
+                        pending: "deleting",
+                        success: `deleted ${row.roles}`,
+                        error: "failed",
+                      },
+                    );
                   }}
                 >
                   {"Remove Role"}
@@ -152,7 +173,7 @@ const CustomersTable = () => {
         ),
       },
     ],
-    [openDropdown]
+    [openDropdown],
   );
 
   const toggleDropdown = (rowId) => {
@@ -178,11 +199,11 @@ const CustomersTable = () => {
       Object.values(role).some(
         (value) =>
           typeof value === "string" &&
-          value.toLowerCase().includes(searchTerm.toLowerCase())
+          value.toLowerCase().includes(searchTerm.toLowerCase()),
       ) ||
       (Array.isArray(role.role) &&
         role.role.some((r) =>
-          r.toLowerCase().includes(searchTerm.toLowerCase())
+          r.toLowerCase().includes(searchTerm.toLowerCase()),
         ))
     );
   });
@@ -211,7 +232,7 @@ const CustomersTable = () => {
   };
 
   const totalPages = Math.ceil(
-    data?.count / (queryParams["pagination[limit]"] ?? 10)
+    data?.count / (queryParams["pagination[limit]"] ?? 10),
   );
   const { isPending: createIsPending, createAdminRoleMutate } =
     useCreateAdminRole();
@@ -236,10 +257,6 @@ const CustomersTable = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      if (!navigator.onLine) {
-        toastError("No internet connection. Please check your network.");
-        return;
-      }
       if (!val?.role?.length) {
         return toastError("Select a role");
       }
@@ -252,7 +269,7 @@ const CustomersTable = () => {
               resetForm();
               setIsModalOpen(false);
             },
-          }
+          },
         );
       } else {
         createAdminRoleMutate(val, {
@@ -447,8 +464,8 @@ const CustomersTable = () => {
                   {createIsPending || updateIsPending
                     ? "Please wait..."
                     : newCategory
-                    ? "Edit Admin Role"
-                    : "Add Admin Role"}
+                      ? "Edit Admin Role"
+                      : "Add Admin Role"}
                 </button>
               </form>
             </div>
@@ -486,12 +503,6 @@ const CustomersTable = () => {
               <form
                 className="mt-6 space-y-4"
                 onSubmit={(e) => {
-                  if (!navigator.onLine) {
-                    toastError(
-                      "No internet connection. Please check your network."
-                    );
-                    return;
-                  }
                   e.preventDefault();
                   deleteAdminRoleMutate(
                     {
@@ -502,7 +513,7 @@ const CustomersTable = () => {
                         closeModal();
                         setNewCategory(null);
                       },
-                    }
+                    },
                   );
                 }}
               >

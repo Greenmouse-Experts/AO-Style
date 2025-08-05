@@ -14,6 +14,7 @@ import Coupons from "../modules/Pages/Coupons";
 import FabricAnnouncementsPage from "../modules/Pages/fabricDashboard/Announcements";
 import ProtectedRoute from "../components/ProtectedRoute";
 import Subscriptions from "../modules/Pages/tailorDashboard/Subscription";
+import ViewFabricProduct from "../modules/Pages/fabricDashboard/ViewProduct";
 
 export const fabricRoutes = [
   {
@@ -35,6 +36,10 @@ export const fabricRoutes = [
       {
         path: "/fabric/coupons",
         element: <Coupons />,
+      },
+      {
+        path: "/fabric/view-product/:id",
+        element: <ViewFabricProduct />,
       },
       {
         path: "/fabric/subscription",

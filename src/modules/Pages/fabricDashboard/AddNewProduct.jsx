@@ -77,7 +77,7 @@ const AddProduct = () => {
   };
 
   const { isPending, createFabricProductMutate } = useCreateFabricProduct(
-    businessDetails?.data?.id
+    businessDetails?.data?.id,
   );
 
   const { isPending: createAdminIsPending, createAdminFabricProductMutate } =
@@ -128,7 +128,7 @@ const AddProduct = () => {
     setTags(tags.filter((tag) => tag !== tagToRemove));
     setFieldValue(
       "tags",
-      tags.filter((tag) => tag !== tagToRemove)
+      tags.filter((tag) => tag !== tagToRemove),
     );
   };
 
@@ -210,7 +210,7 @@ const AddProduct = () => {
               onSuccess: () => {
                 navigate(-1);
               },
-            }
+            },
           );
         } else {
           updateFabricMutate(
@@ -256,7 +256,7 @@ const AddProduct = () => {
               onSuccess: () => {
                 navigate(-1);
               },
-            }
+            },
           );
         }
       } else {
@@ -302,7 +302,7 @@ const AddProduct = () => {
                 resetForm();
                 navigate(-1);
               },
-            }
+            },
           );
         } else {
           createFabricProductMutate(
@@ -346,7 +346,7 @@ const AddProduct = () => {
                 resetForm();
                 navigate(-1);
               },
-            }
+            },
           );
         }
       }
@@ -421,8 +421,8 @@ const AddProduct = () => {
           {productInfo && !isAdminEditFabricRoute
             ? "Edit"
             : isAdminEditFabricRoute
-            ? "View"
-            : "Add"}{" "}
+              ? "View"
+              : "Add"}{" "}
           Product
         </h1>
         <p className="text-gray-500">
@@ -433,8 +433,8 @@ const AddProduct = () => {
           {productInfo && !isAdminEditFabricRoute
             ? "Edit"
             : isAdminEditFabricRoute
-            ? "View"
-            : "Add"}{" "}
+              ? "View"
+              : "Add"}{" "}
           Product
         </p>
       </div>
@@ -443,8 +443,8 @@ const AddProduct = () => {
           {productInfo && !isAdminEditFabricRoute
             ? "Edit"
             : isAdminEditFabricRoute
-            ? "View"
-            : "Add"}{" "}
+              ? "View"
+              : "Add"}{" "}
           Product
         </h2>
 
@@ -493,7 +493,7 @@ const AddProduct = () => {
                   options={marketList}
                   name="market_id"
                   value={marketList?.find(
-                    (opt) => opt.value === values.market_id
+                    (opt) => opt.value === values.market_id,
                   )}
                   onChange={(selectedOption) => {
                     setFieldValue("market_id", selectedOption.value);
@@ -889,7 +889,7 @@ const AddProduct = () => {
                   options={categoryList}
                   name="category_id"
                   value={categoryList?.find(
-                    (opt) => opt.value === values.category_id
+                    (opt) => opt.value === values.category_id,
                   )}
                   onChange={(selectedOption) => {
                     setFieldValue("category_id", selectedOption.value);
@@ -1001,7 +1001,7 @@ const AddProduct = () => {
                           onSuccess: (data) => {
                             setFieldValue(
                               "spreadout_url",
-                              data?.data?.data?.url
+                              data?.data?.data?.url,
                             );
                           },
                         });
@@ -1056,7 +1056,7 @@ const AddProduct = () => {
                           onSuccess: (data) => {
                             setFieldValue(
                               "manufacturers_url",
-                              data?.data?.data?.url
+                              data?.data?.data?.url,
                             );
                           },
                         });
@@ -1228,8 +1228,8 @@ const AddProduct = () => {
                   updateAdminIsPending
                     ? "Please wait..."
                     : productInfo
-                    ? "Update Fabric"
-                    : "Upload Fabric"}
+                      ? "Update Fabric"
+                      : "Upload Fabric"}
                 </button>
               </>
             )}

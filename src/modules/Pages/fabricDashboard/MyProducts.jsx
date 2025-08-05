@@ -102,7 +102,7 @@ const ProductPage = () => {
             };
           })
         : [],
-    [updatedData]
+    [updatedData],
   );
 
   const { isPending: deleteIsPending, deleteFabricMutate } = useDeleteFabric();
@@ -147,8 +147,8 @@ const ProductPage = () => {
               status === "PUBLISHED"
                 ? "bg-green-100 text-green-700"
                 : status === "Cancelled"
-                ? "bg-red-100 text-red-700"
-                : "bg-yellow-100 text-yellow-700"
+                  ? "bg-red-100 text-red-700"
+                  : "bg-yellow-100 text-yellow-700"
             }`}
           >
             {status}
@@ -187,7 +187,7 @@ const ProductPage = () => {
                             onSuccess: () => {
                               setOpenDropdown(null);
                             },
-                          }
+                          },
                         );
                       } else {
                         updateFabricMutate(
@@ -205,7 +205,7 @@ const ProductPage = () => {
                             onSuccess: () => {
                               setOpenDropdown(null);
                             },
-                          }
+                          },
                         );
                       }
                     }}
@@ -235,7 +235,7 @@ const ProductPage = () => {
                             onSuccess: () => {
                               setOpenDropdown(null);
                             },
-                          }
+                          },
                         );
                       } else {
                         updateFabricMutate(
@@ -253,7 +253,7 @@ const ProductPage = () => {
                             onSuccess: () => {
                               setOpenDropdown(null);
                             },
-                          }
+                          },
                         );
                       }
                     }}
@@ -291,7 +291,12 @@ const ProductPage = () => {
                     {"Edit Product"}
                   </Link>
                 )}
-
+                {/* <Link
+                  to={"/fabric/view-product/" + row.id}
+                  className="block cursor-pointer text-center px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
+                >
+                  View Product
+                </Link>*/}
                 <button
                   onClick={() => {
                     setNewCategory(row);
@@ -308,13 +313,13 @@ const ProductPage = () => {
         ),
       },
     ],
-    [openDropdown, toggleDropdown]
+    [openDropdown, toggleDropdown],
   );
 
   const [newCategory, setNewCategory] = useState();
 
   const totalPages = Math.ceil(
-    updatedData?.count / (queryParams["pagination[limit]"] ?? 10)
+    updatedData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
   const handleExport = (e) => {
@@ -361,7 +366,6 @@ const ProductPage = () => {
   };
 
   const { toastError } = useToast();
-
   return (
     <>
       <div className="bg-white px-4 sm:px-6 py-4 mb-6 relative">
@@ -371,8 +375,8 @@ const ProductPage = () => {
             {!isAdminFabricRoute
               ? "My Products"
               : currProd == "all"
-              ? "All Products"
-              : ""}
+                ? "All Products"
+                : ""}
           </h1>
 
           {!isAdminFabricRoute ? (
@@ -468,7 +472,7 @@ const ProductPage = () => {
                     : "text-gray-500"
                 }`}
               >
-                {tab} Products
+                {tab} Product
               </button>
             ))}
           </div>
@@ -485,7 +489,7 @@ const ProductPage = () => {
                 value={queryString}
                 onChange={(evt) =>
                   setQueryString(
-                    evt.target.value ? evt.target.value : undefined
+                    evt.target.value ? evt.target.value : undefined,
                   )
                 }
                 className="pl-10 pr-4 py-2 border border-gray-200 rounded-md outline-none w-full sm:w-64"
@@ -613,7 +617,7 @@ const ProductPage = () => {
               onSubmit={(e) => {
                 if (!navigator.onLine) {
                   toastError(
-                    "No internet connection. Please check your network."
+                    "No internet connection. Please check your network.",
                   );
                   return;
                 }
@@ -628,7 +632,7 @@ const ProductPage = () => {
                         setIsAddModalOpen(false);
                         setNewCategory(null);
                       },
-                    }
+                    },
                   );
                 } else {
                   deleteFabricMutate(
@@ -641,7 +645,7 @@ const ProductPage = () => {
                         setIsAddModalOpen(false);
                         setNewCategory(null);
                       },
-                    }
+                    },
                   );
                 }
               }}

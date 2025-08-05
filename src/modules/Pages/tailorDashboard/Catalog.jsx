@@ -133,7 +133,12 @@ export default function StylesTable() {
     doc.save("StylesCatalog.pdf");
   };
 
-  const dataRes = currProd == "all" ? updatedData?.data : [];
+  const dataRes =
+    currProd == "all"
+      ? updatedData?.data
+      : updatedData?.data?.filter((item) => {
+          return item.creator_id == businessDetails.data.user_id;
+        });
 
   return (
     <>
@@ -351,7 +356,7 @@ export default function StylesTable() {
                           />
                         ) : (
                           <div className="w-12 h-12 md:w-16 md:h-16 rounded-md">
-                            {style.name}
+                            {style.name}s
                           </div>
                         )}
                         <div>
@@ -520,60 +525,6 @@ export default function StylesTable() {
                               </button>
                             ) : null}
 
-                            {/* {style?.status === "PUBLISHED" ? (
-                              <button
-                                onClick={() => {
-                                  if (isAdminStyleRoute) {
-                                    updateAdminStyleMutate(
-                                      {
-                                        id: style?.id,
-                                        product: {
-                                          name: style?.name,
-                                          sku: style?.sku,
-                                          category_id: style?.category_id,
-                                          status: "DRAFT",
-                                          approval_status: "DRAFT",
-                                        },
-                                      },
-                                      {
-                                        onSuccess: () => {
-                                          setOpenDropdown(null);
-                                        },
-                                      },
-                                    );
-                                  } else {
-                                    updateStyleMutate(
-                                      {
-                                        id: style?.id,
-                                        business_id: businessDetails?.data?.id,
-                                        product: {
-                                          name: style?.name,
-                                          sku: style?.sku,
-                                          category_id: style?.category_id,
-                                          status: "DRAFT",
-                                        },
-                                      },
-                                      {
-                                        onSuccess: () => {
-                                          setOpenDropdown(null);
-                                        },
-                                      },
-                                    );
-                                  }
-                                }}
-                                className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
-                              >
-                                {updateIsPending || updateAdminIsPending
-                                  ? "Please wait..."
-                                  : "Draft Style"}
-                              </button>
-                            ) : null}*/}
-                            {/* <Link
-                              to={"/tailor/catalog-view-style/" + style.id}
-                              className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
-                            >
-                              View Style
-                            </Link>*/}
                             <button
                               onClick={() => {
                                 setNewCategory(style);

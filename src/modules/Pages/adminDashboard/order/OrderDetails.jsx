@@ -552,7 +552,7 @@ const OrderDetails = () => {
                             Quantity: {fabricItem.quantity || 1} yards
                           </p>
                         </div>
-                        <button
+                        {/* <button
                           onClick={() =>
                             setActiveReviewProduct(
                               fabricItem.product_id || fabricItem.id,
@@ -561,7 +561,7 @@ const OrderDetails = () => {
                           className="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition"
                         >
                           Write Review
-                        </button>
+                        </button>*/}
                       </div>
                     </div>
                   ))}

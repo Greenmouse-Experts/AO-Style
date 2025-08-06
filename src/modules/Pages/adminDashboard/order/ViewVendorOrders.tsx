@@ -3,7 +3,7 @@ import { useLocation, useParams } from "react-router-dom";
 import CaryBinApi from "../../../../services/CarybinBaseUrl";
 import { Loader } from "lucide-react";
 import ReusableTable from "../components/ReusableTable";
-
+import { Link } from "react-router-dom";
 import { useRef, useState } from "react";
 import { formatDateStr } from "../../../../lib/helper";
 import { useTempStore } from "../../../../store/useTempStore";
@@ -41,13 +41,15 @@ export default function ViewVendorOrders() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [activeReviewModal, setActiveReviewModal] = useState(null);
-  const user = useTempStore((state) => state.user);
+  const user = useTempStore((state) => state.user) as unknown as VendorDataType;
+
   const order_query = useQuery({
     queryKey: [id, "vendor_orders"],
     queryFn: async () => {
       let resp = await CaryBinApi.get(
         `/orders/fetch-vendor-orders?user_id=${id}`,
       );
+      console.log(resp.data?.data);
       return resp.data;
     },
   });

@@ -267,9 +267,8 @@ const ProductPage = () => {
                 >
                   log{" "}
                 </button>*/}
-                {isAdminFabricRoute && row.user_id == admin_id && (
+                {isAdminFabricRoute && row.creator_id == admin_id && (
                   <>
-                    {" "}
                     <button
                       onClick={async (e) => {
                         try {

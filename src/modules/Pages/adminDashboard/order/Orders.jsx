@@ -18,21 +18,20 @@ const OrdersTable = () => {
   const [activeReviewModal, setActiveReviewModal] = useState(null);
 
   const { isPending: ordersLoading, data: ordersResponse } = useGetOrder();
-  // const order_query = useQuery({
-  //   queryKey: ["order_data"],
-  //   queryFn: async () => {
-  //     let resp = await CaryBinApi.get("/customer-analytics/recent-orders");
-  //     return resp.data;
-  //   },
-  // });
-  // useEffect(() => {
-  //   if (order_query.data) {
-  //     console.log("orders_now", order_query.data);
-  //   }
-  // }, [order_query.isFetching]);
+  const order_query = useQuery({
+    queryKey: ["order_data"],
+    queryFn: async () => {
+      let resp = await CaryBinApi.get("/orders/fetch");
+      return resp.data;
+    },
+  });
+  useEffect(() => {
+    if (order_query.data) {
+      console.log("orders_now", order_query.data);
+    }
+  }, [order_query.isFetching]);
 
-  // Process real order data
-  const data = ordersResponse?.data || [];
+  const data = order_query?.data?.data || [];
 
   const toggleDropdown = (rowId) => {
     setOpenDropdown(openDropdown === rowId ? null : rowId);
@@ -222,7 +221,7 @@ const OrdersTable = () => {
     setCurrentPage(1);
   };
 
-  if (ordersLoading) {
+  if (order_query.isFetching) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader />

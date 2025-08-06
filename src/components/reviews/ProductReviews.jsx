@@ -94,55 +94,23 @@ const ProductReviews = ({
           Customer Reviews
           <Star size={20} className="text-yellow-400 fill-current" />
         </button>
-
-        {showAddReview && (
-          <button
-            onClick={handleWriteReviewClick}
-            className="flex items-center gap-2 px-4 py-2 bg-[#AB52EE] hover:bg-[#9542d4] text-white rounded-lg transition-colors font-medium"
-            title={(() => {
-              const authData = sessionManager.getAuthData();
-              const isAuthenticated =
-                !!authData && !sessionManager.isRefreshTokenExpired();
-              return isAuthenticated
-                ? "Write a review"
-                : "Sign in to write a review";
-            })()}
-          >
-            {/* {(() => {
-              const authData = sessionManager.getAuthData();
-              const isAuthenticated =
-                !!authData && !sessionManager.isRefreshTokenExpired();
-              return isAuthenticated ? (
-                <>
-                  <Plus size={20} />
-                  View Review
-                </>
-              ) : (
-                <>
-                  <LogIn size={20} />
-                  Sign in to Review
-                </>
-              );
-            })()}*/}
-          </button>
-        )}
       </div>
 
       {/* Collapsible Content */}
       {isExpanded && (
         <div className="space-y-6">
           {/* Review Summary */}
-          <ReviewSummary productId={productId} />
+          <ReviewSummary productId={productId} showEmptyState={true} />
 
           {/* Reviews List */}
-          <ReviewList productId={productId} />
+          <ReviewList productId={productId} showEmptyState={false} />
         </div>
       )}
 
       {/* Compact Summary when collapsed */}
       {!isExpanded && (
         <div className="bg-gray-50 rounded-lg p-4">
-          <ReviewSummary productId={productId} />
+          <ReviewSummary productId={productId} showEmptyState={true} />
           <button
             onClick={() => setIsExpanded(true)}
             className="mt-4 text-[#AB52EE] hover:text-[#9542d4] font-medium text-sm transition-colors"

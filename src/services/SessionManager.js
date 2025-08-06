@@ -18,6 +18,8 @@ class SessionManager {
       refreshToken: data.refreshToken,
       refreshTokenExpiry: data.refreshTokenExpiry,
       tokenExpiry: this.decodeTokenExpiry(data.accessToken),
+      user: data.user,
+      userType: data.userType,
     };
 
     // Store tokens in cookies
@@ -34,7 +36,12 @@ class SessionManager {
 
     this.warningShown = false;
     this.updateActivity();
-    console.log("🔒 SessionManager: Auth data stored");
+    console.log("🔒 SessionManager: Auth data stored", {
+      hasAccessToken: !!data.accessToken,
+      hasRefreshToken: !!data.refreshToken,
+      userType: data.userType,
+      userId: data.user?.id,
+    });
   }
 
   // Get stored authentication data
@@ -57,8 +64,13 @@ class SessionManager {
         refreshToken,
         refreshTokenExpiry,
         tokenExpiry: this.decodeTokenExpiry(accessToken),
+        user: null, // Will be populated by dashboard layout
+        userType: null, // Will be populated by dashboard layout
       };
-      console.log("🔍 SessionManager: Retrieved auth data", this.authData);
+      console.log(
+        "🔍 SessionManager: Retrieved auth data from cookies",
+        this.authData,
+      );
       return this.authData;
     }
 

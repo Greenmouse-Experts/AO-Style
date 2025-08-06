@@ -191,7 +191,7 @@ export default function MarketplaceSection() {
     <>
       <section className="Resizer section px-4">
         {/* Conditionally render the Fabric section */}
-        {item ? (
+        {/* {item ? (
           <div className="bg-[#FFF2FF] p-4 rounded-lg mb-6">
             <h2 className="text-sm font-medium text-gray-500 mb-4">FABRIC</h2>
             <div className="flex">
@@ -215,7 +215,7 @@ export default function MarketplaceSection() {
           </div>
         ) : (
           <></>
-        )}
+        )}*/}
 
         <div className="flex flex-col md:flex-row md:justify-between md:items-center text-left mb-6">
           <div>

@@ -139,6 +139,7 @@ export default function StylesTable() {
       : updatedData?.data?.filter((item) => {
           return item.creator_id == businessDetails.data.user_id;
         });
+  let admin_id = businessDetails?.data?.user_id;
 
   return (
     <>
@@ -437,45 +438,57 @@ export default function StylesTable() {
                                 Edit
                               </Link>
                             )}
-                            {/* <button
-                              onClick={async (e) => {
-                                let buisnss_id = businessDetails.data;
-                                console.log(buisnss_id);
-                                toast.promise(
-                                  async () => {
-                                    let resp = await CaryBinApi.patch(
-                                      "/style/" + style.id,
-                                      {
-                                        product: {
-                                          status:
-                                            style.status == "PUBLISHED"
-                                              ? "ARCHIVED"
-                                              : "PUBLISHED",
+
+                            {isAdminStyleRoute &&
+                              admin_id == style.creator_id && (
+                                <>
+                                  <button
+                                    onClick={async (e) => {
+                                      let buisnss_id = businessDetails.data;
+                                      toast.promise(
+                                        async () => {
+                                          let resp = await CaryBinApi.patch(
+                                            "/style/" + style.id,
+                                            {
+                                              product: {
+                                                status:
+                                                  style.status == "PUBLISHED"
+                                                    ? "ARCHIVED"
+                                                    : "PUBLISHED",
+                                              },
+                                              style: {},
+                                            },
+                                            {
+                                              headers: {
+                                                "Business-Id": buisnss_id.id,
+                                              },
+                                            },
+                                          );
+                                          refetch();
+                                          return resp.data;
                                         },
-                                        style: {},
-                                      },
-                                      {
-                                        headers: {
-                                          "Business-Id": buisnss_id.id,
+                                        {
+                                          pending: "pending",
+                                          success: "updated",
+                                          error: "error",
                                         },
-                                      },
-                                    );
-                                    refetch();
-                                    return resp.data;
-                                  },
-                                  {
-                                    pending: "pending",
-                                    success: "updated",
-                                    error: "error",
-                                  },
-                                );
-                              }}
-                              className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
-                            >
-                              {style.status == "PUBLISHED"
-                                ? "Unpublish"
-                                : "publish"}
-                            </button>*/}
+                                      );
+                                    }}
+                                    className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
+                                  >
+                                    {style.status == "PUBLISHED"
+                                      ? "Unpublish"
+                                      : "publish"}
+                                  </button>
+                                  <Link
+                                    state={{ info: style }}
+                                    to={"/admin/style/edit-product"}
+                                    className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
+                                  >
+                                    Edit Product
+                                  </Link>
+                                </>
+                              )}
                             {style?.status === "DRAFT" ? (
                               <button
                                 onClick={() => {

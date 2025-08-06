@@ -232,7 +232,7 @@ const ProductPage = () => {
                       : "Publish Product"}
                   </button>
                 ) : null}
-                {row?.status === "PUBLISHED" ? <></> : null}
+
                 {!isAdminFabricRoute || isAdminFabricRoute ? (
                   <Link
                     state={{ info: row }}
@@ -311,6 +311,13 @@ const ProductPage = () => {
                     >
                       {row.status == "PUBLISHED" ? "Unpublish" : "publish"}
                     </button>
+                    <Link
+                      state={{ info: row }}
+                      to={"/admin/fabric/edit-product"}
+                      className="block cursor-pointer text-center px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
+                    >
+                      Edit Product
+                    </Link>
                   </>
                 )}
                 <button

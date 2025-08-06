@@ -1210,6 +1210,18 @@ const AddProduct = () => {
                   </label>
                 </div>
               </div>
+              {
+                <div>
+                  {values.video_url && (
+                    <video
+                      controls
+                      className="w-[200px] mt-2 rounded-md mx-auto"
+                    >
+                      <source src={values.video_url}></source>
+                    </video>
+                  )}
+                </div>
+              }
             </div>
 
             {/* Submit Button */}

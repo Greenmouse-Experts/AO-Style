@@ -323,7 +323,7 @@ const Settings = () => {
                 >
                   Personal Details
                 </button>
-                <button
+                {/* <button
                   className={`pb-2 ${
                     activeTab === "bodyMeasurement"
                       ? "border-b-2 border-purple-600 text-purple-600"
@@ -332,7 +332,7 @@ const Settings = () => {
                   onClick={() => setActiveTab("bodyMeasurement")}
                 >
                   Body Measurement
-                </button>
+                </button>*/}
               </div>
 
               {/* Tab Content */}

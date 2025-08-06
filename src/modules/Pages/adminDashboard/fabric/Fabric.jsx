@@ -139,6 +139,17 @@ const CustomersTable = () => {
                 <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
                   Edit User
                 </button>
+                <Link
+                  state={{ info: row }}
+                  // onClick={() => {
+                  //   console.log(row);
+                  // }}
+                  // to={"/admin/fabric/orders/orders-details"}
+                  to={`/admin/orders/vendor/` + row.id}
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+                >
+                  View Orders
+                </Link>
                 {row?.profile?.approved_by_admin ? (
                   <>
                     {" "}
@@ -429,6 +440,13 @@ const CustomersTable = () => {
                     >
                       View Details
                     </Link>
+                    {/* <Link
+                      state={{ info: item.id }}
+                      to={`/admin/fabric-vendor/view?tab=personal`}
+                      className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    >
+                      Edit User
+                    </Link>*/}
                     <button
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
                       onClick={() => console.log("Edit user", item.id)}

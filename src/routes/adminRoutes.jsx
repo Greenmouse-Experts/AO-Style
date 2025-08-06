@@ -50,6 +50,7 @@ import Coupons from "../modules/Pages/Coupons";
 import OrdersDetails from "../modules/Pages/tailorDashboard/OrdersDetails";
 
 import OrdersFabricDetails from "../modules/Pages/fabricDashboard/OrdersDetails";
+import ViewVendorOrders from "../modules/Pages/adminDashboard/order/ViewVendorOrders";
 
 export const adminRoutes = [
   {
@@ -211,7 +212,11 @@ export const adminRoutes = [
         element: <Orders />,
       },
       {
-        path: "/admin/orders/order-details",
+        path: "/admin/orders/vendor/:id",
+        element: <ViewVendorOrders />,
+      },
+      {
+        path: "/admin/orders/orders-details",
         element: <OrderDetailsPage />,
       },
       // {

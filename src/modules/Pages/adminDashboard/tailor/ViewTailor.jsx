@@ -230,7 +230,7 @@ const ViewCustomer = () => {
   const filteredOrders = ordersData.filter(
     (order) =>
       (ordersFilter === "all" || order.status.toLowerCase() === ordersFilter) &&
-      order.orderId.toLowerCase().includes(searchTerm.toLowerCase())
+      order.orderId.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const columns = useMemo(
@@ -258,8 +258,8 @@ const ViewCustomer = () => {
               status === "Ongoing"
                 ? "bg-yellow-100 text-yellow-700"
                 : status === "Cancelled"
-                ? "bg-red-100 text-red-700"
-                : "bg-green-100 text-green-700"
+                  ? "bg-red-100 text-red-700"
+                  : "bg-green-100 text-green-700"
             }`}
           >
             {status}
@@ -298,7 +298,7 @@ const ViewCustomer = () => {
         ),
       },
     ],
-    [openDropdown]
+    [openDropdown],
   );
 
   const fabricOrderData = useMemo(
@@ -317,7 +317,7 @@ const ViewCustomer = () => {
                   ? `${details?.product?.name?.slice(0, 15)}...`
                   : details?.product?.name,
               amount: `${formatNumberWithCommas(
-                details?.order?.total_amount ?? 0
+                details?.order?.total_amount ?? 0,
               )}`,
 
               status: `${details?.order?.status}`,
@@ -325,14 +325,14 @@ const ViewCustomer = () => {
                 details?.created_at
                   ? formatDateStr(
                       details?.created_at.split(".").shift(),
-                      "D/M/YYYY h:mm A"
+                      "D/M/YYYY h:mm A",
                     )
                   : ""
               }`,
             };
           })
         : [],
-    [fetchVendorOrders?.data]
+    [fetchVendorOrders?.data],
   );
 
   const customerColumns = React.useMemo(
@@ -386,7 +386,7 @@ const ViewCustomer = () => {
                 setOpenDropdown(
                   openDropdown === `customer-${row.id}`
                     ? null
-                    : `customer-${row.id}`
+                    : `customer-${row.id}`,
                 )
               }
               className="px-2 py-1 z-[9999] cursor-pointer rounded-md text-gray-600"
@@ -400,7 +400,7 @@ const ViewCustomer = () => {
                   to={`/admin/tailors/view?tab=personal`}
                 >
                   <button className="block cursor-pointer w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
-                    View Details
+                    View Detailss
                   </button>
                 </Link>
                 <button className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
@@ -412,7 +412,7 @@ const ViewCustomer = () => {
         ),
       },
     ],
-    [openDropdown, businessData]
+    [openDropdown, businessData],
   );
 
   const customerData = React.useMemo(
@@ -432,7 +432,7 @@ const ViewCustomer = () => {
           : "",
       },
     ],
-    [userData, businessData]
+    [userData, businessData],
   );
 
   // Pagination for Catalog
@@ -440,14 +440,14 @@ const ViewCustomer = () => {
   const catalogStartIndex = (catalogPage - 1) * itemsPerPage;
   const catalogCurrentItems = filteredCatalog.slice(
     catalogStartIndex,
-    catalogStartIndex + itemsPerPage
+    catalogStartIndex + itemsPerPage,
   );
 
   // Pagination for Orders
   const ordersStartIndex = (ordersPage - 1) * itemsPerPage;
   const ordersCurrentItems = filteredOrders.slice(
     ordersStartIndex,
-    ordersStartIndex + itemsPerPage
+    ordersStartIndex + itemsPerPage,
   );
 
   // Reset page when filter changes
@@ -749,7 +749,7 @@ const ViewCustomer = () => {
                   value={queryString}
                   onChange={(evt) =>
                     setQueryString(
-                      evt.target.value ? evt.target.value : undefined
+                      evt.target.value ? evt.target.value : undefined,
                     )
                   }
                 />
@@ -836,7 +836,7 @@ const ViewCustomer = () => {
                               {style?.created_at
                                 ? formatDateStr(
                                     style?.created_at?.split(".").shift(),
-                                    "DD-MM-YY"
+                                    "DD-MM-YY",
                                   )
                                 : ""}
                             </p>
@@ -852,8 +852,8 @@ const ViewCustomer = () => {
                               style.status === "PUBLISHED"
                                 ? "bg-green-100 text-green-600"
                                 : style.status === "DRAFT"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : "bg-red-100 text-red-600"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : "bg-red-100 text-red-600"
                             }`}
                           >
                             {style.status}
@@ -866,7 +866,7 @@ const ViewCustomer = () => {
                             className="cursor-pointer"
                             onClick={() =>
                               setOpenDropdown(
-                                openDropdown === style.id ? null : style.id
+                                openDropdown === style.id ? null : style.id,
                               )
                             }
                           >
@@ -899,7 +899,7 @@ const ViewCustomer = () => {
                                         onSuccess: () => {
                                           setOpenDropdown(null);
                                         },
-                                      }
+                                      },
                                     );
                                   }}
                                   className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
@@ -928,7 +928,7 @@ const ViewCustomer = () => {
                                         onSuccess: () => {
                                           setOpenDropdown(null);
                                         },
-                                      }
+                                      },
                                     );
                                   }}
                                   className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
@@ -968,7 +968,7 @@ const ViewCustomer = () => {
                       Showing {(currentPage - 1) * pageSize + 1}-
                       {Math.min(
                         currentPage * pageSize,
-                        getAllFabricFabricData?.count || 0
+                        getAllFabricFabricData?.count || 0,
                       )}{" "}
                       of {getAllFabricFabricData?.count || 0} Products
                     </div>
@@ -989,22 +989,22 @@ const ViewCustomer = () => {
 
                       {(() => {
                         const totalPages = Math.ceil(
-                          (getAllFabricFabricData?.count || 0) / pageSize
+                          (getAllFabricFabricData?.count || 0) / pageSize,
                         );
                         const maxVisiblePages = 5;
                         let startPage = Math.max(
                           1,
-                          currentPage - Math.floor(maxVisiblePages / 2)
+                          currentPage - Math.floor(maxVisiblePages / 2),
                         );
                         let endPage = Math.min(
                           totalPages,
-                          startPage + maxVisiblePages - 1
+                          startPage + maxVisiblePages - 1,
                         );
 
                         if (endPage - startPage + 1 < maxVisiblePages) {
                           startPage = Math.max(
                             1,
-                            endPage - maxVisiblePages + 1
+                            endPage - maxVisiblePages + 1,
                           );
                         }
 
@@ -1034,22 +1034,22 @@ const ViewCustomer = () => {
                           setCurrentPage((prev) =>
                             Math.min(
                               Math.ceil(
-                                (getAllFabricFabricData?.count || 0) / pageSize
+                                (getAllFabricFabricData?.count || 0) / pageSize,
                               ),
-                              prev + 1
-                            )
+                              prev + 1,
+                            ),
                           )
                         }
                         disabled={
                           currentPage ===
                             Math.ceil(
-                              (getAllFabricFabricData?.count || 0) / pageSize
+                              (getAllFabricFabricData?.count || 0) / pageSize,
                             ) || adminProductIsPending
                         }
                         className={`px-3 py-1 rounded text-sm transition-all duration-200 ${
                           currentPage ===
                             Math.ceil(
-                              (getAllFabricFabricData?.count || 0) / pageSize
+                              (getAllFabricFabricData?.count || 0) / pageSize,
                             ) || adminProductIsPending
                             ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                             : "bg-white border border-gray-300 text-gray-700 hover:bg-[#9847FE] hover:text-white hover:border-[#9847FE]"
@@ -1119,7 +1119,7 @@ const ViewCustomer = () => {
                   value={queryOrderString}
                   onChange={(evt) =>
                     setQueryOrderString(
-                      evt.target.value ? evt.target.value : undefined
+                      evt.target.value ? evt.target.value : undefined,
                     )
                   }
                 />
@@ -1145,7 +1145,7 @@ const ViewCustomer = () => {
                   Showing {(orderCurrentPage - 1) * orderPageSize + 1}-
                   {Math.min(
                     orderCurrentPage * orderPageSize,
-                    fetchVendorOrders?.count || 0
+                    fetchVendorOrders?.count || 0,
                   )}{" "}
                   of {fetchVendorOrders?.count || 0} Orders
                 </div>
@@ -1166,16 +1166,16 @@ const ViewCustomer = () => {
 
                   {(() => {
                     const totalPages = Math.ceil(
-                      (fetchVendorOrders?.count || 0) / orderPageSize
+                      (fetchVendorOrders?.count || 0) / orderPageSize,
                     );
                     const maxVisiblePages = 5;
                     let startPage = Math.max(
                       1,
-                      orderCurrentPage - Math.floor(maxVisiblePages / 2)
+                      orderCurrentPage - Math.floor(maxVisiblePages / 2),
                     );
                     let endPage = Math.min(
                       totalPages,
-                      startPage + maxVisiblePages - 1
+                      startPage + maxVisiblePages - 1,
                     );
 
                     if (endPage - startPage + 1 < maxVisiblePages) {
@@ -1208,22 +1208,22 @@ const ViewCustomer = () => {
                       setCurrentPage((prev) =>
                         Math.min(
                           Math.ceil(
-                            (fetchVendorOrders?.count || 0) / orderPageSize
+                            (fetchVendorOrders?.count || 0) / orderPageSize,
                           ),
-                          prev + 1
-                        )
+                          prev + 1,
+                        ),
                       )
                     }
                     disabled={
                       orderCurrentPage ===
                         Math.ceil(
-                          (fetchVendorOrders?.count || 0) / orderPageSize
+                          (fetchVendorOrders?.count || 0) / orderPageSize,
                         ) || fetchIsPending
                     }
                     className={`px-3 py-1 rounded text-sm transition-all duration-200 ${
                       orderCurrentPage ===
                         Math.ceil(
-                          (fetchVendorOrders?.count || 0) / orderPageSize
+                          (fetchVendorOrders?.count || 0) / orderPageSize,
                         ) || fetchIsPending
                         ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                         : "bg-white border border-gray-300 text-gray-700 hover:bg-[#9847FE] hover:text-white hover:border-[#9847FE]"
@@ -1266,7 +1266,7 @@ const ViewCustomer = () => {
               onSubmit={(e) => {
                 if (!navigator.onLine) {
                   toastError(
-                    "No internet connection. Please check your network."
+                    "No internet connection. Please check your network.",
                   );
                   return;
                 }
@@ -1280,7 +1280,7 @@ const ViewCustomer = () => {
                       setIsAddModalOpen(false);
                       setNewCategory(null);
                     },
-                  }
+                  },
                 );
               }}
             >

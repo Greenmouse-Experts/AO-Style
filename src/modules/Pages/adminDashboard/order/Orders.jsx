@@ -8,7 +8,141 @@ import { formatDateStr } from "../../../../lib/helper";
 import ReviewList from "../../../../components/reviews/ReviewList";
 import { useQuery } from "@tanstack/react-query";
 import CaryBinApi from "../../../../services/CarybinBaseUrl";
-
+export const columns = [
+  {
+    label: "Customer",
+    key: "customer",
+    render: (_, row) => (
+      <div className="flex items-center">
+        <input type="checkbox" className="mr-2" />
+        <span className="text-sm">
+          {row.payment?.user?.email?.split("@")[0] ||
+            `User ${row.user_id?.slice(-8)}`}
+        </span>
+      </div>
+    ),
+  },
+  {
+    label: "Order ID",
+    key: "id",
+    render: (value) => (
+      <span className="font-mono text-xs text-gray-600">{value.slice(-8)}</span>
+    ),
+  },
+  {
+    label: "Order Date",
+    key: "created_at",
+    render: (value) => (
+      <span className="text-sm text-gray-600">{formatDateStr(value)}</span>
+    ),
+  },
+  {
+    label: "Product",
+    key: "product",
+    render: (_, row) => {
+      const firstItem = row.payment?.purchase?.items?.[0];
+      return (
+        <div className="truncate max-w-32" title={firstItem?.name || "N/A"}>
+          {firstItem?.name || "N/A"}
+        </div>
+      );
+    },
+  },
+  {
+    label: "Transaction ID",
+    key: "transaction_id",
+    render: (_, row) => (
+      <span className="font-mono text-xs text-gray-600">
+        {row.payment?.transaction_id?.slice(-8) || "N/A"}
+      </span>
+    ),
+  },
+  {
+    label: "Order Total",
+    key: "total_amount",
+    render: (_, row) => (
+      <span className="font-medium text-gray-900">
+        ₦{(row.total_amount || row.payment?.amount || 0).toLocaleString()}
+      </span>
+    ),
+  },
+  {
+    label: "Action",
+    key: "action",
+    render: (_, row) => (
+      <div className="relative">
+        <button
+          onClick={() => toggleDropdown(row.id)}
+          className="text-gray-500 hover:text-gray-700 p-1"
+        >
+          ⋮
+        </button>
+        {openDropdown === row.id && (
+          <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md z-10 border border-gray-200">
+            <Link
+              onClick={(e) => {
+                console.log(row);
+              }}
+              to={`/admin/orders/order-details?id=${row.id}`}
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+            >
+              View Details
+            </Link>
+            {row.payment?.purchase?.items &&
+              row.payment.purchase.items.length > 0 && (
+                <button
+                  onClick={() => {
+                    setActiveReviewModal(
+                      row.payment.purchase.items[0].product_id,
+                    );
+                    setOpenDropdown(null);
+                  }}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                >
+                  View Reviews
+                </button>
+              )}
+          </div>
+        )}
+      </div>
+    ),
+  },
+  {
+    label: "Status",
+    key: "status",
+    render: (status) => (
+      <span
+        className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+          status === "DELIVERED"
+            ? "bg-green-100 text-green-600"
+            : [
+                  "PROCESSING",
+                  "SHIPPED",
+                  "IN_TRANSIT",
+                  "OUT_FOR_DELIVERY",
+                ].includes(status)
+              ? "bg-blue-100 text-blue-600"
+              : status === "CANCELLED"
+                ? "bg-red-100 text-red-600"
+                : "bg-yellow-100 text-yellow-600"
+        }`}
+      >
+        {status === "DELIVERED"
+          ? "Completed"
+          : [
+                "PROCESSING",
+                "SHIPPED",
+                "IN_TRANSIT",
+                "OUT_FOR_DELIVERY",
+              ].includes(status)
+            ? "In Progress"
+            : status === "CANCELLED"
+              ? "Cancelled"
+              : status}
+      </span>
+    ),
+  },
+];
 const OrdersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const dropdownRef = useRef(null);
@@ -46,144 +180,6 @@ const OrdersTable = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const columns = [
-    {
-      label: "Customer",
-      key: "customer",
-      render: (_, row) => (
-        <div className="flex items-center">
-          <input type="checkbox" className="mr-2" />
-          <span className="text-sm">
-            {row.payment?.user?.email?.split("@")[0] ||
-              `User ${row.user_id?.slice(-8)}`}
-          </span>
-        </div>
-      ),
-    },
-    {
-      label: "Order ID",
-      key: "id",
-      render: (value) => (
-        <span className="font-mono text-xs text-gray-600">
-          {value.slice(-8)}
-        </span>
-      ),
-    },
-    {
-      label: "Order Date",
-      key: "created_at",
-      render: (value) => (
-        <span className="text-sm text-gray-600">{formatDateStr(value)}</span>
-      ),
-    },
-    {
-      label: "Product",
-      key: "product",
-      render: (_, row) => {
-        const firstItem = row.payment?.purchase?.items?.[0];
-        return (
-          <div className="truncate max-w-32" title={firstItem?.name || "N/A"}>
-            {firstItem?.name || "N/A"}
-          </div>
-        );
-      },
-    },
-    {
-      label: "Transaction ID",
-      key: "transaction_id",
-      render: (_, row) => (
-        <span className="font-mono text-xs text-gray-600">
-          {row.payment?.transaction_id?.slice(-8) || "N/A"}
-        </span>
-      ),
-    },
-    {
-      label: "Order Total",
-      key: "total_amount",
-      render: (_, row) => (
-        <span className="font-medium text-gray-900">
-          ₦{(row.total_amount || row.payment?.amount || 0).toLocaleString()}
-        </span>
-      ),
-    },
-    {
-      label: "Action",
-      key: "action",
-      render: (_, row) => (
-        <div className="relative">
-          <button
-            onClick={() => toggleDropdown(row.id)}
-            className="text-gray-500 hover:text-gray-700 p-1"
-          >
-            ⋮
-          </button>
-          {openDropdown === row.id && (
-            <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md z-10 border border-gray-200">
-              <Link
-                onClick={(e) => {
-                  console.log(row);
-                }}
-                to={`/admin/orders/order-details?id=${row.id}`}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-              >
-                View Details
-              </Link>
-              {row.payment?.purchase?.items &&
-                row.payment.purchase.items.length > 0 && (
-                  <button
-                    onClick={() => {
-                      setActiveReviewModal(
-                        row.payment.purchase.items[0].product_id,
-                      );
-                      setOpenDropdown(null);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-                  >
-                    View Reviews
-                  </button>
-                )}
-            </div>
-          )}
-        </div>
-      ),
-    },
-    {
-      label: "Status",
-      key: "status",
-      render: (status) => (
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
-            status === "DELIVERED"
-              ? "bg-green-100 text-green-600"
-              : [
-                    "PROCESSING",
-                    "SHIPPED",
-                    "IN_TRANSIT",
-                    "OUT_FOR_DELIVERY",
-                  ].includes(status)
-                ? "bg-blue-100 text-blue-600"
-                : status === "CANCELLED"
-                  ? "bg-red-100 text-red-600"
-                  : "bg-yellow-100 text-yellow-600"
-          }`}
-        >
-          {status === "DELIVERED"
-            ? "Completed"
-            : [
-                  "PROCESSING",
-                  "SHIPPED",
-                  "IN_TRANSIT",
-                  "OUT_FOR_DELIVERY",
-                ].includes(status)
-              ? "In Progress"
-              : status === "CANCELLED"
-                ? "Cancelled"
-                : status}
-        </span>
-      ),
-    },
-  ];
 
   const filteredData = data.filter((order) => {
     if (!searchTerm) return true;

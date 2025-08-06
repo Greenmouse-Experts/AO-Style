@@ -782,25 +782,6 @@ const ChatHead = () => {
                           {isAdmin
                             ? "No conversations yet. Start a new chat!"
                             : "No messages yet. Admins will message you here."}
-                          <div className="text-xs mt-2 text-gray-400">
-                            Debug: Connected={isConnected ? "✅" : "❌"},
-                            UserID={currentUserId || "None"}, Chats=
-                            {chats.length}, ProfileLoading=
-                            {profileLoading ? "Yes" : "No"}
-                            <button
-                              onClick={() => {
-                                console.log("🔄 Manual refresh requested");
-                                if (socket) {
-                                  socket.emit("retrieveChats", {
-                                    token: isAdmin ? adminToken : userToken,
-                                  });
-                                }
-                              }}
-                              className="ml-2 px-2 py-1 bg-purple-500 text-white rounded text-xs"
-                            >
-                              Refresh
-                            </button>
-                          </div>
                         </div>
                       ) : (
                         chats.map((chat) => (

@@ -17,6 +17,7 @@ import Select from "react-select";
 import useGoogleSignin from "./hooks/useGoogleSignIn";
 import { usePlacesWidget } from "react-google-autocomplete";
 import { useQueryClient } from "@tanstack/react-query";
+import useSessionManager from "../../hooks/useSessionManager";
 
 const initialValues = {
   name: "",
@@ -44,6 +45,7 @@ export default function SignInAsCustomer() {
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { setAuthData } = useSessionManager();
 
   const [value, setValue] = useState("");
 
@@ -120,14 +122,7 @@ export default function SignInAsCustomer() {
   }, []);
 
   const googleSigninHandler = (cred) => {
-    console.log("🔐🔐🔐 GOOGLE SIGNUP/REGISTER INITIATED 🔐🔐🔐");
-    console.log("Google credential received:", !!cred?.credential);
-    console.log(
-      "Stored Google token exists:",
-      !!sessionStorage.getItem("googleToken"),
-    );
-    console.log("Redirect path:", redirectPath);
-    console.log("Pending product:", parsedProduct);
+    console.log("🔐 Google signup initiated");
 
     // Check if we have stored Google token from login attempt
     const storedGoogleToken = sessionStorage.getItem("googleToken");
@@ -148,13 +143,11 @@ export default function SignInAsCustomer() {
       action_type: "SIGNUP", // API requires both role and action_type
     };
 
-    console.log("📤 SIGNUP: Sending payload:", payload);
-    console.log("Using stored token:", !!storedGoogleToken);
+    console.log("📤 Sending Google signup request");
 
     googleSigninMutate(payload, {
       onSuccess: (data) => {
-        console.log("✅✅✅ GOOGLE SIGNUP SUCCESS ✅✅✅");
-        console.log("Full response data:", JSON.stringify(data, null, 2));
+        console.log("✅ Google signup successful");
 
         // Handle both nested (data.data) and flat response structures
         const responseData = data?.data || data;
@@ -164,68 +157,56 @@ export default function SignInAsCustomer() {
         const userData = responseData?.data || responseData;
         const userRole = userData?.role;
 
-        console.log("Access token:", accessToken);
-        console.log("User role:", userRole);
-        console.log("Response message:", message);
-        console.log("Status code:", statusCode);
-
         // Clear stored Google token
         sessionStorage.removeItem("googleToken");
         sessionStorage.removeItem("googleProvider");
 
         // If we get an access token, user was created successfully
         if (accessToken && statusCode === 200) {
-          console.log("🔑 Signup successful - setting access token cookie");
+          console.log("🔑 Setting authentication tokens");
 
-          // Set token with proper options for security and availability
-          Cookies.set("token", accessToken, {
-            expires: 7, // 7 days
-            secure: window.location.protocol === "https:",
-            sameSite: "lax",
+          // Set token cookie (like normal signin)
+          Cookies.set("token", accessToken);
+
+          // Set approvedByAdmin cookie (like normal signin)
+          Cookies.set(
+            "approvedByAdmin",
+            userData?.profile?.approved_by_admin || "true",
+          );
+
+          // Store auth data in session manager (like normal signin)
+          // For Google SSO, set a long expiry since no refresh token
+          const googleSSOExpiry = new Date();
+          googleSSOExpiry.setDate(googleSSOExpiry.getDate() + 7); // 7 days from now
+
+          setAuthData({
+            accessToken: accessToken,
+            refreshToken: responseData?.refreshToken || null,
+            refreshTokenExpiry:
+              responseData?.refreshTokenExpiry || googleSSOExpiry.toISOString(),
+            user: userData, // Include user data
+            userType: userRole, // Include role
           });
-
-          // Set user type cookie
-          Cookies.set("currUserUrl", "customer", {
-            expires: 7,
-            secure: window.location.protocol === "https:",
-            sameSite: "lax",
-          });
-
-          console.log("👤 User role from API:", userRole);
-          console.log("🍪 Set currUserUrl cookie to: customer");
-          console.log("🔑 Token set with proper options");
 
           // Refresh user profile query to ensure fresh data
-          console.log("🔄 Invalidating profile queries for fresh data");
           queryClient.invalidateQueries(["get-user-profile"]);
 
           // Add small delay to ensure cookies are set before navigation
           setTimeout(() => {
-            console.log(
-              "🏠 Google signup successful - redirecting to customer dashboard",
-            );
+            console.log("🔄 Redirecting to customer dashboard");
             const targetPath = redirectPath ?? "/customer";
-            console.log("Target path:", targetPath);
 
             navigate(targetPath, {
               state: { info: parsedProduct },
               replace: true,
             });
-            console.log("✅ Signup navigation complete");
-          }, 500);
-        } else {
-          console.log("⚠️ Unexpected signup response structure");
-          console.log("- statusCode:", statusCode);
-          console.log("- message:", message);
-          console.log("- accessToken exists:", !!accessToken);
+            Cookies.set("currUserUrl", "customer");
+            console.log("✅ Signup complete");
+          }, 1000);
         }
       },
       onError: (error) => {
-        console.log("❌❌❌ GOOGLE SIGNUP ERROR ❌❌❌");
-        console.log("Error object:", error);
-        console.log("Error data:", error?.data);
-        console.log("Error message:", error?.data?.message);
-        console.log("Error response:", error?.response);
+        console.log("❌ Google signup error:", error?.data?.message);
 
         // Clear stored token on error
         sessionStorage.removeItem("googleToken");

@@ -11,6 +11,7 @@ import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import { useQueryClient } from "@tanstack/react-query";
+import useSessionManager from "../../hooks/useSessionManager";
 
 const initialValues = {
   email: "",
@@ -63,6 +64,7 @@ export default function SignInCustomer() {
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { setAuthData } = useSessionManager();
 
   const { isPending, signinMutate } = useSignIn(values.email, resendCodeMutate);
 
@@ -88,17 +90,43 @@ export default function SignInCustomer() {
     console.log("✅ Google auth data cleared");
   };
 
-  // Expose debug function to window for testing
+  // Debug utilities for testing
+  const checkAllCookies = () => {
+    console.log("🍪🍪🍪 COOKIE DEBUG REPORT 🍪🍪🍪");
+    console.log("token:", Cookies.get("token"));
+    console.log("currUserUrl:", Cookies.get("currUserUrl"));
+    console.log("approvedByAdmin:", Cookies.get("approvedByAdmin"));
+    console.log("adminToken:", Cookies.get("adminToken"));
+    console.log("All cookies:", document.cookie);
+    console.log("🍪🍪🍪 END COOKIE REPORT 🍪🍪🍪");
+  };
+
+  const checkSessionManager = () => {
+    console.log("📦📦📦 SESSION MANAGER DEBUG 📦📦📦");
+    const sessionData = sessionStorage.getItem("authData");
+    console.log("Session storage authData:", sessionData);
+    try {
+      const parsed = JSON.parse(sessionData || "{}");
+      console.log("Parsed session data:", parsed);
+    } catch (e) {
+      console.log("Session data parse error:", e);
+    }
+    console.log("📦📦📦 END SESSION REPORT 📦📦📦");
+  };
+
+  // Expose debug functions to window for testing
   if (typeof window !== "undefined") {
     window.clearGoogleAuth = clearGoogleAuthData;
+    window.checkCookies = checkAllCookies;
+    window.checkSession = checkSessionManager;
+    window.debugAuth = () => {
+      checkAllCookies();
+      checkSessionManager();
+    };
   }
 
   const googleSigninHandler = (cred) => {
-    console.log("🔓🔓🔓 GOOGLE LOGIN INITIATED 🔓🔓🔓");
-    console.log("Google credential received:", !!cred?.credential);
-    console.log("Credential value:", cred?.credential);
-    console.log("Redirect path:", redirectPath);
-    console.log("Pending product:", parsedProduct);
+    console.log("🔓 Google login initiated");
 
     const payload = {
       token: cred?.credential,
@@ -107,12 +135,11 @@ export default function SignInCustomer() {
       action_type: "SIGNIN", // API requires both role and action_type
     };
 
-    console.log("📤 LOGIN: Sending payload:", payload);
+    console.log("📤 Sending Google login request");
 
     googleSigninMutate(payload, {
       onSuccess: (data) => {
-        console.log("✅✅✅ GOOGLE LOGIN SUCCESS ✅✅✅");
-        console.log("Full response data:", JSON.stringify(data, null, 2));
+        console.log("✅ Google login successful");
 
         // Handle both nested (data.data) and flat response structures
         const responseData = data?.data || data;
@@ -122,57 +149,51 @@ export default function SignInCustomer() {
         const userData = responseData?.data || responseData;
         const userRole = userData?.role;
 
-        console.log("Access token:", accessToken);
-        console.log("User data:", userData);
-        console.log("User role:", userRole);
-        console.log("Response message:", message);
-        console.log("Status code:", statusCode);
-
         // Check if user already exists (login successful)
         if (
           accessToken &&
           (message === "Login successful" || statusCode === 200)
         ) {
-          console.log(
-            "🔑 Google login successful - setting access token cookie",
+          console.log("🔑 Setting authentication tokens");
+
+          // Set token cookie (like normal signin)
+          Cookies.set("token", accessToken);
+
+          // Set approvedByAdmin cookie (like normal signin)
+          Cookies.set(
+            "approvedByAdmin",
+            userData?.profile?.approved_by_admin || "true",
           );
 
-          // Set token with proper options for security and availability
-          Cookies.set("token", accessToken, {
-            expires: 7, // 7 days
-            secure: window.location.protocol === "https:",
-            sameSite: "lax",
-          });
+          // Store auth data in session manager (like normal signin)
+          // For Google SSO, set a long expiry since no refresh token
+          const googleSSOExpiry = new Date();
+          googleSSOExpiry.setDate(googleSSOExpiry.getDate() + 7); // 7 days from now
 
-          // Set user type cookie
-          Cookies.set("currUserUrl", "customer", {
-            expires: 7,
-            secure: window.location.protocol === "https:",
-            sameSite: "lax",
+          setAuthData({
+            accessToken: accessToken,
+            refreshToken: responseData?.refreshToken || null,
+            refreshTokenExpiry:
+              responseData?.refreshTokenExpiry || googleSSOExpiry.toISOString(),
+            user: userData, // Include user data
+            userType: userRole, // Include role
           });
-
-          console.log("👤 User role from API:", userRole);
-          console.log("🍪 Set currUserUrl cookie to: customer");
-          console.log("🔑 Token set with proper options");
 
           // Refresh user profile query to ensure fresh data
-          console.log("🔄 Invalidating profile queries for fresh data");
           queryClient.invalidateQueries(["get-user-profile"]);
 
           // Add small delay to ensure cookies are set before navigation
           setTimeout(() => {
-            console.log(
-              "👤 Google user authenticated - redirecting to customer dashboard",
-            );
+            console.log("🔄 Redirecting to customer dashboard");
             const targetPath = redirectPath ?? "/customer";
-            console.log("Target path:", targetPath);
 
             navigate(targetPath, {
               state: { info: parsedProduct },
               replace: true,
             });
-            console.log("✅ Customer navigation complete");
-          }, 500);
+            Cookies.set("currUserUrl", "customer");
+            console.log("✅ Login complete");
+          }, 1000);
         }
         // Handle signup success (user doesn't exist, need to register)
         else if (
@@ -182,7 +203,6 @@ export default function SignInCustomer() {
           statusCode === 200
         ) {
           console.log("🆕 New user detected - redirecting to signup");
-          console.log("Signup message:", message);
 
           // Store Google token for signup process
           sessionStorage.setItem("googleToken", cred?.credential);
@@ -190,24 +210,11 @@ export default function SignInCustomer() {
 
           // Redirect to signup page
           const signupUrl = `/auth/register${redirectPath ? `?redirect=${redirectPath}` : ""}`;
-          console.log("🔄 Redirecting to signup:", signupUrl);
           navigate(signupUrl, { replace: true });
-        } else {
-          console.log("⚠️ Unexpected response structure");
-          console.log("Response structure check:");
-          console.log("- statusCode:", statusCode);
-          console.log("- message:", message);
-          console.log("- accessToken exists:", !!accessToken);
-          console.log("- userRole exists:", !!userRole);
         }
       },
       onError: (error) => {
-        console.log("❌❌❌ GOOGLE LOGIN ERROR ❌❌❌");
-        console.log("Error object:", error);
-        console.log("Error data:", error?.data);
-        console.log("Error message:", error?.data?.message);
-        console.log("Error response:", error?.response);
-        console.log("Error status:", error?.response?.status);
+        console.log("❌ Google login error:", error?.data?.message);
       },
     });
   };

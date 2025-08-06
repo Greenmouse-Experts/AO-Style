@@ -1212,6 +1212,7 @@ const AddProduct = () => {
               </div>
               {
                 <div>
+                  <></>
                   {values.video_url && (
                     <video
                       controls

@@ -14,6 +14,7 @@ import useDeleteAdminFabric from "../../../../hooks/fabric/useDeleteAdminFabric"
 import useDeleteSubscription from "../../../../hooks/subscription/useDeleteSubscription";
 import useGetAdminBusinessDetails from "../../../../hooks/settings/useGetAdmnBusinessInfo";
 import useToast from "../../../../hooks/useToast";
+import { useSearchParams } from "react-router-dom";
 
 const AddSubscriptionModal = ({ isOpen, onClose, onAdd, newCategory }) => {
   const initialValues = {
@@ -237,8 +238,8 @@ const AddSubscriptionModal = ({ isOpen, onClose, onAdd, newCategory }) => {
               {isPending || editIsPending
                 ? "Please wait..."
                 : newCategory
-                ? "Update Subscription Plan"
-                : "Create Subscription Plan"}
+                  ? "Update Subscription Plan"
+                  : "Create Subscription Plan"}
             </button>
           </div>
         </form>
@@ -441,7 +442,7 @@ const SubscriptionsPlansTable = () => {
     {
       ...queryParams,
     },
-    businessDetails?.data?.id
+    businessDetails?.data?.id,
   );
 
   const [data, setData] = useState([
@@ -510,29 +511,29 @@ const SubscriptionsPlansTable = () => {
                 details?.role == "fabric-vendor"
                   ? "Fabric Vendor"
                   : details?.role == "fashion-designer"
-                  ? "Tailors/Designers"
-                  : details?.role
+                    ? "Tailors/Designers"
+                    : details?.role
               }`,
               planDescription:
                 details?.description.length > 15
                   ? `${details?.description.slice(0, 15)}...`
                   : details?.description,
               amount: `${formatNumberWithCommas(
-                details?.subscription_plan_prices[0]?.price
+                details?.subscription_plan_prices[0]?.price,
               )}`,
 
               dateAdded: `${
                 details?.created_at
                   ? formatDateStr(
                       details?.created_at.split(".").shift(),
-                      "D/M/YYYY h:mm A"
+                      "D/M/YYYY h:mm A",
                     )
                   : ""
               }`,
             };
           })
         : [],
-    [subscriptionData?.data]
+    [subscriptionData?.data],
   );
 
   const toggleDropdown = (rowId) => {
@@ -569,8 +570,8 @@ const SubscriptionsPlansTable = () => {
   const handleUpdateSubscription = (id, updatedSubscription) => {
     setData(
       data.map((item) =>
-        item.id === id ? { ...item, ...updatedSubscription } : item
-      )
+        item.id === id ? { ...item, ...updatedSubscription } : item,
+      ),
     );
   };
 
@@ -631,17 +632,18 @@ const SubscriptionsPlansTable = () => {
         ),
       },
     ],
-    [openDropdown]
+    [openDropdown],
   );
 
   const filteredData = data.filter((subscription) =>
     Object.values(subscription).some(
       (value) =>
         typeof value === "string" &&
-        value.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+        value.toLowerCase().includes(searchTerm.toLowerCase()),
+    ),
   );
-
+  let [searchQuery, setSearchQuery] = useSearchParams();
+  let tab = searchQuery.get("tab");
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
@@ -676,15 +678,21 @@ const SubscriptionsPlansTable = () => {
   };
 
   const totalPages = Math.ceil(
-    subscriptionData?.count / (queryParams["pagination[limit]"] ?? 10)
+    subscriptionData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
   console.log(totalPages);
+
+  const new_data = subscriptionRes.filter((item) => {
+    if (tab == "vendor") return (item.userType = "Fabric Vendor");
+    return item.userType == "Tailors/Designers";
+  });
 
   return (
     <div className="bg-white p-6 rounded-xl overflow-x-auto">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold">Subscriptions Plans</h2>
+
         <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
           <input
             type="text"
@@ -713,11 +721,29 @@ const SubscriptionsPlansTable = () => {
         </div>
       </div>
       <p className="text-sm text-gray-500 mb-4">Created Subscription plan</p>
-      <ReusableTable
-        loading={isPending}
-        columns={columns}
-        data={subscriptionRes}
-      />
+      <div className=" *:cusor-pointer gap-2 flex items-center">
+        <button
+          onClick={() => {
+            searchQuery.delete("tab");
+            setSearchQuery(searchQuery);
+          }}
+          className={`${tab !== "vendor" ? "border-purple-600" : "border-transparent"} p-2 border-b-2 `}
+        >
+          Tailor
+        </button>
+        <button
+          onClick={() => {
+            setSearchQuery((prev) => ({
+              ...Object.fromEntries(prev),
+              tab: "vendor",
+            }));
+          }}
+          className={`${tab == "vendor" ? "border-purple-600" : "border-transparent"} p-2 border-b-2 `}
+        >
+          Vendor
+        </button>
+      </div>
+      <ReusableTable loading={isPending} columns={columns} data={new_data} />
       {subscriptionRes?.length > 0 && (
         <div className="flex justify-between items-center mt-4">
           <div className="flex items-center">
@@ -815,7 +841,7 @@ const SubscriptionsPlansTable = () => {
                       setIsAddModalOpen(false);
                       setNewCategory(null);
                     },
-                  }
+                  },
                 );
               }}
             >

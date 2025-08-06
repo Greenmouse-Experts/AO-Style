@@ -260,55 +260,60 @@ const ProductPage = () => {
                     {"Edit Product"}
                   </Link>
                 )}
-                <button
+                {/* <button
                   onClick={(e) => {
                     console.log(row, admin_id, businessDetails.data);
                   }}
                 >
                   log{" "}
-                </button>
-                {/* <button
-                  onClick={async (e) => {
-                    try {
-                      toast.promise(
-                        async () => {
-                          let resp = await CaryBinApi.patch(
-                            "/fabric/" + row.id,
-                            {
-                              product: {
-                                status:
-                                  row.status == "PUBLISHED"
-                                    ? "ARCHIVED"
-                                    : "PUBLISHED",
-                              },
-                            },
-                            {
-                              headers: {
-                                "Business-Id": businessDetails.data.id,
-                              },
-                            },
-                          ).catch((err) => {
-                            console.log(err.data);
-                          });
-                          refetch();
-                          adRefetch();
-                          return resp.data;
-                        },
-                        {
-                          pending: "unpublishing",
-                          error: "failed",
-                          success: "success",
-                        },
-                      );
-                      // return resp.data;
-                    } catch (err) {
-                      console.log(err.data);
-                    }
-                  }}
-                  className="block cursor-pointer text-center px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
-                >
-                  {row.status == "PUBLISHED" ? "Unpublish" : "publish"}
                 </button>*/}
+                {isAdminFabricRoute && row.user_id == admin_id && (
+                  <>
+                    {" "}
+                    <button
+                      onClick={async (e) => {
+                        try {
+                          toast.promise(
+                            async () => {
+                              let resp = await CaryBinApi.patch(
+                                "/fabric/" + row.id,
+                                {
+                                  product: {
+                                    status:
+                                      row.status == "PUBLISHED"
+                                        ? "ARCHIVED"
+                                        : "PUBLISHED",
+                                  },
+                                },
+                                {
+                                  headers: {
+                                    "Business-Id": businessDetails.data.id,
+                                  },
+                                },
+                              ).catch((err) => {
+                                console.log(err.data);
+                              });
+                              refetch();
+                              adRefetch();
+                              return resp.data;
+                            },
+                            {
+                              pending: "unpublishing",
+                              error: "failed",
+                              success: "success",
+                            },
+                          );
+                          // return resp.data;
+                        } catch (err) {
+                          console.log(err.data);
+                        }
+                      }}
+                      className="block cursor-pointer text-center px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
+                    >
+                      {row.status == "PUBLISHED" ? "Unpublish" : "publish"}
+                    </button>
+                  </>
+                )}
                 <button
                   onClick={() => {
                     setNewCategory(row);

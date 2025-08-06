@@ -88,16 +88,7 @@ const KYCVerificationUpdate = () => {
         return toastError("Upload necessary document");
       }
 
-      // const uploads = [val.front_upload, val.back_upload, val.utility_upload];
-
       const formData = new FormData();
-
-      // Append all files as `documents[]`
-      // uploads.forEach((file) => {
-      //   if (file) {
-      //     formData.append("documents", file);
-      //   }
-      // });
 
       sendKycMutate(
         {
@@ -119,6 +110,7 @@ const KYCVerificationUpdate = () => {
   const { ref } = usePlacesWidget({
     apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
     onPlaceSelected: (place) => {
+      setFieldValue("address", place.formatted_address);
       setFieldValue("location", place.formatted_address);
       setFieldValue("latitude", place.geometry?.location?.lat().toString());
       setFieldValue("longitude", place.geometry?.location?.lng().toString());

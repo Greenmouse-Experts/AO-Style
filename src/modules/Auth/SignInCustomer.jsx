@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import HowDidYouHearAboutUs from "../Auth/components/HowDidYouHearAboutUs";
 import { useFormik } from "formik";
 import useRegister from "./hooks/useSignUpMutate";
@@ -16,6 +16,7 @@ import { countryCodes } from "../../constant";
 import Select from "react-select";
 import useGoogleSignin from "./hooks/useGoogleSignIn";
 import { usePlacesWidget } from "react-google-autocomplete";
+import { useQueryClient } from "@tanstack/react-query";
 
 const initialValues = {
   name: "",
@@ -33,9 +34,16 @@ export default function SignInAsCustomer() {
   const redirectPath = new URLSearchParams(location.search).get("redirect");
   const pendingProduct = localStorage.getItem("pendingProduct");
 
-  const parsedProduct = JSON.parse(pendingProduct);
+  let parsedProduct = null;
+  try {
+    parsedProduct = pendingProduct ? JSON.parse(pendingProduct) : null;
+  } catch (error) {
+    console.log("⚠️ Invalid pending product data:", error);
+    parsedProduct = null;
+  }
 
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [value, setValue] = useState("");
 
@@ -100,31 +108,130 @@ export default function SignInAsCustomer() {
 
   const { isPending: googleIsPending, googleSigninMutate } = useGoogleSignin();
 
-  const googleSigninHandler = (cred) => {
-    console.log(
-      "🔐 SignUp: Google signin initiated",
-      cred?.credential ? "Token received" : "No token",
-    );
+  // Auto-trigger Google signup if redirected from login with stored token
+  useEffect(() => {
+    const storedGoogleToken = sessionStorage.getItem("googleToken");
+    const storedProvider = sessionStorage.getItem("googleProvider");
 
-    if (!cred?.credential) {
-      toastError("Google authentication failed. No credential received.");
+    if (storedGoogleToken && storedProvider === "google") {
+      console.log("🔄 Auto-triggering Google signup from stored token");
+      googleSigninHandler({ credential: storedGoogleToken });
+    }
+  }, []);
+
+  const googleSigninHandler = (cred) => {
+    console.log("🔐🔐🔐 GOOGLE SIGNUP/REGISTER INITIATED 🔐🔐🔐");
+    console.log("Google credential received:", !!cred?.credential);
+    console.log(
+      "Stored Google token exists:",
+      !!sessionStorage.getItem("googleToken"),
+    );
+    console.log("Redirect path:", redirectPath);
+    console.log("Pending product:", parsedProduct);
+
+    // Check if we have stored Google token from login attempt
+    const storedGoogleToken = sessionStorage.getItem("googleToken");
+    const storedProvider = sessionStorage.getItem("googleProvider");
+
+    let tokenToUse = cred?.credential || storedGoogleToken;
+
+    if (!tokenToUse) {
+      console.log("❌ No Google token available for signup");
+      toastError("Google authentication failed. Please try again.");
       return;
     }
 
-    // Store redirect path for the hook to use
-    if (redirectPath) {
-      sessionStorage.setItem("redirectAfterAuth", redirectPath);
-    }
-
     const payload = {
-      token: cred?.credential,
+      token: tokenToUse,
       provider: "google",
       role: "user",
-      action_type: "SIGNUP",
+      action_type: "SIGNUP", // API requires both role and action_type
     };
 
-    // The improved hook now handles all success/error logic
-    googleSigninMutate(payload);
+    console.log("📤 SIGNUP: Sending payload:", payload);
+    console.log("Using stored token:", !!storedGoogleToken);
+
+    googleSigninMutate(payload, {
+      onSuccess: (data) => {
+        console.log("✅✅✅ GOOGLE SIGNUP SUCCESS ✅✅✅");
+        console.log("Full response data:", JSON.stringify(data, null, 2));
+
+        // Handle both nested (data.data) and flat response structures
+        const responseData = data?.data || data;
+        const statusCode = data?.statusCode || responseData?.statusCode;
+        const message = data?.message || responseData?.message;
+        const accessToken = data?.accessToken || responseData?.accessToken;
+        const userData = responseData?.data || responseData;
+        const userRole = userData?.role;
+
+        console.log("Access token:", accessToken);
+        console.log("User role:", userRole);
+        console.log("Response message:", message);
+        console.log("Status code:", statusCode);
+
+        // Clear stored Google token
+        sessionStorage.removeItem("googleToken");
+        sessionStorage.removeItem("googleProvider");
+
+        // If we get an access token, user was created successfully
+        if (accessToken && statusCode === 200) {
+          console.log("🔑 Signup successful - setting access token cookie");
+
+          // Set token with proper options for security and availability
+          Cookies.set("token", accessToken, {
+            expires: 7, // 7 days
+            secure: window.location.protocol === "https:",
+            sameSite: "lax",
+          });
+
+          // Set user type cookie
+          Cookies.set("currUserUrl", "customer", {
+            expires: 7,
+            secure: window.location.protocol === "https:",
+            sameSite: "lax",
+          });
+
+          console.log("👤 User role from API:", userRole);
+          console.log("🍪 Set currUserUrl cookie to: customer");
+          console.log("🔑 Token set with proper options");
+
+          // Refresh user profile query to ensure fresh data
+          console.log("🔄 Invalidating profile queries for fresh data");
+          queryClient.invalidateQueries(["get-user-profile"]);
+
+          // Add small delay to ensure cookies are set before navigation
+          setTimeout(() => {
+            console.log(
+              "🏠 Google signup successful - redirecting to customer dashboard",
+            );
+            const targetPath = redirectPath ?? "/customer";
+            console.log("Target path:", targetPath);
+
+            navigate(targetPath, {
+              state: { info: parsedProduct },
+              replace: true,
+            });
+            console.log("✅ Signup navigation complete");
+          }, 500);
+        } else {
+          console.log("⚠️ Unexpected signup response structure");
+          console.log("- statusCode:", statusCode);
+          console.log("- message:", message);
+          console.log("- accessToken exists:", !!accessToken);
+        }
+      },
+      onError: (error) => {
+        console.log("❌❌❌ GOOGLE SIGNUP ERROR ❌❌❌");
+        console.log("Error object:", error);
+        console.log("Error data:", error?.data);
+        console.log("Error message:", error?.data?.message);
+        console.log("Error response:", error?.response);
+
+        // Clear stored token on error
+        sessionStorage.removeItem("googleToken");
+        sessionStorage.removeItem("googleProvider");
+      },
+    });
   };
 
   const { ref } = usePlacesWidget({

@@ -15,6 +15,7 @@ import sessionManager from "./services/SessionManager.js";
 import AuthService from "./services/api/auth/index.jsx";
 import { Cookie } from "lucide-react";
 import Cookies from "js-cookie";
+import { ChatHead } from "./components/chat";
 
 // Verification Banner Component
 const VerificationBanner = ({ onLogout, onGoToKYC }) => {
@@ -325,6 +326,9 @@ const AppWrapper = () => {
         isRefreshing={isRefreshing}
       />
       <SessionTestComponent />
+
+      {/* Chat Head Widget - Available on all pages */}
+      <ChatHead />
     </>
   );
 };

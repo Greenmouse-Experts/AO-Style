@@ -211,13 +211,13 @@ export const adminRoutes = [
         element: <Orders />,
       },
       {
-        path: "/admin/orders-details",
+        path: "/admin/orders/order-details",
         element: <OrderDetailsPage />,
       },
-      {
-        path: "/admin/orders-details",
-        element: <OrderDetailsPage />,
-      },
+      // {
+      //   path: "/admin/orders-details",
+      //   element: <OrderDetailsPage />,
+      // },
       // Subscription Routes
       {
         path: "/admin/subscription",

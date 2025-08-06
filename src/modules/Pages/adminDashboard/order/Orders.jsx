@@ -121,6 +121,9 @@ const OrdersTable = () => {
           {openDropdown === row.id && (
             <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md z-10 border border-gray-200">
               <Link
+                onClick={(e) => {
+                  console.log(row);
+                }}
                 to={`/admin/orders/order-details?id=${row.id}`}
                 className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
               >

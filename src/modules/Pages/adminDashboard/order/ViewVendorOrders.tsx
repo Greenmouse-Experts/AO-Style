@@ -186,20 +186,21 @@ export default function ViewVendorOrders() {
       ),
     },
   ];
-  const filteredData = order_query?.data?.data.filter((order) => {
-    if (!searchTerm) return true;
+  const filteredData =
+    order_query?.data?.data.filter((order) => {
+      if (!searchTerm) return true;
 
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      order.id?.toLowerCase().includes(searchLower) ||
-      order.payment?.transaction_id?.toLowerCase().includes(searchLower) ||
-      order.payment?.user?.email?.toLowerCase().includes(searchLower) ||
-      order.payment?.purchase?.items?.[0]?.name
-        ?.toLowerCase()
-        .includes(searchLower) ||
-      order.status?.toLowerCase().includes(searchLower)
-    );
-  });
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        order.id?.toLowerCase().includes(searchLower) ||
+        order.payment?.transaction_id?.toLowerCase().includes(searchLower) ||
+        order.payment?.user?.email?.toLowerCase().includes(searchLower) ||
+        order.payment?.purchase?.items?.[0]?.name
+          ?.toLowerCase()
+          .includes(searchLower) ||
+        order.status?.toLowerCase().includes(searchLower)
+      );
+    }) || [];
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;

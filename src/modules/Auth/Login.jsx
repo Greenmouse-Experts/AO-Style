@@ -10,6 +10,7 @@ import useGoogleSignin from "./hooks/useGoogleSignIn";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
+import { useQueryClient } from "@tanstack/react-query";
 
 const initialValues = {
   email: "",
@@ -61,6 +62,7 @@ export default function SignInCustomer() {
   });
 
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { isPending, signinMutate } = useSignIn(values.email, resendCodeMutate);
 
@@ -68,32 +70,146 @@ export default function SignInCustomer() {
 
   const pendingProduct = localStorage.getItem("pendingProduct");
 
-  const parsedProduct = JSON.parse(pendingProduct);
+  let parsedProduct = null;
+  try {
+    parsedProduct = pendingProduct ? JSON.parse(pendingProduct) : null;
+  } catch (error) {
+    console.log("⚠️ Invalid pending product data:", error);
+    parsedProduct = null;
+  }
+
+  // Debug utilities for testing
+  const clearGoogleAuthData = () => {
+    console.log("🧹 Clearing all Google auth data");
+    sessionStorage.removeItem("googleToken");
+    sessionStorage.removeItem("googleProvider");
+    Cookies.remove("token");
+    Cookies.remove("currUserUrl");
+    console.log("✅ Google auth data cleared");
+  };
+
+  // Expose debug function to window for testing
+  if (typeof window !== "undefined") {
+    window.clearGoogleAuth = clearGoogleAuthData;
+  }
 
   const googleSigninHandler = (cred) => {
-    console.log(
-      "🔐 Login: Google signin initiated",
-      cred?.credential ? "Token received" : "No token",
-    );
-
-    if (!cred?.credential) {
-      toastError("Google authentication failed. No credential received.");
-      return;
-    }
-
-    // Store redirect path for the hook to use
-    if (redirectPath) {
-      sessionStorage.setItem("redirectAfterAuth", redirectPath);
-    }
+    console.log("🔓🔓🔓 GOOGLE LOGIN INITIATED 🔓🔓🔓");
+    console.log("Google credential received:", !!cred?.credential);
+    console.log("Credential value:", cred?.credential);
+    console.log("Redirect path:", redirectPath);
+    console.log("Pending product:", parsedProduct);
 
     const payload = {
       token: cred?.credential,
       provider: "google",
-      action_type: "SIGNIN",
+      role: "user",
+      action_type: "SIGNIN", // API requires both role and action_type
     };
 
-    // The improved hook now handles all success/error logic
-    googleSigninMutate(payload);
+    console.log("📤 LOGIN: Sending payload:", payload);
+
+    googleSigninMutate(payload, {
+      onSuccess: (data) => {
+        console.log("✅✅✅ GOOGLE LOGIN SUCCESS ✅✅✅");
+        console.log("Full response data:", JSON.stringify(data, null, 2));
+
+        // Handle both nested (data.data) and flat response structures
+        const responseData = data?.data || data;
+        const statusCode = data?.statusCode || responseData?.statusCode;
+        const message = data?.message || responseData?.message;
+        const accessToken = data?.accessToken || responseData?.accessToken;
+        const userData = responseData?.data || responseData;
+        const userRole = userData?.role;
+
+        console.log("Access token:", accessToken);
+        console.log("User data:", userData);
+        console.log("User role:", userRole);
+        console.log("Response message:", message);
+        console.log("Status code:", statusCode);
+
+        // Check if user already exists (login successful)
+        if (
+          accessToken &&
+          (message === "Login successful" || statusCode === 200)
+        ) {
+          console.log(
+            "🔑 Google login successful - setting access token cookie",
+          );
+
+          // Set token with proper options for security and availability
+          Cookies.set("token", accessToken, {
+            expires: 7, // 7 days
+            secure: window.location.protocol === "https:",
+            sameSite: "lax",
+          });
+
+          // Set user type cookie
+          Cookies.set("currUserUrl", "customer", {
+            expires: 7,
+            secure: window.location.protocol === "https:",
+            sameSite: "lax",
+          });
+
+          console.log("👤 User role from API:", userRole);
+          console.log("🍪 Set currUserUrl cookie to: customer");
+          console.log("🔑 Token set with proper options");
+
+          // Refresh user profile query to ensure fresh data
+          console.log("🔄 Invalidating profile queries for fresh data");
+          queryClient.invalidateQueries(["get-user-profile"]);
+
+          // Add small delay to ensure cookies are set before navigation
+          setTimeout(() => {
+            console.log(
+              "👤 Google user authenticated - redirecting to customer dashboard",
+            );
+            const targetPath = redirectPath ?? "/customer";
+            console.log("Target path:", targetPath);
+
+            navigate(targetPath, {
+              state: { info: parsedProduct },
+              replace: true,
+            });
+            console.log("✅ Customer navigation complete");
+          }, 500);
+        }
+        // Handle signup success (user doesn't exist, need to register)
+        else if (
+          message &&
+          (message.toLowerCase().includes("user") ||
+            message.toLowerCase().includes("not found")) &&
+          statusCode === 200
+        ) {
+          console.log("🆕 New user detected - redirecting to signup");
+          console.log("Signup message:", message);
+
+          // Store Google token for signup process
+          sessionStorage.setItem("googleToken", cred?.credential);
+          sessionStorage.setItem("googleProvider", "google");
+
+          // Redirect to signup page
+          const signupUrl = `/auth/register${redirectPath ? `?redirect=${redirectPath}` : ""}`;
+          console.log("🔄 Redirecting to signup:", signupUrl);
+          navigate(signupUrl, { replace: true });
+        } else {
+          console.log("⚠️ Unexpected response structure");
+          console.log("Response structure check:");
+          console.log("- statusCode:", statusCode);
+          console.log("- message:", message);
+          console.log("- accessToken exists:", !!accessToken);
+          console.log("- userRole exists:", !!userRole);
+        }
+      },
+      onError: (error) => {
+        console.log("❌❌❌ GOOGLE LOGIN ERROR ❌❌❌");
+        console.log("Error object:", error);
+        console.log("Error data:", error?.data);
+        console.log("Error message:", error?.data?.message);
+        console.log("Error response:", error?.response);
+        console.log("Error status:", error?.response?.status);
+      },
+    });
   };
 
   return (
@@ -194,11 +310,8 @@ export default function SignInCustomer() {
               onSuccess={(credentialResponse) => {
                 googleSigninHandler(credentialResponse);
               }}
-              onError={(error) => {
-                console.error("❌ Login: Google OAuth error:", error);
-                toastError(
-                  "Google sign-in was cancelled or failed. Please try again.",
-                );
+              onError={() => {
+                console.log("Login Failed");
               }}
             />
           )}

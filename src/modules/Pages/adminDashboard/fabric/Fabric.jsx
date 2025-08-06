@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import ReusableTable from "../components/ReusableTable";
 import { FaEllipsisH, FaBars, FaTh, FaPhone, FaEnvelope } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useQueryParams from "../../../../hooks/useQueryParams";
 import useGetAllUsersByRole from "../../../../hooks/admin/useGetAllUserByRole";
 import useDebounce from "../../../../hooks/useDebounce";
@@ -18,6 +18,7 @@ import AddFabricModal from "../components/AddFabricModal";
 import ConfirmationModal from "../../../../components/ui/ConfirmationModal";
 import useDeleteUser from "../../../../hooks/user/useDeleteUser";
 import useToast from "../../../../hooks/useToast";
+import { useTempStore } from "../../../../store/useTempStore";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -86,8 +87,9 @@ const CustomersTable = () => {
         : [],
     [getAllFabricRepData?.data],
   );
-
+  let setUser = useTempStore((state) => state.setUser);
   // Table Columns
+  const nav = useNavigate();
   const columns = useMemo(
     () => [
       {
@@ -139,17 +141,19 @@ const CustomersTable = () => {
                 <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
                   Edit User
                 </button>
-                <Link
+                <button
                   state={{ info: row }}
-                  // onClick={() => {
-                  //   console.log(row);
-                  // }}
+                  onClick={() => {
+                    setUser(row);
+                    console.log("clicked");
+                    nav(`/admin/orders/vendor/` + row.id);
+                  }}
                   // to={"/admin/fabric/orders/orders-details"}
-                  to={`/admin/orders/vendor/` + row.id}
+                  // to={`/admin/orders/vendor/` + row.id}
                   className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
                 >
                   View Orders
-                </Link>
+                </button>
                 {row?.profile?.approved_by_admin ? (
                   <>
                     {" "}

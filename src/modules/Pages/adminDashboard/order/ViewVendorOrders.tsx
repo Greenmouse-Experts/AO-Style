@@ -5,6 +5,8 @@ import { Loader } from "lucide-react";
 import ReusableTable from "../components/ReusableTable";
 
 import { useRef, useState } from "react";
+import { formatDateStr } from "../../../../lib/helper";
+import { useTempStore } from "../../../../store/useTempStore";
 
 interface VendorDataType {
   id: string;
@@ -39,7 +41,7 @@ export default function ViewVendorOrders() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [activeReviewModal, setActiveReviewModal] = useState(null);
-  const user = location?.state?.info as VendorDataType;
+  const user = useTempStore((state) => state.user);
   const order_query = useQuery({
     queryKey: [id, "vendor_orders"],
     queryFn: async () => {
@@ -233,7 +235,7 @@ export default function ViewVendorOrders() {
       <div className="bg-white p-6 rounded-xl overflow-x-auto">
         <div className="flex flex-wrap justify-between items-center pb-3 gap-4">
           <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-            <h2 className="text-lg font-semibold">{user.name} Orders</h2>
+            <h2 className="text-lg font-semibold">{user?.name} Orders</h2>
           </div>
           <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
             <input

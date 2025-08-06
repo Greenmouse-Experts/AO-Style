@@ -216,7 +216,7 @@ export const adminRoutes = [
         element: <ViewVendorOrders />,
       },
       {
-        path: "/admin/orders/orders-details",
+        path: "/admin/orders/order-details",
         element: <OrderDetailsPage />,
       },
       // {

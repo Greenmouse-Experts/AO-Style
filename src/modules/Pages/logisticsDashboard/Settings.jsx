@@ -962,8 +962,9 @@ const Settings = () => {
 
           {activeSection === "KYC Verification" && (
             <div>
-              <h2 className="text-xl font-medium mb-4">KYC Verification</h2>
-              <KYCVerification />
+              {/* <h2 className="text-xl font-medium mb-4">KYC Verification</h2>*/}
+              {/* <KYCVerification />*/}
+              <KYCVerificationUpdate />
             </div>
           )}
 

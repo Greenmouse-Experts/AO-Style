@@ -256,7 +256,11 @@ const OrdersTable = () => {
             </select>
           </div>
         </div>
-        <ReusableTable columns={columns} data={currentItems} />
+        {order_query.isFetching ? (
+          <div className="p-2 text-lg ">loading orders...</div>
+        ) : (
+          <ReusableTable columns={columns} data={currentItems} />
+        )}
         <div className="flex justify-between items-center mt-4">
           <div className="flex items-center">
             <p className="text-sm text-gray-600">Items per page: </p>

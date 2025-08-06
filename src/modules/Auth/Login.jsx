@@ -71,55 +71,29 @@ export default function SignInCustomer() {
   const parsedProduct = JSON.parse(pendingProduct);
 
   const googleSigninHandler = (cred) => {
-    console.log(cred?.credential, "cred");
+    console.log(
+      "🔐 Login: Google signin initiated",
+      cred?.credential ? "Token received" : "No token",
+    );
+
+    if (!cred?.credential) {
+      toastError("Google authentication failed. No credential received.");
+      return;
+    }
+
+    // Store redirect path for the hook to use
+    if (redirectPath) {
+      sessionStorage.setItem("redirectAfterAuth", redirectPath);
+    }
+
     const payload = {
       token: cred?.credential,
       provider: "google",
       action_type: "SIGNIN",
     };
 
-    googleSigninMutate(payload, {
-      onSuccess: (data) => {
-        Cookies.set("token", data?.data?.accessToken);
-
-        if (data?.data?.data?.role === "user") {
-          navigate(redirectPath ?? "/customer", {
-            state: { info: parsedProduct },
-            replace: true,
-          });
-          Cookies.set("currUserUrl", "customer");
-        }
-        if (data?.data?.data?.role === "fabric-vendor") {
-          navigate(redirectPath ?? "/fabric", {
-            state: { info: parsedProduct },
-            replace: true,
-          });
-          Cookies.set("currUserUrl", "fabric");
-        }
-        if (data?.data?.data?.role === "fashion-designer") {
-          navigate(redirectPath ?? "/tailor", {
-            state: { info: parsedProduct },
-            replace: true,
-          });
-          Cookies.set("currUserUrl", "tailor");
-        }
-        if (data?.data?.data?.role === "logistics-agent") {
-          navigate(redirectPath ?? "/logistics", {
-            state: { info: parsedProduct },
-            replace: true,
-          });
-          Cookies.set("currUserUrl", "logistics");
-        }
-        if (data?.data?.data?.role === "market-representative") {
-          navigate(redirectPath ?? "/sales", {
-            state: { info: parsedProduct },
-            replace: true,
-          });
-          Cookies.set("currUserUrl", "sales");
-        }
-        // if()
-      },
-    });
+    // The improved hook now handles all success/error logic
+    googleSigninMutate(payload);
   };
 
   return (
@@ -207,17 +181,27 @@ export default function SignInCustomer() {
           role="button"
           className="flex items-center justify-center rounded-lg "
         >
-          <GoogleLogin
-            size="large"
-            text="signin_with"
-            theme="outlined"
-            onSuccess={(credentialResponse) => {
-              googleSigninHandler(credentialResponse);
-            }}
-            onError={() => {
-              console.log("Login Failed");
-            }}
-          />{" "}
+          {googleIsPending ? (
+            <div className="flex items-center justify-center w-full py-3 px-4 border border-gray-300 rounded-lg bg-gray-50">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600 mr-3"></div>
+              <span className="text-gray-600">Signing in with Google...</span>
+            </div>
+          ) : (
+            <GoogleLogin
+              size="large"
+              text="signin_with"
+              theme="outlined"
+              onSuccess={(credentialResponse) => {
+                googleSigninHandler(credentialResponse);
+              }}
+              onError={(error) => {
+                console.error("❌ Login: Google OAuth error:", error);
+                toastError(
+                  "Google sign-in was cancelled or failed. Please try again.",
+                );
+              }}
+            />
+          )}
         </div>
       </div>
     </div>

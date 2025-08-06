@@ -1,9 +1,7 @@
 import { useMemo, useState } from "react";
 import { Pencil, Trash2, Plus, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import SubmitModal from "../components/SubmitModal";
 import { useCartStore } from "../../../store/carybinUserCartStore";
-import SubmitStyleModal from "./SubmitStyle";
 import { generateUniqueId } from "../../../lib/helper";
 
 export default function SavedMeasurementsDisplay({
@@ -30,7 +28,6 @@ export default function SavedMeasurementsDisplay({
 
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [currentEdit, setCurrentEdit] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const openEditModal = (measurement) => {
     setCurrentEdit(measurement);
@@ -57,52 +54,45 @@ export default function SavedMeasurementsDisplay({
           <div className="mt-2 w-32 sm:w-64 h-0.5 bg-purple-500 mx-auto"></div>
         </div>
         <div className="flex justify-center">
-          <SubmitStyleModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-          />
           <button
             className="w-full max-w-sm bg-purple-500 cursor-pointer hover:bg-purple-600 text-white font-medium py-4 px-6 rounded-md"
             onClick={() => {
-              if (item) {
-                setIsModalOpen(true);
-                addToCart(
-                  {
-                    product: {
-                      style: {
-                        id: styleInfo?.id,
-                        name: styleInfo?.name,
-                        type: "STYLE",
-                        price_at_time: styleInfo?.price,
-                        image: styleInfo?.style?.photos[0],
-                        measurement: measurementArr,
-                      },
-                    },
-                  },
-                  item,
-                );
-                localStorage.removeItem("cart_id");
-              } else {
-                addToCart(
-                  {
-                    product: {
-                      style: {
-                        id: styleInfo?.id,
-                        name: styleInfo?.name,
-                        type: "STYLE",
-                        price_at_time: styleInfo?.price,
-                        image: styleInfo?.style?.photos[0],
-                        measurement: measurementArr,
-                      },
-                    },
-                  },
-                  id,
-                );
+              // Always navigate to fabric selection for style-first flow
+              // Clear any existing cart_id to ensure clean flow
+              localStorage.removeItem("cart_id");
 
-                navigate("/shop");
-                localStorage.setItem("cart_id", id);
-              }
-            }} // Opens the modal
+              addToCart(
+                {
+                  product: {
+                    style: {
+                      id: styleInfo?.id,
+                      name: styleInfo?.name,
+                      type: "STYLE",
+                      price_at_time: styleInfo?.price,
+                      image: styleInfo?.style?.photos[0],
+                      measurement: measurementArr,
+                    },
+                  },
+                },
+                id,
+              );
+
+              // Store style and measurement data for fabric selection
+              localStorage.setItem("selected_style", JSON.stringify(styleInfo));
+              localStorage.setItem(
+                "measurement_data",
+                JSON.stringify(measurementArr),
+              );
+
+              // Navigate directly to fabric selection
+              navigate("/fabric-selection", {
+                state: {
+                  styleData: styleInfo,
+                  measurementData: measurementArr,
+                },
+              });
+              localStorage.setItem("cart_id", id);
+            }}
           >
             Submit Measurements
           </button>

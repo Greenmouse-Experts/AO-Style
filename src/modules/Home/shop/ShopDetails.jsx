@@ -96,6 +96,34 @@ export default function ShopDetails() {
   const location = useLocation();
   const params = useParams();
 
+  // Check if coming from style-first workflow
+  const styleData =
+    location?.state?.styleData ||
+    JSON.parse(localStorage.getItem("selected_style") || "null");
+  const measurementData =
+    location?.state?.measurementData ||
+    JSON.parse(localStorage.getItem("measurement_data") || "[]");
+  const fromStyleFirst = location?.state?.fromStyleFirst || !!styleData;
+
+  // Debug logging for received data
+  console.log("🎨 ShopDetails Data Debug:", {
+    fromStyleFirst: fromStyleFirst,
+    hasStyleData: !!styleData,
+    hasMeasurementData: !!measurementData,
+    locationState: location?.state,
+    styleData: styleData,
+    styleDataId: styleData?.id,
+    styleDataStructure: styleData ? Object.keys(styleData) : null,
+    measurementData: measurementData,
+    measurementCount: Array.isArray(measurementData)
+      ? measurementData.length
+      : 0,
+    localStorage: {
+      selectedStyle: localStorage.getItem("selected_style"),
+      measurementData: localStorage.getItem("measurement_data"),
+    },
+  });
+
   const productInfo = params.id;
 
   console.log("🔍 ShopDetails: URL params:", params);
@@ -190,13 +218,21 @@ export default function ShopDetails() {
       product_type: "FABRIC",
       quantity: +quantity,
       color: selectedColor,
+      // Add customer_name from measurements if available
+      customer_name: measurementData?.[0]?.customer_name || "Customer",
       // Add display info for style selection page
       name: productVal?.name || "Selected Fabric",
       price: productVal?.price || 0,
       image: productVal?.photos?.[0] || productVal?.image,
     };
     setFabricData(fabricInfo);
-    setIsCartSelectionModalOpen(true);
+
+    // If coming from style-first workflow, add directly to cart
+    if (fromStyleFirst) {
+      handleDirectAddToCartWithStyle(fabricInfo);
+    } else {
+      setIsCartSelectionModalOpen(true);
+    }
   };
 
   const handleDirectAddToCart = () => {
@@ -211,6 +247,72 @@ export default function ShopDetails() {
         setTimeout(() => {
           setIsSuccessModalOpen(false);
         }, 3000);
+      },
+    });
+  };
+
+  const handleDirectAddToCartWithStyle = (fabricInfo) => {
+    console.log("🛒 Starting cart addition process:", {
+      fabricInfo: fabricInfo,
+      styleData: styleData,
+      measurementData: measurementData,
+      fromStyleFirst: fromStyleFirst,
+      hasStyle: !!styleData,
+      hasMeasurement: !!measurementData,
+      styleId: styleData?.id,
+      styleName: styleData?.name,
+      measurementCount: measurementData?.length,
+    });
+
+    // Create combined payload with fabric, style, and measurements
+    const combinedPayload = {
+      ...fabricInfo,
+      style_product_id: styleData?.id || styleData?.product_id,
+      measurement: measurementData,
+    };
+
+    console.log("🔄 Adding fabric + style + measurements in single request:", {
+      combinedPayload: combinedPayload,
+      hasStyleProductId: !!combinedPayload.style_product_id,
+      hasMeasurement: !!combinedPayload.measurement,
+    });
+
+    // Validate required fields
+    if (!combinedPayload.style_product_id) {
+      console.error("❌ Missing style_product_id:", {
+        styleData: styleData,
+        styleDataId: styleData?.id,
+        styleDataProductId: styleData?.product_id,
+      });
+      setIsSuccessModalOpen(true);
+      setTimeout(() => {
+        setIsSuccessModalOpen(false);
+      }, 3000);
+      return;
+    }
+
+    // Add everything to cart in a single request
+    addCartMutate(combinedPayload, {
+      onSuccess: (data) => {
+        console.log("✅ SUCCESS: Fabric + Style + Measurements added to cart");
+        console.log("📦 Full cart response:", data);
+        console.log("📦 Response data structure:", data?.data);
+
+        setIsSuccessModalOpen(true);
+
+        // Clear localStorage after successful cart addition
+        localStorage.removeItem("selected_style");
+        localStorage.removeItem("measurement_data");
+
+        // Auto-hide success modal after 3 seconds
+        setTimeout(() => {
+          setIsSuccessModalOpen(false);
+        }, 3000);
+      },
+      onError: (error) => {
+        console.error("❌ FAILED: Error adding to cart:", error);
+        console.error("❌ Error details:", error?.response?.data);
+        console.error("❌ Full error object:", error);
       },
     });
   };
@@ -317,6 +419,36 @@ export default function ShopDetails() {
 
             {/* Details Section - Enhanced layout */}
             <div className="space-y-6">
+              {/* Style Information - Show when coming from style-first workflow */}
+              {fromStyleFirst && styleData && (
+                <div className="bg-[#FFF2FF] p-4 rounded-lg border border-purple-200">
+                  <h2 className="text-sm font-medium text-gray-500 mb-4 uppercase tracking-wide">
+                    Selected Style
+                  </h2>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex-shrink-0">
+                      <img
+                        src={styleData?.style?.photos?.[0] || styleData?.image}
+                        alt="selected style"
+                        className="w-16 h-16 rounded-lg object-cover border border-gray-200"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900">
+                        {styleData?.name}
+                      </h3>
+                      <p className="text-sm text-gray-600 mt-1">
+                        X 1 Piece • {measurementData?.length || 0} Measurement
+                        {measurementData?.length !== 1 ? "s" : ""}
+                      </p>
+                      <p className="text-sm font-medium text-purple-600 mt-1">
+                        ₦{styleData?.price?.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Product Title and Price */}
               <div className="space-y-3">
                 <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">
@@ -486,9 +618,12 @@ export default function ShopDetails() {
                       : "w-full flex items-center justify-center space-x-3 py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 bg-gradient text-white hover:bg-purple-700 hover:shadow-lg transform hover:-translate-y-0.5"
                   }
                 >
-                  <ShoppingCart size={20} />
                   <span>
-                    {addCartPending ? "Adding to Cart..." : "Add To Cart"}
+                    {addCartPending
+                      ? "Adding to Cart..."
+                      : fromStyleFirst
+                        ? "Add Fabric & Style to Cart"
+                        : "Add To Cart"}
                   </span>
                 </button>
 
@@ -512,13 +647,16 @@ export default function ShopDetails() {
               </div>
 
               {/* Modals */}
-              <CartSelectionModal
-                isOpen={isCartSelectionModalOpen}
-                onClose={() => setIsCartSelectionModalOpen(false)}
-                onAddToCart={handleDirectAddToCart}
-                onSelectStyles={handleSelectStylesFirst}
-                isPending={addCartPending}
-              />
+              {/* Cart Selection Modal - Only show for fabric-first workflow */}
+              {!fromStyleFirst && (
+                <CartSelectionModal
+                  isOpen={isCartSelectionModalOpen}
+                  onClose={() => setIsCartSelectionModalOpen(false)}
+                  onAddToCart={handleDirectAddToCart}
+                  onSelectStyles={handleSelectStylesFirst}
+                  isPending={addCartPending}
+                />
+              )}
 
               {/* Success Modal */}
               {isSuccessModalOpen && (

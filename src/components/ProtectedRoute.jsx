@@ -30,17 +30,26 @@ const ProtectedRoute = ({ children, isAdminRoute = false }) => {
 
         // If access token is expired but refresh token is valid, try to refresh
         if (sessionManager.isTokenExpired()) {
-          console.log(
-            "🔄 ProtectedRoute: Access token expired, attempting refresh",
-          );
+          console.log("🔄 ProtectedRoute: Access token expired, refreshing...");
 
-          const refreshSuccess = await sessionManager.refreshAccessToken();
+          try {
+            const refreshSuccess = await sessionManager.refreshAccessToken();
 
-          if (!refreshSuccess) {
-            console.log(
-              "❌ ProtectedRoute: Refresh failed, redirecting to login",
+            if (!refreshSuccess) {
+              console.log(
+                "❌ ProtectedRoute: Refresh failed, redirecting to login",
+              );
+              sessionManager.handleSessionExpiry();
+              setIsAuthenticated(false);
+              setIsChecking(false);
+              return;
+            }
+          } catch (refreshError) {
+            console.error(
+              "❌ ProtectedRoute: Token refresh error:",
+              refreshError,
             );
-            sessionManager.handleSessionExpiry();
+            sessionManager.performLogout();
             setIsAuthenticated(false);
             setIsChecking(false);
             return;
@@ -72,6 +81,7 @@ const ProtectedRoute = ({ children, isAdminRoute = false }) => {
   // Redirect to appropriate login page if not authenticated
   if (!isAuthenticated) {
     const loginPath = isAdminRoute ? "/admin/login" : "/login";
+    console.log("🔐 ProtectedRoute: Redirecting to login:", loginPath);
     return <Navigate to={loginPath} replace state={{ from: location }} />;
   }
 

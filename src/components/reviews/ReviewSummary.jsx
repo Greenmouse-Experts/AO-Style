@@ -5,7 +5,11 @@ import useGetProductAverageRating from "../../hooks/reviews/useGetProductAverage
 import useGetProductReviews from "../../hooks/reviews/useGetProductReviews";
 import LoaderComponent from "../BeatLoader";
 
-const ReviewSummary = ({ productId, className = "" }) => {
+const ReviewSummary = ({
+  productId,
+  className = "",
+  showEmptyState = true,
+}) => {
   const {
     averageRating,
     totalReviews,
@@ -46,6 +50,9 @@ const ReviewSummary = ({ productId, className = "" }) => {
   }
 
   if (totalReviews === 0) {
+    if (!showEmptyState) {
+      return null;
+    }
     return (
       <div className={`bg-gray-50 rounded-lg p-6 text-center ${className}`}>
         <Star size={48} className="mx-auto text-gray-300 mb-4" />

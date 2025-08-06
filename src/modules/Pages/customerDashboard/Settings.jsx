@@ -106,6 +106,8 @@ const Settings = () => {
     waist_circumference_unit_upper:
       carybinUser?.profile?.measurement?.upper_body?.waist_circumference_unit ??
       "",
+    latitude: carybinUser?.profile?.coordinates?.latitude ?? "",
+    longitude: carybinUser?.profile?.coordinates?.longitude ?? "",
   };
 
   const { isPending, uploadImageMutate } = useUploadImage();
@@ -130,7 +132,12 @@ const Settings = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      console.log(val);
+      console.log("Form submission values:", val);
+      console.log("Coordinates being sent:", {
+        latitude: val.latitude,
+        longitude: val.longitude,
+        hasCoordinates: !!(val.latitude && val.longitude),
+      });
       if (!navigator.onLine) {
         toastError("No internet connection. Please check your network.");
         return;

@@ -12,6 +12,7 @@ import {
   useStates,
 } from "../../../../hooks/location/useGetCountries";
 import useToast from "../../../../hooks/useToast";
+import { usePlacesWidget } from "react-google-autocomplete";
 
 const KYCVerificationUpdate = () => {
   const { data } = useGetKyc();
@@ -32,9 +33,7 @@ const KYCVerificationUpdate = () => {
     doc_back_name: "",
     utility_doc: kycInfo?.utility_doc ?? null,
     utility_upload: null,
-
     utility_doc_name: null,
-
     location: kycInfo?.location ?? "",
     state: kycInfo?.state ?? "",
     city: kycInfo?.city ?? "",
@@ -108,7 +107,7 @@ const KYCVerificationUpdate = () => {
           onSuccess: () => {
             resetForm();
           },
-        }
+        },
       );
     },
   });
@@ -117,6 +116,18 @@ const KYCVerificationUpdate = () => {
 
   const statesOptions =
     states?.map((c) => ({ label: c.name, value: c.name })) || [];
+  const { ref } = usePlacesWidget({
+    apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
+    onPlaceSelected: (place) => {
+      setFieldValue("address", place.formatted_address);
+      setFieldValue("latitude", place.geometry?.location?.lat().toString());
+      setFieldValue("longitude", place.geometry?.location?.lng().toString());
+    },
+    options: {
+      componentRestrictions: { country: "ng" },
+      types: [],
+    },
+  });
 
   return (
     <div className="rounded-lg">
@@ -344,14 +355,14 @@ const KYCVerificationUpdate = () => {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="flex *:w-full">
           <div>
             <label className="block text-gray-700 mb-2">Country</label>
             <Select
               options={countriesOptions}
               name="country"
               value={countriesOptions?.find(
-                (opt) => opt.value === values.country
+                (opt) => opt.value === values.country,
               )}
               onChange={(selectedOption) => {
                 setFieldValue("country", selectedOption.value);
@@ -379,81 +390,33 @@ const KYCVerificationUpdate = () => {
               }}
             />{" "}
           </div>
-
-          <div>
-            <label className="block text-gray-700 mb-2">State</label>
-            <Select
-              options={statesOptions}
-              name="state"
-              value={statesOptions?.find((opt) => opt.value === values.state)}
-              onChange={(selectedOption) =>
-                setFieldValue("state", selectedOption.value)
-              }
-              placeholder="Select"
-              className="p-2 w-full mb-6 border border-[#CCCCCC] outline-none rounded-lg"
-              styles={{
-                control: (base, state) => ({
-                  ...base,
-                  border: "none",
-                  boxShadow: "none",
-                  outline: "none",
-                  backgroundColor: "#fff",
-                  "&:hover": {
-                    border: "none",
-                  },
-                }),
-                indicatorSeparator: () => ({
-                  display: "none",
-                }),
-                menu: (base) => ({
-                  ...base,
-                  zIndex: 9999,
-                }),
-              }}
-            />{" "}
-          </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-gray-700 mb-2">City</label>
-            <input
-              type="text"
-              name={"city"}
-              required
-              value={values.city}
-              onChange={(e) => {
-                const city = e.target.value;
-
-                if (city === "") {
-                  setFieldValue("city", "");
-                  return;
-                }
-
-                const validChars = /^[a-zA-Z\s\-']*$/;
-                if (!validChars.test(city)) return;
-
-                const onlySpecialOrNumeric = /^[^a-zA-Z]*$/;
-                if (onlySpecialOrNumeric.test(city)) return;
-
-                setFieldValue("city", city);
-              }}
-              className="mb-6 w-full p-4  border border-[#CCCCCC] outline-none rounded-lg text-sm"
-              placeholder="City"
-            />
-          </div>
-
-          <div>
-            <label className="block text-gray-700 mb-2">Business Address</label>
-            <input
-              type="text"
-              name="location"
-              required
-              value={values.location}
-              onChange={handleChange}
-              className="mb-6 w-full p-4 border border-[#CCCCCC] outline-none rounded-lg text-sm"
-              placeholder="Address"
-            />
-          </div>
+        <div className="flex flex-col w-full  ">
+          <label className="block text-gray-700 mb-2">Business Address</label>
+          {/* <input
+            type="text"
+            name="location"
+            required
+            value={values.location}
+            onChange={handleChange}
+            className="mb-6 w-full p-4 border border-[#CCCCCC] outline-none rounded-lg text-sm"
+            placeholder="Address"
+          />*/}
+          <input
+            type="text"
+            ref={ref}
+            className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+            placeholder="Enter full detailed address"
+            required
+            name="address"
+            maxLength={150}
+            onChange={(e) => {
+              setFieldValue("address", e.currentTarget.value);
+              // setFieldValue("latitude", "");
+              // setFieldValue("longitude", "");
+            }}
+            value={values.address}
+          />
         </div>
         {/* Buttons */}
         <div className="flex flex-col sm:flex-row gap-4">

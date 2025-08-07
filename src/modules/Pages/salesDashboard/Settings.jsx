@@ -26,7 +26,7 @@ const Settings = () => {
   const [activeTab, setActiveTab] = useState("personalDetails");
   const [bodyTab, setBodyTab] = useState("upperBody");
   const [activeSection, setActiveSection] = useState(
-    q?.toUpperCase() ?? "Profile"
+    q?.toUpperCase() ?? "Profile",
   );
 
   const { carybinUser } = useCarybinUserStore();
@@ -84,7 +84,7 @@ const Settings = () => {
           onSuccess: () => {
             resetForm();
           },
-        }
+        },
       );
     },
   });
@@ -111,7 +111,7 @@ const Settings = () => {
               onSuccess: () => {
                 setProfileIsLoading(false);
               },
-            }
+            },
           );
         },
       });
@@ -323,81 +323,7 @@ const Settings = () => {
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-gray-700 mb-4">
-                          Country
-                        </label>
-                        <Select
-                          options={countriesOptions}
-                          name="country"
-                          value={countriesOptions?.find(
-                            (opt) => opt.value === values.country
-                          )}
-                          onChange={(selectedOption) => {
-                            setFieldValue("country", selectedOption.value);
-                          }}
-                          placeholder="Select"
-                          className="w-full p-2 border border-[#CCCCCC] outline-none rounded-lg"
-                          styles={{
-                            control: (base, state) => ({
-                              ...base,
-                              border: "none",
-                              boxShadow: "none",
-                              outline: "none",
-                              backgroundColor: "#fff",
-                              "&:hover": {
-                                border: "none",
-                              },
-                            }),
-                            indicatorSeparator: () => ({
-                              display: "none",
-                            }),
-                            menu: (base) => ({
-                              ...base,
-                              zIndex: 9999,
-                            }),
-                          }}
-                        />{" "}
-                      </div>
 
-                      <div>
-                        <label className="block text-gray-700 mb-4">
-                          State
-                        </label>
-                        <Select
-                          options={statesOptions}
-                          name="state"
-                          value={statesOptions?.find(
-                            (opt) => opt.value === values.state
-                          )}
-                          onChange={(selectedOption) => {
-                            setFieldValue("state", selectedOption.value);
-                          }}
-                          placeholder="Select"
-                          className="w-full p-2 border border-[#CCCCCC] outline-none rounded-lg"
-                          styles={{
-                            control: (base, state) => ({
-                              ...base,
-                              border: "none",
-                              boxShadow: "none",
-                              outline: "none",
-                              backgroundColor: "#fff",
-                              "&:hover": {
-                                border: "none",
-                              },
-                            }),
-                            indicatorSeparator: () => ({
-                              display: "none",
-                            }),
-                            menu: (base) => ({
-                              ...base,
-                              zIndex: 9999,
-                            }),
-                          }}
-                        />{" "}
-                      </div>
-                    </div>
                     <button
                       disabled={updateIsPending}
                       type="submit"
@@ -414,6 +340,7 @@ const Settings = () => {
           {activeSection === "KYC" && (
             <div className="">
               <KYCVerificationUpdate />
+              {/* <KYCVerification />*/}
             </div>
           )}
 

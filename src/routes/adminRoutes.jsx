@@ -50,6 +50,8 @@ import Coupons from "../modules/Pages/Coupons";
 import OrdersDetails from "../modules/Pages/tailorDashboard/OrdersDetails";
 
 import OrdersFabricDetails from "../modules/Pages/fabricDashboard/OrdersDetails";
+import ViewVendorOrders from "../modules/Pages/adminDashboard/order/ViewVendorOrders";
+import ViewTransaction from "../modules/Pages/adminDashboard/ViewTransaction";
 
 export const adminRoutes = [
   {
@@ -211,13 +213,17 @@ export const adminRoutes = [
         element: <Orders />,
       },
       {
-        path: "/admin/orders-details",
-        element: <OrderDetailsPage />,
+        path: "/admin/orders/vendor/:id",
+        element: <ViewVendorOrders />,
       },
       {
-        path: "/admin/orders-details",
+        path: "/admin/orders/order-details",
         element: <OrderDetailsPage />,
       },
+      // {
+      //   path: "/admin/orders-details",
+      //   element: <OrderDetailsPage />,
+      // },
       // Subscription Routes
       {
         path: "/admin/subscription",
@@ -231,6 +237,10 @@ export const adminRoutes = [
       {
         path: "/admin/transactions",
         element: <PaymentTransaction />,
+      },
+      {
+        path: "/admin/transactions/:id",
+        element: <ViewTransaction />,
       },
       {
         path: "/admin/notifications",

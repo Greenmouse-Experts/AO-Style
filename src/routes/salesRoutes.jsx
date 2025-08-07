@@ -9,6 +9,7 @@ import NotificationPages from "../modules/Pages/salesDashboard/NotificationPage"
 import SettingPages from "../modules/Pages/salesDashboard/Settings";
 import InboxPage from "../modules/Pages/salesDashboard/Inbox";
 import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
+import ViewVendorDetails from "../modules/Pages/salesDashboard/ViewVendorDetails";
 
 export const salesRoutes = [
   {
@@ -18,6 +19,10 @@ export const salesRoutes = [
       {
         index: true,
         element: <SalesDashboard />,
+      },
+      {
+        path: "/sales/view-vendor/:id",
+        element: <ViewVendorDetails />,
       },
       {
         path: "/sales/fabric-vendors",

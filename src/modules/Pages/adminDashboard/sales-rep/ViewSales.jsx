@@ -133,7 +133,7 @@ const ViewCustomer = () => {
   const filteredOrders = ordersData.filter(
     (order) =>
       (ordersFilter === "all" || order.status.toLowerCase() === ordersFilter) &&
-      order.orderId.toLowerCase().includes(searchTerm.toLowerCase())
+      order.orderId.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const catalogColumns = [
@@ -168,7 +168,7 @@ const ViewCustomer = () => {
               setOpenDropdown(
                 openDropdown === `catalog-${row.id}`
                   ? null
-                  : `catalog-${row.id}`
+                  : `catalog-${row.id}`,
               )
             }
             className="px-2 py-1 cursor-pointer rounded-md text-gray-600"
@@ -206,10 +206,10 @@ const ViewCustomer = () => {
             status === "Ongoing"
               ? "bg-yellow-100 text-yellow-700"
               : status === "Cancelled"
-              ? "bg-red-100 text-red-700"
-              : status === "Completed"
-              ? "bg-green-100 text-green-700"
-              : "bg-green-100 text-green-700"
+                ? "bg-red-100 text-red-700"
+                : status === "Completed"
+                  ? "bg-green-100 text-green-700"
+                  : "bg-green-100 text-green-700"
           }`}
         >
           {status}
@@ -226,7 +226,7 @@ const ViewCustomer = () => {
           <button
             onClick={() =>
               setOpenDropdown(
-                openDropdown === `order-${row.id}` ? null : `order-${row.id}`
+                openDropdown === `order-${row.id}` ? null : `order-${row.id}`,
               )
             }
             className="px-2 py-1 cursor-pointer rounded-md text-gray-600"
@@ -308,7 +308,7 @@ const ViewCustomer = () => {
                 setOpenDropdown(
                   openDropdown === `customer-${row.id}`
                     ? null
-                    : `customer-${row.id}`
+                    : `customer-${row.id}`,
                 )
               }
               className="px-2 py-1 z-[9999] cursor-pointer rounded-md text-gray-600"
@@ -325,6 +325,7 @@ const ViewCustomer = () => {
                       kyc: kycData ?? null,
                     },
                   }}
+                  // to={`/admin/tailors/view?tab=personal`}
                   to={`/admin/sales-rep/view?tab=personal`}
                 >
                   <button className="block cursor-pointer w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
@@ -345,7 +346,7 @@ const ViewCustomer = () => {
                             onSuccess: () => {
                               navigate("/admin/sales-rep");
                             },
-                          }
+                          },
                         );
                       }}
                       className="block cursor-pointer w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
@@ -374,7 +375,7 @@ const ViewCustomer = () => {
         ),
       },
     ],
-    [openDropdown, businessData, isPending]
+    [openDropdown, businessData, isPending],
   );
 
   const customerData = React.useMemo(
@@ -394,7 +395,7 @@ const ViewCustomer = () => {
           : "",
       },
     ],
-    [userData, businessData]
+    [userData, businessData],
   );
 
   // Pagination for Catalog
@@ -402,7 +403,7 @@ const ViewCustomer = () => {
   const catalogStartIndex = (catalogPage - 1) * itemsPerPage;
   const catalogCurrentItems = filteredCatalog.slice(
     catalogStartIndex,
-    catalogStartIndex + itemsPerPage
+    catalogStartIndex + itemsPerPage,
   );
 
   // Pagination for Orders
@@ -410,7 +411,7 @@ const ViewCustomer = () => {
   const ordersStartIndex = (ordersPage - 1) * itemsPerPage;
   const ordersCurrentItems = filteredOrders.slice(
     ordersStartIndex,
-    ordersStartIndex + itemsPerPage
+    ordersStartIndex + itemsPerPage,
   );
 
   // Reset page when filter changes
@@ -549,7 +550,7 @@ const ViewCustomer = () => {
               <button
                 onClick={() =>
                   setCatalogPage((page) =>
-                    Math.min(page + 1, catalogTotalPages)
+                    Math.min(page + 1, catalogTotalPages),
                   )
                 }
                 disabled={catalogPage === catalogTotalPages}

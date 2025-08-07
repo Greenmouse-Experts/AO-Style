@@ -26,10 +26,16 @@ import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
 import useGetAdminManageFabricProduct from "../../../hooks/fabric/useGetManageFabric";
 import useToast from "../../../hooks/useToast";
+import CaryBinApi from "../../../services/CarybinBaseUrl";
+import { toast } from "react-toastify";
+import { useEffect } from "react";
 
 const ProductPage = () => {
   const { data: businessDetails } = useGetBusinessDetails();
   const location = useLocation();
+  useEffect(() => {
+    console.log(businessDetails, "details");
+  }, [businessDetails]);
 
   const isAdminFabricRoute = location.pathname === "/admin/fabrics-products";
 
@@ -38,18 +44,25 @@ const ProductPage = () => {
     "pagination[limit]": 10,
   });
 
-  const { data: getAllFabricData, isPending } = useGetFabricProduct({
+  const {
+    data: getAllFabricData,
+    isPending,
+    refetch,
+  } = useGetFabricProduct({
     type: "FABRIC",
     id: businessDetails?.data?.id,
     ...queryParams,
   });
 
-  const { data: getAllAdminFabricData, isPending: adminProductIsPending } =
-    useGetAdminFabricProduct({
-      type: "FABRIC",
-      id: businessDetails?.data?.id,
-      ...queryParams,
-    });
+  const {
+    data: getAllAdminFabricData,
+    isPending: adminProductIsPending,
+    refetch: adRefetch,
+  } = useGetAdminFabricProduct({
+    type: "FABRIC",
+    id: businessDetails?.data?.id,
+    ...queryParams,
+  });
 
   const [queryString, setQueryString] = useState(queryParams.q);
 
@@ -102,9 +115,12 @@ const ProductPage = () => {
             };
           })
         : [],
-    [updatedData]
+    [updatedData],
   );
-
+  let admin_id = businessDetails?.data?.user_id;
+  // const admin_data =  FabricData.map((item)=> )
+  const admin_data =
+    FabricData.filter((item) => item.creator_id == admin_id) || [];
   const { isPending: deleteIsPending, deleteFabricMutate } = useDeleteFabric();
 
   const { isPending: deleteAdminIsPending, deleteAdminFabricMutate } =
@@ -147,8 +163,8 @@ const ProductPage = () => {
               status === "PUBLISHED"
                 ? "bg-green-100 text-green-700"
                 : status === "Cancelled"
-                ? "bg-red-100 text-red-700"
-                : "bg-yellow-100 text-yellow-700"
+                  ? "bg-red-100 text-red-700"
+                  : "bg-yellow-100 text-yellow-700"
             }`}
           >
             {status}
@@ -187,7 +203,7 @@ const ProductPage = () => {
                             onSuccess: () => {
                               setOpenDropdown(null);
                             },
-                          }
+                          },
                         );
                       } else {
                         updateFabricMutate(
@@ -205,7 +221,7 @@ const ProductPage = () => {
                             onSuccess: () => {
                               setOpenDropdown(null);
                             },
-                          }
+                          },
                         );
                       }
                     }}
@@ -216,54 +232,7 @@ const ProductPage = () => {
                       : "Publish Product"}
                   </button>
                 ) : null}
-                {row?.status === "PUBLISHED" ? (
-                  <button
-                    onClick={() => {
-                      if (isAdminFabricRoute) {
-                        updateAdminFabricMutate(
-                          {
-                            id: row?.id,
-                            product: {
-                              name: row?.name,
-                              sku: row?.sku,
-                              category_id: row?.category_id,
-                              status: "DRAFT",
-                              approval_status: "DRAFT",
-                            },
-                          },
-                          {
-                            onSuccess: () => {
-                              setOpenDropdown(null);
-                            },
-                          }
-                        );
-                      } else {
-                        updateFabricMutate(
-                          {
-                            id: row?.id,
-                            business_id: businessDetails?.data?.id,
-                            product: {
-                              name: row?.name,
-                              sku: row?.sku,
-                              category_id: row?.category_id,
-                              status: "DRAFT",
-                            },
-                          },
-                          {
-                            onSuccess: () => {
-                              setOpenDropdown(null);
-                            },
-                          }
-                        );
-                      }
-                    }}
-                    className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
-                  >
-                    {updateIsPending || updateAdminIsPending
-                      ? "Please wait"
-                      : "Draft Product"}
-                  </button>
-                ) : null}
+
                 {!isAdminFabricRoute || isAdminFabricRoute ? (
                   <Link
                     state={{ info: row }}
@@ -291,7 +260,66 @@ const ProductPage = () => {
                     {"Edit Product"}
                   </Link>
                 )}
-
+                {/* <button
+                  onClick={(e) => {
+                    console.log(row, admin_id, businessDetails.data);
+                  }}
+                >
+                  log{" "}
+                </button>*/}
+                {isAdminFabricRoute && row.creator_id == admin_id && (
+                  <>
+                    <button
+                      onClick={async (e) => {
+                        try {
+                          toast.promise(
+                            async () => {
+                              let resp = await CaryBinApi.patch(
+                                "/fabric/" + row.id,
+                                {
+                                  product: {
+                                    status:
+                                      row.status == "PUBLISHED"
+                                        ? "ARCHIVED"
+                                        : "PUBLISHED",
+                                  },
+                                },
+                                {
+                                  headers: {
+                                    "Business-Id": businessDetails.data.id,
+                                  },
+                                },
+                              ).catch((err) => {
+                                console.log(err.data);
+                              });
+                              refetch();
+                              adRefetch();
+                              return resp.data;
+                            },
+                            {
+                              pending: "unpublishing",
+                              error: "failed",
+                              success: "success",
+                            },
+                          );
+                          // return resp.data;
+                        } catch (err) {
+                          console.log(err.data);
+                        }
+                      }}
+                      className="block cursor-pointer text-center px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
+                    >
+                      {row.status == "PUBLISHED" ? "Unpublish" : "publish"}
+                    </button>
+                    <Link
+                      state={{ info: row }}
+                      to={"/admin/fabric/edit-product"}
+                      className="block cursor-pointer text-center px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
+                    >
+                      Edit Product
+                    </Link>
+                  </>
+                )}
                 <button
                   onClick={() => {
                     setNewCategory(row);
@@ -308,13 +336,13 @@ const ProductPage = () => {
         ),
       },
     ],
-    [openDropdown, toggleDropdown]
+    [openDropdown, toggleDropdown],
   );
 
   const [newCategory, setNewCategory] = useState();
 
   const totalPages = Math.ceil(
-    updatedData?.count / (queryParams["pagination[limit]"] ?? 10)
+    updatedData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
   const handleExport = (e) => {
@@ -361,7 +389,6 @@ const ProductPage = () => {
   };
 
   const { toastError } = useToast();
-
   return (
     <>
       <div className="bg-white px-4 sm:px-6 py-4 mb-6 relative">
@@ -371,8 +398,8 @@ const ProductPage = () => {
             {!isAdminFabricRoute
               ? "My Products"
               : currProd == "all"
-              ? "All Products"
-              : ""}
+                ? "All Products"
+                : ""}
           </h1>
 
           {!isAdminFabricRoute ? (
@@ -425,7 +452,7 @@ const ProductPage = () => {
                     : "text-gray-500"
                 }`}
               >
-                {tab == "all" ? "All" : tab} Products
+                {tab == "all" ? "All" : tab} Product
               </button>
             ))}{" "}
           </div>
@@ -468,7 +495,7 @@ const ProductPage = () => {
                     : "text-gray-500"
                 }`}
               >
-                {tab} Products
+                {tab} Product
               </button>
             ))}
           </div>
@@ -485,7 +512,7 @@ const ProductPage = () => {
                 value={queryString}
                 onChange={(evt) =>
                   setQueryString(
-                    evt.target.value ? evt.target.value : undefined
+                    evt.target.value ? evt.target.value : undefined,
                   )
                 }
                 className="pl-10 pr-4 py-2 border border-gray-200 rounded-md outline-none w-full sm:w-64"
@@ -529,12 +556,19 @@ const ProductPage = () => {
           data={currProd == "all" ? FabricData : []}
         />
         {!FabricData?.length &&
-        !(isAdminFabricRoute ? adminProductIsPending : isPending) ? (
+        (isAdminFabricRoute ? adminProductIsPending : isPending) ? (
           <p className="flex-1 text-center text-sm md:text-sm">
-            No product found.
+            No products found.
           </p>
         ) : (
-          <></>
+          <>
+            <ReusableTable
+              columns={columns}
+              loading={isAdminFabricRoute ? adminProductIsPending : isPending}
+              data={admin_data || []}
+              // data={currProd == "all" ? getAllAdminFabricData.data : []}
+            />
+          </>
         )}
       </div>
       {FabricData?.length ? (
@@ -613,7 +647,7 @@ const ProductPage = () => {
               onSubmit={(e) => {
                 if (!navigator.onLine) {
                   toastError(
-                    "No internet connection. Please check your network."
+                    "No internet connection. Please check your network.",
                   );
                   return;
                 }
@@ -628,7 +662,7 @@ const ProductPage = () => {
                         setIsAddModalOpen(false);
                         setNewCategory(null);
                       },
-                    }
+                    },
                   );
                 } else {
                   deleteFabricMutate(
@@ -641,7 +675,7 @@ const ProductPage = () => {
                         setIsAddModalOpen(false);
                         setNewCategory(null);
                       },
-                    }
+                    },
                   );
                 }
               }}

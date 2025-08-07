@@ -255,21 +255,19 @@ const Settings = () => {
         {/* Sidebar */}
         <div className="w-full md:w-1/5 bg-white md:mb-0 mb-6 h-fit p-4 rounded-lg">
           <ul className="space-y-2 text-gray-600">
-            {["Profile", "KYC Verification", "Bank Details", "Security"].map(
-              (item) => (
-                <li
-                  key={item}
-                  className={`cursor-pointer px-4 py-3 rounded-lg transition-colors duration-300 ${
-                    activeSection === item
-                      ? "font-medium text-purple-600 bg-purple-100"
-                      : "hover:text-purple-600"
-                  }`}
-                  onClick={() => setActiveSection(item)}
-                >
-                  {item}
-                </li>
-              ),
-            )}
+            {["Profile", "Bank Details", "Security"].map((item) => (
+              <li
+                key={item}
+                className={`cursor-pointer px-4 py-3 rounded-lg transition-colors duration-300 ${
+                  activeSection === item
+                    ? "font-medium text-purple-600 bg-purple-100"
+                    : "hover:text-purple-600"
+                }`}
+                onClick={() => setActiveSection(item)}
+              >
+                {item}
+              </li>
+            ))}
           </ul>
         </div>
 
@@ -967,12 +965,12 @@ const Settings = () => {
             </div>
           )}
 
-          {activeSection === "KYC Verification" && (
+          {/* {activeSection === "KYC Verification" && (
             <div>
               <h2 className="text-xl font-medium mb-4">KYC Verification</h2>
               <KYCVerificationUpdate />
             </div>
-          )}
+          )}*/}
 
           {activeSection === "Bank Details" && (
             <div>

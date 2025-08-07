@@ -12,6 +12,7 @@ import useFetchAllCartTransactions from "../../../hooks/admin/useFetchAllCartTra
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 import { formatDateStr } from "../../../lib/helper";
 import { Link, useNavigate } from "react-router-dom";
+import SalesRevenueChart from "./components/RegisterChart";
 
 const PaymentTransactionTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -443,7 +444,7 @@ const PaymentTransactionTable = () => {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
         <div className="lg:col-span-2 flex flex-col">
-          <RegisterChart />
+          <SalesRevenueChart />
         </div>
         <div className="lg:col-span-1">
           <SalesSummaryChart />

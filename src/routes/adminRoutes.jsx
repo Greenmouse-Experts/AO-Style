@@ -51,6 +51,7 @@ import OrdersDetails from "../modules/Pages/tailorDashboard/OrdersDetails";
 
 import OrdersFabricDetails from "../modules/Pages/fabricDashboard/OrdersDetails";
 import ViewVendorOrders from "../modules/Pages/adminDashboard/order/ViewVendorOrders";
+import ViewTransaction from "../modules/Pages/adminDashboard/ViewTransaction";
 
 export const adminRoutes = [
   {
@@ -236,6 +237,10 @@ export const adminRoutes = [
       {
         path: "/admin/transactions",
         element: <PaymentTransaction />,
+      },
+      {
+        path: "/admin/transactions/:id",
+        element: <ViewTransaction />,
       },
       {
         path: "/admin/notifications",

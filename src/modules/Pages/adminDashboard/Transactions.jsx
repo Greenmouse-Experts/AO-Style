@@ -11,6 +11,7 @@ import useQueryParams from "../../../hooks/useQueryParams";
 import useFetchAllCartTransactions from "../../../hooks/admin/useFetchAllCartTransactions";
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 import { formatDateStr } from "../../../lib/helper";
+import { Link, useNavigate } from "react-router-dom";
 
 const PaymentTransactionTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -37,8 +38,6 @@ const PaymentTransactionTable = () => {
       ...queryParams,
     });
 
-  console.log(getAllTransactionData, "console.log");
-
   useUpdatedEffect(() => {
     // update search params with undefined if debouncedSearchTerm is an empty string
     updateQueryParams({
@@ -48,9 +47,11 @@ const PaymentTransactionTable = () => {
   }, [debouncedSearchTerm]);
 
   const totalTransactionPages = Math.ceil(
-    getAllTransactionData?.count / (queryParams["pagination[limit]"] ?? 10)
+    getAllTransactionData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
-
+  useEffect(() => {
+    console.log(getAllTransactionData, "data");
+  }, []);
   const data = [
     {
       id: 1,
@@ -105,7 +106,7 @@ const PaymentTransactionTable = () => {
   ];
 
   const tabs = ["All Transactions", "Income", "Payouts"];
-
+  const navigate = useNavigate();
   const columns = useMemo(
     () => [
       {
@@ -117,7 +118,7 @@ const PaymentTransactionTable = () => {
               const newSelectAll = e.target.checked;
               setSelectAll(newSelectAll);
               const newSelected = new Set(
-                newSelectAll ? data.map((item) => item.id) : []
+                newSelectAll ? data.map((item) => item.id) : [],
               );
               setSelectedRows(newSelected);
             }}
@@ -203,15 +204,23 @@ const PaymentTransactionTable = () => {
             </button>
             {openDropdown === row.id && (
               <div className="absolute right-0 mt-2 w-40 bg-white rounded-md z-10 shadow-lg">
-                <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
-                  View Details
-                </button>
-                <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
-                  Edit Transaction
-                </button>
-                <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">
-                  Remove Transaction
-                </button>
+                <>
+                  <button
+                    onMouseDown={() => {
+                      navigate("/admin/transactions/" + row.id);
+                    }}
+                    // to={"/admin/transactions/" + row.id}
+                    className="p-2 w-full"
+                  >
+                    View Details
+                  </button>
+                  <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
+                    Edit Transaction
+                  </button>
+                  <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">
+                    Remove Transaction
+                  </button>
+                </>
               </div>
             )}
           </div>
@@ -219,7 +228,7 @@ const PaymentTransactionTable = () => {
         className: "text-gray-500 font-medium text-sm py-4 w-20",
       },
     ],
-    [selectAll, selectedRows, getAllTransactionData?.data, openDropdown]
+    [selectAll, selectedRows, getAllTransactionData?.data, openDropdown],
   );
 
   const toggleDropdown = (rowId) => {
@@ -230,7 +239,7 @@ const PaymentTransactionTable = () => {
     const matchesSearch = Object.values(transaction).some(
       (value) =>
         typeof value === "string" &&
-        value.toLowerCase().includes(searchTerm.toLowerCase())
+        value.toLowerCase().includes(searchTerm.toLowerCase()),
     );
     const matchesTab =
       activeTab === "All Transactions" ||
@@ -257,14 +266,14 @@ const PaymentTransactionTable = () => {
                 details?.created_at
                   ? formatDateStr(
                       details?.created_at.split(".").shift(),
-                      "DD MMM YYYY - hh:mm a"
+                      "DD MMM YYYY - hh:mm a",
                     )
                   : ""
               }`,
             };
           })
         : [],
-    [getAllTransactionData?.data]
+    [getAllTransactionData?.data],
   );
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -272,7 +281,7 @@ const PaymentTransactionTable = () => {
   const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
 
   const totalPages = Math.ceil(
-    getAllTransactionData?.count / (queryParams["pagination[limit]"] ?? 10)
+    getAllTransactionData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
   const handlePreviousPage = () => {
@@ -335,7 +344,7 @@ const PaymentTransactionTable = () => {
                 value={queryString}
                 onChange={(evt) =>
                   setQueryString(
-                    evt.target.value ? evt.target.value : undefined
+                    evt.target.value ? evt.target.value : undefined,
                   )
                 }
                 className="py-2 pl-10 pr-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
@@ -363,7 +372,7 @@ const PaymentTransactionTable = () => {
                 const newSelectAll = e.target.checked;
                 setSelectAll(newSelectAll);
                 const newSelected = new Set(
-                  newSelectAll ? data.map((item) => item.id) : []
+                  newSelectAll ? data.map((item) => item.id) : [],
                 );
                 setSelectedRows(newSelected);
               }}

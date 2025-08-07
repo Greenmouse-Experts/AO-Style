@@ -7,7 +7,7 @@ const useRemoveCoupon = () => {
   const { toastError, toastSuccess } = useToast();
 
   const { isPending, mutate: removeCouponMutate } = useMutation({
-    mutationFn: () => CartService.removeCoupon(),
+    mutationFn: (payload) => CartService.removeCoupon(payload),
     mutationKey: ["remove-coupon"],
     onSuccess(data) {
       toastSuccess(data?.data?.message || "Coupon removed successfully");

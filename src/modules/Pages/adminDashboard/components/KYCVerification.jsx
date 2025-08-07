@@ -419,32 +419,9 @@ const KYCVerificationUpdate = () => {
             name="location"
             maxLength={150}
             onChange={(e) => {
-              let place = e.currentTarget.value;
-              console.log(place);
-              const components = place.address_components;
-              const country = getAddressComponent(components, "country");
-              const state = getAddressComponent(
-                components,
-                "administrative_area_level_1",
-              );
-              const city = getAddressComponent(components, "locality");
-
-              setFieldValue("address", place.formatted_address);
-              setFieldValue("location", place.formatted_address);
-              setFieldValue(
-                "latitude",
-                place.geometry?.location?.lat().toString(),
-              );
-              setFieldValue(
-                "longitude",
-                place.geometry?.location?.lng().toString(),
-              );
-              setFieldValue("country", country);
-              setFieldValue("state", state);
-              setFieldValue("city", city);
-              // setFieldValue("address", e.currentTarget.value);
-              // setFieldValue("latitude", "");
-              // setFieldValue("longitude", "");
+              setFieldValue("address", e.currentTarget.value);
+              setFieldValue("latitude", "");
+              setFieldValue("longitude", "");
             }}
             value={values.address}
           />

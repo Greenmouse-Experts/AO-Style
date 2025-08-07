@@ -17,7 +17,7 @@ import useCreateBilling from "../../hooks/billing/useCreateBilling";
 import useApplyCoupon from "../../hooks/cart/useApplyCoupon";
 import useGetDeliveryFee from "../../hooks/delivery/useGetDeleiveryFee";
 import useUpdateCartItem from "../../hooks/cart/useUpdateCartItem";
-import useRemoveCoupon from "../../hooks/cart/useRemoveCoupon";
+
 import {
   X,
   Download,
@@ -47,6 +47,7 @@ const initialValues = {
 
 const CartPage = () => {
   const [coupon, setCoupon] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
@@ -63,8 +64,7 @@ const CartPage = () => {
     useUpdateCartItem();
   const { deleteCartMutate, isPending: deleteIsPending } = useDeleteCart();
   const { applyCouponMutate, isPending: applyCouponPending } = useApplyCoupon();
-  const { removeCouponMutate, isPending: removeCouponPending } =
-    useRemoveCoupon();
+
   const { createPaymentMutate, isPending: createPaymentPending } =
     useCreatePayment();
   const { createBillingMutate, isPending: billingPending } = useCreateBilling();
@@ -155,7 +155,7 @@ const CartPage = () => {
   const delivery_fee = deliveryData?.data?.data?.delivery_fee ?? 0;
   const estimatedVat = totals.subtotal * 0.075;
   const charges = totals.subtotal * 0.015;
-  const discountAmount = 0; // Will be updated when coupon is applied
+  const discountAmount = appliedCoupon?.discount || 0;
 
   const finalTotal =
     totals.subtotal + delivery_fee + estimatedVat - discountAmount;
@@ -275,7 +275,6 @@ const CartPage = () => {
           refetchCart();
           setIsDeleteModalOpen(false);
           setItemToDelete(null);
-          toastSuccess("Item removed from cart");
         },
         onError: (error) => {
           toastError("Failed to remove item");
@@ -289,38 +288,50 @@ const CartPage = () => {
   const handleApplyCoupon = () => {
     if (!coupon.trim()) return;
 
-    console.log("🛒 Applying coupon:", coupon);
-    applyCouponMutate(
-      {
-        coupon_code: coupon.trim(),
+    // Validate user email
+    if (!carybinUser?.email) {
+      toastError("Please login to apply coupon");
+      return;
+    }
+
+    const couponPayload = {
+      email: carybinUser.email,
+      code: coupon.trim(),
+      amount: totals.subtotal.toString(),
+    };
+
+    console.log("🛒 Applying coupon:", couponPayload);
+    applyCouponMutate(couponPayload, {
+      onSuccess: (data) => {
+        console.log("✅ Coupon applied successfully:", data?.data?.data);
+
+        // Store the applied coupon details
+        const couponData = data?.data?.data;
+        if (couponData) {
+          setAppliedCoupon({
+            id: couponData.id || coupon.trim(), // Use API ID or fallback to code
+            code: coupon.trim(),
+            discount: parseFloat(couponData.discount || 0),
+            discountedAmount: parseFloat(couponData.discountedAmount || 0),
+            message: data?.data?.message || "Coupon applied successfully",
+          });
+        }
+
+        refetchCart();
       },
-      {
-        onSuccess: (data) => {
-          refetchCart();
-          toastSuccess("Coupon applied successfully");
-        },
-        onError: (error) => {
-          toastError("Failed to apply coupon");
-          console.error("Coupon error:", error);
-        },
+      onError: (error) => {
+        toastError("Failed to apply coupon");
+        console.error("Coupon error:", error);
       },
-    );
+    });
   };
 
   // Handle coupon removal
   const handleRemoveCoupon = () => {
-    console.log("🛒 Removing coupon");
-    removeCouponMutate(undefined, {
-      onSuccess: () => {
-        refetchCart();
-        setCoupon("");
-        toastSuccess("Coupon removed");
-      },
-      onError: (error) => {
-        toastError("Failed to remove coupon");
-        console.error("Remove coupon error:", error);
-      },
-    });
+    console.log("🛒 Removing coupon - clearing state and restoring total");
+    setAppliedCoupon(null);
+    setCoupon("");
+    toastSuccess("Coupon removed successfully");
   };
 
   // Payment with Paystack
@@ -425,7 +436,7 @@ const CartPage = () => {
       delivery_fee: delivery_fee,
       vat_amount: estimatedVat,
       total_amount: finalTotal,
-      coupon_code: coupon || undefined,
+      coupon_code: appliedCoupon?.code || undefined,
     };
 
     console.log("🧾 Creating billing with enhanced data:", billingData);
@@ -445,7 +456,7 @@ const CartPage = () => {
           purchases,
           amount: Math.round(finalTotal),
           currency: "NGN",
-          coupon_code: coupon || undefined,
+          coupon_code: appliedCoupon?.code || undefined,
           email: carybinUser?.email,
           subtotal: totals.subtotal,
           delivery_fee: delivery_fee,
@@ -941,32 +952,64 @@ const CartPage = () => {
                   </h2>
 
                   {/* Coupon Section */}
-                  <div className="mb-6 space-y-3">
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={coupon}
-                        onChange={(e) => setCoupon(e.target.value)}
-                        placeholder="Enter coupon code"
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 min-w-0"
-                      />
-                      <button
-                        onClick={handleApplyCoupon}
-                        disabled={!coupon.trim() || applyCouponPending}
-                        className="px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
-                      >
-                        {applyCouponPending ? "..." : "Apply"}
-                      </button>
-                    </div>
-
-                    {coupon && (
-                      <button
-                        onClick={handleRemoveCoupon}
-                        disabled={removeCouponPending}
-                        className="text-sm text-red-600 hover:text-red-800 font-medium"
-                      >
-                        Remove Coupon
-                      </button>
+                  <div className="mb-6">
+                    {!appliedCoupon ? (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 mb-2 block">
+                          Have a coupon code?
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={coupon}
+                            onChange={(e) => setCoupon(e.target.value)}
+                            placeholder="Enter coupon code"
+                            className="w-full px-3 py-2 pr-20 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          />
+                          <button
+                            onClick={handleApplyCoupon}
+                            disabled={!coupon.trim() || applyCouponPending}
+                            className="absolute right-1 top-1 bottom-1 px-3 bg-purple-600 text-white rounded text-xs font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            {applyCouponPending ? "..." : "Apply"}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                <svg
+                                  className="w-3 h-3 text-white"
+                                  fill="currentColor"
+                                  viewBox="0 0 8 8"
+                                >
+                                  <path d="M6.564.75l-3.59 3.612-1.538-1.55L0 4.26 2.974 7.25 8 2.193z" />
+                                </svg>
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium text-green-800">
+                                  Coupon "{appliedCoupon.code}" applied
+                                </div>
+                                <div className="text-sm text-green-600">
+                                  You saved ₦
+                                  {formatNumberWithCommas(
+                                    appliedCoupon.discount,
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <button
+                              onClick={handleRemoveCoupon}
+                              className="text-sm text-red-600 hover:text-red-800 font-medium px-2 py-1 hover:bg-red-50 rounded transition-colors"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     )}
                   </div>
 
@@ -1050,8 +1093,8 @@ const CartPage = () => {
                         delivery_fee: delivery_fee,
                         vat_amount: estimatedVat,
                         final_total: finalTotal,
-                        has_coupon: !!coupon,
-                        coupon_code: coupon,
+                        has_coupon: !!appliedCoupon,
+                        coupon_code: appliedCoupon?.code,
                         discount_amount: discountAmount,
                         user_email: carybinUser?.email,
                         policy_agreed: agreedToPolicy,
@@ -1292,11 +1335,11 @@ const CartPage = () => {
                       <span>₦{formatNumberWithCommas(totals.subtotal)}</span>
                     </div>
 
-                    {discountAmount > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span>Discount {coupon && `(${coupon})`}</span>
-                        <span className="text-green-600">
-                          -₦{formatNumberWithCommas(discountAmount)}
+                    {appliedCoupon && (
+                      <div className="flex justify-between text-sm text-green-600">
+                        <span>Coupon Discount ({appliedCoupon.code})</span>
+                        <span>
+                          -₦{formatNumberWithCommas(appliedCoupon.discount)}
                         </span>
                       </div>
                     )}
@@ -1486,7 +1529,217 @@ function CheckoutPolicyModal({ isOpen, onClose, agreementType = "checkout" }) {
                   </p>
                 </section>
 
-                {/* Add more sections as needed */}
+                <section className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    2. Order Process
+                  </h3>
+                  <ul className="list-disc list-inside space-y-2 ml-4 text-gray-700">
+                    <li>
+                      Orders are confirmed upon successful payment processing
+                    </li>
+                    <li>
+                      You will receive an order confirmation email within 24
+                      hours
+                    </li>
+                    <li>
+                      Order details cannot be modified after payment
+                      confirmation
+                    </li>
+                    <li>
+                      We reserve the right to cancel orders for any reason
+                    </li>
+                  </ul>
+                </section>
+
+                <section className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    3. Payment Terms
+                  </h3>
+                  <ul className="list-disc list-inside space-y-2 ml-4 text-gray-700">
+                    <li>
+                      All payments are processed securely through Paystack
+                    </li>
+                    <li>
+                      We accept major credit/debit cards and bank transfers
+                    </li>
+                    <li>
+                      Payment must be completed before order processing begins
+                    </li>
+                    <li>VAT and delivery fees are calculated at checkout</li>
+                    <li>All prices are in Nigerian Naira (NGN)</li>
+                  </ul>
+                </section>
+
+                <section className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    4. Delivery & Shipping
+                  </h3>
+                  <ul className="list-disc list-inside space-y-2 ml-4 text-gray-700">
+                    <li>
+                      Delivery timeframes vary by product type and location
+                    </li>
+                    <li>Custom tailoring orders may take 7-14 business days</li>
+                    <li>
+                      Fabric orders typically ship within 2-5 business days
+                    </li>
+                    <li>
+                      Delivery fees are calculated based on location and weight
+                    </li>
+                    <li>
+                      Customers are responsible for providing accurate delivery
+                      addresses
+                    </li>
+                  </ul>
+                </section>
+
+                <section className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    5. Returns & Refunds
+                  </h3>
+                  <ul className="list-disc list-inside space-y-2 ml-4 text-gray-700">
+                    <li>Custom-made items are generally non-refundable</li>
+                    <li>
+                      Fabric products may be returned within 7 days if unused
+                    </li>
+                    <li>Refunds are processed within 7-14 business days</li>
+                    <li>
+                      Return shipping costs are borne by the customer unless
+                      item is defective
+                    </li>
+                    <li>
+                      Damaged or incorrect items will be replaced or refunded at
+                      no cost
+                    </li>
+                  </ul>
+                </section>
+
+                <section className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    6. Quality Assurance
+                  </h3>
+                  <ul className="list-disc list-inside space-y-2 ml-4 text-gray-700">
+                    <li>All vendors are vetted for quality and reliability</li>
+                    <li>
+                      We maintain quality standards for all products and
+                      services
+                    </li>
+                    <li>
+                      Customer feedback is regularly monitored and addressed
+                    </li>
+                    <li>
+                      Dispute resolution process is available for quality issues
+                    </li>
+                  </ul>
+                </section>
+
+                <section className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    7. Customer Responsibilities
+                  </h3>
+                  <ul className="list-disc list-inside space-y-2 ml-4 text-gray-700">
+                    <li>Provide accurate measurements for custom tailoring</li>
+                    <li>Respond promptly to vendor communications</li>
+                    <li>
+                      Inspect deliveries upon receipt and report issues
+                      immediately
+                    </li>
+                    <li>
+                      Maintain account security and update contact information
+                    </li>
+                  </ul>
+                </section>
+
+                <section className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    8. Dispute Resolution
+                  </h3>
+                  <ul className="list-disc list-inside space-y-2 ml-4 text-gray-700">
+                    <li>First contact vendor directly for issue resolution</li>
+                    <li>
+                      Escalate to Carybin support if vendor resolution fails
+                    </li>
+                    <li>
+                      We provide mediation services for vendor-customer disputes
+                    </li>
+                    <li>
+                      Final decisions on disputes are at Carybin's discretion
+                    </li>
+                  </ul>
+                </section>
+
+                <section className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    9. Privacy & Data Protection
+                  </h3>
+                  <ul className="list-disc list-inside space-y-2 ml-4 text-gray-700">
+                    <li>
+                      Personal information is protected per our Privacy Policy
+                    </li>
+                    <li>
+                      Payment data is securely processed and not stored on our
+                      servers
+                    </li>
+                    <li>
+                      Order information may be shared with vendors for
+                      fulfillment
+                    </li>
+                    <li>
+                      Marketing communications can be opted out at any time
+                    </li>
+                  </ul>
+                </section>
+
+                <section className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    10. Platform Liability
+                  </h3>
+                  <ul className="list-disc list-inside space-y-2 ml-4 text-gray-700">
+                    <li>
+                      Carybin acts as an intermediary between customers and
+                      vendors
+                    </li>
+                    <li>
+                      We are not liable for vendor performance or product
+                      defects
+                    </li>
+                    <li>Our liability is limited to the transaction value</li>
+                    <li>Force majeure events are excluded from liability</li>
+                  </ul>
+                </section>
+
+                <section className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    11. Modifications
+                  </h3>
+                  <p className="text-gray-700 leading-relaxed">
+                    Carybin reserves the right to modify these terms at any
+                    time. Customers will be notified of significant changes via
+                    email or platform notifications. Continued use of the
+                    platform constitutes acceptance of modified terms.
+                  </p>
+                </section>
+
+                <section className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    12. Contact Information
+                  </h3>
+                  <div className="text-gray-700 leading-relaxed">
+                    <p className="mb-2">
+                      <strong>Carybin Limited</strong>
+                    </p>
+                    <p className="mb-2">Email: support@carybin.com</p>
+                    <p className="mb-2">Phone: +234 (0) 123 456 7890</p>
+                    <p className="mb-2">Website: www.carybin.com</p>
+                  </div>
+                </section>
+
+                <div className="text-center p-4 bg-purple-50 rounded-lg">
+                  <p className="text-sm text-purple-700 font-medium">
+                    By proceeding with checkout, you acknowledge that you have
+                    read, understood, and agree to be bound by these terms and
+                    conditions.
+                  </p>
+                </div>
               </>
             ) : null}
           </div>

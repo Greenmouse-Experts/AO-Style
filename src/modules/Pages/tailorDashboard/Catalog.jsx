@@ -453,7 +453,7 @@ export default function StylesTable() {
                                               product: {
                                                 status:
                                                   style.status == "PUBLISHED"
-                                                    ? "ARCHIVED"
+                                                    ? "DRAFT"
                                                     : "PUBLISHED",
                                               },
                                               style: {},
@@ -480,6 +480,45 @@ export default function StylesTable() {
                                       ? "Unpublish"
                                       : "publish"}
                                   </button>
+                                  {style.status != "ARCHIVED" && (
+                                    <>
+                                      {" "}
+                                      <button
+                                        onClick={async (e) => {
+                                          let buisnss_id = businessDetails.data;
+                                          toast.promise(
+                                            async () => {
+                                              let resp = await CaryBinApi.patch(
+                                                "/style/" + style.id,
+                                                {
+                                                  product: {
+                                                    status: "ARCHIVED",
+                                                  },
+                                                  style: {},
+                                                },
+                                                {
+                                                  headers: {
+                                                    "Business-Id":
+                                                      buisnss_id.id,
+                                                  },
+                                                },
+                                              );
+                                              refetch();
+                                              return resp.data;
+                                            },
+                                            {
+                                              pending: "pending",
+                                              success: "updated",
+                                              error: "error",
+                                            },
+                                          );
+                                        }}
+                                        className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
+                                      >
+                                        Archive
+                                      </button>
+                                    </>
+                                  )}
                                   <Link
                                     state={{ info: style }}
                                     to={"/admin/style/edit-product"}

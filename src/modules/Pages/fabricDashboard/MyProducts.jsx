@@ -280,7 +280,7 @@ const ProductPage = () => {
                                   product: {
                                     status:
                                       row.status == "PUBLISHED"
-                                        ? "ARCHIVED"
+                                        ? "DRAFT"
                                         : "PUBLISHED",
                                   },
                                 },

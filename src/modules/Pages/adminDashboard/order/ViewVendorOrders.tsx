@@ -1,23 +1,58 @@
-import { useState, useRef, useEffect } from "react";
-import ReusableTable from "../components/ReusableTable";
-import OrdersSummary from "../components/OrdersSummary";
-import { Link } from "react-router-dom";
-import useGetOrder from "../../../../hooks/order/useGetOrder";
-import Loader from "../../../../components/ui/Loader";
-import { formatDateStr } from "../../../../lib/helper";
-import ReviewList from "../../../../components/reviews/ReviewList";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation, useParams } from "react-router-dom";
 import CaryBinApi from "../../../../services/CarybinBaseUrl";
+import { Loader } from "lucide-react";
+import ReusableTable from "../components/ReusableTable";
+import { Link } from "react-router-dom";
+import { useRef, useState } from "react";
+import { formatDateStr } from "../../../../lib/helper";
+import { useTempStore } from "../../../../store/useTempStore";
 
-const OrdersTable = () => {
+interface VendorDataType {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  alternative_phone: string | null;
+  is_email_verified: boolean;
+  is_phone_verified: boolean;
+  created_at: string;
+  updated_at: string;
+  role: { name: string; role_id: string };
+  admin_role: null;
+  profile: {
+    bio: string | null;
+    address: string;
+    profile_picture: string | null;
+    gender: string | null;
+    date_of_birth: string | null;
+    approved_by_admin: string | null;
+  };
+  business_contacts: [];
+  location: string;
+  dateJoined: string;
+}
+export default function ViewVendorOrders() {
+  const { id } = useParams();
+  const location = useLocation();
   const [openDropdown, setOpenDropdown] = useState(null);
   const dropdownRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [activeReviewModal, setActiveReviewModal] = useState(null);
+  const user = useTempStore((state) => state.user) as unknown as VendorDataType;
 
-  const { isPending: ordersLoading, data: ordersResponse } = useGetOrder();
+  const order_query = useQuery({
+    queryKey: [id, "vendor_orders"],
+    queryFn: async () => {
+      let resp = await CaryBinApi.get(
+        `/orders/fetch-vendor-orders?user_id=${id}`,
+      );
+      console.log(resp.data?.data);
+      return resp.data;
+    },
+  });
   const columns = [
     {
       label: "Customer",
@@ -96,7 +131,6 @@ const OrdersTable = () => {
                   console.log(row);
                 }}
                 to={`/admin/orders/order-details?id=${row.id}`}
-                // to={`/admin/orders/order-details?id=${row.id}`}
                 className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
               >
                 View Details
@@ -156,49 +190,21 @@ const OrdersTable = () => {
       ),
     },
   ];
-  const order_query = useQuery({
-    queryKey: ["order_data"],
-    queryFn: async () => {
-      let resp = await CaryBinApi.get("/orders/fetch");
-      return resp.data;
-    },
-  });
-  useEffect(() => {
-    if (order_query.data) {
-      console.log("orders_now", order_query.data);
-    }
-  }, [order_query.isFetching]);
+  const filteredData =
+    order_query?.data?.data.filter((order) => {
+      if (!searchTerm) return true;
 
-  const data = order_query?.data?.data || [];
-
-  const toggleDropdown = (rowId) => {
-    setOpenDropdown(openDropdown === rowId ? null : rowId);
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenDropdown(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const filteredData = data.filter((order) => {
-    if (!searchTerm) return true;
-
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      order.id?.toLowerCase().includes(searchLower) ||
-      order.payment?.transaction_id?.toLowerCase().includes(searchLower) ||
-      order.payment?.user?.email?.toLowerCase().includes(searchLower) ||
-      order.payment?.purchase?.items?.[0]?.name
-        ?.toLowerCase()
-        .includes(searchLower) ||
-      order.status?.toLowerCase().includes(searchLower)
-    );
-  });
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        order.id?.toLowerCase().includes(searchLower) ||
+        order.payment?.transaction_id?.toLowerCase().includes(searchLower) ||
+        order.payment?.user?.email?.toLowerCase().includes(searchLower) ||
+        order.payment?.purchase?.items?.[0]?.name
+          ?.toLowerCase()
+          .includes(searchLower) ||
+        order.status?.toLowerCase().includes(searchLower)
+      );
+    }) || [];
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -223,22 +229,15 @@ const OrdersTable = () => {
     setItemsPerPage(Number(e.target.value));
     setCurrentPage(1);
   };
-
-  if (order_query.isFetching) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Loader />
-      </div>
-    );
-  }
-
   return (
-    <>
-      <OrdersSummary />
+    <div>
+      {/*<>Order summary</>
+      <div>Orders for {user.name}</div>*/}
+
       <div className="bg-white p-6 rounded-xl overflow-x-auto">
         <div className="flex flex-wrap justify-between items-center pb-3 gap-4">
           <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-            <h2 className="text-lg font-semibold">Customer Orders</h2>
+            <h2 className="text-lg font-semibold">{user?.name} Orders</h2>
           </div>
           <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
             <input
@@ -259,13 +258,7 @@ const OrdersTable = () => {
         {order_query.isFetching ? (
           <div className="p-2 text-lg ">loading orders...</div>
         ) : (
-          <>
-            <ReusableTable
-              columns={columns}
-              data={currentItems}
-              loading={order_query.isPending}
-            />
-          </>
+          <ReusableTable columns={columns} data={currentItems} />
         )}
         <div className="flex justify-between items-center mt-4">
           <div className="flex items-center">
@@ -307,28 +300,6 @@ const OrdersTable = () => {
           </div>
         </div>
       </div>
-
-      {/* Review Modal */}
-      {activeReviewModal && (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-20 backdrop-blur-lg backdrop-brightness-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-y-auto shadow-2xl">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Product Reviews</h3>
-                <button
-                  onClick={() => setActiveReviewModal(null)}
-                  className="text-gray-500 hover:text-gray-700 text-xl"
-                >
-                  ×
-                </button>
-              </div>
-              <ReviewList productId={activeReviewModal} />
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+    </div>
   );
-};
-
-export default OrdersTable;
+}

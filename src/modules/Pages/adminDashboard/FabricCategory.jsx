@@ -76,7 +76,7 @@ const FabricCategoryTable = () => {
               resetForm();
               setType("Add");
             },
-          }
+          },
         );
       } else if (type == "Add") {
         createProductMutate(
@@ -88,7 +88,7 @@ const FabricCategoryTable = () => {
               resetForm();
               setType("Add");
             },
-          }
+          },
         );
       } else {
         deleteProductMutate(
@@ -100,7 +100,7 @@ const FabricCategoryTable = () => {
               resetForm();
               setType("Add");
             },
-          }
+          },
         );
       }
     },
@@ -143,7 +143,7 @@ const FabricCategoryTable = () => {
             };
           })
         : [],
-    [data?.data]
+    [data?.data],
   );
 
   useUpdatedEffect(() => {
@@ -214,11 +214,11 @@ const FabricCategoryTable = () => {
         ),
       },
     ],
-    [openDropdown]
+    [openDropdown],
   );
 
   const totalPages = Math.ceil(
-    data?.count / (queryParams["pagination[limit]"] ?? 10)
+    data?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
   const actionText = `${type} Fabric Category`;

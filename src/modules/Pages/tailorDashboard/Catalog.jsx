@@ -20,6 +20,8 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
 import useToast from "../../../hooks/useToast";
+import CaryBinApi from "../../../services/CarybinBaseUrl";
+import { toast } from "react-toastify";
 
 export default function StylesTable() {
   const [newCategory, setNewCategory] = useState();
@@ -40,7 +42,11 @@ export default function StylesTable() {
     "pagination[limit]": 10,
   });
 
-  const { data: getAllStylesData, isPending } = useGetFabricProduct({
+  const {
+    data: getAllStylesData,
+    isPending,
+    refetch,
+  } = useGetFabricProduct({
     type: "STYLE",
     id: businessDetails?.data?.id,
     ...queryParams,
@@ -82,7 +88,7 @@ export default function StylesTable() {
     : getAllStylesData;
 
   const totalPages = Math.ceil(
-    updatedData?.count / (queryParams["pagination[limit]"] ?? 10)
+    updatedData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
   const handleExport = (e) => {
@@ -127,7 +133,13 @@ export default function StylesTable() {
     doc.save("StylesCatalog.pdf");
   };
 
-  const dataRes = currProd == "all" ? updatedData?.data : [];
+  const dataRes =
+    currProd == "all"
+      ? updatedData?.data
+      : updatedData?.data?.filter((item) => {
+          return item.creator_id == businessDetails.data.user_id;
+        });
+  let admin_id = businessDetails?.data?.user_id;
 
   return (
     <>
@@ -269,7 +281,7 @@ export default function StylesTable() {
                 value={queryString}
                 onChange={(evt) =>
                   setQueryString(
-                    evt.target.value ? evt.target.value : undefined
+                    evt.target.value ? evt.target.value : undefined,
                   )
                 }
               />
@@ -345,7 +357,7 @@ export default function StylesTable() {
                           />
                         ) : (
                           <div className="w-12 h-12 md:w-16 md:h-16 rounded-md">
-                            {style.name}
+                            {style.name}s
                           </div>
                         )}
                         <div>
@@ -360,7 +372,7 @@ export default function StylesTable() {
                             {style?.created_at
                               ? formatDateStr(
                                   style?.created_at?.split(".").shift(),
-                                  "DD-MM-YY"
+                                  "DD-MM-YY",
                                 )
                               : ""}
                           </p>
@@ -377,8 +389,8 @@ export default function StylesTable() {
                             style.status === "PUBLISHED"
                               ? "bg-green-100 text-green-600"
                               : style.status === "DRAFT"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-red-100 text-red-600"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : "bg-red-100 text-red-600"
                           }`}
                         >
                           {style.status}
@@ -391,7 +403,7 @@ export default function StylesTable() {
                           className="cursor-pointer"
                           onClick={() =>
                             setOpenDropdown(
-                              openDropdown === style.id ? null : style.id
+                              openDropdown === style.id ? null : style.id,
                             )
                           }
                         >
@@ -427,6 +439,56 @@ export default function StylesTable() {
                               </Link>
                             )}
 
+                            {isAdminStyleRoute &&
+                              admin_id == style.creator_id && (
+                                <>
+                                  <button
+                                    onClick={async (e) => {
+                                      let buisnss_id = businessDetails.data;
+                                      toast.promise(
+                                        async () => {
+                                          let resp = await CaryBinApi.patch(
+                                            "/style/" + style.id,
+                                            {
+                                              product: {
+                                                status:
+                                                  style.status == "PUBLISHED"
+                                                    ? "ARCHIVED"
+                                                    : "PUBLISHED",
+                                              },
+                                              style: {},
+                                            },
+                                            {
+                                              headers: {
+                                                "Business-Id": buisnss_id.id,
+                                              },
+                                            },
+                                          );
+                                          refetch();
+                                          return resp.data;
+                                        },
+                                        {
+                                          pending: "pending",
+                                          success: "updated",
+                                          error: "error",
+                                        },
+                                      );
+                                    }}
+                                    className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
+                                  >
+                                    {style.status == "PUBLISHED"
+                                      ? "Unpublish"
+                                      : "publish"}
+                                  </button>
+                                  <Link
+                                    state={{ info: style }}
+                                    to={"/admin/style/edit-product"}
+                                    className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
+                                  >
+                                    Edit Product
+                                  </Link>
+                                </>
+                              )}
                             {style?.status === "DRAFT" ? (
                               <button
                                 onClick={() => {
@@ -446,7 +508,7 @@ export default function StylesTable() {
                                         onSuccess: () => {
                                           setOpenDropdown(null);
                                         },
-                                      }
+                                      },
                                     );
                                   } else {
                                     updateStyleMutate(
@@ -464,7 +526,7 @@ export default function StylesTable() {
                                         onSuccess: () => {
                                           setOpenDropdown(null);
                                         },
-                                      }
+                                      },
                                     );
                                   }
                                 }}
@@ -473,55 +535,6 @@ export default function StylesTable() {
                                 {updateIsPending || updateAdminIsPending
                                   ? "Please wait..."
                                   : "Publish Style"}
-                              </button>
-                            ) : null}
-
-                            {style?.status === "PUBLISHED" ? (
-                              <button
-                                onClick={() => {
-                                  if (isAdminStyleRoute) {
-                                    updateAdminStyleMutate(
-                                      {
-                                        id: style?.id,
-                                        product: {
-                                          name: style?.name,
-                                          sku: style?.sku,
-                                          category_id: style?.category_id,
-                                          status: "DRAFT",
-                                          approval_status: "DRAFT",
-                                        },
-                                      },
-                                      {
-                                        onSuccess: () => {
-                                          setOpenDropdown(null);
-                                        },
-                                      }
-                                    );
-                                  } else {
-                                    updateStyleMutate(
-                                      {
-                                        id: style?.id,
-                                        business_id: businessDetails?.data?.id,
-                                        product: {
-                                          name: style?.name,
-                                          sku: style?.sku,
-                                          category_id: style?.category_id,
-                                          status: "DRAFT",
-                                        },
-                                      },
-                                      {
-                                        onSuccess: () => {
-                                          setOpenDropdown(null);
-                                        },
-                                      }
-                                    );
-                                  }
-                                }}
-                                className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
-                              >
-                                {updateIsPending || updateAdminIsPending
-                                  ? "Please wait..."
-                                  : "Draft Style"}
                               </button>
                             ) : null}
 
@@ -635,7 +648,7 @@ export default function StylesTable() {
               onSubmit={(e) => {
                 if (!navigator.onLine) {
                   toastError(
-                    "No internet connection. Please check your network."
+                    "No internet connection. Please check your network.",
                   );
                   return;
                 }
@@ -650,7 +663,7 @@ export default function StylesTable() {
                         setIsAddModalOpen(false);
                         setNewCategory(null);
                       },
-                    }
+                    },
                   );
                 } else {
                   deleteStyleMutate(
@@ -663,7 +676,7 @@ export default function StylesTable() {
                         setIsAddModalOpen(false);
                         setNewCategory(null);
                       },
-                    }
+                    },
                   );
                 }
               }}

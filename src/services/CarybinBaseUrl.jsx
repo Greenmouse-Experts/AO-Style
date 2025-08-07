@@ -11,7 +11,7 @@ const CaryBinApi = axios.create({
     // Accept: "application/vnd.api+json",
   },
 });
-
+export let carry = CaryBinApi;
 const onRequest = (request) => {
   if (!navigator.onLine) {
     return Promise.reject(new Error("No internet connection"));

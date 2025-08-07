@@ -13,6 +13,9 @@ import Subscriptions from "../modules/Pages/tailorDashboard/Subscription";
 import TailorAnnouncementsPage from "../modules/Pages/tailorDashboard/Announcements";
 import TransactionPage from "../modules/Pages/tailorDashboard/TransactionPage";
 
+// import TransactionPage from "../modules/Pages/fabricDashboard/TransactionPage";
+import ViewTailorStyle from "../modules/Pages/tailorDashboard/ViewStyle";
+
 export const tailorRoute = [
   {
     path: "/tailor",
@@ -29,6 +32,10 @@ export const tailorRoute = [
       {
         path: "/tailor/catalog-add-style",
         element: <AddStyle />,
+      },
+      {
+        path: "/tailor/catalog-view-style/:id",
+        element: <ViewTailorStyle />,
       },
       {
         path: "/tailor/coupons",

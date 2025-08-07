@@ -89,33 +89,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             User Management
           </h3>
 
-          <SidebarItem
-            to="/admin/customers"
-            icon={<FaUsers />}
-            text="Customers"
-            onClick={handleClick}
-          />
-
-          <SidebarItem
-            to="/admin/tailors"
-            icon={<GiScissors />}
-            text="Tailors / Designers"
-            onClick={handleClick}
-          />
-
-          <SidebarItem
-            to="/admin/fabric-vendor"
-            icon={<FaBox />}
-            text="Fabric Vendor"
-            onClick={handleClick}
-          />
-
-          <SidebarItem
-            to="/admin/sales-rep"
-            icon={<FaBriefcase />}
-            text="Market Rep"
-            onClick={handleClick}
-          />
+          {superAdmin}
 
           {superAdmin || hasLogisticsRole ? (
             <SidebarItem

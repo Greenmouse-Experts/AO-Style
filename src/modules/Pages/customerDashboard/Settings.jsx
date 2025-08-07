@@ -981,7 +981,7 @@ const Settings = () => {
 
           {activeSection === "Security" && (
             <div>
-              <h2 className="text-xl font-medium mb-4">Security Settings</h2>
+              {/* <h2 className="text-xl font-medium mb-4">Security Settings</h2>*/}
               <SecuritySettings />
             </div>
           )}

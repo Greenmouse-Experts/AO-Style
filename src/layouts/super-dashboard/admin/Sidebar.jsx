@@ -43,7 +43,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const hasTailorRole =
     carybinAdminUser?.admin_role?.role?.includes("fashion-designer");
   const hasMarketrepRole = carybinAdminUser?.admin_role?.role?.includes(
-    "market-representative"
+    "market-representative",
   );
   const hasLogisticsRole =
     carybinAdminUser?.admin_role?.role?.includes("logistics-agent");
@@ -80,70 +80,48 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             User Management
           </h3>
 
-          {superAdmin || hasUserRole ? (
+          {
             <SidebarItem
               to="/admin/customers"
               icon={<FaUsers />}
               text="Customers"
               onClick={handleClick}
             />
-          ) : (
-            <></>
-          )}
+          }
 
-          {superAdmin || hasTailorRole ? (
-            <SidebarItem
-              to="/admin/tailors"
-              icon={<GiScissors />}
-              text="Tailors / Designers"
-              onClick={handleClick}
-            />
-          ) : (
-            <></>
-          )}
-          {superAdmin || hasFabricRole ? (
-            <SidebarItem
-              to="/admin/fabric-vendor"
-              icon={<FaBox />}
-              text="Fabric Vendor"
-              onClick={handleClick}
-            />
-          ) : (
-            <></>
-          )}
+          <SidebarItem
+            to="/admin/tailors"
+            icon={<GiScissors />}
+            text="Tailors / Designers"
+            onClick={handleClick}
+          />
+          <SidebarItem
+            to="/admin/fabric-vendor"
+            icon={<FaBox />}
+            text="Fabric Vendor"
+            onClick={handleClick}
+          />
 
-          {superAdmin || hasMarketrepRole ? (
-            <SidebarItem
-              to="/admin/sales-rep"
-              icon={<FaBriefcase />}
-              text="Market Rep"
-              onClick={handleClick}
-            />
-          ) : (
-            <></>
-          )}
+          <SidebarItem
+            to="/admin/sales-rep"
+            icon={<FaBriefcase />}
+            text="Market Rep"
+            onClick={handleClick}
+          />
 
-          {superAdmin || hasLogisticsRole ? (
-            <SidebarItem
-              to="/admin/logistics"
-              icon={<FaTruck />}
-              text="Logistics"
-              onClick={handleClick}
-            />
-          ) : (
-            <></>
-          )}
+          <SidebarItem
+            to="/admin/logistics"
+            icon={<FaTruck />}
+            text="Logistics"
+            onClick={handleClick}
+          />
 
-          {superAdmin ? (
-            <SidebarItem
-              to="/admin/sub-admins"
-              icon={<FaUserShield />}
-              text="Sub Admins"
-              onClick={handleClick}
-            />
-          ) : (
-            <></>
-          )}
+          <SidebarItem
+            to="/admin/sub-admins"
+            icon={<FaUserShield />}
+            text="Sub Admins"
+            onClick={handleClick}
+          />
 
           {/* categories Section */}
           <div className="mb-4">

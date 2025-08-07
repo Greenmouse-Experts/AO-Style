@@ -13,6 +13,8 @@ import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 import { formatDateStr } from "../../../lib/helper";
 import { Link, useNavigate } from "react-router-dom";
 import SalesRevenueChart from "./components/RegisterChart";
+import { useQuery } from "@tanstack/react-query";
+import CaryBinApi from "../../../services/CarybinBaseUrl";
 
 const PaymentTransactionTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -34,11 +36,22 @@ const PaymentTransactionTable = () => {
 
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
 
-  const { data: getAllTransactionData, isPending } =
-    useFetchAllCartTransactions({
-      ...queryParams,
-    });
+  // const { data: getAllTransactionData, isPending } =
+  //   useFetchAllCartTransactions({
+  //     ...queryParams,
+  //   });
 
+  const { data: getAllTransactionData, isPending: isPending } = useQuery({
+    queryKey: ["transactions_admin", debouncedSearchTerm],
+    queryFn: async () => {
+      let resp = await CaryBinApi.get("/payment/fetch-all", {
+        params: {
+          q: debouncedSearchTerm,
+        },
+      });
+      return resp.data;
+    },
+  });
   useUpdatedEffect(() => {
     // update search params with undefined if debouncedSearchTerm is an empty string
     updateQueryParams({
@@ -215,12 +228,12 @@ const PaymentTransactionTable = () => {
                   >
                     View Details
                   </button>
-                  <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
+                  {/* <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
                     Edit Transaction
                   </button>
                   <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">
                     Remove Transaction
-                  </button>
+                  </button>*/}
                 </>
               </div>
             )}
@@ -258,23 +271,24 @@ const PaymentTransactionTable = () => {
             return {
               ...details,
               transactionID: `${details?.transaction_id ?? ""}`,
-              userName: `${details?.user?.name ?? ""}`,
-              amount: `${details?.items?.reduce((acc, item) => {
-                return acc + Number(item.price_at_time) * item.quantity;
-              }, 0)}`,
+              userName: `${details?.user?.email ?? "ss"}`,
+              amount: details?.amount,
               location: `${details?.profile?.address ?? ""}`,
+              status: details?.payment_status ?? "",
+              transactionType: details?.purchase_type ?? "",
+              userType: details?.subscription_plan?.role ?? "customer",
               date: `${
                 details?.created_at
                   ? formatDateStr(
                       details?.created_at.split(".").shift(),
-                      "DD MMM YYYY - hh:mm a",
+                      "DD MMM YYYY",
                     )
                   : ""
               }`,
             };
           })
         : [],
-    [getAllTransactionData?.data],
+    [getAllTransactionData?.data, isPending],
   );
 
   const indexOfLastItem = currentPage * itemsPerPage;

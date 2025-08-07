@@ -5,9 +5,25 @@ function useVendorSummaryStat() {
   const { isLoading, isFetching, data, isError, refetch, isPending } = useQuery(
     {
       queryKey: ["vendoranalytics-summary"],
-      queryFn: () => AnalyticsService.getVendorAnalyticsSummary(),
-    }
+      queryFn: async () => {
+        console.log("🔍 Fetching vendor analytics summary...");
+        const response = await AnalyticsService.getVendorAnalyticsSummary();
+        console.log("📈 Vendor Analytics Response:", response);
+        console.log("💵 Total Revenue:", response?.data?.data?.total_revenue);
+        console.log("📊 Analytics Data:", response?.data?.data);
+        return response;
+      },
+    },
   );
+
+  console.log("📈 Vendor Summary Hook State:", {
+    isLoading,
+    isFetching,
+    isPending,
+    isError,
+    hasData: !!data,
+    totalRevenue: data?.data?.data?.total_revenue,
+  });
 
   return {
     isLoading,

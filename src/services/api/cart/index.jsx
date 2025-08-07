@@ -199,22 +199,48 @@ const getCartCount = async () => {
 /**
  * Apply coupon to cart
  * @param {Object} payload - Coupon data
- * @param {string} payload.coupon_code - Coupon code to apply
+ * @param {string} payload.email - User email
+ * @param {string} payload.code - Coupon code to apply
+ * @param {string} payload.amount - Cart total amount
  * @returns {Promise} API response
  */
 const applyCoupon = async (payload) => {
   try {
-    console.log("🛒 Applying coupon to cart:", {
-      couponCode: payload.coupon_code,
+    console.log("🛒 CartService: Applying coupon to cart");
+    console.log("🛒 CartService: Coupon payload:", payload);
+    console.log(
+      "🛒 CartService: API endpoint:",
+      `/coupon-management/apply-coupon`,
+    );
+    console.log("🛒 CartService: Payload structure:", {
+      email: payload.email,
+      code: payload.code,
+      amount: payload.amount,
+      hasEmail: !!payload.email,
+      hasCode: !!payload.code,
+      hasAmount: !!payload.amount,
     });
-    const response = await CaryBinApi.post(`/cart/apply-coupon`, payload);
-    console.log("✅ Coupon applied successfully:", response.data);
+
+    const response = await CaryBinApi.post(
+      `/coupon-management/apply-coupon`,
+      payload,
+    );
+
+    console.log("✅ CartService: Coupon applied successfully");
+    console.log("✅ CartService: Response status:", response.status);
+    console.log("✅ CartService: Response data:", response.data);
+    console.log("✅ CartService: Discount info:", {
+      discountedAmount: response.data?.data?.discountedAmount,
+      discount: response.data?.data?.discount,
+      message: response.data?.message,
+    });
+
     return response;
   } catch (error) {
-    console.error(
-      "❌ Error applying coupon:",
-      error.response?.data || error.message,
-    );
+    console.error("❌ CartService: Error applying coupon:", error);
+    console.error("❌ CartService: Error response:", error.response?.data);
+    console.error("❌ CartService: Error status:", error.response?.status);
+    console.error("❌ CartService: Failed payload:", payload);
     throw error;
   }
 };

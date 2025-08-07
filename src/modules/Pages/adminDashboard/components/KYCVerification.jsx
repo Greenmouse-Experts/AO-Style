@@ -107,13 +107,31 @@ const KYCVerificationUpdate = () => {
 
   const statesOptions =
     states?.map((c) => ({ label: c.name, value: c.name })) || [];
+  function getAddressComponent(components, type) {
+    const component = components.find((c) => c.types.includes(type));
+    return component?.long_name || "";
+  }
   const { ref } = usePlacesWidget({
     apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
     onPlaceSelected: (place) => {
+      console.log(place);
+
+      const components = place.address_components;
+
+      const country = getAddressComponent(components, "country");
+      const state = getAddressComponent(
+        components,
+        "administrative_area_level_1",
+      );
+      const city = getAddressComponent(components, "locality");
+
       setFieldValue("address", place.formatted_address);
       setFieldValue("location", place.formatted_address);
       setFieldValue("latitude", place.geometry?.location?.lat().toString());
       setFieldValue("longitude", place.geometry?.location?.lng().toString());
+      setFieldValue("country", country);
+      setFieldValue("state", state);
+      setFieldValue("city", city);
     },
     options: {
       componentRestrictions: { country: "ng" },

@@ -15,6 +15,8 @@ import useDeleteSubscription from "../../../../hooks/subscription/useDeleteSubsc
 import useGetAdminBusinessDetails from "../../../../hooks/settings/useGetAdmnBusinessInfo";
 import useToast from "../../../../hooks/useToast";
 import { useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import CaryBinApi from "../../../../services/CarybinBaseUrl";
 
 const AddSubscriptionModal = ({ isOpen, onClose, onAdd, newCategory }) => {
   const initialValues = {
@@ -421,7 +423,8 @@ const SubscriptionsPlansTable = () => {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedSubscription, setSelectedSubscription] = useState(null);
-
+  let [searchQuery, setSearchQuery] = useSearchParams();
+  let tab = searchQuery.get("tab");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const [newCategory, setNewCategory] = useState();
@@ -444,7 +447,15 @@ const SubscriptionsPlansTable = () => {
     },
     businessDetails?.data?.id,
   );
-
+  // const { data: subscriptionData, isFetching: isPending } = useQuery({
+  //   queryKey: [tab],
+  //   queryFn: async () => {
+  //     let resp = await CaryBinApi.get(
+  //       "/subscription-plan/fetch?role=fashion-designer",
+  //     );
+  //     return resp.data;
+  //   },
+  // });
   const [data, setData] = useState([
     {
       id: 1,
@@ -642,8 +653,7 @@ const SubscriptionsPlansTable = () => {
         value.toLowerCase().includes(searchTerm.toLowerCase()),
     ),
   );
-  let [searchQuery, setSearchQuery] = useSearchParams();
-  let tab = searchQuery.get("tab");
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);

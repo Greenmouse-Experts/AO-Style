@@ -550,11 +550,11 @@ const ProductPage = () => {
           </div>
         </div>
         {/* Table Section */}
-        <ReusableTable
+        {/* <ReusableTable
           columns={columns}
           loading={isAdminFabricRoute ? adminProductIsPending : isPending}
           data={currProd == "all" ? FabricData : []}
-        />
+        />*/}
         {!FabricData?.length &&
         (isAdminFabricRoute ? adminProductIsPending : isPending) ? (
           <p className="flex-1 text-center text-sm md:text-sm">

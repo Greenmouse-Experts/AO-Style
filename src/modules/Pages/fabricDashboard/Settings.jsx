@@ -379,7 +379,7 @@ const Settings = () => {
 
           {activeSection === "Bank Details" && (
             <div className="">
-              <BankDetailsUpdate>
+              <BankDetailsUpdate />
             </div>
           )}
 

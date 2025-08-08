@@ -424,7 +424,7 @@ const KYCVerificationUpdate = () => {
               setFieldValue("latitude", "");
               setFieldValue("longitude", "");
             }}
-            value={values.location}
+            defaultValue={values.location}
           />
         </div>
         {/* Buttons */}

@@ -15,6 +15,7 @@ import {
   useStates,
 } from "../../../hooks/location/useGetCountries";
 import KYCVerificationUpdate from "../adminDashboard/components/KYCVerification";
+import BankDetailsUpdate from "./components/BankDetails";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("personalDetails");
@@ -378,7 +379,7 @@ const Settings = () => {
 
           {activeSection === "Bank Details" && (
             <div className="">
-              <BankDetails />
+              <BankDetailsUpdate />
             </div>
           )}
 

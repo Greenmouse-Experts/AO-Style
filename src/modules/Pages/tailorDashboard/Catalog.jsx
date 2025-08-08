@@ -439,95 +439,93 @@ export default function StylesTable() {
                               </Link>
                             )}
 
-                            {isAdminStyleRoute &&
-                              admin_id == style.creator_id && (
-                                <>
-                                  <button
-                                    onClick={async (e) => {
-                                      let buisnss_id = businessDetails.data;
-                                      toast.promise(
-                                        async () => {
-                                          let resp = await CaryBinApi.patch(
-                                            "/style/" + style.id,
-                                            {
-                                              product: {
-                                                status:
-                                                  style.status == "PUBLISHED"
-                                                    ? "DRAFT"
-                                                    : "PUBLISHED",
-                                              },
-                                              style: {},
+                            {isAdminStyleRoute && (
+                              <>
+                                <button
+                                  onClick={async (e) => {
+                                    let buisnss_id = businessDetails.data;
+                                    toast.promise(
+                                      async () => {
+                                        let resp = await CaryBinApi.patch(
+                                          "/style/" + style.id,
+                                          {
+                                            product: {
+                                              status:
+                                                style.status == "PUBLISHED"
+                                                  ? "DRAFT"
+                                                  : "PUBLISHED",
                                             },
-                                            {
-                                              headers: {
-                                                "Business-Id": buisnss_id.id,
-                                              },
+                                            style: {},
+                                          },
+                                          {
+                                            headers: {
+                                              "Business-Id": buisnss_id.id,
                                             },
-                                          );
-                                          refetch();
-                                          return resp.data;
-                                        },
-                                        {
-                                          pending: "pending",
-                                          success: "updated",
-                                          error: "error",
-                                        },
-                                      );
-                                    }}
-                                    className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
-                                  >
-                                    {style.status == "PUBLISHED"
-                                      ? "Unpublish"
-                                      : "publish"}
-                                  </button>
-                                  {style.status != "ARCHIVED" && (
-                                    <>
-                                      {" "}
-                                      <button
-                                        onClick={async (e) => {
-                                          let buisnss_id = businessDetails.data;
-                                          toast.promise(
-                                            async () => {
-                                              let resp = await CaryBinApi.patch(
-                                                "/style/" + style.id,
-                                                {
-                                                  product: {
-                                                    status: "ARCHIVED",
-                                                  },
-                                                  style: {},
+                                          },
+                                        );
+                                        refetch();
+                                        return resp.data;
+                                      },
+                                      {
+                                        pending: "pending",
+                                        success: "updated",
+                                        error: "error",
+                                      },
+                                    );
+                                  }}
+                                  className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
+                                >
+                                  {style.status == "PUBLISHED"
+                                    ? "Unpublish"
+                                    : "publish"}
+                                </button>
+                                {style.status != "ARCHIVED" && (
+                                  <>
+                                    {" "}
+                                    <button
+                                      onClick={async (e) => {
+                                        let buisnss_id = businessDetails.data;
+                                        toast.promise(
+                                          async () => {
+                                            let resp = await CaryBinApi.patch(
+                                              "/style/" + style.id,
+                                              {
+                                                product: {
+                                                  status: "ARCHIVED",
                                                 },
-                                                {
-                                                  headers: {
-                                                    "Business-Id":
-                                                      buisnss_id.id,
-                                                  },
+                                                style: {},
+                                              },
+                                              {
+                                                headers: {
+                                                  "Business-Id": buisnss_id.id,
                                                 },
-                                              );
-                                              refetch();
-                                              return resp.data;
-                                            },
-                                            {
-                                              pending: "pending",
-                                              success: "updated",
-                                              error: "error",
-                                            },
-                                          );
-                                        }}
-                                        className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
-                                      >
-                                        Archive
-                                      </button>
-                                    </>
-                                  )}
-                                  <Link
-                                    state={{ info: style }}
-                                    to={"/admin/style/edit-product"}
-                                    className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
-                                  >
-                                    Edit Product
-                                  </Link>
-                                </>
-                              )}
+                                              },
+                                            );
+                                            refetch();
+                                            return resp.data;
+                                          },
+                                          {
+                                            pending: "pending",
+                                            success: "updated",
+                                            error: "error",
+                                          },
+                                        );
+                                      }}
+                                      className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
+                                    >
+                                      Archive
+                                    </button>
+                                  </>
+                                )}
+                                <Link
+                                  state={{ info: style }}
+                                  to={"/admin/style/edit-product"}
+                                  className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
+                                >
+                                  Edit Product
+                                </Link>
+                              </>
+                            )}
                             {style?.status === "DRAFT" ? (
                               <button
                                 onClick={() => {

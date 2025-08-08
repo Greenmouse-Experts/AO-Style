@@ -405,33 +405,34 @@ const PaymentTransactionTable = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  const csv_data = getAllTransactionData?.data.flatMap((transaction) => {
-    const user = transaction.user || {};
-    const profile = user.profile || {};
-    const items = transaction.purchase?.items || [];
+  const csv_data =
+    getAllTransactionData?.data.flatMap((transaction) => {
+      const user = transaction.user || {};
+      const profile = user.profile || {};
+      const items = transaction.purchase?.items || [];
 
-    return items.map((item) => ({
-      TransactionID: transaction.transaction_id,
-      PaymentStatus: transaction.payment_status,
-      PaymentMethod: transaction.payment_method,
-      Amount: transaction.amount,
-      Currency: transaction.currency,
-      PurchaseType: transaction.purchase_type,
-      ProductName: item.name,
-      Quantity: item.quantity,
-      ProductPrice: item.price,
-      FabricVendorFee: item.vendor_charge?.fabric_vendor_fee ?? "",
-      FashionDesignerFee: item.vendor_charge?.fashion_designer_fee ?? "",
-      CreatedAt: transaction.created_at,
-      UpdatedAt: transaction.updated_at,
-      UserID: user.id,
-      UserEmail: user.email,
-      UserPhone: user.phone,
-      Address: profile.address,
-      State: profile.state,
-      Country: profile.country,
-    }));
-  });
+      return items.map((item) => ({
+        TransactionID: transaction.transaction_id,
+        PaymentStatus: transaction.payment_status,
+        PaymentMethod: transaction.payment_method,
+        Amount: transaction.amount,
+        Currency: transaction.currency,
+        PurchaseType: transaction.purchase_type,
+        ProductName: item.name,
+        Quantity: item.quantity,
+        ProductPrice: item.price,
+        FabricVendorFee: item.vendor_charge?.fabric_vendor_fee ?? "",
+        FashionDesignerFee: item.vendor_charge?.fashion_designer_fee ?? "",
+        CreatedAt: transaction.created_at,
+        UpdatedAt: transaction.updated_at,
+        UserID: user.id,
+        UserEmail: user.email,
+        UserPhone: user.phone,
+        Address: profile.address,
+        State: profile.state,
+        Country: profile.country,
+      }));
+    }) || [];
 
   return (
     <>

@@ -272,36 +272,35 @@ const Settings = () => {
             <div>
               <h2 className="text-xl font-medium mb-4">Profile</h2>
               <div className="mt-6 flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
-                {values.profile_picture ? (
-                  <img
-                    src={values.profile_picture}
-                    alt="Profile"
-                    className="w-24 h-24 rounded-full"
-                  />
-                ) : (
-                  <>
-                    {" "}
+                <>
+                  {values.profile_picture ? (
+                    <img
+                      src={values.profile_picture}
+                      alt="Profile"
+                      className="w-24 h-24 rounded-full"
+                    />
+                  ) : (
                     <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white">
                       {values?.name?.charAt(0).toUpperCase() || "?"}
                     </div>
-                  </>
-                )}
-                <button
-                  disabled={isPending || profileIsLoading}
-                  onClick={handleButtonClick}
-                  className="border px-4 py-2 text-purple-600 rounded-lg border-purple-600"
-                >
-                  {isPending || profileIsLoading
-                    ? "Please wait..."
-                    : " Change Picture"}
-                </button>
-                <input
-                  type="file"
-                  accept="image/*"
-                  ref={fileInputRef}
-                  onChange={uploadImage}
-                  className="hidden"
-                />
+                  )}
+                  <button
+                    disabled={isPending || profileIsLoading}
+                    onClick={handleButtonClick}
+                    className="border px-4 py-2 text-purple-600 rounded-lg border-purple-600"
+                  >
+                    {isPending || profileIsLoading
+                      ? "Please wait..."
+                      : " Change Picture"}
+                  </button>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={fileInputRef}
+                    onChange={uploadImage}
+                    className="hidden"
+                  />
+                </>
               </div>
 
               {/* Tabs */}
@@ -316,7 +315,7 @@ const Settings = () => {
                 >
                   Personal Details
                 </button>
-                <button
+                {/* <button
                   className={`pb-2 ${
                     activeTab === "bodyMeasurement"
                       ? "border-b-2 border-purple-600 text-purple-600"
@@ -325,7 +324,7 @@ const Settings = () => {
                   onClick={() => setActiveTab("bodyMeasurement")}
                 >
                   Body Measurement
-                </button>
+                </button>*/}
               </div>
 
               {/* Tab Content */}
@@ -442,543 +441,30 @@ const Settings = () => {
                   </form>
                 )}
 
-                {activeTab === "bodyMeasurement" && (
+                {activeSection === "KYC Verification" && (
                   <div>
-                    <div className="border-b-4 border-[#D9D9D9] flex space-x-10 text-gray-500">
-                      <button
-                        className={`pb-2 ${
-                          bodyTab === "upperBody"
-                            ? "border-b-1 border-purple-600 text-purple-600"
-                            : ""
-                        }`}
-                        onClick={() => setBodyTab("upperBody")}
-                      >
-                        Upper Body
-                      </button>
-                      <button
-                        className={`pb-2 ${
-                          bodyTab === "lowerBody"
-                            ? "border-b-1 border-purple-600 text-purple-600"
-                            : ""
-                        }`}
-                        onClick={() => setBodyTab("lowerBody")}
-                      >
-                        Lower Body
-                      </button>
-                      <button
-                        className={`pb-2 ${
-                          bodyTab === "fullBody"
-                            ? "border-b-1 border-purple-600 text-purple-600"
-                            : ""
-                        }`}
-                        onClick={() => setBodyTab("fullBody")}
-                      >
-                        Full Body
-                      </button>
-                    </div>
+                    {/* <h2 className="text-xl font-medium mb-4">KYC Verification</h2>*/}
+                    {/* <KYCVerification />*/}
+                    <KYCVerificationUpdate />
+                  </div>
+                )}
 
-                    {bodyTab === "upperBody" && (
-                      <form
-                        className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8"
-                        onSubmit={handleSubmit}
-                      >
-                        <div>
-                          <label className="block text-gray-700 mb-4">
-                            {"Bust Circumference"}
-                          </label>
-                          <div className="flex">
-                            <input
-                              type="number"
-                              min="0"
-                              step="any"
-                              placeholder={
-                                "Enter the circumference of your bust"
-                              }
-                              name={"bust_circumference"}
-                              required
-                              value={values.bust_circumference}
-                              onChange={handleChange}
-                              className="flex-1 w-full appearance-none p-4 border border-[#CCCCCC] outline-none rounded-l-md"
-                            />
-                            <div className="relative">
-                              <select
-                                className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"bust_circumference_unit"}
-                                value={values.bust_circumference_unit}
-                                onChange={handleChange}
-                              >
-                                <option value="cm">cm</option>
-                                <option value="in">in</option>
-                                <option value="m">m</option>
-                              </select>
-                              <ChevronDown className="absolute right-2 top-5 w-4 h-4 text-gray-500" />
-                            </div>
-                          </div>
-                        </div>
+                {activeSection === "Bank Details" && (
+                  <div>
+                    <h2 className="text-xl font-medium mb-4">Bank Details</h2>
+                    <BankDetails />
+                  </div>
+                )}
 
-                        <div>
-                          <label className="block text-gray-700 mb-4">
-                            {"Shoulder Width"}
-                          </label>
-                          <div className="flex">
-                            <input
-                              type="number"
-                              min="0"
-                              step="any"
-                              placeholder={"Enter the width of your shoulder"}
-                              name={"shoulder_width"}
-                              required
-                              value={values.shoulder_width}
-                              onChange={handleChange}
-                              className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
-                            />
-                            <div className="relative">
-                              <select
-                                className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"bust_circumference_unit"}
-                                value={values.bust_circumference_unit}
-                                onChange={handleChange}
-                              >
-                                <option value="cm">cm</option>
-                                <option value="in">in</option>
-                                <option value="m">m</option>
-                              </select>
-                              <ChevronDown className="absolute right-2 top-5 w-4 h-4 text-gray-500" />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-gray-700 mb-4">
-                            {"Armhole Circumference"}
-                          </label>
-                          <div className="flex">
-                            <input
-                              type="number"
-                              min="0"
-                              step="any"
-                              placeholder={
-                                "Enter the circumference of your armhole"
-                              }
-                              name={"armhole_circumference"}
-                              required
-                              value={values.armhole_circumference}
-                              onChange={handleChange}
-                              className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
-                            />
-                            <div className="relative">
-                              <select
-                                className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"bust_circumference_unit"}
-                                value={values.bust_circumference_unit}
-                                onChange={handleChange}
-                              >
-                                <option value="cm">cm</option>
-                                <option value="in">in</option>
-                                <option value="m">m</option>
-                              </select>
-                              <ChevronDown className="absolute right-2 top-5 w-4 h-4 text-gray-500" />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-gray-700 mb-4">
-                            {"Sleeve Length"}
-                          </label>
-                          <div className="flex">
-                            <input
-                              type="number"
-                              min="0"
-                              step="any"
-                              placeholder={"Enter the length of your sleeve"}
-                              name={"sleeve_length"}
-                              required
-                              value={values.sleeve_length}
-                              onChange={handleChange}
-                              className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
-                            />
-                            <div className="relative">
-                              <select
-                                className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"bust_circumference_unit"}
-                                value={values.bust_circumference_unit}
-                                onChange={handleChange}
-                              >
-                                <option value="cm">cm</option>
-                                <option value="in">in</option>
-                                <option value="m">m</option>
-                              </select>
-                              <ChevronDown className="absolute right-2 top-5 w-4 h-4 text-gray-500" />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-gray-700 mb-4">
-                            {"Bicep Circumference"}
-                          </label>
-                          <div className="flex">
-                            <input
-                              type="number"
-                              min="0"
-                              step="any"
-                              placeholder={
-                                "Enter the circumference of your bicep"
-                              }
-                              name={"bicep_circumference"}
-                              required
-                              value={values.bicep_circumference}
-                              onChange={handleChange}
-                              className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
-                            />
-                            <div className="relative">
-                              <select
-                                className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"bust_circumference_unit"}
-                                value={values.bust_circumference_unit}
-                                onChange={handleChange}
-                              >
-                                <option value="cm">cm</option>
-                                <option value="in">in</option>
-                                <option value="m">m</option>
-                              </select>
-                              <ChevronDown className="absolute right-2 top-5 w-4 h-4 text-gray-500" />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-gray-700 mb-4">
-                            {"Wrist Circumference"}
-                          </label>
-                          <div className="flex">
-                            <input
-                              type="number"
-                              min="0"
-                              step="any"
-                              placeholder={
-                                "Enter the circumference of your wrist"
-                              }
-                              name={"waist_circumference_upper"}
-                              required
-                              value={values.waist_circumference_upper}
-                              onChange={handleChange}
-                              className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
-                            />
-                            <div className="relative">
-                              <select
-                                className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"bust_circumference_unit"}
-                                value={values.bust_circumference_unit}
-                                onChange={handleChange}
-                              >
-                                <option value="cm">cm</option>
-                                <option value="in">in</option>
-                                <option value="m">m</option>
-                              </select>
-                              <ChevronDown className="absolute right-2 top-5 w-4 h-4 text-gray-500" />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="col-span-1 sm:col-span-2">
-                          <button
-                            disabled={updateIsPending}
-                            type="submit"
-                            className="w-full sm:w-auto mt-4 bg-gradient text-white px-6 py-2"
-                          >
-                            {updateIsPending
-                              ? "Please wait..."
-                              : "Update Upper Body"}
-                          </button>
-                        </div>
-                      </form>
-                    )}
-                    {bodyTab === "lowerBody" && (
-                      <form
-                        onSubmit={handleSubmit}
-                        className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4"
-                      >
-                        <div>
-                          <label className="block text-gray-700 mb-4">
-                            {"Waist Circumference"}
-                          </label>
-                          <div className="flex">
-                            <input
-                              type="number"
-                              min="0"
-                              step="any"
-                              placeholder={"Enter your waist measurement"}
-                              name={"waist_circumference_lower"}
-                              required
-                              value={values.waist_circumference_lower}
-                              onChange={handleChange}
-                              className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
-                            />
-                            <div className="relative">
-                              <select
-                                className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"bust_circumference_unit"}
-                                value={values.bust_circumference_unit}
-                                onChange={handleChange}
-                              >
-                                <option value="cm">cm</option>
-                                <option value="in">in</option>
-                                <option value="m">m</option>
-                              </select>
-                              <ChevronDown className="absolute right-2 top-5 w-4 h-4 text-gray-500" />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-gray-700 mb-4">
-                            {"Hip Circumference"}
-                          </label>
-                          <div className="flex">
-                            <input
-                              type="number"
-                              min="0"
-                              step="any"
-                              placeholder={"Enter your hip measurement"}
-                              name={"hip_circumference"}
-                              required
-                              value={values.hip_circumference}
-                              onChange={handleChange}
-                              className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
-                            />
-                            <div className="relative">
-                              <select
-                                className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"bust_circumference_unit"}
-                                value={values.bust_circumference_unit}
-                                onChange={handleChange}
-                              >
-                                <option value="cm">cm</option>
-                                <option value="in">in</option>
-                                <option value="m">m</option>
-                              </select>
-                              <ChevronDown className="absolute right-2 top-5 w-4 h-4 text-gray-500" />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-gray-700 mb-4">
-                            {"Thigh Circumference"}
-                          </label>
-                          <div className="flex">
-                            <input
-                              type="number"
-                              min="0"
-                              step="any"
-                              placeholder={"Enter your thigh measurement"}
-                              name={"thigh_circumference"}
-                              required
-                              value={values.thigh_circumference}
-                              onChange={handleChange}
-                              className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
-                            />
-                            <div className="relative">
-                              <select
-                                className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"bust_circumference_unit"}
-                                value={values.bust_circumference_unit}
-                                onChange={handleChange}
-                              >
-                                <option value="cm">cm</option>
-                                <option value="in">in</option>
-                                <option value="m">m</option>
-                              </select>
-                              <ChevronDown className="absolute right-2 top-5 w-4 h-4 text-gray-500" />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-gray-700 mb-4">
-                            {"Knee Circumference"}
-                          </label>
-                          <div className="flex">
-                            <input
-                              type="number"
-                              min="0"
-                              step="any"
-                              placeholder={"Enter your knee measurement"}
-                              name={"knee_circumference"}
-                              required
-                              value={values.knee_circumference}
-                              onChange={handleChange}
-                              className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
-                            />
-                            <div className="relative">
-                              <select
-                                className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"bust_circumference_unit"}
-                                value={values.bust_circumference_unit}
-                                onChange={handleChange}
-                              >
-                                <option value="cm">cm</option>
-                                <option value="in">in</option>
-                                <option value="m">m</option>
-                              </select>
-                              <ChevronDown className="absolute right-2 top-5 w-4 h-4 text-gray-500" />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="sm:col-span-2">
-                          <label className="block text-gray-700 mb-4">
-                            {"Trouser Length (Waist to Ankle)"}
-                          </label>
-                          <div className="flex">
-                            <input
-                              type="number"
-                              min="0"
-                              step="any"
-                              placeholder={"Enter your trouser length"}
-                              name={"trouser_length"}
-                              required
-                              value={values.trouser_length}
-                              onChange={handleChange}
-                              className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
-                            />
-                            <div className="relative">
-                              <select
-                                className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"bust_circumference_unit"}
-                                value={values.bust_circumference_unit}
-                                onChange={handleChange}
-                              >
-                                <option value="cm">cm</option>
-                                <option value="in">in</option>
-                                <option value="m">m</option>
-                              </select>
-                              <ChevronDown className="absolute right-2 top-5 w-4 h-4 text-gray-500" />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="sm:col-span-2 flex flex-col sm:flex-row justify-between gap-4 mt-2">
-                          <button
-                            disabled={updateIsPending}
-                            type="submit"
-                            className="w-full sm:w-auto bg-gradient text-white px-6 py-2"
-                          >
-                            {updateIsPending
-                              ? "Please wait..."
-                              : " Update Lower Body"}
-                          </button>
-                        </div>
-                      </form>
-                    )}
-                    {bodyTab === "fullBody" && (
-                      <form
-                        onSubmit={handleSubmit}
-                        className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4"
-                      >
-                        <div>
-                          <label className="block text-gray-700 mb-4">
-                            {"Height"}
-                          </label>
-                          <div className="flex">
-                            <input
-                              type="number"
-                              min="0"
-                              step="any"
-                              placeholder={"Enter your height"}
-                              name={"height"}
-                              required
-                              value={values.height}
-                              onChange={handleChange}
-                              className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
-                            />
-                            <div className="relative">
-                              <select
-                                className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"bust_circumference_unit"}
-                                value={values.bust_circumference_unit}
-                                onChange={handleChange}
-                              >
-                                <option value="cm">cm</option>
-                                <option value="in">in</option>
-                                <option value="m">m</option>
-                              </select>
-                              <ChevronDown className="absolute right-2 top-5 w-4 h-4 text-gray-500" />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-gray-700 mb-4">
-                            {"Dress/Gown Length"}
-                          </label>
-                          <div className="flex">
-                            <input
-                              type="number"
-                              min="0"
-                              step="any"
-                              placeholder={"Enter your desired length"}
-                              name={"dress_length"}
-                              required
-                              value={values.dress_length}
-                              onChange={handleChange}
-                              className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
-                            />
-                            <div className="relative">
-                              <select
-                                className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"bust_circumference_unit"}
-                                value={values.bust_circumference_unit}
-                                onChange={handleChange}
-                              >
-                                <option value="cm">cm</option>
-                                <option value="in">in</option>
-                                <option value="m">m</option>
-                              </select>
-                              <ChevronDown className="absolute right-2 top-5 w-4 h-4 text-gray-500" />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="sm:col-span-2 flex flex-col sm:flex-row justify-between gap-4 mt-2">
-                          <button
-                            disabled={updateIsPending}
-                            type="submit"
-                            className="w-full sm:w-auto bg-gradient text-white px-6 py-2"
-                          >
-                            {updateIsPending
-                              ? "Please wait..."
-                              : "Update Full Body"}
-                          </button>
-                        </div>
-                      </form>
-                    )}
+                {activeSection === "Security" && (
+                  <div>
+                    <h2 className="text-xl font-medium mb-4">
+                      Security Settings
+                    </h2>
+                    <SecuritySettings />
                   </div>
                 )}
               </div>
-            </div>
-          )}
-
-          {activeSection === "KYC Verification" && (
-            <div>
-              {/* <h2 className="text-xl font-medium mb-4">KYC Verification</h2>*/}
-              {/* <KYCVerification />*/}
-              <KYCVerificationUpdate />
-            </div>
-          )}
-
-          {activeSection === "Bank Details" && (
-            <div>
-              <h2 className="text-xl font-medium mb-4">Bank Details</h2>
-              <BankDetails />
-            </div>
-          )}
-
-          {activeSection === "Security" && (
-            <div>
-              <h2 className="text-xl font-medium mb-4">Security Settings</h2>
-              <SecuritySettings />
             </div>
           )}
         </div>

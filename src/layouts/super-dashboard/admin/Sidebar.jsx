@@ -86,7 +86,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             User Management
           </h3>
 
-          {
+          {superAdmin || hasUserRole ? (
             <SidebarItem
               to="/admin/customers"
               icon={<FaUsers />}

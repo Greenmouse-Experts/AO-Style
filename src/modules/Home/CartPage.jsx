@@ -904,7 +904,7 @@ const CartPage = () => {
                             </span>
                           ) : (
                             <span className="text-xs text-gray-500">
-                              Min: {item?.product?.minimum_yards || 1}y
+                              Min: {item?.product?.minimum_yards || 1} yards
                             </span>
                           )}
                         </div>
@@ -1331,15 +1331,13 @@ const CartPage = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between text-sm">
                       <span>Subtotal</span>
-                      <span>₦{formatNumberWithCommas(totals.subtotal)}</span>
+                      <span>{formatPrice(totals.subtotal)}</span>
                     </div>
 
                     {appliedCoupon && (
                       <div className="flex justify-between text-sm text-green-600">
                         <span>Coupon Discount ({appliedCoupon.code})</span>
-                        <span>
-                          -₦{formatNumberWithCommas(appliedCoupon.discount)}
-                        </span>
+                        <span>-{formatPrice(appliedCoupon.discount)}</span>
                       </div>
                     )}
 
@@ -1351,14 +1349,14 @@ const CartPage = () => {
                         ) : deliveryError ? (
                           <span className="text-red-500">Error</span>
                         ) : (
-                          `₦${formatNumberWithCommas(delivery_fee)}`
+                          formatPrice(delivery_fee)
                         )}
                       </span>
                     </div>
 
                     <div className="flex justify-between text-sm">
                       <span>VAT (7.5%)</span>
-                      <span>₦{formatNumberWithCommas(estimatedVat)}</span>
+                      <span>{formatPrice(estimatedVat)}</span>
                     </div>
 
                     <div className="text-xs text-gray-500 mt-2">
@@ -1370,7 +1368,7 @@ const CartPage = () => {
                       <div className="flex justify-between font-bold text-lg">
                         <span>Total</span>
                         <span className="text-purple-600">
-                          ₦{formatNumberWithCommas(finalTotal)}
+                          {formatPrice(finalTotal)}
                         </span>
                       </div>
                     </div>
@@ -1385,7 +1383,7 @@ const CartPage = () => {
                 >
                   {billingPending || createPaymentPending
                     ? "Processing..."
-                    : `Proceed to Payment - ₦${formatNumberWithCommas(finalTotal)}`}
+                    : `Proceed to Payment - ${formatPrice(finalTotal)}`}
                 </button>
 
                 <div className="text-xs text-gray-500 text-center space-y-1">

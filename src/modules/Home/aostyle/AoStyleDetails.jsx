@@ -9,16 +9,24 @@ import { useFormik } from "formik";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import Cookies from "js-cookie";
 import { ProductReviews } from "../../../components/reviews";
+import useAddCart from "../../../hooks/cart/useAddCart";
+import useToast from "../../../hooks/useToast";
 
 export default function AnkaraGownPage() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedTab, setSelectedTab] = useState("Upper Body");
   const [measurementUnit, setMeasurementUnit] = useState("cm");
   const [measurementsSubmitted, setMeasurementsSubmitted] = useState(false);
   const [showMeasurementForm, setShowMeasurementForm] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pendingFabric, setPendingFabric] = useState(null);
+  const [showCartModal, setShowCartModal] = useState(false);
   const reviewsRef = useRef(null);
+
+  const { addCartMutate, isPending: addCartPending } = useAddCart();
+  const { toastSuccess, toastError } = useToast();
 
   const styleInfo = location?.state?.info;
 
@@ -39,6 +47,45 @@ export default function AnkaraGownPage() {
     "🎯 AoStyleDetails: USING CORRECT PRODUCT ID FOR REVIEWS:",
     correctProductId,
   );
+
+  // Check for pending fabric data on component mount
+  useEffect(() => {
+    const pendingFabricData = localStorage.getItem("pending_fabric");
+    if (pendingFabricData) {
+      try {
+        const fabricData = JSON.parse(pendingFabricData);
+        console.log("🧵 Found pending fabric raw data:", fabricData);
+
+        // Ensure fabric data has the right structure
+        const processedFabricData = {
+          product_id: fabricData.product_id,
+          name: fabricData.name || "Selected Fabric",
+          price: fabricData.price || 0,
+          quantity: fabricData.quantity || 1,
+          image: fabricData.image || fabricData.photos?.[0],
+          photos:
+            fabricData.photos || (fabricData.image ? [fabricData.image] : []),
+          color: fabricData.color,
+          customer_name: fabricData.customer_name,
+        };
+
+        setPendingFabric(processedFabricData);
+        console.log("🧵 Processed pending fabric:", processedFabricData);
+        console.log("🧵 Fabric display data:", {
+          name: processedFabricData.name,
+          price: processedFabricData.price,
+          quantity: processedFabricData.quantity,
+          hasImage: !!processedFabricData.image,
+          hasPhotos: !!processedFabricData.photos?.length,
+        });
+      } catch (error) {
+        console.error("Error parsing pending fabric:", error);
+        localStorage.removeItem("pending_fabric");
+      }
+    } else {
+      console.log("🧵 No pending fabric found in localStorage");
+    }
+  }, []);
 
   const scrollToReviews = () => {
     reviewsRef.current?.scrollIntoView({
@@ -323,11 +370,58 @@ export default function AnkaraGownPage() {
         setShowMeasurementForm(false);
         resetForm();
         setSelectedTab("Upper Body");
+
+        // Handle fabric-first flow: if pending fabric exists, show modal
+        if (pendingFabric) {
+          setShowCartModal(true);
+        }
       } else {
         handleProceed();
       }
     },
   });
+
+  // Handle adding to cart with pending fabric and style/measurements
+  const handleAddToCartWithFabric = () => {
+    if (!pendingFabric || measurementArr.length === 0) {
+      toastError("Missing fabric or measurement data");
+      return;
+    }
+
+    const latestMeasurement = measurementArr[measurementArr.length - 1];
+
+    const cartPayload = {
+      product_id: pendingFabric.product_id,
+      product_type: "FABRIC",
+      quantity: pendingFabric.quantity || 1,
+      customer_name: latestMeasurement.customer_name,
+      color: pendingFabric.color || "",
+      style_product_id: styleInfo?.id || styleInfo?.product_id,
+      measurement: measurementArr,
+    };
+
+    console.log("🛒 Adding fabric + style to cart:", cartPayload);
+
+    addCartMutate(cartPayload, {
+      onSuccess: () => {
+        // Clear pending fabric data
+        localStorage.removeItem("pending_fabric");
+        setPendingFabric(null);
+        toastSuccess("Style and fabric added to cart successfully!");
+        navigate("/view-cart");
+      },
+      onError: (error) => {
+        console.error("Error adding to cart:", error);
+        toastError("Failed to add to cart. Please try again.");
+      },
+    });
+  };
+
+  // Handle modal confirmation for adding to cart
+  const handleConfirmAddToCart = () => {
+    setShowCartModal(false);
+    handleAddToCartWithFabric();
+  };
 
   const removeMeasurementById = (idToRemove) => {
     setMeasurementArr((prev) => prev.filter((m) => m.id !== idToRemove));
@@ -345,9 +439,38 @@ export default function AnkaraGownPage() {
         <div>
           <div className="p-2 sm:p-6">
             {/* Conditionally render the Fabric section */}
+            {pendingFabric && (
+              <div className="bg-[#FFF2FF] p-4 rounded-lg mb-6">
+                <h2 className="text-sm font-medium text-gray-500 mb-4">
+                  Selected Fabric
+                </h2>
+                <div className="flex items-center space-x-4">
+                  {(pendingFabric.photos && pendingFabric.photos[0]) ||
+                  pendingFabric.image ? (
+                    <img
+                      src={pendingFabric.photos?.[0] || pendingFabric.image}
+                      alt={pendingFabric.name || "Selected Fabric"}
+                      className="w-16 h-16 object-cover rounded-lg border"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 bg-gray-200 rounded-lg border flex items-center justify-center">
+                      <span className="text-gray-400 text-xs">No Image</span>
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="font-semibold text-gray-900">
+                      {pendingFabric.name || "Selected Fabric"}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Quantity: {pendingFabric.quantity || 1} yards
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
             {/* {item ? ( */}
             {/* <div className="bg-[#FFF2FF] p-4 rounded-lg mb-6">
-                <h2 className="text-sm font-medium text-gray-500 mb-4">
+                <h2 className="text-sm font-medium text-gray-500 mb-4"></h2>
                   FABRIC
                 </h2>
                 <div className="flex">
@@ -1162,7 +1285,9 @@ export default function AnkaraGownPage() {
                             ? "Proceed to Lower Body"
                             : selectedTab === "Lower Body"
                               ? "Proceed to Full Body"
-                              : "Submit Measurements"}
+                              : pendingFabric
+                                ? "Add to Cart"
+                                : "Submit Measurements"}
                         </button>
                         {measurementsSubmitted && (
                           <button
@@ -1175,6 +1300,70 @@ export default function AnkaraGownPage() {
                         )}
                       </div>
                     </form>
+                  </div>
+                </div>
+              )}
+
+              {/* Show next steps after measurements are submitted */}
+              {measurementsSubmitted && !showMeasurementForm && (
+                <div className="bg-white rounded-lg shadow-md p-6 mt-6">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg
+                        className="w-8 h-8 text-green-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M5 13l4 4L19 7"
+                        ></path>
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      Measurements Submitted Successfully!
+                    </h3>
+                    <p className="text-gray-600 mb-6">
+                      {pendingFabric
+                        ? "Your style and fabric will be added to cart"
+                        : "Choose what you'd like to do next"}
+                    </p>
+
+                    {pendingFabric ? (
+                      <div className="space-y-4">
+                        <div className="bg-purple-50 p-4 rounded-lg">
+                          <p className="text-sm text-purple-700">
+                            ✨ Ready to add your custom style with selected
+                            fabric to cart
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setShowCartModal(true)}
+                          disabled={addCartPending}
+                          className="w-full bg-gradient text-white font-medium py-4 px-6 rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                        >
+                          Add Style + Fabric to Cart
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                        <Link
+                          to="/shop"
+                          className="flex-1 bg-gradient text-white font-medium py-4 px-6 rounded-lg cursor-pointer hover:opacity-90 transition-opacity text-center"
+                        >
+                          Select Fabric
+                        </Link>
+                        <button
+                          onClick={() => setShowMeasurementForm(true)}
+                          className="flex-1 bg-gray-100 text-gray-700 font-medium py-4 px-6 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors"
+                        >
+                          Edit Measurements
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -1209,6 +1398,176 @@ export default function AnkaraGownPage() {
             </div>
           </div>
         </section>
+      )}
+
+      {/* Cart Confirmation Modal */}
+      {console.log("🐛 Modal debug:", {
+        showCartModal,
+        hasPendingFabric: !!pendingFabric,
+        pendingFabricData: pendingFabric,
+        measurementCount: measurementArr.length,
+        shouldShowModal:
+          showCartModal && pendingFabric && measurementArr.length > 0,
+      })}
+      {showCartModal && pendingFabric && measurementArr.length > 0 && (
+        <div className="fixed inset-0 flex justify-center items-start z-[9999] bg-black/50 backdrop-blur-sm p-4 pt-20 overflow-y-auto">
+          <style>
+            {`
+              @keyframes fadeInUp {
+                0% {
+                  opacity: 0;
+                  transform: translateY(40px) scale(0.98);
+                }
+                100% {
+                  opacity: 1;
+                  transform: translateY(0) scale(1);
+                }
+              }
+              .animate-fade-in-up {
+                animation: fadeInUp 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+              }
+            `}
+          </style>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-auto animate-fade-in-up my-4">
+            {/* Header */}
+            <div className="text-center pt-8 pb-6 px-6">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg
+                  className="w-8 h-8 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Ready to Add to Cart!
+              </h2>
+              <p className="text-gray-600">
+                Your custom style with fabric and measurements
+              </p>
+            </div>
+
+            {/* Content */}
+            <div className="px-6 pb-6">
+              {/* Fabric Info */}
+              <div className="bg-purple-50 rounded-xl p-4 mb-4">
+                <h3 className="font-semibold text-purple-900 mb-2">
+                  Selected Fabric
+                </h3>
+                <div className="flex items-center space-x-3">
+                  {(pendingFabric.photos && pendingFabric.photos[0]) ||
+                  pendingFabric.image ? (
+                    <img
+                      src={pendingFabric.photos?.[0] || pendingFabric.image}
+                      alt={pendingFabric.name || "Selected Fabric"}
+                      className="w-12 h-12 object-cover rounded-lg border"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 bg-gray-200 rounded-lg border flex items-center justify-center">
+                      <span className="text-gray-400 text-xs">No Image</span>
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      {pendingFabric.name || "Selected Fabric"}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {pendingFabric.quantity || 1} yards
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Style Info */}
+              <div className="bg-blue-50 rounded-xl p-4 mb-4">
+                <h3 className="font-semibold text-blue-900 mb-2">
+                  Selected Style
+                </h3>
+                <div className="flex items-center space-x-3">
+                  {styleInfo?.style?.photos?.[0] && (
+                    <img
+                      src={styleInfo.style.photos[0]}
+                      alt={styleInfo?.name}
+                      className="w-12 h-12 object-cover rounded-lg border"
+                    />
+                  )}
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      {styleInfo?.name}
+                    </p>
+                    <p className="text-sm text-gray-600">Custom tailoring</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Measurements Info */}
+              <div className="bg-green-50 rounded-xl p-4 mb-6">
+                <h3 className="font-semibold text-green-900 mb-2">
+                  Measurements
+                </h3>
+                <p className="text-sm text-green-700">
+                  ✓ {measurementArr.length} measurement
+                  {measurementArr.length !== 1 ? "s" : ""} submitted
+                </p>
+                {measurementArr.length > 0 && (
+                  <p className="text-xs text-green-600 mt-1">
+                    Customer:{" "}
+                    {measurementArr[measurementArr.length - 1]?.customer_name}
+                  </p>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={handleConfirmAddToCart}
+                  disabled={addCartPending}
+                  className="w-full flex items-center justify-center space-x-2 px-6 py-4 bg-gradient text-white rounded-xl font-semibold hover:bg-purple-700 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6H19"
+                    ></path>
+                  </svg>
+                  <span>
+                    {addCartPending ? "Adding to Cart..." : "Add to Cart"}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setShowCartModal(false)}
+                  disabled={addCartPending}
+                  className="w-full px-6 py-4 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Review Details
+                </button>
+              </div>
+
+              {/* Info Text */}
+              <div className="mt-4 text-center">
+                <p className="text-xs text-gray-500">
+                  You can edit measurements or fabric selection before adding to
+                  cart
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm">

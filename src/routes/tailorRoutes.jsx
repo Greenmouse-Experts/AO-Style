@@ -11,7 +11,9 @@ import NotificationPageUpdate from "../modules/Pages/adminDashboard/Notification
 import Coupons from "../modules/Pages/Coupons";
 import Subscriptions from "../modules/Pages/tailorDashboard/Subscription";
 import TailorAnnouncementsPage from "../modules/Pages/tailorDashboard/Announcements";
-import TransactionPage from "../modules/Pages/fabricDashboard/TransactionPage";
+import TransactionPage from "../modules/Pages/tailorDashboard/TransactionPage";
+
+// import TransactionPage from "../modules/Pages/fabricDashboard/TransactionPage";
 import ViewTailorStyle from "../modules/Pages/tailorDashboard/ViewStyle";
 
 export const tailorRoute = [

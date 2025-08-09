@@ -10,55 +10,104 @@ import VerifyEmail from "../modules/Auth/VerifyEmail";
 import AdminLogin from "../modules/Auth/AdminLogin";
 import ChangePassword from "../modules/Auth/ChangePassword";
 import MarketRepInvite from "../modules/Auth/MarketRepInvite";
+import AuthErrorBoundary from "../components/AuthErrorBoundary";
 export const authRoutes = [
   {
     path: "/login",
-    element: <Login />,
+    element: (
+      <AuthErrorBoundary>
+        <Login />
+      </AuthErrorBoundary>
+    ),
   },
   {
     path: "/sign-up",
-    element: <SignUp />,
+    element: (
+      <AuthErrorBoundary>
+        <SignUp />
+      </AuthErrorBoundary>
+    ),
   },
   {
     path: "/sign-in-as-customer",
-    element: <SignInCustomer />,
+    element: (
+      <AuthErrorBoundary>
+        <SignInCustomer />
+      </AuthErrorBoundary>
+    ),
   },
   {
     path: "/sign-in-as-market-rep",
-    element: <SigInMarketRep />,
+    element: (
+      <AuthErrorBoundary>
+        <SigInMarketRep />
+      </AuthErrorBoundary>
+    ),
   },
   {
     path: "/invitation/join",
-    element: <MarketRepInvite />,
+    element: (
+      <AuthErrorBoundary>
+        <MarketRepInvite />
+      </AuthErrorBoundary>
+    ),
   },
 
   {
     path: "/sign-in-as-tailor-designer",
-    element: <SignInTailorDesigner />,
+    element: (
+      <AuthErrorBoundary>
+        <SignInTailorDesigner />
+      </AuthErrorBoundary>
+    ),
   },
   {
     path: "/sign-in-as-fabric-vendor",
-    element: <SignInAsFabricVendor />,
+    element: (
+      <AuthErrorBoundary>
+        <SignInAsFabricVendor />
+      </AuthErrorBoundary>
+    ),
   },
   {
     path: "/sign-in-as-logistics",
-    element: <SignInLogistics />,
+    element: (
+      <AuthErrorBoundary>
+        <SignInLogistics />
+      </AuthErrorBoundary>
+    ),
   },
   {
     path: "/forgot-password",
-    element: <Forgot />,
+    element: (
+      <AuthErrorBoundary>
+        <Forgot />
+      </AuthErrorBoundary>
+    ),
   },
   {
     path: "/auth/change-password",
-    element: <ChangePassword />,
+    element: (
+      <AuthErrorBoundary>
+        <ChangePassword />
+      </AuthErrorBoundary>
+    ),
   },
 
   {
     path: "/verify-account",
-    element: <VerifyEmail />,
+    element: (
+      <AuthErrorBoundary>
+        <VerifyEmail />
+      </AuthErrorBoundary>
+    ),
   },
   {
     path: "/admin/login",
-    element: <AdminLogin />,
+    element: (
+      <AuthErrorBoundary>
+        <AdminLogin />
+      </AuthErrorBoundary>
+    ),
   },
 ];

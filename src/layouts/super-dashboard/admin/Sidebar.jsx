@@ -21,6 +21,7 @@ import {
 import { GiScissors } from "react-icons/gi";
 import { Link } from "react-router-dom";
 import { useCarybinAdminUserStore } from "../../../store/carybinAdminUserStore";
+import { useEffect } from "react";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const handleClick = () => {
@@ -33,9 +34,15 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { carybinAdminUser } = useCarybinAdminUserStore();
 
   const superAdmin =
-    carybinAdminUser?.role?.role_id == "owner-super-administrator";
+    carybinAdminUser?.role?.role_id === "owner-super-administrator" ||
+    carybinAdminUser?.role?.name === "super-admin" ||
+    carybinAdminUser?.role === "super-admin";
 
-  console.log(carybinAdminUser);
+  console.log("Admin User Data:", carybinAdminUser);
+  console.log("Is Super Admin:", superAdmin);
+  console.log("Role ID:", carybinAdminUser?.role?.role_id);
+  console.log("Role Name:", carybinAdminUser?.role?.name);
+  console.log("Role:", carybinAdminUser?.role);
 
   const hasFabricRole =
     carybinAdminUser?.admin_role?.role?.includes("fabric-vendor");
@@ -43,11 +50,13 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const hasTailorRole =
     carybinAdminUser?.admin_role?.role?.includes("fashion-designer");
   const hasMarketrepRole = carybinAdminUser?.admin_role?.role?.includes(
-    "market-representative"
+    "market-representative",
   );
   const hasLogisticsRole =
     carybinAdminUser?.admin_role?.role?.includes("logistics-agent");
-
+  // useEffect(() => {
+  //   console.log(carybinAdminUser, carybinAdminUser, "admins");
+  // }, []);
   return (
     <div className="relative">
       {/* Sidebar */}
@@ -79,7 +88,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <h3 className="text-xs text-white uppercase mt-4 mb-2">
             User Management
           </h3>
-
           {superAdmin || hasUserRole ? (
             <SidebarItem
               to="/admin/customers"
@@ -87,9 +95,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               text="Customers"
               onClick={handleClick}
             />
-          ) : (
-            <></>
-          )}
+          }
 
           {superAdmin || hasTailorRole ? (
             <SidebarItem
@@ -98,9 +104,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               text="Tailors / Designers"
               onClick={handleClick}
             />
-          ) : (
-            <></>
-          )}
+          ) : null}
+
           {superAdmin || hasFabricRole ? (
             <SidebarItem
               to="/admin/fabric-vendor"
@@ -108,9 +113,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               text="Fabric Vendor"
               onClick={handleClick}
             />
-          ) : (
-            <></>
-          )}
+          ) : null}
 
           {superAdmin || hasMarketrepRole ? (
             <SidebarItem
@@ -119,9 +122,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               text="Market Rep"
               onClick={handleClick}
             />
-          ) : (
-            <></>
-          )}
+          ) : null}
+
 
           {superAdmin || hasLogisticsRole ? (
             <SidebarItem
@@ -130,20 +132,45 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               text="Logistics"
               onClick={handleClick}
             />
-          ) : (
-            <></>
-          )}
+          ) : null}
 
-          {superAdmin ? (
+          {superAdmin && (
             <SidebarItem
               to="/admin/sub-admins"
               icon={<FaUserShield />}
               text="Sub Admins"
               onClick={handleClick}
             />
-          ) : (
-            <></>
           )}
+
+          {/* Fallback: If no specific role detected but user is in admin panel, show basic user management */}
+          {!superAdmin &&
+            !hasUserRole &&
+            !hasTailorRole &&
+            !hasFabricRole &&
+            !hasMarketrepRole &&
+            !hasLogisticsRole && (
+              <>
+                <SidebarItem
+                  to="/admin/customers"
+                  icon={<FaUsers />}
+                  text="Customers"
+                  onClick={handleClick}
+                />
+                <SidebarItem
+                  to="/admin/tailors"
+                  icon={<GiScissors />}
+                  text="Tailors / Designers"
+                  onClick={handleClick}
+                />
+                <SidebarItem
+                  to="/admin/fabric-vendor"
+                  icon={<FaBox />}
+                  text="Fabric Vendor"
+                  onClick={handleClick}
+                />
+              </>
+            )}
 
           {/* categories Section */}
           <div className="mb-4">

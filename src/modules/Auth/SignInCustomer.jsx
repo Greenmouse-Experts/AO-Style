@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import HowDidYouHearAboutUs from "../Auth/components/HowDidYouHearAboutUs";
 import { useFormik } from "formik";
 import useRegister from "./hooks/useSignUpMutate";
@@ -16,6 +16,8 @@ import { countryCodes } from "../../constant";
 import Select from "react-select";
 import useGoogleSignin from "./hooks/useGoogleSignIn";
 import { usePlacesWidget } from "react-google-autocomplete";
+import { useQueryClient } from "@tanstack/react-query";
+import useSessionManager from "../../hooks/useSessionManager";
 
 const initialValues = {
   name: "",
@@ -33,9 +35,17 @@ export default function SignInAsCustomer() {
   const redirectPath = new URLSearchParams(location.search).get("redirect");
   const pendingProduct = localStorage.getItem("pendingProduct");
 
-  const parsedProduct = JSON.parse(pendingProduct);
+  let parsedProduct = null;
+  try {
+    parsedProduct = pendingProduct ? JSON.parse(pendingProduct) : null;
+  } catch (error) {
+    console.log("⚠️ Invalid pending product data:", error);
+    parsedProduct = null;
+  }
 
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { setAuthData } = useSessionManager();
 
   const [value, setValue] = useState("");
 
@@ -100,54 +110,107 @@ export default function SignInAsCustomer() {
 
   const { isPending: googleIsPending, googleSigninMutate } = useGoogleSignin();
 
+  // Auto-trigger Google signup if redirected from login with stored token
+  useEffect(() => {
+    const storedGoogleToken = sessionStorage.getItem("googleToken");
+    const storedProvider = sessionStorage.getItem("googleProvider");
+
+    if (storedGoogleToken && storedProvider === "google") {
+      console.log("🔄 Auto-triggering Google signup from stored token");
+      googleSigninHandler({ credential: storedGoogleToken });
+    }
+  }, []);
+
   const googleSigninHandler = (cred) => {
+    console.log("🔐 Google signup initiated");
+
+    // Check if we have stored Google token from login attempt
+    const storedGoogleToken = sessionStorage.getItem("googleToken");
+    const storedProvider = sessionStorage.getItem("googleProvider");
+
+    let tokenToUse = cred?.credential || storedGoogleToken;
+
+    if (!tokenToUse) {
+      console.log("❌ No Google token available for signup");
+      toastError("Google authentication failed. Please try again.");
+      return;
+    }
+
     const payload = {
-      token: cred?.credential,
+      token: tokenToUse,
       provider: "google",
       role: "user",
-      action_type: "SIGNUP",
+      action_type: "SIGNUP", // API requires both role and action_type
     };
+
+    console.log("📤 Sending Google signup request");
 
     googleSigninMutate(payload, {
       onSuccess: (data) => {
-        Cookies.set("token", data?.data?.accessToken);
+        console.log("✅ Google signup successful");
 
-        if (data?.data?.data?.role === "user") {
-          navigate(redirectPath ?? "/customer", {
-            state: { info: parsedProduct },
-            replace: true,
+        // Handle both nested (data.data) and flat response structures
+        const responseData = data?.data || data;
+        const statusCode = data?.statusCode || responseData?.statusCode;
+        const message = data?.message || responseData?.message;
+        const accessToken = data?.accessToken || responseData?.accessToken;
+        const userData = responseData?.data || responseData;
+        const userRole = userData?.role;
+
+        // Clear stored Google token
+        sessionStorage.removeItem("googleToken");
+        sessionStorage.removeItem("googleProvider");
+
+        // If we get an access token, user was created successfully
+        if (accessToken && statusCode === 200) {
+          console.log("🔑 Setting authentication tokens");
+
+          // Set token cookie (like normal signin)
+          Cookies.set("token", accessToken);
+
+          // Set approvedByAdmin cookie (like normal signin)
+          Cookies.set(
+            "approvedByAdmin",
+            userData?.profile?.approved_by_admin || "true",
+          );
+
+          // Store auth data in session manager (like normal signin)
+          // For Google SSO, set a long expiry since no refresh token
+          const googleSSOExpiry = new Date();
+          googleSSOExpiry.setDate(googleSSOExpiry.getDate() + 7); // 7 days from now
+
+          setAuthData({
+            accessToken: accessToken,
+            refreshToken: responseData?.refreshToken || null,
+            refreshTokenExpiry:
+              responseData?.refreshTokenExpiry || googleSSOExpiry.toISOString(),
+            user: userData, // Include user data
+            userType: userRole, // Include role
           });
-          Cookies.set("currUserUrl", "customer");
+
+          // Refresh user profile query to ensure fresh data
+          queryClient.invalidateQueries(["get-user-profile"]);
+
+          // Add small delay to ensure cookies are set before navigation
+          setTimeout(() => {
+            console.log("🔄 Redirecting to customer dashboard");
+            const targetPath = redirectPath ?? "/customer";
+
+            navigate(targetPath, {
+              state: { info: parsedProduct },
+              replace: true,
+            });
+            Cookies.set("currUserUrl", "customer");
+            console.log("✅ Signup complete");
+          }, 1000);
         }
-        if (data?.data?.data?.role === "fabric-vendor") {
-          navigate(redirectPath ?? "/fabric", {
-            state: { info: parsedProduct },
-            replace: true,
-          });
-          Cookies.set("currUserUrl", "fabric");
-        }
-        if (data?.data?.data?.role === "fashion-designer") {
-          navigate(redirectPath ?? "/tailor", {
-            state: { info: parsedProduct },
-            replace: true,
-          });
-          Cookies.set("currUserUrl", "tailor");
-        }
-        if (data?.data?.data?.role === "logistics-agent") {
-          navigate(redirectPath ?? "/logistics", {
-            state: { info: parsedProduct },
-            replace: true,
-          });
-          Cookies.set("currUserUrl", "logistics");
-        }
-        if (data?.data?.data?.role === "market-representative") {
-          navigate(redirectPath ?? "/sales", {
-            state: { info: parsedProduct },
-            replace: true,
-          });
-          Cookies.set("currUserUrl", "sales");
-        }
-        // if()
+      },
+      onError: (error) => {
+        console.log("❌ Google signup error:", error?.data?.message);
+
+        // Clear stored token on error
+        sessionStorage.removeItem("googleToken");
+        sessionStorage.removeItem("googleProvider");
       },
     });
   };
@@ -514,17 +577,27 @@ export default function SignInAsCustomer() {
             role="button"
             className="flex items-center mt-4 justify-center rounded-lg "
           >
-            <GoogleLogin
-              size="large"
-              text="signup_with"
-              theme="outlined"
-              onSuccess={(credentialResponse) => {
-                googleSigninHandler(credentialResponse);
-              }}
-              onError={() => {
-                console.log("Login Failed");
-              }}
-            />{" "}
+            {googleIsPending ? (
+              <div className="flex items-center justify-center w-full py-3 px-4 border border-gray-300 rounded-lg bg-gray-50">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600 mr-3"></div>
+                <span className="text-gray-600">Signing up with Google...</span>
+              </div>
+            ) : (
+              <GoogleLogin
+                size="large"
+                text="signup_with"
+                theme="outlined"
+                onSuccess={(credentialResponse) => {
+                  googleSigninHandler(credentialResponse);
+                }}
+                onError={(error) => {
+                  console.error("❌ SignUp: Google OAuth error:", error);
+                  toastError(
+                    "Google sign-up was cancelled or failed. Please try again.",
+                  );
+                }}
+              />
+            )}
           </div>
         </div>
       </div>

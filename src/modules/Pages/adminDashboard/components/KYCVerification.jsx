@@ -35,8 +35,8 @@ const KYCVerificationUpdate = () => {
     utility_upload: null,
     utility_doc_name: null,
     location: kycInfo?.location ?? "",
-    state: kycInfo?.state ?? "",
-    city: kycInfo?.city ?? "",
+    // state: kycInfo?.state ?? "",
+    // city: kycInfo?.city ?? "",
     country: kycInfo?.country ?? "",
     id_type: kycInfo?.id_type ?? "",
   };
@@ -88,16 +88,7 @@ const KYCVerificationUpdate = () => {
         return toastError("Upload necessary document");
       }
 
-      // const uploads = [val.front_upload, val.back_upload, val.utility_upload];
-
       const formData = new FormData();
-
-      // Append all files as `documents[]`
-      // uploads.forEach((file) => {
-      //   if (file) {
-      //     formData.append("documents", file);
-      //   }
-      // });
 
       sendKycMutate(
         {
@@ -116,12 +107,29 @@ const KYCVerificationUpdate = () => {
 
   const statesOptions =
     states?.map((c) => ({ label: c.name, value: c.name })) || [];
+  function getAddressComponent(components, type) {
+    const component = components.find((c) => c.types.includes(type));
+    return component?.long_name || "";
+  }
   const { ref } = usePlacesWidget({
     apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
     onPlaceSelected: (place) => {
+      console.log(place);
+      const components = place.address_components;
+      const country = getAddressComponent(components, "country");
+      const state = getAddressComponent(
+        components,
+        "administrative_area_level_1",
+      );
+      const city = getAddressComponent(components, "locality");
+
       setFieldValue("address", place.formatted_address);
+      setFieldValue("location", place.formatted_address);
       setFieldValue("latitude", place.geometry?.location?.lat().toString());
       setFieldValue("longitude", place.geometry?.location?.lng().toString());
+      setFieldValue("country", country);
+      setFieldValue("state", state);
+      setFieldValue("city", city);
     },
     options: {
       componentRestrictions: { country: "ng" },
@@ -408,14 +416,15 @@ const KYCVerificationUpdate = () => {
             className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
             placeholder="Enter full detailed address"
             required
-            name="address"
+            name="location"
             maxLength={150}
+            autoComplete={false}
             onChange={(e) => {
               setFieldValue("address", e.currentTarget.value);
-              // setFieldValue("latitude", "");
-              // setFieldValue("longitude", "");
+              setFieldValue("latitude", "");
+              setFieldValue("longitude", "");
             }}
-            value={values.address}
+            defaultValue={values.location}
           />
         </div>
         {/* Buttons */}

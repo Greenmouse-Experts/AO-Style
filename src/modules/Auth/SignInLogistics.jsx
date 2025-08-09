@@ -94,7 +94,7 @@ export default function SignUpAsLogisticsAgent() {
                 business_registration_number: val.business_registration_number,
                 location: val.location,
               },
-            }
+            },
       );
     },
   });

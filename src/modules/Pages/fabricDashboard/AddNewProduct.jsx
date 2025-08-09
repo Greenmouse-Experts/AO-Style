@@ -960,15 +960,18 @@ const AddProduct = () => {
                       please wait...{" "}
                     </p>
                   ) : values.closeup_url ? (
-                    <a
-                      onClick={(e) => e.stopPropagation()}
-                      href={values.closeup_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-purple-600 flex justify-center cursor-pointer hover:underline"
-                    >
-                      View file upload
-                    </a>
+                    <>
+                      <img src={values.closeup_url} className="w-1/3 h-16" />
+                      <a
+                        onClick={(e) => e.stopPropagation()}
+                        href={values.closeup_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-purple-600 flex justify-center cursor-pointer hover:underline"
+                      >
+                        View file upload
+                      </a>
+                    </>
                   ) : (
                     <></>
                   )}
@@ -1015,15 +1018,18 @@ const AddProduct = () => {
                       please wait...{" "}
                     </p>
                   ) : values.spreadout_url ? (
-                    <a
-                      onClick={(e) => e.stopPropagation()}
-                      href={values.spreadout_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-purple-600 flex justify-center cursor-pointer hover:underline"
-                    >
-                      View file upload
-                    </a>
+                    <>
+                      <img src={values.spreadout_url} className="w-1/3" />
+                      <a
+                        onClick={(e) => e.stopPropagation()}
+                        href={values.spreadout_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-purple-600 flex justify-center cursor-pointer hover:underline"
+                      >
+                        View file upload
+                      </a>
+                    </>
                   ) : (
                     <></>
                   )}
@@ -1070,15 +1076,21 @@ const AddProduct = () => {
                       please wait...{" "}
                     </p>
                   ) : values.manufacturers_url ? (
-                    <a
-                      onClick={(e) => e.stopPropagation()}
-                      href={values.manufacturers_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-purple-600 flex justify-center cursor-pointer hover:underline"
-                    >
-                      View file upload
-                    </a>
+                    <>
+                      <img
+                        src={values.manufacturers_url}
+                        className="w-1/3 h-16"
+                      />
+                      <a
+                        onClick={(e) => e.stopPropagation()}
+                        href={values.manufacturers_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-purple-600 flex justify-center cursor-pointer hover:underline"
+                      >
+                        View file upload
+                      </a>
+                    </>
                   ) : (
                     <></>
                   )}
@@ -1120,15 +1132,18 @@ const AddProduct = () => {
                       please wait...{" "}
                     </p>
                   ) : values.fabric_url ? (
-                    <a
-                      onClick={(e) => e.stopPropagation()}
-                      href={values.fabric_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-purple-600 flex justify-center cursor-pointer hover:underline"
-                    >
-                      View file upload
-                    </a>
+                    <>
+                      <img src={values.fabric_url} className="w-1/3 h-16" />
+                      <a
+                        onClick={(e) => e.stopPropagation()}
+                        href={values.fabric_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-purple-600 flex justify-center cursor-pointer hover:underline"
+                      >
+                        View file upload
+                      </a>
+                    </>
                   ) : (
                     <></>
                   )}
@@ -1195,6 +1210,19 @@ const AddProduct = () => {
                   </label>
                 </div>
               </div>
+              {
+                <div>
+                  <></>
+                  {values.video_url && (
+                    <video
+                      controls
+                      className="w-[200px] mt-2 rounded-md mx-auto"
+                    >
+                      <source src={values.video_url}></source>
+                    </video>
+                  )}
+                </div>
+              }
             </div>
 
             {/* Submit Button */}

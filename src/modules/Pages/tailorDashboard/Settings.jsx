@@ -1,28 +1,34 @@
 import { useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import SecuritySettings from "./components/SecuritySettings";
 import BankDetails from "./components/BankDetails";
 import KYCVerification from "./components/KYCVerification";
 import { useFormik } from "formik";
-import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
+import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 import useUpdateProfile from "../../../hooks/settings/useUpdateProfile";
-// import KYCVerificationUpdate from "../adminDashboard/components/KYCVerification";
+import BankDetailsUpdate from "./components/BankDetails";
+import KYCVerificationUpdate from "../adminDashboard/components/KYCVerification";
 import PhoneInput from "react-phone-input-2";
 import {
   useCountries,
   useStates,
 } from "../../../hooks/location/useGetCountries";
-import KYCVerificationUpdate from "../adminDashboard/components/KYCVerification";
-import BankDetailsUpdate from "./components/BankDetails";
+import useToast from "../../../hooks/useToast";
+import { usePlacesWidget } from "react-google-autocomplete";
 
 const Settings = () => {
+  const query = new URLSearchParams(useLocation().search);
+  const q = query.get("q");
+
   const [activeTab, setActiveTab] = useState("personalDetails");
   const [activeSection, setActiveSection] = useState(q ?? "Profile");
   const { data: countries, isLoading: loadingCountries } = useCountries();
 
   const countriesOptions =
     countries?.map((c) => ({ label: c.name, value: c.name })) || [];
+
+  const { carybinUser } = useCarybinUserStore();
 
   const initialValues = {
     name: carybinUser?.name ?? "",
@@ -34,42 +40,40 @@ const Settings = () => {
     phone: carybinUser?.phone ?? "",
   };
 
-  const [profileIsLoading, setProfileIsLoading] = useState(false);
-
   const { isPending, uploadImageMutate } = useUploadImage();
-
+  const [profileIsLoading, setProfileIsLoading] = useState(false);
   const { isPending: updateIsPending, updatePersonalMutate } =
     useUpdateProfile();
+  const { toastError } = useToast();
 
-  const {
-    handleSubmit,
-    values,
-    handleChange,
-    resetForm,
-    // setFieldError,
-    setFieldValue,
-  } = useFormik({
-    initialValues: initialValues,
-    validateOnChange: false,
-    validateOnBlur: false,
-    enableReinitialize: true,
-    onSubmit: (val) => {
-      console.log(val);
-      if (!navigator.onLine) {
-        toastError("No internet connection. Please check your network.");
-        return;
-      }
-      updatePersonalMutate(
-        {
-          ...val,
-          coordinates: {
-            longitude: val.longitude,
-            latitude: val.latitude,
+  const { handleSubmit, values, handleChange, resetForm, setFieldValue } =
+    useFormik({
+      initialValues: initialValues,
+      validateOnChange: false,
+      validateOnBlur: false,
+      enableReinitialize: true,
+      onSubmit: (val) => {
+        console.log(val);
+        if (!navigator.onLine) {
+          toastError("No internet connection. Please check your network.");
+          return;
+        }
+        updatePersonalMutate(
+          {
+            ...val,
+            coordinates: {
+              longitude: val.longitude,
+              latitude: val.latitude,
+            },
           },
-        },
-      });
-    },
-  });
+          {
+            onSuccess: () => {
+              resetForm();
+            },
+          },
+        );
+      },
+    });
 
   const { data: states, isLoading: loadingStates } = useStates(values.country);
 
@@ -105,12 +109,25 @@ const Settings = () => {
     fileInputRef.current?.click();
   };
 
+  const { ref } = usePlacesWidget({
+    apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
+    onPlaceSelected: (place) => {
+      setFieldValue("address", place.formatted_address);
+      setFieldValue("latitude", place.geometry?.location?.lat().toString());
+      setFieldValue("longitude", place.geometry?.location?.lng().toString());
+    },
+    options: {
+      componentRestrictions: { country: "ng" },
+      types: [],
+    },
+  });
+
   return (
     <>
       <div className="bg-white px-6 py-4 mb-6">
         <h1 className="text-2xl font-medium mb-3">Settings</h1>
         <p className="text-gray-500">
-          <Link to="/logistics" className="text-blue-500 hover:underline">
+          <Link to="/tailor" className="text-blue-500 hover:underline">
             Dashboard
           </Link>{" "}
           &gt; Settings
@@ -149,12 +166,9 @@ const Settings = () => {
                     className="w-24 h-24 rounded-full"
                   />
                 ) : (
-                  <>
-                    {" "}
-                    <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white">
-                      {values?.name?.charAt(0).toUpperCase() || "?"}
-                    </div>
-                  </>
+                  <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white">
+                    {values?.name?.charAt(0).toUpperCase() || "?"}
+                  </div>
                 )}
                 <button
                   disabled={isPending || profileIsLoading}
@@ -271,97 +285,27 @@ const Settings = () => {
                         />
                       </div>
                       <div>
-                        {" "}
                         <label className="block text-gray-700 mb-4">
                           Address
                         </label>
                         <input
                           type="text"
+                          ref={ref}
                           className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                           placeholder="Enter full detailed address"
                           required
-                          name={"address"}
+                          name="address"
                           maxLength={150}
+                          onChange={(e) => {
+                            setFieldValue("address", e.currentTarget.value);
+                            setFieldValue("latitude", "");
+                            setFieldValue("longitude", "");
+                          }}
                           value={values.address}
-                          onChange={handleChange}
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-gray-700 mb-4">
-                          Country
-                        </label>
-                        <Select
-                          options={countriesOptions}
-                          name="country"
-                          value={countriesOptions?.find(
-                            (opt) => opt.value === values.country,
-                          )}
-                          onChange={(selectedOption) => {
-                            setFieldValue("country", selectedOption.value);
-                          }}
-                          placeholder="Select"
-                          className="w-full p-2 border border-[#CCCCCC] outline-none rounded-lg"
-                          styles={{
-                            control: (base, state) => ({
-                              ...base,
-                              border: "none",
-                              boxShadow: "none",
-                              outline: "none",
-                              backgroundColor: "#fff",
-                              "&:hover": {
-                                border: "none",
-                              },
-                            }),
-                            indicatorSeparator: () => ({
-                              display: "none",
-                            }),
-                            menu: (base) => ({
-                              ...base,
-                              zIndex: 9999,
-                            }),
-                          }}
-                        />{" "}
-                      </div>
 
-                      <div>
-                        <label className="block text-gray-700 mb-4">
-                          State
-                        </label>
-                        <Select
-                          options={statesOptions}
-                          name="state"
-                          value={statesOptions?.find(
-                            (opt) => opt.value === values.state,
-                          )}
-                          onChange={(selectedOption) => {
-                            setFieldValue("state", selectedOption.value);
-                          }}
-                          placeholder="Select"
-                          className="w-full p-2 border border-[#CCCCCC] outline-none rounded-lg"
-                          styles={{
-                            control: (base, state) => ({
-                              ...base,
-                              border: "none",
-                              boxShadow: "none",
-                              outline: "none",
-                              backgroundColor: "#fff",
-                              "&:hover": {
-                                border: "none",
-                              },
-                            }),
-                            indicatorSeparator: () => ({
-                              display: "none",
-                            }),
-                            menu: (base) => ({
-                              ...base,
-                              zIndex: 9999,
-                            }),
-                          }}
-                        />{" "}
-                      </div>
-                    </div>
                     <button
                       disabled={updateIsPending}
                       type="submit"
@@ -376,31 +320,27 @@ const Settings = () => {
           )}
 
           {activeSection === "KYC" && (
-            <div className="">
+            <div>
               <KYCVerificationUpdate />
             </div>
           )}
 
           {activeSection === "Bank Details" && (
-            <div className="">
+            <div>
               <BankDetailsUpdate />
             </div>
           )}
 
           {activeSection === "Security" && (
-            <div className="">
+            <div>
+              <h2 className="text-xl font-medium mb-4">Security Settings</h2>
               <SecuritySettings />
             </div>
-          )}
-          {activeSection === "Settings" && (
-            <h2 className="text-xl font-medium">General Settings</h2>
-          )}
-          {activeSection === "Support" && (
-            <h2 className="text-xl font-medium">Support & Help</h2>
           )}
         </div>
       </div>
     </>
   );
 };
+
 export default Settings;

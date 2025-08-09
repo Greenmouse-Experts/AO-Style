@@ -967,12 +967,12 @@ const Settings = () => {
             </div>
           )}
 
-          {activeSection === "Bank Details" && (
+          {/* {activeSection === "Bank Details" && (
             <div>
               <h2 className="text-xl font-medium mb-4">Bank Details</h2>
               <BankDetails />
             </div>
-          )}
+          )}*/}
 
           {activeSection === "Security" && (
             <div>

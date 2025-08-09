@@ -418,6 +418,7 @@ const KYCVerificationUpdate = () => {
             required
             name="location"
             maxLength={150}
+            autoComplete={false}
             onChange={(e) => {
               setFieldValue("address", e.currentTarget.value);
               setFieldValue("latitude", "");

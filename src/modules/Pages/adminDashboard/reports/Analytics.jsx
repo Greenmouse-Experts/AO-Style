@@ -20,7 +20,7 @@ export default function Analytics() {
           <SalesSummaryChart />
         </div>
       </div>
-      <RecentOrdersTable />
+      {/* <RecentOrdersTable />*/}
     </>
   );
 }

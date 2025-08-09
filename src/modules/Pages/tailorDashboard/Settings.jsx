@@ -9,7 +9,6 @@ import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useUpdateProfile from "../../../hooks/settings/useUpdateProfile";
 // import KYCVerificationUpdate from "../adminDashboard/components/KYCVerification";
 import PhoneInput from "react-phone-input-2";
-import Select from "react-select";
 import {
   useCountries,
   useStates,
@@ -19,11 +18,7 @@ import BankDetailsUpdate from "./components/BankDetails";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("personalDetails");
-  const [bodyTab, setBodyTab] = useState("upperBody");
-  const [activeSection, setActiveSection] = useState("Profile");
-
-  const { carybinUser } = useCarybinUserStore();
-
+  const [activeSection, setActiveSection] = useState(q ?? "Profile");
   const { data: countries, isLoading: loadingCountries } = useCountries();
 
   const countriesOptions =
@@ -59,9 +54,18 @@ const Settings = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      updatePersonalMutate(val, {
-        onSuccess: () => {
-          resetForm();
+      console.log(val);
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
+        return;
+      }
+      updatePersonalMutate(
+        {
+          ...val,
+          coordinates: {
+            longitude: val.longitude,
+            latitude: val.latitude,
+          },
         },
       });
     },

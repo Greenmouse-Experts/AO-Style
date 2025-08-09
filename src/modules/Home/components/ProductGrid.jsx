@@ -105,7 +105,7 @@ export default function ProductGrid() {
                 </h3>
                 <p className="text-[#2B21E5] text-left font-bold">
                   {formatPrice(product.price)}{" "}
-                  <span className="text-[#8A8A8A] font-medium">per unit</span>
+                  <span className="text-[#8A8A8A] font-medium">per yard</span>
                 </p>
               </motion.div>
             </Link>

@@ -460,7 +460,7 @@ export default function ShopDetails() {
                     ₦{productVal?.product?.price?.toLocaleString()}
                   </span>
                   <span className="text-sm text-gray-500 font-medium">
-                    per unit
+                    per yard
                   </span>
                 </div>
               </div>
@@ -1073,7 +1073,7 @@ export default function ShopDetails() {
                         <span className="text-lg font-bold text-purple-600">
                           {product.price}
                         </span>
-                        <span className="text-sm text-gray-500">per unit</span>
+                        <span className="text-sm text-gray-500">per yard</span>
                       </div>
                     </div>
                   </Link>

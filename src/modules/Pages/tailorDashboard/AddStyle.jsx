@@ -920,7 +920,7 @@ export default function StyleForm() {
                   min={0}
                   value={values.price}
                   onChange={handleChange}
-                  placeholder="Enter amount per unit"
+                  placeholder="Enter amount per yard"
                   className="flex-1 p-4 border border-[#CCCCCC] rounded-lg px-4 py-2 outline-none"
                   required
                 />

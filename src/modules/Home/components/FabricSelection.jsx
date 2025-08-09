@@ -355,7 +355,7 @@ export default function FabricSelection() {
                         <span className="text-lg font-bold text-purple-600">
                           ₦{formatNumberWithCommas(product?.price || 0)}
                         </span>
-                        <span className="text-sm text-gray-500">per unit</span>
+                        <span className="text-sm text-gray-500">per yard</span>
                       </div>
                     </div>
                   </motion.div>

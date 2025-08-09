@@ -16,7 +16,7 @@ import PhoneInput from "react-phone-input-2";
 import useCreateBilling from "../../hooks/billing/useCreateBilling";
 import useApplyCoupon from "../../hooks/cart/useApplyCoupon";
 import useGetDeliveryFee from "../../hooks/delivery/useGetDeleiveryFee";
-import useUpdateCartItem from "../../hooks/cart/useUpdateCartItem";
+
 import {
   X,
   Download,
@@ -24,8 +24,6 @@ import {
   ZoomOut,
   Maximize2,
   Minimize2,
-  Plus,
-  Minus,
   Trash2,
   User,
   Calendar,
@@ -59,8 +57,7 @@ const CartPage = () => {
     isPending: cartLoading,
     refetch: refetchCart,
   } = useGetCart();
-  const { updateCartItemMutate, isPending: updatePending } =
-    useUpdateCartItem();
+
   const { deleteCartMutate, isPending: deleteIsPending } = useDeleteCart();
   const { applyCouponMutate, isPending: applyCouponPending } = useApplyCoupon();
 
@@ -185,81 +182,6 @@ const CartPage = () => {
       return measurement.length;
     }
     return measurement ? 1 : 0;
-  };
-
-  // Handle quantity update with minimum yards and style constraints
-  const handleQuantityUpdate = (itemId, newQuantity, item) => {
-    // If item has a style, don't allow quantity changes (quantity = number of measurements)
-    if (item?.style_product) {
-      toastError(
-        "Cannot change quantity for styled items. Quantity equals number of measurements.",
-      );
-      return;
-    }
-
-    const minimumYards = item?.product?.minimum_yards || 1;
-
-    if (newQuantity < minimumYards) {
-      setItemToDelete(itemId);
-      setIsDeleteModalOpen(true);
-      return;
-    }
-
-    console.log("🛒 Updating quantity:", { itemId, newQuantity, minimumYards });
-    updateCartItemMutate(
-      {
-        id: itemId,
-        quantity: newQuantity,
-      },
-      {
-        onSuccess: () => {
-          refetchCart();
-          // Toast is handled by the hook
-        },
-        onError: (error) => {
-          toastError("Failed to update cart item");
-          console.error("Update error:", error);
-        },
-      },
-    );
-  };
-
-  // Handle quantity increment with minimum yards constraint
-  const handleQuantityIncrement = (item) => {
-    if (item?.style_product) {
-      toastError(
-        "Cannot change quantity for styled items. Quantity equals number of measurements.",
-      );
-      return;
-    }
-
-    const minimumYards = item?.product?.minimum_yards || 1;
-    const currentQuantity = parseInt(item.quantity || 1);
-    const newQuantity = currentQuantity + minimumYards;
-
-    handleQuantityUpdate(item.id, newQuantity, item);
-  };
-
-  // Handle quantity decrement with minimum yards constraint
-  const handleQuantityDecrement = (item) => {
-    if (item?.style_product) {
-      toastError(
-        "Cannot change quantity for styled items. Quantity equals number of measurements.",
-      );
-      return;
-    }
-
-    const minimumYards = item?.product?.minimum_yards || 1;
-    const currentQuantity = parseInt(item.quantity || 1);
-    const newQuantity = currentQuantity - minimumYards;
-
-    if (newQuantity < minimumYards) {
-      setItemToDelete(item.id);
-      setIsDeleteModalOpen(true);
-      return;
-    }
-
-    handleQuantityUpdate(item.id, newQuantity, item);
   };
 
   // Handle item removal
@@ -634,10 +556,9 @@ const CartPage = () => {
               {/* Cart Items - Left Side */}
               <div className="lg:col-span-2 space-y-4">
                 {/* Desktop Headers */}
-                <div className="hidden md:grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 rounded-lg text-sm font-medium text-gray-600">
+                <div className="hidden md:grid grid-cols-10 gap-4 px-4 py-3 bg-gray-50 rounded-lg text-sm font-medium text-gray-600">
                   <div className="col-span-5">Product</div>
                   <div className="col-span-2 text-center">Quantity</div>
-                  <div className="col-span-2 text-right">Unit Price</div>
                   <div className="col-span-2 text-right">Total</div>
                   <div className="col-span-1 text-center">Action</div>
                 </div>
@@ -703,14 +624,14 @@ const CartPage = () => {
                           </div>
                         </div>
 
-                        {/* Quantity Controls */}
+                        {/* Quantity Display */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className="flex flex-col">
                               <span className="text-sm font-medium">
-                                Quantity:
+                                Quantity: {displayQuantity} yards
                               </span>
-                              {item?.style_product ? (
+                              {item?.style_product && (
                                 <span className="text-xs text-blue-600 font-medium">
                                   = {getMeasurementCount(item.measurement)}{" "}
                                   measurement
@@ -718,60 +639,7 @@ const CartPage = () => {
                                     ? "s"
                                     : ""}
                                 </span>
-                              ) : (
-                                <span className="text-xs text-gray-500">
-                                  Min: {item?.product?.minimum_yards || 1} yards
-                                </span>
                               )}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => handleQuantityDecrement(item)}
-                                disabled={
-                                  updatePending ||
-                                  item?.style_product ||
-                                  quantity <=
-                                    (item?.product?.minimum_yards || 1)
-                                }
-                                className={`w-8 h-8 flex items-center justify-center border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed ${
-                                  item?.style_product
-                                    ? "border-blue-300 bg-blue-50"
-                                    : "border-gray-300"
-                                }`}
-                                title={
-                                  item?.style_product
-                                    ? "Cannot change quantity for styled items"
-                                    : quantity <=
-                                        (item?.product?.minimum_yards || 1)
-                                      ? `Minimum quantity is ${item?.product?.minimum_yards || 1} yards`
-                                      : "Decrease quantity"
-                                }
-                              >
-                                <Minus className="w-4 h-4" />
-                              </button>
-                              <span
-                                className={`w-8 text-center font-medium ${
-                                  item?.style_product ? "text-blue-600" : ""
-                                }`}
-                              >
-                                {displayQuantity}
-                              </span>
-                              <button
-                                onClick={() => handleQuantityIncrement(item)}
-                                disabled={updatePending || item?.style_product}
-                                className={`w-8 h-8 flex items-center justify-center border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed ${
-                                  item?.style_product
-                                    ? "border-blue-300 bg-blue-50"
-                                    : "border-gray-300"
-                                }`}
-                                title={
-                                  item?.style_product
-                                    ? "Cannot change quantity for styled items"
-                                    : `Increase by ${item?.product?.minimum_yards || 1} yards`
-                                }
-                              >
-                                <Plus className="w-4 h-4" />
-                              </button>
                             </div>
                           </div>
                           <div className="text-right">
@@ -806,7 +674,7 @@ const CartPage = () => {
                       </div>
 
                       {/* Desktop Layout */}
-                      <div className="hidden md:grid grid-cols-12 gap-4 items-center">
+                      <div className="hidden md:grid grid-cols-10 gap-4 items-center">
                         {/* Product Information */}
                         <div className="col-span-5 flex items-center space-x-3">
                           {item.product?.image && (
@@ -844,57 +712,16 @@ const CartPage = () => {
                           </div>
                         </div>
 
-                        {/* Quantity Controls */}
+                        {/* Quantity Display */}
                         <div className="col-span-2 flex flex-col items-center justify-center gap-1">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleQuantityDecrement(item)}
-                              disabled={
-                                updatePending ||
-                                item?.style_product ||
-                                quantity <= (item?.product?.minimum_yards || 1)
-                              }
-                              className={`w-8 h-8 flex items-center justify-center border rounded-md hover:bg-gray-50 disabled:opacity-50 ${
-                                item?.style_product
-                                  ? "border-blue-300 bg-blue-50"
-                                  : "border-gray-300"
-                              }`}
-                              title={
-                                item?.style_product
-                                  ? "Cannot change quantity for styled items"
-                                  : quantity <=
-                                      (item?.product?.minimum_yards || 1)
-                                    ? `Minimum quantity is ${item?.product?.minimum_yards || 1} yards`
-                                    : "Decrease quantity"
-                              }
-                            >
-                              <Minus className="w-4 h-4" />
-                            </button>
-                            <span
-                              className={`w-8 text-center font-medium ${
-                                item?.style_product ? "text-blue-600" : ""
-                              }`}
-                            >
-                              {displayQuantity}
-                            </span>
-                            <button
-                              onClick={() => handleQuantityIncrement(item)}
-                              disabled={updatePending || item?.style_product}
-                              className={`w-8 h-8 flex items-center justify-center border rounded-md hover:bg-gray-50 disabled:opacity-50 ${
-                                item?.style_product
-                                  ? "border-blue-300 bg-blue-50"
-                                  : "border-gray-300"
-                              }`}
-                              title={
-                                item?.style_product
-                                  ? "Cannot change quantity for styled items"
-                                  : `Increase by ${item?.product?.minimum_yards || 1} yards`
-                              }
-                            >
-                              <Plus className="w-4 h-4" />
-                            </button>
-                          </div>
-                          {item?.style_product ? (
+                          <span
+                            className={`text-center font-medium ${
+                              item?.style_product ? "text-blue-600" : ""
+                            }`}
+                          >
+                            {displayQuantity} yards
+                          </span>
+                          {item?.style_product && (
                             <span className="text-xs text-blue-600 font-medium">
                               = {getMeasurementCount(item.measurement)}{" "}
                               measurement
@@ -902,18 +729,7 @@ const CartPage = () => {
                                 ? "s"
                                 : ""}
                             </span>
-                          ) : (
-                            <span className="text-xs text-gray-500">
-                              Min: {item?.product?.minimum_yards || 1} yards
-                            </span>
                           )}
-                        </div>
-
-                        {/* Unit Price */}
-                        <div className="col-span-2 text-right">
-                          <p className="font-semibold text-gray-500">
-                            {formatPrice(unitPrice)}
-                          </p>
                         </div>
 
                         {/* Total */}

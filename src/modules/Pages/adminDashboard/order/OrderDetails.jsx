@@ -48,18 +48,19 @@ const OrderDetails = () => {
   const orderId = searchParams.get("id");
 
   const { isPending: getUserIsPending, data } = useGetSingleOrder(orderId);
+  console.log(data, "orderss");
 
   // Console logs for debugging
-  console.log("=== ORDER DETAILS DEBUG ===");
-  console.log("orderId from URL:", orderId);
-  console.log("isPending:", getUserIsPending);
-  console.log("Raw API response data:", data);
-  console.log("Order details (data?.data):", data?.data);
-  console.log("Payment object:", data?.data?.payment);
-  console.log("Purchase object:", data?.data?.payment?.purchase);
-  console.log("Purchase items:", data?.data?.payment?.purchase?.items);
-  console.log("Order status:", data?.data?.status);
-  console.log("==============================");
+  // console.log("=== ORDER DETAILS DEBUG ===");
+  // console.log("orderId from URL:", orderId);
+  // console.log("isPending:", getUserIsPending);
+  // console.log("Raw API response data:", data);
+  // console.log("Order details (data?.data):", data?.data);
+  // console.log("Payment object:", data?.data?.payment);
+  // console.log("Purchase object:", data?.data?.payment?.purchase);
+  // console.log("Purchase items:", data?.data?.payment?.purchase?.items);
+  // console.log("Order status:", data?.data?.status);
+  // console.log("==============================");
 
   // Always call these hooks to maintain consistent hook order
   const orderDetails = data?.data;

@@ -51,7 +51,7 @@ const ViewTailorDetails = () => {
         },
         {
           onSuccess: () => {},
-        }
+        },
       );
     }
   };
@@ -74,7 +74,7 @@ const ViewTailorDetails = () => {
   console.log(tailorInfo);
 
   const { data: states, isLoading: loadingStates } = useStates(
-    tailorInfo?.kyc?.country
+    tailorInfo?.kyc?.country,
   );
 
   const statesOptions =
@@ -571,14 +571,14 @@ const ViewTailorDetails = () => {
                             />
                         </div> */}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex *:w-full">
               <div className="w-full">
                 <label className="block text-gray-700 mb-2">Country</label>
                 <Select
                   options={countriesOptions}
                   name="country"
                   value={countriesOptions?.find(
-                    (opt) => opt.value === tailorInfo?.kyc?.country
+                    (opt) => opt.value === tailorInfo?.kyc?.country,
                   )}
                   onChange={(selectedOption) => {}}
                   placeholder="Select"
@@ -604,13 +604,13 @@ const ViewTailorDetails = () => {
                   }}
                 />{" "}
               </div>
-              <div>
+              {/* <div>
                 <label className="block text-gray-700 mb-2">State</label>
                 <Select
                   options={statesOptions}
                   name="state"
                   value={statesOptions?.find(
-                    (opt) => opt.value === tailorInfo?.kyc?.state
+                    (opt) => opt.value === tailorInfo?.kyc?.state,
                   )}
                   onChange={(selectedOption) => {}}
                   placeholder="Select"
@@ -635,11 +635,11 @@ const ViewTailorDetails = () => {
                     }),
                   }}
                 />{" "}
-              </div>
+              </div>*/}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
+            <div className="flex *:w-full">
+              {/* <div>
                 <label className="block text-gray-700 mb-2">City</label>
                 <input
                   type="text"
@@ -648,7 +648,7 @@ const ViewTailorDetails = () => {
                   className="mb-6 w-full p-4  border border-[#CCCCCC] outline-none rounded-lg text-sm"
                   placeholder="City"
                 />
-              </div>
+              </div>*/}
 
               <div>
                 <label className="block text-gray-700 mb-2">Address</label>

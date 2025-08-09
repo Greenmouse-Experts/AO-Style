@@ -21,6 +21,7 @@ import {
 import { GiScissors } from "react-icons/gi";
 import { Link } from "react-router-dom";
 import { useCarybinAdminUserStore } from "../../../store/carybinAdminUserStore";
+import { useEffect } from "react";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const handleClick = () => {
@@ -53,7 +54,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   );
   const hasLogisticsRole =
     carybinAdminUser?.admin_role?.role?.includes("logistics-agent");
-
+  // useEffect(() => {
+  //   console.log(carybinAdminUser, carybinAdminUser, "admins");
+  // }, []);
   return (
     <div className="relative">
       {/* Sidebar */}
@@ -85,8 +88,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <h3 className="text-xs text-white uppercase mt-4 mb-2">
             User Management
           </h3>
-
-          {
+          {superAdmin || hasUserRole ? (
             <SidebarItem
               to="/admin/customers"
               icon={<FaUsers />}
@@ -121,6 +123,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               onClick={handleClick}
             />
           ) : null}
+
 
           {superAdmin || hasLogisticsRole ? (
             <SidebarItem

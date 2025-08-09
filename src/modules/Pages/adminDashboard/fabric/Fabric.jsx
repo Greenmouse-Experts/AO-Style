@@ -138,7 +138,7 @@ const CustomersTable = () => {
                     View Details
                   </button>
                 </Link>
-                <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
+                {/* <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
                   Edit User
                 </button>
                 <button
@@ -153,7 +153,7 @@ const CustomersTable = () => {
                   className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
                 >
                   View Orders
-                </button>
+                </button>*/}
                 {row?.profile?.approved_by_admin ? (
                   <>
                     {" "}

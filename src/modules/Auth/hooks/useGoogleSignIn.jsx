@@ -9,22 +9,41 @@ const useGoogleSignin = () => {
   //   const navigate = useNavigate();
 
   const { isPending, mutate: googleSigninMutate } = useMutation({
-    mutationFn: (payload) => AuthService.googleSignin(payload),
+    mutationFn: (payload) => {
+      console.log("🚀 Making Google auth API call");
+      return AuthService.googleSignin(payload);
+    },
     mutationKey: ["googlesignin-user"],
     onSuccess(data) {
-      toastSuccess(data?.data?.message);
+      console.log("🎉 Google auth API successful");
+
+      // Handle both nested (data.data) and flat response structures
+      const responseData = data?.data || data;
+      const message = data?.message || responseData?.message;
+
+      toastSuccess(message || "Authentication successful");
     },
     onError: (error) => {
+      console.log(
+        "💥 Google auth API error:",
+        error?.data?.message || error?.message,
+      );
+
       if (!navigator.onLine) {
         toastError("No internet connection. Please check your network.");
         return;
       }
 
+      let errorMessage = "Google authentication failed";
       if (Array.isArray(error?.data?.message)) {
-        toastError(error?.data?.message[0]);
-      } else {
-        toastError(error?.data?.message);
+        errorMessage = error?.data?.message[0];
+      } else if (error?.data?.message) {
+        errorMessage = error?.data?.message;
+      } else if (error?.message) {
+        errorMessage = error?.message;
       }
+
+      toastError(errorMessage);
     },
   });
   return { isPending, googleSigninMutate };

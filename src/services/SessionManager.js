@@ -18,6 +18,8 @@ class SessionManager {
       refreshToken: data.refreshToken,
       refreshTokenExpiry: data.refreshTokenExpiry,
       tokenExpiry: this.decodeTokenExpiry(data.accessToken),
+      user: data.user,
+      userType: data.userType,
     };
 
     // Store tokens in cookies
@@ -34,7 +36,12 @@ class SessionManager {
 
     this.warningShown = false;
     this.updateActivity();
-    console.log("🔒 SessionManager: Auth data stored");
+    console.log("🔒 SessionManager: Auth data stored", {
+      hasAccessToken: !!data.accessToken,
+      hasRefreshToken: !!data.refreshToken,
+      userType: data.userType,
+      userId: data.user?.id,
+    });
   }
 
   // Get stored authentication data
@@ -57,8 +64,13 @@ class SessionManager {
         refreshToken,
         refreshTokenExpiry,
         tokenExpiry: this.decodeTokenExpiry(accessToken),
+        user: null, // Will be populated by dashboard layout
+        userType: null, // Will be populated by dashboard layout
       };
-      console.log("🔍 SessionManager: Retrieved auth data", this.authData);
+      console.log(
+        "🔍 SessionManager: Retrieved auth data from cookies",
+        this.authData,
+      );
       return this.authData;
     }
 
@@ -97,7 +109,16 @@ class SessionManager {
   // Check if refresh token is expired
   isRefreshTokenExpired() {
     const authData = this.getAuthData();
-    if (!authData || !authData.refreshTokenExpiry) return true;
+    if (!authData) return true;
+
+    // If no refresh token exists (like Google SSO), consider it as not expired
+    // to allow the access token to be the primary auth mechanism
+    if (!authData.refreshToken || !authData.refreshTokenExpiry) {
+      console.log(
+        "🔍 SessionManager: No refresh token, using access token only",
+      );
+      return false;
+    }
 
     const now = Date.now();
     const expiry = new Date(authData.refreshTokenExpiry).getTime();
@@ -133,7 +154,9 @@ class SessionManager {
   async refreshAccessToken() {
     const authData = this.getAuthData();
     if (!authData || !authData.refreshToken) {
-      console.log("❌ SessionManager: No refresh token available");
+      console.log(
+        "❌ SessionManager: No refresh token available (Google SSO?)",
+      );
       return false;
     }
 
@@ -309,6 +332,15 @@ class SessionManager {
     const authData = this.getAuthData();
     if (!authData) return false;
 
+    // For Google SSO (no refresh token), only check access token
+    if (!authData.refreshToken) {
+      console.log(
+        "🔍 SessionManager: Google SSO auth check - access token only",
+      );
+      return !this.isTokenExpired();
+    }
+
+    // For normal auth with refresh tokens
     // If access token is expired but refresh token is valid, we're still authenticated
     if (this.isTokenExpired() && this.isRefreshTokenExpired()) {
       return false;

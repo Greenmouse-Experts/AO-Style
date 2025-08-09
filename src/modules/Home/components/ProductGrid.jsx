@@ -67,6 +67,12 @@ export default function ProductGrid() {
 
   const trendingProducts = getTrendingData?.data || [];
 
+  // Format price with commas
+  const formatPrice = (price) => {
+    const numPrice = parseFloat(price || 0);
+    return `₦${numPrice.toLocaleString()}`;
+  };
+
   return (
     <section className="Resizer just px-4">
       <h2 className="text-2xl font-medium mb-8">Top Trending Fabrics</h2>
@@ -98,8 +104,8 @@ export default function ProductGrid() {
                     : product?.name}
                 </h3>
                 <p className="text-[#2B21E5] text-left font-bold">
-                  ₦{product.price}{" "}
-                  <span className="text-[#8A8A8A] font-medium">per unit</span>
+                  {formatPrice(product.price)}{" "}
+                  <span className="text-[#8A8A8A] font-medium">per yard</span>
                 </p>
               </motion.div>
             </Link>

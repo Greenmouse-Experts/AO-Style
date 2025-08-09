@@ -7,6 +7,7 @@ import AoStyleDetails from "../modules/Home/aostyle/AoStyleDetails";
 import Shops from "../modules/Home/shop/Shop";
 import ShopDetails from "../modules/Home/shop/ShopDetails";
 import PickaStyle from "../modules/Home/shop/PickaStyle";
+import FabricSelection from "../modules/Home/components/FabricSelection";
 import AboutUs from "../modules/Home/About";
 import ContactUs from "../modules/Home/Contact";
 import FAQs from "../modules/Home/Faqs";
@@ -58,6 +59,10 @@ export const landingRooutes = [
       {
         path: "pickastyle",
         element: <PickaStyle />,
+      },
+      {
+        path: "fabric-selection",
+        element: <FabricSelection />,
       },
       {
         path: "shop",

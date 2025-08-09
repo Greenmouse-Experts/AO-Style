@@ -165,7 +165,7 @@ export default function MarketplacePage() {
                     </h3>
                     <p className="text-[#2B21E5] text-left text-sm">
                       ₦{product?.product?.price.toLocaleString()}{" "}
-                      <span className="text-gray-500">per unit</span>
+                      <span className="text-gray-500">per yard</span>
                     </p>
                   </motion.div>
                 </Link>

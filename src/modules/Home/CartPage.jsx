@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Breadcrumb from "./components/Breadcrumb";
 import useGetCart from "../../hooks/cart/useGetCart";
 import LoaderComponent from "../../components/BeatLoader";
@@ -14,10 +14,9 @@ import Select from "react-select";
 import { nigeriaStates } from "../../constant";
 import PhoneInput from "react-phone-input-2";
 import useCreateBilling from "../../hooks/billing/useCreateBilling";
-import useApplyCoupon from "../../hooks/coupon/useApplyCoupon";
+import useApplyCoupon from "../../hooks/cart/useApplyCoupon";
 import useGetDeliveryFee from "../../hooks/delivery/useGetDeleiveryFee";
-import useUpdateCartItem from "../../hooks/cart/useUpdateCartItem";
-import useRemoveCoupon from "../../hooks/cart/useRemoveCoupon";
+
 import {
   X,
   Download,
@@ -25,8 +24,6 @@ import {
   ZoomOut,
   Maximize2,
   Minimize2,
-  Plus,
-  Minus,
   Trash2,
   User,
   Calendar,
@@ -34,6 +31,8 @@ import {
   Tag,
 } from "lucide-react";
 import { formatNumberWithCommas } from "../../lib/helper";
+import CartItemStyle from "./components/CartItemStyle";
+import CartItemStyleDesktop from "./components/CartItemStyleDesktop";
 
 const initialValues = {
   address: "",
@@ -45,7 +44,8 @@ const initialValues = {
 
 const CartPage = () => {
   const [coupon, setCoupon] = useState("");
-  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -57,12 +57,10 @@ const CartPage = () => {
     isPending: cartLoading,
     refetch: refetchCart,
   } = useGetCart();
-  const { updateCartItemMutate, isPending: updatePending } =
-    useUpdateCartItem();
+
   const { deleteCartMutate, isPending: deleteIsPending } = useDeleteCart();
   const { applyCouponMutate, isPending: applyCouponPending } = useApplyCoupon();
-  const { removeCouponMutate, isPending: removeCouponPending } =
-    useRemoveCoupon();
+
   const { createPaymentMutate, isPending: createPaymentPending } =
     useCreatePayment();
   const { createBillingMutate, isPending: billingPending } = useCreateBilling();
@@ -83,7 +81,37 @@ const CartPage = () => {
   console.log("🛒 Cart Items:", items);
   console.log("🛒 Cart User:", cartUser);
 
-  const { data: deliveryData } = useGetDeliveryFee();
+  const {
+    data: deliveryData,
+    isLoading: deliveryLoading,
+    isError: deliveryError,
+  } = useGetDeliveryFee();
+
+  // Console log delivery data
+  console.log("🚚 Delivery API Response:", deliveryData);
+  console.log("🚚 Delivery Loading State:", deliveryLoading);
+  console.log("🚚 Delivery Error State:", deliveryError);
+  console.log("🚚 Raw Delivery Data:", deliveryData?.data);
+  console.log("🚚 Delivery Fee Value:", deliveryData?.data?.data?.delivery_fee);
+
+  // Immediate logging when delivery data changes
+  useEffect(() => {
+    if (deliveryData) {
+      console.log("🚚 CartPage: Delivery data received!");
+      console.log("🚚 CartPage: Full deliveryData object:", deliveryData);
+      console.log("🚚 CartPage: deliveryData.data:", deliveryData.data);
+      console.log(
+        "🚚 CartPage: deliveryData.data.data:",
+        deliveryData.data?.data,
+      );
+      console.log(
+        "🚚 CartPage: Final delivery_fee extracted:",
+        deliveryData?.data?.data?.delivery_fee,
+      );
+    } else {
+      console.log("🚚 CartPage: No delivery data available");
+    }
+  }, [deliveryData]);
   const { carybinUser } = useCarybinUserStore();
   const { toastSuccess, toastError } = useToast();
   const navigate = useNavigate();
@@ -123,10 +151,23 @@ const CartPage = () => {
   const delivery_fee = deliveryData?.data?.data?.delivery_fee ?? 0;
   const estimatedVat = totals.subtotal * 0.075;
   const charges = totals.subtotal * 0.015;
-  const discountAmount = 0; // Will be updated when coupon is applied
+  const discountAmount = appliedCoupon?.discount || 0;
 
   const finalTotal =
-    totals.subtotal + delivery_fee + estimatedVat + charges - discountAmount;
+    totals.subtotal + delivery_fee + estimatedVat - discountAmount;
+
+  // Console log calculation details
+  console.log("💰 Cart Calculations:", {
+    subtotal: totals.subtotal,
+    delivery_fee: delivery_fee,
+    estimatedVat: estimatedVat,
+    charges: charges,
+    discountAmount: discountAmount,
+    finalTotal: finalTotal,
+    note: "Service charges excluded from total (only subtotal + VAT + delivery)",
+    deliveryDataExists: !!deliveryData,
+    deliveryDataPath: deliveryData?.data?.data,
+  });
 
   // Handle agreement click
   const handleAgreementClick = (e) => {
@@ -135,31 +176,12 @@ const CartPage = () => {
     setShowPolicyModal(true);
   };
 
-  // Handle quantity update
-  const handleQuantityUpdate = (itemId, newQuantity) => {
-    if (newQuantity < 1) {
-      setItemToDelete(itemId);
-      setIsDeleteModalOpen(true);
-      return;
+  // Get measurement count for styled items
+  const getMeasurementCount = (measurement) => {
+    if (Array.isArray(measurement)) {
+      return measurement.length;
     }
-
-    console.log("🛒 Updating quantity:", { itemId, newQuantity });
-    updateCartItemMutate(
-      {
-        id: itemId,
-        quantity: newQuantity,
-      },
-      {
-        onSuccess: () => {
-          refetchCart();
-          // Toast is handled by the hook
-        },
-        onError: (error) => {
-          toastError("Failed to update cart item");
-          console.error("Update error:", error);
-        },
-      },
-    );
+    return measurement ? 1 : 0;
   };
 
   // Handle item removal
@@ -174,7 +196,6 @@ const CartPage = () => {
           refetchCart();
           setIsDeleteModalOpen(false);
           setItemToDelete(null);
-          toastSuccess("Item removed from cart");
         },
         onError: (error) => {
           toastError("Failed to remove item");
@@ -188,38 +209,50 @@ const CartPage = () => {
   const handleApplyCoupon = () => {
     if (!coupon.trim()) return;
 
-    console.log("🛒 Applying coupon:", coupon);
-    applyCouponMutate(
-      {
-        coupon_code: coupon.trim(),
+    // Validate user email
+    if (!carybinUser?.email) {
+      toastError("Please login to apply coupon");
+      return;
+    }
+
+    const couponPayload = {
+      email: carybinUser.email,
+      code: coupon.trim(),
+      amount: totals.subtotal.toString(),
+    };
+
+    console.log("🛒 Applying coupon:", couponPayload);
+    applyCouponMutate(couponPayload, {
+      onSuccess: (data) => {
+        console.log("✅ Coupon applied successfully:", data?.data?.data);
+
+        // Store the applied coupon details
+        const couponData = data?.data?.data;
+        if (couponData) {
+          setAppliedCoupon({
+            id: couponData.id || coupon.trim(), // Use API ID or fallback to code
+            code: coupon.trim(),
+            discount: parseFloat(couponData.discount || 0),
+            discountedAmount: parseFloat(couponData.discountedAmount || 0),
+            message: data?.data?.message || "Coupon applied successfully",
+          });
+        }
+
+        refetchCart();
       },
-      {
-        onSuccess: (data) => {
-          refetchCart();
-          toastSuccess("Coupon applied successfully");
-        },
-        onError: (error) => {
-          toastError("Failed to apply coupon");
-          console.error("Coupon error:", error);
-        },
+      onError: (error) => {
+        toastError("Failed to apply coupon");
+        console.error("Coupon error:", error);
       },
-    );
+    });
   };
 
   // Handle coupon removal
   const handleRemoveCoupon = () => {
-    console.log("🛒 Removing coupon");
-    removeCouponMutate(undefined, {
-      onSuccess: () => {
-        refetchCart();
-        setCoupon("");
-        toastSuccess("Coupon removed");
-      },
-      onError: (error) => {
-        toastError("Failed to remove coupon");
-        console.error("Remove coupon error:", error);
-      },
-    });
+    console.log("🛒 Removing coupon - clearing state and restoring total");
+    setAppliedCoupon(null);
+    setCoupon("");
+    toastSuccess("Coupon removed successfully");
   };
 
   // Payment with Paystack
@@ -268,69 +301,127 @@ const CartPage = () => {
     handler.openIframe();
   };
 
-  // Formik for billing
-  const {
-    handleSubmit,
-    touched,
-    errors,
-    values,
-    handleChange,
-    resetForm,
-    setFieldValue,
-  } = useFormik({
-    initialValues: initialValues,
-    validateOnChange: false,
-    validateOnBlur: false,
-    enableReinitialize: true,
-    onSubmit: (val) => {
-      if (!navigator.onLine) {
-        toastError("No internet connection. Please check your network.");
-        return;
-      }
+  // Get profile address or use defaults
+  const getProfileAddress = () => {
+    const baseAddress = {
+      address: carybinUser?.address || "2 Metalbox Rd, Ogba, Lagos 101233",
+      city: carybinUser?.city || "Lagos",
+      state: carybinUser?.state || "Lagos",
+      postal_code: carybinUser?.postal_code || "101233",
+      country: carybinUser?.country || "NG",
+    };
 
-      console.log("🛒 Creating billing with:", val);
-      createBillingMutate(val, {
-        onSuccess: () => {
-          // Prepare purchases from cart items
-          const purchases = items.map((item) => ({
-            purchase_id: item.product_id,
-            quantity: item.quantity,
-            purchase_type: item.product_type || item.product?.type,
-          }));
+    console.log("🏠 Profile address extraction:", {
+      raw_user_data: carybinUser,
+      extracted_address: baseAddress,
+      address_source: carybinUser?.address ? "profile" : "default",
+    });
 
-          const paymentData = {
-            purchases,
-            amount: Math.round(finalTotal),
-            currency: "NGN",
-            coupon_code: coupon || undefined,
-            email: carybinUser?.email,
-          };
+    return baseAddress;
+  };
 
-          console.log("🛒 Creating payment with:", paymentData);
+  // Handle proceeding to payment
+  const handleProceedToPayment = () => {
+    if (!navigator.onLine) {
+      toastError("No internet connection. Please check your network.");
+      return;
+    }
 
-          createPaymentMutate(paymentData, {
-            onSuccess: (data) => {
-              setShowCheckoutModal(false);
-              resetForm();
-              setCoupon("");
-              payWithPaystack({
-                amount: finalTotal,
-                payment_id: data?.data?.data?.payment_id,
-              });
-            },
-            onError: (error) => {
-              toastError("Failed to create payment");
-              console.error("Payment creation error:", error);
-            },
-          });
-        },
-        onError: (error) => {
-          toastError("Failed to create billing");
-          console.error("Billing error:", error);
-        },
-      });
-    },
-  });
+    const addressInfo = getProfileAddress();
+
+    console.log("📊 Payment Data Summary:", {
+      subtotal: totals.subtotal,
+      discountAmount: discountAmount,
+      delivery_fee: delivery_fee,
+      estimatedVat: estimatedVat,
+      finalTotal: finalTotal,
+      itemCount: items.length,
+      addressInfo: addressInfo,
+      coupon: coupon,
+      profile_data_used: {
+        user_id: carybinUser?.id,
+        user_name: carybinUser?.name,
+        user_email: carybinUser?.email,
+        profile_address: carybinUser?.address,
+        profile_state: carybinUser?.state,
+        profile_country: carybinUser?.country,
+        email_verified: carybinUser?.is_email_verified,
+      },
+    });
+
+    // Prepare billing data with totals
+    const billingData = {
+      ...addressInfo,
+      subtotal: totals.subtotal,
+      discount_amount: discountAmount,
+      delivery_fee: delivery_fee,
+      vat_amount: estimatedVat,
+      total_amount: finalTotal,
+      coupon_code: appliedCoupon?.code || undefined,
+    };
+
+    console.log("🧾 Creating billing with enhanced data:", billingData);
+
+    createBillingMutate(billingData, {
+      onSuccess: (billingResponse) => {
+        console.log("✅ Billing created successfully:", billingResponse);
+
+        // Prepare purchases from cart items
+        const purchases = items.map((item) => ({
+          purchase_id: item.product_id,
+          quantity: item.quantity,
+          purchase_type: item.product_type || item.product?.type,
+        }));
+
+        const paymentData = {
+          purchases,
+          amount: Math.round(finalTotal),
+          currency: "NGN",
+          coupon_code: appliedCoupon?.code || undefined,
+          email: carybinUser?.email,
+          subtotal: totals.subtotal,
+          delivery_fee: delivery_fee,
+          vat_amount: estimatedVat,
+          country: addressInfo.country,
+          postal_code: addressInfo.postal_code,
+        };
+
+        console.log("💳 Creating payment with enhanced data:", paymentData);
+
+        createPaymentMutate(paymentData, {
+          onSuccess: (paymentResponse) => {
+            console.log("✅ Payment created successfully:", paymentResponse);
+            setShowConfirmationModal(false);
+            setCoupon("");
+
+            console.log("🚀 Launching Paystack with:", {
+              amount: finalTotal,
+              payment_id: paymentResponse?.data?.data?.payment_id,
+            });
+
+            payWithPaystack({
+              amount: finalTotal,
+              payment_id: paymentResponse?.data?.data?.payment_id,
+            });
+          },
+          onError: (error) => {
+            console.error("❌ Payment creation failed:", error);
+            toastError(
+              "Failed to create payment - " +
+                (error?.data?.message || "Unknown error"),
+            );
+          },
+        });
+      },
+      onError: (error) => {
+        console.error("❌ Billing creation failed:", error);
+        toastError(
+          "Failed to create billing - " +
+            (error?.data?.message || "Unknown error"),
+        );
+      },
+    });
+  };
 
   // Format currency
   const formatPrice = (price) => {
@@ -465,10 +556,9 @@ const CartPage = () => {
               {/* Cart Items - Left Side */}
               <div className="lg:col-span-2 space-y-4">
                 {/* Desktop Headers */}
-                <div className="hidden md:grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 rounded-lg text-sm font-medium text-gray-600">
+                <div className="hidden md:grid grid-cols-10 gap-4 px-4 py-3 bg-gray-50 rounded-lg text-sm font-medium text-gray-600">
                   <div className="col-span-5">Product</div>
                   <div className="col-span-2 text-center">Quantity</div>
-                  <div className="col-span-2 text-right">Unit Price</div>
                   <div className="col-span-2 text-right">Total</div>
                   <div className="col-span-1 text-center">Action</div>
                 </div>
@@ -480,6 +570,14 @@ const CartPage = () => {
                   );
                   const quantity = parseInt(item.quantity || 1);
                   const itemTotal = unitPrice * quantity;
+
+                  // For styled items, display should show measurement count
+                  const measurementCount = getMeasurementCount(
+                    item.measurement,
+                  );
+                  const displayQuantity = item?.style_product
+                    ? measurementCount
+                    : quantity;
 
                   return (
                     <div
@@ -513,37 +611,35 @@ const CartPage = () => {
                                 SKU: {item.product.sku}
                               </p>
                             )}
+
+                            {/* Style Information */}
+                            {item.style_product && (
+                              <CartItemStyle
+                                styleProduct={item.style_product}
+                                measurement={item.measurement}
+                                fabricImage={item.product?.image}
+                                fabricName={item.product?.name}
+                              />
+                            )}
                           </div>
                         </div>
 
-                        {/* Quantity Controls */}
+                        {/* Quantity Display */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <span className="text-sm font-medium">
-                              Quantity:
-                            </span>
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() =>
-                                  handleQuantityUpdate(item.id, quantity - 1)
-                                }
-                                disabled={updatePending || quantity <= 1}
-                                className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                <Minus className="w-4 h-4" />
-                              </button>
-                              <span className="w-8 text-center font-medium">
-                                {quantity}
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium">
+                                Quantity: {displayQuantity} yards
                               </span>
-                              <button
-                                onClick={() =>
-                                  handleQuantityUpdate(item.id, quantity + 1)
-                                }
-                                disabled={updatePending}
-                                className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                <Plus className="w-4 h-4" />
-                              </button>
+                              {item?.style_product && (
+                                <span className="text-xs text-blue-600 font-medium">
+                                  = {getMeasurementCount(item.measurement)}{" "}
+                                  measurement
+                                  {getMeasurementCount(item.measurement) !== 1
+                                    ? "s"
+                                    : ""}
+                                </span>
+                              )}
                             </div>
                           </div>
                           <div className="text-right">
@@ -578,8 +674,8 @@ const CartPage = () => {
                       </div>
 
                       {/* Desktop Layout */}
-                      <div className="hidden md:grid grid-cols-12 gap-4 items-center">
-                        {/* Product Info */}
+                      <div className="hidden md:grid grid-cols-10 gap-4 items-center">
+                        {/* Product Information */}
                         <div className="col-span-5 flex items-center space-x-3">
                           {item.product?.image && (
                             <img
@@ -588,52 +684,52 @@ const CartPage = () => {
                               className="w-16 h-16 object-cover rounded border"
                             />
                           )}
-                          <div className="min-w-0 flex-1">
-                            <h3 className="font-semibold text-gray-900 truncate">
-                              {item.product?.name ||
-                                `Product ${item.product_id}`}
-                            </h3>
-                            <p className="text-sm text-gray-500">
-                              {item.product_type || item.product?.type}
-                            </p>
-                            {item.product?.sku && (
-                              <p className="text-xs text-gray-400">
-                                SKU: {item.product.sku}
+                          <div className="flex-1 min-w-0">
+                            <div>
+                              <h3 className="font-semibold text-gray-900 truncate">
+                                {item.product?.name ||
+                                  `Product ${item.product_id}`}
+                              </h3>
+                              <p className="text-sm text-gray-500">
+                                {item.product_type || item.product?.type}
                               </p>
-                            )}
+                              {item.product?.sku && (
+                                <p className="text-xs text-gray-400">
+                                  SKU: {item.product.sku}
+                                </p>
+                              )}
+
+                              {/* Style Information */}
+                              {item.style_product && (
+                                <CartItemStyleDesktop
+                                  styleProduct={item.style_product}
+                                  measurement={item.measurement}
+                                  fabricImage={item.product?.image}
+                                  fabricName={item.product?.name}
+                                />
+                              )}
+                            </div>
                           </div>
                         </div>
 
-                        {/* Quantity Controls */}
-                        <div className="col-span-2 flex items-center justify-center gap-2">
-                          <button
-                            onClick={() =>
-                              handleQuantityUpdate(item.id, quantity - 1)
-                            }
-                            disabled={updatePending || quantity <= 1}
-                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+                        {/* Quantity Display */}
+                        <div className="col-span-2 flex flex-col items-center justify-center gap-1">
+                          <span
+                            className={`text-center font-medium ${
+                              item?.style_product ? "text-blue-600" : ""
+                            }`}
                           >
-                            <Minus className="w-4 h-4" />
-                          </button>
-                          <span className="w-8 text-center font-medium">
-                            {quantity}
+                            {displayQuantity} yards
                           </span>
-                          <button
-                            onClick={() =>
-                              handleQuantityUpdate(item.id, quantity + 1)
-                            }
-                            disabled={updatePending}
-                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
-                          >
-                            <Plus className="w-4 h-4" />
-                          </button>
-                        </div>
-
-                        {/* Unit Price */}
-                        <div className="col-span-2 text-right">
-                          <p className="font-semibold text-gray-500">
-                            {formatPrice(unitPrice)}
-                          </p>
+                          {item?.style_product && (
+                            <span className="text-xs text-blue-600 font-medium">
+                              = {getMeasurementCount(item.measurement)}{" "}
+                              measurement
+                              {getMeasurementCount(item.measurement) !== 1
+                                ? "s"
+                                : ""}
+                            </span>
+                          )}
                         </div>
 
                         {/* Total */}
@@ -671,32 +767,64 @@ const CartPage = () => {
                   </h2>
 
                   {/* Coupon Section */}
-                  <div className="mb-6 space-y-3">
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={coupon}
-                        onChange={(e) => setCoupon(e.target.value)}
-                        placeholder="Enter coupon code"
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 min-w-0"
-                      />
-                      <button
-                        onClick={handleApplyCoupon}
-                        disabled={!coupon.trim() || applyCouponPending}
-                        className="px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
-                      >
-                        {applyCouponPending ? "..." : "Apply"}
-                      </button>
-                    </div>
-
-                    {coupon && (
-                      <button
-                        onClick={handleRemoveCoupon}
-                        disabled={removeCouponPending}
-                        className="text-sm text-red-600 hover:text-red-800 font-medium"
-                      >
-                        Remove Coupon
-                      </button>
+                  <div className="mb-6">
+                    {!appliedCoupon ? (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 mb-2 block">
+                          Have a coupon code?
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={coupon}
+                            onChange={(e) => setCoupon(e.target.value)}
+                            placeholder="Enter coupon code"
+                            className="w-full px-3 py-2 pr-20 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          />
+                          <button
+                            onClick={handleApplyCoupon}
+                            disabled={!coupon.trim() || applyCouponPending}
+                            className="absolute right-1 top-1 bottom-1 px-3 bg-purple-600 text-white rounded text-xs font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            {applyCouponPending ? "..." : "Apply"}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                <svg
+                                  className="w-3 h-3 text-white"
+                                  fill="currentColor"
+                                  viewBox="0 0 8 8"
+                                >
+                                  <path d="M6.564.75l-3.59 3.612-1.538-1.55L0 4.26 2.974 7.25 8 2.193z" />
+                                </svg>
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium text-green-800">
+                                  Coupon "{appliedCoupon.code}" applied
+                                </div>
+                                <div className="text-sm text-green-600">
+                                  You saved ₦
+                                  {formatNumberWithCommas(
+                                    appliedCoupon.discount,
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <button
+                              onClick={handleRemoveCoupon}
+                              className="text-sm text-red-600 hover:text-red-800 font-medium px-2 py-1 hover:bg-red-50 rounded transition-colors"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     )}
                   </div>
 
@@ -711,7 +839,15 @@ const CartPage = () => {
                     <div className="flex justify-between text-sm text-gray-600">
                       <span>Delivery Fee</span>
                       <span className="text-green-600 font-semibold">
-                        {formatPrice(delivery_fee)}
+                        {deliveryLoading ? (
+                          <span className="text-gray-400">Loading...</span>
+                        ) : deliveryError ? (
+                          <span className="text-red-500">
+                            Error loading fee
+                          </span>
+                        ) : (
+                          formatPrice(delivery_fee)
+                        )}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm text-gray-600">
@@ -720,12 +856,7 @@ const CartPage = () => {
                         {formatPrice(estimatedVat)}
                       </span>
                     </div>
-                    <div className="flex justify-between text-sm text-gray-600">
-                      <span>Service Charge</span>
-                      <span className="text-green-600 font-semibold">
-                        {formatPrice(charges)}
-                      </span>
-                    </div>
+
                     {discountAmount > 0 && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Discount</span>
@@ -769,7 +900,27 @@ const CartPage = () => {
 
                   {/* Checkout Button */}
                   <button
-                    onClick={() => setShowCheckoutModal(true)}
+                    onClick={() => {
+                      console.log("🛒 User initiated checkout process");
+                      console.log("📊 Checkout initiation data:", {
+                        total_items: items.length,
+                        subtotal: totals.subtotal,
+                        delivery_fee: delivery_fee,
+                        vat_amount: estimatedVat,
+                        final_total: finalTotal,
+                        has_coupon: !!appliedCoupon,
+                        coupon_code: appliedCoupon?.code,
+                        discount_amount: discountAmount,
+                        user_email: carybinUser?.email,
+                        policy_agreed: agreedToPolicy,
+                        user_profile_address: getProfileAddress(),
+                        timestamp: new Date().toISOString(),
+                      });
+                      console.log(
+                        "🚀 Opening review modal with profile address",
+                      );
+                      setShowConfirmationModal(true);
+                    }}
                     disabled={
                       !agreedToPolicy || createPaymentPending || billingPending
                     }
@@ -793,9 +944,10 @@ const CartPage = () => {
           </div>
         </div>
       )}
+
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Remove Item
@@ -825,12 +977,14 @@ const CartPage = () => {
         </div>
       )}
 
-      {/* Checkout Modal */}
-      {showCheckoutModal && (
+      {/* Order Confirmation Modal */}
+      {showConfirmationModal && (
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 pt-20">
-          <div className="bg-white rounded-lg p-6 w-full max-h-[80vh] overflow-y-auto max-w-3xl relative">
+          <div className="bg-white rounded-lg p-6 w-full max-h-[80vh] overflow-y-auto max-w-4xl relative">
             <button
-              onClick={() => setShowCheckoutModal(false)}
+              onClick={() => {
+                setShowConfirmationModal(false);
+              }}
               className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
             >
               <svg
@@ -838,173 +992,222 @@ const CartPage = () => {
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
               >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth="2"
+                  strokeWidth={2}
                   d="M6 18L18 6M6 6l12 12"
-                ></path>
+                />
               </svg>
             </button>
-            <h2 className="text-xl font-semibold mb-4">
-              Receiver's Information
+
+            <h2 className="text-2xl font-bold mb-6 text-center text-purple-600">
+              Review Your Order
             </h2>
-            <form className="space-y-4" onSubmit={handleSubmit}>
-              <div>
-                <label className="block text-sm text-black">
-                  Country *
-                  <Select
-                    options={[{ value: "NG", label: "Nigeria" }]}
-                    name="country"
-                    value={[{ value: "NG", label: "Nigeria" }]?.find(
-                      (opt) => opt.value === values.country,
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column - Order Details */}
+              <div className="space-y-6">
+                {/* Customer Info */}
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <h3 className="font-semibold text-lg mb-3 flex items-center">
+                    <User className="w-5 h-5 mr-2 text-blue-600" />
+                    Customer Information
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <p>
+                      <span className="font-medium">Name:</span>{" "}
+                      {carybinUser?.name || "Not provided"}
+                    </p>
+                    <p>
+                      <span className="font-medium">Email:</span>{" "}
+                      {carybinUser?.email}
+                    </p>
+                    <p>
+                      <span className="font-medium">Phone:</span>{" "}
+                      {carybinUser?.phone ||
+                        carybinUser?.alternative_phone ||
+                        "Not provided"}
+                    </p>
+                    <p>
+                      <span className="font-medium">Email Verified:</span>{" "}
+                      <span
+                        className={
+                          carybinUser?.is_email_verified
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }
+                      >
+                        {carybinUser?.is_email_verified ? "✅ Yes" : "❌ No"}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Delivery Address */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="font-semibold text-lg mb-3 flex items-center">
+                    <Package className="w-5 h-5 mr-2 text-purple-600" />
+                    Delivery Address
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <p>
+                      <span className="font-medium">Full Address:</span>{" "}
+                      {carybinUser?.address ||
+                        "2 Metalbox Rd, Ogba, Lagos 101233, Lagos, Nigeria"}
+                    </p>
+                    <p>
+                      <span className="font-medium">State:</span>{" "}
+                      {carybinUser?.state || "Lagos State"}
+                    </p>
+                    <p>
+                      <span className="font-medium">Country:</span>{" "}
+                      {carybinUser?.country || "NG"}
+                    </p>
+                    <div className="mt-2 p-2 bg-gray-100 rounded text-xs">
+                      <p>
+                        <strong>Profile ID:</strong> {carybinUser?.id}
+                      </p>
+                      <p>
+                        <strong>Member Since:</strong>{" "}
+                        {new Date(carybinUser?.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-3 text-xs text-blue-600 bg-blue-100 p-2 rounded">
+                    <p>
+                      💡 Address from your profile -{" "}
+                      <button
+                        onClick={() => {
+                          console.log(
+                            "📝 User wants to update profile address",
+                          );
+                          window.open("/profile", "_blank");
+                        }}
+                        className="underline hover:text-blue-800"
+                      >
+                        Update if needed
+                      </button>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Order Items */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="font-semibold text-lg mb-3 flex items-center">
+                    <Tag className="w-5 h-5 mr-2 text-purple-600" />
+                    Order Items ({items.length})
+                  </h3>
+                  <div className="space-y-3 max-h-60 overflow-y-auto">
+                    {items.map((item, index) => (
+                      <div
+                        key={index}
+                        className="flex justify-between items-start border-b border-gray-200 pb-2"
+                      >
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">
+                            {item.product?.name || item.name}
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            Qty: {item.quantity} × ₦
+                            {formatNumberWithCommas(
+                              item.price || item.price_at_time,
+                            )}
+                          </p>
+                          {item.product_type && (
+                            <span className="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded mt-1">
+                              {item.product_type}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium">
+                            ₦
+                            {formatNumberWithCommas(
+                              (item.price || item.price_at_time) *
+                                item.quantity,
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - Order Summary */}
+              <div className="space-y-6">
+                <div className="bg-purple-50 rounded-lg p-4">
+                  <h3 className="font-semibold text-lg mb-4 flex items-center">
+                    <Calendar className="w-5 h-5 mr-2 text-purple-600" />
+                    Order Summary
+                  </h3>
+
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span>Subtotal</span>
+                      <span>{formatPrice(totals.subtotal)}</span>
+                    </div>
+
+                    {appliedCoupon && (
+                      <div className="flex justify-between text-sm text-green-600">
+                        <span>Coupon Discount ({appliedCoupon.code})</span>
+                        <span>-{formatPrice(appliedCoupon.discount)}</span>
+                      </div>
                     )}
-                    onChange={(selectedOption) =>
-                      setFieldValue("country", selectedOption.value)
-                    }
-                    placeholder="Select"
-                    className="p-1 w-full mt-1 border border-[#CCCCCC] outline-none rounded-lg"
-                    styles={{
-                      control: (base, state) => ({
-                        ...base,
-                        border: "none",
-                        boxShadow: "none",
-                        outline: "none",
-                        backgroundColor: "#fff",
-                        "&:hover": {
-                          border: "none",
-                        },
-                      }),
-                      indicatorSeparator: () => ({
-                        display: "none",
-                      }),
-                      menu: (base) => ({
-                        ...base,
-                        zIndex: 9999,
-                      }),
-                    }}
-                  />{" "}
-                </label>
-              </div>
-              <div className="flex gap-4">
-                <div className="w-1/2">
-                  <label className="block text-sm text-black">
-                    State *
-                    <Select
-                      options={nigeriaStates}
-                      name="state"
-                      value={nigeriaStates?.find(
-                        (opt) => opt.value === values.state,
-                      )}
-                      onChange={(selectedOption) =>
-                        setFieldValue("state", selectedOption.value)
-                      }
-                      placeholder="Select"
-                      className="p-1 w-full mt-1 border border-[#CCCCCC] outline-none rounded-lg"
-                      styles={{
-                        control: (base, state) => ({
-                          ...base,
-                          border: "none",
-                          boxShadow: "none",
-                          outline: "none",
-                          backgroundColor: "#fff",
-                          "&:hover": {
-                            border: "none",
-                          },
-                        }),
-                        indicatorSeparator: () => ({
-                          display: "none",
-                        }),
-                        menu: (base) => ({
-                          ...base,
-                          zIndex: 9999,
-                        }),
-                      }}
-                    />{" "}
-                  </label>
-                </div>
-                <div className="w-1/2">
-                  <label className="block text-sm text-black">
-                    City*
-                    <input
-                      type="text"
-                      placeholder="Enter your city"
-                      className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
-                      required
-                      name={"city"}
-                      value={values.city}
-                      onChange={handleChange}
-                    />
-                  </label>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm text-black">
-                  Delivery Address *
-                  <input
-                    type="text"
-                    placeholder="Enter your delivery address"
-                    className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
-                    required
-                    name={"address"}
-                    maxLength={150}
-                    value={values.address}
-                    onChange={handleChange}
-                  />
-                </label>
-              </div>
-              <div>
-                <label className="block text-sm text-black">
-                  Postal Code *
-                  <input
-                    type="text"
-                    placeholder="Postal code"
-                    className="mt-1 w-full p-3 border border-gray-300 rounded-md outline-none"
-                    required
-                    name={"postal_code"}
-                    value={values.postal_code}
-                    onChange={handleChange}
-                  />
-                </label>
-              </div>
-              <div className="border-t border-gray-300 pt-4">
-                <div className="flex justify-between text-sm text-gray-700">
-                  <span>SUBTOTAL</span>
-                  <span>NGN {formatNumberWithCommas(totals.subtotal)}</span>
-                </div>
-                <div className="flex justify-between mt-2 text-sm text-gray-700">
-                  <span className="">Discount</span>
-                  <span className=" text-green-600">
-                    -₦{formatNumberWithCommas(discountAmount)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm text-gray-700 mt-2">
-                  <span>DELIVERY FEE</span>
-                  <span>₦{formatNumberWithCommas(delivery_fee)}</span>
-                </div>
-                <div className="flex justify-between text-sm text-gray-700 mt-2">
-                  <span>Estimated sales VAT (7.5%)</span>
-                  <span>₦{formatNumberWithCommas(estimatedVat)}</span>
+
+                    <div className="flex justify-between text-sm">
+                      <span>Delivery Fee</span>
+                      <span>
+                        {deliveryLoading ? (
+                          <span className="text-gray-400">Loading...</span>
+                        ) : deliveryError ? (
+                          <span className="text-red-500">Error</span>
+                        ) : (
+                          formatPrice(delivery_fee)
+                        )}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-sm">
+                      <span>VAT (7.5%)</span>
+                      <span>{formatPrice(estimatedVat)}</span>
+                    </div>
+
+                    <div className="text-xs text-gray-500 mt-2">
+                      <p>* Total includes: Subtotal + VAT + Delivery Fee</p>
+                      <p>* Service charges excluded from final amount</p>
+                    </div>
+
+                    <div className="border-t border-purple-200 pt-3">
+                      <div className="flex justify-between font-bold text-lg">
+                        <span>Total</span>
+                        <span className="text-purple-600">
+                          {formatPrice(finalTotal)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="flex justify-between text-lg font-medium text-gray-700 mt-2">
-                  <span>TOTAL</span>
-                  <span>₦{formatNumberWithCommas(finalTotal)}</span>
+                {/* Payment Button */}
+                <button
+                  disabled={billingPending || createPaymentPending}
+                  onClick={handleProceedToPayment}
+                  className="w-full cursor-pointer py-4 bg-gradient text-white hover:from-purple-600 hover:to-pink-600 transition rounded-lg font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                >
+                  {billingPending || createPaymentPending
+                    ? "Processing..."
+                    : `Proceed to Payment - ${formatPrice(finalTotal)}`}
+                </button>
+
+                <div className="text-xs text-gray-500 text-center space-y-1">
+                  <p>By proceeding, you agree to our terms and conditions</p>
+                  <p>Your payment is secured by Paystack</p>
                 </div>
               </div>
-
-              <button
-                disabled={billingPending || createPaymentPending}
-                type="submit"
-                className="w-full cursor-pointer mt-6 py-3 bg-gradient text-white hover:from-purple-600 hover:to-pink-600 transition"
-              >
-                {billingPending || createPaymentPending
-                  ? "Please wait..."
-                  : "Proceed to Payment"}
-              </button>
-            </form>
+            </div>
           </div>
         </div>
       )}
@@ -1141,208 +1344,215 @@ function CheckoutPolicyModal({ isOpen, onClose, agreementType = "checkout" }) {
 
                 <section className="mb-6">
                   <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                    2. Checkout Process
+                    2. Order Process
                   </h3>
-
-                  <div className="mb-4">
-                    <h4 className="font-semibold text-gray-800 mb-2">
-                      2.1 Order Placement
-                    </h4>
-                    <ul className="list-disc list-inside space-y-1 ml-4 text-gray-700">
-                      <li>
-                        Customers can place orders by selecting fabrics and
-                        styles providing necessary details such as selection of
-                        fabrics, selection of tailor, measurements for tailor,
-                        and proceeding to checkout.
-                      </li>
-                      <li>
-                        Customers are responsible for ensuring the accuracy of
-                        their order details before confirming payment.
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div className="mb-4">
-                    <h4 className="font-semibold text-gray-800 mb-2">
-                      2.2 Payment Processing
-                    </h4>
-                    <ul className="list-disc list-inside space-y-1 ml-4 text-gray-700">
-                      <li>
-                        The platform supports multiple payment methods,
-                        including credit/debit cards, digital wallets, and bank
-                        transfers.
-                      </li>
-                      <li>
-                        Payment processing is handled by secure, third-party
-                        payment gateways.
-                      </li>
-                      <li>
-                        Customers will receive a payment confirmation email
-                        within <strong>5 minutes</strong> of successful payment.
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div className="mb-4">
-                    <h4 className="font-semibold text-gray-800 mb-2">
-                      2.3 Order Confirmation
-                    </h4>
-                    <p className="text-gray-700 mb-2 ml-4">
-                      Once payment is confirmed, customers will receive an order
-                      confirmation email with the following details:
-                    </p>
-                    <ul className="list-disc list-inside space-y-1 ml-8 text-gray-700">
-                      <li>Order number.</li>
-                      <li>Product/service details.</li>
-                      <li>Expected delivery timeline.</li>
-                    </ul>
-                  </div>
-                </section>
-
-                <section className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                    3.2 Refunds and Return Policy
-                  </h3>
-                  <ul className="list-disc list-inside space-y-1 ml-4 text-gray-700">
+                  <ul className="list-disc list-inside space-y-2 ml-4 text-gray-700">
                     <li>
-                      Check our refund and return policy{" "}
-                      <em>(hyperlink to the refund and return policy)</em>
+                      Orders are confirmed upon successful payment processing
                     </li>
                     <li>
-                      Refunds will be issued to the original payment method used
-                      during checkout.
+                      You will receive an order confirmation email within 24
+                      hours
+                    </li>
+                    <li>
+                      Order details cannot be modified after payment
+                      confirmation
+                    </li>
+                    <li>
+                      We reserve the right to cancel orders for any reason
                     </li>
                   </ul>
                 </section>
 
                 <section className="mb-6">
                   <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                    4. Responsibilities
+                    3. Payment Terms
                   </h3>
-
-                  <div className="mb-4">
-                    <h4 className="font-semibold text-gray-800 mb-2">
-                      4.1 E-Commerce Platform Host
-                    </h4>
-                    <ul className="list-disc list-inside space-y-1 ml-4 text-gray-700">
-                      <li>Ensure a secure and seamless checkout process.</li>
-                      <li>
-                        Provide customer support for checkout-related issues.
-                      </li>
-                      <li>
-                        Facilitate refunds and returns as per this agreement.
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div className="mb-4">
-                    <h4 className="font-semibold text-gray-800 mb-2">
-                      4.2 Customers
-                    </h4>
-                    <ul className="list-disc list-inside space-y-1 ml-4 text-gray-700">
-                      <li>
-                        Provide accurate order details and payment information.
-                      </li>
-                      <li>
-                        Adhere to the platform's refund and return policies.
-                      </li>
-                      <li>
-                        Notify the platform immediately in case of payment or
-                        order issues.
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div className="mb-4">
-                    <h4 className="font-semibold text-gray-800 mb-2">
-                      4.3 Vendors
-                    </h4>
-                    <ul className="list-disc list-inside space-y-1 ml-4 text-gray-700">
-                      <li>
-                        Fulfil orders as per the agreed timelines and quality
-                        standards.
-                      </li>
-                      <li>
-                        Communicate any delays or issues to the platform and
-                        customers promptly.
-                      </li>
-                      <li>
-                        Process returns and refunds as per the platform's
-                        policies.
-                      </li>
-                    </ul>
-                  </div>
-                </section>
-
-                <section className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                    5. Dispute Resolution
-                  </h3>
-
-                  <div className="mb-4">
-                    <h4 className="font-semibold text-gray-800 mb-2">
-                      5.1 Payment Disputes
-                    </h4>
-                    <ul className="list-disc list-inside space-y-1 ml-4 text-gray-700">
-                      <li>
-                        Payment disputes (e.g., unauthorized transactions) must
-                        be reported to the platform within{" "}
-                        <strong>48 hours</strong> of the transaction by sending
-                        an email to accounts@carybin.com
-                      </li>
-                      <li>
-                        The platform will investigate and resolve disputes
-                        within <strong>7 business days</strong>.
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div className="mb-4">
-                    <h4 className="font-semibold text-gray-800 mb-2">
-                      5.2 Order Disputes
-                    </h4>
-                    <p className="text-gray-700 ml-4">
-                      Check our terms and conditions for Dispute Resolution{" "}
-                      <em>(hyperlink to the refund and return policy)</em>
-                    </p>
-                  </div>
-                </section>
-
-                <section className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                    6. Limitation of Liability
-                  </h3>
-                  <p className="text-gray-700 mb-2 ml-4">
-                    The platform is not liable for:
-                  </p>
-                  <ul className="list-disc list-inside space-y-1 ml-8 text-gray-700">
+                  <ul className="list-disc list-inside space-y-2 ml-4 text-gray-700">
                     <li>
-                      Delays caused by third-party payment gateways or logistics
-                      providers.
+                      All payments are processed securely through Paystack
                     </li>
-                    <li>Errors in order details provided by customers.</li>
+                    <li>
+                      We accept major credit/debit cards and bank transfers
+                    </li>
+                    <li>
+                      Payment must be completed before order processing begins
+                    </li>
+                    <li>VAT and delivery fees are calculated at checkout</li>
+                    <li>All prices are in Nigerian Naira (NGN)</li>
                   </ul>
                 </section>
 
                 <section className="mb-6">
                   <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                    8. Governing Law
+                    4. Delivery & Shipping
                   </h3>
-                  <p className="text-gray-700 ml-4">
-                    This agreement is governed by the laws of the Federal
-                    Republic of Nigeria.
-                  </p>
+                  <ul className="list-disc list-inside space-y-2 ml-4 text-gray-700">
+                    <li>
+                      Delivery timeframes vary by product type and location
+                    </li>
+                    <li>Custom tailoring orders may take 7-14 business days</li>
+                    <li>
+                      Fabric orders typically ship within 2-5 business days
+                    </li>
+                    <li>
+                      Delivery fees are calculated based on location and weight
+                    </li>
+                    <li>
+                      Customers are responsible for providing accurate delivery
+                      addresses
+                    </li>
+                  </ul>
                 </section>
 
-                <hr className="my-8 border-gray-300" />
+                <section className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    5. Returns & Refunds
+                  </h3>
+                  <ul className="list-disc list-inside space-y-2 ml-4 text-gray-700">
+                    <li>Custom-made items are generally non-refundable</li>
+                    <li>
+                      Fabric products may be returned within 7 days if unused
+                    </li>
+                    <li>Refunds are processed within 7-14 business days</li>
+                    <li>
+                      Return shipping costs are borne by the customer unless
+                      item is defective
+                    </li>
+                    <li>
+                      Damaged or incorrect items will be replaced or refunded at
+                      no cost
+                    </li>
+                  </ul>
+                </section>
 
                 <section className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    6. Quality Assurance
+                  </h3>
+                  <ul className="list-disc list-inside space-y-2 ml-4 text-gray-700">
+                    <li>All vendors are vetted for quality and reliability</li>
+                    <li>
+                      We maintain quality standards for all products and
+                      services
+                    </li>
+                    <li>
+                      Customer feedback is regularly monitored and addressed
+                    </li>
+                    <li>
+                      Dispute resolution process is available for quality issues
+                    </li>
+                  </ul>
+                </section>
+
+                <section className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    7. Customer Responsibilities
+                  </h3>
+                  <ul className="list-disc list-inside space-y-2 ml-4 text-gray-700">
+                    <li>Provide accurate measurements for custom tailoring</li>
+                    <li>Respond promptly to vendor communications</li>
+                    <li>
+                      Inspect deliveries upon receipt and report issues
+                      immediately
+                    </li>
+                    <li>
+                      Maintain account security and update contact information
+                    </li>
+                  </ul>
+                </section>
+
+                <section className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    8. Dispute Resolution
+                  </h3>
+                  <ul className="list-disc list-inside space-y-2 ml-4 text-gray-700">
+                    <li>First contact vendor directly for issue resolution</li>
+                    <li>
+                      Escalate to Carybin support if vendor resolution fails
+                    </li>
+                    <li>
+                      We provide mediation services for vendor-customer disputes
+                    </li>
+                    <li>
+                      Final decisions on disputes are at Carybin's discretion
+                    </li>
+                  </ul>
+                </section>
+
+                <section className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    9. Privacy & Data Protection
+                  </h3>
+                  <ul className="list-disc list-inside space-y-2 ml-4 text-gray-700">
+                    <li>
+                      Personal information is protected per our Privacy Policy
+                    </li>
+                    <li>
+                      Payment data is securely processed and not stored on our
+                      servers
+                    </li>
+                    <li>
+                      Order information may be shared with vendors for
+                      fulfillment
+                    </li>
+                    <li>
+                      Marketing communications can be opted out at any time
+                    </li>
+                  </ul>
+                </section>
+
+                <section className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    10. Platform Liability
+                  </h3>
+                  <ul className="list-disc list-inside space-y-2 ml-4 text-gray-700">
+                    <li>
+                      Carybin acts as an intermediary between customers and
+                      vendors
+                    </li>
+                    <li>
+                      We are not liable for vendor performance or product
+                      defects
+                    </li>
+                    <li>Our liability is limited to the transaction value</li>
+                    <li>Force majeure events are excluded from liability</li>
+                  </ul>
+                </section>
+
+                <section className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    11. Modifications
+                  </h3>
                   <p className="text-gray-700 leading-relaxed">
-                    By using the platform's checkout process, customers and
-                    vendors agree to the terms and conditions outlined in this
-                    agreement.
+                    Carybin reserves the right to modify these terms at any
+                    time. Customers will be notified of significant changes via
+                    email or platform notifications. Continued use of the
+                    platform constitutes acceptance of modified terms.
                   </p>
                 </section>
+
+                <section className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    12. Contact Information
+                  </h3>
+                  <div className="text-gray-700 leading-relaxed">
+                    <p className="mb-2">
+                      <strong>Carybin Limited</strong>
+                    </p>
+                    <p className="mb-2">Email: support@carybin.com</p>
+                    <p className="mb-2">Phone: +234 (0) 123 456 7890</p>
+                    <p className="mb-2">Website: www.carybin.com</p>
+                  </div>
+                </section>
+
+                <div className="text-center p-4 bg-purple-50 rounded-lg">
+                  <p className="text-sm text-purple-700 font-medium">
+                    By proceeding with checkout, you acknowledge that you have
+                    read, understood, and agree to be bound by these terms and
+                    conditions.
+                  </p>
+                </div>
               </>
             ) : null}
           </div>

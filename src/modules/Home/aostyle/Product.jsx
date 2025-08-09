@@ -177,6 +177,12 @@ export default function MarketplaceSection() {
 
   const isShowMoreBtn = styleData?.length == getStyleProductGeneralData?.count;
 
+  // Format price with commas
+  const formatPrice = (price) => {
+    const numPrice = parseFloat(price || 0);
+    return `₦${numPrice.toLocaleString()}`;
+  };
+
   return (
     <>
       <Breadcrumb
@@ -320,8 +326,8 @@ export default function MarketplaceSection() {
                     : product?.name}
                 </h3>
                 <p className="text-[#2B21E5]  text-left font-bold">
-                  ₦{product?.price}{" "}
-                  <span className="text-[#8A8A8A] font-medium">per unit</span>
+                  {formatPrice(product?.price)}{" "}
+                  <span className="text-[#8A8A8A] font-medium">per yard</span>
                 </p>
               </Link>
             ))}

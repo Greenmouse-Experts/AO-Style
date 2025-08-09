@@ -1,6 +1,6 @@
 import AnalyticsCards from "../components/AnalyticsCards";
 import RecentOrdersTable from "../components/RecentOrdersTable";
-import RegisterChart from "../components/RegisterChart";
+import SalesRevenueChart from "../components/RegisterChart";
 import SalesSummaryChart from "../components/SalesSummaryChart";
 
 export default function Analytics() {
@@ -14,13 +14,13 @@ export default function Analytics() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
         <div className="lg:col-span-2 flex flex-col">
-          <RegisterChart />
+          <SalesRevenueChart />
         </div>
         <div className="lg:col-span-1">
           <SalesSummaryChart />
         </div>
       </div>
-      <RecentOrdersTable />
+      {/* <RecentOrdersTable />*/}
     </>
   );
 }

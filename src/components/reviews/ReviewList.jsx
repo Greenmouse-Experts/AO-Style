@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { Star, ChevronDown, ChevronUp, User, Calendar } from 'lucide-react';
-import StarRating from './StarRating';
-import useGetProductReviews from '../../hooks/reviews/useGetProductReviews';
-import LoaderComponent from '../BeatLoader';
+import React, { useState } from "react";
+import { Star, ChevronDown, ChevronUp, User, Calendar } from "lucide-react";
+import StarRating from "./StarRating";
+import useGetProductReviews from "../../hooks/reviews/useGetProductReviews";
+import LoaderComponent from "../BeatLoader";
 
-const ReviewList = ({ productId, className = "" }) => {
+const ReviewList = ({ productId, className = "", showEmptyState = true }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortBy, setSortBy] = useState('newest');
+  const [sortBy, setSortBy] = useState("newest");
   const [expandedReviews, setExpandedReviews] = useState(new Set());
 
   const {
@@ -16,11 +16,11 @@ const ReviewList = ({ productId, className = "" }) => {
     isLoading,
     isFetching,
     isError,
-    error
+    error,
   } = useGetProductReviews(productId, {
     page: currentPage,
     limit: 5,
-    sort: sortBy
+    sort: sortBy,
   });
 
   const toggleReviewExpansion = (reviewId) => {
@@ -36,13 +36,13 @@ const ReviewList = ({ productId, className = "" }) => {
   const formatDate = (dateString) => {
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
       });
     } catch {
-      return 'Invalid date';
+      return "Invalid date";
     }
   };
 
@@ -69,13 +69,16 @@ const ReviewList = ({ productId, className = "" }) => {
     return (
       <div className={`text-center py-8 ${className}`}>
         <p className="text-red-600">
-          Failed to load reviews: {error?.message || 'Unknown error'}
+          Failed to load reviews: {error?.message || "Unknown error"}
         </p>
       </div>
     );
   }
 
   if (!reviews || reviews.length === 0) {
+    if (!showEmptyState) {
+      return null;
+    }
     return (
       <div className={`text-center py-8 ${className}`}>
         <div className="bg-gray-50 rounded-lg p-8">
@@ -121,10 +124,12 @@ const ReviewList = ({ productId, className = "" }) => {
       <div className="space-y-4">
         {reviews.map((review) => {
           const isExpanded = expandedReviews.has(review.id);
-          const shouldShowExpand = review.content && review.content.length > 200;
-          const displayContent = shouldShowExpand && !isExpanded
-            ? review.content.substring(0, 200) + '...'
-            : review.content;
+          const shouldShowExpand =
+            review.content && review.content.length > 200;
+          const displayContent =
+            shouldShowExpand && !isExpanded
+              ? review.content.substring(0, 200) + "..."
+              : review.content;
 
           return (
             <div
@@ -135,11 +140,15 @@ const ReviewList = ({ productId, className = "" }) => {
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-[#AB52EE] rounded-full flex items-center justify-center text-white font-medium">
-                    {review.user?.name ? review.user.name.charAt(0).toUpperCase() : <User size={20} />}
+                    {review.user?.name ? (
+                      review.user.name.charAt(0).toUpperCase()
+                    ) : (
+                      <User size={20} />
+                    )}
                   </div>
                   <div>
                     <p className="font-medium text-gray-900">
-                      {review.user?.name || 'Anonymous User'}
+                      {review.user?.name || "Anonymous User"}
                     </p>
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <Calendar size={14} />
@@ -148,11 +157,7 @@ const ReviewList = ({ productId, className = "" }) => {
                   </div>
                 </div>
 
-                <StarRating
-                  rating={review.rating}
-                  readonly={true}
-                  size={16}
-                />
+                <StarRating rating={review.rating} readonly={true} size={16} />
               </div>
 
               {/* Review Title */}
@@ -191,7 +196,7 @@ const ReviewList = ({ productId, className = "" }) => {
               {/* Review Actions/Meta (if needed in future) */}
               <div className="flex items-center justify-between text-sm text-gray-500">
                 <span>
-                  {review.rating} star{review.rating !== 1 ? 's' : ''}
+                  {review.rating} star{review.rating !== 1 ? "s" : ""}
                 </span>
               </div>
             </div>
@@ -218,33 +223,36 @@ const ReviewList = ({ productId, className = "" }) => {
           </button>
 
           <div className="flex items-center gap-1">
-            {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, index) => {
-              let pageNum;
-              if (pagination.totalPages <= 5) {
-                pageNum = index + 1;
-              } else if (currentPage <= 3) {
-                pageNum = index + 1;
-              } else if (currentPage >= pagination.totalPages - 2) {
-                pageNum = pagination.totalPages - 4 + index;
-              } else {
-                pageNum = currentPage - 2 + index;
-              }
+            {Array.from(
+              { length: Math.min(5, pagination.totalPages) },
+              (_, index) => {
+                let pageNum;
+                if (pagination.totalPages <= 5) {
+                  pageNum = index + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = index + 1;
+                } else if (currentPage >= pagination.totalPages - 2) {
+                  pageNum = pagination.totalPages - 4 + index;
+                } else {
+                  pageNum = currentPage - 2 + index;
+                }
 
-              return (
-                <button
-                  key={pageNum}
-                  onClick={() => handlePageChange(pageNum)}
-                  disabled={isFetching}
-                  className={`px-3 py-2 text-sm rounded-md transition-colors ${
-                    currentPage === pageNum
-                      ? 'bg-[#AB52EE] text-white'
-                      : 'border border-gray-300 hover:bg-gray-50'
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  {pageNum}
-                </button>
-              );
-            })}
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => handlePageChange(pageNum)}
+                    disabled={isFetching}
+                    className={`px-3 py-2 text-sm rounded-md transition-colors ${
+                      currentPage === pageNum
+                        ? "bg-[#AB52EE] text-white"
+                        : "border border-gray-300 hover:bg-gray-50"
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              },
+            )}
           </div>
 
           <button

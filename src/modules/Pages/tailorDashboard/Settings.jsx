@@ -7,9 +7,8 @@ import { useFormik } from "formik";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 import useUpdateProfile from "../../../hooks/settings/useUpdateProfile";
-import BankDetailsUpdate from "../tailorDashboard/components/BankDetails";
+import BankDetailsUpdate from "./components/BankDetails";
 import KYCVerificationUpdate from "../adminDashboard/components/KYCVerification";
-import { ChevronDown } from "lucide-react";
 import PhoneInput from "react-phone-input-2";
 import {
   useCountries,
@@ -20,7 +19,6 @@ import { usePlacesWidget } from "react-google-autocomplete";
 
 const Settings = () => {
   const query = new URLSearchParams(useLocation().search);
-
   const q = query.get("q");
 
   const [activeTab, setActiveTab] = useState("personalDetails");
@@ -31,8 +29,6 @@ const Settings = () => {
     countries?.map((c) => ({ label: c.name, value: c.name })) || [];
 
   const { carybinUser } = useCarybinUserStore();
-
-  console.log(carybinUser);
 
   const initialValues = {
     name: carybinUser?.name ?? "",
@@ -45,48 +41,39 @@ const Settings = () => {
   };
 
   const { isPending, uploadImageMutate } = useUploadImage();
-
   const [profileIsLoading, setProfileIsLoading] = useState(false);
-
   const { isPending: updateIsPending, updatePersonalMutate } =
     useUpdateProfile();
-
   const { toastError } = useToast();
 
-  const {
-    handleSubmit,
-    values,
-    handleChange,
-    resetForm,
-    setFieldValue,
-    // setFieldError,
-  } = useFormik({
-    initialValues: initialValues,
-    validateOnChange: false,
-    validateOnBlur: false,
-    enableReinitialize: true,
-    onSubmit: (val) => {
-      console.log(val);
-      if (!navigator.onLine) {
-        toastError("No internet connection. Please check your network.");
-        return;
-      }
-      updatePersonalMutate(
-        {
-          ...val,
-          coordinates: {
-            longitude: val.longitude,
-            latitude: val.latitude,
+  const { handleSubmit, values, handleChange, resetForm, setFieldValue } =
+    useFormik({
+      initialValues: initialValues,
+      validateOnChange: false,
+      validateOnBlur: false,
+      enableReinitialize: true,
+      onSubmit: (val) => {
+        console.log(val);
+        if (!navigator.onLine) {
+          toastError("No internet connection. Please check your network.");
+          return;
+        }
+        updatePersonalMutate(
+          {
+            ...val,
+            coordinates: {
+              longitude: val.longitude,
+              latitude: val.latitude,
+            },
           },
-        },
-        {
-          onSuccess: () => {
-            resetForm();
+          {
+            onSuccess: () => {
+              resetForm();
+            },
           },
-        },
-      );
-    },
-  });
+        );
+      },
+    });
 
   const { data: states, isLoading: loadingStates } = useStates(values.country);
 
@@ -140,7 +127,7 @@ const Settings = () => {
       <div className="bg-white px-6 py-4 mb-6">
         <h1 className="text-2xl font-medium mb-3">Settings</h1>
         <p className="text-gray-500">
-          <Link to="/customer" className="text-blue-500 hover:underline">
+          <Link to="/tailor" className="text-blue-500 hover:underline">
             Dashboard
           </Link>{" "}
           &gt; Settings
@@ -150,21 +137,19 @@ const Settings = () => {
         {/* Sidebar */}
         <div className="w-full md:w-1/5 bg-white md:mb-0 mb-6 h-fit p-4 rounded-lg">
           <ul className="space-y-2 text-gray-600">
-            {["Profile", "KYC Verification", "Bank Details", "Security"].map(
-              (item) => (
-                <li
-                  key={item}
-                  className={`cursor-pointer px-4 py-3 rounded-lg transition-colors duration-300 ${
-                    activeSection === item
-                      ? "font-medium text-purple-600 bg-purple-100"
-                      : "hover:text-purple-600"
-                  }`}
-                  onClick={() => setActiveSection(item)}
-                >
-                  {item}
-                </li>
-              ),
-            )}
+            {["Profile", "KYC", "Bank Details", "Security"].map((item) => (
+              <li
+                key={item}
+                className={`cursor-pointer px-4 py-3 rounded-lg transition-colors duration-300 ${
+                  activeSection === item
+                    ? "font-medium text-purple-600 bg-purple-100"
+                    : "hover:text-purple-600"
+                }`}
+                onClick={() => setActiveSection(item)}
+              >
+                {item}
+              </li>
+            ))}
           </ul>
         </div>
 
@@ -181,12 +166,9 @@ const Settings = () => {
                     className="w-24 h-24 rounded-full"
                   />
                 ) : (
-                  <>
-                    {" "}
-                    <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white">
-                      {values?.name?.charAt(0).toUpperCase() || "?"}
-                    </div>
-                  </>
+                  <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white">
+                    {values?.name?.charAt(0).toUpperCase() || "?"}
+                  </div>
                 )}
                 <button
                   disabled={isPending || profileIsLoading}
@@ -337,16 +319,14 @@ const Settings = () => {
             </div>
           )}
 
-          {activeSection === "KYC Verification" && (
+          {activeSection === "KYC" && (
             <div>
-              {/* <h2 className="text-xl font-medium mb-4">KYC Verification</h2>*/}
               <KYCVerificationUpdate />
             </div>
           )}
 
           {activeSection === "Bank Details" && (
             <div>
-              {/* <h2 className="text-xl font-medium mb-4">Bank Details</h2>*/}
               <BankDetailsUpdate />
             </div>
           )}

@@ -10,6 +10,8 @@ import useGoogleSignin from "./hooks/useGoogleSignIn";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
+import { useQueryClient } from "@tanstack/react-query";
+import useSessionManager from "../../hooks/useSessionManager";
 
 const initialValues = {
   email: "",
@@ -61,6 +63,8 @@ export default function SignInCustomer() {
   });
 
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { setAuthData } = useSessionManager();
 
   const { isPending, signinMutate } = useSignIn(values.email, resendCodeMutate);
 
@@ -68,56 +72,149 @@ export default function SignInCustomer() {
 
   const pendingProduct = localStorage.getItem("pendingProduct");
 
-  const parsedProduct = JSON.parse(pendingProduct);
+  let parsedProduct = null;
+  try {
+    parsedProduct = pendingProduct ? JSON.parse(pendingProduct) : null;
+  } catch (error) {
+    console.log("⚠️ Invalid pending product data:", error);
+    parsedProduct = null;
+  }
+
+  // Debug utilities for testing
+  const clearGoogleAuthData = () => {
+    console.log("🧹 Clearing all Google auth data");
+    sessionStorage.removeItem("googleToken");
+    sessionStorage.removeItem("googleProvider");
+    Cookies.remove("token");
+    Cookies.remove("currUserUrl");
+    console.log("✅ Google auth data cleared");
+  };
+
+  // Debug utilities for testing
+  const checkAllCookies = () => {
+    console.log("🍪🍪🍪 COOKIE DEBUG REPORT 🍪🍪🍪");
+    console.log("token:", Cookies.get("token"));
+    console.log("currUserUrl:", Cookies.get("currUserUrl"));
+    console.log("approvedByAdmin:", Cookies.get("approvedByAdmin"));
+    console.log("adminToken:", Cookies.get("adminToken"));
+    console.log("All cookies:", document.cookie);
+    console.log("🍪🍪🍪 END COOKIE REPORT 🍪🍪🍪");
+  };
+
+  const checkSessionManager = () => {
+    console.log("📦📦📦 SESSION MANAGER DEBUG 📦📦📦");
+    const sessionData = sessionStorage.getItem("authData");
+    console.log("Session storage authData:", sessionData);
+    try {
+      const parsed = JSON.parse(sessionData || "{}");
+      console.log("Parsed session data:", parsed);
+    } catch (e) {
+      console.log("Session data parse error:", e);
+    }
+    console.log("📦📦📦 END SESSION REPORT 📦📦📦");
+  };
+
+  // Expose debug functions to window for testing
+  if (typeof window !== "undefined") {
+    window.clearGoogleAuth = clearGoogleAuthData;
+    window.checkCookies = checkAllCookies;
+    window.checkSession = checkSessionManager;
+    window.debugAuth = () => {
+      checkAllCookies();
+      checkSessionManager();
+    };
+  }
 
   const googleSigninHandler = (cred) => {
-    console.log(cred?.credential, "cred");
+    console.log("🔓 Google login initiated");
+
     const payload = {
       token: cred?.credential,
       provider: "google",
-      action_type: "SIGNIN",
+      role: "user",
+      action_type: "SIGNIN", // API requires both role and action_type
     };
+
+    console.log("📤 Sending Google login request");
 
     googleSigninMutate(payload, {
       onSuccess: (data) => {
-        Cookies.set("token", data?.data?.accessToken);
+        console.log("✅ Google login successful");
 
-        if (data?.data?.data?.role === "user") {
-          navigate(redirectPath ?? "/customer", {
-            state: { info: parsedProduct },
-            replace: true,
+        // Handle both nested (data.data) and flat response structures
+        const responseData = data?.data || data;
+        const statusCode = data?.statusCode || responseData?.statusCode;
+        const message = data?.message || responseData?.message;
+        const accessToken = data?.accessToken || responseData?.accessToken;
+        const userData = responseData?.data || responseData;
+        const userRole = userData?.role;
+
+        // Check if user already exists (login successful)
+        if (
+          accessToken &&
+          (message === "Login successful" || statusCode === 200)
+        ) {
+          console.log("🔑 Setting authentication tokens");
+
+          // Set token cookie (like normal signin)
+          Cookies.set("token", accessToken);
+
+          // Set approvedByAdmin cookie (like normal signin)
+          Cookies.set(
+            "approvedByAdmin",
+            userData?.profile?.approved_by_admin || "true",
+          );
+
+          // Store auth data in session manager (like normal signin)
+          // For Google SSO, set a long expiry since no refresh token
+          const googleSSOExpiry = new Date();
+          googleSSOExpiry.setDate(googleSSOExpiry.getDate() + 7); // 7 days from now
+
+          setAuthData({
+            accessToken: accessToken,
+            refreshToken: responseData?.refreshToken || null,
+            refreshTokenExpiry:
+              responseData?.refreshTokenExpiry || googleSSOExpiry.toISOString(),
+            user: userData, // Include user data
+            userType: userRole, // Include role
           });
-          Cookies.set("currUserUrl", "customer");
+
+          // Refresh user profile query to ensure fresh data
+          queryClient.invalidateQueries(["get-user-profile"]);
+
+          // Add small delay to ensure cookies are set before navigation
+          setTimeout(() => {
+            console.log("🔄 Redirecting to customer dashboard");
+            const targetPath = redirectPath ?? "/customer";
+
+            navigate(targetPath, {
+              state: { info: parsedProduct },
+              replace: true,
+            });
+            Cookies.set("currUserUrl", "customer");
+            console.log("✅ Login complete");
+          }, 1000);
         }
-        if (data?.data?.data?.role === "fabric-vendor") {
-          navigate(redirectPath ?? "/fabric", {
-            state: { info: parsedProduct },
-            replace: true,
-          });
-          Cookies.set("currUserUrl", "fabric");
+        // Handle signup success (user doesn't exist, need to register)
+        else if (
+          message &&
+          (message.toLowerCase().includes("user") ||
+            message.toLowerCase().includes("not found")) &&
+          statusCode === 200
+        ) {
+          console.log("🆕 New user detected - redirecting to signup");
+
+          // Store Google token for signup process
+          sessionStorage.setItem("googleToken", cred?.credential);
+          sessionStorage.setItem("googleProvider", "google");
+
+          // Redirect to signup page
+          const signupUrl = `/auth/register${redirectPath ? `?redirect=${redirectPath}` : ""}`;
+          navigate(signupUrl, { replace: true });
         }
-        if (data?.data?.data?.role === "fashion-designer") {
-          navigate(redirectPath ?? "/tailor", {
-            state: { info: parsedProduct },
-            replace: true,
-          });
-          Cookies.set("currUserUrl", "tailor");
-        }
-        if (data?.data?.data?.role === "logistics-agent") {
-          navigate(redirectPath ?? "/logistics", {
-            state: { info: parsedProduct },
-            replace: true,
-          });
-          Cookies.set("currUserUrl", "logistics");
-        }
-        if (data?.data?.data?.role === "market-representative") {
-          navigate(redirectPath ?? "/sales", {
-            state: { info: parsedProduct },
-            replace: true,
-          });
-          Cookies.set("currUserUrl", "sales");
-        }
-        // if()
+      },
+      onError: (error) => {
+        console.log("❌ Google login error:", error?.data?.message);
       },
     });
   };
@@ -207,17 +304,24 @@ export default function SignInCustomer() {
           role="button"
           className="flex items-center justify-center rounded-lg "
         >
-          <GoogleLogin
-            size="large"
-            text="signin_with"
-            theme="outlined"
-            onSuccess={(credentialResponse) => {
-              googleSigninHandler(credentialResponse);
-            }}
-            onError={() => {
-              console.log("Login Failed");
-            }}
-          />{" "}
+          {googleIsPending ? (
+            <div className="flex items-center justify-center w-full py-3 px-4 border border-gray-300 rounded-lg bg-gray-50">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600 mr-3"></div>
+              <span className="text-gray-600">Signing in with Google...</span>
+            </div>
+          ) : (
+            <GoogleLogin
+              size="large"
+              text="signin_with"
+              theme="outlined"
+              onSuccess={(credentialResponse) => {
+                googleSigninHandler(credentialResponse);
+              }}
+              onError={() => {
+                console.log("Login Failed");
+              }}
+            />
+          )}
         </div>
       </div>
     </div>

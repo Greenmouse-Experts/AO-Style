@@ -44,6 +44,7 @@ export default function AnalyticsCards() {
       const resp = await CaryBinApi.get(
         "/owner-analytics/fetch-revenue?year=2025",
       );
+      console.log(resp.data, "analytics data");
       return resp.data;
     },
   });
@@ -87,9 +88,13 @@ export default function AnalyticsCards() {
     },
     {
       icon: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1746536471/AoStyle/Group2_mhpszt.png",
-      value: isLoading ? "Loading..." : isError ? "Error" : "₦260,000", // Placeholder value
-      label: "Total Orders",
-      subtext: "This Month",
+      value: isLoading
+        ? "Loading..."
+        : isError
+          ? "Error"
+          : data?.data?.totals?.withdrawals, // Placeholder value
+      label: "Withdrawals",
+      subtext: " This Year",
       bgColor: "bg-[#F4EFFF]",
     },
     {
@@ -105,9 +110,13 @@ export default function AnalyticsCards() {
     },
     {
       icon: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1746536473/AoStyle/Group4_ogapaw.png",
-      value: isLoading ? "Loading..." : isError ? "Error" : "₦1,002", // Placeholder
-      label: "Pending Payments",
-      subtext: "This Month",
+      value: isLoading
+        ? "Loading..."
+        : isError
+          ? "Error"
+          : data?.data.totals.product_revenue, // Placeholder
+      label: "Total Revenue",
+      subtext: "This Year",
       bgColor: "bg-[#E0FFFF]",
     },
   ];

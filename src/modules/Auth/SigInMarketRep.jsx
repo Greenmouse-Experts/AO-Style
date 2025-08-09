@@ -9,6 +9,7 @@ import { countryCodes } from "../../constant";
 import Select from "react-select";
 import useToast from "../../hooks/useToast";
 import PhoneInput from "react-phone-input-2";
+import { usePlacesWidget } from "react-google-autocomplete";
 
 const initialValues = {
   name: "",
@@ -33,6 +34,18 @@ export default function SignInAsCustomer() {
     label: code,
     value: code,
   }));
+  const { ref } = usePlacesWidget({
+    apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
+    onPlaceSelected: (place) => {
+      setFieldValue("location", place.formatted_address);
+      setFieldValue("latitude", place.geometry?.location?.lat().toString());
+      setFieldValue("longitude", place.geometry?.location?.lng().toString());
+    },
+    options: {
+      componentRestrictions: { country: "ng" },
+      types: [],
+    },
+  });
 
   const {
     handleSubmit,
@@ -66,7 +79,7 @@ export default function SignInAsCustomer() {
           onSuccess: () => {
             resetForm();
           },
-        }
+        },
       );
     },
   });
@@ -213,8 +226,14 @@ export default function SignInAsCustomer() {
             <input
               type="text"
               name={"location"}
+              ref={ref}
               value={values.location}
-              onChange={handleChange}
+              onChange={(e) => {
+                handleChange(e);
+                setFieldValue("location", e.currentTarget.value);
+                setFieldValue("latitude", "");
+                setFieldValue("longitude", "");
+              }}
               placeholder="Enter your home address"
               className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
               required

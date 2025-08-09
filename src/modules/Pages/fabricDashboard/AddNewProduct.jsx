@@ -589,7 +589,7 @@ const AddProduct = () => {
               </div> */}
               <div>
                 <label className="block text-gray-700 mb-4">
-                  Weight per unit
+                  Weight per yard
                 </label>
                 <input
                   type="number"
@@ -598,7 +598,7 @@ const AddProduct = () => {
                   min={0}
                   value={values.weight_per_unit}
                   onChange={handleChange}
-                  placeholder="Enter the weight per unit (minimum 0)"
+                  placeholder="Enter the weight per yard (minimum 0)"
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 />
               </div>
@@ -809,11 +809,11 @@ const AddProduct = () => {
               </div>{" "}
             </div>
 
-            {/* Price per unit */}
+            {/* Price per yard */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-gray-700 mb-4">
-                  Price per unit
+                  Price per yard
                 </label>
                 <div className="flex items-center">
                   <span className="p-5 bg-gray-200 rounded-l-md">₦</span>
@@ -823,7 +823,7 @@ const AddProduct = () => {
                     required
                     value={values.price}
                     onChange={handleChange}
-                    placeholder="Enter amount per unit"
+                    placeholder="Enter amount per yard"
                     className="w-full p-4 border-t border-r border-b outline-none border-gray-300 rounded-r-md"
                   />
                 </div>
@@ -960,15 +960,18 @@ const AddProduct = () => {
                       please wait...{" "}
                     </p>
                   ) : values.closeup_url ? (
-                    <a
-                      onClick={(e) => e.stopPropagation()}
-                      href={values.closeup_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-purple-600 flex justify-center cursor-pointer hover:underline"
-                    >
-                      View file upload
-                    </a>
+                    <>
+                      <img src={values.closeup_url} className="w-1/3 h-16" />
+                      <a
+                        onClick={(e) => e.stopPropagation()}
+                        href={values.closeup_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-purple-600 flex justify-center cursor-pointer hover:underline"
+                      >
+                        View file upload
+                      </a>
+                    </>
                   ) : (
                     <></>
                   )}
@@ -1015,15 +1018,18 @@ const AddProduct = () => {
                       please wait...{" "}
                     </p>
                   ) : values.spreadout_url ? (
-                    <a
-                      onClick={(e) => e.stopPropagation()}
-                      href={values.spreadout_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-purple-600 flex justify-center cursor-pointer hover:underline"
-                    >
-                      View file upload
-                    </a>
+                    <>
+                      <img src={values.spreadout_url} className="w-1/3" />
+                      <a
+                        onClick={(e) => e.stopPropagation()}
+                        href={values.spreadout_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-purple-600 flex justify-center cursor-pointer hover:underline"
+                      >
+                        View file upload
+                      </a>
+                    </>
                   ) : (
                     <></>
                   )}
@@ -1070,15 +1076,21 @@ const AddProduct = () => {
                       please wait...{" "}
                     </p>
                   ) : values.manufacturers_url ? (
-                    <a
-                      onClick={(e) => e.stopPropagation()}
-                      href={values.manufacturers_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-purple-600 flex justify-center cursor-pointer hover:underline"
-                    >
-                      View file upload
-                    </a>
+                    <>
+                      <img
+                        src={values.manufacturers_url}
+                        className="w-1/3 h-16"
+                      />
+                      <a
+                        onClick={(e) => e.stopPropagation()}
+                        href={values.manufacturers_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-purple-600 flex justify-center cursor-pointer hover:underline"
+                      >
+                        View file upload
+                      </a>
+                    </>
                   ) : (
                     <></>
                   )}
@@ -1120,15 +1132,18 @@ const AddProduct = () => {
                       please wait...{" "}
                     </p>
                   ) : values.fabric_url ? (
-                    <a
-                      onClick={(e) => e.stopPropagation()}
-                      href={values.fabric_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-purple-600 flex justify-center cursor-pointer hover:underline"
-                    >
-                      View file upload
-                    </a>
+                    <>
+                      <img src={values.fabric_url} className="w-1/3 h-16" />
+                      <a
+                        onClick={(e) => e.stopPropagation()}
+                        href={values.fabric_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-purple-600 flex justify-center cursor-pointer hover:underline"
+                      >
+                        View file upload
+                      </a>
+                    </>
                   ) : (
                     <></>
                   )}
@@ -1195,6 +1210,19 @@ const AddProduct = () => {
                   </label>
                 </div>
               </div>
+              {
+                <div>
+                  <></>
+                  {values.video_url && (
+                    <video
+                      controls
+                      className="w-[200px] mt-2 rounded-md mx-auto"
+                    >
+                      <source src={values.video_url}></source>
+                    </video>
+                  )}
+                </div>
+              }
             </div>
 
             {/* Submit Button */}

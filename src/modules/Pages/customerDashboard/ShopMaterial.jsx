@@ -454,7 +454,7 @@ export default function ShopMaterials() {
                     <p className="text-[#2B21E5] text-left font-bold">
                       ₦{product.price}{" "}
                       <span className="text-[#8A8A8A] font-medium">
-                        per unit
+                        per yard
                       </span>
                     </p>
                   </motion.div>

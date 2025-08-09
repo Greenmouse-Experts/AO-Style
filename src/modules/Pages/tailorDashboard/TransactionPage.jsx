@@ -8,6 +8,7 @@ import WithdrawalModal from "./components/WithdrawalModal";
 import ViewWithdrawalsModal from "./components/ViewWithdrawalsModal";
 import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails";
 import useFetchWithdrawal from "../../../hooks/withdrawal/useFetchWithdrawal";
+import { GeneralTransactionComponent } from "../../../components/GeneralTransactionComponents";
 
 const transactions = [
   {
@@ -174,6 +175,11 @@ export default function TransactionPage() {
     filteredCount: filteredTransactions.length,
   });
 
+  return (
+    <>
+      <GeneralTransactionComponent />
+    </>
+  );
   if (businessLoading || withdrawalLoading) {
     return (
       <div>

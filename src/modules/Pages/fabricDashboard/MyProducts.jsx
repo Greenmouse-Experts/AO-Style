@@ -267,7 +267,7 @@ const ProductPage = () => {
                 >
                   log{" "}
                 </button>*/}
-                {isAdminFabricRoute && row.creator_id == admin_id && (
+                {isAdminFabricRoute && (
                   <>
                     <button
                       onClick={async (e) => {
@@ -280,7 +280,7 @@ const ProductPage = () => {
                                   product: {
                                     status:
                                       row.status == "PUBLISHED"
-                                        ? "ARCHIVED"
+                                        ? "DRAFT"
                                         : "PUBLISHED",
                                   },
                                 },
@@ -550,26 +550,22 @@ const ProductPage = () => {
           </div>
         </div>
         {/* Table Section */}
-        <ReusableTable
-          columns={columns}
-          loading={isAdminFabricRoute ? adminProductIsPending : isPending}
-          data={currProd == "all" ? FabricData : []}
-        />
-        {!FabricData?.length &&
-        (isAdminFabricRoute ? adminProductIsPending : isPending) ? (
-          <p className="flex-1 text-center text-sm md:text-sm">
-            No products found.
-          </p>
+        {!isAdminFabricRoute ? (
+          <ReusableTable
+            columns={columns}
+            loading={isAdminFabricRoute ? adminProductIsPending : isPending}
+            data={currProd == "all" ? FabricData : []}
+          />
         ) : (
-          <>
-            <ReusableTable
-              columns={columns}
-              loading={isAdminFabricRoute ? adminProductIsPending : isPending}
-              data={admin_data || []}
-              // data={currProd == "all" ? getAllAdminFabricData.data : []}
-            />
-          </>
+          <></>
         )}
+
+        {!(FabricData?.length > 0) &&
+          (isAdminFabricRoute ? adminProductIsPending : isPending) && (
+            <p className="flex-1 text-center text-sm md:text-sm">
+              No products found.
+            </p>
+          )}
       </div>
       {FabricData?.length ? (
         <div className="flex  justify-between items-center mt-4">

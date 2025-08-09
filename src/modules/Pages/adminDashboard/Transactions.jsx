@@ -13,7 +13,13 @@ import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 import { formatDateStr } from "../../../lib/helper";
 import { Link, useNavigate } from "react-router-dom";
 import SalesRevenueChart from "./components/RegisterChart";
-
+import { useQuery } from "@tanstack/react-query";
+import CaryBinApi from "../../../services/CarybinBaseUrl";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import { CSVLink } from "react-csv";
 const PaymentTransactionTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -34,11 +40,98 @@ const PaymentTransactionTable = () => {
 
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
 
-  const { data: getAllTransactionData, isPending } =
-    useFetchAllCartTransactions({
-      ...queryParams,
+  // const { data: getAllTransactionData, isPending } =
+  //   useFetchAllCartTransactions({
+  //     ...queryParams,
+  //   });
+  const handleExport = (e) => {
+    const value = e.target.value;
+    if (value === "excel") exportToExcel();
+    if (value === "pdf") exportToPDF();
+    if (value === "csv") document.getElementById("csvDownload").click();
+  };
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(getAllTransactionData?.data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const blob = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    saveAs(blob, "MyProducts.xlsx");
+  };
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+
+    autoTable(doc, {
+      head: [
+        [
+          "Transaction ID",
+          "Payment Method",
+          "Status",
+          "Amount (NGN)",
+          "Product",
+          "Qty",
+          "Unit Price",
+          "User Email",
+          "Phone",
+          "Address",
+          "Date",
+        ],
+      ],
+      body: getAllTransactionData?.data?.flatMap((transaction) => {
+        const user = transaction.user || {};
+        const profile = user.profile || {};
+        const items = transaction.purchase?.items || [];
+
+        return items.map((item) => [
+          transaction.transaction_id,
+          transaction.payment_method,
+          transaction.payment_status,
+          transaction.amount,
+          item.name,
+          item.quantity,
+          item.price,
+          user.email,
+          user.phone,
+          profile.address,
+          new Date(transaction.created_at).toLocaleDateString(),
+        ]);
+      }),
+      headStyles: {
+        fillColor: [209, 213, 219], // Tailwind's gray-300
+        textColor: [0, 0, 0],
+        halign: "center",
+        valign: "middle",
+        fontSize: 8,
+      },
+      styles: {
+        fontSize: 7,
+        cellPadding: 2,
+      },
+      theme: "grid",
+      startY: 10,
     });
 
+    doc.save("transactions.pdf");
+  };
+
+  const { data: getAllTransactionData, isPending: isPending } = useQuery({
+    queryKey: ["transactions_admin", debouncedSearchTerm],
+    queryFn: async () => {
+      let resp = await CaryBinApi.get("/payment/fetch-all", {
+        params: {
+          q: debouncedSearchTerm,
+        },
+      });
+      return resp.data;
+    },
+  });
   useUpdatedEffect(() => {
     // update search params with undefined if debouncedSearchTerm is an empty string
     updateQueryParams({
@@ -215,12 +308,12 @@ const PaymentTransactionTable = () => {
                   >
                     View Details
                   </button>
-                  <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
+                  {/* <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
                     Edit Transaction
                   </button>
                   <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">
                     Remove Transaction
-                  </button>
+                  </button>*/}
                 </>
               </div>
             )}
@@ -258,23 +351,24 @@ const PaymentTransactionTable = () => {
             return {
               ...details,
               transactionID: `${details?.transaction_id ?? ""}`,
-              userName: `${details?.user?.name ?? ""}`,
-              amount: `${details?.items?.reduce((acc, item) => {
-                return acc + Number(item.price_at_time) * item.quantity;
-              }, 0)}`,
+              userName: `${details?.user?.email ?? "ss"}`,
+              amount: details?.amount,
               location: `${details?.profile?.address ?? ""}`,
+              status: details?.payment_status ?? "",
+              transactionType: details?.purchase_type ?? "",
+              userType: details?.subscription_plan?.role ?? "customer",
               date: `${
                 details?.created_at
                   ? formatDateStr(
                       details?.created_at.split(".").shift(),
-                      "DD MMM YYYY - hh:mm a",
+                      "DD MMM YYYY",
                     )
                   : ""
               }`,
             };
           })
         : [],
-    [getAllTransactionData?.data],
+    [getAllTransactionData?.data, isPending],
   );
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -311,6 +405,34 @@ const PaymentTransactionTable = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+  const csv_data =
+    getAllTransactionData?.data.flatMap((transaction) => {
+      const user = transaction.user || {};
+      const profile = user.profile || {};
+      const items = transaction.purchase?.items || [];
+
+      return items.map((item) => ({
+        TransactionID: transaction.transaction_id,
+        PaymentStatus: transaction.payment_status,
+        PaymentMethod: transaction.payment_method,
+        Amount: transaction.amount,
+        Currency: transaction.currency,
+        PurchaseType: transaction.purchase_type,
+        ProductName: item.name,
+        Quantity: item.quantity,
+        ProductPrice: item.price,
+        FabricVendorFee: item.vendor_charge?.fabric_vendor_fee ?? "",
+        FashionDesignerFee: item.vendor_charge?.fashion_designer_fee ?? "",
+        CreatedAt: transaction.created_at,
+        UpdatedAt: transaction.updated_at,
+        UserID: user.id,
+        UserEmail: user.email,
+        UserPhone: user.phone,
+        Address: profile.address,
+        State: profile.state,
+        Country: profile.country,
+      }));
+    }) || [];
 
   return (
     <>
@@ -352,9 +474,31 @@ const PaymentTransactionTable = () => {
               />
               <AiOutlineSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
-            <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap flex items-center">
+            <button
+              onClick={(e) => {
+                console.log(getAllTransactionData.data[0]);
+              }}
+              className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap flex items-center"
+            >
               <BsFilter className="mr-1" /> Filter
             </button>
+            <CSVLink
+              id="csvDownload"
+              data={csv_data}
+              filename="MyProducts.csv"
+              className="hidden"
+            />{" "}
+            <select
+              onChange={handleExport}
+              className="bg-gray-100 outline-none text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
+            >
+              <option value="" disabled selected>
+                Export As
+              </option>
+              <option value="csv">Export to CSV</option>{" "}
+              <option value="excel">Export to Excel</option>{" "}
+              <option value="pdf">Export to PDF</option>{" "}
+            </select>
             <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
               Report ▾
             </button>

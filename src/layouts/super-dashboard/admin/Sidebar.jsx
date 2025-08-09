@@ -88,8 +88,42 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <h3 className="text-xs text-white uppercase mt-4 mb-2">
             User Management
           </h3>
+          {superAdmin || hasUserRole ? (
+            <SidebarItem
+              to="/admin/customers"
+              icon={<FaUsers />}
+              text="Customers"
+              onClick={handleClick}
+            />
+          ) : null}
 
-          {superAdmin}
+          {superAdmin || hasTailorRole ? (
+            <SidebarItem
+              to="/admin/tailors"
+              icon={<GiScissors />}
+              text="Tailors / Designers"
+              onClick={handleClick}
+            />
+          ) : null}
+
+          {superAdmin || hasFabricRole ? (
+            <SidebarItem
+              to="/admin/fabric-vendor"
+              icon={<FaBox />}
+              text="Fabric Vendor"
+              onClick={handleClick}
+            />
+          ) : null}
+
+          {superAdmin || hasMarketrepRole ? (
+            <SidebarItem
+              to="/admin/sales-rep"
+              icon={<FaBriefcase />}
+              text="Market Rep"
+              onClick={handleClick}
+            />
+          ) : null}
+
 
           {superAdmin || hasLogisticsRole ? (
             <SidebarItem

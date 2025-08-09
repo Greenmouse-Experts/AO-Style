@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import ReusableTable from "./components/ReusableTable";
-import TransactionPayment from "./components/TransactionPayment";
 import RegisterChart from "./components/RegisterChart";
 import SalesSummaryChart from "./components/SalesSummaryChart";
 import { FaEllipsisH } from "react-icons/fa";
@@ -11,6 +10,7 @@ import useQueryParams from "../../../hooks/useQueryParams";
 import useFetchAllCartTransactions from "../../../hooks/admin/useFetchAllCartTransactions";
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 import { formatDateStr } from "../../../lib/helper";
+import AnalyticsCards from "./components/TransactionPayment";
 
 const PaymentTransactionTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -48,7 +48,7 @@ const PaymentTransactionTable = () => {
   }, [debouncedSearchTerm]);
 
   const totalTransactionPages = Math.ceil(
-    getAllTransactionData?.count / (queryParams["pagination[limit]"] ?? 10)
+    getAllTransactionData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
   const data = [
@@ -117,7 +117,7 @@ const PaymentTransactionTable = () => {
               const newSelectAll = e.target.checked;
               setSelectAll(newSelectAll);
               const newSelected = new Set(
-                newSelectAll ? data.map((item) => item.id) : []
+                newSelectAll ? data.map((item) => item.id) : [],
               );
               setSelectedRows(newSelected);
             }}
@@ -219,7 +219,7 @@ const PaymentTransactionTable = () => {
         className: "text-gray-500 font-medium text-sm py-4 w-20",
       },
     ],
-    [selectAll, selectedRows, getAllTransactionData?.data, openDropdown]
+    [selectAll, selectedRows, getAllTransactionData?.data, openDropdown],
   );
 
   const toggleDropdown = (rowId) => {
@@ -230,7 +230,7 @@ const PaymentTransactionTable = () => {
     const matchesSearch = Object.values(transaction).some(
       (value) =>
         typeof value === "string" &&
-        value.toLowerCase().includes(searchTerm.toLowerCase())
+        value.toLowerCase().includes(searchTerm.toLowerCase()),
     );
     const matchesTab =
       activeTab === "All Transactions" ||
@@ -257,14 +257,14 @@ const PaymentTransactionTable = () => {
                 details?.created_at
                   ? formatDateStr(
                       details?.created_at.split(".").shift(),
-                      "DD MMM YYYY - hh:mm a"
+                      "DD MMM YYYY - hh:mm a",
                     )
                   : ""
               }`,
             };
           })
         : [],
-    [getAllTransactionData?.data]
+    [getAllTransactionData?.data],
   );
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -272,7 +272,7 @@ const PaymentTransactionTable = () => {
   const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
 
   const totalPages = Math.ceil(
-    getAllTransactionData?.count / (queryParams["pagination[limit]"] ?? 10)
+    getAllTransactionData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
   const handlePreviousPage = () => {
@@ -304,7 +304,7 @@ const PaymentTransactionTable = () => {
 
   return (
     <>
-      <TransactionPayment />
+      <AnalyticsCards />
       <div className="bg-white p-6 rounded-xl overflow-x-auto">
         <div className="flex justify-between items-center mb-4">
           <div className="flex space-x-6">
@@ -335,7 +335,7 @@ const PaymentTransactionTable = () => {
                 value={queryString}
                 onChange={(evt) =>
                   setQueryString(
-                    evt.target.value ? evt.target.value : undefined
+                    evt.target.value ? evt.target.value : undefined,
                   )
                 }
                 className="py-2 pl-10 pr-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
@@ -363,7 +363,7 @@ const PaymentTransactionTable = () => {
                 const newSelectAll = e.target.checked;
                 setSelectAll(newSelectAll);
                 const newSelected = new Set(
-                  newSelectAll ? data.map((item) => item.id) : []
+                  newSelectAll ? data.map((item) => item.id) : [],
                 );
                 setSelectedRows(newSelected);
               }}

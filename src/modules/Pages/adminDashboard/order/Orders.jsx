@@ -18,36 +18,6 @@ const OrdersTable = () => {
   const [activeReviewModal, setActiveReviewModal] = useState(null);
 
   const { isPending: ordersLoading, data: ordersResponse } = useGetOrder();
-  // const order_query = useQuery({
-  //   queryKey: ["order_data"],
-  //   queryFn: async () => {
-  //     let resp = await CaryBinApi.get("/customer-analytics/recent-orders");
-  //     return resp.data;
-  //   },
-  // });
-  // useEffect(() => {
-  //   if (order_query.data) {
-  //     console.log("orders_now", order_query.data);
-  //   }
-  // }, [order_query.isFetching]);
-
-  // Process real order data
-  const data = ordersResponse?.data || [];
-
-  const toggleDropdown = (rowId) => {
-    setOpenDropdown(openDropdown === rowId ? null : rowId);
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenDropdown(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   const columns = [
     {
       label: "Customer",
@@ -122,7 +92,11 @@ const OrdersTable = () => {
           {openDropdown === row.id && (
             <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md z-10 border border-gray-200">
               <Link
+                onClick={(e) => {
+                  console.log(row);
+                }}
                 to={`/admin/orders/order-details?id=${row.id}`}
+                // to={`/admin/orders/order-details?id=${row.id}`}
                 className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
               >
                 View Details
@@ -182,6 +156,34 @@ const OrdersTable = () => {
       ),
     },
   ];
+  const order_query = useQuery({
+    queryKey: ["order_data"],
+    queryFn: async () => {
+      let resp = await CaryBinApi.get("/orders/fetch");
+      return resp.data;
+    },
+  });
+  useEffect(() => {
+    if (order_query.data) {
+      console.log("orders_now", order_query.data);
+    }
+  }, [order_query.isFetching]);
+
+  const data = order_query?.data?.data || [];
+
+  const toggleDropdown = (rowId) => {
+    setOpenDropdown(openDropdown === rowId ? null : rowId);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenDropdown(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const filteredData = data.filter((order) => {
     if (!searchTerm) return true;
@@ -222,7 +224,7 @@ const OrdersTable = () => {
     setCurrentPage(1);
   };
 
-  if (ordersLoading) {
+  if (order_query.isFetching) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader />
@@ -254,7 +256,17 @@ const OrdersTable = () => {
             </select>
           </div>
         </div>
-        <ReusableTable columns={columns} data={currentItems} />
+        {order_query.isFetching ? (
+          <div className="p-2 text-lg ">loading orders...</div>
+        ) : (
+          <>
+            <ReusableTable
+              columns={columns}
+              data={currentItems}
+              loading={order_query.isPending}
+            />
+          </>
+        )}
         <div className="flex justify-between items-center mt-4">
           <div className="flex items-center">
             <p className="text-sm text-gray-600">Items per page: </p>

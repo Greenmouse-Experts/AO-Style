@@ -95,7 +95,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               text="Customers"
               onClick={handleClick}
             />
-          }
+          ) : null}
 
           {superAdmin || hasTailorRole ? (
             <SidebarItem
@@ -123,7 +123,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               onClick={handleClick}
             />
           ) : null}
-
 
           {superAdmin || hasLogisticsRole ? (
             <SidebarItem

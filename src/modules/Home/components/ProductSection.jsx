@@ -112,6 +112,12 @@ export default function ProductSection() {
 
   const styleData = getStyleProductGeneralData?.data;
 
+  // Format price with commas
+  const formatPrice = (price) => {
+    const numPrice = parseFloat(price || 0);
+    return `₦${numPrice.toLocaleString()}`;
+  };
+
   return (
     <section className="Resizer section">
       <div className="px-4">
@@ -178,7 +184,7 @@ export default function ProductSection() {
                   : product?.name}
               </h3>
               <p className="text-[#2B21E5]  text-left font-bold">
-                ₦{product?.price}{" "}
+                {formatPrice(product?.price)}{" "}
                 <span className="text-[#8A8A8A] font-medium">per unit</span>
               </p>
             </Link>

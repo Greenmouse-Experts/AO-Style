@@ -9,6 +9,7 @@ import useQueryParams from "../hooks/useQueryParams";
 import useUpdatedEffect from "../hooks/useUpdatedEffect";
 import useDebounce from "../hooks/useDebounce";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 // export function GeneralTransactionComponent() {
 //   const [searchTerm, setSearchTerm] = useState("");
 //   const [currentPage, setCurrentPage] = useState(1);
@@ -327,9 +328,14 @@ export function GeneralTransactionComponent() {
   return (
     <>
       <div className="flex items-center justify-between bg-white p-4 mb-4 rounded-md shadow">
-        <h2 className="text-2xl font-semibold py-4">Transactions</h2>
-        <div>
-          <h2>DashBoard</h2>
+        <div className="bg-white px-6 py-4 mb-6">
+          <h1 className="text-2xl font-medium mb-3">Transactions</h1>
+          <p className="text-gray-500">
+            <Link to="/tailor" className="text-blue-500 hover:underline">
+              Dashboard
+            </Link>{" "}
+            &gt; Transactions
+          </p>
         </div>
       </div>
       <ReusableTable

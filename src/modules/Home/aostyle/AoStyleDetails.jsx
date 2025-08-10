@@ -1385,7 +1385,7 @@ export default function AnkaraGownPage() {
               className="bg-white rounded-lg p-6 shadow-sm"
             />
             {/* Debug info */}
-            <div className="mt-4 p-4 bg-gray-100 rounded text-sm">
+            {/* <div className="mt-4 p-4 bg-gray-100 rounded text-sm">
               <p>
                 <strong>Debug:</strong> Product ID being passed to reviews:{" "}
                 <code>{correctProductId}</code>
@@ -1395,7 +1395,7 @@ export default function AnkaraGownPage() {
                 <code>{styleInfo?.id}</code>, Product ID:{" "}
                 <code>{styleInfo?.product_id}</code>
               </p>
-            </div>
+            </div>*/}
           </div>
         </section>
       )}

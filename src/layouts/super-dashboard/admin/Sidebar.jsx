@@ -38,11 +38,11 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     carybinAdminUser?.role?.name === "super-admin" ||
     carybinAdminUser?.role === "super-admin";
 
-  console.log("Admin User Data:", carybinAdminUser);
-  console.log("Is Super Admin:", superAdmin);
-  console.log("Role ID:", carybinAdminUser?.role?.role_id);
-  console.log("Role Name:", carybinAdminUser?.role?.name);
-  console.log("Role:", carybinAdminUser?.role);
+  // console.log("Admin User Data:", carybinAdminUser);
+  // console.log("Is Super Admin:", superAdmin);
+  // console.log("Role ID:", carybinAdminUser?.role?.role_id);
+  // console.log("Role Name:", carybinAdminUser?.role?.name);
+  // console.log("Role:", carybinAdminUser?.role);
 
   const hasFabricRole =
     carybinAdminUser?.admin_role?.role?.includes("fabric-vendor");
@@ -150,6 +150,18 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             !hasMarketrepRole &&
             !hasLogisticsRole && (
               <>
+                <SidebarItem
+                  to="/admin/sales-rep"
+                  icon={<FaBriefcase />}
+                  text="Market Rep"
+                  onClick={handleClick}
+                />
+                <SidebarItem
+                  to="/admin/logistics"
+                  icon={<FaTruck />}
+                  text="Logistics"
+                  onClick={handleClick}
+                />
                 <SidebarItem
                   to="/admin/customers"
                   icon={<FaUsers />}

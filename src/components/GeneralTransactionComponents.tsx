@@ -6,7 +6,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { FaEllipsisH } from "react-icons/fa";
 import { formatDateStr } from "../lib/helper";
 import useQueryParams from "../hooks/useQueryParams";
-import useUpdatedEffect from "../hooks/useUpdatedEffect";
 import useDebounce from "../hooks/useDebounce";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
@@ -86,7 +85,6 @@ import { Link } from "react-router-dom";
 //     </div>
 //   );
 // }
-
 interface ApiResponse {
   statusCode: number;
   data: Withdraw[];
@@ -152,22 +150,17 @@ export function GeneralTransactionComponent() {
         ? query.data.data.map((details) => {
             return {
               ...details,
-              transactionID: `${details.payment?.transaction_id ?? ""}`,
-              userName: `${details.user?.email ?? ""}`,
-              amount: `${
-                details.payment?.purchase?.items?.reduce((acc, item) => {
-                  return acc + Number(item.price) * item.quantity;
-                }, 0) ?? "0"
-              }`,
-              date: `${
-                details.created_at
-                  ? formatDateStr(
-                      details.created_at.split(".").shift(),
-                      "DD MMM YYYY - hh:mm a",
-                    )
-                  : ""
-              }`,
-              transactionType: `${details.payment?.purchase_type ?? ""}`,
+              transactionID: details.id,
+              userName: details.user?.email ?? "",
+              amount: details.amount,
+              date: details.created_at
+                ? formatDateStr(
+                    details.created_at.split(".").shift(),
+                    "DD MMM YYYY - hh:mm a",
+                  )
+                : "",
+              transactionType: "Withdraw",
+              status: details.status,
             };
           })
         : [],
@@ -194,13 +187,13 @@ export function GeneralTransactionComponent() {
     setOpenDropdown(openDropdown === rowId ? null : rowId);
   };
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
-  useUpdatedEffect(() => {
-    // update search params with undefined if debouncedSearchTerm is an empty string
-    updateQueryParams({
-      q: debouncedSearchTerm.trim() || undefined,
-      "pagination[page]": 1,
-    });
-  }, [debouncedSearchTerm]);
+  // useUpdatedEffect(() => {
+  //   // update search params with undefined if debouncedSearchTerm is an empty string
+  //   updateQueryParams({
+  //     q: debouncedSearchTerm.trim() || undefined,
+  //     "pagination[page]": 1,
+  //   });
+  // }, [debouncedSearchTerm]);
 
   const columns = useMemo(
     () => [
@@ -221,7 +214,7 @@ export function GeneralTransactionComponent() {
           />
         ),
         key: "checkbox",
-        render: (value, row) => (
+        render: (_value, row) => (
           <input
             type="checkbox"
             checked={selectedRows.has(row.id)}
@@ -289,7 +282,7 @@ export function GeneralTransactionComponent() {
       {
         label: "Action",
         key: "action",
-        render: (_, row) => (
+        render: (_row, row) => (
           <div className="relative" ref={dropdownRef}>
             <button
               className="p-2 text-gray-600"
@@ -336,6 +329,30 @@ export function GeneralTransactionComponent() {
             </Link>{" "}
             &gt; Transactions
           </p>
+        </div>
+      </div>
+      <div className="space-y-6">
+        {/* Search + Info */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-2 mb-2  rounded-md shadow">
+          <input
+            type="text"
+            placeholder="Search by transaction ID or user email"
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full md:w-80 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+
+          <div className="text-sm text-gray-600">
+            Showing <span className="font-medium">{startIndex + 1}</span> to{" "}
+            <span className="font-medium">
+              {Math.min(endIndex, filteredData.length)}
+            </span>{" "}
+            of <span className="font-medium">{filteredData.length}</span>{" "}
+            results
+          </div>
         </div>
       </div>
       <ReusableTable

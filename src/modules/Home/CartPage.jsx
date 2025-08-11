@@ -629,7 +629,8 @@ const CartPage = () => {
                           <div className="flex items-center gap-3">
                             <div className="flex flex-col">
                               <span className="text-sm font-medium">
-                                Quantity: {displayQuantity} yards
+                                Quantity: {displayQuantity}{" "}
+                                {item?.style_product ? "units" : "yards"}
                               </span>
                               {item?.style_product && (
                                 <span className="text-xs text-blue-600 font-medium">
@@ -719,7 +720,8 @@ const CartPage = () => {
                               item?.style_product ? "text-blue-600" : ""
                             }`}
                           >
-                            {displayQuantity} yards
+                            {displayQuantity}{" "}
+                            {item?.style_product ? "units" : "yards"}
                           </span>
                           {item?.style_product && (
                             <span className="text-xs text-blue-600 font-medium">

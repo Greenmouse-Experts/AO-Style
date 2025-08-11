@@ -483,6 +483,36 @@ const Settings = () => {
                         />
                       </div>
                     </div>
+
+                    {/* Coordinates Display */}
+                    {(values.latitude || values.longitude) && (
+                      <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg">
+                        <div>
+                          <label className="block text-gray-700 mb-2 text-sm font-medium">
+                            Latitude
+                          </label>
+                          <div className="w-full p-3 bg-white border border-blue-200 rounded-lg text-sm text-gray-600">
+                            {values.latitude || "Not set"}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-gray-700 mb-2 text-sm font-medium">
+                            Longitude
+                          </label>
+                          <div className="w-full p-3 bg-white border border-blue-200 rounded-lg text-sm text-gray-600">
+                            {values.longitude || "Not set"}
+                          </div>
+                        </div>
+                        <div className="col-span-2">
+                          <p className="text-xs text-blue-600">
+                            📍 These coordinates are automatically set when you
+                            select an address using Google Places autocomplete
+                            above.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     <button
                       disabled={updateIsPending}
                       type="submit"

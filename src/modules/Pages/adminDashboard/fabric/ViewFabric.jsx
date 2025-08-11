@@ -96,20 +96,7 @@ const ViewFabric = () => {
   const [ordersPage, setOrdersPage] = useState(1);
   const itemsPerPage = 4;
 
-  // Filter Catalog Data
-  const filteredCatalog = catalogData.filter((item) => {
-    if (catalogFilter === "all") return true;
-    if (catalogFilter === "published") return item.status === "Published";
-    if (catalogFilter === "unpublished") return item.status === "Unpublished";
-    return true;
-  });
-
-  // Filter Orders Data
-  const filteredOrders = ordersData.filter(
-    (order) =>
-      (ordersFilter === "all" || order.status.toLowerCase() === ordersFilter) &&
-      order.orderId.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  // Filter logic moved to after FabricData definition
 
   const columns = useMemo(
     () => [
@@ -596,6 +583,26 @@ const ViewFabric = () => {
   console.log("🎯 FINAL FABRIC DATA FOR TABLE:", FabricData);
   console.log("📊 FABRIC DATA COUNT:", FabricData.length);
   console.log("🔍 RAW API DATA:", getAllFabricFabricData);
+
+  // Filter Catalog Data
+  const filteredCatalog = useMemo(() => {
+    return (FabricData || []).filter((item) => {
+      if (catalogFilter === "all") return true;
+      if (catalogFilter === "published") return item.status === "PUBLISHED";
+      if (catalogFilter === "unpublished") return item.status === "UNPUBLISHED";
+      return true;
+    });
+  }, [FabricData, catalogFilter]);
+
+  // Filter Orders Data
+  const filteredOrders = useMemo(() => {
+    return (fetchVendorOrders?.data || []).filter(
+      (order) =>
+        (ordersFilter === "all" ||
+          order.status.toLowerCase() === ordersFilter) &&
+        (order.orderId || "").toLowerCase().includes(searchTerm.toLowerCase()),
+    );
+  }, [fetchVendorOrders?.data, ordersFilter, searchTerm]);
 
   const customerData = React.useMemo(
     () => [

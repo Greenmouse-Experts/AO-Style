@@ -26,7 +26,10 @@ const Settings = () => {
   const { toastError } = useToast();
 
   const { carybinAdminUser } = useCarybinAdminUserStore();
-  console.log(carybinAdminUser);
+  console.log("Admin User Data in Settings:", carybinAdminUser);
+  console.log("Admin Profile:", carybinAdminUser?.profile);
+  console.log("Admin Name:", carybinAdminUser?.name);
+  console.log("Admin Email:", carybinAdminUser?.email);
   const initialValues = {
     name: carybinAdminUser?.name ?? "",
     email: carybinAdminUser?.email ?? "",

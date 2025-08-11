@@ -3,13 +3,20 @@ import Cookies from "js-cookie";
 import AuthService from "../../../services/api/auth";
 
 const useGetUserProfile = () => {
-  // Only fetch profile if token is available
-  const token = Cookies.get("token");
+  // Check if we're on an admin route to determine which token to use
+  const isAdminRoute = window.location.pathname.includes("/admin");
+  const tokenKey = isAdminRoute ? "adminToken" : "token";
+  const token = Cookies.get(tokenKey);
 
   const { isPending, data, isSuccess, isError, error } = useQuery({
     queryKey: ["get-user-profile"],
     queryFn: () => {
-      console.log("🔍 Profile fetch: Token available:", !!token);
+      console.log(
+        "🔍 Profile fetch: Token available:",
+        !!token,
+        "Route type:",
+        isAdminRoute ? "admin" : "user",
+      );
       return AuthService.GetUser();
     },
     enabled: !!token, // Only run query if token exists

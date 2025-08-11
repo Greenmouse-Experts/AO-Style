@@ -440,7 +440,20 @@ export default function AnkaraGownPage() {
           <div className="p-2 sm:p-6">
             {/* Conditionally render the Fabric section */}
             {pendingFabric && (
-              <div className="bg-[#FFF2FF] p-4 rounded-lg mb-6">
+              <div className="bg-[#FFF2FF] p-4 rounded-lg mb-6 relative">
+                {/* Cancel/Remove Fabric Button */}
+                <button
+                  onClick={() => {
+                    setPendingFabric(null);
+                    localStorage.removeItem("pending_fabric");
+                    toastSuccess("Fabric selection removed");
+                  }}
+                  className="absolute top-3 right-3 p-1.5 hover:bg-white/50 rounded-full transition-colors"
+                  aria-label="Remove selected fabric"
+                  title="Remove selected fabric"
+                >
+                  <X className="w-4 h-4 text-gray-500 hover:text-gray-700" />
+                </button>
                 <h2 className="text-sm font-medium text-gray-500 mb-4">
                   Selected Fabric
                 </h2>
@@ -1466,7 +1479,21 @@ export default function AnkaraGownPage() {
             {/* Content */}
             <div className="px-6 pb-6">
               {/* Fabric Info */}
-              <div className="bg-purple-50 rounded-xl p-4 mb-4">
+              <div className="bg-purple-50 rounded-xl p-4 mb-4 relative">
+                {/* Remove Fabric Button */}
+                <button
+                  onClick={() => {
+                    setPendingFabric(null);
+                    localStorage.removeItem("pending_fabric");
+                    setShowCartModal(false);
+                    toastSuccess("Fabric selection removed");
+                  }}
+                  className="absolute top-3 right-3 p-1.5 hover:bg-white/50 rounded-full transition-colors"
+                  aria-label="Remove selected fabric"
+                  title="Remove selected fabric"
+                >
+                  <X className="w-4 h-4 text-purple-600 hover:text-purple-800" />
+                </button>
                 <h3 className="font-semibold text-purple-900 mb-2">
                   Selected Fabric
                 </h3>

@@ -274,9 +274,43 @@ const ModalCloseButton = ({ onClick, className = "", ...props }) => (
 
 ✅ **5 modals updated** with new X close buttons  
 ✅ **5 modals confirmed** to already have proper X buttons  
+✅ **Fabric selection cancellation** added with X buttons  
 ✅ **Consistent design pattern** established across all cart modals  
 ✅ **Improved accessibility** with proper aria-labels  
 ✅ **Better mobile experience** with accessible close buttons  
 ✅ **Enhanced user workflow** with intuitive modal interactions  
 
 All cart-related modals now provide users with a consistent, accessible, and intuitive way to close modal dialogs without performing unintended actions.
+
+## Fabric Selection Cancellation
+
+### **Selected Fabric Removal**
+**Location**: `src/modules/Home/aostyle/AoStyleDetails.jsx`
+
+**Implementation**:
+- Added X button to "Selected Fabric" section in style details page
+- Added X button to fabric section in cart confirmation modal
+- Removes fabric from state and localStorage when clicked
+- Shows success toast notification for user feedback
+
+**Code Example**:
+```jsx
+<button
+  onClick={() => {
+    setPendingFabric(null);
+    localStorage.removeItem("pending_fabric");
+    toastSuccess("Fabric selection removed");
+  }}
+  className="absolute top-3 right-3 p-1.5 hover:bg-white/50 rounded-full transition-colors"
+  aria-label="Remove selected fabric"
+  title="Remove selected fabric"
+>
+  <X className="w-4 h-4 text-gray-500 hover:text-gray-700" />
+</button>
+```
+
+**Benefits**:
+- Users can easily remove unwanted fabric selections
+- Consistent with other modal X button patterns
+- Provides immediate feedback via toast notifications
+- Cleans up both component state and localStorage

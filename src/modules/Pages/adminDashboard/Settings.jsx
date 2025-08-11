@@ -39,6 +39,8 @@ const Settings = () => {
     state: carybinAdminUser?.profile?.state ?? "",
     phone: carybinAdminUser?.phone ?? "",
     alternative_phone: carybinAdminUser?.alternative_phone ?? "",
+    latitude: carybinAdminUser?.profile?.latitude ?? "",
+    longitude: carybinAdminUser?.profile?.longitude ?? "",
   };
 
   const [profileIsLoading, setProfileIsLoading] = useState(false);
@@ -62,6 +64,11 @@ const Settings = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      console.log("🔍 Admin Settings Form Values:", val);
+      console.log("📍 Coordinates being sent:", {
+        latitude: val.latitude,
+        longitude: val.longitude,
+      });
       if (!navigator.onLine) {
         toastError("No internet connection. Please check your network.");
         return;
@@ -141,9 +148,14 @@ const Settings = () => {
   const { ref } = usePlacesWidget({
     apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
     onPlaceSelected: (place) => {
+      console.log("🗺️ Google Place Selected:", place);
+      const lat = place.geometry?.location?.lat().toString();
+      const lng = place.geometry?.location?.lng().toString();
+      console.log("📍 Setting coordinates from Google Places:", { lat, lng });
+
       setFieldValue("address", place.formatted_address);
-      setFieldValue("latitude", place.geometry?.location?.lat().toString());
-      setFieldValue("longitude", place.geometry?.location?.lng().toString());
+      setFieldValue("latitude", lat);
+      setFieldValue("longitude", lng);
     },
     options: {
       componentRestrictions: { country: "ng" },

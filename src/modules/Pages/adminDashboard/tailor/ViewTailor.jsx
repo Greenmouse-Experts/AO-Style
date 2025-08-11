@@ -301,39 +301,39 @@ const ViewCustomer = () => {
     [openDropdown],
   );
 
-  const fabricOrderData = useMemo(
-    () =>
-      fetchVendorOrders?.data
-        ? fetchVendorOrders?.data.map((details) => {
-            return {
-              ...details,
-              transactionId: `${details?.payment?.transaction_id}`,
-              customer:
-                details?.user?.email?.length > 15
-                  ? `${details?.user?.email.slice(0, 15)}...`
-                  : details?.user?.email,
-              product:
-                details?.product?.name?.length > 15
-                  ? `${details?.product?.name?.slice(0, 15)}...`
-                  : details?.product?.name,
-              amount: `${formatNumberWithCommas(
-                details?.order?.total_amount ?? 0,
-              )}`,
+  const fabricOrderData = useMemo(() => {
+    if (!fetchVendorOrders?.data) return [];
 
-              status: `${details?.order?.status}`,
-              dateAdded: `${
-                details?.created_at
-                  ? formatDateStr(
-                      details?.created_at.split(".").shift(),
-                      "D/M/YYYY h:mm A",
-                    )
-                  : ""
-              }`,
-            };
-          })
-        : [],
-    [fetchVendorOrders?.data],
-  );
+    // Remove duplicates based on unique order ID
+    const uniqueOrders = fetchVendorOrders.data.filter(
+      (item, index, self) => index === self.findIndex((t) => t.id === item.id),
+    );
+
+    return uniqueOrders.map((details) => {
+      return {
+        ...details,
+        transactionId: `${details?.payment?.transaction_id}`,
+        customer:
+          details?.user?.email?.length > 15
+            ? `${details?.user?.email.slice(0, 15)}...`
+            : details?.user?.email,
+        product:
+          details?.product?.name?.length > 15
+            ? `${details?.product?.name?.slice(0, 15)}...`
+            : details?.product?.name,
+        amount: `${formatNumberWithCommas(details?.order?.total_amount ?? 0)}`,
+        status: `${details?.order?.status}`,
+        dateAdded: `${
+          details?.created_at
+            ? formatDateStr(
+                details?.created_at.split(".").shift(),
+                "D/M/YYYY h:mm A",
+              )
+            : ""
+        }`,
+      };
+    });
+  }, [fetchVendorOrders?.data]);
 
   const customerColumns = React.useMemo(
     (val) => [

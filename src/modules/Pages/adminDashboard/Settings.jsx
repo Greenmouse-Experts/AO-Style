@@ -30,6 +30,54 @@ const Settings = () => {
   console.log("Admin Profile:", carybinAdminUser?.profile);
   console.log("Admin Name:", carybinAdminUser?.name);
   console.log("Admin Email:", carybinAdminUser?.email);
+  console.log("📞 Admin Phone Data:", carybinAdminUser?.phone);
+  console.log(
+    "📞 Admin Alternative Phone Data:",
+    carybinAdminUser?.alternative_phone,
+  );
+  console.log("📞 Profile Phone Data:", carybinAdminUser?.profile?.phone);
+  console.log(
+    "📞 Profile Alternative Phone Data:",
+    carybinAdminUser?.profile?.alternative_phone,
+  );
+  console.log(
+    "🔍 Full Admin Object Keys:",
+    Object.keys(carybinAdminUser || {}),
+  );
+  console.log(
+    "🔍 Profile Object Keys:",
+    Object.keys(carybinAdminUser?.profile || {}),
+  );
+  // Extract phone data with multiple fallback checks
+  const extractPhoneData = () => {
+    const adminData = carybinAdminUser;
+    if (!adminData) return { phone: "", alternative_phone: "" };
+
+    // Check if phone data is in profile object
+    const profilePhone = adminData?.profile?.phone;
+    const profileAltPhone = adminData?.profile?.alternative_phone;
+
+    // Check if phone data is at root level
+    const rootPhone = adminData?.phone;
+    const rootAltPhone = adminData?.alternative_phone;
+
+    console.log("🔍 Phone extraction debug:", {
+      profilePhone,
+      profileAltPhone,
+      rootPhone,
+      rootAltPhone,
+    });
+
+    // For admin users, the backend stores the primary phone in alternative_phone field
+    // So we need to swap them to display correctly in the form
+    return {
+      phone: profileAltPhone || rootAltPhone || "",
+      alternative_phone: profilePhone || rootPhone || "",
+    };
+  };
+
+  const phoneData = extractPhoneData();
+
   const initialValues = {
     name: carybinAdminUser?.name ?? "",
     email: carybinAdminUser?.email ?? "",
@@ -37,8 +85,8 @@ const Settings = () => {
     address: carybinAdminUser?.profile?.address ?? "",
     country: carybinAdminUser?.profile?.country ?? "",
     state: carybinAdminUser?.profile?.state ?? "",
-    phone: carybinAdminUser?.phone ?? "",
-    alternative_phone: carybinAdminUser?.alternative_phone ?? "",
+    phone: phoneData.phone,
+    alternative_phone: phoneData.alternative_phone,
     latitude: carybinAdminUser?.profile?.latitude ?? "",
     longitude: carybinAdminUser?.profile?.longitude ?? "",
   };
@@ -87,7 +135,8 @@ const Settings = () => {
         name: val.name,
         profile_picture: val.profile_picture,
         address: val.address,
-        alternative_phone: val.phone || val.alternative_phone || "",
+        phone: val.phone || "",
+        alternative_phone: val.alternative_phone || "",
         state: val.state || carybinAdminUser?.profile?.state || "",
         country: val.country || carybinAdminUser?.profile?.country || "",
         coordinates: {
@@ -179,9 +228,29 @@ const Settings = () => {
       const lng = place.geometry?.location?.lng();
       console.log("📍 Setting coordinates from Google Places:", { lat, lng });
 
+      // Extract state and country from address components
+      let state = "";
+      let country = "";
+
+      if (place.address_components) {
+        place.address_components.forEach((component) => {
+          const types = component.types;
+          if (types.includes("administrative_area_level_1")) {
+            state = component.long_name;
+          }
+          if (types.includes("country")) {
+            country = component.long_name;
+          }
+        });
+      }
+
+      console.log("🌍 Extracted location data:", { state, country });
+
       setFieldValue("address", place.formatted_address);
       setFieldValue("latitude", lat ? lat.toString() : "");
       setFieldValue("longitude", lng ? lng.toString() : "");
+      setFieldValue("state", state);
+      setFieldValue("country", country);
     },
     options: {
       componentRestrictions: { country: "ng" },
@@ -371,6 +440,46 @@ const Settings = () => {
                             setFieldValue("longitude", "");
                           }}
                           value={values.address}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-gray-700 mb-4">
+                          Country
+                        </label>
+                        <Select
+                          options={countriesOptions}
+                          value={countriesOptions.find(
+                            (option) => option.value === values.country,
+                          )}
+                          onChange={(selectedOption) =>
+                            setFieldValue(
+                              "country",
+                              selectedOption?.value || "",
+                            )
+                          }
+                          placeholder="Select Country"
+                          className="w-full"
+                          isLoading={loadingCountries}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 mb-4">
+                          State
+                        </label>
+                        <Select
+                          options={statesOptions}
+                          value={statesOptions.find(
+                            (option) => option.value === values.state,
+                          )}
+                          onChange={(selectedOption) =>
+                            setFieldValue("state", selectedOption?.value || "")
+                          }
+                          placeholder="Select State"
+                          className="w-full"
+                          isLoading={loadingStates}
+                          isDisabled={!values.country}
                         />
                       </div>
                     </div>

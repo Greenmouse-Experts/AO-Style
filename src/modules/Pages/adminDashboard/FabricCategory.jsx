@@ -128,23 +128,26 @@ const FabricCategoryTable = () => {
 
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
 
-  const fabricData = useMemo(
-    () =>
-      data?.data
-        ? data?.data.map((details) => {
-            return {
-              ...details,
-              name: `${details?.name}`,
-              dateAdded: `${
-                details?.created_at
-                  ? formatDateStr(details?.created_at.split(".").shift())
-                  : ""
-              }`,
-            };
-          })
-        : [],
-    [data?.data],
-  );
+  const fabricData = useMemo(() => {
+    if (!data?.data) return [];
+
+    // Remove duplicates based on unique category ID
+    const uniqueCategories = data.data.filter(
+      (item, index, self) => index === self.findIndex((t) => t.id === item.id),
+    );
+
+    return uniqueCategories.map((details) => {
+      return {
+        ...details,
+        name: `${details?.name}`,
+        dateAdded: `${
+          details?.created_at
+            ? formatDateStr(details?.created_at.split(".").shift())
+            : ""
+        }`,
+      };
+    });
+  }, [data?.data]);
 
   useUpdatedEffect(() => {
     // update search params with undefined if debouncedSearchTerm is an empty string
@@ -340,13 +343,13 @@ const FabricCategoryTable = () => {
       </div>
 
       {activeTab === "table" ? (
-        <>
+        <div key="fabric-table">
           <ReusableTable
             loading={isPending}
             columns={columns}
             data={fabricData}
           />
-        </>
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {fabricData?.map((item) => (

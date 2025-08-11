@@ -64,26 +64,29 @@ const CustomersTable = () => {
     });
   }, [debouncedSearchTerm]);
 
-  const UserData = useMemo(
-    () =>
-      getAllCustomerRepData?.data
-        ? getAllCustomerRepData?.data.map((details) => {
-            return {
-              ...details,
-              name: `${details?.name}`,
-              phone: `${details?.phone ?? ""}`,
-              email: `${details?.email ?? ""}`,
-              location: `${details?.profile?.address ?? ""}`,
-              dateJoined: `${
-                details?.created_at
-                  ? formatDateStr(details?.created_at.split(".").shift())
-                  : ""
-              }`,
-            };
-          })
-        : [],
-    [getAllCustomerRepData?.data],
-  );
+  const CustomerData = useMemo(() => {
+    if (!getAllCustomerRepData?.data) return [];
+
+    // Remove duplicates based on unique customer ID
+    const uniqueCustomers = getAllCustomerRepData.data.filter(
+      (item, index, self) => index === self.findIndex((t) => t.id === item.id),
+    );
+
+    return uniqueCustomers.map((details) => {
+      return {
+        ...details,
+        name: `${details?.name}`,
+        phone: `${details?.phone ?? ""}`,
+        email: `${details?.email ?? ""}`,
+        location: `${details?.profile?.address ?? ""}`,
+        dateJoined: `${
+          details?.created_at
+            ? formatDateStr(details?.created_at.split(".").shift())
+            : ""
+        }`,
+      };
+    });
+  }, [getAllCustomerRepData?.data]);
 
   const columns = useMemo(
     () => [
@@ -201,7 +204,7 @@ const CustomersTable = () => {
   };
 
   const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(UserData);
+    const worksheet = XLSX.utils.json_to_sheet(CustomerData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
     const excelBuffer = XLSX.write(workbook, {
@@ -220,7 +223,7 @@ const CustomersTable = () => {
       head: [
         ["Name", "Phone Number", "Email Address", "Location", "Date Joined"],
       ],
-      body: UserData?.map((row) => [
+      body: CustomerData?.map((row) => [
         row.name,
         row.phone,
         row.email,
@@ -317,7 +320,7 @@ const CustomersTable = () => {
           </select>
           <CSVLink
             id="csvDownload"
-            data={UserData?.map((row) => ({
+            data={CustomerData?.map((row) => ({
               Name: row.name,
               "Phone Number": row.phone,
               "Email Address": row.email,
@@ -349,7 +352,7 @@ const CustomersTable = () => {
           <ReusableTable
             columns={columns}
             loading={isPending}
-            data={UserData}
+            data={CustomerData}
           />
         </>
       ) : isPending ? (
@@ -358,7 +361,7 @@ const CustomersTable = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-          {UserData?.map((item) => (
+          {CustomerData?.map((item) => (
             <div
               key={item.id}
               className="relative bg-white rounded-lg p-4 border border-gray-100 flex justify-between"
@@ -439,7 +442,7 @@ const CustomersTable = () => {
         </div>
       )}
 
-      {UserData?.length > 0 && (
+      {CustomerData?.length > 0 && (
         <div className="flex justify-between items-center mt-4">
           <div className="flex items-center">
             <p className="text-sm text-gray-600">Items per page: </p>

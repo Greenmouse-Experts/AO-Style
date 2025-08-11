@@ -7,6 +7,7 @@ import AuthService from "../../services/api/auth";
 import CaryBinApi from "../../services/CarybinBaseUrl";
 import useGetUserProfile from "../../modules/Auth/hooks/useGetProfile";
 import { useQuery } from "@tanstack/react-query";
+import useGetAdmins from "../../hooks/messaging/useGetAdmins";
 
 const ChatHead = () => {
   console.log("🟣🟣🟣 CHAT HEAD COMPONENT LOADED 🟣🟣🟣");
@@ -33,6 +34,43 @@ const ChatHead = () => {
   // User profile state (match inbox pattern)
   const [userProfile, setUserProfile] = useState(null);
 
+  // Fetch admins for non-admin users
+  const {
+    data: availableAdmins,
+    isPending: adminsFetching,
+    isError: adminsFetchError,
+    rawResponse,
+  } = useGetAdmins();
+
+  // Console log the complete admin data for debugging
+  useEffect(() => {
+    console.log("🚀🚀🚀 CHAT HEAD - COMPLETE GET ADMINS RESPONSE 🚀🚀🚀");
+    console.log("📋 FULL RAW RESPONSE:", rawResponse);
+    console.log(
+      "📋 RAW RESPONSE STRINGIFIED:",
+      JSON.stringify(rawResponse, null, 2),
+    );
+    console.log("📋 AVAILABLE ADMINS ARRAY:", availableAdmins);
+    console.log("📋 ADMINS FETCH ERROR:", adminsFetchError);
+    console.log("📋 IS FETCHING:", adminsFetching);
+    console.log("📋 ADMIN COUNT:", availableAdmins?.length || 0);
+    if (availableAdmins?.length > 0) {
+      console.log("📋 FIRST ADMIN OBJECT:", availableAdmins[0]);
+      console.log(
+        "📋 ALL ADMIN IDS:",
+        availableAdmins.map((admin) => admin.id),
+      );
+      console.log(
+        "📋 ALL ADMIN NAMES:",
+        availableAdmins.map((admin) => admin.name),
+      );
+    }
+    console.log("🚀🚀🚀 END GET ADMINS RESPONSE LOG 🚀🚀🚀");
+  }, [availableAdmins, adminsFetchError, adminsFetching, rawResponse]);
+
+  // Admin messaging states for non-admin users
+  const [selectedAdmin, setSelectedAdmin] = useState(null);
+
   const messagesEndRef = useRef(null);
   const { toastError, toastSuccess } = useToast();
 
@@ -56,6 +94,13 @@ const ChatHead = () => {
   // Use profile state like inbox - this is the key fix!
   const userId = userProfile?.id || null;
   const currentUserId = isAdmin ? adminId : userId;
+
+  // Fetch admins for non-admin users
+  const {
+    data: admins,
+    isPending: adminsLoading,
+    isError: adminsError,
+  } = useGetAdmins();
 
   // User type mapping for display
   const userTypeDisplay = {
@@ -459,11 +504,63 @@ const ChatHead = () => {
         },
       );
       setUsers(res.data.data || []);
-    } catch (error) {
-      toastError("Failed to fetch users");
+    } catch (e) {
       setUsers([]);
+      toastError("Failed to fetch users.");
     }
     setUsersLoading(false);
+  };
+
+  // Handle sending message to admin (for non-admin users) via socket
+  const handleSendMessageToAdmin = () => {
+    if (!selectedAdmin || !messageText.trim()) {
+      toastError("Please select an admin and enter a message");
+      return;
+    }
+
+    if (!socket || !isConnected) {
+      toastError("Not connected to messaging service. Please try again.");
+      return;
+    }
+
+    const messageData = {
+      token: userToken,
+      chatBuddy: selectedAdmin.id,
+      message: messageText.trim(),
+    };
+
+    console.log("=== SENDING MESSAGE TO ADMIN VIA SOCKET (CHATHEAD) ===");
+    console.log("Socket ID:", socket.id);
+    console.log("Message data:", messageData);
+    console.log("Socket connected:", socket.connected);
+    console.log("User ID:", currentUserId);
+    console.log("Admin ID:", selectedAdmin.id);
+    console.log("=========================================");
+
+    socket.emit("sendMessage", messageData);
+
+    // Create new chat entry in local state
+    if (selectedAdmin) {
+      const newChat = {
+        id: Date.now(),
+        last_message: messageText.trim(),
+        chat_buddy: selectedAdmin,
+        created_at: new Date().toISOString(),
+        unread: 0,
+      };
+      setChats((prevChats) => [newChat, ...prevChats]);
+    }
+
+    toastSuccess("Message sent successfully!");
+    setSelectedAdmin(null);
+    setMessageText("");
+    setCurrentView("chats");
+
+    // Refresh chats to show the new conversation
+    if (socket && currentUserId) {
+      console.log("🔄 Refreshing chats after sending message to admin");
+      socket.emit("getChats", { userId: currentUserId });
+    }
   };
 
   // Send message
@@ -766,14 +863,42 @@ const ChatHead = () => {
                         <span className="text-sm font-medium text-gray-700">
                           Recent Chats
                         </span>
-                        {isAdmin && (
-                          <button
-                            onClick={() => setCurrentView("newChat")}
-                            className="text-purple-600 hover:text-purple-700 text-sm font-medium"
-                          >
-                            + New
-                          </button>
-                        )}
+                        <button
+                          onClick={() => {
+                            console.log(
+                              "🎯🎯🎯 MESSAGE ADMIN BUTTON CLICKED 🎯🎯🎯",
+                            );
+                            console.log(
+                              "🎯 COMPLETE RAW RESPONSE AT CLICK:",
+                              rawResponse,
+                            );
+                            console.log(
+                              "🎯 RAW RESPONSE STRINGIFIED AT CLICK:",
+                              JSON.stringify(rawResponse, null, 2),
+                            );
+                            console.log(
+                              "🎯 AVAILABLE ADMINS AT CLICK:",
+                              availableAdmins,
+                            );
+                            console.log(
+                              "🎯 ADMINS LOADING STATE:",
+                              adminsFetching,
+                            );
+                            console.log(
+                              "🎯 ADMINS ERROR STATE:",
+                              adminsFetchError,
+                            );
+                            console.log(
+                              "🎯 TOTAL ADMIN COUNT:",
+                              availableAdmins?.length || 0,
+                            );
+                            console.log("🎯🎯🎯 END BUTTON CLICK LOG 🎯🎯🎯");
+                            setCurrentView("newChat");
+                          }}
+                          className="text-purple-600 hover:text-purple-700 text-sm font-medium"
+                        >
+                          {isAdmin ? "New Message" : "Message Admin"}
+                        </button>
                       </div>
                     </div>
                     <div className="flex-1 overflow-y-auto">
@@ -815,8 +940,8 @@ const ChatHead = () => {
                   </>
                 )}
 
-                {/* New Chat View (Admin Only) */}
-                {currentView === "newChat" && isAdmin && (
+                {/* New Chat View */}
+                {currentView === "newChat" && (
                   <>
                     <div className="p-3 border-b border-gray-200 bg-gray-50">
                       <button
@@ -828,96 +953,172 @@ const ChatHead = () => {
                     </div>
                     <div className="flex-1 flex flex-col">
                       <div className="flex-1 p-3 space-y-3 overflow-y-auto">
-                        <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">
-                            User Type
-                          </label>
-                          <select
-                            value={userType}
-                            onChange={(e) => {
-                              setUserType(e.target.value);
-                              if (e.target.value) {
-                                fetchUsers(e.target.value);
-                              }
-                            }}
-                            className="w-full p-2 border border-gray-300 rounded text-sm"
-                          >
-                            <option value="">Select user type</option>
-                            <option value="Customer">Customer</option>
-                            <option value="Tailor">Tailor</option>
-                            <option value="Fabric">Fabric Vendor</option>
-                            <option value="Market Rep">Market Rep</option>
-                            <option value="Logistics">Logistics</option>
-                          </select>
-                        </div>
-
-                        {userType && (
-                          <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">
-                              Select User
-                            </label>
-                            <div className="max-h-20 overflow-y-auto border border-gray-300 rounded">
-                              {usersLoading ? (
-                                <div className="p-2 text-center text-xs text-gray-500">
-                                  Loading...
-                                </div>
-                              ) : users.length === 0 ? (
-                                <div className="p-2 text-center text-xs text-gray-500">
-                                  No users found
-                                </div>
-                              ) : (
-                                users.map((user) => (
-                                  <div
-                                    key={user.id}
-                                    onClick={() => setSelectedUser(user)}
-                                    className={`p-2 text-xs cursor-pointer hover:bg-gray-50 flex items-center justify-between ${
-                                      selectedUser?.id === user.id
-                                        ? "bg-purple-50 border-l-2 border-purple-500"
-                                        : ""
-                                    }`}
-                                  >
-                                    <div className="flex-1">
-                                      <div className="font-medium">
-                                        {user.name || "No Name"}
-                                      </div>
-                                      <div className="text-gray-500">
-                                        {user.email}
-                                      </div>
-                                    </div>
-                                    {selectedUser?.id === user.id && (
-                                      <div className="text-purple-600 ml-2">
-                                        ✓
-                                      </div>
-                                    )}
-                                  </div>
-                                ))
-                              )}
+                        {isAdmin ? (
+                          <>
+                            {/* Admin view - select user type and user */}
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                User Type
+                              </label>
+                              <select
+                                value={userType}
+                                onChange={(e) => {
+                                  setUserType(e.target.value);
+                                  if (e.target.value) {
+                                    fetchUsers(e.target.value);
+                                  }
+                                }}
+                                className="w-full p-2 border border-gray-300 rounded text-sm"
+                              >
+                                <option value="">Select user type</option>
+                                <option value="Customer">Customer</option>
+                                <option value="Tailor">Tailor</option>
+                                <option value="Fabric">Fabric Vendor</option>
+                                <option value="Market Rep">Market Rep</option>
+                                <option value="Logistics">Logistics</option>
+                              </select>
                             </div>
-                          </div>
-                        )}
 
-                        <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">
-                            Message
-                          </label>
-                          <textarea
-                            value={messageText}
-                            onChange={(e) => setMessageText(e.target.value)}
-                            placeholder="Type your message..."
-                            className="w-full p-2 border border-gray-300 rounded text-sm resize-none"
-                            rows={2}
-                          />
-                        </div>
+                            {userType && (
+                              <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                  Select User
+                                </label>
+                                <div className="max-h-20 overflow-y-auto border border-gray-300 rounded">
+                                  {usersLoading ? (
+                                    <div className="p-2 text-center text-xs text-gray-500">
+                                      Loading...
+                                    </div>
+                                  ) : users.length === 0 ? (
+                                    <div className="p-2 text-center text-xs text-gray-500">
+                                      No users found
+                                    </div>
+                                  ) : (
+                                    users.map((user) => (
+                                      <div
+                                        key={user.id}
+                                        onClick={() => setSelectedUser(user)}
+                                        className={`p-2 text-xs cursor-pointer hover:bg-gray-50 flex items-center justify-between ${
+                                          selectedUser?.id === user.id
+                                            ? "bg-purple-50 border-l-2 border-purple-500"
+                                            : ""
+                                        }`}
+                                      >
+                                        <div className="flex-1">
+                                          <div className="font-medium">
+                                            {user.name || "No Name"}
+                                          </div>
+                                          <div className="text-gray-500">
+                                            {user.email}
+                                          </div>
+                                        </div>
+                                        {selectedUser?.id === user.id && (
+                                          <div className="text-purple-600 ml-2">
+                                            ✓
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                Message
+                              </label>
+                              <textarea
+                                value={messageText}
+                                onChange={(e) => setMessageText(e.target.value)}
+                                placeholder="Type your message..."
+                                className="w-full p-2 border border-gray-300 rounded text-sm resize-none"
+                                rows={2}
+                              />
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            {/* Non-admin view - select admin to message */}
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                Select Admin
+                              </label>
+                              <div className="max-h-24 overflow-y-auto border border-gray-300 rounded">
+                                {adminsFetching ? (
+                                  <div className="p-2 text-center text-xs text-gray-500">
+                                    Loading admins...
+                                  </div>
+                                ) : adminsFetchError ? (
+                                  <div className="p-2 text-center text-xs text-red-500">
+                                    Failed to load admins
+                                  </div>
+                                ) : availableAdmins.length === 0 ? (
+                                  <div className="p-2 text-center text-xs text-gray-500">
+                                    No admins available
+                                  </div>
+                                ) : (
+                                  availableAdmins.map((admin) => (
+                                    <div
+                                      key={admin.id}
+                                      onClick={() => setSelectedAdmin(admin)}
+                                      className={`p-2 text-xs cursor-pointer hover:bg-gray-50 flex items-center justify-between ${
+                                        selectedAdmin?.id === admin.id
+                                          ? "bg-purple-50 border-l-2 border-purple-500"
+                                          : ""
+                                      }`}
+                                    >
+                                      <div className="flex-1">
+                                        <div className="font-medium">
+                                          {admin.name || "No Name"}
+                                        </div>
+                                        <div className="text-gray-500">
+                                          {admin.email}
+                                        </div>
+                                      </div>
+                                      {selectedAdmin?.id === admin.id && (
+                                        <div className="text-purple-600 ml-2">
+                                          ✓
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))
+                                )}
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                Message
+                              </label>
+                              <textarea
+                                value={messageText}
+                                onChange={(e) => setMessageText(e.target.value)}
+                                placeholder="Type your message to admin..."
+                                className="w-full p-2 border border-gray-300 rounded text-sm resize-none"
+                                rows={2}
+                              />
+                            </div>
+                          </>
+                        )}
                       </div>
 
                       {/* Send Button - Fixed at bottom */}
                       <div className="p-3 border-t border-gray-200 bg-gray-50">
                         <button
-                          onClick={sendNewMessage}
-                          disabled={!selectedUser || !messageText.trim()}
+                          onClick={
+                            isAdmin ? sendNewMessage : handleSendMessageToAdmin
+                          }
+                          disabled={
+                            isAdmin
+                              ? !selectedUser || !messageText.trim()
+                              : !selectedAdmin ||
+                                !messageText.trim() ||
+                                !isConnected
+                          }
                           className="w-full bg-purple-600 text-white p-2 rounded text-sm font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Send Message
+                          {!isConnected ? "Connecting..." : "Send Message"}
                         </button>
                       </div>
                     </div>

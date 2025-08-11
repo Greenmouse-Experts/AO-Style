@@ -64,26 +64,29 @@ const CustomersTable = () => {
     });
   }, [debouncedSearchTerm]);
 
-  const LogisticsData = useMemo(
-    () =>
-      getAllLogisticsRepData?.data
-        ? getAllLogisticsRepData?.data.map((details) => {
-            return {
-              ...details,
-              name: `${details?.name}`,
-              phone: `${details?.phone ?? ""}`,
-              email: `${details?.email ?? ""}`,
-              location: `${details?.profile?.address ?? ""}`,
-              dateJoined: `${
-                details?.created_at
-                  ? formatDateStr(details?.created_at.split(".").shift())
-                  : ""
-              }`,
-            };
-          })
-        : [],
-    [getAllLogisticsRepData?.data],
-  );
+  const LogisticsData = useMemo(() => {
+    if (!getAllLogisticsRepData?.data) return [];
+
+    // Remove duplicates based on unique user ID
+    const uniqueLogistics = getAllLogisticsRepData.data.filter(
+      (item, index, self) => index === self.findIndex((t) => t.id === item.id),
+    );
+
+    return uniqueLogistics.map((details) => {
+      return {
+        ...details,
+        name: `${details?.name}`,
+        phone: `${details?.phone ?? ""}`,
+        email: `${details?.email ?? ""}`,
+        location: `${details?.profile?.address ?? ""}`,
+        dateJoined: `${
+          details?.created_at
+            ? formatDateStr(details?.created_at.split(".").shift())
+            : ""
+        }`,
+      };
+    });
+  }, [getAllLogisticsRepData?.data]);
 
   const handleDropdownToggle = (id) => {
     setOpenDropdown(openDropdown === id ? null : id);

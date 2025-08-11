@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ChevronDown, MessageSquare } from "lucide-react";
+import { ChevronDown, MessageSquare, X } from "lucide-react";
 import SavedMeasurementsDisplay from "../components/SavedMeasurementsDisplay";
 import Breadcrumb from "../components/Breadcrumb";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -8,7 +8,7 @@ import { useCartStore } from "../../../store/carybinUserCartStore";
 import { useFormik } from "formik";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import Cookies from "js-cookie";
-import { ProductReviews } from "../../../components/reviews";
+import AuthenticatedProductReviews from "../../../components/reviews/AuthenticatedProductReviews";
 import useAddCart from "../../../hooks/cart/useAddCart";
 import useToast from "../../../hooks/useToast";
 
@@ -440,7 +440,20 @@ export default function AnkaraGownPage() {
           <div className="p-2 sm:p-6">
             {/* Conditionally render the Fabric section */}
             {pendingFabric && (
-              <div className="bg-[#FFF2FF] p-4 rounded-lg mb-6">
+              <div className="bg-[#FFF2FF] p-4 rounded-lg mb-6 relative">
+                {/* Cancel/Remove Fabric Button */}
+                <button
+                  onClick={() => {
+                    setPendingFabric(null);
+                    localStorage.removeItem("pending_fabric");
+                    toastSuccess("Fabric selection removed");
+                  }}
+                  className="absolute top-3 right-3 p-1.5 hover:bg-white/50 rounded-full transition-colors"
+                  aria-label="Remove selected fabric"
+                  title="Remove selected fabric"
+                >
+                  <X className="w-4 h-4 text-gray-500 hover:text-gray-700" />
+                </button>
                 <h2 className="text-sm font-medium text-gray-500 mb-4">
                   Selected Fabric
                 </h2>
@@ -1379,7 +1392,7 @@ export default function AnkaraGownPage() {
           className="Resizer section px-4 py-8 bg-gray-50"
         >
           <div className="max-w-6xl mx-auto">
-            <ProductReviews
+            <AuthenticatedProductReviews
               productId={correctProductId}
               initiallyExpanded={true}
               className="bg-white rounded-lg p-6 shadow-sm"
@@ -1428,7 +1441,16 @@ export default function AnkaraGownPage() {
               }
             `}
           </style>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-auto animate-fade-in-up my-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-auto animate-fade-in-up my-4 relative">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowCartModal(false)}
+              className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors z-10"
+              aria-label="Close modal"
+            >
+              <X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
+            </button>
+
             {/* Header */}
             <div className="text-center pt-8 pb-6 px-6">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -1457,7 +1479,21 @@ export default function AnkaraGownPage() {
             {/* Content */}
             <div className="px-6 pb-6">
               {/* Fabric Info */}
-              <div className="bg-purple-50 rounded-xl p-4 mb-4">
+              <div className="bg-purple-50 rounded-xl p-4 mb-4 relative">
+                {/* Remove Fabric Button */}
+                <button
+                  onClick={() => {
+                    setPendingFabric(null);
+                    localStorage.removeItem("pending_fabric");
+                    setShowCartModal(false);
+                    toastSuccess("Fabric selection removed");
+                  }}
+                  className="absolute top-3 right-3 p-1.5 hover:bg-white/50 rounded-full transition-colors"
+                  aria-label="Remove selected fabric"
+                  title="Remove selected fabric"
+                >
+                  <X className="w-4 h-4 text-purple-600 hover:text-purple-800" />
+                </button>
                 <h3 className="font-semibold text-purple-900 mb-2">
                   Selected Fabric
                 </h3>

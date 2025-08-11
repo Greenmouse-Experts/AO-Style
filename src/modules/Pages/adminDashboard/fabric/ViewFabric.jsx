@@ -119,24 +119,63 @@ const ViewFabric = () => {
         label: "Image",
         key: "image",
         render: (image, row) => (
-          <div>
-            {row?.fabric?.photos[0] ? (
+          <div className="flex items-center">
+            {row?.fabric?.photos && row?.fabric?.photos.length > 0 ? (
               <img
-                src={row?.fabric?.photos[0]}
-                alt="product"
-                className="w-10 h-10 rounded"
+                src={row.fabric.photos[0]}
+                alt={row?.name || "Product"}
+                className="w-12 h-12 rounded object-cover"
+                onError={(e) => {
+                  e.target.style.display = "none";
+                  e.target.nextSibling.style.display = "flex";
+                }}
               />
-            ) : (
-              <div className="w-10 h-10 rounded bg-gray-300 flex items-center justify-center font-medium text-white">
-                {row?.name?.charAt(0).toUpperCase() || "?"}
-              </div>
-            )}
+            ) : null}
+            <div
+              className="w-12 h-12 rounded bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center font-medium text-white text-sm"
+              style={{
+                display:
+                  row?.fabric?.photos && row?.fabric?.photos.length > 0
+                    ? "none"
+                    : "flex",
+              }}
+            >
+              {row?.name?.charAt(0)?.toUpperCase() || "?"}
+            </div>
           </div>
         ),
       },
       { label: "Category", key: "category" },
-      { label: "Price", key: "price" },
-      { label: "Qty", key: "qty" },
+      {
+        label: "Fabric Type",
+        key: "fabric_type",
+        render: (fabric_type, row) => (
+          <div className="text-sm">
+            <div className="font-medium">{fabric_type || "N/A"}</div>
+            {row.fabric_gender && (
+              <div className="text-xs text-gray-500">{row.fabric_gender}</div>
+            )}
+          </div>
+        ),
+      },
+      {
+        label: "Price",
+        key: "price",
+        render: (price, row) => (
+          <div className="text-sm font-semibold text-green-600">{price}</div>
+        ),
+      },
+      { label: "Quantity", key: "qty" },
+      {
+        label: "Business",
+        key: "business_name",
+        render: (business_name, row) => (
+          <div className="text-sm">
+            <div className="font-medium">{business_name || "N/A"}</div>
+            <div className="text-xs text-gray-500">by {row.creator_name}</div>
+          </div>
+        ),
+      },
       {
         label: "Status",
         key: "status",
@@ -170,6 +209,7 @@ const ViewFabric = () => {
                 {row?.status === "DRAFT" ? (
                   <button
                     onClick={() => {
+                      console.log("🚀 Publishing fabric product:", row);
                       updateAdminFabricMutate(
                         {
                           id: row?.id,
@@ -196,6 +236,7 @@ const ViewFabric = () => {
                 {row?.status === "PUBLISHED" ? (
                   <button
                     onClick={() => {
+                      console.log("📝 Drafting fabric product:", row);
                       updateAdminFabricMutate(
                         {
                           id: row?.id,
@@ -220,15 +261,17 @@ const ViewFabric = () => {
                   </button>
                 ) : null}
                 <Link
-                  state={{ info: row }}
+                  state={{ info: row?.original || row }}
                   to={"/admin/fabric/edit-product"}
                   className="block cursor-pointer text-center px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
+                  onClick={() => console.log("👁️ Viewing fabric product:", row)}
                 >
                   {"View Product"}
                 </Link>
                 <button
                   onClick={() => {
-                    setNewCategory(row);
+                    console.log("🗑️ Removing fabric product:", row);
+                    setNewCategory(row?.original || row);
                     setIsAddModalOpen(true);
                     setOpenDropdown(null);
                   }}
@@ -517,21 +560,42 @@ const ViewFabric = () => {
     );
 
     return uniqueProducts.map((details) => {
+      console.log("🔍 Processing fabric item:", details);
+
       return {
         ...details,
+        id: details?.id ?? "",
         category_id: `${details?.category?.id ?? ""}`,
         name: `${details?.name ?? ""}`,
+        sku: `${details?.sku ?? ""}`,
         category: `${details?.category?.name ?? ""}`,
-        qty: `${details?.fabric?.quantity ?? ""}`,
-        price: `${formatNumberWithCommas(details?.price ?? 0)}`,
+        qty: `${details?.fabric?.quantity ?? details?.fabric?.weight_per_unit ?? "0"} ${details?.fabric?.weight_per_unit ? "units" : ""}`.trim(),
+        price: `₦${formatNumberWithCommas(details?.price ?? details?.original_price ?? 0)}`,
+        status: details?.status ?? details?.approval_status ?? "DRAFT",
+        fabric_type: `${details?.fabric?.type ?? "Cotton"}`,
+        fabric_gender: `${details?.fabric?.gender ?? "Unisex"}`,
+        fabric_id: `${details?.fabric?.id ?? ""}`,
+        market_id: `${details?.fabric?.market_id ?? ""}`,
+        business_name: `${details?.business_info?.Object?.business_name ?? ""}`,
+        creator_name: `${details?.creator?.Object?.name ?? "Admin"}`,
+        description: `${details?.description ?? ""}`,
         created_at: `${
           details?.created_at
             ? formatDateStr(details?.created_at.split(".").shift())
             : ""
         }`,
+        // Store the full fabric object for image access
+        fabric: details?.fabric,
+        // Store original details for actions
+        original: details,
       };
     });
   }, [getAllFabricFabricData]);
+
+  // Debug logging for final fabric data
+  console.log("🎯 FINAL FABRIC DATA FOR TABLE:", FabricData);
+  console.log("📊 FABRIC DATA COUNT:", FabricData.length);
+  console.log("🔍 RAW API DATA:", getAllFabricFabricData);
 
   const customerData = React.useMemo(
     () => [
@@ -914,8 +978,11 @@ const ViewFabric = () => {
                   SKU: row.sku,
                   "Product Name": row.name,
                   Category: row.category,
-                  qty: row.location,
+                  "Fabric Type": row.fabric_type,
+                  Quantity: row.qty,
+                  Price: row.price,
                   Status: row.status,
+                  Business: row.business_name,
                 }))}
                 filename="MyProducts.csv"
                 className="hidden"
@@ -929,6 +996,11 @@ const ViewFabric = () => {
             loading={adminProductIsPending}
             columns={columns}
             data={FabricData}
+            emptyStateMessage={
+              !adminProductIsPending && FabricData.length === 0
+                ? "No fabric products found. Create your first product to get started!"
+                : undefined
+            }
           />
           {/* Pagination for Admin FAQs */}
           {getAllFabricFabricData?.count > pageSize && (

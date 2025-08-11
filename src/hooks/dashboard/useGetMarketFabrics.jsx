@@ -9,8 +9,22 @@ function useGetMarketFabric(params) {
     {
       queryKey: ["get-marketplace-fabric", params],
       queryFn: () => DashboardService.getMarketPlaceFabric(params),
-    }
+      onSuccess: (data) => {
+        console.log("🏪 MARKETPLACE FABRIC API RESPONSE:", data);
+        console.log("🏪 Marketplace Fabric Data:", data?.data);
+        console.log("🏪 Marketplace Fabric Params:", params);
+      },
+      onError: (error) => {
+        console.error("❌ MARKETPLACE FABRIC API ERROR:", error);
+        console.error("❌ Marketplace Fabric Error Params:", params);
+      },
+    },
   );
+
+  // Also log the final processed data
+  if (data?.data) {
+    console.log("🏪 PROCESSED MARKETPLACE FABRIC DATA:", data.data);
+  }
 
   return {
     isLoading,

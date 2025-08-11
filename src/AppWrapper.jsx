@@ -327,7 +327,7 @@ const AppWrapper = () => {
       />
       <SessionTestComponent />
 
-      {/* Chat Head Widget - Available on all pages */}
+      {/* Chat Head Widget - Only shown for authenticated users */}
       <ChatHead />
     </>
   );

@@ -20,7 +20,7 @@ import useProductGeneral from "../../../hooks/dashboard/useGetProductGeneral";
 import SubmitProductModal from "../components/SubmitProduct";
 import { generateUniqueId } from "../../../lib/helper";
 import { Tooltip } from "antd";
-import { ProductReviews } from "../../../components/reviews";
+import AuthenticatedProductReviews from "../../../components/reviews/AuthenticatedProductReviews";
 
 const product = {
   name: "Luxury Embellished Lace Fabrics",
@@ -1091,7 +1091,7 @@ export default function ShopDetails() {
           className="Resizer section px-4 py-8 bg-gray-50"
         >
           <div className="max-w-6xl mx-auto">
-            <ProductReviews
+            <AuthenticatedProductReviews
               productId={productVal.product_id}
               initiallyExpanded={true}
               className="bg-white rounded-lg p-6 shadow-sm border border-gray-200"

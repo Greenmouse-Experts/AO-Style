@@ -11,6 +11,20 @@ import useGetAdmins from "../../hooks/messaging/useGetAdmins";
 
 const ChatHead = () => {
   console.log("🟣🟣🟣 CHAT HEAD COMPONENT LOADED 🟣🟣🟣");
+
+  // Authentication check - hide ChatHead if user is not logged in
+  const adminToken = Cookies.get("adminToken");
+  const userToken = Cookies.get("token");
+  const currentUserUrl = Cookies.get("currUserUrl");
+
+  // If no tokens are present, don't render the chat head
+  if (!adminToken && !userToken) {
+    console.log(
+      "🚫 ChatHead: No authentication tokens found, hiding chat head",
+    );
+    return null;
+  }
+
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [currentView, setCurrentView] = useState("chats"); // 'chats' or 'newChat'
@@ -83,9 +97,6 @@ const ChatHead = () => {
   } = useGetUserProfile();
 
   // Determine user type and authentication - match customer inbox exactly
-  const adminToken = Cookies.get("adminToken");
-  const userToken = Cookies.get("token");
-  const currentUserUrl = Cookies.get("currUserUrl");
   const isAdmin =
     !!adminToken ||
     currentUserUrl === "admin" ||

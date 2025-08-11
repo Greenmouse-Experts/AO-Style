@@ -8,7 +8,7 @@ import { useCartStore } from "../../../store/carybinUserCartStore";
 import { useFormik } from "formik";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import Cookies from "js-cookie";
-import { ProductReviews } from "../../../components/reviews";
+import AuthenticatedProductReviews from "../../../components/reviews/AuthenticatedProductReviews";
 import useAddCart from "../../../hooks/cart/useAddCart";
 import useToast from "../../../hooks/useToast";
 
@@ -1379,7 +1379,7 @@ export default function AnkaraGownPage() {
           className="Resizer section px-4 py-8 bg-gray-50"
         >
           <div className="max-w-6xl mx-auto">
-            <ProductReviews
+            <AuthenticatedProductReviews
               productId={correctProductId}
               initiallyExpanded={true}
               className="bg-white rounded-lg p-6 shadow-sm"

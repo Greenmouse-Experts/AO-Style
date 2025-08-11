@@ -629,7 +629,8 @@ const CartPage = () => {
                           <div className="flex items-center gap-3">
                             <div className="flex flex-col">
                               <span className="text-sm font-medium">
-                                Quantity: {displayQuantity} yards
+                                Quantity: {displayQuantity}{" "}
+                                {item?.style_product ? "units" : "yards"}
                               </span>
                               {item?.style_product && (
                                 <span className="text-xs text-blue-600 font-medium">
@@ -719,7 +720,8 @@ const CartPage = () => {
                               item?.style_product ? "text-blue-600" : ""
                             }`}
                           >
-                            {displayQuantity} yards
+                            {displayQuantity}{" "}
+                            {item?.style_product ? "units" : "yards"}
                           </span>
                           {item?.style_product && (
                             <span className="text-xs text-blue-600 font-medium">
@@ -947,7 +949,7 @@ const CartPage = () => {
 
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 relative">
             {/* Close Button */}
             <button

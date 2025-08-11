@@ -1,12 +1,27 @@
 import React from "react";
-import { ShoppingCart, Sparkles, CheckCircle } from "lucide-react";
+import { ShoppingCart, Sparkles, CheckCircle, X } from "lucide-react";
 
-const CartSelectionModal = ({ isOpen, onClose, onAddToCart, onSelectStyles, isPending }) => {
+const CartSelectionModal = ({
+  isOpen,
+  onClose,
+  onAddToCart,
+  onSelectStyles,
+  isPending,
+}) => {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 flex justify-center items-center z-50 bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto animate-fade-in-up">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto animate-fade-in-up relative">
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors z-10"
+          aria-label="Close modal"
+        >
+          <X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
+        </button>
+
         {/* Header */}
         <div className="text-center pt-8 pb-6 px-6">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -32,8 +47,9 @@ const CartSelectionModal = ({ isOpen, onClose, onAddToCart, onSelectStyles, isPe
                   Want to add a custom style?
                 </h3>
                 <p className="text-sm text-gray-600 leading-relaxed">
-                  Browse our collection of talented tailors and fashion designers
-                  to create something amazing with your selected fabric.
+                  Browse our collection of talented tailors and fashion
+                  designers to create something amazing with your selected
+                  fabric.
                 </p>
               </div>
             </div>

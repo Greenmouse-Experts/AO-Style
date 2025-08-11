@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ChevronDown, MessageSquare } from "lucide-react";
+import { ChevronDown, MessageSquare, X } from "lucide-react";
 import SavedMeasurementsDisplay from "../components/SavedMeasurementsDisplay";
 import Breadcrumb from "../components/Breadcrumb";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -1428,7 +1428,16 @@ export default function AnkaraGownPage() {
               }
             `}
           </style>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-auto animate-fade-in-up my-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-auto animate-fade-in-up my-4 relative">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowCartModal(false)}
+              className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors z-10"
+              aria-label="Close modal"
+            >
+              <X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
+            </button>
+
             {/* Header */}
             <div className="text-center pt-8 pb-6 px-6">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">

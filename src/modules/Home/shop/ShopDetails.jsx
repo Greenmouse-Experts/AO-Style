@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from "react";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, X } from "lucide-react";
 import {
   Facebook,
   Twitter,
@@ -661,7 +661,15 @@ export default function ShopDetails() {
               {/* Success Modal */}
               {isSuccessModalOpen && (
                 <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm">
-                  <div className="bg-white rounded-2xl shadow-2xl p-8 w-[90%] max-w-md animate-fade-in-up">
+                  <div className="bg-white rounded-2xl shadow-2xl p-8 w-[90%] max-w-md animate-fade-in-up relative">
+                    {/* Close Button */}
+                    <button
+                      onClick={() => setIsSuccessModalOpen(false)}
+                      className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                      aria-label="Close modal"
+                    >
+                      <X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
+                    </button>
                     <div className="text-center">
                       <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg

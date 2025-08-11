@@ -27,83 +27,9 @@ import useDeleteAdminFabric from "../../../../hooks/fabric/useDeleteAdminFabric"
 import useToast from "../../../../hooks/useToast";
 import useFetchVendorOrders from "../../../../hooks/order/useAdminFetchVendorOrders";
 
-const catalogData = [
-  {
-    id: "1",
-    thumbnail: "https://randomuser.me/api/portraits/thumb/men/1.jpg",
-    styleName: "D4 Agbada",
-    category: "Agbada",
-    sewingTime: "7 Days",
-    price: "₦105,000",
-    status: "Active",
-  },
-  {
-    id: "2",
-    thumbnail: "https://randomuser.me/api/portraits/thumb/men/2.jpg",
-    styleName: "D4 Agbada",
-    category: "Agbada",
-    sewingTime: "7 Days",
-    price: "₦105,000",
-    status: "Active",
-  },
-  {
-    id: "3",
-    thumbnail: "https://randomuser.me/api/portraits/thumb/men/3.jpg",
-    styleName: "D4 Agbada",
-    category: "Agbada",
-    sewingTime: "7 Days",
-    price: "₦105,000",
-    status: "Unpublished",
-  },
-  {
-    id: "4",
-    thumbnail: "https://randomuser.me/api/portraits/thumb/men/4.jpg",
-    styleName: "D4 Agbada",
-    category: "Agbada",
-    sewingTime: "7 Days",
-    price: "₦105,000",
-    status: "Published",
-  },
-];
+// Removed static catalogData to prevent duplication with dynamic data
 
-const ordersData = [
-  {
-    id: "1",
-    orderId: "EWREI12324NH",
-    customer: "Frank Samuel",
-    styleName: "Native Agbada",
-    status: "Active",
-    date: "12/06/25",
-    total: "₦105,000",
-  },
-  {
-    id: "2",
-    orderId: "EWREI12324NH",
-    customer: "Frank Samuel",
-    styleName: "Native Agbada",
-    status: "Completed",
-    date: "12/06/25",
-    total: "₦105,000",
-  },
-  {
-    id: "3",
-    orderId: "EWREI12324NH",
-    customer: "Frank Samuel",
-    styleName: "Native Agbada",
-    status: "Cancelled",
-    date: "12/06/25",
-    total: "₦105,000",
-  },
-  {
-    id: "4",
-    orderId: "EWREI12324NH",
-    customer: "Frank Samuel",
-    styleName: "Native Agbada",
-    status: "Ongoing",
-    date: "12/06/25",
-    total: "₦105,000",
-  },
-];
+// Removed static ordersData to prevent duplication with dynamic data
 
 const ViewFabric = () => {
   const { tailorId } = useParams();
@@ -399,39 +325,39 @@ const ViewFabric = () => {
     [openDropdown],
   );
 
-  const fabricOrderData = useMemo(
-    () =>
-      fetchVendorOrders?.data
-        ? fetchVendorOrders?.data.map((details) => {
-            return {
-              ...details,
-              transactionId: `${details?.payment?.transaction_id}`,
-              customer:
-                details?.user?.email?.length > 15
-                  ? `${details?.user?.email.slice(0, 15)}...`
-                  : details?.user?.email,
-              product:
-                details?.product?.name?.length > 15
-                  ? `${details?.product?.name?.slice(0, 15)}...`
-                  : details?.product?.name,
-              amount: `${formatNumberWithCommas(
-                details?.order?.total_amount ?? 0,
-              )}`,
+  const fabricOrderData = useMemo(() => {
+    if (!fetchVendorOrders?.data) return [];
 
-              status: `${details?.order?.status}`,
-              dateAdded: `${
-                details?.created_at
-                  ? formatDateStr(
-                      details?.created_at.split(".").shift(),
-                      "D/M/YYYY h:mm A",
-                    )
-                  : ""
-              }`,
-            };
-          })
-        : [],
-    [fetchVendorOrders?.data],
-  );
+    // Remove duplicates based on unique order ID
+    const uniqueOrders = fetchVendorOrders.data.filter(
+      (item, index, self) => index === self.findIndex((t) => t.id === item.id),
+    );
+
+    return uniqueOrders.map((details) => {
+      return {
+        ...details,
+        transactionId: `${details?.payment?.transaction_id}`,
+        customer:
+          details?.user?.email?.length > 15
+            ? `${details?.user?.email.slice(0, 15)}...`
+            : details?.user?.email,
+        product:
+          details?.product?.name?.length > 15
+            ? `${details?.product?.name?.slice(0, 15)}...`
+            : details?.product?.name,
+        amount: `${formatNumberWithCommas(details?.order?.total_amount ?? 0)}`,
+        status: `${details?.order?.status}`,
+        dateAdded: `${
+          details?.created_at
+            ? formatDateStr(
+                details?.created_at.split(".").shift(),
+                "D/M/YYYY h:mm A",
+              )
+            : ""
+        }`,
+      };
+    });
+  }, [fetchVendorOrders?.data]);
 
   const ordersColumns = [
     { label: "S/N", key: "id" },
@@ -582,27 +508,30 @@ const ViewFabric = () => {
     [openDropdown, businessData],
   );
 
-  const FabricData = useMemo(
-    () =>
-      getAllFabricFabricData?.data
-        ? getAllFabricFabricData?.data?.map((details) => {
-            return {
-              ...details,
-              category_id: `${details?.category?.id ?? ""}`,
-              name: `${details?.name ?? ""}`,
-              category: `${details?.category?.name ?? ""}`,
-              qty: `${details?.fabric?.quantity ?? ""}`,
-              price: `${formatNumberWithCommas(details?.price ?? 0)}`,
-              created_at: `${
-                details?.created_at
-                  ? formatDateStr(details?.created_at.split(".").shift())
-                  : ""
-              }`,
-            };
-          })
-        : [],
-    [getAllFabricFabricData],
-  );
+  const FabricData = useMemo(() => {
+    if (!getAllFabricFabricData?.data) return [];
+
+    // Remove duplicates based on unique product ID
+    const uniqueProducts = getAllFabricFabricData.data.filter(
+      (item, index, self) => index === self.findIndex((t) => t.id === item.id),
+    );
+
+    return uniqueProducts.map((details) => {
+      return {
+        ...details,
+        category_id: `${details?.category?.id ?? ""}`,
+        name: `${details?.name ?? ""}`,
+        category: `${details?.category?.name ?? ""}`,
+        qty: `${details?.fabric?.quantity ?? ""}`,
+        price: `${formatNumberWithCommas(details?.price ?? 0)}`,
+        created_at: `${
+          details?.created_at
+            ? formatDateStr(details?.created_at.split(".").shift())
+            : ""
+        }`,
+      };
+    });
+  }, [getAllFabricFabricData]);
 
   const customerData = React.useMemo(
     () => [
@@ -624,32 +553,7 @@ const ViewFabric = () => {
     [userData, businessData],
   );
 
-  // Pagination for Catalog
-  const catalogTotalPages = Math.ceil(filteredCatalog.length / itemsPerPage);
-  const catalogStartIndex = (catalogPage - 1) * itemsPerPage;
-  const catalogCurrentItems = filteredCatalog.slice(
-    catalogStartIndex,
-    catalogStartIndex + itemsPerPage,
-  );
-
-  // Pagination for Orders
-  const ordersTotalPages = Math.ceil(filteredOrders.length / itemsPerPage);
-  const ordersStartIndex = (ordersPage - 1) * itemsPerPage;
-  const ordersCurrentItems = filteredOrders.slice(
-    ordersStartIndex,
-    ordersStartIndex + itemsPerPage,
-  );
-
   const navigate = useNavigate();
-
-  // Reset page when filter changes
-  useEffect(() => {
-    setCatalogPage(1);
-  }, [catalogFilter]);
-
-  useEffect(() => {
-    setOrdersPage(1);
-  }, [ordersFilter]);
 
   const handleExport = (e) => {
     const value = e.target.value;

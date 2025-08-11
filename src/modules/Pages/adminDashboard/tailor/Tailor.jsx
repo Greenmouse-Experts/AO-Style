@@ -58,26 +58,29 @@ const CustomersTable = () => {
     });
   }, [debouncedSearchTerm]);
 
-  const TailorData = useMemo(
-    () =>
-      getAllTailorRepData?.data
-        ? getAllTailorRepData?.data.map((details) => {
-            return {
-              ...details,
-              name: `${details?.name}`,
-              phone: `${details?.phone ?? ""}`,
-              email: `${details?.email ?? ""}`,
-              location: `${details?.profile?.address ?? ""}`,
-              dateJoined: `${
-                details?.created_at
-                  ? formatDateStr(details?.created_at.split(".").shift())
-                  : ""
-              }`,
-            };
-          })
-        : [],
-    [getAllTailorRepData?.data],
-  );
+  const TailorData = useMemo(() => {
+    if (!getAllTailorRepData?.data) return [];
+
+    // Remove duplicates based on unique tailor ID
+    const uniqueTailors = getAllTailorRepData.data.filter(
+      (item, index, self) => index === self.findIndex((t) => t.id === item.id),
+    );
+
+    return uniqueTailors.map((details) => {
+      return {
+        ...details,
+        name: `${details?.name}`,
+        phone: `${details?.phone ?? ""}`,
+        email: `${details?.email ?? ""}`,
+        location: `${details?.profile?.address ?? ""}`,
+        dateJoined: `${
+          details?.created_at
+            ? formatDateStr(details?.created_at.split(".").shift())
+            : ""
+        }`,
+      };
+    });
+  }, [getAllTailorRepData?.data]);
 
   const handleDropdownToggle = (id) => {
     setOpenDropdown(openDropdown === id ? null : id);

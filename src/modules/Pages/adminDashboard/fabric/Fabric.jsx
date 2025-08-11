@@ -67,26 +67,29 @@ const CustomersTable = () => {
     });
   }, [debouncedSearchTerm]);
 
-  const FabricData = useMemo(
-    () =>
-      getAllFabricRepData?.data
-        ? getAllFabricRepData?.data.map((details) => {
-            return {
-              ...details,
-              name: `${details?.name}`,
-              phone: `${details?.phone ?? ""}`,
-              email: `${details?.email ?? ""}`,
-              location: `${details?.profile?.address ?? ""}`,
-              dateJoined: `${
-                details?.created_at
-                  ? formatDateStr(details?.created_at.split(".").shift())
-                  : ""
-              }`,
-            };
-          })
-        : [],
-    [getAllFabricRepData?.data],
-  );
+  const FabricData = useMemo(() => {
+    if (!getAllFabricRepData?.data) return [];
+
+    // Remove duplicates based on unique user ID
+    const uniqueVendors = getAllFabricRepData.data.filter(
+      (item, index, self) => index === self.findIndex((t) => t.id === item.id),
+    );
+
+    return uniqueVendors.map((details) => {
+      return {
+        ...details,
+        name: `${details?.name}`,
+        phone: `${details?.phone ?? ""}`,
+        email: `${details?.email ?? ""}`,
+        location: `${details?.profile?.address ?? ""}`,
+        dateJoined: `${
+          details?.created_at
+            ? formatDateStr(details?.created_at.split(".").shift())
+            : ""
+        }`,
+      };
+    });
+  }, [getAllFabricRepData?.data]);
   let setUser = useTempStore((state) => state.setUser);
   // Table Columns
   const nav = useNavigate();

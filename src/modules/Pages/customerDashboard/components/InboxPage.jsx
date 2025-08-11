@@ -19,6 +19,7 @@ import useToast from "../../../../hooks/useToast";
 import { useId } from "react";
 import { useCarybinUserStore } from "../../../../store/carybinUserStore";
 import useGetUserProfile from "../../../Auth/hooks/useGetProfile";
+import useGetAdmins from "../../../../hooks/messaging/useGetAdmins";
 
 export default function InboxPage() {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -26,6 +27,9 @@ export default function InboxPage() {
   const [newMessage, setNewMessage] = useState("");
   const [showOptions, setShowOptions] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [showNewMessageModal, setShowNewMessageModal] = useState(false);
+  const [selectedAdmin, setSelectedAdmin] = useState("");
+  const [messageText, setMessageText] = useState("");
   const dropdownRef = useRef(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const emojiPickerRef = useRef(null);
@@ -46,6 +50,66 @@ export default function InboxPage() {
   // Use profile ID instead of hardcoded ID
   const userId = userProfile?.id || null;
   const selectedChatRef = useRef(selectedChat);
+
+  // Fetch admins for messaging
+  const {
+    data: admins,
+    isPending: adminsLoading,
+    isError: adminsError,
+  } = useGetAdmins();
+
+  // Handle sending message to admin via socket
+  const handleSendMessageToAdmin = () => {
+    if (!selectedAdmin || !messageText.trim()) {
+      toastError("Please select an admin and enter a message");
+      return;
+    }
+
+    if (!socket || !isConnected) {
+      toastError("Not connected to messaging service. Please try again.");
+      return;
+    }
+
+    const messageData = {
+      token: userToken,
+      chatBuddy: selectedAdmin,
+      message: messageText.trim(),
+    };
+
+    console.log("=== SENDING MESSAGE TO ADMIN VIA SOCKET ===");
+    console.log("Socket ID:", socket.id);
+    console.log("Message data:", messageData);
+    console.log("Socket connected:", socket.connected);
+    console.log("User ID:", userId);
+    console.log("Admin ID:", selectedAdmin);
+    console.log("=========================================");
+
+    socket.emit("sendMessage", messageData);
+
+    // Create new chat entry in local state
+    const adminUser = admins?.find((admin) => admin.id === selectedAdmin);
+    if (adminUser) {
+      const newChat = {
+        id: Date.now(),
+        last_message: messageText.trim(),
+        chat_buddy: adminUser,
+        created_at: new Date().toISOString(),
+        unread: 0,
+      };
+      setChats((prevChats) => [newChat, ...prevChats]);
+    }
+
+    toastSuccess("Message sent successfully!");
+    setShowNewMessageModal(false);
+    setSelectedAdmin("");
+    setMessageText("");
+
+    // Refresh chats to show the new conversation
+    if (socket && userId) {
+      console.log("🔄 Refreshing chats after sending message to admin");
+      socket.emit("getChats", { userId });
+    }
+  };
 
   // Get user profile hook
   const {
@@ -601,12 +665,21 @@ export default function InboxPage() {
           <div className="p-4 border-b border-gray-300 bg-purple-300 text-gray-800 flex-shrink-0">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-semibold">Messages</h2>
-              <button
-                className="md:hidden text-white hover:text-gray-200 transition-colors"
-                onClick={() => setShowSidebar(false)}
-              >
-                <FaTimes size={20} />
-              </button>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setShowNewMessageModal(true)}
+                  className="text-white hover:text-gray-200 transition-colors p-1.5 bg-purple-600 rounded-full"
+                  title="New Message"
+                >
+                  <FaPlus size={14} />
+                </button>
+                <button
+                  className="md:hidden text-white hover:text-gray-200 transition-colors"
+                  onClick={() => setShowSidebar(false)}
+                >
+                  <FaTimes size={20} />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -902,6 +975,95 @@ export default function InboxPage() {
           </div>
         </div>
       </div>
+
+      {/* New Message Modal */}
+      {showNewMessageModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-md">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  New Message to Admin
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowNewMessageModal(false);
+                    setSelectedAdmin("");
+                    setMessageText("");
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <FaTimes size={20} />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* Admin Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Admin
+                </label>
+                {adminsLoading ? (
+                  <div className="text-sm text-gray-500">Loading admins...</div>
+                ) : adminsError ? (
+                  <div className="text-sm text-red-500">
+                    Failed to load admins
+                  </div>
+                ) : (
+                  <select
+                    value={selectedAdmin}
+                    onChange={(e) => setSelectedAdmin(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  >
+                    <option value="">Choose an admin...</option>
+                    {admins?.map((admin) => (
+                      <option key={admin.id} value={admin.id}>
+                        {admin.name} - {admin.email}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              {/* Message Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Message
+                </label>
+                <textarea
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  placeholder="Type your message here..."
+                  rows={4}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowNewMessageModal(false);
+                  setSelectedAdmin("");
+                  setMessageText("");
+                }}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                disabled={sendingMessage}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendMessageToAdmin}
+                disabled={!selectedAdmin || !messageText.trim() || !isConnected}
+                className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {!isConnected ? "Connecting..." : "Send Message"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

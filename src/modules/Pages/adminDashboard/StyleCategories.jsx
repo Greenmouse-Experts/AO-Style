@@ -76,7 +76,7 @@ const StyleCategoriesTable = () => {
               setNewStyleCategory(null);
               setType("Add");
             },
-          }
+          },
         );
       } else if (type == "Add") {
         createProductMutate(
@@ -87,7 +87,7 @@ const StyleCategoriesTable = () => {
               setNewStyleCategory(null);
               setType("Add");
             },
-          }
+          },
         );
       } else {
         deleteProductMutate(
@@ -98,7 +98,7 @@ const StyleCategoriesTable = () => {
               setNewStyleCategory(null);
               setType("Add");
             },
-          }
+          },
         );
       }
     },
@@ -126,23 +126,26 @@ const StyleCategoriesTable = () => {
 
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
 
-  const styleData = useMemo(
-    () =>
-      data?.data
-        ? data?.data.map((details) => {
-            return {
-              ...details,
-              name: `${details?.name}`,
-              dateAdded: `${
-                details?.created_at
-                  ? formatDateStr(details?.created_at.split(".").shift())
-                  : ""
-              }`,
-            };
-          })
-        : [],
-    [data?.data]
-  );
+  const styleData = useMemo(() => {
+    if (!data?.data) return [];
+
+    // Remove duplicates based on unique style category ID
+    const uniqueStyleCategories = data.data.filter(
+      (item, index, self) => index === self.findIndex((t) => t.id === item.id),
+    );
+
+    return uniqueStyleCategories.map((details) => {
+      return {
+        ...details,
+        name: `${details?.name}`,
+        dateAdded: `${
+          details?.created_at
+            ? formatDateStr(details?.created_at.split(".").shift())
+            : ""
+        }`,
+      };
+    });
+  }, [data?.data]);
 
   useUpdatedEffect(() => {
     // update search params with undefined if debouncedSearchTerm is an empty string
@@ -212,11 +215,11 @@ const StyleCategoriesTable = () => {
         ),
       },
     ],
-    [openDropdown]
+    [openDropdown],
   );
 
   const totalPages = Math.ceil(
-    data?.count / (queryParams["pagination[limit]"] ?? 10)
+    data?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
   const actionText = `${type} Style Category`;

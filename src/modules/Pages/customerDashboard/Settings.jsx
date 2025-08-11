@@ -2,13 +2,13 @@ import { useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import SecuritySettings from "./components/SecuritySettings";
 import BankDetails from "./components/BankDetails";
-import KYCVerification from "./components/KYCVerification";
+
 import { useFormik } from "formik";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 import useUpdateProfile from "../../../hooks/settings/useUpdateProfile";
 import BankDetailsUpdate from "../tailorDashboard/components/BankDetails";
-import KYCVerificationUpdate from "../adminDashboard/components/KYCVerification";
+
 import { ChevronDown } from "lucide-react";
 import PhoneInput from "react-phone-input-2";
 import Select from "react-select";
@@ -280,7 +280,7 @@ const Settings = () => {
         {/* Sidebar */}
         <div className="w-full md:w-1/5 bg-white md:mb-0 mb-6 h-fit p-4 rounded-lg">
           <ul className="space-y-2 text-gray-600">
-            {["Profile", "Security", "KYC Verification"].map((item) => (
+            {["Profile", "Security"].map((item) => (
               <li
                 key={item}
                 className={`cursor-pointer px-4 py-3 rounded-lg transition-colors duration-300 ${
@@ -1019,12 +1019,6 @@ const Settings = () => {
             </div>
           )}
 
-          {activeSection === "KYC Verification" && (
-            <div>
-              {/* <h2 className="text-xl font-medium mb-4">KYC Verification</h2>*/}
-              <KYCVerificationUpdate />
-            </div>
-          )}
           {/* {activeSection === "Bank Details" && (
             <div>
               <h2 className="text-xl font-medium mb-4">Bank Details</h2>

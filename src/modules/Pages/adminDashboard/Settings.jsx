@@ -69,24 +69,50 @@ const Settings = () => {
         latitude: val.latitude,
         longitude: val.longitude,
       });
+      console.log("🔍 Missing Values Check:");
+      console.log("  - Phone:", val.phone);
+      console.log("  - Alternative Phone:", val.alternative_phone);
+      console.log("  - State:", val.state);
+      console.log("  - Country:", val.country);
+      console.log("  - Latitude:", val.latitude);
+      console.log("  - Longitude:", val.longitude);
+      console.log("🗃️ Admin User Profile Data:", carybinAdminUser?.profile);
+
       if (!navigator.onLine) {
         toastError("No internet connection. Please check your network.");
         return;
       }
-      updatePersonalMutate(
-        {
-          ...val,
-          coordinates: {
-            longitude: val.longitude,
-            latitude: val.latitude,
-          },
+      // Filter data to match backend API structure
+      const filteredData = {
+        name: val.name,
+        profile_picture: val.profile_picture,
+        address: val.address,
+        alternative_phone: val.phone || val.alternative_phone || "",
+        state: val.state || carybinAdminUser?.profile?.state || "",
+        country: val.country || carybinAdminUser?.profile?.country || "",
+        coordinates: {
+          longitude:
+            val.longitude && val.longitude !== ""
+              ? val.longitude
+              : carybinAdminUser?.profile?.longitude || "",
+          latitude:
+            val.latitude && val.latitude !== ""
+              ? val.latitude
+              : carybinAdminUser?.profile?.latitude || "",
         },
-        {
-          onSuccess: () => {
-            resetForm();
-          },
-        },
+      };
+
+      console.log("🚀 Filtered data being sent to backend:", filteredData);
+      console.log(
+        "📦 EXACT BODY BEING SENT TO BACKEND:",
+        JSON.stringify(filteredData, null, 2),
       );
+
+      updatePersonalMutate(filteredData, {
+        onSuccess: () => {
+          resetForm();
+        },
+      });
     },
   });
 
@@ -149,13 +175,13 @@ const Settings = () => {
     apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
     onPlaceSelected: (place) => {
       console.log("🗺️ Google Place Selected:", place);
-      const lat = place.geometry?.location?.lat().toString();
-      const lng = place.geometry?.location?.lng().toString();
+      const lat = place.geometry?.location?.lat();
+      const lng = place.geometry?.location?.lng();
       console.log("📍 Setting coordinates from Google Places:", { lat, lng });
 
       setFieldValue("address", place.formatted_address);
-      setFieldValue("latitude", lat);
-      setFieldValue("longitude", lng);
+      setFieldValue("latitude", lat ? lat.toString() : "");
+      setFieldValue("longitude", lng ? lng.toString() : "");
     },
     options: {
       componentRestrictions: { country: "ng" },

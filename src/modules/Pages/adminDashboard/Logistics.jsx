@@ -19,6 +19,7 @@ import useApproveMarketRep from "../../../hooks/marketRep/useApproveMarketRep";
 import ConfirmationModal from "../../../components/ui/ConfirmationModal";
 import useDeleteUser from "../../../hooks/user/useDeleteUser";
 import useToast from "../../../hooks/useToast";
+import AddNewUser from "./components/AddNewUserModal";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -346,10 +347,7 @@ const CustomersTable = () => {
         </div>
       </div>
 
-      <LogisticsModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
+      <AddNewUser isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
       {activeTab === "table" ? (
         <>

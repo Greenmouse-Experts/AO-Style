@@ -23,7 +23,7 @@ interface CustomTableProps {
 export default function CustomTable(props: CustomTableProps) {
   // return <>{JSON.stringify(props.data)}</>;
   return (
-    <div data-theme="" className="p-2 " id="cus-app">
+    <div data-theme="nord" className="p-2 " id="cus-app">
       <div className="overflow-x-auto">
         <table className="table">
           {/* head */}

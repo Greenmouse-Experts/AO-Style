@@ -10,10 +10,10 @@ import useDebounce from "../../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../../hooks/useUpdatedEffect";
 import Loader from "../../../../components/ui/Loader";
 import useApproveMarketRep from "../../../../hooks/marketRep/useApproveMarketRep";
-import AddTailorModal from "../components/AddTailorModal";
 import ConfirmationModal from "../../../../components/ui/ConfirmationModal";
 import useDeleteUser from "../../../../hooks/user/useDeleteUser";
 import useToast from "../../../../hooks/useToast";
+import AddNewTailorModal from "./AddNewTailorModal";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -264,13 +264,17 @@ const CustomersTable = () => {
             onClick={() => setIsModalOpen(true)}
             className="bg-purple-600 cursor-pointer text-white px-4 py-2 text-sm rounded-md"
           >
-            + Add a New Tailor/Designer
+            + Invite New Tailor/Designer
           </button>
           {/* </Link> */}
         </div>
       </div>
 
-      <AddTailorModal
+      {/* <AddTailorModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />*/}
+      <AddNewTailorModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />

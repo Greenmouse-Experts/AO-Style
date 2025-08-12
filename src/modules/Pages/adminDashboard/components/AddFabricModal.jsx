@@ -78,15 +78,15 @@ const AddFabricModal = ({ isOpen, onClose }) => {
                 name="role"
                 className="select select-bordered w-full"
               >
-                <option value="user">User</option>
+                {/* <option value="user">User</option>
                 <option value="market-representative">
                   Market Representative
                 </option>
                 <option value="logistics-agent" selected>
                   Logistics Agent
-                </option>
+                </option>*/}
                 <option value="fabric-vendor">Fabric Vendor</option>
-                <option value="fashion-designer">Fashion Designer</option>
+                {/* <option value="fashion-designer">Fashion Designer</option>*/}
               </select>
             </fieldset>
             {/* form ends here*/}

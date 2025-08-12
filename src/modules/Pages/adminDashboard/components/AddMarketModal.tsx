@@ -4,7 +4,7 @@ import CaryBinApi from "../../../../services/CarybinBaseUrl";
 import { toast } from "react-toastify";
 import useGetBusinessDetails from "../../../../hooks/settings/useGetBusinessDetails";
 
-const AddNewUser = ({ isOpen, onClose }: any) => {
+export default function AddMarketModal({ isOpen, onClose }: any) {
   const { data: userData } = useGetBusinessDetails();
   const [addAddress, setAddAddress] = useState(false);
   const mutate = useMutation({
@@ -42,7 +42,7 @@ const AddNewUser = ({ isOpen, onClose }: any) => {
           {/* Header */}
 
           <div className="flex justify-between items-center border-b border-[#CCCCCC] outline-none pb-3 mb-4">
-            <h2 className="text-lg font-semibold">Add a New User</h2>
+            <h2 className="text-lg font-semibold">Add a Market Rep</h2>
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-black"
@@ -96,13 +96,13 @@ const AddNewUser = ({ isOpen, onClose }: any) => {
                 name="role"
                 className="select select-bordered w-full"
               >
-                <option value="USER">User</option>
+                {/*<option value="USER">User</option>*/}
                 <option value="MARKET_REP">Market Representative</option>
-                <option value="LOGISTICS_AGENT" selected>
+                {/*<option value="LOGISTICS_AGENT" selected>
                   Logistics Agent
                 </option>
                 <option value="FABRIC_VENDOR">Fabric Vendor</option>
-                <option value="FASHION_DESIGNER">Fashion Designer</option>
+                <option value="FASHION_DESIGNER">Fashion Designer</option>*/}
               </select>
             </fieldset>
             {/* form ends here*/}
@@ -129,6 +129,4 @@ const AddNewUser = ({ isOpen, onClose }: any) => {
       </div>
     )
   );
-};
-
-export default AddNewUser;
+}

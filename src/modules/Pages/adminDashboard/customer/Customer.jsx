@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
 import ReusableTable from "../components/ReusableTable";
-import AddCustomerModal from "../components/AddCustomerModal";
 import { FaEllipsisH, FaBars, FaTh } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import useQueryParams from "../../../../hooks/useQueryParams";
@@ -20,6 +19,8 @@ import useApproveMarketRep from "../../../../hooks/marketRep/useApproveMarketRep
 import useDeleteUser from "../../../../hooks/user/useDeleteUser";
 import useToast from "../../../../hooks/useToast";
 import CustomTable from "../../../../components/CustomTable";
+import AddNewCustomer from "../components/AddCustomerModal";
+import AddNewCustomerModal from "../components/AddCustomerModal";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -284,7 +285,11 @@ const CustomersTable = () => {
         </div>
       </div>
 
-      <AddCustomerModal
+      {/* <AddCustomerModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />*/}
+      <AddNewCustomerModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />

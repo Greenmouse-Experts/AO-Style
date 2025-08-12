@@ -339,8 +339,8 @@ const AddTailorForm = () => {
           {activeTab === "kyc"
             ? "Submit"
             : activeTab === "business"
-            ? "Proceed to KYC"
-            : "Proceed to Business Info"}
+              ? "Proceed to KYC"
+              : "Proceed to Business Info"}
         </button>
       </div>
     </div>

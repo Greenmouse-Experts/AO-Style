@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import ReusableTable from "../components/ReusableTable";
 import { FaEllipsisH } from "react-icons/fa";
-import AddMarketModal from "./AddMarketModal";
 import { Link } from "react-router-dom";
 import useGetAllMarketRep from "../../../../hooks/marketRep/useGetMarketRep";
 import useQueryParams from "../../../../hooks/useQueryParams";
@@ -15,6 +14,7 @@ import useApproveMarketRep from "../../../../hooks/marketRep/useApproveMarketRep
 import ConfirmationModal from "../../../../components/ui/ConfirmationModal";
 import useDeleteUser from "../../../../hooks/user/useDeleteUser";
 import useToast from "../../../../hooks/useToast";
+import AddMarketModal from "./AddMarketModal";
 
 const NewlyAddedUsers = () => {
   const [currView, setCurrView] = useState("approved");
@@ -351,7 +351,7 @@ const NewlyAddedUsers = () => {
             onClick={() => setIsModalOpen(true)}
             className="bg-[#9847FE] text-white px-4 py-2 text-sm cursor-pointer rounded-md"
           >
-            + Add a Market Rep
+            + invite a Market Rep
           </button>
         </div>
       </div>
@@ -410,6 +410,7 @@ const NewlyAddedUsers = () => {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
         />
+
         <ReusableTable
           loading={isPending || allInviteIsPending}
           columns={currView == "invites" ? inviteRepColumn : columns}

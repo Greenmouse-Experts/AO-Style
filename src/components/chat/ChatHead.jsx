@@ -273,9 +273,7 @@ const ChatHead = () => {
       setIsConnected(true);
       setSocket(socketInstance);
 
-      if (!isAdmin) {
-        toastSuccess("Connected successfully");
-      }
+      // Connection established - no toast needed
     });
 
     socketInstance.on("disconnect", (reason) => {
@@ -530,7 +528,7 @@ const ChatHead = () => {
     }
 
     if (!socket || !isConnected) {
-      toastError("Not connected to messaging service. Please try again.");
+      console.error("Not connected to messaging service. Please try again.");
       return;
     }
 

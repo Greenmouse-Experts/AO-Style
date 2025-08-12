@@ -19,6 +19,7 @@ import ConfirmationModal from "../../../../components/ui/ConfirmationModal";
 import useDeleteUser from "../../../../hooks/user/useDeleteUser";
 import useToast from "../../../../hooks/useToast";
 import { useTempStore } from "../../../../store/useTempStore";
+import AddNewUser from "../components/AddNewUserModal";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -358,12 +359,12 @@ const CustomersTable = () => {
           {/* </Link> */}
         </div>
       </div>
-
+      {/*
       <AddFabricModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-      />
-
+      />*/}
+      <AddNewUser isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       {activeTab === "table" ? (
         <>
           <ReusableTable
@@ -503,7 +504,6 @@ const CustomersTable = () => {
           ))}
         </div>
       )}
-
       {activeTab === "grid" && (
         <>
           {FabricData?.length > 0 && (
@@ -645,7 +645,6 @@ const CustomersTable = () => {
           </div>
         </div>
       )}
-
       {/* Delete User Confirmation Modal */}
       <ConfirmationModal
         isOpen={deleteModalOpen}

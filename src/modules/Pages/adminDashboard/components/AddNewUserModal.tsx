@@ -1,24 +1,36 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import CaryBinApi from "../../../../services/CarybinBaseUrl";
+import { toast } from "react-toastify";
+import useGetBusinessDetails from "../../../../hooks/settings/useGetBusinessDetails";
 
-const AddFabricModal = ({ isOpen, onClose }) => {
+const AddNewUser = ({ isOpen, onClose }: any) => {
+  const { data: userData } = useGetBusinessDetails();
   const [addAddress, setAddAddress] = useState(false);
   const mutate = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (data: any) => {
       let resp = await CaryBinApi.post("/contact/invite", { data });
+    },
+    onSuccess: () => {
+      toast.success("invite sent successfully");
+    },
+    onError: (error: any) => {
+      toast.error(
+        error?.response?.data?.message ||
+          "An error occurred while sending invite",
+      );
     },
   });
   const onsubmit = (e) => {
     e.preventDefault();
+    let business_id = userData?.data?.id;
     const data = {
-      business_id: e.target.business_id.value,
+      business_id: business_id,
       email: e.target.email.value,
       name: e.target.name.value,
       role: e.target.role.value,
     };
-    mutate.mutate(data);
-    onClose();
+    mutate.mutateAsync(data);
     setAddAddress(false);
     e.target.reset();
   };
@@ -38,12 +50,17 @@ const AddFabricModal = ({ isOpen, onClose }) => {
             </button>
           </div>
           {/* form starts here*/}
-          <form id="cus-app" data-theme="nord" className="bg-white">
+          <form
+            onSubmit={onsubmit}
+            id="cus-app"
+            data-theme="nord"
+            className="bg-white"
+          >
             <input
               type="hidden"
               id="business_id"
               name="business_id"
-              value="cb6ee0bb-8ce9-46ad-a93a-d5474398d32c"
+              // value="cb6ee0bb-8ce9-46ad-a93a-d5474398d32c"
             />
             <fieldset className="form-control w-full mb-4">
               <label htmlFor="email" className="label mb-1">
@@ -54,7 +71,7 @@ const AddFabricModal = ({ isOpen, onClose }) => {
                 id="email"
                 name="email"
                 className="input input-bordered w-full"
-                placeholder="greenmousedev+logistics-agent009@gmail.com"
+                placeholder="carybin+logistics-agent009@gmail.com"
               />
             </fieldset>
             <fieldset className="form-control w-full mb-4">
@@ -66,7 +83,7 @@ const AddFabricModal = ({ isOpen, onClose }) => {
                 id="name"
                 name="name"
                 className="input input-bordered w-full"
-                placeholder="Greenmouse Logic 009"
+                placeholder="carybin Logic 009"
               />
             </fieldset>
             <fieldset className="form-control w-full mb-4">
@@ -78,15 +95,13 @@ const AddFabricModal = ({ isOpen, onClose }) => {
                 name="role"
                 className="select select-bordered w-full"
               >
-                <option value="user">User</option>
-                <option value="market-representative">
-                  Market Representative
-                </option>
-                <option value="logistics-agent" selected>
+                <option value="USER">User</option>
+                <option value="MARKET_REP">Market Representative</option>
+                <option value="LOGISTICS_AGENT" selected>
                   Logistics Agent
                 </option>
-                <option value="fabric-vendor">Fabric Vendor</option>
-                <option value="fashion-designer">Fashion Designer</option>
+                <option value="FABRIC_VENDOR">Fabric Vendor</option>
+                <option value="FASHION_DESIGNER">Fashion Designer</option>
               </select>
             </fieldset>
             {/* form ends here*/}
@@ -100,8 +115,11 @@ const AddFabricModal = ({ isOpen, onClose }) => {
                 >
                   Cancel
                 </button>
-                <button className="bg-gradient text-white px-4 py-2 rounded-md">
-                  Add a New Vendor
+                <button
+                  disabled={mutate.isPending}
+                  className="bg-gradient text-white px-4 py-2 rounded-md"
+                >
+                  {mutate.isPending ? "Adding..." : "Add User"}
                 </button>
               </div>
             </div>
@@ -112,4 +130,4 @@ const AddFabricModal = ({ isOpen, onClose }) => {
   );
 };
 
-export default AddFabricModal;
+export default AddNewUser;

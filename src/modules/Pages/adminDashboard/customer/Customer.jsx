@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import ReusableTable from "../components/ReusableTable";
 import AddCustomerModal from "../components/AddCustomerModal";
 import { FaEllipsisH, FaBars, FaTh } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useQueryParams from "../../../../hooks/useQueryParams";
 import useGetAllUsersByRole from "../../../../hooks/admin/useGetAllUserByRole";
 import useDebounce from "../../../../hooks/useDebounce";
@@ -19,6 +19,7 @@ import { CSVLink } from "react-csv";
 import useApproveMarketRep from "../../../../hooks/marketRep/useApproveMarketRep";
 import useDeleteUser from "../../../../hooks/user/useDeleteUser";
 import useToast from "../../../../hooks/useToast";
+import CustomTable from "../../../../components/CustomTable";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -32,7 +33,7 @@ const CustomersTable = () => {
   const [suspendModalOpen, setSuspendModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
-
+  const navigate = useNavigate();
   const toggleDropdown = (rowId) => {
     setOpenDropdown(openDropdown === rowId ? null : rowId);
   };
@@ -47,7 +48,11 @@ const CustomersTable = () => {
     "pagination[page]": 1,
   });
 
-  const { data: getAllCustomerRepData, isPending } = useGetAllUsersByRole({
+  const {
+    data: getAllCustomerRepData,
+    isFetching,
+    isPending,
+  } = useGetAllUsersByRole({
     ...queryParams,
     role: "user",
   });
@@ -115,83 +120,11 @@ const CustomersTable = () => {
       { label: "Email Address", key: "email" },
       { label: "Location", key: "location" },
       { label: "Date Joined", key: "dateJoined" },
-      {
-        label: "Action",
-        key: "action",
-        render: (_, row) => (
-          <div className="relative">
-            <button
-              className="bg-gray-10 cursor-pointer alert text-gray-500 px-3 py-1 rounded-md"
-              onClick={() => {
-                toggleDropdown(row.id);
-              }}
-            >
-              <FaEllipsisH />
-            </button>
-            {openDropdown === row.id && (
-              <div className="dropdown-menu absolute right-0 mt-2 w-50 bg-white rounded-md z-10 border-gray-200">
-                <Link
-                  to={`/admin/view-customers/${row.id}`}
-                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
-                >
-                  View User
-                </Link>
-                <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
-                  Edit User
-                </button>
-                {row?.profile?.approved_by_admin ? (
-                  <>
-                    <button
-                      onClick={() => {
-                        setSuspendModalOpen(true);
-                        setNewCategory(row);
-                        setOpenDropdown(null);
-                      }}
-                      className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center"
-                    >
-                      {"Suspend user"}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    {" "}
-                    <button
-                      onClick={() => {
-                        setSuspendModalOpen(true);
-                        setNewCategory(row);
-                        setOpenDropdown(null);
-                      }}
-                      className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
-                    >
-                      {"Unsuspend user"}
-                    </button>
-                  </>
-                )}
-                <button
-                  onClick={() => handleDeleteUser(row)}
-                  className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center"
-                >
-                  Delete User
-                </button>
-              </div>
-            )}
-          </div>
-        ),
-      },
     ],
-    [openDropdown],
+    [],
   );
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.target.closest(".dropdown-menu")) {
-        setOpenDropdown(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
+  console.log(CustomerData);
   const totalPages = Math.ceil(
     getAllCustomerRepData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
@@ -270,6 +203,15 @@ const CustomersTable = () => {
     }
   };
 
+  const row_actions = [
+    {
+      key: "view_detail",
+      label: "View Details",
+      action: async (item) => {
+        return navigate(`/admin/view-customers/${item.id}`);
+      },
+    },
+  ];
   return (
     <div className="bg-white p-6 rounded-xl overflow-x-auto">
       <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
@@ -337,7 +279,7 @@ const CustomersTable = () => {
             onClick={() => setIsModalOpen(true)}
             className="bg-[#9847FE] text-white px-4 py-2 text-sm rounded-md"
           >
-            + Add New Customer
+            + Invite New Customer
           </button>
         </div>
       </div>
@@ -349,11 +291,20 @@ const CustomersTable = () => {
 
       {activeTab === "table" ? (
         <>
-          <ReusableTable
+          {isFetching ? (
+            <div className="p-2">loading</div>
+          ) : (
+            <CustomTable
+              columns={columns}
+              data={CustomerData}
+              actions={row_actions}
+            />
+          )}
+          {/* <ReusableTable
             columns={columns}
             loading={isPending}
             data={CustomerData}
-          />
+          />*/}
         </>
       ) : isPending ? (
         <div className=" flex !w-full items-center justify-center">

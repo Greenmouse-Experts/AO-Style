@@ -26,6 +26,7 @@ import { CSVLink } from "react-csv";
 import useDeleteAdminFabric from "../../../../hooks/fabric/useDeleteAdminFabric";
 import useToast from "../../../../hooks/useToast";
 import useFetchVendorOrders from "../../../../hooks/order/useAdminFetchVendorOrders";
+import CustomTable from "../../../../components/CustomTable";
 
 // Removed static catalogData to prevent duplication with dynamic data
 
@@ -724,6 +725,7 @@ const ViewFabric = () => {
         </div>
 
         <div className="bg-white rounded-lg">
+          {/* <CustomTable columns={columns} />*/}
           <ReusableTable columns={customerColumns} data={customerData} />
         </div>
 

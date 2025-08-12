@@ -20,6 +20,7 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
+import CustomTable from "../../../components/CustomTable";
 const PaymentTransactionTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -203,42 +204,6 @@ const PaymentTransactionTable = () => {
   const navigate = useNavigate();
   const columns = useMemo(
     () => [
-      {
-        label: () => (
-          <input
-            type="checkbox"
-            checked={selectAll}
-            onChange={(e) => {
-              const newSelectAll = e.target.checked;
-              setSelectAll(newSelectAll);
-              const newSelected = new Set(
-                newSelectAll ? data.map((item) => item.id) : [],
-              );
-              setSelectedRows(newSelected);
-            }}
-            className="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-          />
-        ),
-        key: "checkbox",
-        render: (value, row) => (
-          <input
-            type="checkbox"
-            checked={selectedRows.has(row.id)}
-            onChange={(e) => {
-              const newSelected = new Set(selectedRows);
-              if (e.target.checked) {
-                newSelected.add(row.id);
-              } else {
-                newSelected.delete(row.id);
-              }
-              setSelectedRows(newSelected);
-              setSelectAll(newSelected.size === data.length);
-            }}
-            className="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-          />
-        ),
-        className: "text-gray-500 font-medium text-sm py-4 w-10",
-      },
       {
         label: "Transaction ID",
         key: "transactionID",
@@ -433,6 +398,17 @@ const PaymentTransactionTable = () => {
         Country: profile.country,
       }));
     }) || [];
+  const nav = useNavigate();
+  const actions_col = [
+    {
+      action: (item) => {
+        // return console.log(item);
+        return nav("/admin/transactions/" + item.id, { viewTransition: true });
+      },
+      key: "view_details",
+      label: "View Details",
+    },
+  ];
 
   return (
     <>
@@ -505,32 +481,18 @@ const PaymentTransactionTable = () => {
           </div>
         </div>
         <div className="flex border-b border-gray-200 mb-4"></div>
-        {activeTab === "All Transactions" && (
-          <div className="flex items-center mb-4">
-            <input
-              type="checkbox"
-              checked={selectAll}
-              onChange={(e) => {
-                const newSelectAll = e.target.checked;
-                setSelectAll(newSelectAll);
-                const newSelected = new Set(
-                  newSelectAll ? data.map((item) => item.id) : [],
-                );
-                setSelectedRows(newSelected);
-              }}
-              className="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded mr-2"
-            />
-            <span className="text-sm text-gray-600">Select All</span>
-          </div>
-        )}
-        <ReusableTable
+        {/* <ReusableTable
           columns={columns}
           loading={isPending}
           data={TransactionData}
           rowClassName="border-none text-gray-700 text-sm"
           cellClassName="py-4"
+        />*/}
+        <CustomTable
+          columns={columns}
+          data={TransactionData}
+          actions={actions_col}
         />
-
         {TransactionData?.length > 0 ? (
           <>
             <div className="flex justify-between items-center mt-4">

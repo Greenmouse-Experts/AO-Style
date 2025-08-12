@@ -4,7 +4,7 @@ import CaryBinApi from "../../../../services/CarybinBaseUrl";
 import { toast } from "react-toastify";
 import useGetBusinessDetails from "../../../../hooks/settings/useGetBusinessDetails";
 
-export default function AddNewTailorModal({ isOpen, onClose }: any) {
+export default function AddTailorModal({ isOpen, onClose }: any) {
   const { data: userData } = useGetBusinessDetails();
   const [addAddress, setAddAddress] = useState(false);
   const mutate = useMutation({
@@ -42,7 +42,7 @@ export default function AddNewTailorModal({ isOpen, onClose }: any) {
           {/* Header */}
 
           <div className="flex justify-between items-center border-b border-[#CCCCCC] outline-none pb-3 mb-4">
-            <h2 className="text-lg font-semibold">Add a New Tailor</h2>
+            <h2 className="text-lg font-semibold">Add a New Customer</h2>
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-black"
@@ -96,14 +96,13 @@ export default function AddNewTailorModal({ isOpen, onClose }: any) {
                 name="role"
                 className="select select-bordered w-full"
               >
-                {/*<option value="USER">User</option>*/}
+                <option value="user">User</option>
                 {/*<option value="MARKET_REP">Market Representative</option>
                 <option value="LOGISTICS_AGENT" selected>
                   Logistics Agent
                 </option>
                 <option value="FABRIC_VENDOR">Fabric Vendor</option>
-                */}
-                <option value="FASHION_DESIGNER">Fashion Designer</option>
+                <option value="FASHION_DESIGNER">Fashion Designer</option>*/}
               </select>
             </fieldset>
             {/* form ends here*/}

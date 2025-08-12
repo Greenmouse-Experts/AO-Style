@@ -14,12 +14,11 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
 import useApproveMarketRep from "../../../../hooks/marketRep/useApproveMarketRep";
-import AddFabricModal from "../components/AddFabricModal";
 import ConfirmationModal from "../../../../components/ui/ConfirmationModal";
 import useDeleteUser from "../../../../hooks/user/useDeleteUser";
 import useToast from "../../../../hooks/useToast";
 import { useTempStore } from "../../../../store/useTempStore";
-import AddNewUser from "../components/AddNewUserModal";
+import AddFabricModal from "../components/AddFabricModal";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -364,7 +363,10 @@ const CustomersTable = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />*/}
-      <AddNewUser isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <AddFabricModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
       {activeTab === "table" ? (
         <>
           <ReusableTable

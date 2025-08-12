@@ -16,6 +16,7 @@ import RejectModal from "./RejectModal";
 import Loader from "../../../../components/ui/Loader";
 import useGetUser from "../../../../hooks/user/useGetSingleUser";
 import { formatDateStr } from "../../../../lib/helper";
+import CustomTable from "../../../../components/CustomTable";
 
 const catalogData = [
   {
@@ -178,12 +179,22 @@ const ViewCustomer = () => {
           {openDropdown === `catalog-${row.id}` && (
             <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
               <Link to={`/tailor/catalog/${row.id}`}>
-                <button className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+                <button
+                  onClick={() => {
+                    console.log(row);
+                  }}
+                  className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                >
                   View Details
                 </button>
               </Link>
-              <button className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
-                Edit Style
+              <button
+                onClick={() => {
+                  return console.log("ss");
+                }}
+                className=" p-4 block cursor-pointer w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+              >
+                Edit Styless
               </button>
             </div>
           )}
@@ -441,6 +452,15 @@ const ViewCustomer = () => {
       </div>
     );
   }
+  const tableHead = [
+    { key: "id", label: "S/N" },
+    { key: "thumbnail", label: "Thumbnail Image" },
+    { key: "styleName", label: "Style Name" },
+    { key: "category", label: "Categories" },
+    { key: "sewingTime", label: "Sewing Time" },
+    { key: "price", label: "Price" },
+    { key: "status", label: "Status" },
+  ];
 
   return (
     <React.Fragment>
@@ -521,6 +541,13 @@ const ViewCustomer = () => {
             </div>
           </div>
           <ReusableTable columns={catalogColumns} data={catalogCurrentItems} />
+          <>
+            {/* <CustomTable
+              user={data}
+              columns={tableHead}
+              data={catalogCurrentItems}
+            />*/}
+          </>
           <div className="flex justify-between items-center mt-4">
             <p className="text-sm text-gray-600">
               Showing 1 to {catalogCurrentItems.length} of{" "}

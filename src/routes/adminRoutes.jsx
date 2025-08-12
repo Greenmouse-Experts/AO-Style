@@ -31,7 +31,6 @@ import OrderDetailsPage from "../modules/Pages/adminDashboard/order/OrderDetails
 import Subscriptionpage from "../modules/Pages/adminDashboard/subscription/Subscriptions";
 import PaymentTransaction from "../modules/Pages/adminDashboard/Transactions";
 import Announcements from "../modules/Pages/adminDashboard/Announcements";
-import NotificationPage from "../modules/Pages/adminDashboard/NotificationPage";
 import Settings from "../modules/Pages/adminDashboard/Settings";
 import ViewTailorDetails from "../modules/Pages/adminDashboard/tailor/ViewTailorDetails";
 import ViewMarketDetails from "../modules/Pages/adminDashboard/sales-rep/ViewMarketRep";
@@ -52,6 +51,8 @@ import OrdersDetails from "../modules/Pages/tailorDashboard/OrdersDetails";
 import OrdersFabricDetails from "../modules/Pages/fabricDashboard/OrdersDetails";
 import ViewVendorOrders from "../modules/Pages/adminDashboard/order/ViewVendorOrders";
 import ViewTransaction from "../modules/Pages/adminDashboard/ViewTransaction";
+import NotificationPage from "../modules/Pages/adminDashboard/NotificationPage";
+import AdminNotificationDetail from "../modules/Pages/adminDashboard/AdminNotificationDetail";
 
 export const adminRoutes = [
   {
@@ -245,6 +246,10 @@ export const adminRoutes = [
       {
         path: "/admin/notifications",
         element: <NotificationPageUpdate />,
+      },
+      {
+        path: "/admin/notification/:id",
+        element: <AdminNotificationDetail />,
       },
       {
         path: "/admin/announcements",

@@ -1,20 +1,14 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Search } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
+import ReusableTable from "./components/ReusableTable";
 import WalletPage from "./components/WalletPage";
 import BarChartComponent from "./components/BarChartComponent";
-import useQueryParams from "../../../hooks/useQueryParams";
-import useGetMyPayment from "../../../hooks/payment/useGetPayment";
-import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
-import useDebounce from "../../../hooks/useDebounce";
-import { formatDateStr } from "../../../lib/helper";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
-import { saveAs } from "file-saver";
-import { CSVLink } from "react-csv";
+import WithdrawalModal from "./components/WithdrawalModal";
+import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails";
 import useFetchWithdrawal from "../../../hooks/withdrawal/useFetchWithdrawal";
-import ReusableTable from "../adminDashboard/components/ReusableTable";
+import { GeneralTransactionComponent } from "../../../components/GeneralTransactionComponents";
+import ViewWithdrawalsModal from "../tailorDashboard/components/ViewWithdrawalsModal";
 
 const transactions = [
   {
@@ -76,132 +70,95 @@ const transactions = [
 export default function TransactionPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
+  const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
+  const [isViewAllModalOpen, setIsViewAllModalOpen] = useState(false);
 
-  const { queryParams, updateQueryParams } = useQueryParams({
-    "pagination[page]": 1,
-    "pagination[limit]": 10,
-  });
-
-  const { data: getMyProductData, isPending } = useFetchWithdrawal({
-    ...queryParams,
-  });
-
-  console.log(getMyProductData?.data);
-
-  const [queryString, setQueryString] = useState(queryParams.q);
-
-  const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
-
-  useUpdatedEffect(() => {
-    // update search params with undefined if debouncedSearchTerm is an empty string
-    updateQueryParams({
-      q: debouncedSearchTerm.trim() || undefined,
-      "pagination[page]": 1,
+  const { data: businessData, isLoading: businessLoading } =
+    useGetBusinessDetails();
+  const { data: withdrawalData, isLoading: withdrawalLoading } =
+    useFetchWithdrawal({
+      limit: 10,
     });
-  }, [debouncedSearchTerm]);
 
-  const totalPages = Math.ceil(
-    getMyProductData?.count / (queryParams["pagination[limit]"] ?? 10)
-  );
-  console.log(getMyProductData);
+  console.log("📄 TransactionPage - Component state:", {
+    searchTerm,
+    filter,
+    businessLoading,
+    withdrawalLoading,
+  });
+  console.log("🏢 TransactionPage - Business data:", businessData);
+  console.log("💸 TransactionPage - Withdrawal data:", withdrawalData);
 
-  const location = useLocation();
-
-  const transactionsData = useMemo(
-    () =>
-      getMyProductData?.data
-        ? getMyProductData?.data.map((details) => {
-            return {
-              ...details,
-              amount: `${details?.amount}`,
-              currency: `${details?.currency}`,
-              status: `${details?.status}`,
-              dateAdded: `${
-                details?.created_at
-                  ? formatDateStr(details?.created_at.split(".").shift())
-                  : ""
-              }`,
-            };
-          })
-        : [],
-    [getMyProductData?.data]
-  );
-
-  const columns = useMemo(
-    () => [
-      { key: "amount", label: "Amount" },
-      { key: "currency", label: "currency" },
-      {
-        label: "Date",
-        key: "date",
-      },
-
-      {
-        label: "Status",
-        key: "status",
-        render: (value) => (
-          <span
-            className={`px-3 py-1 text-sm font-light rounded-md ${
-              value === "PENDING"
-                ? "bg-yellow-100 text-yellow-600"
-                : value === "Cancelled"
+  const columns = [
+    { key: "transactionId", label: "Transaction ID" },
+    { key: "date", label: "Date" },
+    { key: "time", label: "Time" },
+    { key: "category", label: "Category" },
+    { key: "amount", label: "Amount" },
+    {
+      label: "Status",
+      key: "status",
+      render: (value) => (
+        <span
+          className={`px-3 py-1 text-sm font-light rounded-md ${
+            value === "Ongoing"
+              ? "bg-yellow-100 text-yellow-600"
+              : value === "Cancelled"
                 ? "bg-red-100 text-red-600"
-                : value === "APPROVED"
-                ? "bg-green-100 text-green-600"
-                : "bg-yellow-100 text-yellow-600"
-            }`}
-          >
-            {value}
-          </span>
-        ),
-      },
-    ],
-    []
+                : "bg-green-100 text-green-600"
+          }`}
+        >
+          {value}
+        </span>
+      ),
+    },
+  ];
+
+  // Combine real withdrawal data with mock transactions
+  const realWithdrawals =
+    withdrawalData?.data?.map((withdrawal, index) => ({
+      id: withdrawal.id || index + 1000,
+      transactionId: `WD${withdrawal.id || 1000 + index}`,
+      date: withdrawal.created_at
+        ? new Date(withdrawal.created_at).toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "2-digit",
+          })
+        : "N/A",
+      time: withdrawal.created_at
+        ? new Date(withdrawal.created_at).toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          })
+        : "N/A",
+      category: "Withdrawal",
+      amount: `₦ ${withdrawal.amount?.toLocaleString() || 0}`,
+      status:
+        withdrawal.status === "PENDING"
+          ? "Ongoing"
+          : withdrawal.status === "COMPLETED"
+            ? "Completed"
+            : withdrawal.status === "FAILED"
+              ? "Failed"
+              : "Ongoing",
+    })) || [];
+
+  console.log(
+    "🔄 TransactionPage - Real withdrawals processed:",
+    realWithdrawals,
   );
 
-  const handleExport = (e) => {
-    const value = e.target.value;
-    if (value === "excel") exportToExcel();
-    if (value === "pdf") exportToPDF();
-    if (value === "csv") document.getElementById("csvDownload").click();
-  };
+  // Combine real and mock data
+  const allTransactions = [...realWithdrawals, ...transactions];
+  console.log("📊 TransactionPage - All transactions combined:", {
+    realWithdrawalsCount: realWithdrawals.length,
+    mockTransactionsCount: transactions.length,
+    totalCount: allTransactions.length,
+  });
 
-  const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(getMyProductData?.data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
-    const excelBuffer = XLSX.write(workbook, {
-      bookType: "xlsx",
-      type: "array",
-    });
-    const blob = new Blob([excelBuffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-    saveAs(blob, "MyPayment.xlsx");
-  };
-
-  const exportToPDF = () => {
-    const doc = new jsPDF();
-    autoTable(doc, {
-      head: [["Transaction ID", "Category", "Amount", "Status", "Date"]],
-      body: transactionsData?.map((row) => [
-        row.transactionId,
-        row.amount,
-        row.status,
-        row.dateAdded,
-      ]),
-      headStyles: {
-        fillColor: [209, 213, 219],
-        textColor: [0, 0, 0],
-        halign: "center",
-        valign: "middle",
-        fontSize: 10,
-      },
-    });
-    doc.save("Mypayment.pdf");
-  };
-
-  const filteredTransactions = transactions.filter((transaction) => {
+  const filteredTransactions = allTransactions.filter((transaction) => {
     if (filter === "completed" && transaction.status !== "Completed")
       return false;
     if (filter === "pending" && transaction.status !== "Ongoing") return false;
@@ -211,12 +168,44 @@ export default function TransactionPage() {
       .includes(searchTerm.toLowerCase());
   });
 
+  console.log("🔍 TransactionPage - Filtering results:", {
+    filter,
+    searchTerm,
+    originalCount: allTransactions.length,
+    filteredCount: filteredTransactions.length,
+  });
+
+  return (
+    <>
+      <GeneralTransactionComponent />
+    </>
+  );
+  if (businessLoading || withdrawalLoading) {
+    return (
+      <div>
+        <div className="bg-white px-6 py-4 mb-6">
+          <h1 className="text-2xl font-medium mb-3">Transactions</h1>
+          <p className="text-gray-500">
+            <Link to="/tailor" className="text-blue-500 hover:underline">
+              Dashboard
+            </Link>{" "}
+            &gt; Transactions
+          </p>
+        </div>
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+          <span className="ml-3 text-gray-600">Loading transactions...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="bg-white px-6 py-4 mb-6">
         <h1 className="text-2xl font-medium mb-3">Transactions</h1>
         <p className="text-gray-500">
-          <Link to="/fabric" className="text-blue-500 hover:underline">
+          <Link to="/tailor" className="text-blue-500 hover:underline">
             Dashboard
           </Link>{" "}
           &gt; Transactions
@@ -227,7 +216,10 @@ export default function TransactionPage() {
           <BarChartComponent />
         </div>
         <div className="lg:col-span-1">
-          <WalletPage />
+          <WalletPage
+            onWithdrawClick={() => setIsWithdrawalModalOpen(true)}
+            onViewAllClick={() => setIsViewAllModalOpen(true)}
+          />
         </div>
       </div>
       <div className="bg-white p-4 rounded-lg">
@@ -235,11 +227,8 @@ export default function TransactionPage() {
           <div className="flex flex-wrap space-x-6 text-gray-600 text-sm font-medium">
             <button
               onClick={() => {
+                console.log("🔘 TransactionPage - Filter changed to: all");
                 setFilter("all");
-                updateQueryParams({
-                  ...queryParams,
-                  status: undefined,
-                });
               }}
               className={`font-medium ${
                 filter === "all"
@@ -251,11 +240,10 @@ export default function TransactionPage() {
             </button>
             <button
               onClick={() => {
+                console.log(
+                  "🔘 TransactionPage - Filter changed to: completed",
+                );
                 setFilter("completed");
-                updateQueryParams({
-                  ...queryParams,
-                  status: "APPROVED",
-                });
               }}
               className={`font-medium ${
                 filter === "completed"
@@ -267,11 +255,8 @@ export default function TransactionPage() {
             </button>
             <button
               onClick={() => {
+                console.log("🔘 TransactionPage - Filter changed to: pending");
                 setFilter("pending");
-                updateQueryParams({
-                  ...queryParams,
-                  status: "PENDING",
-                });
               }}
               className={`font-medium ${
                 filter === "pending"
@@ -283,19 +268,16 @@ export default function TransactionPage() {
             </button>
             <button
               onClick={() => {
-                setFilter("rejected");
-                updateQueryParams({
-                  ...queryParams,
-                  status: "REJECTED",
-                });
+                console.log("🔘 TransactionPage - Filter changed to: failed");
+                setFilter("failed");
               }}
               className={`font-medium ${
-                filter === "rejected"
+                filter === "failed"
                   ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
                   : "text-gray-500"
               }`}
             >
-              Rejected
+              Failed
             </button>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -308,51 +290,66 @@ export default function TransactionPage() {
                 type="text"
                 placeholder="Search"
                 className="pl-10 pr-4 py-2 border border-gray-200 rounded-md outline-none"
-                value={queryString}
-                onChange={(evt) =>
-                  setQueryString(
-                    evt.target.value ? evt.target.value : undefined
-                  )
-                }
+                value={searchTerm}
+                onChange={(e) => {
+                  console.log(
+                    "🔍 TransactionPage - Search term changed:",
+                    e.target.value,
+                  );
+                  setSearchTerm(e.target.value);
+                }}
               />
             </div>
-            <select
-              onChange={handleExport}
-              className="bg-gray-100 outline-none text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
-            >
-              <option value="" disabled selected>
-                Export As
-              </option>
-              <option value="csv">Export to CSV</option>{" "}
-              <option value="excel">Export to Excel</option>{" "}
-              <option value="pdf">Export to PDF</option>{" "}
-            </select>
-            <CSVLink
-              id="csvDownload"
-              data={transactionsData?.map((row) => ({
-                Amount: row.amount,
-                currency: row.currency,
-                Status: row?.status,
-                Date: row.dateAdded,
-
-                // Location: row.location,
-                // "Date Joined": row.dateJoined,
-              }))}
-              filename="MyPayment.csv"
-              className="hidden"
-            />{" "}
+            <button className="px-4 py-2 bg-gray-200 rounded-md">
+              Export As ▼
+            </button>
             <button className="px-4 py-2 bg-gray-200 rounded-md">
               Sort: Newest First ▼
             </button>
           </div>
         </div>
 
-        <ReusableTable
-          loading={isPending}
-          columns={columns}
-          data={transactionsData || []}
-        />
+        {filteredTransactions.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-gray-400 mb-4">
+              <svg
+                className="mx-auto h-12 w-12"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-600 mb-2">
+              No Transactions Found
+            </h3>
+            <p className="text-gray-500">
+              {searchTerm || filter !== "all"
+                ? "No transactions match your current filters."
+                : "You haven't made any transactions yet."}
+            </p>
+          </div>
+        ) : (
+          <ReusableTable columns={columns} data={filteredTransactions} />
+        )}
       </div>
+
+      {/* Modals - Rendered at root level for proper centering */}
+      <WithdrawalModal
+        isOpen={isWithdrawalModalOpen}
+        businessWallet={businessData?.data?.business_wallet}
+        onClose={() => setIsWithdrawalModalOpen(false)}
+      />
+      <ViewWithdrawalsModal
+        isOpen={isViewAllModalOpen}
+        onClose={() => setIsViewAllModalOpen(false)}
+      />
     </div>
   );
 }

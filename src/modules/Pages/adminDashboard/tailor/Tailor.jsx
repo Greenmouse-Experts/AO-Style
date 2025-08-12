@@ -258,9 +258,7 @@ const CustomersTable = () => {
           <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
             Filter <BsFilter size={14} className="inline ml-1" />
           </button>
-          <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-            Bulk Action
-          </button>
+
           {/* <Link to="/admin/tailors/add-tailor"> */}
           <button
             onClick={() => setIsModalOpen(true)}

@@ -83,7 +83,7 @@ export default function NotificationPageUpdate() {
   }, [debouncedSearchTerm]);
 
   const totalPages = Math.ceil(
-    data?.count / (queryParams["pagination[limit]"] ?? 10)
+    data?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
   return (
@@ -166,7 +166,7 @@ export default function NotificationPageUpdate() {
                 value={queryString}
                 onChange={(evt) =>
                   setQueryString(
-                    evt.target.value ? evt.target.value : undefined
+                    evt.target.value ? evt.target.value : undefined,
                   )
                 }
               />
@@ -174,9 +174,9 @@ export default function NotificationPageUpdate() {
             <button className="px-4 py-2 bg-gray-200 rounded-md">
               Export As ▼
             </button>
-            <button className="px-4 py-2 bg-gray-200 rounded-md">
+            {/* <button className="px-4 py-2 bg-gray-200 rounded-md">
               Sort: Newest First ▼
-            </button>
+            </button>*/}
           </div>
         </div>
 
@@ -189,6 +189,7 @@ export default function NotificationPageUpdate() {
             {data?.data?.length ? (
               data?.data?.map((notification) => (
                 <div
+                  // to={"/notification/" + notification.id}
                   role="button"
                   onClick={() => {
                     if (!notification?.read) {
@@ -218,7 +219,7 @@ export default function NotificationPageUpdate() {
                     {notification?.created_at
                       ? formatDateStr(
                           notification?.created_at.split(".").shift(),
-                          "relative"
+                          "relative",
                         )
                       : ""}
                   </span>

@@ -52,7 +52,7 @@ const ViewMarketDetails = () => {
         },
         {
           onSuccess: () => {},
-        }
+        },
       );
     }
   };
@@ -72,7 +72,7 @@ const ViewMarketDetails = () => {
     : "Fabric Vendor";
 
   const { data: states, isLoading: loadingStates } = useStates(
-    tailorInfo?.kyc?.country
+    tailorInfo?.kyc?.country,
   );
 
   const statesOptions =
@@ -510,46 +510,14 @@ const ViewMarketDetails = () => {
                             />
                         </div> */}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="">
               <div className="w-full">
                 <label className="block text-gray-700 mb-2">Country</label>
                 <Select
                   options={countriesOptions}
                   name="country"
                   value={countriesOptions?.find(
-                    (opt) => opt.value === tailorInfo?.kyc?.country
-                  )}
-                  onChange={(selectedOption) => {}}
-                  placeholder="Select"
-                  className="p-2 w-full mb-6 border border-[#CCCCCC] outline-none rounded-lg"
-                  styles={{
-                    control: (base, state) => ({
-                      ...base,
-                      border: "none",
-                      boxShadow: "none",
-                      outline: "none",
-                      backgroundColor: "#fff",
-                      "&:hover": {
-                        border: "none",
-                      },
-                    }),
-                    indicatorSeparator: () => ({
-                      display: "none",
-                    }),
-                    menu: (base) => ({
-                      ...base,
-                      zIndex: 9999,
-                    }),
-                  }}
-                />{" "}
-              </div>
-              <div>
-                <label className="block text-gray-700 mb-2">State</label>
-                <Select
-                  options={statesOptions}
-                  name="state"
-                  value={statesOptions?.find(
-                    (opt) => opt.value === tailorInfo?.kyc?.state
+                    (opt) => opt.value === tailorInfo?.kyc?.country,
                   )}
                   onChange={(selectedOption) => {}}
                   placeholder="Select"
@@ -577,25 +545,15 @@ const ViewMarketDetails = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-gray-700 mb-2">City</label>
-                <input
-                  type="text"
-                  name={"city"}
-                  value={tailorInfo?.kyc?.city}
-                  className="mb-6 w-full p-4  border border-[#CCCCCC] outline-none rounded-lg text-sm"
-                  placeholder="City"
-                />
-              </div>
-
-              <div>
+            <div className="">
+              <div className="w-full">
                 <label className="block text-gray-700 mb-2">Address</label>
                 <input
+                  readOnly
                   type="text"
                   name={"location"}
                   value={tailorInfo?.kyc?.location}
-                  className="mb-6 w-full p-4  border border-[#CCCCCC] outline-none rounded-lg text-sm"
+                  className="mb-6 w-full p-4   border border-[#CCCCCC] outline-none rounded-lg text-sm"
                   placeholder="address"
                 />
               </div>

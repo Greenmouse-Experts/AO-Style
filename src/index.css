@@ -1,5 +1,9 @@
 @import "tailwindcss";
-
+@plugin "daisyui" {
+    root: "#cus-app";
+    themes: cupcake --default;
+    /*dark --prefersdark;*/
+}
 *,
 *::before,
 *::after {

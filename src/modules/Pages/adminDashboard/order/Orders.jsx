@@ -251,9 +251,6 @@ const OrdersTable = () => {
             <select className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-auto">
               <option>Filter</option>
             </select>
-            <select className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-auto">
-              <option>Bulk Action</option>
-            </select>
           </div>
         </div>
         {order_query.isFetching ? (

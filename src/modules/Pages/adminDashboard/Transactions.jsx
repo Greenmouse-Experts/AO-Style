@@ -502,9 +502,6 @@ const PaymentTransactionTable = () => {
             <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
               Report ▾
             </button>
-            <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-              Bulk Action ▾
-            </button>
           </div>
         </div>
         <div className="flex border-b border-gray-200 mb-4"></div>

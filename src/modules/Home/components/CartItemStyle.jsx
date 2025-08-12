@@ -5,6 +5,7 @@ const CartItemStyle = ({
   measurement,
   fabricImage,
   fabricName,
+  stylePrice,
 }) => {
   if (!styleProduct) {
     return null;
@@ -32,6 +33,11 @@ const CartItemStyle = ({
               {styleProduct?.name || "Custom Style"}
             </p>
             <p className="text-xs text-purple-500">Style</p>
+            {stylePrice && parseFloat(stylePrice) > 0 && (
+              <p className="text-xs font-medium text-purple-600">
+                +₦{parseFloat(stylePrice).toLocaleString()}
+              </p>
+            )}
           </div>
         </div>
 

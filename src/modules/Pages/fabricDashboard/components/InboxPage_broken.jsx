@@ -124,7 +124,6 @@ export default function InboxPage() {
         console.log("User ID being used:", userId);
         console.log("==================================");
         setIsConnected(true);
-        toastSuccess("Socket connected successfully");
       });
 
       socketInstance.on("disconnect", (reason) => {
@@ -133,7 +132,6 @@ export default function InboxPage() {
         console.log("User ID:", userId);
         console.log("=====================================");
         setIsConnected(false);
-        toastError("Socket disconnected: " + reason);
       });
 
       socketInstance.on("messageSent", (data) => {
@@ -314,7 +312,6 @@ export default function InboxPage() {
         console.error("Error:", error);
         console.error("Error message:", error.message);
         console.error("========================================");
-        toastError("Socket connection failed: " + error.message);
       });
 
       setSocket(socketInstance);
@@ -331,7 +328,7 @@ export default function InboxPage() {
       console.log("User ID exists:", !!userId);
       console.log("Profile loading:", profileLoading);
       console.log("==========================================");
-      
+
       if (!userToken) {
         toastError("User token not found. Please login again.");
       }
@@ -340,9 +337,9 @@ export default function InboxPage() {
         console.log("=== CUSTOMER SOCKET CONNECTED ===");
         console.log("Socket ID:", socketInstance.id);
         console.log("Socket connected:", socketInstance.connected);
+        console.log("User ID being used:", userId);
         console.log("==================================");
         setIsConnected(true);
-        toastSuccess("Connected successfully");
       });
 
       socketInstance.on("disconnect", (reason) => {
@@ -350,7 +347,6 @@ export default function InboxPage() {
         console.log("Disconnect reason:", reason);
         console.log("=====================================");
         setIsConnected(false);
-        toastError("Disconnected: " + reason);
       });
 
       socketInstance.on("messageSent", (data) => {
@@ -531,7 +527,6 @@ export default function InboxPage() {
         console.error("Error:", error);
         console.error("Error message:", error.message);
         console.error("========================================");
-        toastError("Socket connection failed: " + error.message);
       });
 
       // socketInstance.onAny((event, ...args) => {
@@ -729,7 +724,7 @@ export default function InboxPage() {
       console.error("Is connected:", isConnected);
       console.error("Socket state:", socket?.connected);
       console.error("============================");
-      toastError("Socket not connected. Please check your connection.");
+      console.error("Socket not connected. Please check your connection.");
     }
   };
 
@@ -780,10 +775,10 @@ export default function InboxPage() {
             >
               <FaCircle size={8} />
               <span>
-                {profileLoading 
-                  ? "Loading..." 
-                  : isConnected 
-                  ? "Online" 
+                {profileLoading
+                  ? "Loading..."
+                  : isConnected
+                  ? "Online"
                   : "Offline"
                 }
               </span>

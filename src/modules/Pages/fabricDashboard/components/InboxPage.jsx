@@ -130,7 +130,6 @@ export default function InboxPage() {
         console.log("User ID being used:", userId);
         console.log("==================================");
         setIsConnected(true);
-        toastSuccess("Connected successfully");
       });
 
       socketInstance.on("disconnect", (reason) => {
@@ -139,7 +138,6 @@ export default function InboxPage() {
         console.log("User ID:", userId);
         console.log("===================================");
         setIsConnected(false);
-        toastError("Disconnected: " + reason);
       });
 
       // Listen for user-specific message sent events
@@ -443,7 +441,6 @@ export default function InboxPage() {
         console.error("Error:", error);
         console.error("Error message:", error.message);
         console.error("======================================");
-        toastError("Socket connection failed: " + error.message);
       });
 
       setSocket(socketInstance);
@@ -569,7 +566,7 @@ export default function InboxPage() {
       console.error("Is connected:", isConnected);
       console.error("Socket state:", socket?.connected);
       console.error("============================");
-      toastError("Socket not connected. Please check your connection.");
+      console.error("Socket not connected. Please check your connection.");
     }
   };
 

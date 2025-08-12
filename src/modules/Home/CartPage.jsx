@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Breadcrumb from "./components/Breadcrumb";
 import useGetCart from "../../hooks/cart/useGetCart";
 import LoaderComponent from "../../components/BeatLoader";
@@ -50,6 +50,8 @@ const CartPage = () => {
   const [showPolicyModal, setShowPolicyModal] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  const [expandedBreakdown, setExpandedBreakdown] = useState({});
+  const breakdownRef = useRef({});
 
   // API hooks
   const {
@@ -131,9 +133,24 @@ const CartPage = () => {
     }
     //GOOD
     const subtotal = items.reduce((total, item) => {
-      const price = parseFloat(item.price_at_time || item.product?.price || 0);
+      const fabricPrice = parseFloat(
+        item.price_at_time || item.product?.price || 0,
+      );
+      const stylePrice = parseFloat(item.style_product?.price || 0);
       const quantity = parseInt(item.quantity || 1);
-      return total + price * quantity;
+      const itemTotal = fabricPrice * quantity + stylePrice;
+
+      console.log("💰 Cart Item Pricing:", {
+        itemId: item.id,
+        fabricPrice,
+        stylePrice,
+        quantity,
+        itemTotal,
+        hasStyle: !!item.style_product,
+        stylePriceFromAPI: item.style_product?.price,
+      });
+
+      return total + itemTotal;
     }, 0);
 
     const totalQuantity = items.reduce((total, item) => {
@@ -164,10 +181,39 @@ const CartPage = () => {
     charges: charges,
     discountAmount: discountAmount,
     finalTotal: finalTotal,
+    itemsWithStyles: items.filter((item) => item.style_product).length,
+    totalStylePrice: items.reduce(
+      (total, item) => total + parseFloat(item.style_product?.price || 0),
+      0,
+    ),
     note: "Service charges excluded from total (only subtotal + VAT + delivery)",
     deliveryDataExists: !!deliveryData,
     deliveryDataPath: deliveryData?.data?.data,
   });
+
+  // Handle click outside to close breakdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const openBreakdowns = Object.keys(expandedBreakdown).filter(
+        (key) => expandedBreakdown[key],
+      );
+
+      openBreakdowns.forEach((itemId) => {
+        const breakdownElement = breakdownRef.current[itemId];
+        if (breakdownElement && !breakdownElement.contains(event.target)) {
+          setExpandedBreakdown((prev) => ({
+            ...prev,
+            [itemId]: false,
+          }));
+        }
+      });
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [expandedBreakdown]);
 
   // Handle agreement click
   const handleAgreementClick = (e) => {
@@ -565,11 +611,13 @@ const CartPage = () => {
 
                 {/* Cart Items */}
                 {items.map((item) => {
-                  const unitPrice = parseFloat(
+                  const fabricPrice = parseFloat(
                     item.price_at_time || item.product?.price || 0,
                   );
+                  const stylePrice = parseFloat(item.style_product?.price || 0);
                   const quantity = parseInt(item.quantity || 1);
-                  const itemTotal = unitPrice * quantity;
+                  const fabricTotal = fabricPrice * quantity;
+                  const itemTotal = fabricTotal + stylePrice;
 
                   // For styled items, display should show measurement count
                   const measurementCount = getMeasurementCount(
@@ -604,7 +652,9 @@ const CartPage = () => {
                               Type: {item.product_type || item.product?.type}
                             </p>
                             <p className="text-sm text-purple-600 font-semibold mt-1">
-                              {formatPrice(unitPrice)} each
+                              {item?.style_product
+                                ? `₦${fabricPrice.toLocaleString()} fabric + ₦${stylePrice.toLocaleString()} style`
+                                : `₦${fabricPrice.toLocaleString()} per yard`}
                             </p>
                             {item.product?.sku && (
                               <p className="text-xs text-gray-400 mt-1">
@@ -619,13 +669,14 @@ const CartPage = () => {
                                 measurement={item.measurement}
                                 fabricImage={item.product?.image}
                                 fabricName={item.product?.name}
+                                stylePrice={item.style_product?.price}
                               />
                             )}
                           </div>
                         </div>
 
                         {/* Quantity Display */}
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between relative">
                           <div className="flex items-center gap-3">
                             <div className="flex flex-col">
                               <span className="text-sm font-medium">
@@ -644,9 +695,68 @@ const CartPage = () => {
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-lg font-bold text-purple-600">
-                              {formatPrice(itemTotal)}
-                            </p>
+                            <div className="flex items-center justify-end gap-2">
+                              <p className="text-lg font-bold text-purple-600">
+                                {formatPrice(itemTotal)}
+                              </p>
+                              {item?.style_product && stylePrice > 0 && (
+                                <button
+                                  onClick={() =>
+                                    setExpandedBreakdown((prev) => ({
+                                      ...prev,
+                                      [item.id]: !prev[item.id],
+                                    }))
+                                  }
+                                  className="text-xs text-blue-600 hover:text-blue-800 p-1 rounded-full hover:bg-blue-50 transition-colors"
+                                  title="View price breakdown"
+                                >
+                                  <svg
+                                    className="w-4 h-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
+                                  </svg>
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Expandable price breakdown */}
+                            {item?.style_product &&
+                              stylePrice > 0 &&
+                              expandedBreakdown[item.id] && (
+                                <div
+                                  ref={(el) =>
+                                    (breakdownRef.current[item.id] = el)
+                                  }
+                                  className="absolute right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-10 min-w-[200px]"
+                                >
+                                  <div className="text-xs text-gray-700 space-y-1">
+                                    <div className="flex justify-between">
+                                      <span>Fabric ({quantity} yards):</span>
+                                      <span>
+                                        ₦{fabricTotal.toLocaleString()}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span>Style:</span>
+                                      <span>
+                                        ₦{stylePrice.toLocaleString()}
+                                      </span>
+                                    </div>
+                                    <div className="border-t pt-1 flex justify-between font-medium">
+                                      <span>Total:</span>
+                                      <span>₦{itemTotal.toLocaleString()}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                           </div>
                         </div>
 
@@ -707,6 +817,7 @@ const CartPage = () => {
                                   measurement={item.measurement}
                                   fabricImage={item.product?.image}
                                   fabricName={item.product?.name}
+                                  stylePrice={item.style_product?.price}
                                 />
                               )}
                             </div>
@@ -735,10 +846,65 @@ const CartPage = () => {
                         </div>
 
                         {/* Total */}
-                        <div className="col-span-2 text-right">
-                          <p className="text-lg font-bold text-purple-600">
-                            {formatPrice(itemTotal)}
-                          </p>
+                        <div className="col-span-2 text-right relative">
+                          <div className="flex items-center justify-end gap-2">
+                            <p className="text-lg font-bold text-purple-600">
+                              {formatPrice(itemTotal)}
+                            </p>
+                            {item?.style_product && stylePrice > 0 && (
+                              <button
+                                onClick={() =>
+                                  setExpandedBreakdown((prev) => ({
+                                    ...prev,
+                                    [item.id]: !prev[item.id],
+                                  }))
+                                }
+                                className="text-xs text-blue-600 hover:text-blue-800 p-1 rounded-full hover:bg-blue-50 transition-colors"
+                                title="View price breakdown"
+                              >
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                  />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Expandable price breakdown */}
+                          {item?.style_product &&
+                            stylePrice > 0 &&
+                            expandedBreakdown[item.id] && (
+                              <div
+                                ref={(el) =>
+                                  (breakdownRef.current[item.id] = el)
+                                }
+                                className="absolute right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-10 min-w-[200px]"
+                              >
+                                <div className="text-xs text-gray-700 space-y-1">
+                                  <div className="flex justify-between">
+                                    <span>Fabric ({quantity} yards):</span>
+                                    <span>₦{fabricTotal.toLocaleString()}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Style:</span>
+                                    <span>₦{stylePrice.toLocaleString()}</span>
+                                  </div>
+                                  <div className="border-t pt-1 flex justify-between font-medium">
+                                    <span>Total:</span>
+                                    <span>₦{itemTotal.toLocaleString()}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                         </div>
 
                         {/* Remove */}
@@ -1123,9 +1289,18 @@ const CartPage = () => {
                             {item.product?.name || item.name}
                           </p>
                           <p className="text-xs text-gray-600">
-                            Qty: {item.quantity} × ₦
+                            Fabric: {item.quantity} × ₦
                             {formatNumberWithCommas(
                               item.price || item.price_at_time,
+                            )}
+                            {item.style_product?.price && (
+                              <span>
+                                {" "}
+                                + Style: ₦
+                                {formatNumberWithCommas(
+                                  item.style_product.price,
+                                )}
+                              </span>
                             )}
                           </p>
                           {item.product_type && (
@@ -1139,7 +1314,8 @@ const CartPage = () => {
                             ₦
                             {formatNumberWithCommas(
                               (item.price || item.price_at_time) *
-                                item.quantity,
+                                item.quantity +
+                                (item.style_product?.price || 0),
                             )}
                           </p>
                         </div>

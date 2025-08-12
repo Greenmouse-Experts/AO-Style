@@ -9,7 +9,7 @@ export default function AddNewTailorModal({ isOpen, onClose }: any) {
   const [addAddress, setAddAddress] = useState(false);
   const mutate = useMutation({
     mutationFn: async (data: any) => {
-      let resp = await CaryBinApi.post("/contact/invite", { data });
+      let resp = await CaryBinApi.post("/contact/invite", { ...data });
     },
     onSuccess: () => {
       toast.success("invite sent successfully");
@@ -25,7 +25,7 @@ export default function AddNewTailorModal({ isOpen, onClose }: any) {
     e.preventDefault();
     let business_id = userData?.data?.id;
     const data = {
-      // business_id: business_id,
+      business_id: business_id,
       email: e.target.email.value,
       name: e.target.name.value,
       role: e.target.role.value,

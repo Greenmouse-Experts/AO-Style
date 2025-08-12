@@ -91,7 +91,13 @@ export default function InboxPage() {
       console.log("=============================");
       setProfileLoading(true);
     }
-  }, [profileSuccess, profileData, profileError, profileErrorData, profilePending]);
+  }, [
+    profileSuccess,
+    profileData,
+    profileError,
+    profileErrorData,
+    profilePending,
+  ]);
 
   // Initialize Socket.IO connection - Wait for profile to be loaded
   useEffect(() => {
@@ -124,7 +130,6 @@ export default function InboxPage() {
         console.log("User ID being used:", userId);
         console.log("================================");
         setIsConnected(true);
-        toastSuccess("Connected successfully");
       });
 
       socketInstance.on("disconnect", (reason) => {
@@ -133,7 +138,6 @@ export default function InboxPage() {
         console.log("User ID:", userId);
         console.log("=================================");
         setIsConnected(false);
-        toastError("Disconnected: " + reason);
       });
 
       socketInstance.on("messageSent", (data) => {
@@ -167,19 +171,23 @@ export default function InboxPage() {
       // Listen for user-specific chat events
       if (userId) {
         console.log(
-          `🎯 Setting up sales user-specific event listeners for user: ${userId}`
+          `🎯 Setting up sales user-specific event listeners for user: ${userId}`,
         );
         console.log(`🎯 Listening for: chatsRetrieved.${userId}`);
         console.log(`🎯 Listening for: messagesRetrieved.${userId}`);
         console.log(`🎯 Listening for: recentChatRetrieved.${userId}`);
 
         socketInstance.on(`chatsRetrieved:${userId}`, (data) => {
-          console.log(`=== SALES USER-SPECIFIC CHATS RETRIEVED (${userId}) ===`);
+          console.log(
+            `=== SALES USER-SPECIFIC CHATS RETRIEVED (${userId}) ===`,
+          );
           console.log("Full response:", JSON.stringify(data, null, 2));
           console.log("Status:", data?.status);
           console.log("Message:", data?.message);
           console.log("Result array:", data?.data?.result);
-          console.log("=======================================================");
+          console.log(
+            "=======================================================",
+          );
 
           if (data?.status === "success" && data?.data?.result) {
             setChats(data.data.result);
@@ -191,12 +199,16 @@ export default function InboxPage() {
         });
 
         socketInstance.on(`messagesRetrieved:${userId}`, (data) => {
-          console.log(`=== SALES USER-SPECIFIC MESSAGES RETRIEVED (${userId}) ===`);
+          console.log(
+            `=== SALES USER-SPECIFIC MESSAGES RETRIEVED (${userId}) ===`,
+          );
           console.log("Full response:", JSON.stringify(data, null, 2));
           console.log("Status:", data?.status);
           console.log("Messages array:", data?.data?.result);
           console.log("Selected chat from ref:", selectedChatRef.current);
-          console.log("========================================================");
+          console.log(
+            "========================================================",
+          );
 
           if (data?.status === "success" && data?.data?.result) {
             const currentSelectedChat = selectedChatRef.current;
@@ -225,15 +237,17 @@ export default function InboxPage() {
 
         socketInstance.on(`recentChatRetrieved:${userId}`, (data) => {
           console.log(
-            `=== SALES USER-SPECIFIC RECENT CHAT RETRIEVED (${userId}) ===`
+            `=== SALES USER-SPECIFIC RECENT CHAT RETRIEVED (${userId}) ===`,
           );
           console.log("Chat data:", JSON.stringify(data, null, 2));
-          console.log("=======================================================");
+          console.log(
+            "=======================================================",
+          );
 
           if (data?.data) {
             setChats((prevChats) => {
               const existingChatIndex = prevChats.findIndex(
-                (chat) => chat.id === data.data.id
+                (chat) => chat.id === data.data.id,
               );
               if (existingChatIndex >= 0) {
                 const updatedChats = [...prevChats];
@@ -292,7 +306,7 @@ export default function InboxPage() {
         if (data?.data) {
           setChats((prevChats) => {
             const existingChatIndex = prevChats.findIndex(
-              (chat) => chat.id === data.data.id
+              (chat) => chat.id === data.data.id,
             );
             if (existingChatIndex >= 0) {
               const updatedChats = [...prevChats];
@@ -314,7 +328,6 @@ export default function InboxPage() {
         console.error("Error:", error);
         console.error("Error message:", error.message);
         console.error("====================================");
-        toastError("Socket connection failed: " + error.message);
       });
 
       setSocket(socketInstance);
@@ -331,7 +344,7 @@ export default function InboxPage() {
       console.log("User ID exists:", !!userId);
       console.log("Profile loading:", profileLoading);
       console.log("==============================================");
-      
+
       if (!userToken) {
         toastError("User token not found. Please login again.");
       }
@@ -351,9 +364,9 @@ export default function InboxPage() {
     if (socket && selectedChat && userId) {
       console.log("🔄 Emitting getMessages for sales chat:", selectedChat.id);
       console.log("🔄 User ID:", userId);
-      socket.emit("getMessages", { 
+      socket.emit("getMessages", {
         chatId: selectedChat.id,
-        userId: userId
+        userId: userId,
       });
     }
   }, [socket, selectedChat, userId]);
@@ -367,7 +380,7 @@ export default function InboxPage() {
       } else if (!newMessage.trim()) {
         toastError("Please enter a message");
       } else {
-        toastError("Socket not connected");
+        console.error("Socket not connected");
       }
       return;
     }
@@ -382,7 +395,7 @@ export default function InboxPage() {
     const messageData = {
       chatId: selectedChat.id,
       message: newMessage,
-      userId: userId
+      userId: userId,
     };
 
     try {
@@ -451,10 +464,14 @@ export default function InboxPage() {
       <div className="flex items-center justify-center h-screen bg-gray-50">
         <div className="text-center">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Profile Load Error</h2>
-          <p className="text-gray-600 mb-4">Failed to load sales user profile</p>
-          <button 
-            onClick={() => window.location.reload()} 
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">
+            Profile Load Error
+          </h2>
+          <p className="text-gray-600 mb-4">
+            Failed to load sales user profile
+          </p>
+          <button
+            onClick={() => window.location.reload()}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
             Retry
@@ -479,11 +496,13 @@ export default function InboxPage() {
             <div className="flex items-center space-x-2">
               {/* Connection Status Indicator */}
               <div className="flex items-center space-x-1">
-                <FaCircle 
-                  className={`text-xs ${isConnected ? 'text-green-500' : 'text-red-500'}`} 
+                <FaCircle
+                  className={`text-xs ${isConnected ? "text-green-500" : "text-red-500"}`}
                 />
-                <span className={`text-xs ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
-                  {isConnected ? 'Connected' : 'Disconnected'}
+                <span
+                  className={`text-xs ${isConnected ? "text-green-600" : "text-red-600"}`}
+                >
+                  {isConnected ? "Connected" : "Disconnected"}
                 </span>
               </div>
               <button className="p-2 hover:bg-gray-100 rounded-full">
@@ -531,7 +550,7 @@ export default function InboxPage() {
                       <span className="text-xs text-gray-500">
                         {chat.last_message?.created_at
                           ? new Date(
-                              chat.last_message.created_at
+                              chat.last_message.created_at,
                             ).toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",

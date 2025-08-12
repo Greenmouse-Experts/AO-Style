@@ -397,10 +397,18 @@ export default function AnkaraGownPage() {
       customer_name: latestMeasurement.customer_name,
       color: pendingFabric.color || "",
       style_product_id: styleInfo?.id || styleInfo?.product_id,
+      style_price: styleInfo?.price || 0,
       measurement: measurementArr,
     };
 
     console.log("🛒 Adding fabric + style to cart:", cartPayload);
+    console.log("💰 Style pricing details:", {
+      stylePrice: styleInfo?.price,
+      stylePriceInPayload: cartPayload.style_price,
+      styleId: cartPayload.style_product_id,
+      fabricPrice: pendingFabric.price,
+      totalExpectedPrice: (pendingFabric.price || 0) + (styleInfo?.price || 0),
+    });
 
     addCartMutate(cartPayload, {
       onSuccess: () => {

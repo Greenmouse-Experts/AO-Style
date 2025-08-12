@@ -219,7 +219,6 @@ export default function InboxPage() {
         console.log("Admin ID being used:", adminId);
         console.log("==============================");
         setIsConnected(true);
-        toastSuccess("Socket connected successfully");
       });
 
       socketInstance.on("disconnect", (reason) => {
@@ -227,7 +226,6 @@ export default function InboxPage() {
         console.log("Disconnect reason:", reason);
         console.log("===========================");
         setIsConnected(false);
-        toastError("Socket disconnected: " + reason);
       });
 
       // Listen for admin-specific message sent events
@@ -679,7 +677,7 @@ export default function InboxPage() {
       console.error("Is connected:", isConnected);
       console.error("Socket state:", socket?.connected);
       console.error("============================");
-      toastError("Socket not connected. Please check your connection.");
+      console.error("Socket not connected. Please check your connection.");
     }
   };
 
@@ -751,7 +749,7 @@ export default function InboxPage() {
       console.error("Is connected:", isConnected);
       console.error("Socket state:", socket?.connected);
       console.error("============================");
-      toastError("Socket not connected. Please check your connection.");
+      console.error("Socket not connected. Please check your connection.");
     }
   };
 

@@ -15,8 +15,15 @@ import CaryBinApi from "../../CarybinBaseUrl";
  */
 const addToCart = async (payload) => {
   try {
-    console.log("🛒 Adding item to cart:", payload);
-    const response = await CaryBinApi.post(`/cart/add`, payload);
+    // Include style pricing if style is present
+    const enhancedPayload = { ...payload };
+    if (payload.style_product_id && payload.style_price) {
+      enhancedPayload.style_price = parseFloat(payload.style_price);
+      console.log("🛒 Style price included:", enhancedPayload.style_price);
+    }
+
+    console.log("🛒 Adding item to cart:", enhancedPayload);
+    const response = await CaryBinApi.post(`/cart/add`, enhancedPayload);
     console.log("✅ Item added to cart successfully:", response.data);
     return response;
   } catch (error) {
@@ -84,6 +91,11 @@ const updateCartItem = async (payload) => {
     // Add style if provided
     if (payload.style_product_id) {
       updateData.style_product_id = payload.style_product_id;
+    }
+
+    // Add style price if provided
+    if (payload.style_price !== undefined) {
+      updateData.style_price = parseFloat(payload.style_price);
     }
 
     // Add measurement if provided
@@ -312,9 +324,10 @@ const verifyPayment = async (payload) => {
  */
 const calculateCartTotals = (cartItems = []) => {
   const subtotal = cartItems.reduce((total, item) => {
-    const price = parseFloat(item.price || item.price_at_time || 0);
+    const fabricPrice = parseFloat(item.price || item.price_at_time || 0);
+    const stylePrice = parseFloat(item.style_product?.price || 0);
     const quantity = parseInt(item.quantity || 1);
-    return total + price * quantity;
+    return total + fabricPrice * quantity + stylePrice;
   }, 0);
 
   const tax = subtotal * 0.1; // 10% tax (adjust as needed)

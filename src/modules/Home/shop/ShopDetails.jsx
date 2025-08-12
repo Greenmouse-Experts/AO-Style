@@ -268,6 +268,7 @@ export default function ShopDetails() {
     const combinedPayload = {
       ...fabricInfo,
       style_product_id: styleData?.id || styleData?.product_id,
+      style_price: styleData?.price || 0,
       measurement: measurementData,
     };
 
@@ -275,6 +276,14 @@ export default function ShopDetails() {
       combinedPayload: combinedPayload,
       hasStyleProductId: !!combinedPayload.style_product_id,
       hasMeasurement: !!combinedPayload.measurement,
+    });
+
+    console.log("💰 Style pricing details in ShopDetails:", {
+      stylePrice: styleData?.price,
+      stylePriceInPayload: combinedPayload.style_price,
+      styleId: combinedPayload.style_product_id,
+      fabricPrice: fabricInfo.price,
+      totalExpectedPrice: (fabricInfo.price || 0) + (styleData?.price || 0),
     });
 
     // Validate required fields

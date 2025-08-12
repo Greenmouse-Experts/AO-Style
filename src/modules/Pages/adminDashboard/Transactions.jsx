@@ -250,42 +250,6 @@ const PaymentTransactionTable = () => {
           </span>
         ),
       },
-      {
-        label: "Action",
-        key: "action",
-        render: (_, row) => (
-          <div className="relative" ref={dropdownRef}>
-            <button
-              className="p-2 text-gray-600"
-              onClick={() => toggleDropdown(row.id)}
-            >
-              <FaEllipsisH />
-            </button>
-            {openDropdown === row.id && (
-              <div className="absolute right-0 mt-2 w-40 bg-white rounded-md z-10 shadow-lg">
-                <>
-                  <button
-                    onMouseDown={() => {
-                      navigate("/admin/transactions/" + row.id);
-                    }}
-                    // to={"/admin/transactions/" + row.id}
-                    className="p-2 w-full"
-                  >
-                    View Details
-                  </button>
-                  {/* <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
-                    Edit Transaction
-                  </button>
-                  <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">
-                    Remove Transaction
-                  </button>*/}
-                </>
-              </div>
-            )}
-          </div>
-        ),
-        className: "text-gray-500 font-medium text-sm py-4 w-20",
-      },
     ],
     [selectAll, selectedRows, getAllTransactionData?.data, openDropdown],
   );
@@ -475,9 +439,6 @@ const PaymentTransactionTable = () => {
               <option value="excel">Export to Excel</option>{" "}
               <option value="pdf">Export to PDF</option>{" "}
             </select>
-            <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-              Report ▾
-            </button>
           </div>
         </div>
         <div className="flex border-b border-gray-200 mb-4"></div>

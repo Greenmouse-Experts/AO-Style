@@ -122,17 +122,17 @@ export default function AnalyticsCards() {
   ];
 
   return (
-    <>
+    <div className="mb-4">
       <div>
         <h2 className="text-lg font-medium mb-4 text-[#2B3674]">
           View, track, and manage all financial activities across the platform.
         </h2>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 md:grid-rows-2 lg:grid-cols-4 gap-6 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, index) => (
           <div
             key={index}
-            className="flex items-center justify-between bg-white p-4 rounded-md"
+            className="flex  items-center justify-between  p-4 rounded-md bg-white"
           >
             <div className="flex-1">
               <div className="flex items-baseline gap-2">
@@ -151,6 +151,6 @@ export default function AnalyticsCards() {
           </div>
         ))}
       </div>
-    </>
+    </div>
   );
 }

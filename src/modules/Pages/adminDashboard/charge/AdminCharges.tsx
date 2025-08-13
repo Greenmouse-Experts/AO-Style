@@ -25,22 +25,6 @@ export default function AdminCharges() {
       return resp.data;
     },
   });
-  const editDialogRef = useRef<HTMLDialogElement>(null);
-  if (query.isLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <span className="loading loading-spinner loading-lg"></span>
-      </div>
-    );
-  }
-
-  if (query.isError) {
-    return (
-      <div className="text-error text-center mt-10">
-        Error loading admin charges. Please try again later.
-      </div>
-    );
-  }
   const mutate = useMutation({
     mutationFn: async (data: any) => {
       let resp = await CaryBinApi.put(
@@ -61,6 +45,23 @@ export default function AdminCharges() {
       }, 500);
     },
   });
+  const editDialogRef = useRef<HTMLDialogElement>(null);
+  if (query.isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <span className="loading loading-spinner loading-lg"></span>
+      </div>
+    );
+  }
+
+  if (query.isError) {
+    return (
+      <div className="text-error text-center mt-10">
+        Error loading admin charges. Please try again later.
+      </div>
+    );
+  }
+
   const onChargeSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
     const formElement = e.currentTarget as HTMLFormElement;

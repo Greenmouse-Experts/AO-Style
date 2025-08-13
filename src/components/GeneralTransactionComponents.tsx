@@ -310,7 +310,7 @@ export function GeneralTransactionComponent() {
         </div>
       ) : (
         <CustomTable
-          data={dummy_transactions.data}
+          data={query?.data?.data || []}
           columns={columns}
           actions={actions}
         />

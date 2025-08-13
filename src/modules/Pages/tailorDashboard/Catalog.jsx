@@ -311,9 +311,9 @@ export default function StylesTable() {
               filename="StylesCatalog.csv"
               className="hidden"
             />{" "}
-            <button className="px-4 py-2 bg-gray-200 rounded-md text-sm">
+            {/* <button className="px-4 py-2 bg-gray-200 rounded-md text-sm">
               Sort: Newest ▼
-            </button>
+            </button>*/}
           </div>
         </div>
 

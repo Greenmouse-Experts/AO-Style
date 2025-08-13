@@ -97,7 +97,7 @@ const Coupons = () => {
               setType("Add");
               resetForm();
             },
-          }
+          },
         );
       }
 
@@ -116,7 +116,7 @@ const Coupons = () => {
               resetForm();
               setType("Add");
             },
-          }
+          },
         );
       }
 
@@ -129,7 +129,7 @@ const Coupons = () => {
             resetForm();
             setType("Add");
           },
-        }
+        },
       );
     },
   });
@@ -186,7 +186,7 @@ const Coupons = () => {
             };
           })
         : [],
-    [data?.data]
+    [data?.data],
   );
 
   useUpdatedEffect(() => {
@@ -259,11 +259,11 @@ const Coupons = () => {
         ),
       },
     ],
-    [openDropdown]
+    [openDropdown],
   );
 
   const totalPages = Math.ceil(
-    data?.count / (queryParams["pagination[limit]"] ?? 10)
+    data?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
   const actionText = `${type} Coupon`;
@@ -372,9 +372,9 @@ const Coupons = () => {
             filename="Coupons.csv"
             className="hidden"
           />{" "}
-          <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
+          {/* <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
             Sort: Newest First ▾
-          </button>
+          </button>*/}
           {!isError && !isPending ? (
             <button
               onClick={() => setIsAddModalOpen(true)}

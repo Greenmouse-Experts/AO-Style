@@ -345,9 +345,9 @@ const CustomersTable = () => {
               filename="Employees/Admin.csv"
               className="hidden"
             />{" "}
-            <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
+            {/* <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
               Sort: Newest First ▾
-            </button>
+            </button>*/}
             <Link to="/admin/roles">
               <button className="bg-gradient cursor-pointer text-white px-4 py-3 text-sm rounded-md">
                 + Add New Role

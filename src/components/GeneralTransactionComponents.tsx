@@ -5,6 +5,7 @@ import { formatDateStr } from "../lib/helper";
 import useQueryParams from "../hooks/useQueryParams";
 import { Link, useNavigate } from "react-router-dom";
 import CustomTable from "./CustomTable";
+import GeneralTransactionAnalysis from "./GeneralTransactionAnalysis";
 
 interface ApiResponse {
   statusCode: number;
@@ -237,22 +238,13 @@ export function GeneralTransactionComponent() {
           </p>
         </div>
       </div>
+
+      {/*<GeneralTransactionAnalysis />*/}
       {/* Filters */}
       <div className="bg-white p-4 rounded-lg shadow mb-4" data-theme="nord">
         <div className="flex flex-col md:flex-row md:items-end gap-4">
           {/* Search */}
-          <div className="form-control w-full md:w-80">
-            <label className="label">
-              <span className="label-text font-medium">Search</span>
-            </label>
-            <input
-              type="text"
-              placeholder="Transaction ID or email"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="input input-bordered w-full input-sm"
-            />
-          </div>
+          {/*<div className="form-control w-full md:w-80"></div>*/}
 
           {/* Status */}
           <div className="form-control w-full md:w-56">
@@ -385,7 +377,7 @@ export function GeneralTransactionComponent() {
             className=""
             onSubmit={(e) => {
               e.preventDefault();
-              let form = new FormData(e.target);
+              let form = new FormData(e.target as unknown as HTMLFormElement);
               let page = parseInt(form.get("page") as string);
               let new_filter: Filters = { ...filters, page: page };
               setFilters(new_filter);
@@ -397,6 +389,7 @@ export function GeneralTransactionComponent() {
               className="input w-14 join-item"
               placeholder={" " + filters.page}
               min={1}
+              //@ts-ignore
               max={query.data?.data.length < filters.limit && filters.page}
             />
           </form>

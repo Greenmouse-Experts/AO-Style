@@ -278,7 +278,7 @@ const OrderDetails = () => {
           </div>
 
           {/* Order Support */}
-          <div className="bg-white p-6 rounded-lg">
+          {/* <div className="bg-white p-6 rounded-lg">
             <h5 className="text-lg font-medium border-b border-gray-200 pb-3 mb-6">
               Order Support
             </h5>
@@ -297,11 +297,11 @@ const OrderDetails = () => {
                 size={32}
               />
             </div>
-          </div>
+          </div>*/}
         </div>
 
         {/* Customer & Vendor */}
-        <div className="bg-white p-6 rounded-lg">
+        {/* <div className="bg-white p-6 rounded-lg">
           <h5 className="text-lg font-medium border-b border-gray-200 pb-3 mb-6">
             Customer & Vendor
           </h5>
@@ -320,8 +320,8 @@ const OrderDetails = () => {
               <p className="text-gray-500 text-sm mb-2">Delivery Method</p>
               <p className="font-semibold"></p>
             </div> */}
-          </div>
-        </div>
+        {/* </div>
+        </div>*/}
       </div>
     </div>
   );

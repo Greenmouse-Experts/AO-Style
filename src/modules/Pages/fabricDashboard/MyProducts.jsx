@@ -115,6 +115,7 @@ const ProductPage = () => {
 
     return uniqueProducts.map((details) => {
       console.log("🔍 Processing fabric item:", details);
+      console.log("📸 Fabric photos:", details?.fabric?.photos);
 
       return {
         ...details,
@@ -200,21 +201,18 @@ const ProductPage = () => {
         render: (image, row) => (
           <div className="flex items-center justify-center min-w-[80px]">
             {row?.fabric?.photos && row?.fabric?.photos.length > 0 ? (
-              <div className="relative group">
-                <img
-                  src={row.fabric.photos[0]}
-                  alt={row?.name || "Product"}
-                  className="w-14 h-14 rounded-lg object-cover border-2 border-gray-200 shadow-sm group-hover:shadow-md transition-shadow duration-200"
-                  onError={(e) => {
-                    e.target.style.display = "none";
-                    e.target.nextSibling.style.display = "flex";
-                  }}
-                />
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 rounded-lg transition-all duration-200"></div>
-              </div>
+              <img
+                src={row.fabric.photos[0]}
+                alt={row?.name || "Product"}
+                className="w-14 h-14 rounded-lg object-cover border-2 border-gray-200"
+                onError={(e) => {
+                  e.target.style.display = "none";
+                  e.target.nextSibling.style.display = "flex";
+                }}
+              />
             ) : null}
             <div
-              className="w-14 h-14 rounded-lg bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center font-bold text-white text-lg shadow-sm border-2 border-gray-200"
+              className="w-14 h-14 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center font-bold text-white text-lg border-2 border-gray-200"
               style={{
                 display:
                   row?.fabric?.photos && row?.fabric?.photos.length > 0
@@ -942,7 +940,7 @@ const ProductPage = () => {
                     </button>
                   ) : null}
 
-                  {row?.status === "PUBLISHED" ? (
+                  {/* {row?.status === "PUBLISHED" ? (
                     <button
                       onClick={() => {
                         console.log("📝 Unpublishing fabric product:", row);
@@ -1018,7 +1016,7 @@ const ProductPage = () => {
                         ? "Unpublishing..."
                         : "Unpublish Product"}
                     </button>
-                  ) : null}
+                  ) : null}*/}
 
                   <Link
                     state={{ info: row?.original || row }}
@@ -1052,10 +1050,10 @@ const ProductPage = () => {
                         d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                       />
                     </svg>
-                    View Details
+                    View/Edit Fabric
                   </Link>
 
-                  <Link
+                  {/* <Link
                     state={{ info: row?.original || row }}
                     to={
                       isAdminFabricRoute
@@ -1082,7 +1080,7 @@ const ProductPage = () => {
                       />
                     </svg>
                     Edit Product
-                  </Link>
+                  </Link>*/}
 
                   <button
                     onClick={() => {

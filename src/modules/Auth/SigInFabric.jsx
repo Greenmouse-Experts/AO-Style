@@ -17,7 +17,7 @@ import useToast from "../../hooks/useToast";
 import { countryCodes } from "../../constant";
 import Select from "react-select";
 import PhoneInput from "react-phone-input-2";
-import Autocomplete, { usePlacesWidget } from "react-google-autocomplete";
+import Autocomplete from "react-google-autocomplete";
 
 // import agreementPdf from "./Agreement between Carybin and Fabric Vendors.pdf";
 
@@ -32,6 +32,8 @@ const initialValues = {
   business_name: "",
   business_type: "",
   location: "",
+  latitude: "",
+  longitude: "",
   phoneCode: "+234",
   fabricVendorAgreement: false,
   checked: false,
@@ -151,18 +153,27 @@ export default function SignInAsCustomer() {
   const businessImage =
     "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741617621/AoStyle/image_2_ezzekx.png";
 
-  const { ref } = usePlacesWidget({
-    apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
-    onPlaceSelected: (place) => {
-      setFieldValue("location", place.formatted_address);
-      setFieldValue("latitude", place.geometry?.location?.lat().toString());
-      setFieldValue("longitude", place.geometry?.location?.lng().toString());
-    },
-    options: {
-      componentRestrictions: { country: "ng" },
-      types: [],
-    },
-  });
+  // Comprehensive Google Places debugging
+  useEffect(() => {
+    console.log(
+      "🔑 Fabric Vendor - Google Maps API Key:",
+      import.meta.env.VITE_GOOGLE_MAP_API_KEY ? "Available" : "Missing",
+    );
+    console.log(
+      "🌐 Fabric Vendor - Google object available:",
+      typeof window.google !== "undefined",
+    );
+    console.log(
+      "📍 Fabric Vendor - Places library:",
+      typeof window.google?.maps?.places !== "undefined",
+    );
+
+    if (typeof window.google === "undefined") {
+      console.error(
+        "❌ Google Maps JavaScript API not loaded for Fabric Vendor",
+      );
+    }
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -573,20 +584,53 @@ export default function SignInAsCustomer() {
                   <label className="block text-gray-700">
                     Business Address
                   </label>
-                  <input
-                    type="text"
-                    ref={ref}
+                  <Autocomplete
+                    apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY}
                     className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                     placeholder="Enter full detailed address"
-                    required
                     name="location"
-                    onChange={(e) => {
-                      setFieldValue("location", e.currentTarget.value);
-                      setFieldValue("latitude", "");
-                      setFieldValue("longitude", "");
-                    }}
                     value={values.location}
+                    onChange={(e) => {
+                      console.log(
+                        "📝 Fabric Vendor - Address input changed:",
+                        e.target.value,
+                      );
+                      setFieldValue("location", e.target.value);
+                    }}
+                    onPlaceSelected={(place) => {
+                      console.log(
+                        "🗺️ Fabric Vendor - Google Place Selected:",
+                        place,
+                      );
+                      const lat = place.geometry?.location?.lat();
+                      const lng = place.geometry?.location?.lng();
+                      console.log("📍 Fabric Vendor - Setting coordinates:", {
+                        lat,
+                        lng,
+                      });
+
+                      setFieldValue("location", place.formatted_address);
+                      setFieldValue("latitude", lat ? lat.toString() : "");
+                      setFieldValue("longitude", lng ? lng.toString() : "");
+                    }}
+                    options={{
+                      componentRestrictions: { country: "ng" },
+                      types: [],
+                    }}
+                    onFocus={() =>
+                      console.log("🎯 Fabric Vendor - Address input focused")
+                    }
+                    onBlur={() =>
+                      console.log("👋 Fabric Vendor - Address input blurred")
+                    }
+                    style={{ zIndex: 1 }}
                   />
+                  {/* {values.latitude && values.longitude && (
+                    <div className="text-xs text-green-600 mt-1">
+                      ✅ Location coordinates set: {values.latitude},{" "}
+                      {values.longitude}
+                    </div>
+                  )}*/}
                   <label className="block text-gray-700">
                     Business Registration Number (Optional)
                   </label>

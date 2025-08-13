@@ -1299,7 +1299,7 @@ const CartPage = () => {
                           console.log(
                             "📝 User wants to update profile address",
                           );
-                          window.open("/profile", "_blank");
+                          window.open(`${currentUrl}/settings`);
                         }}
                         className="underline hover:text-blue-800"
                       >

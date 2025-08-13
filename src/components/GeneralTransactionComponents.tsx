@@ -9,6 +9,8 @@ import useQueryParams from "../hooks/useQueryParams";
 import useDebounce from "../hooks/useDebounce";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
+import CustomersTable from "../modules/Pages/adminDashboard/fabric/Fabric";
+import CustomTable from "./CustomTable";
 // export function GeneralTransactionComponent() {
 //   const [searchTerm, setSearchTerm] = useState("");
 //   const [currentPage, setCurrentPage] = useState(1);
@@ -198,42 +200,6 @@ export function GeneralTransactionComponent() {
   const columns = useMemo(
     () => [
       {
-        label: () => (
-          <input
-            type="checkbox"
-            checked={selectAll}
-            onChange={(e) => {
-              const newSelectAll = e.target.checked;
-              setSelectAll(newSelectAll);
-              const newSelected = new Set(
-                newSelectAll ? TransactionData.map((item) => item.id) : [],
-              );
-              setSelectedRows(newSelected);
-            }}
-            className="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-          />
-        ),
-        key: "checkbox",
-        render: (_value, row) => (
-          <input
-            type="checkbox"
-            checked={selectedRows.has(row.id)}
-            onChange={(e) => {
-              const newSelected = new Set(selectedRows);
-              if (e.target.checked) {
-                newSelected.add(row.id);
-              } else {
-                newSelected.delete(row.id);
-              }
-              setSelectedRows(newSelected);
-              setSelectAll(newSelected.size === TransactionData.length);
-            }}
-            className="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-          />
-        ),
-        className: "text-gray-500 font-medium text-sm py-4 w-10",
-      },
-      {
         label: "Transaction ID",
         key: "transactionID",
         className: "text-gray-500 font-medium text-sm py-4",
@@ -279,42 +245,42 @@ export function GeneralTransactionComponent() {
           </span>
         ),
       },
-      {
-        label: "Action",
-        key: "action",
-        render: (_row, row) => (
-          <div className="relative" ref={dropdownRef}>
-            <button
-              className="p-2 text-gray-600"
-              onClick={() => toggleDropdown(row.id)}
-            >
-              <FaEllipsisH />
-            </button>
-            {openDropdown === row.id && (
-              <div className="absolute right-0 mt-2 w-40 bg-white rounded-md z-10 shadow-lg">
-                <>
-                  <button
-                    onMouseDown={() => {
-                      navigate("/admin/transactions/" + row.id);
-                    }}
-                    // to={"/admin/transactions/" + row.id}
-                    className="p-2 w-full"
-                  >
-                    View Details
-                  </button>
-                  <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
-                    Edit Transaction
-                  </button>
-                  <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">
-                    Remove Transaction
-                  </button>
-                </>
-              </div>
-            )}
-          </div>
-        ),
-        className: "text-gray-500 font-medium text-sm py-4 w-20",
-      },
+      // {
+      //   label: "Action",
+      //   key: "action",
+      //   render: (_row, row) => (
+      //     <div className="relative" ref={dropdownRef}>
+      //       <button
+      //         className="p-2 text-gray-600"
+      //         onClick={() => toggleDropdown(row.id)}
+      //       >
+      //         <FaEllipsisH />
+      //       </button>
+      //       {openDropdown === row.id && (
+      //         <div className="absolute right-0 mt-2 w-40 bg-white rounded-md z-10 shadow-lg">
+      //           <>
+      //             <button
+      //               onMouseDown={() => {
+      //                 navigate("/admin/transactions/" + row.id);
+      //               }}
+      //               // to={"/admin/transactions/" + row.id}
+      //               className="p-2 w-full"
+      //             >
+      //               View Details
+      //             </button>
+      //             <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
+      //               Edit Transaction
+      //             </button>
+      //             <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">
+      //               Remove Transaction
+      //             </button>
+      //           </>
+      //         </div>
+      //       )}
+      //     </div>
+      //   ),
+      //   className: "text-gray-500 font-medium text-sm py-4 w-20",
+      // },
     ],
     [selectAll, selectedRows, openDropdown, TransactionData],
   );
@@ -355,11 +321,12 @@ export function GeneralTransactionComponent() {
           </div>
         </div>
       </div>
-      <ReusableTable
+      {/*<ReusableTable
         isLoading={query.isFetching}
         columns={columns}
         data={TransactionData}
-      />
+      />*/}
+      <CustomTable data={TransactionData} columns={columns} />
       <div className="bg-white mb-12 px-2 rounded-md flex  py-6">
         <div className="flex items-center gap-2 ml-auto ">
           <button

@@ -33,6 +33,7 @@ import {
 import { formatNumberWithCommas } from "../../lib/helper";
 import CartItemStyle from "./components/CartItemStyle";
 import CartItemStyleDesktop from "./components/CartItemStyleDesktop";
+import CartItemWithBreakdown from "./components/CartItemWithBreakdown";
 
 const initialValues = {
   address: "",
@@ -712,247 +713,29 @@ const CartPage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Cart Items - Left Side */}
               <div className="lg:col-span-2 space-y-4">
-                {/* Desktop Headers */}
-                {/* <div className="hidden md:grid grid-cols-10 gap-4 px-4 py-3 bg-gray-50 rounded-lg text-sm font-medium text-gray-600">
-                  <div className="col-span-5">Product</div>
-                  <div className="col-span-2 text-center">Quantity</div>
-                  <div className="col-span-2 text-right">Total</div>
-                  <div className="col-span-1 text-center">Action</div>
-                </div>*/}
+                {/* Table Headers - Desktop Only */}
+                <div className="hidden md:block bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+                  <div className="grid grid-cols-12 gap-4 text-sm font-medium text-gray-700">
+                    <div className="col-span-6 pl-2">PRODUCTS</div>
+                    <div className="col-span-2 text-center">QUANTITY</div>
+                    <div className="col-span-2 text-center">PRICE</div>
+                    <div className="col-span-2 text-center">TOTAL AMOUNT</div>
+                  </div>
+                </div>
 
                 {/* Cart Items */}
-                {items.map((item) => {
-                  const fabricPrice = parseFloat(
-                    item.price_at_time || item.product?.price || 0,
-                  );
-                  const stylePrice = parseFloat(item.style_product?.price || 0);
-                  const quantity = parseInt(item.quantity || 1);
-                  const fabricTotal = fabricPrice * quantity;
-                  const itemTotal = fabricTotal + stylePrice;
-
-                  // For styled items, display should show measurement count
-                  const measurementCount = getMeasurementCount(
-                    item.measurement,
-                  );
-                  const displayQuantity = item?.style_product
-                    ? measurementCount
-                    : quantity;
-
-                  return (
-                    <div
-                      key={item.id}
-                      className="bg-white border border-gray-200 rounded-lg sm:rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
-                    >
-                      {/* Mobile Layout */}
-                      <div className="md:hidden">
-                        {/* Main Product Info */}
-                        <div className="p-3 sm:p-4 border-b border-gray-100">
-                          <div className="flex gap-4">
-                            {item.product?.image && (
-                              <img
-                                src={item.product.image}
-                                alt={item.product?.name || "Product"}
-                                className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-                              />
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-base sm:text-lg text-gray-900 mb-1">
-                                {item.product?.name ||
-                                  `Product ${item.product_id}`}
-                              </h3>
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded">
-                                  {item.product_type || "FABRIC"}
-                                </span>
-                                {item.product?.sku && (
-                                  <span className="text-xs text-gray-500">
-                                    SKU: {item.product.sku}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <button
-                              onClick={() => {
-                                setItemToDelete(item.id);
-                                setIsDeleteModalOpen(true);
-                              }}
-                              disabled={deleteIsPending}
-                              className="p-2 text-gray-400 hover:text-red-500 rounded-lg"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Fabric Details */}
-                        <div className="p-3 sm:p-4 bg-blue-25 border-b border-blue-100">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-blue-600 font-medium">
-                                  🧵 Fabric
-                                </span>
-                              </div>
-                              <div className="text-sm text-gray-600">
-                                ₦{fabricPrice.toLocaleString()} × {quantity}{" "}
-                                yard{quantity !== 1 ? "s" : ""}
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-base sm:text-lg font-bold text-blue-700">
-                                ₦{fabricTotal.toLocaleString()}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Style Details */}
-                        {item.style_product && (
-                          <div className="p-3 sm:p-4 bg-purple-25 border-b border-purple-100">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-purple-600 font-medium">
-                                    ✨ Style
-                                  </span>
-                                </div>
-                                <div className="text-sm text-gray-900 font-medium">
-                                  {item.style_product?.name || "Custom Style"}
-                                </div>
-                                <div className="text-sm text-gray-600">
-                                  {getMeasurementCount(item.measurement)}{" "}
-                                  measurement
-                                  {getMeasurementCount(item.measurement) !== 1
-                                    ? "s"
-                                    : ""}
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <div className="text-base sm:text-lg font-bold text-purple-700">
-                                  ₦{stylePrice.toLocaleString()}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Total */}
-                        <div className="p-3 sm:p-4 bg-gray-50">
-                          <div className="flex items-center justify-between">
-                            <span className="text-base sm:text-lg font-semibold text-gray-900">
-                              Total
-                            </span>
-                            <span className="text-xl sm:text-2xl font-bold text-gray-900">
-                              ₦{itemTotal.toLocaleString()}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Desktop Layout */}
-                      <div className="hidden md:grid md:grid-cols-12 md:gap-4 md:items-center md:p-4">
-                        {/* Product Info */}
-                        <div className="col-span-5 flex items-center gap-4">
-                          {item.product?.image && (
-                            <img
-                              src={item.product.image}
-                              alt={item.product?.name || "Product"}
-                              className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-                            />
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <h3 className="font-semibold text-lg text-gray-900 truncate">
-                              {item.product?.name ||
-                                `Product ${item.product_id}`}
-                            </h3>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded">
-                                {item.product_type || "FABRIC"}
-                              </span>
-                              {item.product?.sku && (
-                                <span className="text-xs text-gray-500">
-                                  SKU: {item.product.sku}
-                                </span>
-                              )}
-                            </div>
-                            {/* Style info for desktop */}
-                            {item.style_product && (
-                              <div className="mt-2 p-2 bg-purple-50 rounded-lg border border-purple-100">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-purple-600 text-sm">
-                                    ✨
-                                  </span>
-                                  <span className="text-sm font-medium text-purple-900">
-                                    {item.style_product?.name || "Custom Style"}
-                                  </span>
-                                </div>
-                                <div className="text-xs text-purple-600 mt-1">
-                                  {getMeasurementCount(item.measurement)}{" "}
-                                  measurement
-                                  {getMeasurementCount(item.measurement) !== 1
-                                    ? "s"
-                                    : ""}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Quantity */}
-                        <div className="col-span-2 text-center">
-                          <div className="text-sm font-medium">
-                            {quantity} yard{quantity !== 1 ? "s" : ""}
-                          </div>
-                          {item?.style_product && (
-                            <div className="text-xs text-blue-600">
-                              = {getMeasurementCount(item.measurement)} unit
-                              {getMeasurementCount(item.measurement) !== 1
-                                ? "s"
-                                : ""}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Pricing Breakdown */}
-                        <div className="col-span-4 space-y-1">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">🧵 Fabric:</span>
-                            <span className="font-medium">
-                              ₦{fabricTotal.toLocaleString()}
-                            </span>
-                          </div>
-                          {item?.style_product && stylePrice > 0 && (
-                            <div className="flex justify-between text-sm">
-                              <span className="text-purple-600">✨ Style:</span>
-                              <span className="font-medium text-purple-700">
-                                ₦{stylePrice.toLocaleString()}
-                              </span>
-                            </div>
-                          )}
-                          <div className="flex justify-between text-base font-bold border-t pt-1">
-                            <span>Total:</span>
-                            <span>₦{itemTotal.toLocaleString()}</span>
-                          </div>
-                        </div>
-
-                        {/* Remove */}
-                        <div className="col-span-1 text-center">
-                          <button
-                            onClick={() => {
-                              setItemToDelete(item.id);
-                              setIsDeleteModalOpen(true);
-                            }}
-                            disabled={deleteIsPending}
-                            className="text-gray-400 hover:text-red-500 p-2"
-                            title="Remove item"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                {items.map((item) => (
+                  <CartItemWithBreakdown
+                    key={item.id}
+                    item={item}
+                    onDelete={(itemId) => {
+                      setItemToDelete(itemId);
+                      setIsDeleteModalOpen(true);
+                    }}
+                    deleteIsPending={deleteIsPending}
+                    getMeasurementCount={getMeasurementCount}
+                  />
+                ))}
               </div>
 
               {/* Order Summary - Right Side */}

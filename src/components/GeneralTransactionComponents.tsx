@@ -222,6 +222,8 @@ export function GeneralTransactionComponent() {
     },
   ];
 
+  const next_page_disabled = query.data?.data.length == filters.limit;
+  const pagination_arry = [1, 2, 3, 4];
   return (
     <>
       <div className="flex items-center justify-between bg-white p-4 mb-4 rounded-md shadow">
@@ -270,7 +272,7 @@ export function GeneralTransactionComponent() {
             </select>
           </div>
         </div>
-        <div className="flex items-center mt-2 gap-2 px-3">
+        <div className="flex  items-center mt-2 gap-2 px-3">
           <div>
             <label htmlFor="" className="label mb-2">
               Start Date
@@ -315,6 +317,86 @@ export function GeneralTransactionComponent() {
           actions={actions}
         />
       )}
+      <div
+        data-theme="nord"
+        className="mx-auto  mt-4 w-full py-2 flex justify-center bg-white shadow"
+      >
+        <div className="join">
+          <button
+            className="join-item btn"
+            onClick={() => {
+              setFilters((prevFilters) => ({
+                ...prevFilters,
+                page: prevFilters.page - 1,
+              }));
+            }}
+            disabled={filters.page === 1 || query.isFetching}
+          >
+            «
+          </button>
+          {pagination_arry.map((pageNumber) => {
+            const displayPage =
+              filters.page > 1 ? pageNumber + (filters.page - 1) : pageNumber;
+            return (
+              <button
+                key={pageNumber}
+                className={`join-item btn ${
+                  filters.page === displayPage ? "btn-active" : ""
+                }`}
+                onClick={() => {
+                  setFilters((prevFilters) => ({
+                    ...prevFilters,
+                    page: displayPage,
+                  }));
+                }}
+                disabled={
+                  query.data?.data.length < filters.limit
+                    ? true
+                    : query.isFetching
+                }
+              >
+                {displayPage}
+              </button>
+            );
+          })}
+
+          <button
+            className="join-item btn"
+            onClick={() => {
+              setFilters((prevFilters) => ({
+                ...prevFilters,
+                page: prevFilters.page + 1,
+              }));
+            }}
+            disabled={
+              next_page_disabled ||
+              query.isFetching ||
+              query.data?.data.length === 0
+            }
+          >
+            »
+          </button>
+          <form
+            className=""
+            onSubmit={(e) => {
+              e.preventDefault();
+              let form = new FormData(e.target);
+              let page = parseInt(form.get("page") as string);
+              let new_filter: Filters = { ...filters, page: page };
+              setFilters(new_filter);
+            }}
+          >
+            <input
+              type="number"
+              name="page"
+              className="input w-14 join-item"
+              placeholder={" " + filters.page}
+              min={1}
+              max={query.data?.data.length < filters.limit && filters.page}
+            />
+          </form>
+        </div>
+      </div>
 
       {/* Put this part before </body> tag */}
     </>

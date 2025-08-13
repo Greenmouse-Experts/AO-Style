@@ -16,6 +16,7 @@ import useDeleteUser from "../../../../hooks/user/useDeleteUser";
 import useToast from "../../../../hooks/useToast";
 import AddMarketModal from "./AddMarketModal";
 import * as XLSX from "xlsx";
+import { CSVLink } from "react-csv";
 
 const NewlyAddedUsers = () => {
   const [currView, setCurrView] = useState("approved");
@@ -333,7 +334,7 @@ const NewlyAddedUsers = () => {
     const value = e.target.value;
     if (value === "excel") exportToExcel();
     // if (value === "pdf") exportToPDF();
-    // if (value === "csv") document.getElementById("csvDownload").click();
+    if (value === "csv") document.getElementById("csvDownload").click();
   };
   const exportToExcel = () => {
     // return console.log(MarketRepData);
@@ -432,7 +433,12 @@ const NewlyAddedUsers = () => {
           ))}
         </div>
       </div>
-
+      <CSVLink
+        id="csvDownload"
+        data={currView == "invites" ? InviteData : MarketRepData}
+        filename="MyProducts.csv"
+        className="hidden"
+      />{" "}
       {/* table */}
       <div className="overflow-x-auto">
         <AddMarketModal
@@ -582,7 +588,6 @@ const NewlyAddedUsers = () => {
           </div>
         </div>
       )}
-
       {/* Delete User Confirmation Modal */}
       <ConfirmationModal
         isOpen={deleteModalOpen}

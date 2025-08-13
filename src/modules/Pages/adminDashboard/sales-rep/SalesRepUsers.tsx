@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import CaryBinApi from "../../../../services/CarybinBaseUrl";
 import { AlertCircle } from "lucide-react";
 import CustomTable from "../../../../components/CustomTable";
@@ -105,7 +105,7 @@ export default function SalesRepUsers() {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   });
-
+  const nav = useNavigate();
   if (query.isLoading) {
     return (
       <div
@@ -164,14 +164,31 @@ export default function SalesRepUsers() {
       render: (_: any, item: UserData) => item.business_info.location,
     },
   ];
+  type UserType =
+    | "user"
+    | "market-representative"
+    | "logistics-agent"
+    | "fabric-vendor"
+    | "fashion-designer";
 
   const actions = [
     {
       key: "view detail",
       label: "View Details",
       action: (item: UserData) => {
-        setSelectedUser(item);
-        setDialogOpen(true);
+        let sim_path;
+        let role = item.role.name as UserType;
+        let path = role.toLocaleLowerCase().replaceAll(" ", "-");
+        let parsed_role = role.toLocaleLowerCase().replaceAll(" ", "-");
+        if (parsed_role == "market-representative") {
+          path = "sales-rep";
+        }
+        if (parsed_role == "fashion-designer") {
+          path = "tailors";
+        }
+        // return console.log(path);
+        nav(`/admin/${path}/view/` + item.id);
+        // setSelectedUser(item);
       },
     },
   ];

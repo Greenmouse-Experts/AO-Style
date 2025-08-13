@@ -56,6 +56,7 @@ import AdminNotificationDetail from "../modules/Pages/adminDashboard/AdminNotifi
 import AdminViewProductRep from "../modules/Pages/adminDashboard/sales-rep/AdminViewProductRep";
 import InvitesPage from "../modules/Pages/invtes/invites";
 import AdminCharges from "../modules/Pages/adminDashboard/charge/AdminCharges";
+import SalesRepUser from "../modules/Pages/adminDashboard/sales-rep/SalesRepUser";
 
 export const adminRoutes = [
   {
@@ -144,6 +145,10 @@ export const adminRoutes = [
       {
         path: `/admin/sales-rep`,
         element: <SalesRep />,
+      },
+      {
+        path: "/admin/sales-rep/view-user/:id",
+        element: <SalesRepUser />,
       },
       {
         path: "/admin/sales-rep/view-sales/:salesId",

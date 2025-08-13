@@ -94,8 +94,8 @@ interface Filters {
   page: number;
   status?: WithdrawStatus;
   limit: number;
-  endDate?: Date;
-  startDate?: Date;
+  endDate?: Date | string;
+  startDate?: Date | string;
 }
 const default_filters: Filters = {
   page: 1,
@@ -235,9 +235,9 @@ export function GeneralTransactionComponent() {
           </p>
         </div>
       </div>
-      <div className="space-y-6" data-theme="nord">
+      <div className="" data-theme="nord">
         {/* Search + Info */}
-        <div className="flex items-center p-3 rounded-md">
+        <div className="flex items-center p-3 rounded-md gap-2">
           <input
             type="text"
             placeholder="Search by transaction ID or user email"
@@ -248,7 +248,7 @@ export function GeneralTransactionComponent() {
             }}
             className="w-full md:w-80 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
-          <div className="ml-auto">
+          <div className="ml-auto gap-2 flex items-center">
             <select
               name=""
               className="select"
@@ -256,7 +256,7 @@ export function GeneralTransactionComponent() {
               onChange={(e) => {
                 let value = e.target.value;
                 setFilters((pre) => {
-                  let new_val = { ...pre, status: value };
+                  let new_val = { ...pre, status: value as WithdrawStatus };
                   return new_val;
                 });
               }}
@@ -270,9 +270,44 @@ export function GeneralTransactionComponent() {
             </select>
           </div>
         </div>
+        <div className="flex items-center mt-2 gap-2 px-3">
+          <div>
+            <label htmlFor="" className="label mb-2">
+              Start Date
+            </label>
+            <input
+              onChange={(e) => {
+                let date = e.target.value;
+                let new_val: Filters = { ...filters, startDate: date };
+                setFilters(new_val);
+              }}
+              type="date"
+              className="input-sm input"
+            />
+          </div>
+          <div>
+            <label htmlFor="" className="label mb-2">
+              End Date
+            </label>
+            <input
+              onChange={(e) => {
+                let date = e.target.value;
+                let new_val: Filters = { ...filters, endDate: date };
+                setFilters(new_val);
+              }}
+              type="date"
+              className="input-sm input"
+            />
+          </div>
+        </div>
       </div>
       {query.isFetching ? (
-        <>loading</>
+        <div data-theme="nord" className="px-4 py-12 bg-white shadow">
+          <div className="flex flex-col items-center justify-center h-full">
+            <p className="mb-4">Loading Transactions...</p>
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-purple-500"></div>
+          </div>
+        </div>
       ) : (
         <CustomTable
           data={dummy_transactions.data}

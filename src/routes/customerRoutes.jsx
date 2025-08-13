@@ -8,7 +8,7 @@ import Settings from "../modules/Pages/customerDashboard/Settings";
 import Orders from "../modules/Pages/customerDashboard/Orders";
 import OrdersDetails from "../modules/Pages/customerDashboard/OrdersDetails";
 import InboxPage from "../modules/Pages/customerDashboard/Inbox";
-import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
+import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPageUpdate";
 import ShopStyles from "../modules/Pages/customerDashboard/ShopStyles";
 import CustomerAnnouncementsPage from "../modules/Pages/customerDashboard/Announcements";
 import ProtectedRoute from "../components/ProtectedRoute";

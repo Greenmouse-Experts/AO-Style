@@ -35,7 +35,6 @@ import Settings from "../modules/Pages/adminDashboard/Settings";
 import ViewTailorDetails from "../modules/Pages/adminDashboard/tailor/ViewTailorDetails";
 import ViewMarketDetails from "../modules/Pages/adminDashboard/sales-rep/ViewMarketRep";
 import ViewFabricDetails from "../modules/Pages/adminDashboard/fabric/ViewFabricDetails";
-import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
 import MyProducts from "../modules/Pages/fabricDashboard/MyProducts";
 import AddNewProduct from "../modules/Pages/fabricDashboard/AddNewProduct";
 import Cataloging from "../modules/Pages/tailorDashboard/Catalog";
@@ -51,12 +50,13 @@ import OrdersDetails from "../modules/Pages/tailorDashboard/OrdersDetails";
 import OrdersFabricDetails from "../modules/Pages/fabricDashboard/OrdersDetails";
 import ViewVendorOrders from "../modules/Pages/adminDashboard/order/ViewVendorOrders";
 import ViewTransaction from "../modules/Pages/adminDashboard/ViewTransaction";
-import NotificationPage from "../modules/Pages/adminDashboard/NotificationPage";
+// import NotificationPage from "../modules/Pages/adminDashboard/NotificationPage";
 import AdminNotificationDetail from "../modules/Pages/adminDashboard/AdminNotificationDetail";
 import AdminViewProductRep from "../modules/Pages/adminDashboard/sales-rep/AdminViewProductRep";
 import InvitesPage from "../modules/Pages/invtes/invites";
 import AdminCharges from "../modules/Pages/adminDashboard/charge/AdminCharges";
 import SalesRepUser from "../modules/Pages/adminDashboard/sales-rep/SalesRepUser";
+import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPageUpdate";
 
 export const adminRoutes = [
   {

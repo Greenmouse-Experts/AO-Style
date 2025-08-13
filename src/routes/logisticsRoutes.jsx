@@ -6,7 +6,7 @@ import NotificationPage from "../modules/Pages/logisticsDashboard/NotificationPa
 import InboxPage from "../modules/Pages/logisticsDashboard/Inbox";
 import Settings from "../modules/Pages/logisticsDashboard/Settings";
 import LogisticsAnnouncementsPage from "../modules/Pages/logisticsDashboard/Announcements";
-import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
+import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPageUpdate";
 import TransactionPage from "../modules/Pages/fabricDashboard/TransactionPage";
 
 export const logisticsRoutes = [

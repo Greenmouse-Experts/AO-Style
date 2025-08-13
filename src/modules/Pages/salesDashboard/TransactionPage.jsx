@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import ReusableTable from "../salesDashboard/components/ReusableTable";
+import { GeneralTransactionComponent } from "../../../components/GeneralTransactionComponents";
 
 const transactions = [
   {
@@ -99,6 +100,11 @@ export default function TransactionPage() {
       .includes(searchTerm.toLowerCase());
   });
 
+  return (
+    <>
+      <GeneralTransactionComponent />
+    </>
+  );
   return (
     <div>
       <div className="bg-white px-6 py-4 mb-6">

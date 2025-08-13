@@ -1,0 +1,183 @@
+import { useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import CaryBinApi from "../services/CarybinBaseUrl";
+import {
+  CalendarDays,
+  Timer,
+  ReceiptText,
+  CreditCard,
+  Landmark,
+  User,
+  DollarSign,
+} from "lucide-react";
+
+interface TransactionDetail {
+  id: string;
+  user_id: string;
+  user_name: string; // Added user_name
+  user_email: string; // Added user_email
+  amount: string;
+  currency: string;
+  status:
+    | "PENDING"
+    | "FAILED"
+    | "CANCELLED"
+    | "PAID"
+    | "PROCESSING"
+    | "SHIPPED"
+    | "IN_TRANSIT"
+    | "OUT_FOR_DELIVERY"
+    | "DELIVERED"
+    | "RETURNED";
+  notes: string | null;
+  processed_by: string | null;
+  processed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+interface TransactionResponse {
+  statusCode: number;
+  data: TransactionDetail;
+}
+const dummy_transation: TransactionResponse = {
+  statusCode: 200,
+  data: {
+    id: "596e5a0d-42a5-4bb2-b880-320529dc37ec",
+    user_id: "7750e65e-33c7-435d-b1ea-e37306cb02c3",
+    user_name: "John Doe", // Dummy user name
+    user_email: "john.doe@example.com", // Dummy user email
+    amount: "4000",
+    currency: "NGN",
+    status: "PENDING",
+    notes: null,
+    processed_by: null,
+    processed_at: null,
+    created_at: "2025-07-28T12:23:21.914Z",
+    updated_at: "2025-07-28T12:23:21.914Z",
+    deleted_at: null,
+  },
+};
+
+const getStatusBadgeClass = (status: TransactionDetail["status"]): string => {
+  switch (status) {
+    case "PENDING":
+      return "badge-warning";
+    case "PAID":
+    case "PROCESSING":
+    case "SHIPPED":
+    case "IN_TRANSIT":
+    case "OUT_FOR_DELIVERY":
+    case "DELIVERED":
+      return "badge-success";
+    case "FAILED":
+    case "CANCELLED":
+    case "RETURNED":
+      return "badge-error";
+    default:
+      return "badge-neutral";
+  }
+};
+
+export default function ViewTransactionDetail() {
+  const { id } = useParams<{ id: string }>();
+  // const query = useQuery<TransactionResponse>({
+  //   queryKey: ["transaction", id],
+  //   queryFn: async () => {
+  //     let resp = await CaryBinApi.get("/withdraw/" + id);
+  //     return resp.data;
+  //   },
+  // });
+
+  const transaction = dummy_transation.data; // Using dummy data for now
+
+  return (
+    <div className="container mx-auto p-4" data-theme="nord">
+      <div className="card bg-base-100">
+        <div className="card-body">
+          <h2 className="card-title text-2xl font-bold mb-4">
+            Transaction Details
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <div className="flex items-center">
+              <ReceiptText className="w-5 h-5 mr-2 text-primary" />
+              <span className="font-semibold">Transaction ID:</span>
+              <span className="ml-2">{transaction.id}</span>
+            </div>
+            <div className="flex items-center">
+              <User className="w-5 h-5 mr-2 text-primary" />
+              <span className="font-semibold">User Name:</span>
+              <span className="ml-2">{transaction.user_name}</span>
+            </div>
+            <div className="flex items-center">
+              <User className="w-5 h-5 mr-2 text-primary" />
+              <span className="font-semibold">User Email:</span>
+              <span className="ml-2">{transaction.user_email}</span>
+            </div>
+            <div className="flex items-center">
+              <User className="w-5 h-5 mr-2 text-primary" />
+              <span className="font-semibold">User ID:</span>
+              <span className="ml-2">{transaction.user_id}</span>
+            </div>
+            <div className="flex items-center">
+              <DollarSign className="w-5 h-5 mr-2 text-primary" />
+              <span className="font-semibold">Amount:</span>
+              <span className="ml-2">
+                {transaction.amount} {transaction.currency}
+              </span>
+            </div>
+            <div className="flex items-center">
+              <CreditCard className="w-5 h-5 mr-2 text-primary" />
+              <span className="font-semibold">Status:</span>
+              <span
+                className={`ml-2 badge ${getStatusBadgeClass(transaction.status)}`}
+              >
+                {transaction.status}
+              </span>
+            </div>
+            {transaction.notes && (
+              <div className="flex items-center md:col-span-2">
+                <ReceiptText className="w-5 h-5 mr-2 text-primary" />
+                <span className="font-semibold">Notes:</span>
+                <span className="ml-2">{transaction.notes}</span>
+              </div>
+            )}
+            <div className="flex items-center">
+              <CalendarDays className="w-5 h-5 mr-2 text-primary" />
+              <span className="font-semibold">Created At:</span>
+              <span className="ml-2">
+                {new Date(transaction.created_at).toLocaleString()}
+              </span>
+            </div>
+            {transaction.processed_by && (
+              <div className="flex items-center">
+                <User className="w-5 h-5 mr-2 text-primary" />
+                <span className="font-semibold">Processed By:</span>
+                <span className="ml-2">{transaction.processed_by}</span>
+              </div>
+            )}
+            {transaction.processed_at && (
+              <div className="flex items-center">
+                <Timer className="w-5 h-5 mr-2 text-primary" />
+                <span className="font-semibold">Processed At:</span>
+                <span className="ml-2">
+                  {new Date(transaction.processed_at).toLocaleString()}
+                </span>
+              </div>
+            )}
+            {transaction.deleted_at && (
+              <div className="flex items-center text-red-500">
+                <Timer className="w-5 h-5 mr-2" />
+                <span className="font-semibold">Deleted At:</span>
+                <span className="ml-2">
+                  {new Date(transaction.deleted_at).toLocaleString()}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

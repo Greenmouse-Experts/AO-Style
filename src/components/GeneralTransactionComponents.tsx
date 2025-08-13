@@ -1,92 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import useFetchAllCartTransactions from "../hooks/admin/useFetchAllCartTransactions";
 import CaryBinApi from "../services/CarybinBaseUrl";
-import ReusableTable from "../modules/Pages/tailorDashboard/components/ReusableTable";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { FaEllipsisH } from "react-icons/fa";
+import { useMemo, useRef, useState } from "react";
 import { formatDateStr } from "../lib/helper";
 import useQueryParams from "../hooks/useQueryParams";
-import useDebounce from "../hooks/useDebounce";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
-import CustomersTable from "../modules/Pages/adminDashboard/fabric/Fabric";
+import { Link, useNavigate } from "react-router-dom";
 import CustomTable from "./CustomTable";
-// export function GeneralTransactionComponent() {
-//   const [searchTerm, setSearchTerm] = useState("");
-//   const [currentPage, setCurrentPage] = useState(1);
-//   const [itemsPerPage, setItemsPerPage] = useState(10);
-//   const [activeTab, setActiveTab] = useState("All Transactions");
-//   const [selectAll, setSelectAll] = useState(false);
-//   const [selectedRows, setSelectedRows] = useState(new Set());
 
-//   const query = useQuery<Api_response>({
-//     queryKey: ["orders"],
-//     queryFn: async () => {
-//       let resp = await CaryBinApi.get("/payment/fetch-all");
-//       console.log(resp.data);
-//       return resp.data;
-//     },
-//   });
-
-//   return (
-//     <div>
-//       {/*{JSON.stringify(query.data)}*/}
-//       <div className="space-y-6">
-//         {/* Search + Info */}
-//         <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-2 mb-2  rounded-md shadow">
-//           <input
-//             type="text"
-//             placeholder="Search by transaction ID or user email"
-//             value={searchTerm}
-//             onChange={(e) => {
-//               setSearchTerm(e.target.value);
-//               setCurrentPage(1);
-//             }}
-//             className="w-full md:w-80 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-//           />
-
-//           <div className="text-sm text-gray-600">
-//             Showing <span className="font-medium">{startIndex + 1}</span> to{" "}
-//             <span className="font-medium">
-//               {Math.min(endIndex, filteredData.length)}
-//             </span>{" "}
-//             of <span className="font-medium">{filteredData.length}</span>{" "}
-//             results
-//           </div>
-//         </div>
-//       </div>
-//       <ReusableTable columns={columns} data={TransactionData || []} />
-//       <div className="bg-white mb-12 px-2 rounded-md flex  py-6">
-//         <div className="flex items-center gap-2 ml-auto ">
-//           <button
-//             onClick={() => {
-//               updateQueryParams({
-//                 "pagination[page]": +queryParams["pagination[page]"] - 1,
-//               });
-//             }}
-//             disabled={Number(queryParams["pagination[page]"] ?? 1) == 1}
-//             className="px-3 py-1 rounded-md bg-gray-200"
-//           >
-//             ◀
-//           </button>
-//           <button
-//             onClick={() => {
-//               updateQueryParams({
-//                 "pagination[page]": +queryParams["pagination[page]"] + 1,
-//               });
-//             }}
-//             disabled={
-//               Number(queryParams["pagination[page]"] ?? 1) == totalPages
-//             }
-//             className="px-3 py-1 rounded-md bg-gray-200"
-//           >
-//             ▶
-//           </button>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
 interface ApiResponse {
   statusCode: number;
   data: Withdraw[];
@@ -98,7 +17,17 @@ interface Withdraw {
   user_id: string;
   amount: string;
   currency: string;
-  status: string;
+  status:
+    | "PENDING"
+    | "FAILED"
+    | "CANCELLED"
+    | "PAID"
+    | "PROCESSING"
+    | "SHIPPED"
+    | "IN_TRANSIT"
+    | "OUT_FOR_DELIVERY"
+    | "DELIVERED"
+    | "RETURNED";
   notes: null | string;
   processed_by: null | string;
   processed_at: null | string;
@@ -123,6 +52,39 @@ interface Role {
   name: string;
   role_id: string;
 }
+
+const dummy_transactions: ApiResponse = {
+  statusCode: 200,
+  data: [
+    {
+      id: "596e5a0d-42a5-4bb2-b880-320529dc37ec",
+      user_id: "7750e65e-33c7-435d-b1ea-e37306cb02c3",
+      amount: "4000",
+      currency: "NGN",
+      status: "PENDING",
+      notes: null,
+      processed_by: null,
+      processed_at: null,
+      created_at: "2025-07-28 13:23:21.914",
+      updated_at: "2025-07-28 14:23:21.914",
+      deleted_at: null,
+      user: {
+        id: "7750e65e-33c7-435d-b1ea-e37306cb02c3",
+        name: "green market fabric vendor 07",
+        email: "greenmousedev+fv007@gmail.com",
+        phone: "+2348134656597",
+        is_email_verified: true,
+        created_at: "2025-06-26T21:05:23.979Z",
+        role: {
+          id: "147f6092-5727-43bd-8f2d-dd6ab70020b9",
+          name: "Fashion Designer",
+          role_id: "fashion-designer",
+        },
+      },
+    },
+  ],
+  count: 1,
+};
 export function GeneralTransactionComponent() {
   const query = useQuery<ApiResponse>({
     queryKey: ["transactions", "general"],
@@ -133,18 +95,16 @@ export function GeneralTransactionComponent() {
   });
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [activeTab, setActiveTab] = useState("All Transactions");
-  const [selectAll, setSelectAll] = useState(false);
-  const [selectedRows, setSelectedRows] = useState(new Set());
-  const dropdownRef = useRef(null);
-  const [openDropdown, setOpenDropdown] = useState(null);
+  const [selectedData, setData] = useState<Withdraw | null>(null);
   const { queryParams, updateQueryParams } = useQueryParams({
     status: "",
     "pagination[limit]": 10,
     "pagination[page]": 1,
   });
   const totalPages = 1;
+  const modalRef = useRef<HTMLInputElement>(null);
+
+  const nav = useNavigate();
 
   const TransactionData = useMemo(
     () =>
@@ -168,122 +128,77 @@ export function GeneralTransactionComponent() {
         : [],
     [query.data?.data],
   );
-  const filteredData = useMemo(() => {
-    if (!TransactionData) return [];
-    return TransactionData.filter((item) => {
-      const term = searchTerm.toLowerCase();
-      return (
-        item.transactionID.toLowerCase().includes(term) ||
-        item.userName.toLowerCase().includes(term)
-      );
-    });
-  }, [TransactionData, searchTerm]);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedData = useMemo(() => {
-    return filteredData.slice(startIndex, endIndex);
-  }, [filteredData, startIndex, endIndex]);
-  const navigate = useNavigate();
-  const [queryString, setQueryString] = useState(queryParams.q);
-  const toggleDropdown = (rowId) => {
-    setOpenDropdown(openDropdown === rowId ? null : rowId);
-  };
-  const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
-  // useUpdatedEffect(() => {
-  //   // update search params with undefined if debouncedSearchTerm is an empty string
-  //   updateQueryParams({
-  //     q: debouncedSearchTerm.trim() || undefined,
-  //     "pagination[page]": 1,
-  //   });
-  // }, [debouncedSearchTerm]);
 
-  const columns = useMemo(
+  interface COLUMN_TYPE {
+    label: string;
+    key: string;
+    render?: (value: any, item: Withdraw) => React.ReactNode;
+  }
+  const columns = useMemo<COLUMN_TYPE[]>(
     () => [
       {
-        label: "Transaction ID",
-        key: "transactionID",
-        className: "text-gray-500 font-medium text-sm py-4",
+        label: "User",
+        key: "user",
+        render: (_, item: Withdraw) => {
+          return item.user.name;
+        },
       },
       {
-        label: "Date and Time",
-        key: "date",
-        className: "text-gray-500 font-medium text-sm py-4",
-      },
-      {
-        label: "User Name",
-        key: "userName",
-        className: "text-gray-500 font-medium text-sm py-4",
-      },
-      {
-        label: "User Type",
-        key: "userType",
-        className: "text-gray-500 font-medium text-sm py-4",
+        label: "email",
+        key: "email",
+        render: (_, item) => item.user.email,
       },
       {
         label: "Amount",
         key: "amount",
-        className: "text-gray-500 font-medium text-sm py-4",
       },
       {
-        label: "Transaction Type",
-        key: "transactionType",
-        className: "text-gray-500 font-medium text-sm py-4",
+        label: "Currency",
+        key: "currency",
       },
+      {
+        label: "Date",
+        key: "date",
+        render: (_, item) => formatDateStr(item.created_at),
+      },
+      // {
+      //   label: "Transaction Type",
+      //   key: "transactionType",
+      // },
       {
         label: "Status",
         key: "status",
-        className: "text-gray-500 font-medium text-sm py-4",
         render: (status) => (
           <span
             className={`px-2 py-1 text-sm rounded-full font-medium ${
-              status === "In-Progress"
-                ? "bg-blue-100 text-blue-500"
-                : "bg-green-100 text-green-500"
+              status === "PENDING"
+                ? "bg-yellow-100 text-yellow-500"
+                : status === "COMPLETED"
+                  ? "bg-green-100 text-green-500"
+                  : "bg-red-100 text-red-500"
             }`}
           >
             {status}
           </span>
         ),
       },
-      // {
-      //   label: "Action",
-      //   key: "action",
-      //   render: (_row, row) => (
-      //     <div className="relative" ref={dropdownRef}>
-      //       <button
-      //         className="p-2 text-gray-600"
-      //         onClick={() => toggleDropdown(row.id)}
-      //       >
-      //         <FaEllipsisH />
-      //       </button>
-      //       {openDropdown === row.id && (
-      //         <div className="absolute right-0 mt-2 w-40 bg-white rounded-md z-10 shadow-lg">
-      //           <>
-      //             <button
-      //               onMouseDown={() => {
-      //                 navigate("/admin/transactions/" + row.id);
-      //               }}
-      //               // to={"/admin/transactions/" + row.id}
-      //               className="p-2 w-full"
-      //             >
-      //               View Details
-      //             </button>
-      //             <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
-      //               Edit Transaction
-      //             </button>
-      //             <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">
-      //               Remove Transaction
-      //             </button>
-      //           </>
-      //         </div>
-      //       )}
-      //     </div>
-      //   ),
-      //   className: "text-gray-500 font-medium text-sm py-4 w-20",
-      // },
     ],
-    [selectAll, selectedRows, openDropdown, TransactionData],
+    [TransactionData],
   );
+  const actions = [
+    {
+      key: "view Detail",
+      label: "View Detail",
+      action: (item: Withdraw) => {
+        // setData(item);
+        // modalRef.current?.click();
+        let url = window.location.pathname;
+        console.log();
+        const nav_url = url + "/" + item.id;
+        nav(nav_url);
+      },
+    },
+  ];
   return (
     <>
       <div className="flex items-center justify-between bg-white p-4 mb-4 rounded-md shadow">
@@ -310,65 +225,27 @@ export function GeneralTransactionComponent() {
             }}
             className="w-full md:w-80 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
-
-          <div className="text-sm text-gray-600">
-            Showing <span className="font-medium">{startIndex + 1}</span> to{" "}
-            <span className="font-medium">
-              {Math.min(endIndex, filteredData.length)}
-            </span>{" "}
-            of <span className="font-medium">{filteredData.length}</span>{" "}
-            results
-          </div>
         </div>
       </div>
-      {/*<ReusableTable
-        isLoading={query.isFetching}
+      <CustomTable
+        data={dummy_transactions.data}
         columns={columns}
-        data={TransactionData}
-      />*/}
+        actions={actions}
+      />
+      <label ref={modalRef} htmlFor="my_modal_7" className="btn hidden">
+        open modal
+      </label>
 
-      {/*{JSON.stringify(TransactionData)}*/}
-
-      <CustomTable data={TransactionData} columns={columns} />
-      {TransactionData.length < 1 && (
-        <>
-          <div id="cus-app" data-theme="nord">
-            <div className="p-2 mx-auto w-fit">
-              <label htmlFor="" className="label">
-                {" "}
-                No Withdrawals found
-              </label>
-            </div>
-          </div>
-        </>
-      )}
-      <div className="bg-white mb-12 px-2 rounded-md flex  py-6">
-        <div className="flex items-center gap-2 ml-auto ">
-          <button
-            onClick={() => {
-              updateQueryParams({
-                "pagination[page]": +queryParams["pagination[page]"] - 1,
-              });
-            }}
-            disabled={Number(queryParams["pagination[page]"] ?? 1) == 1}
-            className="px-3 py-1 rounded-md bg-gray-200"
-          >
-            ◀
-          </button>
-          <button
-            onClick={() => {
-              updateQueryParams({
-                "pagination[page]": +queryParams["pagination[page]"] + 1,
-              });
-            }}
-            disabled={
-              Number(queryParams["pagination[page]"] ?? 1) == totalPages
-            }
-            className="px-3 py-1 rounded-md bg-gray-200"
-          >
-            ▶
-          </button>
+      {/* Put this part before </body> tag */}
+      <input type="checkbox" id="my_modal_7" className="modal-toggle z-20" />
+      <div data-theme="nord" className="modal backdrop-blur-lg" role="dialog">
+        <div className="modal-box">
+          <h3 className="text-lg font-bold">Hello!</h3>
+          <p className="py-4 wrap-anywhere">{JSON.stringify(selectedData)}</p>
         </div>
+        <label className="modal-backdrop" htmlFor="my_modal_7">
+          Close
+        </label>
       </div>
     </>
   );

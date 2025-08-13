@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Check, DeleteIcon, Trash } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import useQueryParams from "../../../hooks/useQueryParams";
@@ -10,53 +10,8 @@ import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 import { formatDateStr } from "../../../lib/helper";
 import useMarkReadNotification from "../../../hooks/notification/useMarkReadNotification";
 
-const notifications = [
-  {
-    id: 1,
-    text: "Your Order No EWRQSDF12GHIJK is arriving today at 5pm",
-    time: "1 hour ago",
-    unread: true,
-  },
-  {
-    id: 2,
-    text: "Your Order No EWRQSDF12GHIJK is arriving today at 5pm",
-    time: "1 hour ago",
-    unread: false,
-  },
-  {
-    id: 3,
-    text: "Your Order No EWRQSDF12GHIJK is arriving today at 5pm",
-    time: "18 hours ago",
-    unread: false,
-  },
-  {
-    id: 4,
-    text: "Your Order No EWRQSDF12GHIJK is arriving today at 5pm",
-    time: "17-05-25",
-    unread: false,
-  },
-  {
-    id: 5,
-    text: "Your Order No EWRQSDF12GHIJK is arriving today at 5pm",
-    time: "17-05-25",
-    unread: false,
-  },
-  {
-    id: 6,
-    text: "Your Order No EWRQSDF12GHIJK is arriving today at 5pm",
-    time: "17-05-25",
-    unread: false,
-  },
-];
-
 export default function NotificationPageUpdate() {
-  const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
-  const filteredNotifications = notifications.filter((notification) => {
-    if (filter === "read" && notification.unread) return false;
-    if (filter === "unread" && !notification.unread) return false;
-    return notification.text.toLowerCase().includes(searchTerm.toLowerCase());
-  });
 
   const { queryParams, updateQueryParams } = useQueryParams({
     "pagination[limit]": 10,
@@ -67,7 +22,7 @@ export default function NotificationPageUpdate() {
     ...queryParams,
   });
 
-  const { isPending: markReadIsPending, markReadNotificationMutate } =
+  const { isPending: markReadIsPending, mutate: markReadNotificationMutate } =
     useMarkReadNotification();
 
   const [queryString, setQueryString] = useState(queryParams.q);
@@ -75,7 +30,6 @@ export default function NotificationPageUpdate() {
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
 
   useUpdatedEffect(() => {
-    // update search params with undefined if debouncedSearchTerm is an empty string
     updateQueryParams({
       q: debouncedSearchTerm.trim() || undefined,
       "pagination[page]": 1,
@@ -83,7 +37,7 @@ export default function NotificationPageUpdate() {
   }, [debouncedSearchTerm]);
 
   const totalPages = Math.ceil(
-    data?.count / (queryParams["pagination[limit]"] ?? 10),
+    (data?.count ?? 0) / (queryParams["pagination[limit]"] ?? 10),
   );
 
   return (
@@ -163,7 +117,7 @@ export default function NotificationPageUpdate() {
                 type="text"
                 placeholder="Search"
                 className="pl-10 pr-4 py-2 border border-gray-200 rounded-md outline-none"
-                value={queryString}
+                value={queryString ?? ""}
                 onChange={(evt) =>
                   setQueryString(
                     evt.target.value ? evt.target.value : undefined,
@@ -174,9 +128,6 @@ export default function NotificationPageUpdate() {
             <button className="px-4 py-2 bg-gray-200 rounded-md">
               Export As ▼
             </button>
-            {/* <button className="px-4 py-2 bg-gray-200 rounded-md">
-              Sort: Newest First ▼
-            </button>*/}
           </div>
         </div>
 
@@ -189,13 +140,6 @@ export default function NotificationPageUpdate() {
             {data?.data?.length ? (
               data?.data?.map((notification) => (
                 <div
-                  // to={"/notification/" + notification.id}
-                  role="button"
-                  onClick={() => {
-                    if (!notification?.read) {
-                      markReadNotificationMutate({ id: notification?.id });
-                    }
-                  }}
                   key={notification?.id}
                   className={`flex flex-wrap  items-center p-5 gap-3 ${
                     !notification?.read ? "bg-purple-100 cursor-pointer" : ""
@@ -226,6 +170,28 @@ export default function NotificationPageUpdate() {
                   {!notification.read && (
                     <span className="ml-2 h-2 w-2 bg-[#A14DF6] rounded-full"></span>
                   )}
+                  <div data-theme="nord" id="cus-app" className="flex gap-2">
+                    <button
+                      className={`p-2 btn btn-circle ${
+                        notification.read
+                          ? "bg-gray-200 cursor-not-allowed"
+                          : "bg-green-500 hover:bg-green-600"
+                      }`}
+                      onClick={() =>
+                        !notification.read &&
+                        markReadNotificationMutate({ id: notification.id })
+                      }
+                      disabled={notification.read || markReadIsPending}
+                      title={
+                        notification.read ? "Marked as Read" : "Mark as Read"
+                      }
+                    >
+                      <Check size={16} className="text-white" />
+                    </button>
+                    {/*<button className="bg-red-700 text-white btn btn-soft btn-square">
+                      <Trash size={16} />
+                    </button>*/}
+                  </div>
                 </div>
               ))
             ) : (
@@ -244,7 +210,8 @@ export default function NotificationPageUpdate() {
                 value={queryParams["pagination[limit]"] || 10}
                 onChange={(e) =>
                   updateQueryParams({
-                    "pagination[limit]": +e.target.value,
+                    "pagination[limit]": Number(e.target.value),
+                    "pagination[page]": 1,
                   })
                 }
                 className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
@@ -259,22 +226,26 @@ export default function NotificationPageUpdate() {
               <button
                 onClick={() => {
                   updateQueryParams({
-                    "pagination[page]": +queryParams["pagination[page]"] - 1,
+                    "pagination[page]":
+                      Number(queryParams["pagination[page]"]) - 1,
                   });
                 }}
-                disabled={(queryParams["pagination[page]"] ?? 1) == 1}
-                className="px-3 py-1 rounded-md bg-gray-200"
+                disabled={Number(queryParams["pagination[page]"] ?? 1) === 1}
+                className="px-3 py-1 rounded-md bg-gray-200 disabled:opacity-50"
               >
                 ◀
               </button>
               <button
                 onClick={() => {
                   updateQueryParams({
-                    "pagination[page]": +queryParams["pagination[page]"] + 1,
+                    "pagination[page]":
+                      Number(queryParams["pagination[page]"]) + 1,
                   });
                 }}
-                disabled={(queryParams["pagination[page]"] ?? 1) == totalPages}
-                className="px-3 py-1 rounded-md bg-gray-200"
+                disabled={
+                  Number(queryParams["pagination[page]"] ?? 1) === totalPages
+                }
+                className="px-3 py-1 rounded-md bg-gray-200 disabled:opacity-50"
               >
                 ▶
               </button>

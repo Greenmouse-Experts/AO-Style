@@ -9,7 +9,7 @@ import NotificationPage from "../modules/Pages/fabricDashboard/NotificationPage"
 import TransactionPage from "../modules/Pages/fabricDashboard/TransactionPage";
 import Settings from "../modules/Pages/fabricDashboard/Settings";
 import InboxPage from "../modules/Pages/fabricDashboard/Inbox";
-import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
+import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPageUpdate";
 import Coupons from "../modules/Pages/Coupons";
 import FabricAnnouncementsPage from "../modules/Pages/fabricDashboard/Announcements";
 import ProtectedRoute from "../components/ProtectedRoute";

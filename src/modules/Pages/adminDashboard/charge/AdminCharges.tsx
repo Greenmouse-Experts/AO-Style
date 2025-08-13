@@ -148,7 +148,7 @@ export default function AdminCharges() {
           <div className="overflow-x-auto hidden md:block">
             {" "}
             {/* PC view */}
-            <table className="table w-full rounded-lg bg-base-200 ">
+            <table className="table w-full rounded-lg bg-base-100 ">
               <thead>
                 <tr className="">
                   <th className="">Fabric Vendor Fee (%)</th>

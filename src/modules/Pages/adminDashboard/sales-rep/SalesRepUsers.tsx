@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import CaryBinApi from "../../../../services/CarybinBaseUrl";
-import { AlertCircle } from "lucide-react"; // Import Lucide icon for error
+import { AlertCircle } from "lucide-react";
 import CustomTable from "../../../../components/CustomTable";
-import { useRef } from "react";
+import { useState } from "react";
 
 interface Coordinates {
   latitude: string;
@@ -14,7 +14,7 @@ interface Profile {
   id: string;
   user_id: string;
   profile_picture: string | null;
-  address: string | null; // ADDRESS
+  address: string | null;
   bio: string | null;
   date_of_birth: null;
   gender: string | null;
@@ -32,7 +32,7 @@ interface Profile {
 
 interface Role {
   id: string;
-  name: string; // This will be used for KYC status indicator (e.g., "See KYC" for Fabric Vendor)
+  name: string;
   role_group_id: string;
   description: string;
   created_at: string;
@@ -63,13 +63,13 @@ interface BusinessInfo {
 
 interface UserData {
   id: string;
-  name: string; // FULL NAME
-  email: string; // EMAIL ADDRESS
+  name: string;
+  email: string;
   password_hash: string;
-  phone: string; // PHONE NUMBER
+  phone: string;
   is_email_verified: boolean;
   is_phone_verified: boolean;
-  created_at: string; // DATE JOINED
+  created_at: string;
   updated_at: string;
   deleted_at: null;
   role_identity: string;
@@ -90,8 +90,11 @@ interface API_RESPONSE {
   data: UserData[];
   count: number;
 }
+
 export default function SalesRepUsers() {
   const { salesId } = useParams();
+  const [isDialogOpen, setDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
 
   const query = useQuery<API_RESPONSE>({
     queryKey: ["sales_rep_user", salesId],
@@ -102,10 +105,8 @@ export default function SalesRepUsers() {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   });
-  const detailRef = useRef<HTMLDialogElement>(null);
 
   if (query.isLoading) {
-    // Use isLoading for initial fetch, isFetching for all fetches
     return (
       <div
         id="cus-app"
@@ -127,90 +128,78 @@ export default function SalesRepUsers() {
       >
         <div role="alert" className="alert alert-error max-w-md">
           <AlertCircle className="h-6 w-6" />
-          <span className="">
-            Error! Failed to load sales representative data.
-          </span>
+          <span>Error! Failed to load sales representative data.</span>
           <p className="text-sm mt-1">
             {query.error?.message || "An unknown error occurred."}
           </p>
-          <div className=""></div>
         </div>
       </div>
     );
   }
+
   const columns = [
-    {
-      key: "name",
-      label: "Name",
-    },
-    {
-      key: "email",
-      label: "Email Address",
-    },
+    { key: "name", label: "Name" },
+    { key: "email", label: "Email Address" },
     {
       key: "role.name",
       label: "Role",
-      render: (_, item: UserData) => {
-        return item.role.name;
-      },
+      render: (_: any, item: UserData) => item.role.name,
     },
-    {
-      key: "phone",
-      label: "Phone Number",
-    },
-    {
-      key: "created_at",
-      label: "Date Joined",
-    },
+    { key: "phone", label: "Phone Number" },
+    { key: "created_at", label: "Date Joined" },
     {
       key: "profile.address",
       label: "Address",
-      render: (_, item: UserData) => {
-        return item.profile.address?.trim() || "...address missing";
-      },
+      render: (_: any, item: UserData) =>
+        item.profile.address?.trim() || "...address missing",
     },
-
     {
       key: "business_info.business_name",
       label: "Business Name",
-      render: (_, item: UserData) => {
-        return item.business_info.business_name;
-      },
+      render: (_: any, item: UserData) => item.business_info.business_name,
     },
     {
       key: "business_info.location",
       label: "Business Location",
-      render: (_, item: UserData) => {
-        return item.business_info.location;
-      },
+      render: (_: any, item: UserData) => item.business_info.location,
     },
   ];
-  // If data is available and not loading/error
-  // const mapped_dat = query.data?.data.map((item) => {
-  //   return item;
-  // });
-  console.log(query.data?.data[0]);
 
   const actions = [
     {
       key: "view detail",
       label: "View Details",
-      action: (item: any) => {
-        console.log(item);
+      action: (item: UserData) => {
+        setSelectedUser(item);
+        setDialogOpen(true);
       },
     },
   ];
+
   return (
     <div id="cus-app" data-theme="nord">
-      {/*{JSON.stringify(query.data?.data)}*/}
-
       <CustomTable
         columns={columns}
         data={query.data?.data}
         actions={actions}
       />
 
-      <dialog></dialog>
+      {isDialogOpen && (
+        <dialog open id="my_modal_1" className="modal">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg">Hello!</h3>
+            <p className="py-4">
+              Press ESC key or click the button below to close
+            </p>
+            <div className="modal-action">
+              <form method="dialog">
+                {/* if there is a button in form, it will close the modal */}
+                <button className="btn">Close</button>
+              </form>
+            </div>
+          </div>
+        </dialog>
+      )}
     </div>
   );
 }

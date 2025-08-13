@@ -79,13 +79,15 @@ export default function AdminCharges() {
   const chargeData = query.data?.data;
 
   return (
-    <div id="cus-app" data-theme="nord" className="container mx-auto p-4">
-      <div className="card bg-base-100 rounded-md">
+    <div
+      id="cus-app"
+      data-theme="nord"
+      className="container mx-auto p-4 shadow-md"
+    >
+      <div className="card bg-base-100  rounded-lg">
         <div className="card-body">
-          <div className="flex flex-wrap justify-between items-center mb-6">
-            <h2 className="card-title text-2xl font-bold hidden md:inline">
-              Admin Charges
-            </h2>
+          <div className="mb-2 border-b border-base-200 pb-2">
+            <h2 className="text-2xl font-bold ">Admin Charges</h2>
           </div>
 
           <div className="md:hidden">
@@ -93,39 +95,43 @@ export default function AdminCharges() {
             {/* Mobile view */}
             {chargeData ? (
               <div className="grid grid-cols-1 gap-4">
-                <div className="card bg-base-200 shadow-lg p-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-semibold text-lg">Admin Charges</h3>
+                <div className="card bg-base-200 shadow-lg p-4 rounded-lg border border-base-300">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-semibold text-lg text-secondary">
+                      Admin Charges
+                    </h3>
                     <button
                       onClick={(e) => editDialogRef.current?.showModal()}
-                      className="btn btn-sm btn-ghost"
+                      className="btn btn-sm btn-primary text-white hover:bg-primary-focus"
                       aria-label="Edit Charge"
                     >
-                      <Pencil className="h-4 w-4" />
+                      <Pencil className="h-4 w-4 mr-1" /> Edit
                     </button>
                   </div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-medium">
+                  <div className="flex justify-between items-center mb-2 py-1 border-b border-base-300">
+                    <span className="text-sm font-medium text-gray-600">
                       Fabric Vendor Fee:
                     </span>
-                    <span className="text-sm">
+                    <span className="text-sm font-semibold">
                       {chargeData.fabric_vendor_fee}%
                     </span>
                   </div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-medium">
+                  <div className="flex justify-between items-center mb-2 py-1 border-b border-base-300">
+                    <span className="text-sm font-medium text-gray-600">
                       Fashion Designer Fee:
                     </span>
-                    <span className="text-sm">
+                    <span className="text-sm font-semibold">
                       {chargeData.fashion_designer_fee}%
                     </span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Status:</span>
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-sm font-medium text-gray-600">
+                      Status:
+                    </span>
                     {chargeData.is_active ? (
-                      <div className="badge badge-success badge-sm">Active</div>
+                      <div className="badge badge-success badge-lg">Active</div>
                     ) : (
-                      <div className="badge badge-warning badge-sm">
+                      <div className="badge badge-warning badge-lg">
                         Inactive
                       </div>
                     )}
@@ -133,20 +139,22 @@ export default function AdminCharges() {
                 </div>
               </div>
             ) : (
-              <p className="text-center">No charge data available.</p>
+              <p className="text-center text-gray-500">
+                No charge data available.
+              </p>
             )}
           </div>
 
           <div className="overflow-x-auto hidden md:block">
             {" "}
             {/* PC view */}
-            <table className="table w-full">
+            <table className="table w-full rounded-lg bg-base-200 ">
               <thead>
-                <tr>
-                  <th>Fabric Vendor Fee</th>
-                  <th>Fashion Designer Fee</th>
+                <tr className="">
+                  <th className="">Fabric Vendor Fee (%)</th>
+                  <th>Fashion Designer Fee (%)</th>
                   <th>Status</th>
-                  <th>Actions</th>
+                  <th className="">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -156,26 +164,30 @@ export default function AdminCharges() {
                     <td>{chargeData.fashion_designer_fee}</td>
                     <td>
                       {chargeData.is_active ? (
-                        <div className="badge badge-success">Active</div>
+                        <div className="badge badge-success badge-md">
+                          Active
+                        </div>
                       ) : (
-                        <div className="badge badge-warning">Inactive</div>
+                        <div className="badge badge-warning badge-md">
+                          Inactive
+                        </div>
                       )}
                     </td>
                     <td>
                       <div className="flex flex-wrap gap-2">
                         <button
                           onClick={(e) => editDialogRef.current?.showModal()}
-                          className="btn btn-sm btn-ghost"
+                          className="btn btn-sm btn-primary text-white hover:bg-primary-focus"
                           aria-label="Edit Charge"
                         >
-                          <Pencil className="h-4 w-4" />
+                          <Pencil className="h-4 w-4 mr-1" /> Edit
                         </button>
                       </div>
                     </td>
                   </tr>
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center">
+                    <td colSpan={4} className="text-center text-gray-500 py-4">
                       No charge data available.
                     </td>
                   </tr>
@@ -187,18 +199,22 @@ export default function AdminCharges() {
       </div>
       <dialog id="edit_charge_modal" ref={editDialogRef} className="modal">
         <ToastContainer />
-        <div className="modal-box p-6">
-          <h3 className="font-bold text-lg mb-4">Edit Admin Charge</h3>
+        <div className="modal-box p-6 bg-base-100 shadow-lg rounded-lg">
+          <h3 className="font-bold text-lg mb-4 text-primary">
+            Edit Admin Charge
+          </h3>
           <form method="dialog" className="space-y-4" onSubmit={onChargeSubmit}>
             <div className="mb-4">
               <label className="label block mb-1">
-                <span className="label-text">Fabric Vendor Fee (%)</span>
+                <span className="label-text text-gray-600">
+                  Fabric Vendor Fee (%)
+                </span>
               </label>
               <input
                 type="number"
                 step="0.1"
                 placeholder="e.g. 3.5"
-                className="input input-bordered w-full"
+                className="input input-bordered w-full focus:ring-primary focus:border-primary"
                 name="fabric_vendor_fee"
                 id="fabric_vendor_fee"
                 defaultValue={chargeData?.fabric_vendor_fee}
@@ -206,31 +222,33 @@ export default function AdminCharges() {
             </div>
             <div className="mb-6">
               <label className="label block mb-1">
-                <span className="label-text">Fashion Designer Fee (%)</span>
+                <span className="label-text text-gray-600">
+                  Fashion Designer Fee (%)
+                </span>
               </label>
               <input
                 type="number"
                 step="0.1"
                 placeholder="e.g. 5.0"
-                className="input input-bordered w-full"
+                className="input input-bordered w-full focus:ring-primary focus:border-primary"
                 name="fashion_designer_fee"
                 id="fashion_designer_fee"
                 defaultValue={chargeData?.fashion_designer_fee}
               />
             </div>
-            <div className="flex justify-end items-center gap-3">
+            <div className="flex justify-end items-center gap-3 pt-4 border-t border-base-300">
               <button
-                className="btn btn-outline"
+                className="btn btn-outline hover:text-primary"
                 onClick={() => editDialogRef.current?.close()}
               >
                 Cancel
               </button>
               <button
                 disabled={mutate.isPending}
-                className="btn btn-primary text-white"
+                className="btn btn-primary text-white hover:bg-primary-focus"
                 type="submit"
               >
-                {mutate.isPending ? "Saving" : "Save Changes"}
+                {mutate.isPending ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </form>

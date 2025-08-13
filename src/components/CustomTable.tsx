@@ -1,11 +1,11 @@
 import { MenuIcon } from "lucide-react";
-import CaryBinApi from "../services/CarybinBaseUrl";
-import { Link } from "react-router-dom";
+// import CaryBinApi from "../services/CarybinBaseUrl";
+// import { Link } from "react-router-dom";
 
 type columnType = {
   key: string;
   label: string;
-  render?: () => any;
+  render?: (value: any, item: any) => any;
 };
 
 type Actions = {
@@ -24,8 +24,8 @@ export default function CustomTable(props: CustomTableProps) {
   // return <>{JSON.stringify(props.data)}</>;
   return (
     <div data-theme="nord" className="p-2  " id="cus-app">
-      <div className="pb-20 overflow-x-scroll">
-        <table className="table">
+      <div className="overflow-x-scroll static">
+        <table className="table static">
           {/* head */}
           <thead>
             <tr>
@@ -57,37 +57,40 @@ export default function CustomTable(props: CustomTableProps) {
                   {!props.columns?.find((item) => item.key == "action") && (
                     <>
                       <td>
-                        <div className="dropdown dropdown-end">
-                          <div
-                            tabIndex={0}
-                            role="button"
-                            className="btn btn-circle btn-ghost m-1"
-                          >
-                            <MenuIcon />
-                          </div>
-                          <ul
-                            tabIndex={0}
-                            className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
-                          >
-                            <>
-                              {props.actions?.map((action) => {
-                                return (
-                                  <li>
-                                    <button
-                                      onClick={() => action.action(item)}
-                                      className=""
-                                    >
-                                      {action.label}
-                                    </button>
-                                  </li>
-                                );
-                              })}
-                            </>
-                            {/*<li>
-                             <a>Item 2</a>
-                           </li>*/}
-                          </ul>
-                        </div>
+                        <button
+                          className="btn btn-square"
+                          popoverTarget={"popover-" + rowIdx}
+                          style={
+                            {
+                              anchorName: "--anchor-1" + rowIdx,
+                            } /* as React.CSSProperties */
+                          }
+                        >
+                          <MenuIcon />
+                        </button>
+                        <ul
+                          className="dropdown dropdown-bottom dropdown-end menu w-52 rounded-box bg-base-100 shadow-xl"
+                          popover="auto"
+                          id={"popover-" + rowIdx}
+                          style={
+                            {
+                              positionAnchor: "--anchor-1" + rowIdx,
+                            } /* as React.CSSProperties */
+                          }
+                        >
+                          {props.actions?.map((action) => {
+                            return (
+                              <li>
+                                <button
+                                  onClick={() => action.action(item)}
+                                  className=""
+                                >
+                                  {action.label}
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
                       </td>
                     </>
                   )}

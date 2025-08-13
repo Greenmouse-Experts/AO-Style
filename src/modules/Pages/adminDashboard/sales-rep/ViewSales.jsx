@@ -318,7 +318,16 @@ const ViewCustomer = () => {
             <CustomTable columns={customerColumns} data={customerData} />
             {/* <ReusableTable columns={customerColumns} data={customerData} />*/}
           </div>
-          <SalesRepUsers />
+          <div className=" mt-12   rounded-md ">
+            <div className="flex items-center justify-between mb-4   rounded-md  py-0">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Users Added By {userData.name}
+              </h2>
+            </div>
+            <div data-theme="nord" id="cus-app" className="">
+              <SalesRepUsers />
+            </div>
+          </div>
         </div>
       </div>
       <RejectModal id={userData?.id} isOpen={isOpen} onClose={closeModal} />

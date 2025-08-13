@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import CaryBinApi from "../../../../services/CarybinBaseUrl";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { SyntheticEvent, useRef } from "react";
 import { toast, ToastContainer } from "react-toastify";
 
@@ -42,7 +42,7 @@ export default function AdminCharges() {
       setTimeout(() => {
         toast.dismiss();
         editDialogRef.current?.close();
-      }, 500);
+      }, 800);
     },
   });
   const editDialogRef = useRef<HTMLDialogElement>(null);
@@ -82,14 +82,64 @@ export default function AdminCharges() {
     <div id="cus-app" data-theme="nord" className="container mx-auto p-4">
       <div className="card bg-base-100 rounded-md">
         <div className="card-body">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="card-title text-2xl font-bold">Admin Charges</h2>
-            {/*<button className="btn btn-primary text-white">
-              Add New Charge
-            </button>*/}
+          <div className="flex flex-wrap justify-between items-center mb-6">
+            <h2 className="card-title text-2xl font-bold hidden md:inline">
+              Admin Charges
+            </h2>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="md:hidden">
+            {" "}
+            {/* Mobile view */}
+            {chargeData ? (
+              <div className="grid grid-cols-1 gap-4">
+                <div className="card bg-base-200 shadow-lg p-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-semibold text-lg">Admin Charges</h3>
+                    <button
+                      onClick={(e) => editDialogRef.current?.showModal()}
+                      className="btn btn-sm btn-ghost"
+                      aria-label="Edit Charge"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm font-medium">
+                      Fabric Vendor Fee:
+                    </span>
+                    <span className="text-sm">
+                      {chargeData.fabric_vendor_fee}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm font-medium">
+                      Fashion Designer Fee:
+                    </span>
+                    <span className="text-sm">
+                      {chargeData.fashion_designer_fee}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Status:</span>
+                    {chargeData.is_active ? (
+                      <div className="badge badge-success badge-sm">Active</div>
+                    ) : (
+                      <div className="badge badge-warning badge-sm">
+                        Inactive
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-center">No charge data available.</p>
+            )}
+          </div>
+
+          <div className="overflow-x-auto hidden md:block">
+            {" "}
+            {/* PC view */}
             <table className="table w-full">
               <thead>
                 <tr>
@@ -112,7 +162,7 @@ export default function AdminCharges() {
                       )}
                     </td>
                     <td>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <button
                           onClick={(e) => editDialogRef.current?.showModal()}
                           className="btn btn-sm btn-ghost"
@@ -120,12 +170,6 @@ export default function AdminCharges() {
                         >
                           <Pencil className="h-4 w-4" />
                         </button>
-                        {/*<button
-                          className="btn btn-sm btn-ghost text-error"
-                          aria-label="Delete Charge"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>*/}
                       </div>
                     </td>
                   </tr>

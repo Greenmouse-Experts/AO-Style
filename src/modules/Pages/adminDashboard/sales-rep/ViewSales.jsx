@@ -17,84 +17,7 @@ import useGetUser from "../../../../hooks/user/useGetSingleUser";
 import { formatDateStr } from "../../../../lib/helper";
 import CustomTable from "../../../../components/CustomTable";
 import SalesCards from "../components/SalesCards";
-
-const catalogData = [
-  {
-    id: "1",
-    thumbnail: "https://randomuser.me/api/portraits/thumb/men/1.jpg",
-    styleName: "D4 Agbada",
-    category: "Agbada",
-    sewingTime: "7 Days",
-    price: "₦105,000",
-    status: "Active",
-  },
-  {
-    id: "2",
-    thumbnail: "https://randomuser.me/api/portraits/thumb/men/2.jpg",
-    styleName: "D4 Agbada",
-    category: "Agbada",
-    sewingTime: "7 Days",
-    price: "₦105,000",
-    status: "Active",
-  },
-  {
-    id: "3",
-    thumbnail: "https://randomuser.me/api/portraits/thumb/men/3.jpg",
-    styleName: "D4 Agbada",
-    category: "Agbada",
-    sewingTime: "7 Days",
-    price: "₦105,000",
-    status: "Unpublished",
-  },
-  {
-    id: "4",
-    thumbnail: "https://randomuser.me/api/portraits/thumb/men/4.jpg",
-    styleName: "D4 Agbada",
-    category: "Agbada",
-    sewingTime: "7 Days",
-    price: "₦105,000",
-    status: "Published",
-  },
-];
-
-const ordersData = [
-  {
-    id: "1",
-    orderId: "EWREI12324NH",
-    customer: "Frank Samuel",
-    styleName: "Native Agbada",
-    status: "Active",
-    date: "12/06/25",
-    total: "₦105,000",
-  },
-  {
-    id: "2",
-    orderId: "EWREI12324NH",
-    customer: "Frank Samuel",
-    styleName: "Native Agbada",
-    status: "Completed",
-    date: "12/06/25",
-    total: "₦105,000",
-  },
-  {
-    id: "3",
-    orderId: "EWREI12324NH",
-    customer: "Frank Samuel",
-    styleName: "Native Agbada",
-    status: "Cancelled",
-    date: "12/06/25",
-    total: "₦105,000",
-  },
-  {
-    id: "4",
-    orderId: "EWREI12324NH",
-    customer: "Frank Samuel",
-    styleName: "Native Agbada",
-    status: "Ongoing",
-    date: "12/06/25",
-    total: "₦105,000",
-  },
-];
+import SalesRepUsers from "./SalesRepUsers";
 
 const ViewCustomer = () => {
   const { salesId } = useParams();
@@ -123,43 +46,8 @@ const ViewCustomer = () => {
   const itemsPerPage = 4;
 
   // Filter Catalog Data
-  const filteredCatalog = catalogData.filter((item) => {
-    if (catalogFilter === "all") return true;
-    if (catalogFilter === "published") return item.status === "Published";
-    if (catalogFilter === "unpublished") return item.status === "Unpublished";
-    return true;
-  });
 
   // Filter Orders Data
-  const filteredOrders = ordersData.filter(
-    (order) =>
-      (ordersFilter === "all" || order.status.toLowerCase() === ordersFilter) &&
-      order.orderId.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
-
-  const catalogColumns = [
-    { label: "S/N", key: "id" },
-    {
-      label: "Thumbnail Image ",
-      key: "thumbnail",
-      render: (thumbnail) => (
-        <img src={thumbnail} alt="style" className="w-15 h-15 rounded-md" />
-      ),
-    },
-    { label: "Style Name", key: "styleName" },
-    { label: "Categories", key: "category" },
-    { label: "Sewing Time", key: "sewingTime" },
-    { label: "Price", key: "price" },
-    {
-      label: "Status ",
-      key: "status",
-      render: (status) => (
-        <span className="px-3 py-1 text-sm rounded-full bg-green-100 text-green-700">
-          {status}
-        </span>
-      ),
-    },
-  ];
 
   const catalog_action = [
     {
@@ -374,41 +262,10 @@ const ViewCustomer = () => {
     [userData, businessData],
   );
 
-  // Pagination for Catalog
-  const catalogTotalPages = Math.ceil(filteredCatalog.length / itemsPerPage);
-  const catalogStartIndex = (catalogPage - 1) * itemsPerPage;
-  const catalogCurrentItems = filteredCatalog.slice(
-    catalogStartIndex,
-    catalogStartIndex + itemsPerPage,
-  );
-
-  // Pagination for Orders
-  const ordersTotalPages = Math.ceil(filteredOrders.length / itemsPerPage);
-  const ordersStartIndex = (ordersPage - 1) * itemsPerPage;
-  const ordersCurrentItems = filteredOrders.slice(
-    ordersStartIndex,
-    ordersStartIndex + itemsPerPage,
-  );
-
   // Reset page when filter changes
   useEffect(() => {
     setCatalogPage(1);
   }, [catalogFilter]);
-
-  useEffect(() => {
-    setOrdersPage(1);
-  }, [ordersFilter]);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.target.closest(".dropdown-menu")) {
-        setOpenDropdown(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   if (userIsPending) {
     return (
@@ -461,102 +318,9 @@ const ViewCustomer = () => {
             <CustomTable columns={customerColumns} data={customerData} />
             {/* <ReusableTable columns={customerColumns} data={customerData} />*/}
           </div>
-        </div>
-
-        {/* Tailor/Designer Catalog */}
-        <div className="bg-white p-6 rounded-lg mb-6">
-          <h2 className="font-medium text-gray-800 mb-4">
-            Tailor/Designer Catalog
-          </h2>
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pb-3 mb-4 gap-4">
-            <div className="flex flex-wrap justify-center sm:justify-start gap-3 text-gray-600 text-sm font-medium">
-              {["all", "published", "unpublished"].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setCatalogFilter(tab)}
-                  className={`font-medium capitalize px-3 py-1 ${
-                    catalogFilter === tab
-                      ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
-                      : "text-gray-500"
-                  }`}
-                >
-                  {tab} Styles
-                </button>
-              ))}
-            </div>
-            <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-              <div className="relative w-full sm:w-auto">
-                <Search
-                  className="absolute left-3 top-3 text-gray-400"
-                  size={18}
-                />
-                <input
-                  type="text"
-                  placeholder="Search"
-                  className="w-full sm:w-[200px] pl-10 pr-4 py-2 border border-gray-200 rounded-md outline-none text-sm"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <button className="w-full sm:w-auto px-4 py-2 bg-purple-600 text-white rounded-md text-sm">
-                Export As ▼
-              </button>
-              <button className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md text-sm">
-                Sort: Newest First ▼
-              </button>
-            </div>
-          </div>
-          {/* <ReusableTable columns={catalogColumns} data={catalogCurrentItems} />*/}
-          <>
-            <CustomTable
-              user={data}
-              columns={catalogColumns}
-              data={catalogCurrentItems}
-              actions={catalog_action}
-            />
-          </>
-          <div className="flex justify-between items-center mt-4">
-            <p className="text-sm text-gray-600">
-              Showing 1 to {catalogCurrentItems.length} of{" "}
-              {filteredCatalog.length} entries
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setCatalogPage((page) => Math.max(page - 1, 1))}
-                disabled={catalogPage === 1}
-                className="p-2 bg-gray-200 rounded-full"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              {[...Array(catalogTotalPages)].map((_, i) => (
-                <button
-                  key={i + 1}
-                  onClick={() => setCatalogPage(i + 1)}
-                  className={`px-3 py-1 rounded-full ${
-                    catalogPage === i + 1
-                      ? "bg-purple-600 text-white"
-                      : "bg-gray-200"
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-              <button
-                onClick={() =>
-                  setCatalogPage((page) =>
-                    Math.min(page + 1, catalogTotalPages),
-                  )
-                }
-                disabled={catalogPage === catalogTotalPages}
-                className="p-2 bg-gray-200 rounded-full"
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
-          </div>
+          <SalesRepUsers />
         </div>
       </div>
-
       <RejectModal id={userData?.id} isOpen={isOpen} onClose={closeModal} />
     </React.Fragment>
   );

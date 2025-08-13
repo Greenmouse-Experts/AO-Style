@@ -242,7 +242,7 @@ const OrderDetails = () => {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-lg">
+            {/* <div className="bg-white p-6 rounded-lg">
               <h5 className="text-lg font-medium border-b border-gray-200 pb-3 mb-6">
                 Customer Information
               </h5>
@@ -292,7 +292,7 @@ const OrderDetails = () => {
                 />
                 <Mail className="text-purple-500 cursor-pointer" size={24} />
               </div>
-            </div>
+            </div>*/}
           </div>
         </div>
 

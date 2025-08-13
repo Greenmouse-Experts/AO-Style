@@ -15,6 +15,7 @@ import ConfirmationModal from "../../../../components/ui/ConfirmationModal";
 import useDeleteUser from "../../../../hooks/user/useDeleteUser";
 import useToast from "../../../../hooks/useToast";
 import AddMarketModal from "./AddMarketModal";
+import * as XLSX from "xlsx";
 
 const NewlyAddedUsers = () => {
   const [currView, setCurrView] = useState("approved");
@@ -328,7 +329,28 @@ const NewlyAddedUsers = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
+  const handleExport = (e) => {
+    const value = e.target.value;
+    if (value === "excel") exportToExcel();
+    // if (value === "pdf") exportToPDF();
+    // if (value === "csv") document.getElementById("csvDownload").click();
+  };
+  const exportToExcel = () => {
+    // return console.log(MarketRepData);
+    const worksheet = XLSX.utils.json_to_sheet(
+      currView == "invites" ? InviteData : MarketRepData,
+    );
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const blob = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    saveAs(blob, "MyProducts.xlsx");
+  };
   return (
     <div className="bg-white p-6 rounded-xl overflow-x-auto">
       <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
@@ -343,9 +365,17 @@ const NewlyAddedUsers = () => {
             }
             className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
           />
-          <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-            Export As ▾
-          </button>
+          <select
+            onChange={handleExport}
+            className="bg-gray-100 outline-none text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
+          >
+            <option value="" disabled selected>
+              Export As
+            </option>
+            <option value="csv">Export to CSV</option>{" "}
+            <option value="excel">Export to Excel</option>{" "}
+            <option value="pdf">Export to PDF</option>{" "}
+          </select>
 
           <button
             onClick={() => setIsModalOpen(true)}

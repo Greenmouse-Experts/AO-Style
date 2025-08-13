@@ -548,16 +548,50 @@ const ChatHead = () => {
 
     socket.emit("sendMessage", messageData);
 
-    // Create new chat entry in local state
+    // Update existing chat or create new one in local state
     if (selectedAdmin) {
-      const newChat = {
-        id: Date.now(),
-        last_message: messageText.trim(),
-        chat_buddy: selectedAdmin,
-        created_at: new Date().toISOString(),
-        unread: 0,
-      };
-      setChats((prevChats) => [newChat, ...prevChats]);
+      console.log("=== UPDATING CHAT LIST AFTER MESSAGE (CHATHEAD) ===");
+      console.log("Admin ID:", selectedAdmin.id);
+      console.log("Current chats count:", chats.length);
+
+      setChats((prevChats) => {
+        // Check if chat with this admin already exists
+        const existingChatIndex = prevChats.findIndex(
+          (chat) => chat.chat_buddy?.id === selectedAdmin.id,
+        );
+
+        console.log("Existing chat index:", existingChatIndex);
+
+        if (existingChatIndex !== -1) {
+          // Update existing chat
+          console.log("📝 Updating existing chat with admin (ChatHead)");
+          const updatedChats = [...prevChats];
+          updatedChats[existingChatIndex] = {
+            ...updatedChats[existingChatIndex],
+            last_message: messageText.trim(),
+            created_at: new Date().toISOString(),
+            unread: 0,
+          };
+          // Move updated chat to top
+          const updatedChat = updatedChats.splice(existingChatIndex, 1)[0];
+          console.log("✅ Chat updated and moved to top (ChatHead)");
+          return [updatedChat, ...updatedChats];
+        } else {
+          // Create new chat entry
+          console.log("➕ Creating new chat with admin (ChatHead)");
+          const newChat = {
+            id: Date.now(),
+            last_message: messageText.trim(),
+            chat_buddy: selectedAdmin,
+            created_at: new Date().toISOString(),
+            unread: 0,
+          };
+          console.log("✅ New chat created (ChatHead)");
+          return [newChat, ...prevChats];
+        }
+      });
+
+      console.log("========================================");
     }
 
     toastSuccess("Message sent successfully!");
@@ -565,11 +599,15 @@ const ChatHead = () => {
     setMessageText("");
     setCurrentView("chats");
 
-    // Refresh chats to show the new conversation
-    if (socket && currentUserId) {
-      console.log("🔄 Refreshing chats after sending message to admin");
-      socket.emit("getChats", { userId: currentUserId });
-    }
+    // Refresh chats with a delay to prevent duplicates
+    setTimeout(() => {
+      if (socket && currentUserId) {
+        console.log(
+          "🔄 Refreshing chats after delay to sync with server (ChatHead)",
+        );
+        socket.emit("getChats", { userId: currentUserId });
+      }
+    }, 1000);
   };
 
   // Send message

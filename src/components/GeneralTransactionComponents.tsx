@@ -12,22 +12,27 @@ interface ApiResponse {
   count: number;
 }
 
+const withdrawStatusOptions = [
+  { key: "PENDING", label: "Pending" },
+  { key: "FAILED", label: "Failed" },
+  { key: "CANCELLED", label: "Cancelled" },
+  { key: "PAID", label: "Paid" },
+  { key: "PROCESSING", label: "Processing" },
+  { key: "SHIPPED", label: "Shipped" },
+  { key: "IN_TRANSIT", label: "In Transit" },
+  { key: "OUT_FOR_DELIVERY", label: "Out for Delivery" },
+  { key: "DELIVERED", label: "Delivered" },
+  { key: "RETURNED", label: "Returned" },
+] as const;
+
+type WithdrawStatus = (typeof withdrawStatusOptions)[number]["key"];
+
 interface Withdraw {
   id: string;
   user_id: string;
   amount: string;
   currency: string;
-  status:
-    | "PENDING"
-    | "FAILED"
-    | "CANCELLED"
-    | "PAID"
-    | "PROCESSING"
-    | "SHIPPED"
-    | "IN_TRANSIT"
-    | "OUT_FOR_DELIVERY"
-    | "DELIVERED"
-    | "RETURNED";
+  status: WithdrawStatus | null;
   notes: null | string;
   processed_by: null | string;
   processed_at: null | string;
@@ -85,19 +90,36 @@ const dummy_transactions: ApiResponse = {
   ],
   count: 1,
 };
+interface Filters {
+  page: number;
+  status?: WithdrawStatus;
+  limit: number;
+  endDate?: Date;
+  startDate?: Date;
+}
+const default_filters: Filters = {
+  page: 1,
+  limit: 10,
+  status: undefined,
+  endDate: undefined,
+  startDate: undefined,
+};
 export function GeneralTransactionComponent() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState<Filters>(default_filters);
   const query = useQuery<ApiResponse>({
-    queryKey: ["transactions", "general"],
+    queryKey: ["transactions", "general", filters],
     queryFn: async () => {
-      const response = await CaryBinApi.get("/withdraw/fetch");
+      const response = await CaryBinApi.get("/withdraw/fetch", {
+        params: {
+          ...filters,
+        },
+      });
       return response.data;
     },
   });
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedData, setData] = useState<Withdraw | null>(null);
   const { queryParams, updateQueryParams } = useQueryParams({
-    status: "",
+    ...filters,
     "pagination[limit]": 10,
     "pagination[page]": 1,
   });
@@ -199,6 +221,7 @@ export function GeneralTransactionComponent() {
       },
     },
   ];
+
   return (
     <>
       <div className="flex items-center justify-between bg-white p-4 mb-4 rounded-md shadow">
@@ -212,41 +235,53 @@ export function GeneralTransactionComponent() {
           </p>
         </div>
       </div>
-      <div className="space-y-6">
+      <div className="space-y-6" data-theme="nord">
         {/* Search + Info */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-2 mb-2  rounded-md shadow">
+        <div className="flex items-center p-3 rounded-md">
           <input
             type="text"
             placeholder="Search by transaction ID or user email"
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
-              setCurrentPage(1);
+              // setCurrentPage(1);
             }}
             className="w-full md:w-80 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
+          <div className="ml-auto">
+            <select
+              name=""
+              className="select"
+              id=""
+              onChange={(e) => {
+                let value = e.target.value;
+                setFilters((pre) => {
+                  let new_val = { ...pre, status: value };
+                  return new_val;
+                });
+              }}
+            >
+              <option value={undefined}>Default</option>
+              {withdrawStatusOptions.map((item) => (
+                <option key={item.key} value={item.key}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
-      <CustomTable
-        data={dummy_transactions.data}
-        columns={columns}
-        actions={actions}
-      />
-      <label ref={modalRef} htmlFor="my_modal_7" className="btn hidden">
-        open modal
-      </label>
+      {query.isFetching ? (
+        <>loading</>
+      ) : (
+        <CustomTable
+          data={dummy_transactions.data}
+          columns={columns}
+          actions={actions}
+        />
+      )}
 
       {/* Put this part before </body> tag */}
-      <input type="checkbox" id="my_modal_7" className="modal-toggle z-20" />
-      <div data-theme="nord" className="modal backdrop-blur-lg" role="dialog">
-        <div className="modal-box">
-          <h3 className="text-lg font-bold">Hello!</h3>
-          <p className="py-4 wrap-anywhere">{JSON.stringify(selectedData)}</p>
-        </div>
-        <label className="modal-backdrop" htmlFor="my_modal_7">
-          Close
-        </label>
-      </div>
     </>
   );
 }

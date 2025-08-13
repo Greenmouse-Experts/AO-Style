@@ -50,8 +50,6 @@ const CartPage = () => {
   const [showPolicyModal, setShowPolicyModal] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
-  const [expandedBreakdown, setExpandedBreakdown] = useState({});
-  const breakdownRef = useRef({});
 
   // API hooks
   const {
@@ -165,6 +163,40 @@ const CartPage = () => {
   };
 
   const totals = calculateTotals();
+
+  // Calculate fabric and style totals separately
+  const fabricTotals = items.reduce(
+    (acc, item) => {
+      const fabricPrice = parseFloat(
+        item.price_at_time || item.product?.price || 0,
+      );
+      const quantity = parseInt(item.quantity || 1);
+      const fabricTotal = fabricPrice * quantity;
+
+      return {
+        totalAmount: acc.totalAmount + fabricTotal,
+        totalYards: acc.totalYards + quantity,
+        itemCount: acc.itemCount + 1,
+      };
+    },
+    { totalAmount: 0, totalYards: 0, itemCount: 0 },
+  );
+
+  const styleTotals = items.reduce(
+    (acc, item) => {
+      const stylePrice = parseFloat(item.style_product?.price || 0);
+
+      if (item.style_product && stylePrice > 0) {
+        return {
+          totalAmount: acc.totalAmount + stylePrice,
+          itemCount: acc.itemCount + 1,
+        };
+      }
+      return acc;
+    },
+    { totalAmount: 0, itemCount: 0 },
+  );
+
   const delivery_fee = deliveryData?.data?.data?.delivery_fee ?? 0;
   const estimatedVat = totals.subtotal * 0.075;
   const charges = totals.subtotal * 0.015;
@@ -175,45 +207,25 @@ const CartPage = () => {
 
   // Console log calculation details
   console.log("💰 Cart Calculations:", {
+    fabricTotals: {
+      totalAmount: fabricTotals.totalAmount,
+      totalYards: fabricTotals.totalYards,
+      itemCount: fabricTotals.itemCount,
+    },
+    styleTotals: {
+      totalAmount: styleTotals.totalAmount,
+      itemCount: styleTotals.itemCount,
+    },
     subtotal: totals.subtotal,
     delivery_fee: delivery_fee,
     estimatedVat: estimatedVat,
     charges: charges,
     discountAmount: discountAmount,
     finalTotal: finalTotal,
-    itemsWithStyles: items.filter((item) => item.style_product).length,
-    totalStylePrice: items.reduce(
-      (total, item) => total + parseFloat(item.style_product?.price || 0),
-      0,
-    ),
-    note: "Service charges excluded from total (only subtotal + VAT + delivery)",
+    note: "Fabric + Style breakdown now clearly separated",
     deliveryDataExists: !!deliveryData,
     deliveryDataPath: deliveryData?.data?.data,
   });
-
-  // Handle click outside to close breakdown
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      const openBreakdowns = Object.keys(expandedBreakdown).filter(
-        (key) => expandedBreakdown[key],
-      );
-
-      openBreakdowns.forEach((itemId) => {
-        const breakdownElement = breakdownRef.current[itemId];
-        if (breakdownElement && !breakdownElement.contains(event.target)) {
-          setExpandedBreakdown((prev) => ({
-            ...prev,
-            [itemId]: false,
-          }));
-        }
-      });
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [expandedBreakdown]);
 
   // Handle agreement click
   const handleAgreementClick = (e) => {
@@ -239,9 +251,14 @@ const CartPage = () => {
       },
       {
         onSuccess: () => {
+          console.log("🗑️ Item deleted successfully, refetching cart...");
           refetchCart();
           setIsDeleteModalOpen(false);
           setItemToDelete(null);
+          // Clear any stale states
+          setAppliedCoupon(null);
+          setCoupon("");
+          console.log("🧹 Cleared coupon and stale states after item deletion");
         },
         onError: (error) => {
           toastError("Failed to remove item");
@@ -367,106 +384,198 @@ const CartPage = () => {
   };
 
   // Handle proceeding to payment
-  const handleProceedToPayment = () => {
+  const handleProceedToPayment = async () => {
     if (!navigator.onLine) {
       toastError("No internet connection. Please check your network.");
       return;
     }
 
-    const addressInfo = getProfileAddress();
+    try {
+      // Refetch cart to ensure we have latest data
+      console.log("🔄 Refetching cart before payment...");
+      const freshCartData = await refetchCart();
 
-    console.log("📊 Payment Data Summary:", {
-      subtotal: totals.subtotal,
-      discountAmount: discountAmount,
-      delivery_fee: delivery_fee,
-      estimatedVat: estimatedVat,
-      finalTotal: finalTotal,
-      itemCount: items.length,
-      addressInfo: addressInfo,
-      coupon: coupon,
-      profile_data_used: {
-        user_id: carybinUser?.id,
-        user_name: carybinUser?.name,
-        user_email: carybinUser?.email,
-        profile_address: carybinUser?.address,
-        profile_state: carybinUser?.state,
-        profile_country: carybinUser?.country,
-        email_verified: carybinUser?.is_email_verified,
-      },
-    });
+      // Wait a moment for state to update
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-    // Prepare billing data with totals
-    const billingData = {
-      ...addressInfo,
-      subtotal: totals.subtotal,
-      discount_amount: discountAmount,
-      delivery_fee: delivery_fee,
-      vat_amount: estimatedVat,
-      total_amount: finalTotal,
-      coupon_code: appliedCoupon?.code || undefined,
-    };
+      console.log("🔄 Fresh cart data:", freshCartData?.data);
 
-    console.log("🧾 Creating billing with enhanced data:", billingData);
+      const addressInfo = getProfileAddress();
 
-    createBillingMutate(billingData, {
-      onSuccess: (billingResponse) => {
-        console.log("✅ Billing created successfully:", billingResponse);
+      console.log("📊 Payment Data Summary:", {
+        subtotal: totals.subtotal,
+        discountAmount: discountAmount,
+        delivery_fee: delivery_fee,
+        estimatedVat: estimatedVat,
+        finalTotal: finalTotal,
+        itemCount: items.length,
+        addressInfo: addressInfo,
+        coupon: coupon,
+        profile_data_used: {
+          user_id: carybinUser?.id,
+          user_name: carybinUser?.name,
+          user_email: carybinUser?.email,
+          profile_address: carybinUser?.address,
+          profile_state: carybinUser?.state,
+          profile_country: carybinUser?.country,
+          email_verified: carybinUser?.is_email_verified,
+        },
+      });
 
-        // Prepare purchases from cart items
-        const purchases = items.map((item) => ({
-          purchase_id: item.product_id,
-          quantity: item.quantity,
-          purchase_type: item.product_type || item.product?.type,
-        }));
+      // Prepare billing data with totals
+      const billingData = {
+        ...addressInfo,
+        subtotal: totals.subtotal,
+        discount_amount: discountAmount,
+        delivery_fee: delivery_fee,
+        vat_amount: estimatedVat,
+        total_amount: finalTotal,
+        coupon_code: appliedCoupon?.code || undefined,
+      };
 
-        const paymentData = {
-          purchases,
-          amount: Math.round(finalTotal),
-          currency: "NGN",
-          coupon_code: appliedCoupon?.code || undefined,
-          email: carybinUser?.email,
-          subtotal: totals.subtotal,
-          delivery_fee: delivery_fee,
-          vat_amount: estimatedVat,
-          country: addressInfo.country,
-          postal_code: addressInfo.postal_code,
-        };
+      console.log("🧾 Creating billing with enhanced data:", billingData);
 
-        console.log("💳 Creating payment with enhanced data:", paymentData);
+      createBillingMutate(billingData, {
+        onSuccess: (billingResponse) => {
+          console.log("✅ Billing created successfully:", billingResponse);
 
-        createPaymentMutate(paymentData, {
-          onSuccess: (paymentResponse) => {
-            console.log("✅ Payment created successfully:", paymentResponse);
-            setShowConfirmationModal(false);
-            setCoupon("");
+          // Ensure we have fresh cart data
+          console.log("🔄 Current cart items before payment:", items);
+          console.log("🔄 Items length:", items.length);
+          console.log(
+            "🔍 Items with styles:",
+            items.filter((item) => item.style_product?.id),
+          );
+          console.log(
+            "🔍 Style items count:",
+            items.filter((item) => item.style_product?.id).length,
+          );
 
-            console.log("🚀 Launching Paystack with:", {
-              amount: finalTotal,
-              payment_id: paymentResponse?.data?.data?.payment_id,
+          // Prepare purchases from cart items - include both fabric and style purchases
+          const purchases = [];
+          const metadata = [];
+
+          items.forEach((item) => {
+            // Add fabric purchase
+            purchases.push({
+              purchase_id: item.product_id,
+              quantity: item.quantity,
+              purchase_type:
+                item.product_type || item.product?.type || "FABRIC",
             });
 
-            payWithPaystack({
-              amount: finalTotal,
-              payment_id: paymentResponse?.data?.data?.payment_id,
-            });
-          },
-          onError: (error) => {
-            console.error("❌ Payment creation failed:", error);
-            toastError(
-              "Failed to create payment - " +
-                (error?.data?.message || "Unknown error"),
-            );
-          },
-        });
-      },
-      onError: (error) => {
-        console.error("❌ Billing creation failed:", error);
-        toastError(
-          "Failed to create billing - " +
-            (error?.data?.message || "Unknown error"),
-        );
-      },
-    });
+            // Add style purchase if item has a style
+            if (item.style_product?.id) {
+              purchases.push({
+                purchase_id: item.style_product.id,
+                quantity: 1, // Style is always quantity 1 (flat fee)
+                purchase_type: "STYLE",
+              });
+
+              // Add metadata for style items with measurements
+              metadata.push({
+                style_product_id: item.style_product.id,
+                style_product_name: item.style_product.name,
+                measurement: item.measurement || [],
+                customer_name: carybinUser?.name || "",
+                customer_email: carybinUser?.email || "",
+                cart_item_id: item.id,
+                fabric_product_id: item.product_id,
+                fabric_product_name: item.product?.name || "",
+                color: item.color || "",
+                quantity: item.quantity,
+              });
+            }
+          });
+
+          // Validation: Ensure we don't send empty metadata
+          const hasStyleItems = items.some((item) => item.style_product?.id);
+          console.log("🎨 Style validation:", {
+            hasStyleItems,
+            metadataLength: metadata.length,
+            itemsCount: items.length,
+            styleItemsCount: items.filter((item) => item.style_product?.id)
+              .length,
+            shouldIncludeMetadata: metadata.length > 0 && hasStyleItems,
+          });
+
+          // Extra validation: Don't include metadata if no style items
+          const shouldIncludeMetadata = hasStyleItems && metadata.length > 0;
+
+          const paymentData = {
+            purchases,
+            amount: Math.round(finalTotal),
+            currency: "NGN",
+            coupon_code: appliedCoupon?.code || undefined,
+            email: carybinUser?.email,
+            subtotal: totals.subtotal,
+            delivery_fee: delivery_fee,
+            vat_amount: estimatedVat,
+            country: addressInfo.country,
+            postal_code: addressInfo.postal_code,
+            ...(shouldIncludeMetadata && { metadata }),
+          };
+
+          console.log("💳 Creating payment with enhanced data:", paymentData);
+          console.log("🛍️ Payment purchases breakdown:", {
+            totalPurchases: purchases.length,
+            fabricPurchases: purchases.filter(
+              (p) => p.purchase_type === "FABRIC",
+            ).length,
+            stylePurchases: purchases.filter((p) => p.purchase_type === "STYLE")
+              .length,
+            purchases: purchases,
+          });
+          console.log("📏 Payment metadata breakdown:", {
+            metadataCount: metadata.length,
+            styleItemsWithMeasurements: metadata.map((m) => ({
+              style_product_id: m.style_product_id,
+              style_product_name: m.style_product_name,
+              measurementCount: Array.isArray(m.measurement)
+                ? m.measurement.length
+                : m.measurement
+                  ? 1
+                  : 0,
+            })),
+          });
+
+          createPaymentMutate(paymentData, {
+            onSuccess: (paymentResponse) => {
+              console.log("✅ Payment created successfully:", paymentResponse);
+              setShowConfirmationModal(false);
+              setCoupon("");
+
+              console.log("🚀 Launching Paystack with:", {
+                amount: finalTotal,
+                payment_id: paymentResponse?.data?.data?.payment_id,
+              });
+
+              payWithPaystack({
+                amount: finalTotal,
+                payment_id: paymentResponse?.data?.data?.payment_id,
+              });
+            },
+            onError: (error) => {
+              console.error("❌ Payment creation failed:", error);
+              toastError(
+                "Failed to create payment - " +
+                  (error?.data?.message || "Unknown error"),
+              );
+            },
+          });
+        },
+        onError: (error) => {
+          console.error("❌ Billing creation failed:", error);
+          toastError(
+            "Failed to create billing - " +
+              (error?.data?.message || "Unknown error"),
+          );
+        },
+      });
+    } catch (error) {
+      console.error("❌ Error refetching cart before payment:", error);
+      toastError("Failed to refresh cart data. Please try again.");
+    }
   };
 
   // Format currency
@@ -533,58 +642,60 @@ const CartPage = () => {
           </div>
         </div>
       ) : (
-        <div className="Resizer section px-4 py-8">
+        <div className="Resizer section px-2 sm:px-4 py-4 sm:py-8">
           <div className="max-w-7xl mx-auto">
             {/* Cart Header with User Info */}
-            <div className="mb-8">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900">
-                    Shopping Cart
-                  </h1>
-                  <p className="text-gray-600 mt-1">
-                    {totals.itemCount}{" "}
-                    {totals.itemCount === 1 ? "item" : "items"} •{" "}
-                    {totals.totalQuantity} total pieces
-                  </p>
-                </div>
-
-                {/* Cart Metadata */}
-                {cartMeta && (
-                  <div className="bg-gray-50 rounded-lg p-4 text-sm">
-                    <div className="flex items-center gap-2 text-gray-600 mb-2">
-                      <Calendar className="w-4 h-4" />
-                      <span>Created: {formatDate(cartMeta.created_at)}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Tag className="w-4 h-4" />
-                      <span>Cart ID: {cartMeta.id}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* User Information */}
+            <div className="mb-4 sm:mb-6">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+                Shopping Cart
+              </h1>
+              <p className="text-sm sm:text-base text-gray-600">
+                {totals.itemCount} {totals.itemCount === 1 ? "item" : "items"} •{" "}
+                {totals.totalQuantity} total pieces
+              </p>
+            </div>
+            <div className="mb-4 sm:mb-6">
+              {/* User Information Header */}
               {cartUser && (
-                <div className="mt-4 bg-purple-50 border border-purple-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <User className="w-5 h-5 text-purple-600" />
-                    <h3 className="font-semibold text-purple-900">
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-l-4 border-purple-400 rounded-lg p-4 mb-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                      <User className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <h3 className="text-lg font-bold text-purple-900">
                       Cart Owner
                     </h3>
+                    {cartUser.status && (
+                      <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                        ✓ Verified
+                      </span>
+                    )}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium">Name:</span> {cartUser.name}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                    <div className="flex flex-col">
+                      <span className="text-gray-600 text-xs uppercase tracking-wide">
+                        Name
+                      </span>
+                      <span className="font-semibold text-gray-900">
+                        {cartUser.name}
+                      </span>
                     </div>
-                    <div>
-                      <span className="font-medium">Email:</span>{" "}
-                      {cartUser.email}
+                    <div className="flex flex-col">
+                      <span className="text-gray-600 text-xs uppercase tracking-wide">
+                        Email
+                      </span>
+                      <span className="font-semibold text-gray-900">
+                        {cartUser.email}
+                      </span>
                     </div>
                     {cartUser.phone && (
-                      <div>
-                        <span className="font-medium">Phone:</span>{" "}
-                        {cartUser.phone}
+                      <div className="flex flex-col">
+                        <span className="text-gray-600 text-xs uppercase tracking-wide">
+                          Phone
+                        </span>
+                        <span className="font-semibold text-gray-900">
+                          {cartUser.phone}
+                        </span>
                       </div>
                     )}
                     {cartUser.is_email_verified && (
@@ -602,12 +713,12 @@ const CartPage = () => {
               {/* Cart Items - Left Side */}
               <div className="lg:col-span-2 space-y-4">
                 {/* Desktop Headers */}
-                <div className="hidden md:grid grid-cols-10 gap-4 px-4 py-3 bg-gray-50 rounded-lg text-sm font-medium text-gray-600">
+                {/* <div className="hidden md:grid grid-cols-10 gap-4 px-4 py-3 bg-gray-50 rounded-lg text-sm font-medium text-gray-600">
                   <div className="col-span-5">Product</div>
                   <div className="col-span-2 text-center">Quantity</div>
                   <div className="col-span-2 text-right">Total</div>
                   <div className="col-span-1 text-center">Action</div>
-                </div>
+                </div>*/}
 
                 {/* Cart Items */}
                 {items.map((item) => {
@@ -630,281 +741,198 @@ const CartPage = () => {
                   return (
                     <div
                       key={item.id}
-                      className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
+                      className="bg-white border border-gray-200 rounded-lg sm:rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
                     >
                       {/* Mobile Layout */}
-                      <div className="md:hidden space-y-4">
-                        {/* Product Info */}
-                        <div className="flex items-start space-x-4">
-                          {item.product?.image && (
-                            <img
-                              src={item.product.image}
-                              alt={item.product?.name || "Product"}
-                              className="w-16 h-16 object-cover rounded border"
-                            />
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-gray-900 truncate">
-                              {item.product?.name ||
-                                `Product ${item.product_id}`}
-                            </h3>
-                            <p className="text-sm text-gray-500 mt-1">
-                              Type: {item.product_type || item.product?.type}
-                            </p>
-                            <p className="text-sm text-purple-600 font-semibold mt-1">
-                              {item?.style_product
-                                ? `₦${fabricPrice.toLocaleString()} fabric + ₦${stylePrice.toLocaleString()} style`
-                                : `₦${fabricPrice.toLocaleString()} per yard`}
-                            </p>
-                            {item.product?.sku && (
-                              <p className="text-xs text-gray-400 mt-1">
-                                SKU: {item.product.sku}
-                              </p>
-                            )}
-
-                            {/* Style Information */}
-                            {item.style_product && (
-                              <CartItemStyle
-                                styleProduct={item.style_product}
-                                measurement={item.measurement}
-                                fabricImage={item.product?.image}
-                                fabricName={item.product?.name}
-                                stylePrice={item.style_product?.price}
+                      <div className="md:hidden">
+                        {/* Main Product Info */}
+                        <div className="p-3 sm:p-4 border-b border-gray-100">
+                          <div className="flex gap-4">
+                            {item.product?.image && (
+                              <img
+                                src={item.product.image}
+                                alt={item.product?.name || "Product"}
+                                className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
                               />
                             )}
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-base sm:text-lg text-gray-900 mb-1">
+                                {item.product?.name ||
+                                  `Product ${item.product_id}`}
+                              </h3>
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded">
+                                  {item.product_type || "FABRIC"}
+                                </span>
+                                {item.product?.sku && (
+                                  <span className="text-xs text-gray-500">
+                                    SKU: {item.product.sku}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => {
+                                setItemToDelete(item.id);
+                                setIsDeleteModalOpen(true);
+                              }}
+                              disabled={deleteIsPending}
+                              className="p-2 text-gray-400 hover:text-red-500 rounded-lg"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </div>
                         </div>
 
-                        {/* Quantity Display */}
-                        <div className="flex items-center justify-between relative">
-                          <div className="flex items-center gap-3">
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium">
-                                Quantity: {displayQuantity}{" "}
-                                {item?.style_product ? "units" : "yards"}
-                              </span>
-                              {item?.style_product && (
-                                <span className="text-xs text-blue-600 font-medium">
-                                  = {getMeasurementCount(item.measurement)}{" "}
+                        {/* Fabric Details */}
+                        <div className="p-3 sm:p-4 bg-blue-25 border-b border-blue-100">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-blue-600 font-medium">
+                                  🧵 Fabric
+                                </span>
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                ₦{fabricPrice.toLocaleString()} × {quantity}{" "}
+                                yard{quantity !== 1 ? "s" : ""}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-base sm:text-lg font-bold text-blue-700">
+                                ₦{fabricTotal.toLocaleString()}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Style Details */}
+                        {item.style_product && (
+                          <div className="p-3 sm:p-4 bg-purple-25 border-b border-purple-100">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-purple-600 font-medium">
+                                    ✨ Style
+                                  </span>
+                                </div>
+                                <div className="text-sm text-gray-900 font-medium">
+                                  {item.style_product?.name || "Custom Style"}
+                                </div>
+                                <div className="text-sm text-gray-600">
+                                  {getMeasurementCount(item.measurement)}{" "}
                                   measurement
                                   {getMeasurementCount(item.measurement) !== 1
                                     ? "s"
                                     : ""}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <p className="text-lg font-bold text-purple-600">
-                                {formatPrice(itemTotal)}
-                              </p>
-                              {item?.style_product && stylePrice > 0 && (
-                                <button
-                                  onClick={() =>
-                                    setExpandedBreakdown((prev) => ({
-                                      ...prev,
-                                      [item.id]: !prev[item.id],
-                                    }))
-                                  }
-                                  className="text-xs text-blue-600 hover:text-blue-800 p-1 rounded-full hover:bg-blue-50 transition-colors"
-                                  title="View price breakdown"
-                                >
-                                  <svg
-                                    className="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                    />
-                                  </svg>
-                                </button>
-                              )}
-                            </div>
-
-                            {/* Expandable price breakdown */}
-                            {item?.style_product &&
-                              stylePrice > 0 &&
-                              expandedBreakdown[item.id] && (
-                                <div
-                                  ref={(el) =>
-                                    (breakdownRef.current[item.id] = el)
-                                  }
-                                  className="absolute right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-10 min-w-[200px]"
-                                >
-                                  <div className="text-xs text-gray-700 space-y-1">
-                                    <div className="flex justify-between">
-                                      <span>Fabric ({quantity} yards):</span>
-                                      <span>
-                                        ₦{fabricTotal.toLocaleString()}
-                                      </span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span>Style:</span>
-                                      <span>
-                                        ₦{stylePrice.toLocaleString()}
-                                      </span>
-                                    </div>
-                                    <div className="border-t pt-1 flex justify-between font-medium">
-                                      <span>Total:</span>
-                                      <span>₦{itemTotal.toLocaleString()}</span>
-                                    </div>
-                                  </div>
                                 </div>
-                              )}
+                              </div>
+                              <div className="text-right">
+                                <div className="text-base sm:text-lg font-bold text-purple-700">
+                                  ₦{stylePrice.toLocaleString()}
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                        </div>
+                        )}
 
-                        {/* Remove Button */}
-                        <div className="flex justify-end">
-                          <button
-                            onClick={() => {
-                              setItemToDelete(item.id);
-                              setIsDeleteModalOpen(true);
-                            }}
-                            disabled={deleteIsPending}
-                            className="flex items-center gap-2 text-red-600 hover:text-red-800 text-sm"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            Remove
-                          </button>
-                        </div>
-
-                        {/* Item Metadata */}
-                        <div className="bg-gray-50 rounded p-3 text-xs text-gray-600 space-y-1">
-                          <div>Added: {formatDate(item.created_at)}</div>
-                          {item.updated_at !== item.created_at && (
-                            <div>Updated: {formatDate(item.updated_at)}</div>
-                          )}
+                        {/* Total */}
+                        <div className="p-3 sm:p-4 bg-gray-50">
+                          <div className="flex items-center justify-between">
+                            <span className="text-base sm:text-lg font-semibold text-gray-900">
+                              Total
+                            </span>
+                            <span className="text-xl sm:text-2xl font-bold text-gray-900">
+                              ₦{itemTotal.toLocaleString()}
+                            </span>
+                          </div>
                         </div>
                       </div>
 
                       {/* Desktop Layout */}
-                      <div className="hidden md:grid grid-cols-10 gap-4 items-center">
-                        {/* Product Information */}
-                        <div className="col-span-5 flex items-center space-x-3">
+                      <div className="hidden md:grid md:grid-cols-12 md:gap-4 md:items-center md:p-4">
+                        {/* Product Info */}
+                        <div className="col-span-5 flex items-center gap-4">
                           {item.product?.image && (
                             <img
                               src={item.product.image}
                               alt={item.product?.name || "Product"}
-                              className="w-16 h-16 object-cover rounded border"
+                              className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
                             />
                           )}
-                          <div className="flex-1 min-w-0">
-                            <div>
-                              <h3 className="font-semibold text-gray-900 truncate">
-                                {item.product?.name ||
-                                  `Product ${item.product_id}`}
-                              </h3>
-                              <p className="text-sm text-gray-500">
-                                {item.product_type || item.product?.type}
-                              </p>
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-semibold text-lg text-gray-900 truncate">
+                              {item.product?.name ||
+                                `Product ${item.product_id}`}
+                            </h3>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded">
+                                {item.product_type || "FABRIC"}
+                              </span>
                               {item.product?.sku && (
-                                <p className="text-xs text-gray-400">
+                                <span className="text-xs text-gray-500">
                                   SKU: {item.product.sku}
-                                </p>
-                              )}
-
-                              {/* Style Information */}
-                              {item.style_product && (
-                                <CartItemStyleDesktop
-                                  styleProduct={item.style_product}
-                                  measurement={item.measurement}
-                                  fabricImage={item.product?.image}
-                                  fabricName={item.product?.name}
-                                  stylePrice={item.style_product?.price}
-                                />
+                                </span>
                               )}
                             </div>
-                          </div>
-                        </div>
-
-                        {/* Quantity Display */}
-                        <div className="col-span-2 flex flex-col items-center justify-center gap-1">
-                          <span
-                            className={`text-center font-medium ${
-                              item?.style_product ? "text-blue-600" : ""
-                            }`}
-                          >
-                            {displayQuantity}{" "}
-                            {item?.style_product ? "units" : "yards"}
-                          </span>
-                          {item?.style_product && (
-                            <span className="text-xs text-blue-600 font-medium">
-                              = {getMeasurementCount(item.measurement)}{" "}
-                              measurement
-                              {getMeasurementCount(item.measurement) !== 1
-                                ? "s"
-                                : ""}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Total */}
-                        <div className="col-span-2 text-right relative">
-                          <div className="flex items-center justify-end gap-2">
-                            <p className="text-lg font-bold text-purple-600">
-                              {formatPrice(itemTotal)}
-                            </p>
-                            {item?.style_product && stylePrice > 0 && (
-                              <button
-                                onClick={() =>
-                                  setExpandedBreakdown((prev) => ({
-                                    ...prev,
-                                    [item.id]: !prev[item.id],
-                                  }))
-                                }
-                                className="text-xs text-blue-600 hover:text-blue-800 p-1 rounded-full hover:bg-blue-50 transition-colors"
-                                title="View price breakdown"
-                              >
-                                <svg
-                                  className="w-4 h-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                  />
-                                </svg>
-                              </button>
-                            )}
-                          </div>
-
-                          {/* Expandable price breakdown */}
-                          {item?.style_product &&
-                            stylePrice > 0 &&
-                            expandedBreakdown[item.id] && (
-                              <div
-                                ref={(el) =>
-                                  (breakdownRef.current[item.id] = el)
-                                }
-                                className="absolute right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-10 min-w-[200px]"
-                              >
-                                <div className="text-xs text-gray-700 space-y-1">
-                                  <div className="flex justify-between">
-                                    <span>Fabric ({quantity} yards):</span>
-                                    <span>₦{fabricTotal.toLocaleString()}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span>Style:</span>
-                                    <span>₦{stylePrice.toLocaleString()}</span>
-                                  </div>
-                                  <div className="border-t pt-1 flex justify-between font-medium">
-                                    <span>Total:</span>
-                                    <span>₦{itemTotal.toLocaleString()}</span>
-                                  </div>
+                            {/* Style info for desktop */}
+                            {item.style_product && (
+                              <div className="mt-2 p-2 bg-purple-50 rounded-lg border border-purple-100">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-purple-600 text-sm">
+                                    ✨
+                                  </span>
+                                  <span className="text-sm font-medium text-purple-900">
+                                    {item.style_product?.name || "Custom Style"}
+                                  </span>
+                                </div>
+                                <div className="text-xs text-purple-600 mt-1">
+                                  {getMeasurementCount(item.measurement)}{" "}
+                                  measurement
+                                  {getMeasurementCount(item.measurement) !== 1
+                                    ? "s"
+                                    : ""}
                                 </div>
                               </div>
                             )}
+                          </div>
+                        </div>
+
+                        {/* Quantity */}
+                        <div className="col-span-2 text-center">
+                          <div className="text-sm font-medium">
+                            {quantity} yard{quantity !== 1 ? "s" : ""}
+                          </div>
+                          {item?.style_product && (
+                            <div className="text-xs text-blue-600">
+                              = {getMeasurementCount(item.measurement)} unit
+                              {getMeasurementCount(item.measurement) !== 1
+                                ? "s"
+                                : ""}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Pricing Breakdown */}
+                        <div className="col-span-4 space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">🧵 Fabric:</span>
+                            <span className="font-medium">
+                              ₦{fabricTotal.toLocaleString()}
+                            </span>
+                          </div>
+                          {item?.style_product && stylePrice > 0 && (
+                            <div className="flex justify-between text-sm">
+                              <span className="text-purple-600">✨ Style:</span>
+                              <span className="font-medium text-purple-700">
+                                ₦{stylePrice.toLocaleString()}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex justify-between text-base font-bold border-t pt-1">
+                            <span>Total:</span>
+                            <span>₦{itemTotal.toLocaleString()}</span>
+                          </div>
                         </div>
 
                         {/* Remove */}
@@ -915,7 +943,7 @@ const CartPage = () => {
                               setIsDeleteModalOpen(true);
                             }}
                             disabled={deleteIsPending}
-                            className="text-red-600 hover:text-red-800 p-2"
+                            className="text-gray-400 hover:text-red-500 p-2"
                             title="Remove item"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -929,183 +957,192 @@ const CartPage = () => {
 
               {/* Order Summary - Right Side */}
               <div className="lg:col-span-1">
-                <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-lg sticky top-4">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                    Order Summary
-                  </h2>
-
-                  {/* Coupon Section */}
-                  <div className="mb-6">
-                    {!appliedCoupon ? (
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 mb-2 block">
-                          Have a coupon code?
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            value={coupon}
-                            onChange={(e) => setCoupon(e.target.value)}
-                            placeholder="Enter coupon code"
-                            className="w-full px-3 py-2 pr-20 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          />
-                          <button
-                            onClick={handleApplyCoupon}
-                            disabled={!coupon.trim() || applyCouponPending}
-                            className="absolute right-1 top-1 bottom-1 px-3 bg-purple-600 text-white rounded text-xs font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                          >
-                            {applyCouponPending ? "..." : "Apply"}
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                                <svg
-                                  className="w-3 h-3 text-white"
-                                  fill="currentColor"
-                                  viewBox="0 0 8 8"
-                                >
-                                  <path d="M6.564.75l-3.59 3.612-1.538-1.55L0 4.26 2.974 7.25 8 2.193z" />
-                                </svg>
-                              </div>
-                              <div>
-                                <div className="text-sm font-medium text-green-800">
-                                  Coupon "{appliedCoupon.code}" applied
-                                </div>
-                                <div className="text-sm text-green-600">
-                                  You saved ₦
-                                  {formatNumberWithCommas(
-                                    appliedCoupon.discount,
-                                  )}
-                                </div>
-                              </div>
-                            </div>
+                <div className="bg-white border border-gray-200 rounded-xl shadow-lg sticky top-4 overflow-hidden">
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 border-b border-gray-200">
+                    <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                      <Package className="w-6 h-6 text-purple-600" />
+                      Order Summary
+                    </h2>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Review your order details
+                    </p>
+                  </div>
+                  <div className="p-6">
+                    {/* Coupon Section */}
+                    <div className="mb-6">
+                      {!appliedCoupon ? (
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-gray-700 mb-2 block">
+                            Have a coupon code?
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              value={coupon}
+                              onChange={(e) => setCoupon(e.target.value)}
+                              placeholder="Enter coupon code"
+                              className="w-full px-3 py-2 pr-20 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            />
                             <button
-                              onClick={handleRemoveCoupon}
-                              className="text-sm text-red-600 hover:text-red-800 font-medium px-2 py-1 hover:bg-red-50 rounded transition-colors"
+                              onClick={handleApplyCoupon}
+                              disabled={!coupon.trim() || applyCouponPending}
+                              className="absolute right-1 top-1 bottom-1 px-3 bg-purple-600 text-white rounded text-xs font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
-                              Remove
+                              {applyCouponPending ? "..." : "Apply"}
                             </button>
                           </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                  <svg
+                                    className="w-3 h-3 text-white"
+                                    fill="currentColor"
+                                    viewBox="0 0 8 8"
+                                  >
+                                    <path d="M6.564.75l-3.59 3.612-1.538-1.55L0 4.26 2.974 7.25 8 2.193z" />
+                                  </svg>
+                                </div>
+                                <div>
+                                  <div className="text-sm font-medium text-green-800">
+                                    Coupon "{appliedCoupon.code}" applied
+                                  </div>
+                                  <div className="text-sm text-green-600">
+                                    You saved ₦
+                                    {formatNumberWithCommas(
+                                      appliedCoupon.discount,
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <button
+                                onClick={handleRemoveCoupon}
+                                className="text-sm text-red-600 hover:text-red-800 font-medium px-2 py-1 hover:bg-red-50 rounded transition-colors"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
-                  {/* Summary Details */}
-                  <div className="space-y-4 mb-6">
-                    <div className="flex justify-between text-sm text-gray-600">
-                      <span>Subtotal ({totals.itemCount} items)</span>
-                      <span className="text-green-600 font-semibold">
-                        {formatPrice(totals.subtotal)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm text-gray-600">
-                      <span>Delivery Fee</span>
-                      <span className="text-green-600 font-semibold">
-                        {deliveryLoading ? (
-                          <span className="text-gray-400">Loading...</span>
-                        ) : deliveryError ? (
-                          <span className="text-red-500">
-                            Error loading fee
-                          </span>
-                        ) : (
-                          formatPrice(delivery_fee)
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm text-gray-600">
-                      <span>VAT (7.5%)</span>
-                      <span className="text-green-600 font-semibold">
-                        {formatPrice(estimatedVat)}
-                      </span>
-                    </div>
-
-                    {discountAmount > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Discount</span>
+                    {/* Summary Details */}
+                    <div className="space-y-4 mb-6">
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>Subtotal ({totals.itemCount} items)</span>
                         <span className="text-green-600 font-semibold">
-                          -{formatPrice(discountAmount)}
+                          {formatPrice(totals.subtotal)}
                         </span>
                       </div>
-                    )}
-                    <hr className="border-gray-200 my-4" />
-                    <div className="flex justify-between text-xl font-bold">
-                      <span className="text-gray-900">Total</span>
-                      <span className="text-green-600">
-                        {formatPrice(finalTotal)}
-                      </span>
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>Delivery Fee</span>
+                        <span className="text-green-600 font-semibold">
+                          {deliveryLoading ? (
+                            <span className="text-gray-400">Loading...</span>
+                          ) : deliveryError ? (
+                            <span className="text-red-500">
+                              Error loading fee
+                            </span>
+                          ) : (
+                            formatPrice(delivery_fee)
+                          )}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>VAT (7.5%)</span>
+                        <span className="text-green-600 font-semibold">
+                          {formatPrice(estimatedVat)}
+                        </span>
+                      </div>
+
+                      {discountAmount > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Discount</span>
+                          <span className="text-green-600 font-semibold">
+                            -{formatPrice(discountAmount)}
+                          </span>
+                        </div>
+                      )}
+                      <hr className="border-gray-200 my-4" />
+                      <div className="flex justify-between text-xl font-bold">
+                        <span className="text-gray-900">Total</span>
+                        <span className="text-green-600">
+                          {formatPrice(finalTotal)}
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Policy Checkbox */}
-                  <div className="flex items-start gap-3 mb-4 p-3 bg-gray-50 rounded-lg">
-                    <input
-                      type="checkbox"
-                      id="main-agree-policy"
-                      checked={agreedToPolicy}
-                      onChange={(e) => setAgreedToPolicy(e.target.checked)}
-                      className="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-                    />
-                    <label
-                      htmlFor="main-agree-policy"
-                      className="text-sm text-gray-700 leading-relaxed"
-                    >
-                      I agree to the{" "}
-                      <button
-                        type="button"
-                        onClick={handleAgreementClick}
-                        className="text-purple-600 hover:text-purple-800 underline font-medium"
+                    {/* Policy Checkbox */}
+                    <div className="flex items-start gap-3 mb-4 p-3 bg-gray-50 rounded-lg">
+                      <input
+                        type="checkbox"
+                        id="main-agree-policy"
+                        checked={agreedToPolicy}
+                        onChange={(e) => setAgreedToPolicy(e.target.checked)}
+                        className="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                      />
+                      <label
+                        htmlFor="main-agree-policy"
+                        className="text-sm text-gray-700 leading-relaxed"
                       >
-                        Carybin Checkout Policy
-                      </button>
-                    </label>
+                        I agree to the{" "}
+                        <button
+                          type="button"
+                          onClick={handleAgreementClick}
+                          className="text-purple-600 hover:text-purple-800 underline font-medium"
+                        >
+                          Carybin Checkout Policy
+                        </button>
+                      </label>
+                    </div>
+
+                    {/* Checkout Button */}
+                    <button
+                      onClick={() => {
+                        console.log("🛒 User initiated checkout process");
+                        console.log("📊 Checkout initiation data:", {
+                          total_items: items.length,
+                          subtotal: totals.subtotal,
+                          delivery_fee: delivery_fee,
+                          vat_amount: estimatedVat,
+                          final_total: finalTotal,
+                          has_coupon: !!appliedCoupon,
+                          coupon_code: appliedCoupon?.code,
+                          discount_amount: discountAmount,
+                          user_email: carybinUser?.email,
+                          policy_agreed: agreedToPolicy,
+                          user_profile_address: getProfileAddress(),
+                          timestamp: new Date().toISOString(),
+                        });
+                        console.log(
+                          "🚀 Opening review modal with profile address",
+                        );
+                        setShowConfirmationModal(true);
+                      }}
+                      disabled={
+                        !agreedToPolicy ||
+                        createPaymentPending ||
+                        billingPending
+                      }
+                      className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-xl font-bold text-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-105"
+                    >
+                      {createPaymentPending || billingPending
+                        ? "Processing..."
+                        : "Proceed to Checkout"}
+                    </button>
+
+                    {/* Continue Shopping */}
+                    <Link
+                      to="/marketplace"
+                      className="inline-flex items-center justify-center w-full mt-4 px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      Continue Shopping
+                    </Link>
                   </div>
-
-                  {/* Checkout Button */}
-                  <button
-                    onClick={() => {
-                      console.log("🛒 User initiated checkout process");
-                      console.log("📊 Checkout initiation data:", {
-                        total_items: items.length,
-                        subtotal: totals.subtotal,
-                        delivery_fee: delivery_fee,
-                        vat_amount: estimatedVat,
-                        final_total: finalTotal,
-                        has_coupon: !!appliedCoupon,
-                        coupon_code: appliedCoupon?.code,
-                        discount_amount: discountAmount,
-                        user_email: carybinUser?.email,
-                        policy_agreed: agreedToPolicy,
-                        user_profile_address: getProfileAddress(),
-                        timestamp: new Date().toISOString(),
-                      });
-                      console.log(
-                        "🚀 Opening review modal with profile address",
-                      );
-                      setShowConfirmationModal(true);
-                    }}
-                    disabled={
-                      !agreedToPolicy || createPaymentPending || billingPending
-                    }
-                    className="w-full bg-gradient text-white py-4 rounded-lg font-bold text-lg hover:bg-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                  >
-                    {createPaymentPending || billingPending
-                      ? "Processing..."
-                      : "Proceed to Checkout"}
-                  </button>
-
-                  {/* Continue Shopping */}
-                  <Link
-                    to="/marketplace"
-                    className="block text-center text-purple-600 hover:text-purple-800 mt-4 text-sm font-medium"
-                  >
-                    Continue Shopping
-                  </Link>
                 </div>
               </div>
             </div>

@@ -20,6 +20,7 @@ import { useId } from "react";
 import { useCarybinUserStore } from "../../../../store/carybinUserStore";
 import useGetUserProfile from "../../../Auth/hooks/useGetProfile";
 import useGetAdmins from "../../../../hooks/messaging/useGetAdmins";
+import useSendMessage from "../../../../hooks/messaging/useSendMessage";
 
 export default function InboxPage() {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -58,6 +59,9 @@ export default function InboxPage() {
     isError: adminsError,
   } = useGetAdmins();
 
+  // Send message hook
+  const { isPending: sendingMessage, sendMessageMutate } = useSendMessage();
+
   // Handle sending message to admin via socket
   const handleSendMessageToAdmin = () => {
     if (!selectedAdmin || !messageText.trim()) {
@@ -86,17 +90,51 @@ export default function InboxPage() {
 
     socket.emit("sendMessage", messageData);
 
-    // Create new chat entry in local state
+    // Update existing chat or create new one in local state
     const adminUser = admins?.find((admin) => admin.id === selectedAdmin);
     if (adminUser) {
-      const newChat = {
-        id: Date.now(),
-        last_message: messageText.trim(),
-        chat_buddy: adminUser,
-        created_at: new Date().toISOString(),
-        unread: 0,
-      };
-      setChats((prevChats) => [newChat, ...prevChats]);
+      console.log("=== UPDATING CHAT LIST AFTER MESSAGE ===");
+      console.log("Admin ID:", selectedAdmin);
+      console.log("Current chats count:", chats.length);
+
+      setChats((prevChats) => {
+        // Check if chat with this admin already exists
+        const existingChatIndex = prevChats.findIndex(
+          (chat) => chat.chat_buddy?.id === selectedAdmin,
+        );
+
+        console.log("Existing chat index:", existingChatIndex);
+
+        if (existingChatIndex !== -1) {
+          // Update existing chat
+          console.log("📝 Updating existing chat with admin");
+          const updatedChats = [...prevChats];
+          updatedChats[existingChatIndex] = {
+            ...updatedChats[existingChatIndex],
+            last_message: messageText.trim(),
+            created_at: new Date().toISOString(),
+            unread: 0,
+          };
+          // Move updated chat to top
+          const updatedChat = updatedChats.splice(existingChatIndex, 1)[0];
+          console.log("✅ Chat updated and moved to top");
+          return [updatedChat, ...updatedChats];
+        } else {
+          // Create new chat entry
+          console.log("➕ Creating new chat with admin");
+          const newChat = {
+            id: Date.now(),
+            last_message: messageText.trim(),
+            chat_buddy: adminUser,
+            created_at: new Date().toISOString(),
+            unread: 0,
+          };
+          console.log("✅ New chat created");
+          return [newChat, ...prevChats];
+        }
+      });
+
+      console.log("========================================");
     }
 
     toastSuccess("Message sent successfully!");
@@ -104,11 +142,15 @@ export default function InboxPage() {
     setSelectedAdmin("");
     setMessageText("");
 
-    // Refresh chats to show the new conversation
-    if (socket && userId) {
-      console.log("🔄 Refreshing chats after sending message to admin");
-      socket.emit("getChats", { userId });
-    }
+    // Refresh chats with a delay to prevent duplicates
+    setTimeout(() => {
+      if (socket && userId) {
+        console.log("🔄 Refreshing chats after delay to sync with server");
+        socket.emit("getChats", { userId });
+      }
+    }, 1000);
+
+    console.log("✅ Message sent, local chat state updated");
   };
 
   // Get user profile hook
@@ -356,9 +398,12 @@ export default function InboxPage() {
 
             setChats((prevChats) => {
               const existingChatIndex = prevChats.findIndex(
-                (chat) => chat.id === data.data.id,
+                (chat) =>
+                  chat.id === data.data.id ||
+                  chat.chat_buddy?.id === data.data.chat_buddy?.id,
               );
               if (existingChatIndex >= 0) {
+                console.log("🔄 Updating existing chat from socket event");
                 const updatedChats = [...prevChats];
                 updatedChats[existingChatIndex] = {
                   ...updatedChats[existingChatIndex],
@@ -367,6 +412,7 @@ export default function InboxPage() {
                 };
                 return updatedChats;
               } else {
+                console.log("➕ Adding new chat from socket event");
                 return [data.data, ...prevChats];
               }
             });
@@ -431,9 +477,14 @@ export default function InboxPage() {
 
           setChats((prevChats) => {
             const existingChatIndex = prevChats.findIndex(
-              (chat) => chat.id === data.data.id,
+              (chat) =>
+                chat.id === data.data.id ||
+                chat.chat_buddy?.id === data.data.chat_buddy?.id,
             );
             if (existingChatIndex >= 0) {
+              console.log(
+                "🔄 Updating existing chat from general socket event",
+              );
               const updatedChats = [...prevChats];
               updatedChats[existingChatIndex] = {
                 ...updatedChats[existingChatIndex],
@@ -442,6 +493,7 @@ export default function InboxPage() {
               };
               return updatedChats;
             } else {
+              console.log("➕ Adding new chat from general socket event");
               return [data.data, ...prevChats];
             }
           });
@@ -975,7 +1027,7 @@ export default function InboxPage() {
 
       {/* New Message Modal */}
       {showNewMessageModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg w-full max-w-md">
             <div className="p-6 border-b border-gray-200">
               <div className="flex justify-between items-center">
@@ -1052,10 +1104,19 @@ export default function InboxPage() {
               </button>
               <button
                 onClick={handleSendMessageToAdmin}
-                disabled={!selectedAdmin || !messageText.trim() || !isConnected}
+                disabled={
+                  !selectedAdmin ||
+                  !messageText.trim() ||
+                  !isConnected ||
+                  sendingMessage
+                }
                 className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {!isConnected ? "Connecting..." : "Send Message"}
+                {sendingMessage
+                  ? "Sending..."
+                  : !isConnected
+                    ? "Connecting..."
+                    : "Send Message"}
               </button>
             </div>
           </div>

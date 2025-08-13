@@ -284,6 +284,38 @@ const removeCoupon = async () => {
 const createPayment = async (payload) => {
   try {
     console.log("💳 Creating payment for cart:", payload);
+
+    // Enhanced logging for payment structure
+    if (payload.purchases) {
+      console.log("🛍️ Payment purchases:", {
+        totalPurchases: payload.purchases.length,
+        fabricCount: payload.purchases.filter(
+          (p) => p.purchase_type === "FABRIC",
+        ).length,
+        styleCount: payload.purchases.filter((p) => p.purchase_type === "STYLE")
+          .length,
+        purchases: payload.purchases.map((p) => ({
+          id: p.purchase_id,
+          type: p.purchase_type,
+          quantity: p.quantity,
+        })),
+      });
+    }
+
+    if (payload.metadata) {
+      console.log("📏 Payment metadata:", {
+        metadataCount: payload.metadata.length,
+        styleItems: payload.metadata.map((m) => ({
+          style_id: m.style_product_id,
+          style_name: m.style_product_name,
+          has_measurements: Array.isArray(m.measurement)
+            ? m.measurement.length > 0
+            : !!m.measurement,
+          customer: m.customer_name,
+        })),
+      });
+    }
+
     const response = await CaryBinApi.post(`/payment/create`, payload);
     console.log("✅ Payment created successfully:", response.data);
     return response;
@@ -292,6 +324,14 @@ const createPayment = async (payload) => {
       "❌ Error creating payment:",
       error.response?.data || error.message,
     );
+    console.error("❌ Failed payload structure:", {
+      hasPurchases: !!payload.purchases,
+      purchaseCount: payload.purchases?.length || 0,
+      hasMetadata: !!payload.metadata,
+      metadataCount: payload.metadata?.length || 0,
+      amount: payload.amount,
+      currency: payload.currency,
+    });
     throw error;
   }
 };

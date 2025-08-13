@@ -318,12 +318,12 @@ export default function FabricSelection() {
               </div>
 
               {/* Explore by Market Place Button */}
-              <button
+              {/* <button
                 onClick={handleExploreMarketplace}
                 className="w-full sm:w-auto bg-gradient-to-r from-purple-500 to-pink-500 text-white py-2 px-6 rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 transition-all duration-200"
               >
                 Explore by Market Place
-              </button>
+              </button>*/}
             </div>
 
             {/* Product Grid */}

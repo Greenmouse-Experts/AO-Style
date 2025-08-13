@@ -6,7 +6,6 @@ import {
   Timer,
   ReceiptText,
   CreditCard,
-  Landmark,
   User,
   DollarSign,
 } from "lucide-react";
@@ -14,8 +13,8 @@ import {
 interface TransactionDetail {
   id: string;
   user_id: string;
-  user_name: string; // Added user_name
-  user_email: string; // Added user_email
+  user_name: string;
+  user_email: string;
   amount: string;
   currency: string;
   status:
@@ -41,24 +40,6 @@ interface TransactionResponse {
   statusCode: number;
   data: TransactionDetail;
 }
-const dummy_transation: TransactionResponse = {
-  statusCode: 200,
-  data: {
-    id: "596e5a0d-42a5-4bb2-b880-320529dc37ec",
-    user_id: "7750e65e-33c7-435d-b1ea-e37306cb02c3",
-    user_name: "John Doe", // Dummy user name
-    user_email: "john.doe@example.com", // Dummy user email
-    amount: "4000",
-    currency: "NGN",
-    status: "PENDING",
-    notes: null,
-    processed_by: null,
-    processed_at: null,
-    created_at: "2025-07-28T12:23:21.914Z",
-    updated_at: "2025-07-28T12:23:21.914Z",
-    deleted_at: null,
-  },
-};
 
 const getStatusBadgeClass = (status: TransactionDetail["status"]): string => {
   switch (status) {
@@ -82,15 +63,52 @@ const getStatusBadgeClass = (status: TransactionDetail["status"]): string => {
 
 export default function ViewTransactionDetail() {
   const { id } = useParams<{ id: string }>();
-  // const query = useQuery<TransactionResponse>({
-  //   queryKey: ["transaction", id],
-  //   queryFn: async () => {
-  //     let resp = await CaryBinApi.get("/withdraw/" + id);
-  //     return resp.data;
-  //   },
-  // });
+  const { data, isLoading, error } = useQuery<TransactionResponse>({
+    queryKey: ["transaction", id],
+    queryFn: async () => {
+      const resp = await CaryBinApi.get("/withdraw/" + id);
+      return resp.data;
+    },
+  });
 
-  const transaction = dummy_transation.data; // Using dummy data for now
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-4 flex justify-center items-center min-h-[300px]">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-4">
+        <div className="alert alert-error shadow-lg">
+          <div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              className="stroke-current flex-shrink-0 w-6 h-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M10 14l2-2m0-2l-2 2m0 2l2 2m2-2l-2-2m2-2l-2-2m2-2l-2-2m2-2l-2-2m2-2l-2-2m2-2l-2-2m2-2l-2-2m2-2l-2-2m2-2l-2-2"
+              ></path>
+            </svg>
+            <span>Error loading transaction details.</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const transaction = data?.data;
+
+  if (!transaction) {
+    return null;
+  }
 
   return (
     <div className="container mx-auto p-4" data-theme="nord">

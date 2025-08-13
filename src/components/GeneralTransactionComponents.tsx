@@ -237,33 +237,39 @@ export function GeneralTransactionComponent() {
           </p>
         </div>
       </div>
-      <div className="" data-theme="nord">
-        {/* Search + Info */}
-        <div className="flex items-center p-3 rounded-md gap-2">
-          <input
-            type="text"
-            placeholder="Search by transaction ID or user email"
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              // setCurrentPage(1);
-            }}
-            className="w-full md:w-80 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-          />
-          <div className="ml-auto gap-2 flex items-center">
+      {/* Filters */}
+      <div className="bg-white p-4 rounded-lg shadow mb-4" data-theme="nord">
+        <div className="flex flex-col md:flex-row md:items-end gap-4">
+          {/* Search */}
+          <div className="form-control w-full md:w-80">
+            <label className="label">
+              <span className="label-text font-medium">Search</span>
+            </label>
+            <input
+              type="text"
+              placeholder="Transaction ID or email"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="input input-bordered w-full input-sm"
+            />
+          </div>
+
+          {/* Status */}
+          <div className="form-control w-full md:w-56">
+            <label className="label">
+              <span className="label-text font-medium">Status</span>
+            </label>
             <select
-              name=""
-              className="select"
-              id=""
-              onChange={(e) => {
-                let value = e.target.value;
-                setFilters((pre) => {
-                  let new_val = { ...pre, status: value as WithdrawStatus };
-                  return new_val;
-                });
-              }}
+              className="select select-bordered select-sm"
+              value={filters.status || ""}
+              onChange={(e) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  status: (e.target.value as WithdrawStatus) || undefined,
+                }))
+              }
             >
-              <option value={undefined}>Default</option>
+              <option value="">All</option>
               {withdrawStatusOptions.map((item) => (
                 <option key={item.key} value={item.key}>
                   {item.label}
@@ -271,38 +277,37 @@ export function GeneralTransactionComponent() {
               ))}
             </select>
           </div>
-        </div>
-        <div className="flex  items-center mt-2 gap-2 px-3">
-          <div>
-            <label htmlFor="" className="label mb-2">
-              Start Date
+
+          {/* Start Date */}
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text font-medium">Start Date</span>
             </label>
             <input
-              onChange={(e) => {
-                let date = e.target.value;
-                let new_val: Filters = { ...filters, startDate: date };
-                setFilters(new_val);
-              }}
               type="date"
-              className="input-sm input"
+              className="input input-bordered input-sm"
+              onChange={(e) =>
+                setFilters((prev) => ({ ...prev, startDate: e.target.value }))
+              }
             />
           </div>
-          <div>
-            <label htmlFor="" className="label mb-2">
-              End Date
+
+          {/* End Date */}
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text font-medium">End Date</span>
             </label>
             <input
-              onChange={(e) => {
-                let date = e.target.value;
-                let new_val: Filters = { ...filters, endDate: date };
-                setFilters(new_val);
-              }}
               type="date"
-              className="input-sm input"
+              className="input input-bordered input-sm"
+              onChange={(e) =>
+                setFilters((prev) => ({ ...prev, endDate: e.target.value }))
+              }
             />
           </div>
         </div>
       </div>
+
       {query.isFetching ? (
         <div data-theme="nord" className="px-4 py-12 bg-white shadow">
           <div className="flex flex-col items-center justify-center h-full">

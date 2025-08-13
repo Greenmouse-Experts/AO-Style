@@ -83,9 +83,9 @@ export default function AdminCharges() {
         <div className="card-body">
           <div className="flex justify-between items-center mb-6">
             <h2 className="card-title text-2xl font-bold">Admin Charges</h2>
-            <button className="btn btn-primary text-white">
+            {/*<button className="btn btn-primary text-white">
               Add New Charge
-            </button>
+            </button>*/}
           </div>
 
           <div className="overflow-x-auto">

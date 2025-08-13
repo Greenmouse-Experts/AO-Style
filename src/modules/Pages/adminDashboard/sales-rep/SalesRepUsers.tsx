@@ -75,10 +75,11 @@ interface API_RESPONSE {
 }
 export default function SalesRepUsers() {
   const { salesId } = useParams();
+
   const query = useQuery<API_RESPONSE>({
     queryKey: ["sales_rep_user", salesId],
     queryFn: async () => {
-      let resp = await CaryBinApi.get("/auth/vendors?role=fashion-designer");
+      let resp = await CaryBinApi.get("/auth/fetch-vendors/" + salesId);
       return resp.data;
     },
     refetchOnMount: false,
@@ -123,7 +124,7 @@ export default function SalesRepUsers() {
   // If data is available and not loading/error
   return (
     <div id="cus-app" data-theme="nord">
-      {JSON.stringify(query.data?.data)}
+      {/*{JSON.stringify(query.data?.data)}*/}
     </div>
   );
 }

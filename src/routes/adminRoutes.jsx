@@ -54,6 +54,7 @@ import ViewTransaction from "../modules/Pages/adminDashboard/ViewTransaction";
 import NotificationPage from "../modules/Pages/adminDashboard/NotificationPage";
 import AdminNotificationDetail from "../modules/Pages/adminDashboard/AdminNotificationDetail";
 import AdminViewProductRep from "../modules/Pages/adminDashboard/sales-rep/AdminViewProductRep";
+import InvitesPage from "../modules/Pages/invtes/invites";
 
 export const adminRoutes = [
   {
@@ -185,6 +186,10 @@ export const adminRoutes = [
       {
         path: "/admin/fabrics-products",
         element: <MyProducts />,
+      },
+      {
+        path: "/admin/invites",
+        element: <InvitesPage />,
       },
       {
         path: "/admin/fabric/add-product",

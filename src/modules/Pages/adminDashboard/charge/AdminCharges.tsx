@@ -119,12 +119,12 @@ export default function AdminCharges() {
                         >
                           <Pencil className="h-4 w-4" />
                         </button>
-                        <button
+                        {/*<button
                           className="btn btn-sm btn-ghost text-error"
                           aria-label="Delete Charge"
                         >
                           <Trash2 className="h-4 w-4" />
-                        </button>
+                        </button>*/}
                       </div>
                     </td>
                   </tr>
@@ -191,7 +191,6 @@ export default function AdminCharges() {
           </form>
         </div>
       </dialog>
-      ```
     </div>
   );
 }

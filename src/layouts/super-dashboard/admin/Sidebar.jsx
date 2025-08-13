@@ -22,6 +22,7 @@ import { GiScissors } from "react-icons/gi";
 import { Link } from "react-router-dom";
 import { useCarybinAdminUserStore } from "../../../store/carybinAdminUserStore";
 import { useEffect } from "react";
+import { DollarSignIcon } from "lucide-react";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const handleClick = () => {
@@ -190,6 +191,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               to="/admin/markets"
               icon={<FaStore />}
               text="Markets"
+              onClick={handleClick}
+            />
+            <SidebarItem
+              to="/admin/charges"
+              icon={<DollarSignIcon size={16} />}
+              text="Charges"
               onClick={handleClick}
             />
             <SidebarItem

@@ -375,7 +375,7 @@ const NewlyAddedUsers = () => {
             </option>
             <option value="csv">Export to CSV</option>{" "}
             <option value="excel">Export to Excel</option>{" "}
-            <option value="pdf">Export to PDF</option>{" "}
+            {/* <option value="pdf">Export to PDF</option>{" "}*/}
           </select>
 
           <button

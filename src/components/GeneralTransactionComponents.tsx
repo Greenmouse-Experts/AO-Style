@@ -326,7 +326,22 @@ export function GeneralTransactionComponent() {
         columns={columns}
         data={TransactionData}
       />*/}
+
+      {/*{JSON.stringify(TransactionData)}*/}
+
       <CustomTable data={TransactionData} columns={columns} />
+      {TransactionData.length < 1 && (
+        <>
+          <div id="cus-app" data-theme="nord">
+            <div className="p-2 mx-auto w-fit">
+              <label htmlFor="" className="label">
+                {" "}
+                No Withdrawals found
+              </label>
+            </div>
+          </div>
+        </>
+      )}
       <div className="bg-white mb-12 px-2 rounded-md flex  py-6">
         <div className="flex items-center gap-2 ml-auto ">
           <button

@@ -98,11 +98,12 @@ export default function AddFabricVendorPage() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      // return console.log(val);
       if (!navigator.onLine) {
         toastError("No internet connection. Please check your network.");
         return;
       }
-      const phoneno = `${val.phoneCode + val.phone}`;
+      const phoneno = `${val.phone}`;
 
       if (step == 1) {
         if (values.confirmPassword !== values.password) {
@@ -149,7 +150,7 @@ export default function AddFabricVendorPage() {
             onSuccess: () => {
               navigate(-1);
             },
-          }
+          },
         );
       }
     },
@@ -228,7 +229,7 @@ export default function AddFabricVendorPage() {
                         onSuccess: (data) => {
                           setFieldValue(
                             "profile_picture",
-                            data?.data?.data?.url
+                            data?.data?.data?.url,
                           );
                         },
                       });
@@ -468,7 +469,7 @@ export default function AddFabricVendorPage() {
                     options={[{ value: "Nigeria", label: "Nigeria" }]}
                     name="country"
                     value={[{ value: "Nigeria", label: "Nigeria" }]?.find(
-                      (opt) => opt.value === values.country
+                      (opt) => opt.value === values.country,
                     )}
                     onChange={(selectedOption) =>
                       setFieldValue("country", selectedOption.value)
@@ -502,7 +503,7 @@ export default function AddFabricVendorPage() {
                     options={nigeriaStates}
                     name="state"
                     value={nigeriaStates?.find(
-                      (opt) => opt.value === values.state
+                      (opt) => opt.value === values.state,
                     )}
                     onChange={(selectedOption) =>
                       setFieldValue("state", selectedOption.value)

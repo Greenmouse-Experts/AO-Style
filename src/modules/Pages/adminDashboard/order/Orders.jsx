@@ -8,6 +8,8 @@ import { formatDateStr } from "../../../../lib/helper";
 import ReviewList from "../../../../components/reviews/ReviewList";
 import { useQuery } from "@tanstack/react-query";
 import CaryBinApi from "../../../../services/CarybinBaseUrl";
+import CustomTable from "../../../../components/CustomTable";
+import { MenuIcon } from "lucide-react";
 
 const OrdersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -24,7 +26,6 @@ const OrdersTable = () => {
       key: "customer",
       render: (_, row) => (
         <div className="flex items-center">
-          <input type="checkbox" className="mr-2" />
           <span className="text-sm">
             {row.payment?.user?.email?.split("@")[0] ||
               `User ${row.user_id?.slice(-8)}`}
@@ -84,10 +85,11 @@ const OrdersTable = () => {
       render: (_, row) => (
         <div className="relative">
           <button
+            data-theme="nord"
             onClick={() => toggleDropdown(row.id)}
-            className="text-gray-500 hover:text-gray-700 p-1"
+            className="btn btn-circle btn-ghost"
           >
-            ⋮
+            <MenuIcon className="label" />
           </button>
           {openDropdown === row.id && (
             <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md z-10 border border-gray-200">
@@ -234,8 +236,8 @@ const OrdersTable = () => {
 
   return (
     <>
-      <OrdersSummary />
-      <div className="bg-white p-6 rounded-xl overflow-x-auto">
+      {/* <OrdersSummary />*/}
+      <div className="bg-white p-2 rounded-xl overflow-x-auto">
         <div className="flex flex-wrap justify-between items-center pb-3 gap-4">
           <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
             <h2 className="text-lg font-semibold">Customer Orders</h2>
@@ -262,6 +264,8 @@ const OrdersTable = () => {
               data={currentItems}
               loading={order_query.isPending}
             />
+
+            <CustomTable columns={columns} data={currentItems} />
           </>
         )}
         <div className="flex justify-between items-center mt-4">

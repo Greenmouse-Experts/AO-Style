@@ -336,7 +336,11 @@ export default function TransactionPage() {
             </p>
           </div>
         ) : (
-          <ReusableTable columns={columns} data={filteredTransactions} />
+          <>
+            <GeneralTransactionComponent />
+          </>
+
+          // <ReusableTable columns={columns} data={filteredTransactions} />
         )}
       </div>
 

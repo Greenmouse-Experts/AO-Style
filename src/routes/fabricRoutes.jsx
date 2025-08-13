@@ -15,6 +15,7 @@ import FabricAnnouncementsPage from "../modules/Pages/fabricDashboard/Announceme
 import ProtectedRoute from "../components/ProtectedRoute";
 import Subscriptions from "../modules/Pages/tailorDashboard/Subscription";
 import ViewFabricProduct from "../modules/Pages/fabricDashboard/ViewProduct";
+import NotificationsSinglePage from "../components/notifications/NotificationsSingle";
 
 export const fabricRoutes = [
   {
@@ -67,7 +68,11 @@ export const fabricRoutes = [
       },
       {
         path: "/fabric/notifications",
-        element: <NotificationPageUpdate />,
+        element: <NotificationPage />,
+      },
+      {
+        path: "/fabric/notification/:id",
+        element: <NotificationsSinglePage />,
       },
       {
         path: "/fabric/inbox",

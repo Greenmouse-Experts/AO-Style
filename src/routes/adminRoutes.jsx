@@ -53,6 +53,7 @@ import ViewVendorOrders from "../modules/Pages/adminDashboard/order/ViewVendorOr
 import ViewTransaction from "../modules/Pages/adminDashboard/ViewTransaction";
 import NotificationPage from "../modules/Pages/adminDashboard/NotificationPage";
 import AdminNotificationDetail from "../modules/Pages/adminDashboard/AdminNotificationDetail";
+import AdminViewProductRep from "../modules/Pages/adminDashboard/sales-rep/AdminViewProductRep";
 
 export const adminRoutes = [
   {
@@ -145,6 +146,10 @@ export const adminRoutes = [
       {
         path: "/admin/sales-rep/view-sales/:salesId",
         element: <ViewSales />,
+      },
+      {
+        path: "/admin/sales-rep/product/:id",
+        element: <AdminViewProductRep />,
       },
 
       {

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import ReusableTable from "../components/ReusableTable";
-import SalesCards from "../components/SalesCards";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   Search,
@@ -17,6 +16,7 @@ import Loader from "../../../../components/ui/Loader";
 import useGetUser from "../../../../hooks/user/useGetSingleUser";
 import { formatDateStr } from "../../../../lib/helper";
 import CustomTable from "../../../../components/CustomTable";
+import SalesCards from "../components/SalesCards";
 
 const catalogData = [
   {
@@ -159,50 +159,15 @@ const ViewCustomer = () => {
         </span>
       ),
     },
-    {
-      label: "Action",
-      key: "action",
-      render: (_, row) => (
-        <div className="relative">
-          <button
-            onClick={() =>
-              setOpenDropdown(
-                openDropdown === `catalog-${row.id}`
-                  ? null
-                  : `catalog-${row.id}`,
-              )
-            }
-            className="px-2 py-1 cursor-pointer rounded-md text-gray-600"
-          >
-            •••
-          </button>
-          {openDropdown === `catalog-${row.id}` && (
-            <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
-              <Link to={`/tailor/catalog/${row.id}`}>
-                <button
-                  onClick={() => {
-                    console.log(row);
-                  }}
-                  className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                >
-                  View Details
-                </button>
-              </Link>
-              <button
-                onClick={() => {
-                  return console.log("ss");
-                }}
-                className=" p-4 block cursor-pointer w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-              >
-                Edit Styless
-              </button>
-            </div>
-          )}
-        </div>
-      ),
-    },
   ];
 
+  const catalog_action = [
+    {
+      key: "view_details",
+      label: "view detail",
+      action: (item) => navigate("/admin/sales-rep/product/" + item.id),
+    },
+  ];
   const ordersColumns = [
     { label: "S/N", key: "id" },
     { label: "ORDER ID", key: "orderId" },
@@ -493,7 +458,8 @@ const ViewCustomer = () => {
           </div>
           <SalesCards />
           <div className="bg-white rounded-lg">
-            <ReusableTable columns={customerColumns} data={customerData} />
+            <CustomTable columns={customerColumns} data={customerData} />
+            {/* <ReusableTable columns={customerColumns} data={customerData} />*/}
           </div>
         </div>
 
@@ -540,13 +506,14 @@ const ViewCustomer = () => {
               </button>
             </div>
           </div>
-          <ReusableTable columns={catalogColumns} data={catalogCurrentItems} />
+          {/* <ReusableTable columns={catalogColumns} data={catalogCurrentItems} />*/}
           <>
-            {/* <CustomTable
+            <CustomTable
               user={data}
-              columns={tableHead}
+              columns={catalogColumns}
               data={catalogCurrentItems}
-            />*/}
+              actions={catalog_action}
+            />
           </>
           <div className="flex justify-between items-center mt-4">
             <p className="text-sm text-gray-600">

@@ -23,8 +23,8 @@ interface CustomTableProps {
 export default function CustomTable(props: CustomTableProps) {
   // return <>{JSON.stringify(props.data)}</>;
   return (
-    <div data-theme="nord" className="p-2 " id="cus-app">
-      <div className="overflow-x-auto">
+    <div data-theme="nord" className="p-2  " id="cus-app">
+      <div className="pb-20 overflow-x-scroll">
         <table className="table">
           {/* head */}
           <thead>
@@ -33,7 +33,11 @@ export default function CustomTable(props: CustomTableProps) {
                 props.columns.map((column) => (
                   <th className="capitalize">{column.label}</th>
                 ))}
-              <th>Action</th>
+              {!props.columns?.find((item) => item.key == "action") && (
+                <>
+                  <th>Action</th>
+                </>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -50,37 +54,43 @@ export default function CustomTable(props: CustomTableProps) {
                         : item[col.key]}
                     </td>
                   ))}
-                  <td>
-                    <div className="dropdown dropdown-end">
-                      <div
-                        tabIndex={0}
-                        role="button"
-                        className="btn btn-circle btn-ghost m-1"
-                      >
-                        <MenuIcon />
-                      </div>
-                      <ul
-                        tabIndex={0}
-                        className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
-                      >
-                        {props.actions?.map((action) => {
-                          return (
-                            <li>
-                              <button
-                                onClick={() => action.action(item)}
-                                className=""
-                              >
-                                {action.label}
-                              </button>
-                            </li>
-                          );
-                        })}
-                        {/*<li>
-                          <a>Item 2</a>
-                        </li>*/}
-                      </ul>
-                    </div>
-                  </td>
+                  {!props.columns?.find((item) => item.key == "action") && (
+                    <>
+                      <td>
+                        <div className="dropdown dropdown-end">
+                          <div
+                            tabIndex={0}
+                            role="button"
+                            className="btn btn-circle btn-ghost m-1"
+                          >
+                            <MenuIcon />
+                          </div>
+                          <ul
+                            tabIndex={0}
+                            className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
+                          >
+                            <>
+                              {props.actions?.map((action) => {
+                                return (
+                                  <li>
+                                    <button
+                                      onClick={() => action.action(item)}
+                                      className=""
+                                    >
+                                      {action.label}
+                                    </button>
+                                  </li>
+                                );
+                              })}
+                            </>
+                            {/*<li>
+                             <a>Item 2</a>
+                           </li>*/}
+                          </ul>
+                        </div>
+                      </td>
+                    </>
+                  )}
                 </tr>
               ))}
           </tbody>

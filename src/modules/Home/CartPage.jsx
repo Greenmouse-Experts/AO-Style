@@ -9,6 +9,7 @@ import { useCarybinUserStore } from "../../store/carybinUserStore";
 import useVerifyPayment from "../../hooks/cart/useVerifyPayment";
 import Cookies from "js-cookie";
 import useToast from "../../hooks/useToast";
+import useGetUserProfile from "../Auth/hooks/useGetProfile";
 import { useFormik } from "formik";
 import Select from "react-select";
 import { nigeriaStates } from "../../constant";
@@ -113,10 +114,80 @@ const CartPage = () => {
       console.log("🚚 CartPage: No delivery data available");
     }
   }, [deliveryData]);
-  const { carybinUser } = useCarybinUserStore();
+  const { carybinUser, setCaryBinUser } = useCarybinUserStore();
   const { toastSuccess, toastError } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Fetch user profile if not already in store (important for Google login)
+  const {
+    data: userProfile,
+    isPending: userProfileLoading,
+    isSuccess: userProfileSuccess,
+  } = useGetUserProfile();
+
+  // Populate user store when profile data is fetched
+  useEffect(() => {
+    if (userProfile && userProfileSuccess && !carybinUser) {
+      console.log(
+        "🔄 CartPage: Populating user store with profile data",
+        userProfile,
+      );
+      setCaryBinUser(userProfile);
+    }
+  }, [userProfile, userProfileSuccess, carybinUser, setCaryBinUser]);
+
+  // Debug logging for authentication status
+  useEffect(() => {
+    const token = Cookies.get("token");
+    const adminToken = Cookies.get("adminToken");
+    const currUserUrl = Cookies.get("currUserUrl");
+
+    console.log("🔍 CartPage: Authentication Debug", {
+      hasToken: !!token,
+      hasAdminToken: !!adminToken,
+      currUserUrl: currUserUrl,
+      hasCarybinUser: !!carybinUser,
+      carybinUserEmail: carybinUser?.email,
+      userProfileLoading: userProfileLoading,
+      userProfileData: !!userProfile,
+    });
+  }, [carybinUser, userProfileLoading, userProfile]);
+
+  // Authentication check and redirect
+  useEffect(() => {
+    const token = Cookies.get("token");
+
+    // If no token and not loading, redirect to login with cart redirect
+    if (!token && !userProfileLoading) {
+      console.log(
+        "❌ CartPage: No authentication token found, redirecting to login",
+      );
+      navigate(
+        `/login?redirect=${encodeURIComponent(location.pathname + location.search)}`,
+      );
+      return;
+    }
+
+    // If token exists but no user data after loading is complete, there might be an issue
+    if (token && !userProfileLoading && !carybinUser && !userProfile) {
+      console.log(
+        "⚠️ CartPage: Token exists but no user data - possible authentication issue",
+      );
+      toastError("Authentication issue detected. Please login again.");
+      navigate(
+        `/login?redirect=${encodeURIComponent(location.pathname + location.search)}`,
+      );
+      return;
+    }
+  }, [
+    carybinUser,
+    userProfile,
+    userProfileLoading,
+    navigate,
+    location,
+    toastError,
+  ]);
 
   const currentUrl = Cookies.get("currUserUrl");
   const token = Cookies.get("token");
@@ -275,7 +346,7 @@ const CartPage = () => {
 
     // Validate user email
     if (!carybinUser?.email) {
-      toastError("Please login to apply coupon");
+      toastError("User data not loaded. Please wait or refresh the page.");
       return;
     }
 
@@ -452,9 +523,24 @@ const CartPage = () => {
             items.filter((item) => item.style_product?.id).length,
           );
 
+          // Debug: Check for potential duplicate styles
+          const styleIds = items
+            .filter((item) => item.style_product?.id)
+            .map((item) => item.style_product.id);
+          const uniqueStyleIds = new Set(styleIds);
+          console.log("🎨 Style ID analysis:", {
+            allStyleIds: styleIds,
+            uniqueStyleIds: Array.from(uniqueStyleIds),
+            potentialDuplicates: styleIds.length !== uniqueStyleIds.size,
+            duplicateStyleIds: styleIds.filter(
+              (id, index) => styleIds.indexOf(id) !== index,
+            ),
+          });
+
           // Prepare purchases from cart items - include both fabric and style purchases
           const purchases = [];
           const metadata = [];
+          const addedStyles = new Set(); // Track added styles to prevent duplicates
 
           items.forEach((item) => {
             // Add fabric purchase
@@ -465,15 +551,23 @@ const CartPage = () => {
                 item.product_type || item.product?.type || "FABRIC",
             });
 
-            // Add style purchase if item has a style
-            if (item.style_product?.id) {
+            // Add style purchase if item has a style (avoid duplicates)
+            if (
+              item.style_product?.id &&
+              !addedStyles.has(item.style_product.id)
+            ) {
               purchases.push({
                 purchase_id: item.style_product.id,
                 quantity: 1, // Style is always quantity 1 (flat fee)
                 purchase_type: "STYLE",
               });
 
-              // Add metadata for style items with measurements
+              // Mark this style as added to prevent duplicates
+              addedStyles.add(item.style_product.id);
+            }
+
+            // Add metadata for ALL style items (even if style purchase already added)
+            if (item.style_product?.id) {
               metadata.push({
                 style_product_id: item.style_product.id,
                 style_product_name: item.style_product.name,
@@ -489,6 +583,16 @@ const CartPage = () => {
             }
           });
 
+          console.log("🔍 Style deduplication results:", {
+            totalItems: items.length,
+            itemsWithStyles: items.filter((item) => item.style_product?.id)
+              .length,
+            uniqueStylesAdded: addedStyles.size,
+            duplicatesAvoided:
+              items.filter((item) => item.style_product?.id).length -
+              addedStyles.size,
+          });
+
           // Validation: Ensure we don't send empty metadata
           const hasStyleItems = items.some((item) => item.style_product?.id);
           console.log("🎨 Style validation:", {
@@ -502,6 +606,23 @@ const CartPage = () => {
 
           // Extra validation: Don't include metadata if no style items
           const shouldIncludeMetadata = hasStyleItems && metadata.length > 0;
+
+          // Final validation: Check for duplicate purchase IDs
+          const purchaseIds = purchases.map((p) => p.purchase_id);
+          const uniquePurchaseIds = new Set(purchaseIds);
+
+          if (purchaseIds.length !== uniquePurchaseIds.size) {
+            console.error("❌ Duplicate purchase IDs detected:", {
+              allIds: purchaseIds,
+              duplicates: purchaseIds.filter(
+                (id, index) => purchaseIds.indexOf(id) !== index,
+              ),
+            });
+            toastError(
+              "Error: Duplicate items detected in cart. Please refresh and try again.",
+            );
+            return;
+          }
 
           const paymentData = {
             purchases,
@@ -526,6 +647,15 @@ const CartPage = () => {
             stylePurchases: purchases.filter((p) => p.purchase_type === "STYLE")
               .length,
             purchases: purchases,
+            duplicateCheck: {
+              allPurchaseIds: purchases.map((p) => p.purchase_id),
+              duplicatePurchaseIds: purchases
+                .map((p) => p.purchase_id)
+                .filter((id, index, arr) => arr.indexOf(id) !== index),
+              hasDuplicates:
+                new Set(purchases.map((p) => p.purchase_id)).size !==
+                purchases.length,
+            },
           });
           console.log("📏 Payment metadata breakdown:", {
             metadataCount: metadata.length,
@@ -597,7 +727,7 @@ const CartPage = () => {
     });
   };
 
-  if (cartLoading) {
+  if (cartLoading || userProfileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoaderComponent />

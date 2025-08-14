@@ -417,7 +417,7 @@ const OrderDetails = () => {
             </div>
           </div>
         </div>
-        <div className="flex flex-col gap-4">
+        {/* <div className="flex flex-col gap-4">
           <div className="bg-white p-4 rounded-md">
             <h5 className="text-lg font-medium leading-loose border-b border-[#D9D9D9] pb-3 mb-3">
               Customer Details
@@ -471,7 +471,7 @@ const OrderDetails = () => {
               <Mail className="text-purple-500" size={24} />
             </div>
           </div>
-        </div>
+        </div>*/}
       </div>
 
       {/* Rate & Review Section - Show for Delivered Orders */}

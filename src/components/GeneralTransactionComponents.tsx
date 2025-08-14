@@ -6,7 +6,8 @@ import useQueryParams from "../hooks/useQueryParams";
 import { Link, useNavigate } from "react-router-dom";
 import CustomTable from "./CustomTable";
 import GeneralTransactionAnalysis from "./GeneralTransactionAnalysis";
-
+import WalletPage from "../modules/Pages/salesDashboard/components/WalletPage";
+import BarChartComponent from "../modules/Pages/salesDashboard/components/BarChartComponent";
 interface ApiResponse {
   statusCode: number;
   data: Withdraw[];
@@ -238,7 +239,14 @@ export function GeneralTransactionComponent() {
           </p>
         </div>
       </div>
-
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 mb-6">
+        <div className="lg:col-span-2">
+          <BarChartComponent />
+        </div>
+        <div className="lg:col-span-1">
+          <WalletPage />
+        </div>
+      </div>
       {/*<GeneralTransactionAnalysis />*/}
       {/* Filters */}
       <div className="bg-white p-4 rounded-lg shadow mb-4" data-theme="nord">

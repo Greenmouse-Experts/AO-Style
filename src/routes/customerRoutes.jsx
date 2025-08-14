@@ -7,6 +7,7 @@ import TransactionPage from "../modules/Pages/customerDashboard/TransactionPage"
 import Settings from "../modules/Pages/customerDashboard/Settings";
 import Orders from "../modules/Pages/customerDashboard/Orders";
 import OrdersDetails from "../modules/Pages/customerDashboard/OrdersDetails";
+import OrdersDetailsTest from "../modules/Pages/customerDashboard/OrdersDetailsTest";
 import InboxPage from "../modules/Pages/customerDashboard/Inbox";
 import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPageUpdate";
 import ShopStyles from "../modules/Pages/customerDashboard/ShopStyles";
@@ -47,6 +48,10 @@ export const customerRoutes = [
       {
         path: "/customer/orders/orders-details/:id",
         element: <OrdersDetails />,
+      },
+      {
+        path: "/customer/orders/orders-details-test/:id?",
+        element: <OrdersDetailsTest />,
       },
       {
         path: "/customer/notifications",

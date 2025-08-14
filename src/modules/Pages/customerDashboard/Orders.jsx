@@ -150,6 +150,11 @@ const OrderPage = () => {
                     View Details
                   </button>
                 </Link>
+                <Link to={`/customer/orders/orders-details-test/${row.id}`}>
+                  <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-blue-600">
+                    🔍 Debug Test
+                  </button>
+                </Link>
                 <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
                   Cancel Order
                 </button>
@@ -274,6 +279,26 @@ const OrderPage = () => {
         </p>
       </div>
       <div className="bg-white p-4 rounded-lg">
+        {/* Debug Tools */}
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-blue-800">
+                🔍 Debug Tools
+              </p>
+              <p className="text-xs text-blue-600">
+                Use these tools to diagnose order details issues
+              </p>
+            </div>
+            <Link
+              to="/customer/orders/orders-details-test"
+              className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+            >
+              Open Diagnostic Tool
+            </Link>
+          </div>
+        </div>
+
         {/* Filters & Actions */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pb-3 mb-4 gap-4">
           {/* Order Filters */}

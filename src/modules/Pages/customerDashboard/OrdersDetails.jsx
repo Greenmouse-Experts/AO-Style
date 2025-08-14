@@ -19,7 +19,7 @@ import {
   X,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import useGetSingleOrder from "../../../hooks/order/useGetSingleOrder";
+import useGetCustomerSingleOrder from "../../../hooks/order/useGetCustomerSingleOrder";
 import Loader from "../../../components/ui/Loader";
 import ReviewForm from "../../../components/reviews/ReviewForm";
 import StarRating from "../../../components/reviews/StarRating";
@@ -47,19 +47,26 @@ const OrderDetails = () => {
 
   const { id: orderId } = useParams();
 
-  const { isPending: getUserIsPending, data } = useGetSingleOrder(orderId);
+  const {
+    isPending: getUserIsPending,
+    data,
+    isError,
+    error,
+  } = useGetCustomerSingleOrder(orderId);
 
-  // Console logs for debugging
-  console.log("=== ORDER DETAILS DEBUG ===");
+  // Enhanced debugging
+  console.log("=== CUSTOMER ORDER DETAILS DEBUG ===");
   console.log("orderId from URL:", orderId);
   console.log("isPending:", getUserIsPending);
+  console.log("isError:", isError);
+  console.log("error:", error);
   console.log("Raw API response data:", data);
   console.log("Order details (data?.data):", data?.data);
   console.log("Payment object:", data?.data?.payment);
   console.log("Purchase object:", data?.data?.payment?.purchase);
   console.log("Purchase items:", data?.data?.payment?.purchase?.items);
   console.log("Order status:", data?.data?.status);
-  console.log("==============================");
+  console.log("=====================================");
 
   // Always call these hooks to maintain consistent hook order
   const orderDetails = data?.data;
@@ -108,11 +115,51 @@ const OrderDetails = () => {
     }
   }, [orderDetails?.status]);
 
-  // Early return after all hooks are called
+  // Enhanced error handling
   if (getUserIsPending) {
     return (
       <div className="m-auto flex h-[80vh] items-center justify-center">
-        <Loader />
+        <div className="text-center">
+          <Loader />
+          <p className="mt-4 text-gray-600">Loading order details...</p>
+          <p className="text-sm text-gray-500">Order ID: {orderId}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    console.error("❌ Error loading order details:", error);
+    return (
+      <div className="m-auto flex h-[80vh] items-center justify-center">
+        <div className="text-center text-red-600">
+          <p className="text-lg font-medium mb-2">Error Loading Order</p>
+          <p className="text-sm mb-4">Order ID: {orderId}</p>
+          <p className="text-sm text-gray-600">
+            {error?.message || "Failed to load order details"}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data?.data) {
+    console.warn("⚠️ No order data found for ID:", orderId);
+    return (
+      <div className="m-auto flex h-[80vh] items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg font-medium mb-2">Order Not Found</p>
+          <p className="text-sm text-gray-600 mb-4">Order ID: {orderId}</p>
+          <p className="text-sm text-gray-500">
+            This order may not exist or you may not have permission to view it.
+          </p>
+        </div>
       </div>
     );
   }
@@ -120,8 +167,9 @@ const OrderDetails = () => {
   const totalAmount =
     orderDetails?.total_amount || orderDetails?.payment?.amount || 0;
 
-  console.log("=== TOTAL AMOUNT DEBUG ===");
+  console.log("=== CUSTOMER TOTAL AMOUNT DEBUG ===");
   console.log("Calculated totalAmount:", totalAmount);
+  console.log("Order Purchase Array Length:", orderPurchase?.length || 0);
   console.log("Individual item calculations:");
   orderPurchase?.forEach((item, index) => {
     console.log(`Item ${index + 1}:`, {
@@ -129,9 +177,15 @@ const OrderDetails = () => {
       quantity: item?.quantity,
       price: item?.price,
       subtotal: item?.quantity * item?.price,
+      purchase_type: item?.purchase_type,
     });
   });
-  console.log("=========================");
+  console.log("====================================");
+
+  // Additional debug info
+  if (!orderPurchase || orderPurchase.length === 0) {
+    console.warn("⚠️ No purchase items found in order data");
+  }
 
   // Removed handleStepClick - customers should not be able to manually change order progress
 

@@ -334,7 +334,7 @@ const ViewFabric = () => {
             {openDropdown === row.id && (
               <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
                 <Link
-                  to={`/admin/fabric/orders/orders-details?id=${row.order_id}`}
+                  to={`/admin/fabric/orders/orders-details/${row.order_id}`}
                 >
                   <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
                     View Detail

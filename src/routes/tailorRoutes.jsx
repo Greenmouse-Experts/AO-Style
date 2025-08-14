@@ -56,7 +56,7 @@ export const tailorRoute = [
         element: <OrdersTable />,
       },
       {
-        path: "/tailor/orders/orders-details",
+        path: "/tailor/orders/orders-details/:id",
         element: <OrdersDetails />,
       },
       {

@@ -14,6 +14,9 @@ import ConfirmationModal from "../../../../components/ui/ConfirmationModal";
 import useDeleteUser from "../../../../hooks/user/useDeleteUser";
 import useToast from "../../../../hooks/useToast";
 import AddNewTailorModal from "./AddNewTailorModal";
+import CustomTable from "../../../../components/CustomTable";
+import { useQuery } from "@tanstack/react-query";
+import CaryBinApi from "../../../../services/CarybinBaseUrl";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -37,27 +40,40 @@ const CustomersTable = () => {
 
   const { queryParams, updateQueryParams } = useQueryParams({
     status: "",
+    // approved: false,
     "pagination[limit]": 10,
     "pagination[page]": 1,
   });
-
-  const { data: getAllTailorRepData, isPending } = useGetAllUsersByRole({
-    ...queryParams,
-    role: "fashion-designer",
-  });
-
+  const filterTabs = ["All", "Pending", "Invites", "Approved"];
+  const [currTab, setCurrTab] = useState("All");
   const [queryString, setQueryString] = useState(queryParams.q);
-
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
-
-  useUpdatedEffect(() => {
-    // update search params with undefined if debouncedSearchTerm is an empty string
-    updateQueryParams({
-      q: debouncedSearchTerm.trim() || undefined,
-      "pagination[page]": 1,
-    });
-  }, [debouncedSearchTerm]);
-
+  const query = useQuery({
+    queryKey: [queryParams, "tailors", debouncedSearchTerm, currTab],
+    queryFn: async () => {
+      let resp = await CaryBinApi.get("/auth/users/fashion-designer", {
+        params: {
+          ...queryParams,
+          q: debouncedSearchTerm,
+          approved: (() => {
+            switch (currTab) {
+              case "All":
+                return undefined;
+              case "Pending":
+                return false;
+              case "Approved":
+                return true;
+              default:
+                return undefined;
+            }
+          })(),
+        },
+      });
+      return resp.data;
+    },
+  });
+  const getAllTailorRepData = query.data;
+  const isPending = query.isFetching;
   const TailorData = useMemo(() => {
     if (!getAllTailorRepData?.data) return [];
 
@@ -227,6 +243,24 @@ const CustomersTable = () => {
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <h2 className="text-lg font-semibold">Tailors/Designers</h2>
         </div>
+        <div id="cus-app" data-theme="nord" className="w-fit overflow-x-scroll">
+          <div className="tabs tabs-lift  min-w-max py-2 *:[--tab-border-color:#9847FE]">
+            {filterTabs.map((item) => {
+              if (item == currTab) {
+                return (
+                  <div className="tab tab-primary tab-lift tab-active">
+                    {item}
+                  </div>
+                );
+              }
+              return (
+                <div className="tab tab-lift" onClick={() => setCurrTab(item)}>
+                  {item}
+                </div>
+              );
+            })}
+          </div>
+        </div>
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end">
           <div className="flex items-center space-x-2 border border-gray-200 rounded-md p-1">
             <button
@@ -270,10 +304,6 @@ const CustomersTable = () => {
         </div>
       </div>
 
-      {/* <AddTailorModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />*/}
       <AddNewTailorModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -281,6 +311,7 @@ const CustomersTable = () => {
 
       {activeTab === "table" ? (
         <>
+          {/* <CustomTable columns={columns} data={TailorData} />*/}
           <ReusableTable
             columns={columns}
             data={TailorData}

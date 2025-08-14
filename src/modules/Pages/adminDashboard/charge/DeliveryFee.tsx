@@ -84,9 +84,7 @@ export default function DeliveryFeeSettings() {
       <div className="card bg-base-100 rounded-md">
         <div className="card-body">
           <div className="flex justify-between items-center mb-2">
-            <h2 className="card-title text-xl font-bold">
-              Delivery Fee Settings
-            </h2>
+            <h2 className="card-title text-xl font-bold">Delivery Fee</h2>
           </div>
 
           <form

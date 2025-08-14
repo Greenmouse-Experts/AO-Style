@@ -193,12 +193,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               text="Markets"
               onClick={handleClick}
             />
-            <SidebarItem
+            {/* <SidebarItem
               to="/admin/charges"
               icon={<DollarSignIcon size={16} />}
               text="Charges"
               onClick={handleClick}
-            />
+            />*/}
             <SidebarItem
               to="/admin/fabrics"
               icon={<FaTshirt />}

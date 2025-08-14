@@ -18,6 +18,7 @@ import useAddDelivery from "../../../hooks/delivery/useAddDelivery";
 import useUpdateDelivery from "../../../hooks/delivery/useUpdateDelivery";
 import useToast from "../../../hooks/useToast";
 import { usePlacesWidget } from "react-google-autocomplete";
+import ChargeCommision from "./charge/ChargeCommision";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("personalDetails");
@@ -273,7 +274,7 @@ const Settings = () => {
         {/* Sidebar */}
         <div className="w-full md:w-1/5 bg-white md:mb-0 mb-6 h-fit p-4 rounded-lg">
           <ul className="space-y-2 text-gray-600">
-            {["Profile", "Security", "Delivery"].map((item) => (
+            {["Profile", "Security", "Delivery", "Charges"].map((item) => (
               <li
                 key={item}
                 className={`cursor-pointer px-4 py-3 rounded-lg transition-colors duration-300 ${
@@ -525,7 +526,7 @@ const Settings = () => {
               </div>
             </div>
           )}
-
+          {activeSection == "Charges" && <ChargeCommision />}
           {/* {activeSection === "KYC" && (
                         <div className="">
                             <KYCVerification />

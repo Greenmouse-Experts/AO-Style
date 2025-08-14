@@ -1,15 +1,14 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import CaryBinApi from "../../../../services/CarybinBaseUrl";
-import { Pencil } from "lucide-react";
-import { SyntheticEvent, useRef } from "react";
 import { toast, ToastContainer } from "react-toastify";
+import { SyntheticEvent, useRef } from "react";
 
-interface AdminChargesInterface {
+interface AdminCommissionInterface {
   statusCode: number;
   data: {
     id: string;
-    fabric_vendor_fee: string;
-    fashion_designer_fee: string;
+    fabric_vendor_commission: string;
+    fashion_designer_commission: string;
     is_active: boolean;
     created_at: string;
     updated_at: string;
@@ -17,35 +16,37 @@ interface AdminChargesInterface {
   };
 }
 
-export default function AdminCharges() {
-  const query = useQuery<AdminChargesInterface>({
-    queryKey: ["AdminCharges"],
+export default function RepCommission() {
+  const query = useQuery<AdminCommissionInterface>({
+    queryKey: ["AdminCommission"],
     queryFn: async () => {
-      let resp = await CaryBinApi.get("/charge-setting");
+      let resp = await CaryBinApi.get("/commission");
       return resp.data;
     },
   });
+
   const mutate = useMutation({
     mutationFn: async (data: any) => {
       let resp = await CaryBinApi.put(
-        "/charge-setting/" + query.data?.data.id,
-        {
-          ...data,
-        },
+        "/commission/" + query.data?.data.id,
+        data,
       );
       return resp.data;
     },
-    onError: (e) => {
-      toast.error("error occured");
+    onError: () => {
+      toast.error("Error occurred while updating commission");
     },
-    onSuccess: (e) => {
+    onSuccess: () => {
+      toast.success("Commission updated successfully");
       setTimeout(() => {
         toast.dismiss();
         editDialogRef.current?.close();
       }, 500);
     },
   });
+
   const editDialogRef = useRef<HTMLDialogElement>(null);
+
   if (query.isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -57,62 +58,77 @@ export default function AdminCharges() {
   if (query.isError) {
     return (
       <div className="text-error text-center mt-10">
-        Error loading admin charges. Please try again later.
+        Error loading commission data. Please try again later.
       </div>
     );
   }
 
-  const onChargeSubmit = async (e: SyntheticEvent) => {
+  const onCommissionSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
     const formElement = e.currentTarget as HTMLFormElement;
     const formData = new FormData(formElement);
-    const chargeData = {
-      fabric_vendor_fee: Number(formData.get("fabric_vendor_fee")),
-      fashion_designer_fee: Number(formData.get("fashion_designer_fee")),
+
+    const commissionData = {
+      fabric_vendor_commission: Number(
+        formData.get("fabric_vendor_commission"),
+      ),
+      fashion_designer_commission: Number(
+        formData.get("fashion_designer_commission"),
+      ),
     };
-    toast.promise(async () => await mutate.mutateAsync(chargeData), {
-      pending: "pending",
-      success: "success",
+
+    toast.promise(async () => await mutate.mutateAsync(commissionData), {
+      pending: "Updating commission...",
+      success: "Commission updated!",
+      error: "Failed to update commission",
     });
   };
 
-  const chargeData = query.data?.data;
+  const commissionData = query.data?.data;
 
   return (
     <div id="cus-app" data-theme="nord" className="container mx-auto p-4">
       <div className="card bg-base-100 rounded-md">
         <div className="card-body">
           <div className="flex justify-between items-center mb-2">
-            <h2 className="card-title text-xl font-bold">Admin Charges</h2>
+            <h2 className="card-title text-xl font-bold">
+              Commission Settings
+            </h2>
           </div>
 
-          <form method="dialog" className="space-y-4" onSubmit={onChargeSubmit}>
+          <form
+            method="dialog"
+            className="space-y-4"
+            onSubmit={onCommissionSubmit}
+          >
             <div className="mb-4">
               <label className="label block mb-1">
-                <span className="label-text">Fabric Vendor Fee (%)</span>
+                <span className="label-text">Fabric Vendor Commission (%)</span>
               </label>
               <input
                 type="number"
                 step="0.1"
                 placeholder="e.g. 3.5"
                 className="input input-bordered w-full"
-                name="fabric_vendor_fee"
-                id="fabric_vendor_fee"
-                defaultValue={chargeData?.fabric_vendor_fee}
+                name="fabric_vendor_commission"
+                id="fabric_vendor_commission"
+                defaultValue={commissionData?.fabric_vendor_commission}
               />
             </div>
             <div className="mb-6">
               <label className="label block mb-1">
-                <span className="label-text">Fashion Designer Fee (%)</span>
+                <span className="label-text">
+                  Fashion Designer Commission (%)
+                </span>
               </label>
               <input
                 type="number"
                 step="0.1"
                 placeholder="e.g. 5.0"
                 className="input input-bordered w-full"
-                name="fashion_designer_fee"
-                id="fashion_designer_fee"
-                defaultValue={chargeData?.fashion_designer_fee}
+                name="fashion_designer_commission"
+                id="fashion_designer_commission"
+                defaultValue={commissionData?.fashion_designer_commission}
               />
             </div>
             <div className="flex justify-end items-center gap-3">
@@ -121,7 +137,7 @@ export default function AdminCharges() {
                 className="btn btn-primary text-white"
                 type="submit"
               >
-                {mutate.isPending ? "Saving" : "Save Changes"}
+                {mutate.isPending ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </form>

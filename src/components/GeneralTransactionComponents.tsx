@@ -106,7 +106,7 @@ const default_filters: Filters = {
   endDate: undefined,
   startDate: undefined,
 };
-export function GeneralTransactionComponent() {
+export function GeneralTransactionComponent({ hideWallet = false }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<Filters>(default_filters);
   const query = useQuery<ApiResponse>({
@@ -224,7 +224,7 @@ export function GeneralTransactionComponent() {
     },
   ];
 
-  const next_page_disabled = query.data?.data.length == filters.limit;
+  const next_page_disabled = (query.data?.data?.length ?? 0) == filters.limit;
   const pagination_arry = [1, 2, 3, 4];
   return (
     <>
@@ -239,14 +239,16 @@ export function GeneralTransactionComponent() {
           </p>
         </div>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 mb-6">
-        <div className="lg:col-span-2">
-          <BarChartComponent />
+      {!hideWallet && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 mb-6">
+          <div className="lg:col-span-2">
+            <BarChartComponent />
+          </div>
+          <div className="lg:col-span-1">
+            <WalletPage />
+          </div>
         </div>
-        <div className="lg:col-span-1">
-          <WalletPage />
-        </div>
-      </div>
+      )}
       {/*<GeneralTransactionAnalysis />*/}
       {/* Filters */}
       <div className="bg-white p-4 rounded-lg shadow mb-4" data-theme="nord">
@@ -355,7 +357,7 @@ export function GeneralTransactionComponent() {
                   }));
                 }}
                 disabled={
-                  query.data?.data.length < filters.limit
+                  (query.data?.data?.length ?? 0) < filters.limit
                     ? true
                     : query.isFetching
                 }
@@ -376,7 +378,7 @@ export function GeneralTransactionComponent() {
             disabled={
               next_page_disabled ||
               query.isFetching ||
-              query.data?.data.length === 0
+              (query.data?.data?.length ?? 0) === 0
             }
           >
             »

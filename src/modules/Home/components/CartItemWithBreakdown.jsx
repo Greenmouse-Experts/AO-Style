@@ -1,5 +1,6 @@
 import React from "react";
 import { Trash2, Scissors } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const CartItemWithBreakdown = ({
   item,
@@ -7,6 +8,8 @@ const CartItemWithBreakdown = ({
   deleteIsPending,
   getMeasurementCount,
 }) => {
+  const navigate = useNavigate();
+
   if (!item) return null;
 
   const fabricPrice = parseFloat(
@@ -25,23 +28,30 @@ const CartItemWithBreakdown = ({
         ? 1
         : 0;
 
+  // Get the first image from photos array or fallback to product.image
+  const productImage =
+    item.photos?.[0] ||
+    item.product?.fabric.photos[0] ||
+    "/default-product.png";
+
   return (
     <>
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
         {/* Mobile Layout */}
         <div className="md:hidden p-4 space-y-3">
           <div className="flex items-start gap-3">
-            {item.product?.image && (
-              <img
-                src={item.product.image}
-                alt={item.product?.name || "Product"}
-                className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-              />
-            )}
+            <img
+              src={productImage}
+              alt={item.product?.name || "Product"}
+              className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+            />
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-base text-gray-900">
+              <button
+                onClick={() => navigate(`/shop-details/${item.product_id}`)}
+                className="font-semibold text-base text-gray-900 hover:text-purple-600 transition-colors text-left"
+              >
                 {item.product?.name || `Product ${item.product_id}`}
-              </h3>
+              </button>
               <p className="text-sm text-gray-600">
                 Color: {item.color || "Red"}
               </p>
@@ -92,17 +102,18 @@ const CartItemWithBreakdown = ({
         <div className="hidden md:grid md:grid-cols-12 items-center p-4 gap-4 relative">
           {/* Product Image and Name */}
           <div className="col-span-6 flex items-center gap-3">
-            {item.product?.image && (
-              <img
-                src={item.product.image}
-                alt={item.product?.name || "Product"}
-                className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-              />
-            )}
+            <img
+              src={productImage}
+              alt={item.product?.name || "Product"}
+              className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+            />
             <div className="min-w-0">
-              <h3 className="font-semibold text-base text-gray-900 truncate">
+              <button
+                onClick={() => navigate(`/shop-details/${item.product_id}`)}
+                className="font-semibold text-base text-gray-900 hover:text-purple-600 transition-colors text-left truncate block w-full"
+              >
                 {item.product?.name || `Product ${item.product_id}`}
-              </h3>
+              </button>
               <p className="text-sm text-gray-600">
                 Color: {item.color || "Red"}
               </p>

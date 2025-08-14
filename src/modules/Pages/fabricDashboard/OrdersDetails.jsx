@@ -1,36 +1,82 @@
-import { Phone, MessageSquare, Mail, X, Star } from "lucide-react";
-import { Link, useSearchParams } from "react-router-dom";
+import {
+  Phone,
+  MessageSquare,
+  Mail,
+  X,
+  Star,
+  Scissors,
+  Package,
+  Clock,
+  CheckCircle,
+  Truck,
+} from "lucide-react";
 import { useState } from "react";
-import useGetSingleOrder from "../../../hooks/order/useGetSingleOrder";
-import Loader from "../../../components/ui/Loader";
-import ReviewList from "../../../components/reviews/ReviewList";
-import { formatDateStr, formatNumberWithCommas } from "../../../lib/helper";
 
 const OrderDetails = () => {
   const [showUploadPopup, setShowUploadPopup] = useState(false);
   const [markReceivedChecked, setMarkReceivedChecked] = useState(false);
-  const [markSentChecked, setMarkSentChecked] = useState(false);
   const [activeReviewModal, setActiveReviewModal] = useState(null);
 
-  const [searchParams] = useSearchParams();
-  const orderId = searchParams.get("id");
+  // Mock data - replace with your actual hook
+  const orderInfo = {
+    id: "order_1234567890abcdef",
+    status: "PROCESSING",
+    created_at: "2024-01-15T10:30:00Z",
+    updated_at: "2024-01-15T12:45:00Z",
+    total_amount: "19950",
+    user: {
+      email: "greenmousedev+pmcus@gmail.com",
+      phone: "+234 901 234 5678",
+    },
+    payment: {
+      payment_status: "SUCCESS",
+      payment_method: "Card Payment",
+      transaction_id: "txn_abc123def456",
+      amount: "19950",
+      currency: "NGN",
+    },
+  };
 
-  // Using the same getSingleOrder hook since the data structure is similar
-  const { isPending: getOrderIsPending, data } = useGetSingleOrder(orderId);
+  const orderMetadata = [
+    {
+      fabric_product_id: "fabric_001",
+      fabric_product_name: "Lace Beautiful Flocky Fabric",
+      style_product_id: "style_001",
+      style_product_name:
+        "Men's Senator Native Wear (Black With Brown Design Long Sleeve)",
+      customer_name: "Daniel",
+      customer_email: "greenmousedev+pmcus@gmail.com",
+      color: "#b33737",
+      quantity: 6,
+      measurement: [],
+    },
+  ];
 
-  if (getOrderIsPending) {
-    return (
-      <div className="m-auto flex h-[80vh] items-center justify-center">
-        <Loader />
-      </div>
-    );
-  }
+  const orderPurchase = [
+    {
+      id: "item_001",
+      name: "Lace Beautiful Flocky Fabric",
+      price: "19950",
+      quantity: 6,
+      purchase_type: "FABRIC",
+      product_id: "fabric_001",
+    },
+  ];
 
-  const orderInfo = data?.data;
-  const orderPurchase = data?.data?.payment?.purchase?.items;
+  const formatNumberWithCommas = (num) => {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
 
-  console.log("Vendor Order Details:", orderInfo);
-  console.log("Order Purchase Items:", orderPurchase);
+  const formatDateStr = (dateStr, format) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-US", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   const handleCheckboxChange = (type) => {
     if (type === "received") {
@@ -38,302 +84,414 @@ const OrderDetails = () => {
       if (!markReceivedChecked) {
         setShowUploadPopup(true);
       }
-    } else if (type === "sent") {
-      setMarkSentChecked(!markSentChecked);
-      if (!markSentChecked) {
-        setShowUploadPopup(true);
-      }
     }
   };
 
   const handleUpload = () => {
-    // Placeholder for upload logic
     alert("Fabric image uploaded successfully!");
     setShowUploadPopup(false);
   };
 
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "DELIVERED":
+        return <CheckCircle className="w-5 h-5 text-green-600" />;
+      case "SHIPPED":
+        return <Truck className="w-5 h-5 text-blue-600" />;
+      case "PROCESSING":
+        return <Package className="w-5 h-5 text-orange-600" />;
+      default:
+        return <Clock className="w-5 h-5 text-yellow-600" />;
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "DELIVERED":
+        return "bg-green-50 text-green-700 border-green-200";
+      case "SHIPPED":
+        return "bg-blue-50 text-blue-700 border-blue-200";
+      case "PROCESSING":
+        return "bg-orange-50 text-orange-700 border-orange-200";
+      default:
+        return "bg-yellow-50 text-yellow-700 border-yellow-200";
+    }
+  };
+
   return (
-    <div className="">
-      <div className="bg-white rounded-lg px-6 py-4 mb-6">
-        <h1 className="text-xl font-semibold mb-4">
-          Vendor Order Details :{" "}
-          <span className="text-gray-600">
-            #{orderInfo?.id?.slice(-8)?.toUpperCase()}
-          </span>
-        </h1>
-        <p className="text-gray-500 text-sm">
-          <Link to="/fabric" className="text-blue-500 hover:underline">
-            Dashboard
-          </Link>{" "}
-          &gt; Orders &gt; Order Details
-        </p>
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+      {/* Header */}
+      <div className="bg-white rounded-xl shadow-sm px-6 py-5 mb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Order #{orderInfo?.id?.slice(-8)?.toUpperCase() || "N/A"}
+            </h1>
+            <p className="text-gray-500 text-sm">
+              <a
+                href="/fabric"
+                className="text-purple-600 hover:text-purple-800 transition-colors"
+              >
+                Dashboard
+              </a>{" "}
+              → Orders → Order Details
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            {getStatusIcon(orderInfo?.status)}
+            <span
+              className={`px-4 py-2 rounded-full text-sm font-medium border ${getStatusColor(orderInfo?.status)}`}
+            >
+              {orderInfo?.status || "PENDING"}
+            </span>
+          </div>
+        </div>
       </div>
 
-      <div className="space-y-6">
-        {/* Order Details and Status */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Order Details */}
-          <div className="bg-white p-6 rounded-lg md:col-span-2">
-            <h5 className="text-lg font-medium border-b border-gray-200 pb-3 mb-6">
-              Vendor Order Details
-            </h5>
-
-            {/* Order Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Order Summary */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
+              <Package className="w-5 h-5 text-purple-600" />
+              Order Summary
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
-                <h6 className="font-semibold text-gray-800">
-                  Order Information
-                </h6>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Order ID:</span>
-                    <span className="font-medium">
-                      #{orderInfo?.id?.slice(-8)?.toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Customer Email:</span>
-                    <span className="font-medium">
-                      {orderInfo?.user?.email || "N/A"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Transaction ID:</span>
-                    <span className="font-medium">
-                      {orderInfo?.payment?.transaction_id
-                        ?.slice(-8)
-                        ?.toUpperCase() || "N/A"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Order Date:</span>
-                    <span className="font-medium">
-                      {orderInfo?.created_at
-                        ? formatDateStr(
-                            orderInfo.created_at.split(".").shift(),
-                            "D MMM YYYY",
-                          )
-                        : "N/A"}
-                    </span>
-                  </div>
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="text-gray-600 font-medium">Order ID:</span>
+                  <span className="font-semibold text-gray-900">
+                    #{orderInfo?.id?.slice(-8)?.toUpperCase()}
+                  </span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="text-gray-600 font-medium">
+                    Transaction ID:
+                  </span>
+                  <span className="font-mono text-sm text-gray-900">
+                    {orderInfo?.payment?.transaction_id}
+                  </span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="text-gray-600 font-medium">Order Date:</span>
+                  <span className="text-gray-900">
+                    {formatDateStr(orderInfo?.created_at, "D MMM YYYY h:mm A")}
+                  </span>
                 </div>
               </div>
-
               <div className="space-y-4">
-                <h6 className="font-semibold text-gray-800">
-                  Payment & Status
-                </h6>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Order Status:</span>
-                    <span
-                      className={`px-2 py-1 rounded text-sm ${
-                        orderInfo?.status === "DELIVERED"
-                          ? "bg-green-100 text-green-600"
-                          : orderInfo?.status === "CANCELLED"
-                            ? "bg-red-100 text-red-600"
-                            : "bg-yellow-100 text-yellow-600"
-                      }`}
-                    >
-                      {orderInfo?.status || "PENDING"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Payment Status:</span>
-                    <span
-                      className={`px-2 py-1 rounded text-sm ${
-                        orderInfo?.payment?.payment_status === "SUCCESS"
-                          ? "bg-green-100 text-green-600"
-                          : "bg-yellow-100 text-yellow-600"
-                      }`}
-                    >
-                      {orderInfo?.payment?.payment_status || "PENDING"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Total Amount:</span>
-                    <span className="font-medium">
-                      ₦
-                      {formatNumberWithCommas(
-                        orderInfo?.total_amount ||
-                          orderInfo?.payment?.amount ||
-                          0,
-                      )}
-                    </span>
-                  </div>
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="text-gray-600 font-medium">
+                    Payment Method:
+                  </span>
+                  <span className="text-gray-900">
+                    {orderInfo?.payment?.payment_method}
+                  </span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="text-gray-600 font-medium">
+                    Payment Status:
+                  </span>
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      orderInfo?.payment?.payment_status === "SUCCESS"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-yellow-100 text-yellow-700"
+                    }`}
+                  >
+                    {orderInfo?.payment?.payment_status}
+                  </span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="text-gray-600 font-medium">
+                    Total Amount:
+                  </span>
+                  <span className="text-2xl font-bold text-purple-600">
+                    ₦{formatNumberWithCommas(parseInt(orderInfo?.total_amount))}
+                  </span>
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Product Items */}
-            <div className="space-y-4">
-              <h6 className="font-semibold text-gray-800">Ordered Products</h6>
-              {orderPurchase?.map((order, id) => (
-                <div key={id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-start gap-4">
-                    <img
-                      src={
-                        order?.purchase_type === "FABRIC"
-                          ? "https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170603/AoStyle/image1_s3s2sd.jpg"
-                          : "https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170600/AoStyle/image_bwjfib.jpg"
-                      }
-                      alt={order?.name || "Product"}
-                      className="w-20 h-20 rounded-md object-cover"
-                    />
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-semibold">
-                            {order?.name || "Product Item"}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {order?.purchase_type}
-                          </p>
-                          <p className="text-gray-600">
-                            Quantity: {order?.quantity || 1}{" "}
-                            {order?.purchase_type === "FABRIC"
-                              ? "Yards"
-                              : "Piece(s)"}
-                          </p>
-                          <p className="text-blue-600 font-medium">
-                            ₦{formatNumberWithCommas(order?.price || 0)}
-                          </p>
+          {/* Ordered Products */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">
+              Ordered Products
+            </h2>
+            <div className="space-y-6">
+              {orderMetadata.map((metaItem, id) => {
+                const purchaseItem = orderPurchase.find(
+                  (item) => item?.product_id === metaItem?.fabric_product_id,
+                );
+
+                return (
+                  <div
+                    key={id}
+                    className="border border-gray-200 rounded-xl overflow-hidden"
+                  >
+                    <div className="p-6">
+                      <div className="flex flex-col lg:flex-row gap-6">
+                        {/* Product Image */}
+                        <div className="flex-shrink-0">
+                          <div className="relative">
+                            <img
+                              src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170603/AoStyle/image1_s3s2sd.jpg"
+                              alt={metaItem?.fabric_product_name}
+                              className="w-32 h-32 lg:w-20 lg:h-20 rounded-xl object-cover border border-gray-200"
+                            />
+                            <div className="absolute -top-2 -right-2 bg-purple-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
+                              FABRIC
+                            </div>
+                          </div>
                         </div>
-                        <button
-                          onClick={() =>
-                            setActiveReviewModal(order?.product_id || order?.id)
-                          }
-                          className="flex items-center gap-1 px-3 py-1 text-sm bg-purple-500 text-white rounded hover:bg-purple-600 transition"
-                        >
-                          <Star size={14} />
-                          View Reviews
-                        </button>
+
+                        {/* Product Details */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-6">
+                            <div className="flex-1">
+                              <h3 className="text-xl font-bold text-gray-900 mb-3">
+                                {metaItem?.fabric_product_name}
+                              </h3>
+                              <div className="flex flex-wrap items-center gap-6 text-sm">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-gray-600">
+                                    Color:
+                                  </span>
+                                  <span
+                                    className="inline-block w-5 h-5 rounded-full border-2 border-white shadow-md"
+                                    style={{ backgroundColor: metaItem?.color }}
+                                  ></span>
+                                  <span className="text-gray-900">
+                                    {metaItem?.color}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="font-medium text-gray-600">
+                                    Quantity:
+                                  </span>
+                                  <span className="font-bold text-purple-600 ml-1">
+                                    {metaItem?.quantity} Yards
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right lg:text-left">
+                              <div className="text-2xl font-bold text-purple-600 mb-3">
+                                ₦
+                                {formatNumberWithCommas(
+                                  parseInt(purchaseItem?.price || 0),
+                                )}
+                              </div>
+                              <button
+                                onClick={() =>
+                                  setActiveReviewModal(
+                                    metaItem?.fabric_product_id,
+                                  )
+                                }
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm font-medium"
+                              >
+                                <Star size={16} />
+                                View Reviews
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Style Information */}
+                          {metaItem?.style_product_name && (
+                            <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4 mb-6">
+                              <div className="flex items-start gap-3">
+                                <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                  <Scissors className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="flex-1">
+                                  <span className="text-xs font-bold text-purple-600 uppercase tracking-wide block mb-1">
+                                    SELECTED STYLE
+                                  </span>
+                                  <span className="text-lg font-bold text-purple-800">
+                                    {metaItem?.style_product_name}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Customer Information */}
+                          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                <span className="text-sm text-white font-bold">
+                                  C
+                                </span>
+                              </div>
+                              <span className="font-semibold text-gray-700">
+                                Customer Information
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-gray-600 font-medium">
+                                  Name:
+                                </span>
+                                <span className="text-gray-900 font-semibold">
+                                  {metaItem?.customer_name}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600 font-medium">
+                                  Email:
+                                </span>
+                                <span className="text-gray-900 font-semibold truncate ml-2">
+                                  {metaItem?.customer_email}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
-          </div>
-
-          {/* Vendor Actions */}
-          <div className="space-y-6">
-            <div className="bg-white p-6 rounded-lg">
-              <h5 className="text-lg font-medium border-b border-gray-200 pb-3 mb-6">
-                Vendor Actions
-              </h5>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-gray-700 mb-3 font-medium">
-                    Order Status Updates
-                  </p>
-                  <label className="flex items-center gap-2 mb-4">
-                    <span className="text-sm w-full">
-                      Mark Order as Delivered
-                    </span>
-                    <input
-                      type="checkbox"
-                      className="accent-purple-500 w-5 h-5"
-                      checked={markReceivedChecked}
-                      onChange={() => handleCheckboxChange("received")}
-                    />
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            {/* <div className="bg-white p-6 rounded-lg">
-              <h5 className="text-lg font-medium border-b border-gray-200 pb-3 mb-6">
-                Customer Information
-              </h5>
-              <div className="space-y-3">
-                <div>
-                  <span className="text-sm text-gray-500">Customer Email:</span>
-                  <p className="font-medium">
-                    {orderInfo?.user?.email || "N/A"}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-500">Customer Phone:</span>
-                  <p className="font-medium">
-                    {orderInfo?.user?.phone || "N/A"}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-500">Order Date:</span>
-                  <p className="font-medium">
-                    {orderInfo?.created_at
-                      ? formatDateStr(
-                          orderInfo.created_at.split(".").shift(),
-                          "D MMM YYYY h:mm A",
-                        )
-                      : "N/A"}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-500">Payment Method:</span>
-                  <p className="font-medium">
-                    {orderInfo?.payment?.payment_method || "N/A"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg">
-              <h5 className="text-lg font-medium border-b border-gray-200 pb-3 mb-6">
-                Support
-              </h5>
-              <p className="font-medium mb-4">Need help with this order?</p>
-              <div className="flex space-x-6 mt-2">
-                <Phone className="text-purple-500 cursor-pointer" size={24} />
-                <MessageSquare
-                  className="text-purple-500 cursor-pointer"
-                  size={24}
-                />
-                <Mail className="text-purple-500 cursor-pointer" size={24} />
-              </div>
-            </div>*/}
           </div>
         </div>
 
-        {/* Upload Popup */}
-        {showUploadPopup && (
-          <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
-              <button
-                onClick={() => setShowUploadPopup(false)}
-                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-              >
-                <X size={24} />
-              </button>
-              <h2 className="text-lg font-semibold mb-4">
-                Upload Received Material
-              </h2>
-              <p className="text-black mb-6 leading-loose">
-                Upload a clear picture of the fabric you received from the
-                fabric vendor to mark fabric as “Delivered”
-              </p>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center mb-6">
-                <div className="flex justify-center mb-2">
-                  <svg
-                    className="w-12 h-12 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                    ></path>
-                  </svg>
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Vendor Actions */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">
+              Order Actions
+            </h3>
+
+            <div className="space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  {getStatusIcon(orderInfo?.status)}
+                  <span className="font-semibold text-gray-700">
+                    Current Status
+                  </span>
                 </div>
-                <p className="text-gray-500">Click to upload photo</p>
-                <p className="text-gray-400 text-sm">
-                  (Each photo less than 5mb)
+                <p className="text-sm text-blue-800 font-medium mb-1">
+                  {orderInfo?.status || "PENDING"}
                 </p>
+                <p className="text-xs text-blue-600">
+                  Last Updated:{" "}
+                  {formatDateStr(orderInfo?.updated_at, "D MMM YYYY h:mm A")}
+                </p>
+              </div>
+
+              <div className="border border-gray-200 rounded-lg p-4">
+                <label className="flex items-center justify-between cursor-pointer">
+                  <div className="flex-1">
+                    <span className="font-medium text-gray-900">
+                      Mark as Delivered
+                    </span>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Confirm order completion
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    className="w-5 h-5 text-purple-600 border-2 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
+                    checked={markReceivedChecked}
+                    onChange={() => handleCheckboxChange("received")}
+                    disabled={orderInfo?.status === "DELIVERED"}
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Customer Contact */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">
+              Customer Contact
+            </h3>
+
+            <div className="space-y-4">
+              <div>
+                <span className="text-sm text-gray-500 font-medium">
+                  Email Address
+                </span>
+                <p className="text-gray-900 font-semibold break-all">
+                  {orderInfo?.user?.email}
+                </p>
+              </div>
+              <div>
+                <span className="text-sm text-gray-500 font-medium">
+                  Phone Number
+                </span>
+                <p className="text-gray-900 font-semibold">
+                  {orderInfo?.user?.phone}
+                </p>
+              </div>
+
+              <div className="pt-4 border-t border-gray-200">
+                <p className="text-sm font-medium text-gray-700 mb-3">
+                  Contact Customer
+                </p>
+                <div className="flex gap-3">
+                  <a
+                    href={`tel:${orderInfo?.user?.phone?.replace(/\s+/g, "")}`}
+                    className="flex items-center justify-center w-10 h-10 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors"
+                    title="Call Customer"
+                  >
+                    <Phone size={18} />
+                  </a>
+                  <a
+                    href={`sms:${orderInfo?.user?.phone?.replace(/\s+/g, "")}`}
+                    className="flex items-center justify-center w-10 h-10 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+                    title="Text Customer"
+                  >
+                    <MessageSquare size={18} />
+                  </a>
+                  <a
+                    href={`mailto:${orderInfo?.user?.email}`}
+                    className="flex items-center justify-center w-10 h-10 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition-colors"
+                    title="Email Customer"
+                  >
+                    <Mail size={18} />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Upload Popup */}
+      {showUploadPopup && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Upload Delivery Proof
+                </h3>
+                <button
+                  onClick={() => setShowUploadPopup(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Upload a clear picture of the delivered fabric to mark this
+                order as completed.
+              </p>
+
+              <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center mb-6 hover:border-purple-400 transition-colors">
+                <div className="flex justify-center mb-4">
+                  <Package className="w-12 h-12 text-gray-400" />
+                </div>
+                <p className="text-gray-600 font-medium mb-2">
+                  Click to upload photo
+                </p>
+                <p className="text-gray-400 text-sm mb-4">Max file size: 5MB</p>
                 <input
                   type="file"
                   accept="image/*"
@@ -343,7 +501,6 @@ const OrderDetails = () => {
                     if (e.target.files && e.target.files[0]) {
                       const file = e.target.files[0];
                       if (file.size <= 5 * 1024 * 1024) {
-                        // 5MB limit
                         handleUpload();
                       } else {
                         alert("File size exceeds 5MB limit.");
@@ -351,109 +508,48 @@ const OrderDetails = () => {
                     }
                   }}
                 />
-                <label htmlFor="fabric-upload" className="cursor-pointer">
-                  <span className="block mt-2 text-blue-600 underline">
-                    Browse files
-                  </span>
+                <label
+                  htmlFor="fabric-upload"
+                  className="inline-block px-6 py-2 bg-purple-100 text-purple-700 rounded-lg cursor-pointer hover:bg-purple-200 transition-colors font-medium"
+                >
+                  Browse Files
                 </label>
               </div>
+
               <button
                 onClick={handleUpload}
-                className="w-full py-3 bg-gradient text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition"
+                className="w-full py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
               >
-                Upload Fabric Image
+                Confirm Upload & Mark Delivered
               </button>
             </div>
           </div>
-        )}
-
-        {/* Delivery & Support */}
-        <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-          {/* Delivery Details */}
-          <div className="bg-white p-6 rounded-lg">
-            <h5 className="text-lg font-medium border-b border-gray-200 pb-3 mb-6">
-              Delivery Details
-            </h5>
-            <p className="text-gray-700 mb-3">
-              <span className="font-semibold">Shipping Address:</span>
-              {/* No 7,
-              Street name, Estate name, Lagos, Nigeria */}
-            </p>
-            <p className="text-gray-700 mb-3">
-              <span className="font-semibold">Delivery Date:</span>
-              {/* 12-03-2025
-              (10 days left) */}
-            </p>
-            <p className="text-gray-700">
-              <span className="font-semibold">Delivery Method:</span>
-            </p>
-          </div>
-
-          {/* Order Support */}
-          <div className="bg-white p-6 rounded-lg">
-            <h5 className="text-lg font-medium border-b border-gray-200 pb-3 mb-6">
-              Order Support
-            </h5>
-            <p className="text-gray-700 mb-6">Need help?</p>
-            <div className="flex space-x-4">
-              <Phone
-                className="text-purple-500 bg-purple-100 p-2 rounded-full"
-                size={32}
-              />
-              <MessageSquare
-                className="text-purple-500 bg-purple-100 p-2 rounded-full"
-                size={32}
-              />
-              <Mail
-                className="text-purple-500 bg-purple-100 p-2 rounded-full"
-                size={32}
-              />
-            </div>
-          </div>
         </div>
-
-        {/* Customer & Vendor */}
-        <div className="bg-white p-6 rounded-lg">
-          <h5 className="text-lg font-medium border-b border-gray-200 pb-3 mb-6">
-            Customer & Vendor
-          </h5>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <p className="text-gray-500 text-sm mb-2">Customer Email</p>
-              <p className="font-semibold">{orderInfo?.user?.email}</p>
-            </div>
-            <div>
-              <p className="text-gray-500 text-sm mb-2">
-                Customer Phone Number
-              </p>
-              <p className="font-semibold">{orderInfo?.user?.phone}</p>
-            </div>
-            {/* <div>
-              <p className="text-gray-500 text-sm mb-2">Delivery Method</p>
-              <p className="font-semibold"></p>
-            </div> */}
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* Review Modal */}
       {activeReviewModal && (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-20 backdrop-blur-lg backdrop-brightness-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-y-auto shadow-2xl">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Product Reviews</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Product Reviews
+                </h3>
                 <button
                   onClick={() => setActiveReviewModal(null)}
-                  className="text-gray-500 hover:text-gray-700 text-xl"
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  ×
+                  <X size={24} />
                 </button>
               </div>
-              <ReviewList
-                productId={activeReviewModal}
-                className="max-h-96 overflow-y-auto"
-              />
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[calc(80vh-120px)]">
+              <div className="text-center py-12 text-gray-500">
+                <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-lg font-medium mb-2">No reviews yet</p>
+                <p className="text-sm">Be the first to review this product!</p>
+              </div>
             </div>
           </div>
         </div>

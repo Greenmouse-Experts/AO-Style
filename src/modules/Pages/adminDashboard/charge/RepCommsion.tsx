@@ -92,7 +92,7 @@ export default function RepCommission() {
         <div className="card-body">
           <div className="flex justify-between items-center mb-2">
             <h2 className="card-title text-xl font-bold">
-              Commission Settings
+              Market Rep Commission
             </h2>
           </div>
 

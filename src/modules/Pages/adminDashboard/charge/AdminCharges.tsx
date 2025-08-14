@@ -83,7 +83,9 @@ export default function AdminCharges() {
       <div className="card bg-base-100 rounded-md">
         <div className="card-body">
           <div className="flex justify-between items-center mb-2">
-            <h2 className="card-title text-xl font-bold">Admin Charges</h2>
+            <h2 className="card-title text-xl font-bold">
+              Vendor & Tailor Charges
+            </h2>
           </div>
 
           <form method="dialog" className="space-y-4" onSubmit={onChargeSubmit}>

@@ -265,7 +265,7 @@ const OrdersTable = () => {
               loading={order_query.isPending}
             />
 
-            <CustomTable columns={columns} data={currentItems} />
+            {/* <CustomTable columns={columns} data={currentItems} />*/}
           </>
         )}
         <div className="flex justify-between items-center mt-4">

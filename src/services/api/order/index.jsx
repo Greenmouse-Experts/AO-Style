@@ -19,7 +19,7 @@ const getFetchVendorOrder = (params) => {
 };
 
 const getSingleOrder = (id) => {
-  return CaryBinApi.get(`/orders/${id}`);
+  return CaryBinApi.get(`/orders/details/${id}`);
 };
 
 const OrderService = {

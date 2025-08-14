@@ -146,7 +146,7 @@ const OrderPage = () => {
             </button>
             {openDropdown === row.id && (
               <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
-                <Link to={`/tailor/orders/orders-details?id=${row.id}`}>
+                <Link to={`/tailor/orders/orders-details/${row.id}`}>
                   <button className="block cursor-pointer w-full text-left px-4 py-2 hover:bg-gray-100">
                     View Details
                   </button>

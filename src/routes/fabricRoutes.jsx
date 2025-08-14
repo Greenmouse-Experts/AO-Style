@@ -63,7 +63,7 @@ export const fabricRoutes = [
         element: <ShopMaterial />,
       },
       {
-        path: "/fabric/orders/orders-details",
+        path: "/fabric/orders/orders-details/:id",
         element: <OrdersDetails />,
       },
       {

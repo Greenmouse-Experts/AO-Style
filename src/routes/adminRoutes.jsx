@@ -96,7 +96,7 @@ export const adminRoutes = [
       },
 
       {
-        path: "/admin/tailors/orders-details",
+        path: "/admin/tailors/orders-details/:id",
         element: <OrdersDetails />,
       },
 
@@ -112,7 +112,7 @@ export const adminRoutes = [
       },
 
       {
-        path: "/admin/fabric/orders/orders-details",
+        path: "/admin/fabric/orders/orders-details/:id",
         element: <OrdersFabricDetails />,
       },
 
@@ -238,7 +238,7 @@ export const adminRoutes = [
         element: <ViewVendorOrders />,
       },
       {
-        path: "/admin/orders/order-details",
+        path: "/admin/orders/order-details/:id",
         element: <OrderDetailsPage />,
       },
       // {

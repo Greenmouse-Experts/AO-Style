@@ -9,6 +9,7 @@ import { useCarybinUserStore } from "../../store/carybinUserStore";
 import useVerifyPayment from "../../hooks/cart/useVerifyPayment";
 import Cookies from "js-cookie";
 import useToast from "../../hooks/useToast";
+import useGetUserProfile from "../Auth/hooks/useGetProfile";
 import { useFormik } from "formik";
 import Select from "react-select";
 import { nigeriaStates } from "../../constant";
@@ -33,6 +34,7 @@ import {
 import { formatNumberWithCommas } from "../../lib/helper";
 import CartItemStyle from "./components/CartItemStyle";
 import CartItemStyleDesktop from "./components/CartItemStyleDesktop";
+import CartItemWithBreakdown from "./components/CartItemWithBreakdown";
 
 const initialValues = {
   address: "",
@@ -112,10 +114,80 @@ const CartPage = () => {
       console.log("🚚 CartPage: No delivery data available");
     }
   }, [deliveryData]);
-  const { carybinUser } = useCarybinUserStore();
+  const { carybinUser, setCaryBinUser } = useCarybinUserStore();
   const { toastSuccess, toastError } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Fetch user profile if not already in store (important for Google login)
+  const {
+    data: userProfile,
+    isPending: userProfileLoading,
+    isSuccess: userProfileSuccess,
+  } = useGetUserProfile();
+
+  // Populate user store when profile data is fetched
+  useEffect(() => {
+    if (userProfile && userProfileSuccess && !carybinUser) {
+      console.log(
+        "🔄 CartPage: Populating user store with profile data",
+        userProfile,
+      );
+      setCaryBinUser(userProfile);
+    }
+  }, [userProfile, userProfileSuccess, carybinUser, setCaryBinUser]);
+
+  // Debug logging for authentication status
+  useEffect(() => {
+    const token = Cookies.get("token");
+    const adminToken = Cookies.get("adminToken");
+    const currUserUrl = Cookies.get("currUserUrl");
+
+    console.log("🔍 CartPage: Authentication Debug", {
+      hasToken: !!token,
+      hasAdminToken: !!adminToken,
+      currUserUrl: currUserUrl,
+      hasCarybinUser: !!carybinUser,
+      carybinUserEmail: carybinUser?.email,
+      userProfileLoading: userProfileLoading,
+      userProfileData: !!userProfile,
+    });
+  }, [carybinUser, userProfileLoading, userProfile]);
+
+  // Authentication check and redirect
+  useEffect(() => {
+    const token = Cookies.get("token");
+
+    // If no token and not loading, redirect to login with cart redirect
+    if (!token && !userProfileLoading) {
+      console.log(
+        "❌ CartPage: No authentication token found, redirecting to login",
+      );
+      navigate(
+        `/login?redirect=${encodeURIComponent(location.pathname + location.search)}`,
+      );
+      return;
+    }
+
+    // If token exists but no user data after loading is complete, there might be an issue
+    if (token && !userProfileLoading && !carybinUser && !userProfile) {
+      console.log(
+        "⚠️ CartPage: Token exists but no user data - possible authentication issue",
+      );
+      toastError("Authentication issue detected. Please login again.");
+      navigate(
+        `/login?redirect=${encodeURIComponent(location.pathname + location.search)}`,
+      );
+      return;
+    }
+  }, [
+    carybinUser,
+    userProfile,
+    userProfileLoading,
+    navigate,
+    location,
+    toastError,
+  ]);
 
   const currentUrl = Cookies.get("currUserUrl");
   const token = Cookies.get("token");
@@ -274,7 +346,7 @@ const CartPage = () => {
 
     // Validate user email
     if (!carybinUser?.email) {
-      toastError("Please login to apply coupon");
+      toastError("User data not loaded. Please wait or refresh the page.");
       return;
     }
 
@@ -451,9 +523,24 @@ const CartPage = () => {
             items.filter((item) => item.style_product?.id).length,
           );
 
+          // Debug: Check for potential duplicate styles
+          const styleIds = items
+            .filter((item) => item.style_product?.id)
+            .map((item) => item.style_product.id);
+          const uniqueStyleIds = new Set(styleIds);
+          console.log("🎨 Style ID analysis:", {
+            allStyleIds: styleIds,
+            uniqueStyleIds: Array.from(uniqueStyleIds),
+            potentialDuplicates: styleIds.length !== uniqueStyleIds.size,
+            duplicateStyleIds: styleIds.filter(
+              (id, index) => styleIds.indexOf(id) !== index,
+            ),
+          });
+
           // Prepare purchases from cart items - include both fabric and style purchases
           const purchases = [];
           const metadata = [];
+          const addedStyles = new Set(); // Track added styles to prevent duplicates
 
           items.forEach((item) => {
             // Add fabric purchase
@@ -464,15 +551,23 @@ const CartPage = () => {
                 item.product_type || item.product?.type || "FABRIC",
             });
 
-            // Add style purchase if item has a style
-            if (item.style_product?.id) {
+            // Add style purchase if item has a style (avoid duplicates)
+            if (
+              item.style_product?.id &&
+              !addedStyles.has(item.style_product.id)
+            ) {
               purchases.push({
                 purchase_id: item.style_product.id,
                 quantity: 1, // Style is always quantity 1 (flat fee)
                 purchase_type: "STYLE",
               });
 
-              // Add metadata for style items with measurements
+              // Mark this style as added to prevent duplicates
+              addedStyles.add(item.style_product.id);
+            }
+
+            // Add metadata for ALL style items (even if style purchase already added)
+            if (item.style_product?.id) {
               metadata.push({
                 style_product_id: item.style_product.id,
                 style_product_name: item.style_product.name,
@@ -488,6 +583,16 @@ const CartPage = () => {
             }
           });
 
+          console.log("🔍 Style deduplication results:", {
+            totalItems: items.length,
+            itemsWithStyles: items.filter((item) => item.style_product?.id)
+              .length,
+            uniqueStylesAdded: addedStyles.size,
+            duplicatesAvoided:
+              items.filter((item) => item.style_product?.id).length -
+              addedStyles.size,
+          });
+
           // Validation: Ensure we don't send empty metadata
           const hasStyleItems = items.some((item) => item.style_product?.id);
           console.log("🎨 Style validation:", {
@@ -501,6 +606,23 @@ const CartPage = () => {
 
           // Extra validation: Don't include metadata if no style items
           const shouldIncludeMetadata = hasStyleItems && metadata.length > 0;
+
+          // Final validation: Check for duplicate purchase IDs
+          const purchaseIds = purchases.map((p) => p.purchase_id);
+          const uniquePurchaseIds = new Set(purchaseIds);
+
+          if (purchaseIds.length !== uniquePurchaseIds.size) {
+            console.error("❌ Duplicate purchase IDs detected:", {
+              allIds: purchaseIds,
+              duplicates: purchaseIds.filter(
+                (id, index) => purchaseIds.indexOf(id) !== index,
+              ),
+            });
+            toastError(
+              "Error: Duplicate items detected in cart. Please refresh and try again.",
+            );
+            return;
+          }
 
           const paymentData = {
             purchases,
@@ -525,6 +647,15 @@ const CartPage = () => {
             stylePurchases: purchases.filter((p) => p.purchase_type === "STYLE")
               .length,
             purchases: purchases,
+            duplicateCheck: {
+              allPurchaseIds: purchases.map((p) => p.purchase_id),
+              duplicatePurchaseIds: purchases
+                .map((p) => p.purchase_id)
+                .filter((id, index, arr) => arr.indexOf(id) !== index),
+              hasDuplicates:
+                new Set(purchases.map((p) => p.purchase_id)).size !==
+                purchases.length,
+            },
           });
           console.log("📏 Payment metadata breakdown:", {
             metadataCount: metadata.length,
@@ -596,7 +727,7 @@ const CartPage = () => {
     });
   };
 
-  if (cartLoading) {
+  if (cartLoading || userProfileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoaderComponent />
@@ -712,247 +843,29 @@ const CartPage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Cart Items - Left Side */}
               <div className="lg:col-span-2 space-y-4">
-                {/* Desktop Headers */}
-                {/* <div className="hidden md:grid grid-cols-10 gap-4 px-4 py-3 bg-gray-50 rounded-lg text-sm font-medium text-gray-600">
-                  <div className="col-span-5">Product</div>
-                  <div className="col-span-2 text-center">Quantity</div>
-                  <div className="col-span-2 text-right">Total</div>
-                  <div className="col-span-1 text-center">Action</div>
-                </div>*/}
+                {/* Table Headers - Desktop Only */}
+                <div className="hidden md:block bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+                  <div className="grid grid-cols-12 gap-4 text-sm font-medium text-gray-700">
+                    <div className="col-span-6 pl-2">PRODUCTS</div>
+                    <div className="col-span-2 text-center">QUANTITY</div>
+                    <div className="col-span-2 text-center">PRICE</div>
+                    <div className="col-span-2 text-center">TOTAL AMOUNT</div>
+                  </div>
+                </div>
 
                 {/* Cart Items */}
-                {items.map((item) => {
-                  const fabricPrice = parseFloat(
-                    item.price_at_time || item.product?.price || 0,
-                  );
-                  const stylePrice = parseFloat(item.style_product?.price || 0);
-                  const quantity = parseInt(item.quantity || 1);
-                  const fabricTotal = fabricPrice * quantity;
-                  const itemTotal = fabricTotal + stylePrice;
-
-                  // For styled items, display should show measurement count
-                  const measurementCount = getMeasurementCount(
-                    item.measurement,
-                  );
-                  const displayQuantity = item?.style_product
-                    ? measurementCount
-                    : quantity;
-
-                  return (
-                    <div
-                      key={item.id}
-                      className="bg-white border border-gray-200 rounded-lg sm:rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
-                    >
-                      {/* Mobile Layout */}
-                      <div className="md:hidden">
-                        {/* Main Product Info */}
-                        <div className="p-3 sm:p-4 border-b border-gray-100">
-                          <div className="flex gap-4">
-                            {item.product?.image && (
-                              <img
-                                src={item.product.image}
-                                alt={item.product?.name || "Product"}
-                                className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-                              />
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-base sm:text-lg text-gray-900 mb-1">
-                                {item.product?.name ||
-                                  `Product ${item.product_id}`}
-                              </h3>
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded">
-                                  {item.product_type || "FABRIC"}
-                                </span>
-                                {item.product?.sku && (
-                                  <span className="text-xs text-gray-500">
-                                    SKU: {item.product.sku}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <button
-                              onClick={() => {
-                                setItemToDelete(item.id);
-                                setIsDeleteModalOpen(true);
-                              }}
-                              disabled={deleteIsPending}
-                              className="p-2 text-gray-400 hover:text-red-500 rounded-lg"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Fabric Details */}
-                        <div className="p-3 sm:p-4 bg-blue-25 border-b border-blue-100">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-blue-600 font-medium">
-                                  🧵 Fabric
-                                </span>
-                              </div>
-                              <div className="text-sm text-gray-600">
-                                ₦{fabricPrice.toLocaleString()} × {quantity}{" "}
-                                yard{quantity !== 1 ? "s" : ""}
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-base sm:text-lg font-bold text-blue-700">
-                                ₦{fabricTotal.toLocaleString()}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Style Details */}
-                        {item.style_product && (
-                          <div className="p-3 sm:p-4 bg-purple-25 border-b border-purple-100">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-purple-600 font-medium">
-                                    ✨ Style
-                                  </span>
-                                </div>
-                                <div className="text-sm text-gray-900 font-medium">
-                                  {item.style_product?.name || "Custom Style"}
-                                </div>
-                                <div className="text-sm text-gray-600">
-                                  {getMeasurementCount(item.measurement)}{" "}
-                                  measurement
-                                  {getMeasurementCount(item.measurement) !== 1
-                                    ? "s"
-                                    : ""}
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <div className="text-base sm:text-lg font-bold text-purple-700">
-                                  ₦{stylePrice.toLocaleString()}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Total */}
-                        <div className="p-3 sm:p-4 bg-gray-50">
-                          <div className="flex items-center justify-between">
-                            <span className="text-base sm:text-lg font-semibold text-gray-900">
-                              Total
-                            </span>
-                            <span className="text-xl sm:text-2xl font-bold text-gray-900">
-                              ₦{itemTotal.toLocaleString()}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Desktop Layout */}
-                      <div className="hidden md:grid md:grid-cols-12 md:gap-4 md:items-center md:p-4">
-                        {/* Product Info */}
-                        <div className="col-span-5 flex items-center gap-4">
-                          {item.product?.image && (
-                            <img
-                              src={item.product.image}
-                              alt={item.product?.name || "Product"}
-                              className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-                            />
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <h3 className="font-semibold text-lg text-gray-900 truncate">
-                              {item.product?.name ||
-                                `Product ${item.product_id}`}
-                            </h3>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded">
-                                {item.product_type || "FABRIC"}
-                              </span>
-                              {item.product?.sku && (
-                                <span className="text-xs text-gray-500">
-                                  SKU: {item.product.sku}
-                                </span>
-                              )}
-                            </div>
-                            {/* Style info for desktop */}
-                            {item.style_product && (
-                              <div className="mt-2 p-2 bg-purple-50 rounded-lg border border-purple-100">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-purple-600 text-sm">
-                                    ✨
-                                  </span>
-                                  <span className="text-sm font-medium text-purple-900">
-                                    {item.style_product?.name || "Custom Style"}
-                                  </span>
-                                </div>
-                                <div className="text-xs text-purple-600 mt-1">
-                                  {getMeasurementCount(item.measurement)}{" "}
-                                  measurement
-                                  {getMeasurementCount(item.measurement) !== 1
-                                    ? "s"
-                                    : ""}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Quantity */}
-                        <div className="col-span-2 text-center">
-                          <div className="text-sm font-medium">
-                            {quantity} yard{quantity !== 1 ? "s" : ""}
-                          </div>
-                          {item?.style_product && (
-                            <div className="text-xs text-blue-600">
-                              = {getMeasurementCount(item.measurement)} unit
-                              {getMeasurementCount(item.measurement) !== 1
-                                ? "s"
-                                : ""}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Pricing Breakdown */}
-                        <div className="col-span-4 space-y-1">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">🧵 Fabric:</span>
-                            <span className="font-medium">
-                              ₦{fabricTotal.toLocaleString()}
-                            </span>
-                          </div>
-                          {item?.style_product && stylePrice > 0 && (
-                            <div className="flex justify-between text-sm">
-                              <span className="text-purple-600">✨ Style:</span>
-                              <span className="font-medium text-purple-700">
-                                ₦{stylePrice.toLocaleString()}
-                              </span>
-                            </div>
-                          )}
-                          <div className="flex justify-between text-base font-bold border-t pt-1">
-                            <span>Total:</span>
-                            <span>₦{itemTotal.toLocaleString()}</span>
-                          </div>
-                        </div>
-
-                        {/* Remove */}
-                        <div className="col-span-1 text-center">
-                          <button
-                            onClick={() => {
-                              setItemToDelete(item.id);
-                              setIsDeleteModalOpen(true);
-                            }}
-                            disabled={deleteIsPending}
-                            className="text-gray-400 hover:text-red-500 p-2"
-                            title="Remove item"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                {items.map((item) => (
+                  <CartItemWithBreakdown
+                    key={item.id}
+                    item={item}
+                    onDelete={(itemId) => {
+                      setItemToDelete(itemId);
+                      setIsDeleteModalOpen(true);
+                    }}
+                    deleteIsPending={deleteIsPending}
+                    getMeasurementCount={getMeasurementCount}
+                  />
+                ))}
               </div>
 
               {/* Order Summary - Right Side */}

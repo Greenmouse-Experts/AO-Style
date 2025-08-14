@@ -161,7 +161,7 @@ const OrderPage = () => {
             </button>
             {openDropdown === row.id && (
               <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md z-20 border border-gray-200">
-                <Link to={`/fabric/orders/orders-details?id=${row.id}`}>
+                <Link to={`/fabric/orders/orders-details/${row.id}`}>
                   <button className="block w-full text-left px-4 py-2 hover:bg-gray-50 text-sm font-medium text-gray-700">
                     View Details
                   </button>
@@ -210,7 +210,7 @@ const OrderPage = () => {
           </button>
           {openDropdown === row.id && (
             <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
-              <Link to="/fabric/orders/orders-details">
+              <Link to={`/fabric/orders/orders-details/${row.id}`}>
                 <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
                   View Details
                 </button>

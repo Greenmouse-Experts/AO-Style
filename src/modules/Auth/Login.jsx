@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import { useQueryClient } from "@tanstack/react-query";
 import useSessionManager from "../../hooks/useSessionManager";
+import { useCarybinUserStore } from "../../store/carybinUserStore";
 
 const initialValues = {
   email: "",
@@ -65,6 +66,7 @@ export default function SignInCustomer() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { setAuthData } = useSessionManager();
+  const { setCaryBinUser } = useCarybinUserStore();
 
   const { isPending, signinMutate } = useSignIn(values.email, resendCodeMutate);
 
@@ -178,6 +180,10 @@ export default function SignInCustomer() {
             user: userData, // Include user data
             userType: userRole, // Include role
           });
+
+          // Update user store immediately for components like CartPage
+          console.log("🔄 Google Auth: Updating user store with:", userData);
+          setCaryBinUser(userData);
 
           // Refresh user profile query to ensure fresh data
           queryClient.invalidateQueries(["get-user-profile"]);

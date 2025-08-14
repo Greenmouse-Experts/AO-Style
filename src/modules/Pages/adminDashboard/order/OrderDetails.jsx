@@ -18,7 +18,7 @@ import {
   FileText,
   X,
 } from "lucide-react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import useGetSingleOrder from "../../../../hooks/order/useGetSingleOrder";
 import Loader from "../../../../components/ui/Loader";
 import ReviewForm from "../../../../components/reviews/ReviewForm";
@@ -44,8 +44,7 @@ const OrderDetails = () => {
   const [activeTab, setActiveTab] = useState("style");
   const [activeReviewProduct, setActiveReviewProduct] = useState(null);
 
-  const [searchParams] = useSearchParams();
-  const orderId = searchParams.get("id");
+  const { id: orderId } = useParams();
 
   const { isPending: getUserIsPending, data } = useGetSingleOrder(orderId);
   console.log(data, "orderss");

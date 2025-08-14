@@ -18,7 +18,7 @@ import {
   FileText,
   X,
 } from "lucide-react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import useGetSingleOrder from "../../../hooks/order/useGetSingleOrder";
 import Loader from "../../../components/ui/Loader";
 import ReviewForm from "../../../components/reviews/ReviewForm";
@@ -45,8 +45,7 @@ const OrderDetails = () => {
   const [activeTab, setActiveTab] = useState("style");
   const [activeReviewProduct, setActiveReviewProduct] = useState(null);
 
-  const [searchParams] = useSearchParams();
-  const orderId = searchParams.get("id");
+  const { id: orderId } = useParams();
 
   const { isPending: getUserIsPending, data } = useGetSingleOrder(orderId);
 
@@ -417,7 +416,7 @@ const OrderDetails = () => {
             </div>
           </div>
         </div>
-        <div className="flex flex-col gap-4">
+        {/* <div className="flex flex-col gap-4">
           <div className="bg-white p-4 rounded-md">
             <h5 className="text-lg font-medium leading-loose border-b border-[#D9D9D9] pb-3 mb-3">
               Customer Details
@@ -471,7 +470,7 @@ const OrderDetails = () => {
               <Mail className="text-purple-500" size={24} />
             </div>
           </div>
-        </div>
+        </div>*/}
       </div>
 
       {/* Rate & Review Section - Show for Delivered Orders */}

@@ -45,7 +45,7 @@ export const customerRoutes = [
         element: <Orders />,
       },
       {
-        path: "/customer/orders/orders-details",
+        path: "/customer/orders/orders-details/:id",
         element: <OrdersDetails />,
       },
       {

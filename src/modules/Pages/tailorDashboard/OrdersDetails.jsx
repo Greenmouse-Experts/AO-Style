@@ -12,68 +12,92 @@ import {
   User,
 } from "lucide-react";
 import { useState } from "react";
+import { useParams } from "react-router-dom";
+import useGetSingleOrder from "../../../hooks/order/useGetSingleOrder";
+import Loader from "../../../components/ui/Loader";
 
 const OrderDetails = () => {
   const [showUploadPopup, setShowUploadPopup] = useState(false);
   const [markReceivedChecked, setMarkReceivedChecked] = useState(false);
   const [markSentChecked, setMarkSentChecked] = useState(false);
 
-  // Mock data - replace with your actual hook
-  const orderInfo = {
-    id: "order_1234567890abcdef",
-    status: "PROCESSING",
-    created_at: "2024-01-15T10:30:00Z",
-    updated_at: "2024-01-15T12:45:00Z",
-    total_amount: "19950",
-    user: {
-      email: "greenmousedev+pmcus@gmail.com",
-      phone: "+234 901 234 5678",
-    },
-    payment: {
-      payment_status: "SUCCESS",
-      payment_method: "Card Payment",
-      transaction_id: "txn_abc123def456",
-      amount: "19950",
-      currency: "NGN",
-    },
-  };
+  // Get order ID from URL params
+  const { id } = useParams();
 
-  const orderMetadata = [
-    {
-      fabric_product_id: "fabric_001",
-      fabric_product_name: "Lace Beautiful Flocky Fabric",
-      style_product_id: "style_001",
-      style_product_name:
-        "Men's Senator Native Wear (Black With Brown Design Long Sleeve)",
-      customer_name: "Daniel",
-      customer_email: "greenmousedev+pmcus@gmail.com",
-      color: "#b33737",
-      quantity: 6,
-      measurement: [
-        { name: "Chest", value: "42", unit: "inches" },
-        { name: "Length", value: "28", unit: "inches" },
-        { name: "Shoulder", value: "18", unit: "inches" },
-        { name: "Sleeve", value: "24", unit: "inches" },
-      ],
-    },
-  ];
+  // Fetch order data from API
+  const {
+    data,
+    isPending: getOrderIsPending,
+    isError,
+    refetch,
+  } = useGetSingleOrder(id);
 
-  const orderPurchase = [
-    {
-      id: "item_001",
-      name: "Lace Beautiful Flocky Fabric",
-      price: "19950",
-      quantity: 6,
-      purchase_type: "FABRIC",
-      product_id: "fabric_001",
-    },
-  ];
+  // Extract order information from API response
+  const orderInfo = data?.data || {};
+  const orderPurchase = data?.data?.payment?.purchase?.items || [];
+  const orderMetadata = data?.data?.payment?.metadata || [];
+
+  // Determine if this is a fabric-only order or has tailoring/style components
+  const hasTailoringComponents = orderMetadata && orderMetadata.length > 0;
+  const isFabricOnlyOrder = !hasTailoringComponents;
+
+  console.log("📋 Tailor Order Details - API Data:", data);
+  console.log("📋 Order Info:", orderInfo);
+  console.log("📋 Order Purchase Items:", orderPurchase);
+  console.log("📋 Order Metadata:", orderMetadata);
+  console.log("📋 Is Fabric Only Order:", isFabricOnlyOrder);
+  console.log("📋 Has Tailoring Components:", hasTailoringComponents);
+  console.log("📋 Order ID from params:", id);
+  console.log("📋 Loading state:", getOrderIsPending);
+  console.log("📋 Error state:", isError);
+
+  // Loading state
+  if (getOrderIsPending) {
+    console.log("📋 Still loading order details...");
+    return (
+      <div className="m-auto flex h-[80vh] items-center justify-center">
+        <div className="text-center">
+          <Loader />
+          <p className="text-gray-500 mt-4">Loading order details...</p>
+          <p className="text-sm text-gray-400">Order ID: {id}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (isError || (!getOrderIsPending && !orderInfo?.id)) {
+    console.log("📋 Error loading order details:", { isError, orderInfo, id });
+    return (
+      <div className="m-auto flex h-[80vh] items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Failed to load order details</p>
+          <p className="text-sm text-gray-600 mb-4">
+            Order ID: {id || "No ID provided"}
+          </p>
+          <p className="text-sm text-gray-600 mb-4">
+            Error: {isError ? "API Error" : "No order data received"}
+          </p>
+          <button
+            onClick={() => {
+              console.log("📋 Retrying order fetch for ID:", id);
+              refetch();
+            }}
+            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const formatNumberWithCommas = (num) => {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return parseInt(num || 0).toLocaleString();
   };
 
   const formatDateStr = (dateStr, format) => {
+    if (!dateStr) return "N/A";
     const date = new Date(dateStr);
     return date.toLocaleDateString("en-US", {
       day: "2-digit",
@@ -82,6 +106,21 @@ const OrderDetails = () => {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const displayOrderId = (id) => {
+    return `#${id?.slice(-8)?.toUpperCase() || "N/A"}`;
+  };
+
+  const getStatusColor = (status) => {
+    const colors = {
+      DELIVERED: "bg-green-100 text-green-600",
+      SHIPPED: "bg-blue-100 text-blue-600",
+      CANCELLED: "bg-red-100 text-red-600",
+      PENDING: "bg-yellow-100 text-yellow-600",
+      PROCESSING: "bg-purple-100 text-purple-600",
+    };
+    return colors[status] || "bg-gray-100 text-gray-600";
   };
 
   const handleCheckboxChange = (type) => {
@@ -113,19 +152,6 @@ const OrderDetails = () => {
         return <Scissors className="w-5 h-5 text-orange-600" />;
       default:
         return <Clock className="w-5 h-5 text-yellow-600" />;
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "DELIVERED":
-        return "bg-green-50 text-green-700 border-green-200";
-      case "SHIPPED":
-        return "bg-blue-50 text-blue-700 border-blue-200";
-      case "PROCESSING":
-        return "bg-orange-50 text-orange-700 border-orange-200";
-      default:
-        return "bg-yellow-50 text-yellow-700 border-yellow-200";
     }
   };
 
@@ -235,163 +261,261 @@ const OrderDetails = () => {
               Tailoring Orders
             </h2>
             <div className="space-y-6">
-              {orderMetadata.map((metaItem, id) => {
-                const purchaseItem = orderPurchase.find(
-                  (item) => item?.product_id === metaItem?.fabric_product_id,
-                );
-
-                return (
-                  <div
-                    key={id}
-                    className="border border-gray-200 rounded-xl overflow-hidden"
-                  >
-                    <div className="p-6">
-                      <div className="flex flex-col lg:flex-row gap-6">
-                        {/* Product Image */}
-                        <div className="flex-shrink-0">
-                          <div className="relative">
-                            <img
-                              src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170603/AoStyle/image1_s3s2sd.jpg"
-                              alt={metaItem?.fabric_product_name}
-                              className="w-32 h-32 lg:w-20 lg:h-20 rounded-xl object-cover border border-gray-200"
-                            />
-                            <div className="absolute -top-2 -right-2 bg-purple-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
-                              FABRIC
-                            </div>
+              {isFabricOnlyOrder
+                ? // Render fabric-only orders directly from purchase items
+                  orderPurchase.map((purchaseItem, index) => (
+                    <div
+                      key={purchaseItem?.id || index}
+                      className="border border-gray-200 rounded-xl overflow-hidden"
+                    >
+                      <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 px-6 py-4 border-b border-yellow-200">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                            <Package className="w-5 h-5 text-purple-600" />
+                            {purchaseItem?.name || "Fabric Product"}
+                          </h3>
+                          <div className="flex items-center gap-2">
+                            <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
+                              {purchaseItem?.purchase_type || "FABRIC"}
+                            </span>
+                            <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-medium">
+                              No Tailoring
+                            </span>
                           </div>
                         </div>
+                      </div>
 
-                        {/* Product Details */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-6">
-                            <div className="flex-1">
-                              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                                {metaItem?.fabric_product_name}
-                              </h3>
-                              <div className="flex flex-wrap items-center gap-6 text-sm">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium text-gray-600">
-                                    Color:
-                                  </span>
-                                  <span
-                                    className="inline-block w-5 h-5 rounded-full border-2 border-white shadow-md"
-                                    style={{ backgroundColor: metaItem?.color }}
-                                  ></span>
-                                  <span className="text-gray-900">
-                                    {metaItem?.color}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className="font-medium text-gray-600">
-                                    Quantity:
-                                  </span>
-                                  <span className="font-bold text-purple-600 ml-1">
-                                    {metaItem?.quantity} Yards
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right lg:text-left">
-                              <div className="text-2xl font-bold text-purple-600 mb-3">
-                                ₦
-                                {formatNumberWithCommas(
-                                  parseInt(purchaseItem?.price || 0),
-                                )}
-                              </div>
-                              {/* <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium">
-                                <Ruler size={16} />
-                                View Measurements
-                              </button>*/}
-                            </div>
+                      <div className="p-6">
+                        <div className="flex flex-col lg:flex-row gap-6">
+                          <div className="lg:w-32 lg:h-32 w-full h-48 bg-gray-100 rounded-xl flex items-center justify-center">
+                            <Package className="w-12 h-12 text-gray-400" />
                           </div>
 
-                          {/* Style Information */}
-                          {metaItem?.style_product_name && (
-                            <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4 mb-6">
-                              <div className="flex items-start gap-3">
-                                <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                  <Scissors className="w-5 h-5 text-white" />
-                                </div>
-                                <div className="flex-1">
-                                  <span className="text-xs font-bold text-purple-600 uppercase tracking-wide block mb-1">
-                                    STYLE TO TAILOR
-                                  </span>
-                                  <span className="text-lg font-bold text-purple-800">
-                                    {metaItem?.style_product_name}
-                                  </span>
-                                </div>
+                          <div className="flex-1">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                              <div>
+                                <span className="text-sm font-medium text-gray-600">
+                                  Quantity:
+                                </span>
+                                <p className="text-lg font-bold text-gray-900">
+                                  {purchaseItem?.quantity || 1}
+                                </p>
                               </div>
-                            </div>
-                          )}
-
-                          {/* Measurements */}
-                          {/* {metaItem?.measurement &&
-                            metaItem.measurement.length > 0 && (
-                              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-                                <div className="flex items-center gap-3 mb-4">
-                                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                    <Ruler className="w-4 h-4 text-white" />
-                                  </div>
-                                  <span className="font-semibold text-blue-800">
-                                    Customer Measurements
-                                  </span>
-                                </div>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                  {metaItem.measurement.map(
-                                    (measure, index) => (
-                                      <div
-                                        key={index}
-                                        className="bg-white rounded-lg p-3 border border-blue-100"
-                                      >
-                                        <div className="text-xs text-blue-600 font-medium uppercase tracking-wide">
-                                          {measure.name}
-                                        </div>
-                                        <div className="text-lg font-bold text-blue-800">
-                                          {measure.value} {measure.unit}
-                                        </div>
-                                      </div>
-                                    ),
+                              <div>
+                                <span className="text-sm font-medium text-gray-600">
+                                  Unit Price:
+                                </span>
+                                <p className="text-lg font-bold text-purple-600">
+                                  ₦
+                                  {formatNumberWithCommas(
+                                    parseInt(purchaseItem?.price || 0),
                                   )}
+                                </p>
+                              </div>
+                              <div>
+                                <span className="text-sm font-medium text-gray-600">
+                                  Total:
+                                </span>
+                                <p className="text-2xl font-bold text-purple-600">
+                                  ₦
+                                  {formatNumberWithCommas(
+                                    parseInt(purchaseItem?.price || 0) *
+                                      parseInt(purchaseItem?.quantity || 1),
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Info message for tailor */}
+                            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                  <span className="text-white text-sm">ℹ️</span>
+                                </div>
+                                <div>
+                                  <p className="text-blue-800 font-medium">
+                                    This is a fabric-only order
+                                  </p>
+                                  <p className="text-blue-600 text-sm">
+                                    No tailoring services are required for this
+                                    item.
+                                  </p>
                                 </div>
                               </div>
-                            )}*/}
-
-                          {/* Customer Information */}
-                          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                            <div className="flex items-center gap-3 mb-3">
-                              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                                <User className="w-4 h-4 text-white" />
-                              </div>
-                              <span className="font-semibold text-gray-700">
-                                Customer Information
-                              </span>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                              <div className="flex justify-between">
-                                <span className="text-gray-600 font-medium">
-                                  Name:
-                                </span>
-                                <span className="text-gray-900 font-semibold">
-                                  {metaItem?.customer_name}
+
+                            {/* Customer Information for fabric-only orders */}
+                            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                              <div className="flex items-center gap-3 mb-3">
+                                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                  <User className="w-4 h-4 text-white" />
+                                </div>
+                                <span className="font-semibold text-gray-700">
+                                  Customer Information
                                 </span>
                               </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-600 font-medium">
-                                  Email:
-                                </span>
-                                <span className="text-gray-900 font-semibold truncate ml-2">
-                                  {metaItem?.customer_email}
-                                </span>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600 font-medium">
+                                    Email:
+                                  </span>
+                                  <span className="text-gray-900 font-semibold truncate ml-2">
+                                    {orderInfo?.user?.email}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600 font-medium">
+                                    Phone:
+                                  </span>
+                                  <span className="text-gray-900 font-semibold">
+                                    {orderInfo?.user?.phone || "N/A"}
+                                  </span>
+                                </div>
                               </div>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  ))
+                : // Render orders with metadata (fabric + tailoring)
+                  orderMetadata.map((metaItem, id) => {
+                    const purchaseItem = orderPurchase.find(
+                      (item) =>
+                        item?.product_id === metaItem?.fabric_product_id,
+                    );
+
+                    return (
+                      <div
+                        key={id}
+                        className="border border-gray-200 rounded-xl overflow-hidden"
+                      >
+                        <div className="p-6">
+                          <div className="flex flex-col lg:flex-row gap-6">
+                            {/* Product Image */}
+                            <div className="flex-shrink-0">
+                              <div className="relative">
+                                <img
+                                  src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170603/AoStyle/image1_s3s2sd.jpg"
+                                  alt={metaItem?.fabric_product_name}
+                                  className="w-32 h-32 lg:w-20 lg:h-20 rounded-xl object-cover border border-gray-200"
+                                />
+                                <div className="absolute -top-2 -right-2 bg-purple-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
+                                  FABRIC
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Product Details */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-6">
+                                <div className="flex-1">
+                                  <h3 className="text-xl font-bold text-gray-900 mb-3">
+                                    {metaItem?.fabric_product_name}
+                                  </h3>
+                                  <div className="flex flex-wrap items-center gap-6 text-sm">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-medium text-gray-600">
+                                        Color:
+                                      </span>
+                                      <span
+                                        className="inline-block w-5 h-5 rounded-full border-2 border-white shadow-md"
+                                        style={{
+                                          backgroundColor: metaItem?.color,
+                                        }}
+                                      ></span>
+                                      <span className="text-gray-900">
+                                        {metaItem?.color}
+                                      </span>
+                                    </div>
+                                    <div>
+                                      <span className="font-medium text-gray-600">
+                                        Quantity:
+                                      </span>
+                                      <span className="font-bold text-purple-600 ml-1">
+                                        {metaItem?.quantity} Yards
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="text-right lg:text-left">
+                                  <div className="text-2xl font-bold text-purple-600 mb-3">
+                                    ₦
+                                    {formatNumberWithCommas(
+                                      parseInt(purchaseItem?.price || 0),
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Style Information */}
+                              {metaItem?.style_product_name && (
+                                <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4 mb-6">
+                                  <div className="flex items-start gap-3">
+                                    <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                      <Scissors className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div className="flex-1">
+                                      <span className="text-xs font-bold text-purple-600 uppercase tracking-wide block mb-1">
+                                        STYLE TO TAILOR
+                                      </span>
+                                      <span className="text-lg font-bold text-purple-800">
+                                        {metaItem?.style_product_name}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Customer Information */}
+                              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                                <div className="flex items-center gap-3 mb-3">
+                                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                    <User className="w-4 h-4 text-white" />
+                                  </div>
+                                  <span className="font-semibold text-gray-700">
+                                    Customer Information
+                                  </span>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600 font-medium">
+                                      Name:
+                                    </span>
+                                    <span className="text-gray-900 font-semibold">
+                                      {metaItem?.customer_name}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600 font-medium">
+                                      Email:
+                                    </span>
+                                    <span className="text-gray-900 font-semibold truncate ml-2">
+                                      {metaItem?.customer_email}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
             </div>
+
+            {/* Empty state */}
+            {orderPurchase.length === 0 && (
+              <div className="text-center py-12">
+                <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500 text-lg font-medium mb-2">
+                  No products found
+                </p>
+                <p className="text-gray-400">
+                  This order doesn't contain any products.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -464,7 +588,7 @@ const OrderDetails = () => {
           </div>
 
           {/* Customer Contact */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          {/* <div className="bg-white rounded-xl shadow-sm p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-6">
               Customer Contact
             </h3>
@@ -526,7 +650,7 @@ const OrderDetails = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </div>*/}
 
           {/* Order Timeline */}
           <div className="bg-white rounded-xl shadow-sm p-6">

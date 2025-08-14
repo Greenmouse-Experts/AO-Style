@@ -30,6 +30,7 @@ export default function AddNewTailorModal({ isOpen, onClose }: any) {
       name: e.target.name.value,
       role: e.target.role.value,
     };
+    // return console.log(data);
     mutate.mutateAsync(data);
     setAddAddress(false);
     e.target.reset();
@@ -103,7 +104,7 @@ export default function AddNewTailorModal({ isOpen, onClose }: any) {
                 </option>
                 <option value="FABRIC_VENDOR">Fabric Vendor</option>
                 */}
-                <option value="FASHION_DESIGNER">Fashion Designer</option>
+                <option value="fashion-designer">Fashion Designer</option>
               </select>
             </fieldset>
             {/* form ends here*/}

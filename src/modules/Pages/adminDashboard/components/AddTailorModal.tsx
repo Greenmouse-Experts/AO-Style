@@ -30,6 +30,7 @@ export default function AddTailorModal({ isOpen, onClose }: any) {
       name: e.target.name.value,
       role: e.target.role.value,
     };
+    return console.log(data);
     mutate.mutateAsync(data);
     setAddAddress(false);
     e.target.reset();

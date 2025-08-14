@@ -867,7 +867,7 @@ const AddProduct = () => {
                   Product Description
                 </label>
                 <textarea
-                  placeholder="Enter the style description"
+                  placeholder="Enter the fabric description"
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 h-32 outline-none"
                   required
                   type="text"

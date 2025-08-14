@@ -4,7 +4,6 @@ import {
   Mail,
   X,
   Star,
-  Scissors,
   Package,
   Clock,
   CheckCircle,
@@ -36,14 +35,30 @@ const OrderDetails = () => {
   const orderPurchase = data?.data?.payment?.purchase?.items || [];
   const orderMetadata = data?.data?.payment?.metadata || [];
 
-  // Determine if this is a fabric-only order or has tailoring/style components
-  const hasTailoringComponents = orderMetadata && orderMetadata.length > 0;
-  const isFabricOnlyOrder = !hasTailoringComponents;
+  // Filter to show only fabric items for fabric vendors
+  const fabricOnlyPurchase = orderPurchase.filter(
+    (item) => item?.purchase_type === "FABRIC",
+  );
+  const fabricOnlyMetadata = orderMetadata.filter(
+    (meta) => meta?.fabric_product_id,
+  );
+
+  // Calculate fabric-only total amount
+  const fabricOnlyTotal = fabricOnlyPurchase.reduce((total, item) => {
+    return total + (item?.price * item?.quantity || 0);
+  }, 0);
+
+  // Fabric vendors only deal with fabric orders
+  const hasTailoringComponents = false;
+  const isFabricOnlyOrder = true;
 
   console.log("📋 Order Details - API Data:", data);
   console.log("📋 Order Info:", orderInfo);
   console.log("📋 Order Purchase Items:", orderPurchase);
   console.log("📋 Order Metadata:", orderMetadata);
+  console.log("📋 Fabric Only Purchase Items:", fabricOnlyPurchase);
+  console.log("📋 Fabric Only Metadata:", fabricOnlyMetadata);
+  console.log("📋 Fabric Only Total:", fabricOnlyTotal);
   console.log("📋 Is Fabric Only Order:", isFabricOnlyOrder);
   console.log("📋 Has Tailoring Components:", hasTailoringComponents);
   console.log("📋 Order ID from params:", id);
@@ -236,9 +251,15 @@ const OrderDetails = () => {
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-gray-600 font-medium">
-                    Total Amount:
+                    Fabric Total:
                   </span>
                   <span className="text-2xl font-bold text-purple-600">
+                    ₦{formatNumberWithCommas(parseInt(fabricOnlyTotal))}
+                  </span>
+                </div>
+                <div className="flex justify-between py-1 text-sm text-gray-500">
+                  <span>Full Order Total:</span>
+                  <span>
                     ₦{formatNumberWithCommas(parseInt(orderInfo?.total_amount))}
                   </span>
                 </div>
@@ -249,12 +270,12 @@ const OrderDetails = () => {
           {/* Ordered Products */}
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">
-              Ordered Products ({orderPurchase.length} items)
+              Ordered Product(s)
             </h2>
             <div className="space-y-6">
-              {isFabricOnlyOrder
+              {fabricOnlyMetadata.length === 0
                 ? // Render fabric-only orders directly from purchase items
-                  orderPurchase.map((purchaseItem, index) => (
+                  fabricOnlyPurchase.map((purchaseItem, index) => (
                     <div
                       key={purchaseItem?.id || index}
                       className="border border-gray-200 rounded-xl overflow-hidden"
@@ -348,9 +369,9 @@ const OrderDetails = () => {
                       </div>
                     </div>
                   ))
-                : // Render orders with metadata (fabric + style/tailoring)
-                  orderMetadata.map((metaItem, id) => {
-                    const purchaseItem = orderPurchase.find(
+                : // Render orders with metadata (fabric only)
+                  fabricOnlyMetadata.map((metaItem, id) => {
+                    const purchaseItem = fabricOnlyPurchase.find(
                       (item) =>
                         item?.product_id === metaItem?.fabric_product_id,
                     );
@@ -429,25 +450,6 @@ const OrderDetails = () => {
                                 </div>
                               </div>
 
-                              {/* Style Information */}
-                              {metaItem?.style_product_name && (
-                                <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4 mb-6">
-                                  <div className="flex items-start gap-3">
-                                    <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                      <Scissors className="w-5 h-5 text-white" />
-                                    </div>
-                                    <div className="flex-1">
-                                      <span className="text-xs font-bold text-purple-600 uppercase tracking-wide block mb-1">
-                                        SELECTED STYLE
-                                      </span>
-                                      <span className="text-lg font-bold text-purple-800">
-                                        {metaItem?.style_product_name}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-
                               {/* Customer Information */}
                               <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
                                 <div className="flex items-center gap-3 mb-3">
@@ -488,17 +490,18 @@ const OrderDetails = () => {
             </div>
 
             {/* Empty state */}
-            {orderPurchase.length === 0 && (
-              <div className="text-center py-12">
-                <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg font-medium mb-2">
-                  No products found
-                </p>
-                <p className="text-gray-400">
-                  This order doesn't contain any products.
-                </p>
-              </div>
-            )}
+            {fabricOnlyPurchase.length === 0 &&
+              fabricOnlyMetadata.length === 0 && (
+                <div className="text-center py-12">
+                  <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 text-lg font-medium mb-2">
+                    No products found
+                  </p>
+                  <p className="text-gray-400">
+                    This order doesn't contain any products.
+                  </p>
+                </div>
+              )}
           </div>
         </div>
 

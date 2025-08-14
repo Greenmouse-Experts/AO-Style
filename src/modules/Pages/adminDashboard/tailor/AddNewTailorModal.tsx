@@ -110,7 +110,7 @@ export default function AddNewTailorModal({ isOpen, onClose }: any) {
                 */}
                 <option value="fashion-designer">Fashion Designer</option>
               </select>
-            </fdieldset>
+            </fieldset>
             {/* form ends here*/}
 
             <div className="space-y-3">

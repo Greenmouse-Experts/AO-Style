@@ -10,9 +10,12 @@ export default function AddTailorModal({ isOpen, onClose }: any) {
   const mutate = useMutation({
     mutationFn: async (data: any) => {
       let resp = await CaryBinApi.post("/contact/invite", { ...data });
+      return resp.data;
     },
     onSuccess: () => {
       toast.success("invite sent successfully");
+      setTimeout(() => toast.dismiss(), 600);
+      setTimeout(() => onClose(), 800);
     },
     onError: (error: any) => {
       toast.error(
@@ -94,6 +97,7 @@ export default function AddTailorModal({ isOpen, onClose }: any) {
               </label>
               <select
                 id="role"
+                disabled
                 name="role"
                 className="select select-bordered w-full"
               >

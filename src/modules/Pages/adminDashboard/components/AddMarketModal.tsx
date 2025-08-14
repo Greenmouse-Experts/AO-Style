@@ -13,6 +13,8 @@ export default function AddMarketModal({ isOpen, onClose }: any) {
     },
     onSuccess: () => {
       toast.success("invite sent successfully");
+      setTimeout(() => toast.dismiss(), 600);
+      setTimeout(() => onClose(), 800);
     },
     onError: (error: any) => {
       toast.error(
@@ -94,10 +96,13 @@ export default function AddMarketModal({ isOpen, onClose }: any) {
               <select
                 id="role"
                 name="role"
+                disabled
                 className="select select-bordered w-full"
               >
                 {/*<option value="USER">User</option>*/}
-                <option value="MARKET_REP">Market Representative</option>
+                <option value="market-representative">
+                  Market Representative
+                </option>
                 {/*<option value="LOGISTICS_AGENT" selected>
                   Logistics Agent
                 </option>
@@ -118,7 +123,7 @@ export default function AddMarketModal({ isOpen, onClose }: any) {
                 </button>
                 <button
                   disabled={mutate.isPending}
-                  className=" btn btn-accent  text-white"
+                  className=" btn btn-primary  text-white"
                 >
                   {mutate.isPending ? "Adding..." : "Add User"}
                 </button>

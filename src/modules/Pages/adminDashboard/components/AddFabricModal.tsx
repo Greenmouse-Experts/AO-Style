@@ -19,6 +19,9 @@ export default function AddFabricModal({ isOpen, onClose }: any) {
         error?.response?.data?.message ||
           "An error occurred while sending invite",
       );
+      toast.success("invite sent successfully");
+      setTimeout(() => toast.dismiss(), 600);
+      setTimeout(() => onClose(), 800);
     },
   });
   const onsubmit = (e) => {
@@ -96,7 +99,7 @@ export default function AddFabricModal({ isOpen, onClose }: any) {
                 name="role"
                 className="select select-bordered w-full"
               >
-                <option value="FABRIC_VENDOR">Fabric Vendor</option>
+                <option value="fabric-vendor">Fabric Vendor</option>
                 {/*<option value="USER">User</option>*/}
                 {/*<option value="MARKET_REP">Market Representative</option>
                 <option value="LOGISTICS_AGENT" selected>

@@ -13,6 +13,8 @@ const AddNewUser = ({ isOpen, onClose }: any) => {
     },
     onSuccess: () => {
       toast.success("invite sent successfully");
+      setTimeout(() => toast.dismiss(), 600);
+      setTimeout(() => onClose(), 800);
     },
     onError: (error: any) => {
       toast.error(

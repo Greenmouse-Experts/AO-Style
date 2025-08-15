@@ -9,12 +9,28 @@ export default function AddMarketModal({ isOpen, onClose }: any) {
   const [addAddress, setAddAddress] = useState(false);
   const mutate = useMutation({
     mutationFn: async (data: any) => {
-      let resp = await CaryBinApi.post("/contact/invite", { ...data });
+      // First request to get the businesses
+      const busiRes = await CaryBinApi.get(
+        "/onboard/fetch-businesses?q=market-representative",
+      );
+
+      const businessId = busiRes.data.data[0]?.id;
+      if (!businessId) {
+        throw new Error("No business found");
+      }
+
+      // Second request using the businessId
+      const resp = await CaryBinApi.post("/contact/invite", {
+        ...data,
+        business_id: businessId,
+      });
+
+      return resp.data;
     },
     onSuccess: () => {
       toast.success("invite sent successfully");
-      setTimeout(() => toast.dismiss(), 600);
-      setTimeout(() => onClose(), 800);
+      // setTimeout(() => toast.dismiss(), 600);
+      // setTimeout(() => onClose(), 800);
     },
     onError: (error: any) => {
       toast.error(
@@ -26,8 +42,9 @@ export default function AddMarketModal({ isOpen, onClose }: any) {
   const onsubmit = (e) => {
     e.preventDefault();
     let business_id = userData?.data?.id;
+
     const data = {
-      business_id: business_id,
+      // business_id: business_id,
       email: e.target.email.value,
       name: e.target.name.value,
       role: e.target.role.value,

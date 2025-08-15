@@ -9,7 +9,21 @@ const AddNewUser = ({ isOpen, onClose }: any) => {
   const [addAddress, setAddAddress] = useState(false);
   const mutate = useMutation({
     mutationFn: async (data: any) => {
-      let resp = await CaryBinApi.post("/contact/invite", { ...data });
+      // First request to get the businesses
+      const busiRes = await CaryBinApi.get("/onboard/fetch-businesses?q=user");
+
+      const businessId = busiRes.data.data[0]?.id;
+      if (!businessId) {
+        throw new Error("No business found");
+      }
+
+      // Second request using the businessId
+      const resp = await CaryBinApi.post("/contact/invite", {
+        ...data,
+        business_id: businessId,
+      });
+
+      return resp.data;
     },
     onSuccess: () => {
       toast.success("invite sent successfully");

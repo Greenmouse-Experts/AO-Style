@@ -39,6 +39,7 @@ const Settings = () => {
   const initialValues = {
     name: carybinUser?.name ?? "",
     email: carybinUser?.email ?? "",
+    alternative_phone: carybinUser?.alternative_phone ?? "",
     profile_picture: carybinUser?.profile?.profile_picture ?? null,
     address: carybinUser?.profile?.address ?? "",
     country: carybinUser?.profile?.country ?? "",
@@ -145,6 +146,8 @@ const Settings = () => {
       updatePersonalMutate(
         {
           ...val,
+          alternative_phone: val.alternative_phone,
+          phone: val.phone,
           measurement: {
             upper_body: {
               bust_circumference: val?.bust_circumference,

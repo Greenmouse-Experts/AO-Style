@@ -57,6 +57,7 @@ export default function TransactionPage() {
       <WithdrawalModal
         isOpen={isWithdrawModalOpen}
         onClose={handleCloseWithdrawModal}
+        WithdrawalModal
         businessWallet={businessWallet}
       />
 

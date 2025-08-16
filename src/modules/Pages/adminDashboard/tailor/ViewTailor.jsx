@@ -412,7 +412,7 @@ const ViewCustomer = () => {
         ),
       },
     ],
-    [openDropdown, businessData],
+    [openDropdown, businessData, userData], // Fixed dependency
   );
 
   const customerData = React.useMemo(
@@ -514,6 +514,7 @@ const ViewCustomer = () => {
         <div className="bg-white rounded-lg">
           <ReusableTable columns={customerColumns} data={customerData} />
         </div>
+
         {/* Tailor/Designer Catalog */}
         <div className="bg-white p-6 rounded-lg mb-6">
           <h2 className="font-medium text-gray-800 mb-4">
@@ -761,8 +762,8 @@ const ViewCustomer = () => {
                                 Delete
                               </button>
                               {/* <button className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
-                          View Details
-                        </button> */}
+                        View Details
+                      </button> */}
                             </div>
                           )}
                         </td>
@@ -874,11 +875,6 @@ const ViewCustomer = () => {
               )}
             </>
           )}
-
-          {!adminProductIsPending &&
-            getAllFabricFabricData?.data?.length === 0 && (
-              <p className="text-center my-8">No Style catalog found</p>
-            )}
         </div>
 
         {/* Orders Handled */}
@@ -936,11 +932,11 @@ const ViewCustomer = () => {
                 />
               </div>
               {/* <button className="w-full sm:w-auto px-4 py-2 bg-purple-600 text-white rounded-md text-sm">
-                Export As ▼
-              </button>
-              <button className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md text-sm">
-                Sort: Newest First ▼
-              </button> */}
+              Export As ▼
+            </button>
+            <button className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md text-sm">
+              Sort: Newest First ▼
+            </button> */}
             </div>
           </div>
           <ReusableTable
@@ -963,7 +959,7 @@ const ViewCustomer = () => {
                 <div className="flex space-x-2">
                   <button
                     onClick={() =>
-                      setCurrentPage((prev) => Math.max(1, prev - 1))
+                      setOrderCurrentPage((prev) => Math.max(1, prev - 1))
                     }
                     disabled={orderCurrentPage === 1 || fetchIsPending}
                     className={`px-3 py-1 rounded text-sm transition-all duration-200 ${
@@ -1001,10 +997,10 @@ const ViewCustomer = () => {
                     return pages.map((page) => (
                       <button
                         key={page}
-                        onClick={() => setCurrentPage(page)}
+                        onClick={() => setOrderCurrentPage(page)}
                         disabled={fetchIsPending}
                         className={`px-3 py-1 rounded text-sm transition-all duration-200 ${
-                          page === currentPage
+                          page === orderCurrentPage
                             ? "bg-[#9847FE] text-white border border-[#9847FE]"
                             : "bg-white border border-gray-300 text-gray-700 hover:bg-[#9847FE] hover:text-white hover:border-[#9847FE]"
                         }`}
@@ -1016,7 +1012,7 @@ const ViewCustomer = () => {
 
                   <button
                     onClick={() =>
-                      setCurrentPage((prev) =>
+                      setOrderCurrentPage((prev) =>
                         Math.min(
                           Math.ceil(
                             (fetchVendorOrders?.count || 0) / orderPageSize,
@@ -1048,6 +1044,7 @@ const ViewCustomer = () => {
           )}
         </div>
       </div>
+
       {isAddModalOpen && (
         <div
           className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
@@ -1100,8 +1097,8 @@ const ViewCustomer = () => {
               </label>
               <div className="flex w-full justify-end gap-4 mt-6">
                 <button
+                  type="button"
                   className="mt-6 cursor-pointer w-full bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-3 text-sm rounded-md"
-                  //   className="bg-gray-300 hover:bg-gray-400 text-gray-800 w-full rounded-md"
                   onClick={() => {
                     setIsAddModalOpen(false);
                   }}

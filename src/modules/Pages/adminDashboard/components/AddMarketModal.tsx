@@ -9,10 +9,28 @@ export default function AddMarketModal({ isOpen, onClose }: any) {
   const [addAddress, setAddAddress] = useState(false);
   const mutate = useMutation({
     mutationFn: async (data: any) => {
-      let resp = await CaryBinApi.post("/contact/invite", { ...data });
+      // First request to get the businesses
+      const busiRes = await CaryBinApi.get(
+        "/onboard/fetch-businesses?q=market-representative",
+      );
+
+      const businessId = busiRes.data.data[0]?.id;
+      if (!businessId) {
+        throw new Error("No business found");
+      }
+
+      // Second request using the businessId
+      const resp = await CaryBinApi.post("/contact/invite", {
+        ...data,
+        business_id: businessId,
+      });
+
+      return resp.data;
     },
     onSuccess: () => {
       toast.success("invite sent successfully");
+      // setTimeout(() => toast.dismiss(), 600);
+      // setTimeout(() => onClose(), 800);
     },
     onError: (error: any) => {
       toast.error(
@@ -24,8 +42,9 @@ export default function AddMarketModal({ isOpen, onClose }: any) {
   const onsubmit = (e) => {
     e.preventDefault();
     let business_id = userData?.data?.id;
+
     const data = {
-      business_id: business_id,
+      // business_id: business_id,
       email: e.target.email.value,
       name: e.target.name.value,
       role: e.target.role.value,
@@ -94,10 +113,13 @@ export default function AddMarketModal({ isOpen, onClose }: any) {
               <select
                 id="role"
                 name="role"
+                disabled
                 className="select select-bordered w-full"
               >
                 {/*<option value="USER">User</option>*/}
-                <option value="MARKET_REP">Market Representative</option>
+                <option value="market-representative">
+                  Market Representative
+                </option>
                 {/*<option value="LOGISTICS_AGENT" selected>
                   Logistics Agent
                 </option>
@@ -118,7 +140,7 @@ export default function AddMarketModal({ isOpen, onClose }: any) {
                 </button>
                 <button
                   disabled={mutate.isPending}
-                  className=" btn btn-accent  text-white"
+                  className=" btn btn-primary  text-white"
                 >
                   {mutate.isPending ? "Adding..." : "Add User"}
                 </button>

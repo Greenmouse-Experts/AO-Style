@@ -222,7 +222,7 @@ const Settings = () => {
                         required
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-gray-700 mb-4">
                           Phone Number
@@ -262,7 +262,7 @@ const Settings = () => {
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-gray-700 mb-4">
                           Alternate Phone Number

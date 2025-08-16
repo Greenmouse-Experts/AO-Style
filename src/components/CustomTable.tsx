@@ -63,7 +63,7 @@ export default function CustomTable(props: CustomTableProps) {
                       <>
                         <td>
                           <button
-                            className="btn btn-square"
+                            className="btn btn-square label btn-ghost"
                             popoverTarget={popoverId}
                             style={
                               {

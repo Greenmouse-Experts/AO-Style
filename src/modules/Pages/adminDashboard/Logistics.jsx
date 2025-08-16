@@ -20,6 +20,7 @@ import ConfirmationModal from "../../../components/ui/ConfirmationModal";
 import useDeleteUser from "../../../hooks/user/useDeleteUser";
 import useToast from "../../../hooks/useToast";
 import AddNewUser from "./components/AddNewUserModal";
+import CustomTabs from "../../../components/CustomTabs";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -41,6 +42,7 @@ const CustomersTable = () => {
     useApproveMarketRep();
 
   const { isPending: deleteIsPending, deleteUserMutate } = useDeleteUser();
+  const [currTab, setCurrTab] = useState("All");
 
   const { queryParams, updateQueryParams } = useQueryParams({
     status: "",
@@ -51,6 +53,18 @@ const CustomersTable = () => {
   const { data: getAllLogisticsRepData, isPending } = useGetAllUsersByRole({
     ...queryParams,
     role: "logistics-agent",
+    approved: (() => {
+      switch (currTab) {
+        case "All":
+          return undefined;
+        case "Pending":
+          return false;
+        case "Approved":
+          return true;
+        default:
+          return undefined;
+      }
+    })(),
   });
 
   const [queryString, setQueryString] = useState(queryParams.q);
@@ -281,6 +295,7 @@ const CustomersTable = () => {
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <h2 className="text-lg font-semibold">Logistics</h2>
         </div>
+        <CustomTabs defaultValue={currTab} onChange={setCurrTab} />
         <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
           <div className="flex items-center space-x-2 border border-gray-200 rounded-md p-1">
             <button

@@ -10,6 +10,7 @@ export default function AddNewTailorModal({ isOpen, onClose }: any) {
   const mutate = useMutation({
     mutationFn: async (data: any) => {
       let resp = await CaryBinApi.post("/contact/invite", { ...data });
+      return resp.data;
     },
     onSuccess: () => {
       toast.success("invite sent successfully");
@@ -95,6 +96,7 @@ export default function AddNewTailorModal({ isOpen, onClose }: any) {
                 <span className="label-text">Role</span>
               </label>
               <select
+                disabled
                 id="role"
                 name="role"
                 className="select select-bordered w-full"

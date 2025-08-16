@@ -52,6 +52,12 @@ export default function Navbar({ toggleSidebar }) {
         {/* Right: Notification & Profile */}
         <div className="flex items-center space-x-6">
           <Link
+            to="/view-cart"
+            className="relative bg-purple-100 p-2 rounded-full"
+          >
+            cart
+          </Link>
+          <Link
             to="/customer/notifications"
             className="relative bg-purple-100 p-2 rounded-full"
           >

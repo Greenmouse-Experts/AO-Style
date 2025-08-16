@@ -1592,14 +1592,14 @@ export default function AnkaraGownPage() {
                     {addCartPending ? "Adding to Cart..." : "Add to Cart"}
                   </span>
                 </button>
-
+                {/*
                 <button
                   onClick={() => setShowCartModal(false)}
                   disabled={addCartPending}
                   className="w-full px-6 py-4 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Review Details
-                </button>
+                </button>*/}
               </div>
 
               {/* Info Text */}

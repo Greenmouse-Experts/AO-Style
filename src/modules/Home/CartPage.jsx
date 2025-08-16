@@ -53,6 +53,9 @@ const CartPage = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
 
+  // Add duplicate detection state
+  const [duplicateError, setDuplicateError] = useState(null);
+
   // API hooks
   const {
     data: cartResponse,
@@ -97,27 +100,138 @@ const CartPage = () => {
   // console.log("🚚 Delivery Fee Value:", deliveryData?.data?.data?.delivery_fee);
 
   // Immediate logging when delivery data changes
-  // useEffect(() => {
-  //   if (deliveryData) {
-  //     console.log("🚚 CartPage: Delivery data received!");
-  //     console.log("🚚 CartPage: Full deliveryData object:", deliveryData);
-  //     console.log("🚚 CartPage: deliveryData.data:", deliveryData.data);
-  //     console.log(
-  //       "🚚 CartPage: deliveryData.data.data:",
-  //       deliveryData.data?.data,
-  //     );
-  //     console.log(
-  //       "🚚 CartPage: Final delivery_fee extracted:",
-  //       deliveryData?.data?.data?.delivery_fee,
-  //     );
-  //   } else {
-  //     console.log("🚚 CartPage: No delivery data available");
-  //   }
-  // }, [deliveryData]);
+  useEffect(() => {
+    if (deliveryData) {
+      console.log("🚚 CartPage: Delivery data received!");
+      console.log("🚚 CartPage: Full deliveryData object:", deliveryData);
+      console.log("🚚 CartPage: deliveryData.data:", deliveryData.data);
+      console.log(
+        "🚚 CartPage: deliveryData.data.data:",
+        deliveryData.data?.data,
+      );
+      console.log(
+        "🚚 CartPage: Final delivery_fee extracted:",
+        deliveryData?.data?.data?.delivery_fee,
+      );
+    } else {
+      console.log("🚚 CartPage: No delivery data available");
+    }
+  }, [deliveryData]);
+  
   const { carybinUser, setCaryBinUser } = useCarybinUserStore();
   const { toastSuccess, toastError } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+
+  console.log(carybinUser);
+  // Duplicate Detection Function
+  const checkForDuplicateItems = (items) => {
+    console.log("🔍 Checking for duplicate items...", items);
+
+    // Create a map to track fabric+style combinations
+    const itemCombinations = new Map();
+    const duplicates = [];
+
+    items.forEach((item, index) => {
+      const fabricId = item.product_id || item.product?.id;
+      const styleId = item.style_product?.id || null;
+
+      // Create a unique key for fabric+style combination
+      // If item has style, key includes both fabric and style
+      // If item has no style, key is just fabric
+      const combinationKey = styleId
+        ? `fabric_${fabricId}_style_${styleId}`
+        : `fabric_${fabricId}_no_style`;
+
+      console.log(`🔍 Item ${index + 1}:`, {
+        fabricId,
+        styleId,
+        combinationKey,
+        hasStyle: !!styleId,
+        itemName: item.product?.name,
+        styleName: item.style_product?.name,
+      });
+
+      // Check if this combination already exists
+      if (itemCombinations.has(combinationKey)) {
+        const existingItem = itemCombinations.get(combinationKey);
+        duplicates.push({
+          current: {
+            index,
+            id: item.id,
+            fabricId,
+            styleId,
+            fabricName: item.product?.name,
+            styleName: item.style_product?.name,
+            combinationKey,
+          },
+          existing: existingItem,
+        });
+
+        console.log("❌ Duplicate found!", {
+          currentItem: item.product?.name,
+          currentStyle: item.style_product?.name,
+          existingItem: existingItem.fabricName,
+          existingStyle: existingItem.styleName,
+          combinationKey,
+        });
+      } else {
+        // Store this combination
+        itemCombinations.set(combinationKey, {
+          index,
+          id: item.id,
+          fabricId,
+          styleId,
+          fabricName: item.product?.name,
+          styleName: item.style_product?.name,
+          combinationKey,
+        });
+      }
+    });
+
+    console.log("🔍 Duplicate check results:", {
+      totalItems: items.length,
+      uniqueCombinations: itemCombinations.size,
+      duplicatesFound: duplicates.length,
+      duplicateDetails: duplicates,
+    });
+
+    return {
+      hasDuplicates: duplicates.length > 0,
+      duplicates,
+      uniqueCombinations: Array.from(itemCombinations.values()),
+    };
+  };
+
+  // Check for duplicates when items change
+  useEffect(() => {
+    if (items && items.length > 0) {
+      const duplicateCheck = checkForDuplicateItems(items);
+
+      if (duplicateCheck.hasDuplicates) {
+        const duplicateMessages = duplicateCheck.duplicates.map((dup) => {
+          const fabricName = dup.current.fabricName || "Unknown Fabric";
+          const styleName = dup.current.styleName;
+
+          if (styleName) {
+            return `"${fabricName}" with style "${styleName}"`;
+          } else {
+            return `"${fabricName}" (no style)`;
+          }
+        });
+
+        const errorMessage = `Duplicate items found in cart: ${duplicateMessages.join(", ")}. Please remove duplicates before proceeding.`;
+        setDuplicateError(errorMessage);
+
+        console.log("❌ Duplicate error set:", errorMessage);
+      } else {
+        setDuplicateError(null);
+        console.log("✅ No duplicates found, clearing error");
+      }
+    } else {
+      setDuplicateError(null);
+    }
+  }, [items]);
 
   // Fetch user profile if not already in store (important for Google login)
   const {
@@ -455,8 +569,25 @@ const CartPage = () => {
     return baseAddress;
   };
 
-  // Handle proceeding to payment
+  // Handle proceeding to payment - Updated with duplicate detection
   const handleProceedToPayment = async () => {
+    // Add duplicate check at the beginning
+    if (duplicateError) {
+      toastError(duplicateError);
+      console.log("❌ Blocking payment due to duplicates:", duplicateError);
+      return;
+    }
+
+    // Double-check for duplicates before payment
+    const duplicateCheck = checkForDuplicateItems(items);
+    if (duplicateCheck.hasDuplicates) {
+      const errorMsg =
+        "Duplicate items detected in cart. Please remove duplicates before proceeding.";
+      toastError(errorMsg);
+      setDuplicateError(errorMsg);
+      return;
+    }
+
     if (!navigator.onLine) {
       toastError("No internet connection. Please check your network.");
       return;
@@ -1159,7 +1290,7 @@ const CartPage = () => {
                         carybinUser?.alternative_phone ||
                         "Not provided"}
                     </p>
-                    <p>
+                    {/* <p>
                       <span className="font-medium">Email Verified:</span>{" "}
                       <span
                         className={
@@ -1170,7 +1301,7 @@ const CartPage = () => {
                       >
                         {carybinUser?.is_email_verified ? "✅ Yes" : "❌ No"}
                       </span>
-                    </p>
+                    </p>*/}
                   </div>
                 </div>
 
@@ -1183,12 +1314,8 @@ const CartPage = () => {
                   <div className="space-y-2 text-sm">
                     <p>
                       <span className="font-medium">Full Address:</span>{" "}
-                      {carybinUser?.address ||
+                      {carybinUser?.profile?.address ||
                         "2 Metalbox Rd, Ogba, Lagos 101233, Lagos, Nigeria"}
-                    </p>
-                    <p>
-                      <span className="font-medium">State:</span>{" "}
-                      {carybinUser?.state || "Lagos State"}
                     </p>
                     <p>
                       <span className="font-medium">Country:</span>{" "}

@@ -49,6 +49,7 @@ export default function Navbar() {
   const handleSignOut = () => {
     toastSuccess("Logout Successfully");
     logOut();
+    window.location.href = "/login";
     Cookies.remove("token");
     setIsAddModalOpen(false);
     localStorage.setItem("logout", Date.now().toString());

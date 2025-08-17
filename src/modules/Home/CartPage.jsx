@@ -82,9 +82,9 @@ const CartPage = () => {
     count: cartData?.count,
   };
 
-  console.log("🛒 Cart API Data:", cartData);
-  console.log("🛒 Cart Items:", items);
-  console.log("🛒 Cart User:", cartUser);
+  // console.log("🛒 Cart API Data:", cartData);
+  // console.log("🛒 Cart Items:", items);
+  // console.log("🛒 Cart User:", cartUser);
 
   const {
     data: deliveryData,
@@ -93,11 +93,11 @@ const CartPage = () => {
   } = useGetDeliveryFee();
 
   // Console log delivery data
-  console.log("🚚 Delivery API Response:", deliveryData);
-  console.log("🚚 Delivery Loading State:", deliveryLoading);
-  console.log("🚚 Delivery Error State:", deliveryError);
-  console.log("🚚 Raw Delivery Data:", deliveryData?.data);
-  console.log("🚚 Delivery Fee Value:", deliveryData?.data?.data?.delivery_fee);
+  // console.log("🚚 Delivery API Response:", deliveryData);
+  // console.log("🚚 Delivery Loading State:", deliveryLoading);
+  // console.log("🚚 Delivery Error State:", deliveryError);
+  // console.log("🚚 Raw Delivery Data:", deliveryData?.data);
+  // console.log("🚚 Delivery Fee Value:", deliveryData?.data?.data?.delivery_fee);
 
   // Immediate logging when delivery data changes
   useEffect(() => {
@@ -117,7 +117,7 @@ const CartPage = () => {
       console.log("🚚 CartPage: No delivery data available");
     }
   }, [deliveryData]);
-
+  
   const { carybinUser, setCaryBinUser } = useCarybinUserStore();
   const { toastSuccess, toastError } = useToast();
   const navigate = useNavigate();
@@ -243,10 +243,10 @@ const CartPage = () => {
   // Populate user store when profile data is fetched
   useEffect(() => {
     if (userProfile && userProfileSuccess && !carybinUser) {
-      console.log(
-        "🔄 CartPage: Populating user store with profile data",
-        userProfile,
-      );
+      // console.log(
+      //   "🔄 CartPage: Populating user store with profile data",
+      //   userProfile,
+      // );
       setCaryBinUser(userProfile);
     }
   }, [userProfile, userProfileSuccess, carybinUser, setCaryBinUser]);
@@ -257,15 +257,15 @@ const CartPage = () => {
     const adminToken = Cookies.get("adminToken");
     const currUserUrl = Cookies.get("currUserUrl");
 
-    console.log("🔍 CartPage: Authentication Debug", {
-      hasToken: !!token,
-      hasAdminToken: !!adminToken,
-      currUserUrl: currUserUrl,
-      hasCarybinUser: !!carybinUser,
-      carybinUserEmail: carybinUser?.email,
-      userProfileLoading: userProfileLoading,
-      userProfileData: !!userProfile,
-    });
+    // console.log("🔍 CartPage: Authentication Debug", {
+    //   hasToken: !!token,
+    //   hasAdminToken: !!adminToken,
+    //   currUserUrl: currUserUrl,
+    //   hasCarybinUser: !!carybinUser,
+    //   carybinUserEmail: carybinUser?.email,
+    //   userProfileLoading: userProfileLoading,
+    //   userProfileData: !!userProfile,
+    // });
   }, [carybinUser, userProfileLoading, userProfile]);
 
   // Authentication check and redirect
@@ -305,7 +305,7 @@ const CartPage = () => {
 
   const currentUrl = Cookies.get("currUserUrl");
   const token = Cookies.get("token");
-
+  // console.log("user", userProfile);
   // Calculate totals from API cart items
   const calculateTotals = () => {
     if (!items || items.length === 0) {

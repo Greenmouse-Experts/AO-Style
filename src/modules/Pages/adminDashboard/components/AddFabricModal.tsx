@@ -9,7 +9,23 @@ export default function AddFabricModal({ isOpen, onClose }: any) {
   const [addAddress, setAddAddress] = useState(false);
   const mutate = useMutation({
     mutationFn: async (data: any) => {
-      let resp = await CaryBinApi.post("/contact/invite", { ...data });
+      // First request to get the businesses
+      const busiRes = await CaryBinApi.get(
+        "/onboard/fetch-businesses?q=fabric-vendor",
+      );
+
+      const businessId = busiRes.data.data[0]?.id;
+      if (!businessId) {
+        throw new Error("No business found");
+      }
+
+      // Second request using the businessId
+      const resp = await CaryBinApi.post("/contact/invite", {
+        ...data,
+        business_id: businessId,
+      });
+
+      return resp.data;
     },
     onSuccess: () => {
       toast.success("invite sent successfully");
@@ -19,6 +35,9 @@ export default function AddFabricModal({ isOpen, onClose }: any) {
         error?.response?.data?.message ||
           "An error occurred while sending invite",
       );
+      toast.success("invite sent successfully");
+      setTimeout(() => toast.dismiss(), 600);
+      setTimeout(() => onClose(), 800);
     },
   });
   const onsubmit = (e) => {
@@ -96,7 +115,7 @@ export default function AddFabricModal({ isOpen, onClose }: any) {
                 name="role"
                 className="select select-bordered w-full"
               >
-                <option value="FABRIC_VENDOR">Fabric Vendor</option>
+                <option value="fabric-vendor">Fabric Vendor</option>
                 {/*<option value="USER">User</option>*/}
                 {/*<option value="MARKET_REP">Market Representative</option>
                 <option value="LOGISTICS_AGENT" selected>

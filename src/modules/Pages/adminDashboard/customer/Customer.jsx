@@ -21,6 +21,7 @@ import useToast from "../../../../hooks/useToast";
 import CustomTable from "../../../../components/CustomTable";
 import AddNewCustomer from "../components/AddCustomerModal";
 import AddNewCustomerModal from "../components/AddCustomerModal";
+import CustomTabs from "../../../../components/CustomTabs";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -42,6 +43,7 @@ const CustomersTable = () => {
   const handleDropdownToggle = (id) => {
     setOpenDropdown(openDropdown === id ? null : id);
   };
+  const [currTab, setCurrTab] = useState("All");
 
   const { queryParams, updateQueryParams } = useQueryParams({
     status: "",
@@ -56,6 +58,18 @@ const CustomersTable = () => {
   } = useGetAllUsersByRole({
     ...queryParams,
     role: "user",
+    approved: (() => {
+      switch (currTab) {
+        case "All":
+          return undefined;
+        case "Pending":
+          return false;
+        case "Approved":
+          return true;
+        default:
+          return undefined;
+      }
+    })(),
   });
 
   const [queryString, setQueryString] = useState(queryParams.q);
@@ -219,6 +233,7 @@ const CustomersTable = () => {
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <h2 className="text-lg font-semibold">Customers</h2>
         </div>
+        <CustomTabs defaultValue={currTab} onChange={setCurrTab} />
         <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end items-center">
           <div className="flex items-center space-x-2 border border-gray-200 rounded-md p-1">
             <button

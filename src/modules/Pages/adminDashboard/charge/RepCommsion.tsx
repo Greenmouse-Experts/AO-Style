@@ -103,7 +103,7 @@ export default function RepCommission() {
           >
             <div className="mb-4">
               <label className="label block mb-1">
-                <span className="label-text">Fabric Vendor Commission (%)</span>
+                <span className="label-text">Fabric Vendor Commission</span>
               </label>
               <input
                 type="number"
@@ -117,9 +117,7 @@ export default function RepCommission() {
             </div>
             <div className="mb-6">
               <label className="label block mb-1">
-                <span className="label-text">
-                  Fashion Designer Commission (%)
-                </span>
+                <span className="label-text">Fashion Designer Commission</span>
               </label>
               <input
                 type="number"

@@ -19,6 +19,7 @@ import useDeleteUser from "../../../../hooks/user/useDeleteUser";
 import useToast from "../../../../hooks/useToast";
 import { useTempStore } from "../../../../store/useTempStore";
 import AddFabricModal from "../components/AddFabricModal";
+import CustomTabs from "../../../../components/CustomTabs";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -50,11 +51,24 @@ const CustomersTable = () => {
     "pagination[page]": 1,
   });
 
+  const [currTab, setCurrTab] = useState("All");
+
   const { data: getAllFabricRepData, isPending } = useGetAllUsersByRole({
     ...queryParams,
+    approved: (() => {
+      switch (currTab) {
+        case "All":
+          return undefined;
+        case "Pending":
+          return false;
+        case "Approved":
+          return true;
+        default:
+          return undefined;
+      }
+    })(),
     role: "fabric-vendor",
   });
-
   const [queryString, setQueryString] = useState(queryParams.q);
 
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
@@ -294,6 +308,7 @@ const CustomersTable = () => {
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <h2 className="text-lg font-semibold">Vendors (Fabric Sellers)</h2>
         </div>
+        <CustomTabs defaultValue={currTab} onChange={setCurrTab} />
         <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
           <div className="flex items-center space-x-2 border border-gray-200 rounded-md p-1">
             <button

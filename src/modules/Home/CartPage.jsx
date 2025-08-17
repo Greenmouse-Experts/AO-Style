@@ -1312,11 +1312,29 @@ const CartPage = () => {
                     Delivery Address
                   </h3>
                   <div className="space-y-2 text-sm">
-                    <p>
-                      <span className="font-medium">Full Address:</span>{" "}
-                      {carybinUser?.profile?.address ||
-                        "2 Metalbox Rd, Ogba, Lagos 101233, Lagos, Nigeria"}
-                    </p>
+                    {carybinUser?.profile?.address ? (
+                      <p>
+                        <span className="font-medium">Full Address:</span>{" "}
+                        {carybinUser.profile.address}
+                      </p>
+                    ) : (
+                      <div className="p-3 bg-yellow-100 border border-yellow-300 rounded text-yellow-800 flex flex-col gap-2">
+                        <span className="font-medium">Full Address:</span>{" "}
+                        <span>
+                          <strong>
+                            Address required to complete checkout.
+                          </strong>
+                        </span>
+                        <a
+                          href={`/${currentUrl}/settings`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-700 underline font-medium hover:text-blue-900"
+                        >
+                          Update your address
+                        </a>
+                      </div>
+                    )}
                     <p>
                       <span className="font-medium">Country:</span>{" "}
                       {carybinUser?.country || "NG"}
@@ -1331,22 +1349,24 @@ const CartPage = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="mt-3 text-xs text-blue-600 bg-blue-100 p-2 rounded">
-                    <p>
-                      💡 Address from your profile -{" "}
-                      <button
-                        onClick={() => {
-                          console.log(
-                            "📝 User wants to update profile address",
-                          );
-                          window.open(`${currentUrl}/settings`);
-                        }}
-                        className="underline hover:text-blue-800"
-                      >
-                        Update if needed
-                      </button>
-                    </p>
-                  </div>
+                  {carybinUser?.profile?.address && (
+                    <div className="mt-3 text-xs text-blue-600 bg-blue-100 p-2 rounded">
+                      <p>
+                        💡 Address from your profile -{" "}
+                        <button
+                          onClick={() => {
+                            console.log(
+                              "📝 User wants to update profile address",
+                            );
+                            window.open(`${currentUrl}/settings`);
+                          }}
+                          className="underline hover:text-blue-800"
+                        >
+                          Update if needed
+                        </button>
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Order Items */}
@@ -1458,15 +1478,27 @@ const CartPage = () => {
                 </div>
 
                 {/* Payment Button */}
-                <button
-                  disabled={billingPending || createPaymentPending}
-                  onClick={handleProceedToPayment}
-                  className="w-full cursor-pointer py-4 bg-gradient text-white hover:from-purple-600 hover:to-pink-600 transition rounded-lg font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                >
-                  {billingPending || createPaymentPending
-                    ? "Processing..."
-                    : `Proceed to Payment - ${formatPrice(finalTotal)}`}
-                </button>
+                {!carybinUser?.profile?.address ? (
+                  <button
+                    onClick={() => {
+                      // Redirect to address update page
+                      window.open(`/${currentUrl}/settings`, "_blank");
+                    }}
+                    className="w-full cursor-pointer py-4 bg-yellow-500 text-white hover:bg-yellow-600 transition rounded-lg font-bold text-lg shadow-lg"
+                  >
+                    Update Address to Complete Checkout
+                  </button>
+                ) : (
+                  <button
+                    disabled={billingPending || createPaymentPending}
+                    onClick={handleProceedToPayment}
+                    className="w-full cursor-pointer py-4 bg-gradient text-white hover:from-purple-600 hover:to-pink-600 transition rounded-lg font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                  >
+                    {billingPending || createPaymentPending
+                      ? "Processing..."
+                      : `Proceed to Payment - ${formatPrice(finalTotal)}`}
+                  </button>
+                )}
 
                 <div className="text-xs text-gray-500 text-center space-y-1">
                   <p>By proceeding, you agree to our terms and conditions</p>

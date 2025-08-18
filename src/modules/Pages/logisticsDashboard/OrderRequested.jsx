@@ -126,8 +126,8 @@ const OrderRequests = () => {
     Object.values(order).some(
       (value) =>
         typeof value === "string" &&
-        value.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+        value.toLowerCase().includes(searchTerm.toLowerCase()),
+    ),
   );
 
   // Close dropdown on outside click
@@ -147,15 +147,17 @@ const OrderRequests = () => {
   };
 
   return (
-    <>
-      <div className="bg-white px-6 py-4 mb-6">
-        <h1 className="text-2xl font-medium mb-3">Orders Requests</h1>
-        <p className="text-gray-500">
-          <Link to="/logistics" className="text-blue-500 hover:underline">
-            Dashboard
-          </Link>{" "}
-          &gt; Orders Requests
-        </p>
+    <div data-theme="nord" className="min-h-screen flex flex-col  bg-base-100">
+      <div className="p-4 rounded-box outline outline-current/20 m-4">
+        <h2 className="font-bold text-2xl text-base-content mb-2">
+          Orders Requested
+        </h2>
+        <div className="breadcrumbs text-base-content">
+          <ul>
+            <li>Dashboard</li>
+            <li>Orders</li>
+          </ul>
+        </div>
       </div>
       <div className="bg-white p-6 rounded-xl">
         {/* Header & Search */}
@@ -170,19 +172,38 @@ const OrderRequests = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full sm:w-64 py-2 px-3 border border-gray-200 rounded-md outline-none text-sm"
             />
-            <button className="w-full sm:w-auto bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md">
-              Export As ▾
-            </button>
-            <button className="w-full sm:w-auto bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md">
+            <div className="dropdown dropdown-end w-full sm:w-auto">
+              <label
+                tabIndex={0}
+                className="btn m-1 bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md border-none hover:bg-gray-200"
+              >
+                Export As ▾
+              </label>
+              <ul
+                tabIndex={0}
+                className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52"
+              >
+                <li>
+                  <a>CSV</a>
+                </li>
+                <li>
+                  <a>Excel</a>
+                </li>
+                <li>
+                  <a>PDF</a>
+                </li>
+              </ul>
+            </div>
+            {/* <button className="w-full sm:w-auto bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md">
               Sort: Newest First ▾
-            </button>
+            </button>*/}
           </div>
         </div>
 
         {/* Table */}
         <ReusableTable columns={columns} data={filteredData} />
       </div>
-    </>
+    </div>
   );
 };
 

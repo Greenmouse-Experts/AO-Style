@@ -1,6 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
+import { AlertCircle, CheckCircle, Eye, Loader2 } from "lucide-react"; // Import Lucide Icons
 import CaryBinApi from "../../../services/CarybinBaseUrl";
 import CustomTable from "../../../components/CustomTable";
+import { useNavigate } from "react-router-dom";
+
+// Interfaces (unchanged from original)
 interface VendorCharge {
   fabric_vendor_fee: number;
   fashion_designer_fee: number;
@@ -200,87 +204,159 @@ interface OrderRequestsResponse {
   data: Order[];
   count: number;
 }
+
 export default function OrderRequests() {
-  const query = useQuery<OrderRequestsResponse>({
-    queryKey: ["logistics", "orders"],
-    queryFn: async () => {
-      let resp = await CaryBinApi.get("/orders/available-orders");
-      return resp.data;
-    },
-  });
+  const navigate = useNavigate();
+  const { data, isFetching, isError, error, refetch } =
+    useQuery<OrderRequestsResponse>({
+      queryKey: ["logistics", "orders"],
+      queryFn: async () => {
+        const resp = await CaryBinApi.get("/orders/available-orders");
+        return resp.data;
+      },
+    });
 
-  if (query.isFetching)
-    <>
-      <div data-theme="nord">
-        <div className="animate-spin loading-bars"></div>
-        <span>Loading Orders</span>
-      </div>
-    </>;
-
-  if (query.isError)
+  // Loading State
+  if (isFetching) {
     return (
-      <div data-theme="nord">
-        <div>Error Occured loading Orders</div>
-        <button className="btn btn-primary" onClick={query.refetch}>
-          Reload
+      <div
+        data-theme="nord"
+        className="flex flex-col items-center justify-center min-h-[50vh] gap-4"
+        aria-live="polite"
+      >
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <span className="text-base-content text-lg">Loading Orders...</span>
+      </div>
+    );
+  }
+
+  // Error State
+  if (isError) {
+    return (
+      <div
+        data-theme="nord"
+        className="flex flex-col items-center justify-center min-h-[50vh] gap-4"
+        aria-live="assertive"
+      >
+        <div className="alert alert-error max-w-md">
+          <AlertCircle className="w-6 h-6 text-error-content" />
+          <span className="text-error-content">
+            {error?.message || "An error occurred while loading orders"}
+          </span>
+        </div>
+        <button
+          className="btn btn-primary btn-md"
+          onClick={() => refetch()}
+          aria-label="Retry loading orders"
+        >
+          Try Again
         </button>
       </div>
     );
-  interface ColumnDef<T> {
-    key: string;
-    label: string;
-    render?: (item: T) => React.ReactNode;
   }
 
-  const columns: ColumnDef<Order>[] = [
+  // Columns
+  const columns: {
+    key: string;
+    label: string;
+    render?: (item: Order) => JSX.Element;
+  }[] = [
     {
       key: "order_id",
       label: "Order ID",
-      render: (item: Order) => {
-        return <span>{item.id}</span>;
-      },
+      render: (item: Order) => (
+        <div className="text-base-content">{item.id}</div>
+      ),
     },
     {
       key: "customer_name",
       label: "Customer Name",
-      render: (item: Order) => {
-        return <span>{item.user.profile.address}</span>;
-      },
+      render: (item: Order) => (
+        <span className="text-base-content">{item.user.profile.address}</span>
+      ),
     },
     {
       key: "order_date",
       label: "Order Date",
-      render: (item: Order) => {
-        return <span>{new Date(item.created_at).toLocaleString()}</span>;
-      },
+      render: (item: Order) => (
+        <span className="text-base-content">
+          {new Date(item.created_at).toLocaleString()}
+        </span>
+      ),
     },
     {
       key: "order_status",
       label: "Order Status",
-      render: (item: Order) => {
-        return <span>{item.status}</span>;
-      },
+      render: (item: Order) => (
+        <span className={`badge ${getStatusBadgeClass(item.status)}`}>
+          {item.status}
+        </span>
+      ),
+    },
+    {
+      key: "location",
+      label: "Location",
+      render: (item: Order) => (
+        <span className="text-base-content">{item.user.profile.address}</span>
+      ),
     },
     {
       key: "total_amount",
       label: "Total Amount",
-      render: (item: Order) => {
-        return (
-          <span>
-            {item.payment.currency} {item.total_amount}
-          </span>
-        );
+      render: (item: Order) => (
+        <span className="text-base-content">
+          {item.payment.currency} {item.total_amount}
+        </span>
+      ),
+    },
+  ];
+
+  // Helper function to map order status to badge classes
+  const getStatusBadgeClass = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "pending":
+        return "badge-warning";
+      case "completed":
+        return "badge-success";
+      case "cancelled":
+        return "badge-error";
+      default:
+        return "badge-neutral";
+    }
+  };
+
+  // Actions
+  const actions = [
+    {
+      key: "view",
+      label: "View",
+      icon: <Eye className="w-4 h-4 text-primary" />,
+      action: (item: Order) => navigate(`/logistics/orders/${item.id}`),
+    },
+    {
+      key: "accept",
+      label: "Accept Order",
+      icon: <CheckCircle className="w-4 h-4 text-success" />,
+      action: (item: Order) => {
+        // Placeholder for accept order logic
+        console.log(`Accepting order ${item.id}`);
+        navigate(`/logistics/orders/${item.id}`);
       },
     },
   ];
 
   return (
-    <div data-theme="nord" className="bg-transparent">
-      <div className="p-3 round-md my-4  bg-white mb-4">
-        <h2 className="font-bold text-xl my-2">Orders</h2>
-        <div className="font-semibold opacity-80">Dashboard {">"} Orders</div>
+    <div data-theme="nord" className="min-h-screen flex flex-col  bg-base-100">
+      <div className="p-4 rounded-box outline outline-current/20 m-4">
+        <h2 className="font-bold text-2xl text-base-content mb-2">Orders</h2>
+        <div className="breadcrumbs text-base-content">
+          <ul>
+            <li>Dashboard</li>
+            <li>Orders</li>
+          </ul>
+        </div>
       </div>
-      <CustomTable data={query.data?.data || []} columns={columns} />
+      <CustomTable data={data?.data} actions={actions} columns={columns} />
     </div>
   );
 }

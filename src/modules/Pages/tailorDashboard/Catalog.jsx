@@ -482,7 +482,7 @@ export default function StylesTable() {
                                 {style.status != "ARCHIVED" && (
                                   <>
                                     {" "}
-                                    <button
+                                    {/* <button
                                       onClick={async (e) => {
                                         let buisnss_id = businessDetails.data;
                                         toast.promise(
@@ -514,7 +514,7 @@ export default function StylesTable() {
                                       className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
                                     >
                                       Archive
-                                    </button>
+                                    </button>*/}
                                   </>
                                 )}
                                 <Link

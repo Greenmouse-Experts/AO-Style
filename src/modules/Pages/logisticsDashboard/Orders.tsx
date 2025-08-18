@@ -211,7 +211,7 @@ export default function OrderRequests() {
     useQuery<OrderRequestsResponse>({
       queryKey: ["logistics", "orders"],
       queryFn: async () => {
-        const resp = await CaryBinApi.get("/orders/available-orders");
+        const resp = await CaryBinApi.get("/orders");
         return resp.data;
       },
     });

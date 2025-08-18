@@ -3,6 +3,7 @@ import { AlertCircle, CheckCircle, Eye, Loader2 } from "lucide-react"; // Import
 import CaryBinApi from "../../../services/CarybinBaseUrl";
 import CustomTable from "../../../components/CustomTable";
 import { useNavigate } from "react-router-dom";
+import { useRef, useState } from "react";
 
 // Interfaces (unchanged from original)
 // Interfaces
@@ -134,6 +135,8 @@ interface OrderRequestsResponse {
 
 export default function OrderRequests() {
   const navigate = useNavigate();
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [selectedItem, setSelectedItem] = useState<Order | null>(null);
   const { data, isFetching, isError, error, refetch } =
     useQuery<OrderRequestsResponse>({
       queryKey: ["logistics", "orders"],
@@ -203,9 +206,7 @@ export default function OrderRequests() {
       key: "status",
       label: "Status",
       render: (_, item) => {
-        return (
-          <div className={getStatusBadgeClass(item.status)}>{item.status}</div>
-        );
+        return <div className="">{item.status}</div>;
       },
     },
     {
@@ -216,10 +217,10 @@ export default function OrderRequests() {
       },
     },
     {
-      key: "logistic",
-      label: "logistic Agent",
+      key: "location",
+      label: "location",
       render: (_, item) => {
-        return <>{item.logistics_agent}</>;
+        return <>{item.user.profile.address}</>;
       },
     },
     {
@@ -229,21 +230,28 @@ export default function OrderRequests() {
         return <>{item.total_amount}</>;
       },
     },
+    {
+      key: "items",
+      label: "items",
+      render: (_, item) => {
+        return <>{item.order_items.length}</>;
+      },
+    },
   ];
 
   // Helper function to map order status to badge classes
-  const getStatusBadgeClass = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "pending":
-        return "badge-warning";
-      case "completed":
-        return "badge-success";
-      case "cancelled":
-        return "badge-error";
-      default:
-        return "badge-neutral";
-    }
-  };
+  // const getStatusBadgeClass = (status: string) => {
+  //   switch (status.toLowerCase()) {
+  //     case "pending":
+  //       return "badge-warning";
+  //     case "completed":
+  //       return "badge-success";
+  //     case "cancelled":
+  //       return "badge-error";
+  //     default:
+  //       return "badge-neutral";
+  //   }
+  // };
 
   // Actions
   interface ActionConfig {
@@ -260,7 +268,8 @@ export default function OrderRequests() {
       icon: <Eye className="w-4 h-4 text-primary" />,
       action: (item: Order) => {
         console.log(item, "view");
-        // navigate(`/logistics/orders/${item.id}`)
+        // dialogRef.current?.showModal();
+        navigate(`/logistics/orders/${item.id}`);
       },
     },
     {
@@ -289,6 +298,54 @@ export default function OrderRequests() {
         </div>
       </div>
       <CustomTable data={data?.data} actions={actions} columns={columns} />
+      <dialog
+        ref={dialogRef}
+        className="modal"
+        open={!!selectedItem}
+        onClose={() => setSelectedItem(null)}
+      >
+        <div className="modal-box bg-base-100">
+          <form method="dialog">
+            <button
+              className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+              onClick={() => setSelectedItem(null)}
+            >
+              ✕
+            </button>
+          </form>
+          <h3 className="font-bold text-lg text-base-content">Order Details</h3>
+          <div className="py-4 text-base-content">
+            <p>
+              <span className="font-semibold">Order ID:</span>{" "}
+              {selectedItem?.id}
+            </p>
+            <p>
+              <span className="font-semibold">Customer Name:</span>{" "}
+              {selectedItem?.user?.profile?.name || "N/A"}
+            </p>
+            <p>
+              <span className="font-semibold">Status:</span>{" "}
+              <span className={""}>{selectedItem?.status}</span>
+            </p>
+            <p>
+              <span className="font-semibold">Total Amount:</span>{" "}
+              {selectedItem?.total_amount}
+            </p>
+            <p>
+              <span className="font-semibold">Items:</span>{" "}
+              {selectedItem?.order_items.length}
+            </p>
+            {selectedItem?.order_items.map((item) => (
+              <div key={item.id} className="mt-2 ml-2">
+                - {item.product.name} (x{item.quantity})
+              </div>
+            ))}
+          </div>
+        </div>
+        <form method="dialog" className="modal-backdrop">
+          <button onClick={() => setSelectedItem(null)}>close</button>
+        </form>
+      </dialog>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, MoreVertical } from "lucide-react";
+import { Search, MoreVertical, MenuIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails";
 import useQueryParams from "../../../hooks/useQueryParams";
@@ -336,8 +336,8 @@ export default function StylesTable() {
                     <th className="hidden md:table-cell">Price</th>
                     {/* <th className="hidden md:table-cell">Sold</th> */}
                     <th>Status</th>
-                    <th className="hidden md:table-cell">Rating</th>
-                    <th className="hidden md:table-cell">Income</th>
+                    {/* <th className="hidden md:table-cell">Rating</th>
+                    <th className="hidden md:table-cell">Income</th>*/}
                     <th>Action</th>
                   </tr>
                 </thead>
@@ -407,7 +407,7 @@ export default function StylesTable() {
                             )
                           }
                         >
-                          <MoreVertical className="text-gray-500" />
+                          <MenuIcon className="label" />
                         </button>
                         {openDropdown === style.id && (
                           <div className="absolute cursor-pointer right-0 mt-2 bg-white shadow-md rounded-md py-2 w-32 z-50">
@@ -526,7 +526,7 @@ export default function StylesTable() {
                                 </Link>
                               </>
                             )}
-                            {style?.status === "DRAFT" ? (
+                            {/* {style?.status === "DRAFT" ? (
                               <button
                                 onClick={() => {
                                   if (isAdminStyleRoute) {
@@ -573,7 +573,7 @@ export default function StylesTable() {
                                   ? "Please wait..."
                                   : "Publish Style"}
                               </button>
-                            ) : null}
+                            ) : null}*/}
 
                             <button
                               onClick={() => {

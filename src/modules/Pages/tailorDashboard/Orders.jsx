@@ -264,7 +264,7 @@ const OrderPage = () => {
     });
     doc.save("TailorOrders.pdf");
   };
-
+  console.log(fabricOrderData[2]);
   return (
     <div className="">
       <div className="bg-white px-6 py-4 mb-6">

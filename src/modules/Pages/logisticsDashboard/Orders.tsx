@@ -326,7 +326,14 @@ export default function OrderRequests() {
   };
 
   // Actions
-  const actions = [
+  interface ActionConfig {
+    key: string;
+    label: string;
+    icon: JSX.Element; // Assuming icons are JSX elements
+    action: (item: Order) => void;
+  }
+
+  const actions: ActionConfig[] = [
     {
       key: "view",
       label: "View",
@@ -348,7 +355,9 @@ export default function OrderRequests() {
   return (
     <div data-theme="nord" className="min-h-screen flex flex-col  bg-base-100">
       <div className="p-4 rounded-box outline outline-current/20 m-4">
-        <h2 className="font-bold text-2xl text-base-content mb-2">Orders</h2>
+        <h2 className="font-bold text-2xl text-base-content mb-2">
+          Orders Available
+        </h2>
         <div className="breadcrumbs text-base-content">
           <ul>
             <li>Dashboard</li>

@@ -55,8 +55,11 @@ const OrderPage = () => {
     },
     onSuccess: () => {
       toast.success("status updated");
+      refetch();
+
       setTimeout((handler) => {
-        window.location.reload();
+        toast.dismiss();
+        dialogRef.current.close();
       }, 800);
     },
   });
@@ -66,6 +69,7 @@ const OrderPage = () => {
     isLoading,
     isError,
     data: orderData,
+    refetch,
   } = useGetVendorOrder({
     ...queryParams,
   });

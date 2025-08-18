@@ -69,7 +69,7 @@ const ProductPage = () => {
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
 
   useUpdatedEffect(() => {
-    // update search params with undefined if debouncedSearchTerm is an empty string
+    // aearch params with undefined if debouncedSearchTerm is an empty string
     updateQueryParams({
       q: debouncedSearchTerm.trim() || undefined,
       "pagination[page]": 1,

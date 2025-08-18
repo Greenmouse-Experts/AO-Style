@@ -74,6 +74,7 @@ const CartPage = () => {
   // Get cart data from API response
   const cartData = cartResponse?.data;
   const items = cartData?.items || [];
+  console.log("🛒 Cart Items:", items);
   const cartUser = cartData?.user;
   const cartMeta = {
     id: cartData?.id,
@@ -117,7 +118,7 @@ const CartPage = () => {
       console.log("🚚 CartPage: No delivery data available");
     }
   }, [deliveryData]);
-  
+
   const { carybinUser, setCaryBinUser } = useCarybinUserStore();
   const { toastSuccess, toastError } = useToast();
   const navigate = useNavigate();
@@ -710,9 +711,52 @@ const CartPage = () => {
                 fabric_product_name: item.product?.name || "",
                 color: item.color || "",
                 quantity: item.quantity,
+                // Add delivery fee to each metadata item
+                delivery_fee: delivery_fee,
               });
             }
           });
+
+          // Add general order metadata with delivery fee (if no style items exist)
+          if (metadata.length === 0) {
+            // If there are no style items, add general order metadata
+            metadata.push({
+              order_type: "fabric_only",
+              customer_name: carybinUser?.name || "",
+              customer_email: carybinUser?.email || "",
+              total_items: items.length,
+              subtotal: totals.subtotal,
+              delivery_fee: delivery_fee,
+              vat_amount: estimatedVat,
+              final_total: finalTotal,
+              coupon_code: appliedCoupon?.code || null,
+              delivery_address: addressInfo.address,
+              delivery_city: addressInfo.city,
+              delivery_state: addressInfo.state,
+              delivery_country: addressInfo.country,
+              postal_code: addressInfo.postal_code,
+            });
+          } else {
+            // If there are style items, add delivery fee to general order info
+            metadata.push({
+              order_summary: {
+                delivery_fee: delivery_fee,
+                subtotal: totals.subtotal,
+                vat_amount: estimatedVat,
+                final_total: finalTotal,
+                coupon_code: appliedCoupon?.code || null,
+                total_style_items: items.filter(
+                  (item) => item.style_product?.id,
+                ).length,
+                total_fabric_items: items.length,
+                delivery_address: addressInfo.address,
+                delivery_city: addressInfo.city,
+                delivery_state: addressInfo.state,
+                delivery_country: addressInfo.country,
+                postal_code: addressInfo.postal_code,
+              },
+            });
+          }
 
           console.log("🔍 Style deduplication results:", {
             totalItems: items.length,
@@ -732,11 +776,11 @@ const CartPage = () => {
             itemsCount: items.length,
             styleItemsCount: items.filter((item) => item.style_product?.id)
               .length,
-            shouldIncludeMetadata: metadata.length > 0 && hasStyleItems,
+            shouldIncludeMetadata: metadata.length > 0,
           });
 
-          // Extra validation: Don't include metadata if no style items
-          const shouldIncludeMetadata = hasStyleItems && metadata.length > 0;
+          // Always include metadata now (either style items or general order info)
+          const shouldIncludeMetadata = metadata.length > 0;
 
           // Final validation: Check for duplicate purchase IDs
           const purchaseIds = purchases.map((p) => p.purchase_id);
@@ -762,11 +806,12 @@ const CartPage = () => {
             coupon_code: appliedCoupon?.code || undefined,
             email: carybinUser?.email,
             subtotal: totals.subtotal,
-            delivery_fee: delivery_fee,
+            delivery_fee: delivery_fee, // Keep in main payment data
             vat_amount: estimatedVat,
+            metadata: metadata,
             country: addressInfo.country,
             postal_code: addressInfo.postal_code,
-            ...(shouldIncludeMetadata && { metadata }),
+            ...(shouldIncludeMetadata && { metadata }), // Now includes delivery fee in metadata
           };
 
           console.log("💳 Creating payment with enhanced data:", paymentData);
@@ -790,15 +835,25 @@ const CartPage = () => {
           });
           console.log("📏 Payment metadata breakdown:", {
             metadataCount: metadata.length,
-            styleItemsWithMeasurements: metadata.map((m) => ({
-              style_product_id: m.style_product_id,
-              style_product_name: m.style_product_name,
-              measurementCount: Array.isArray(m.measurement)
-                ? m.measurement.length
-                : m.measurement
-                  ? 1
-                  : 0,
-            })),
+            deliveryFeeIncluded: metadata.some(
+              (item) =>
+                item.delivery_fee !== undefined ||
+                (item.order_summary &&
+                  item.order_summary.delivery_fee !== undefined),
+            ),
+            styleItemsWithMeasurements: metadata
+              .filter((m) => m.style_product_id) // Only style items
+              .map((m) => ({
+                style_product_id: m.style_product_id,
+                style_product_name: m.style_product_name,
+                measurementCount: Array.isArray(m.measurement)
+                  ? m.measurement.length
+                  : m.measurement
+                    ? 1
+                    : 0,
+                delivery_fee: m.delivery_fee, // Show delivery fee is included
+              })),
+            orderSummaryMetadata: metadata.find((m) => m.order_summary),
           });
 
           createPaymentMutate(paymentData, {
@@ -1383,13 +1438,28 @@ const CartPage = () => {
                       >
                         <div className="flex-1">
                           <p className="font-medium text-sm">
+                            {/* Show fabric name */}
                             {item.product?.name || item.name}
+                            {/* Show style name if it exists */}
+                            {item.style_product?.name && (
+                              <>
+                                {" "}
+                                <span className="text-purple-700 font-semibold">
+                                  + Style: {item.style_product.name}
+                                </span>
+                              </>
+                            )}
                           </p>
                           <p className="text-xs text-gray-600">
+                            {/* Show fabric price and quantity */}
                             Fabric: {item.quantity} × ₦
                             {formatNumberWithCommas(
-                              item.price || item.price_at_time,
+                              item.price_at_time ||
+                                item.product?.price ||
+                                item.price ||
+                                0,
                             )}
+                            {/* Show style price if style exists */}
                             {item.style_product?.price && (
                               <span>
                                 {" "}
@@ -1400,9 +1470,10 @@ const CartPage = () => {
                               </span>
                             )}
                           </p>
-                          {item.product_type && (
+                          {/* Show product type if exists */}
+                          {(item.product_type || item.product?.type) && (
                             <span className="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded mt-1">
-                              {item.product_type}
+                              {item.product_type || item.product?.type}
                             </span>
                           )}
                         </div>
@@ -1410,9 +1481,14 @@ const CartPage = () => {
                           <p className="font-medium">
                             ₦
                             {formatNumberWithCommas(
-                              (item.price || item.price_at_time) *
-                                item.quantity +
-                                (item.style_product?.price || 0),
+                              parseFloat(
+                                item.price_at_time ||
+                                  item.product?.price ||
+                                  item.price ||
+                                  0,
+                              ) *
+                                parseInt(item.quantity || 1) +
+                                parseFloat(item.style_product?.price || 0),
                             )}
                           </p>
                         </div>

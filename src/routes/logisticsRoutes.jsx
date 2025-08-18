@@ -1,7 +1,7 @@
 import LogisticsLayout from "../layouts/dashboard/logistics";
 import LogisticsDashboard from "../modules/Pages/logisticsDashboard";
 import OrderRequested from "../modules/Pages/logisticsDashboard/OrderRequested";
-import Orders from "../modules/Pages/logisticsDashboard/Orders";
+// import Orders from "../modules/Pages/logisticsDashboard/Orders";
 import NotificationPage from "../modules/Pages/logisticsDashboard/NotificationPage";
 import InboxPage from "../modules/Pages/logisticsDashboard/Inbox";
 import Settings from "../modules/Pages/logisticsDashboard/Settings";
@@ -18,10 +18,10 @@ export const logisticsRoutes = [
         index: true,
         element: <LogisticsDashboard />,
       },
-      {
-        path: "/logistics/orders",
-        element: <Orders />,
-      },
+      // {
+      //   path: "/logistics/orders",
+      //   element: <Orders />,
+      // },
       {
         path: "/logistics/order-requests",
         element: <OrderRequested />,

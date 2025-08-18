@@ -178,7 +178,7 @@ const CartItemWithBreakdown = ({
 
             {/* Quantity Column */}
             <div className="col-span-2 text-center">
-              <div className="text-xs text-gray-500 mb-1">Quantity</div>
+              <div className="text-xs text-gray-500 mb-1">Yards</div>
               <div className="font-medium text-gray-900">{quantity}</div>
             </div>
 

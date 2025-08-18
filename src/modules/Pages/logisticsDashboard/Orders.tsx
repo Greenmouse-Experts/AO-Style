@@ -5,64 +5,15 @@ import CustomTable from "../../../components/CustomTable";
 import { useNavigate } from "react-router-dom";
 
 // Interfaces (unchanged from original)
-interface VendorCharge {
-  fabric_vendor_fee: number;
-  fashion_designer_fee: number;
-}
-
-interface PurchaseItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  created_at: string;
-  product_id: string;
-  purchase_type: string;
-  vendor_amount: number;
-  vendor_charge: VendorCharge;
-}
-
-interface Purchase {
-  items: PurchaseItem[];
-  coupon_id: null;
-  coupon_type: null;
-  coupon_value: null;
-}
-
-interface Payment {
-  id: string;
-  user_id: string;
-  purchase_type: string;
-  purchase_id: null;
-  amount: string;
-  discount_applied: string;
-  payment_status: string;
-  transaction_id: string;
-  payment_method: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: null;
-  billing_at_payment: null;
-  billing_id: null;
-  interval: null;
-  currency: string;
-  auto_renew: boolean;
-  is_renewal: boolean;
-  is_upgrade: boolean;
-  metadata: null;
-  purchase: Purchase;
-  transaction_type: null;
-  order_id: null;
-}
-
+// Interfaces
 interface Measurement {
-  full_body: {
+  full_body?: {
     height: number;
     height_unit: string;
     dress_length: number;
     dress_length_unit: string;
   };
-  lower_body: {
+  lower_body?: {
     trouser_length: number;
     hip_circumference: number;
     knee_circumference: number;
@@ -74,7 +25,7 @@ interface Measurement {
     thigh_circumference_unit: string;
     waist_circumference_unit: string;
   };
-  upper_body: {
+  upper_body?: {
     sleeve_length: number;
     shoulder_width: number;
     bust_circumference: number;
@@ -88,24 +39,25 @@ interface Measurement {
     waist_circumference_unit: string;
     armhole_circumference_unit: string;
   };
+  customer_name?: string;
 }
 
 interface UserProfile {
   id: string;
   user_id: string;
-  profile_picture: string;
+  profile_picture: string | null;
   address: string;
-  bio: string;
-  date_of_birth: string;
-  gender: string;
+  bio: string | null;
+  date_of_birth: string | null;
+  gender: string | null;
   created_at: string;
   updated_at: string;
-  deleted_at: null;
+  deleted_at: string | null;
   country: string;
   state: string;
   country_code: string;
-  approved_by_admin: null;
-  years_of_experience: null;
+  approved_by_admin: string | null;
+  years_of_experience: string | null;
   measurement: Measurement;
   coordinates: {
     latitude: string;
@@ -120,32 +72,6 @@ interface User {
   profile: UserProfile;
 }
 
-interface FabricDetails {
-  id: string;
-  product_id: string;
-  market_id: string;
-  weight_per_unit: string;
-  location: {
-    latitude: string;
-    longitude: string;
-  };
-  local_name: string;
-  manufacturer_name: string;
-  material_type: string;
-  alternative_names: string;
-  fabric_texture: string;
-  feel_a_like: string;
-  quantity: number;
-  minimum_yards: string;
-  available_colors: string;
-  fabric_colors: string;
-  photos: string[];
-  video_url: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: null;
-}
-
 interface Product {
   id: string;
   business_id: string;
@@ -155,20 +81,20 @@ interface Product {
   sku: string;
   description: string;
   gender: string;
-  tags: string[];
+  tags: [];
   price: string;
   original_price: string;
   currency: string;
   type: string;
   status: string;
   approval_status: string;
-  published_at: null;
-  archived_at: null;
+  published_at: string | null;
+  archived_at: string | null;
   created_at: string;
   updated_at: string;
-  deleted_at: null;
-  fabric: FabricDetails;
-  style: null;
+  deleted_at: string | null;
+  fabric: any | null; // Placeholder, adjust if specific fabric interface is known
+  style: any | null; // Placeholder, adjust if specific style interface is known
 }
 
 interface OrderItem {
@@ -179,7 +105,7 @@ interface OrderItem {
   price: string;
   created_at: string;
   updated_at: string;
-  deleted_at: null;
+  deleted_at: string | null;
   product: Product;
 }
 
@@ -189,13 +115,14 @@ interface Order {
   status: string;
   total_amount: string;
   payment_id: string;
-  metadata: null;
-  logistics_agent_id: null;
+  metadata: any | null;
+  logistics_agent_id: string | null;
   created_at: string;
   updated_at: string;
-  deleted_at: null;
-  payment: Payment;
+  deleted_at: string | null;
+  payment: any; // Placeholder, adjust if specific payment interface is known
   user: User;
+  logistics_agent: any | null;
   order_items: OrderItem[];
 }
 
@@ -211,7 +138,7 @@ export default function OrderRequests() {
     useQuery<OrderRequestsResponse>({
       queryKey: ["logistics", "orders"],
       queryFn: async () => {
-        const resp = await CaryBinApi.get("/orders");
+        const resp = await CaryBinApi.get("/orders/available-orders");
         return resp.data;
       },
     });
@@ -259,55 +186,48 @@ export default function OrderRequests() {
   const columns: {
     key: string;
     label: string;
-    render?: (item: Order) => JSX.Element;
+    render?: (_, item: Order) => JSX.Element;
   }[] = [
     {
-      key: "order_id",
-      label: "Order ID",
-      render: (item: Order) => (
-        <div className="text-base-content">{item.id}</div>
-      ),
+      key: "id",
+      label: "id",
+      render: (_, item) => {
+        return (
+          <div className=" w-[80px] overflow-ellipsis" data-theme="nord">
+            {item.id}
+          </div>
+        );
+      },
     },
     {
-      key: "customer_name",
-      label: "Customer Name",
-      render: (item: Order) => (
-        <span className="text-base-content">{item.user.profile.address}</span>
-      ),
+      key: "status",
+      label: "Status",
+      render: (_, item) => {
+        return (
+          <div className={getStatusBadgeClass(item.status)}>{item.status}</div>
+        );
+      },
     },
     {
-      key: "order_date",
-      label: "Order Date",
-      render: (item: Order) => (
-        <span className="text-base-content">
-          {new Date(item.created_at).toLocaleString()}
-        </span>
-      ),
+      key: "amount",
+      label: "Amount",
+      render: (_, item) => {
+        return <>{item.total_amount}</>;
+      },
     },
     {
-      key: "order_status",
-      label: "Order Status",
-      render: (item: Order) => (
-        <span className={`badge ${getStatusBadgeClass(item.status)}`}>
-          {item.status}
-        </span>
-      ),
+      key: "logistic",
+      label: "logistic Agent",
+      render: (_, item) => {
+        return <>{item.logistics_agent}</>;
+      },
     },
     {
-      key: "location",
-      label: "Location",
-      render: (item: Order) => (
-        <span className="text-base-content">{item.user.profile.address}</span>
-      ),
-    },
-    {
-      key: "total_amount",
-      label: "Total Amount",
-      render: (item: Order) => (
-        <span className="text-base-content">
-          {item.payment.currency} {item.total_amount}
-        </span>
-      ),
+      key: "logistic",
+      label: "logistic ID",
+      render: (_, item) => {
+        return <>{item.total_amount}</>;
+      },
     },
   ];
 

@@ -206,7 +206,18 @@ export default function OrderRequests() {
       key: "status",
       label: "Status",
       render: (_, item) => {
-        return <div className="">{item.status}</div>;
+        if (item.status.toLocaleLowerCase() == "paid") {
+          return (
+            <div className="badge badge-success badge-soft">
+              {item.status.replaceAll("_", " ")}
+            </div>
+          );
+        }
+        return (
+          <div className="badge badge-info badge-soft">
+            {item.status.replaceAll("_", " ")}
+          </div>
+        );
       },
     },
     {

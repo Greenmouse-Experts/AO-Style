@@ -4,7 +4,7 @@
     "target": "ES2020",
     "module": "ESNext",
     "moduleResolution": "Node",
-    "lib": ["ES2020", "DOM"],
+    "lib": ["ES2022", "DOM"],
     "jsx": "react-jsx" /* Added to support .tsx files */,
 
     /* Performance optimizations */

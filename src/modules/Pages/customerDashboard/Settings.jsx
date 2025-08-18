@@ -39,6 +39,7 @@ const Settings = () => {
   const initialValues = {
     name: carybinUser?.name ?? "",
     email: carybinUser?.email ?? "",
+    alternative_phone: carybinUser?.alternative_phone ?? "",
     profile_picture: carybinUser?.profile?.profile_picture ?? null,
     address: carybinUser?.profile?.address ?? "",
     country: carybinUser?.profile?.country ?? "",
@@ -117,7 +118,7 @@ const Settings = () => {
   const { isPending: updateIsPending, updatePersonalMutate } =
     useUpdateProfile();
 
-  const { toastError } = useToast();
+  const { toastError, toastSuccess } = useToast();
 
   const {
     handleSubmit,
@@ -145,6 +146,8 @@ const Settings = () => {
       updatePersonalMutate(
         {
           ...val,
+          alternative_phone: val.alternative_phone,
+          phone: val.phone,
           measurement: {
             upper_body: {
               bust_circumference: val?.bust_circumference,
@@ -186,7 +189,23 @@ const Settings = () => {
         },
         {
           onSuccess: () => {
-            resetForm();
+            // Auto-navigate to next body measurement tab
+            if (bodyTab === "upperBody") {
+              setBodyTab("lowerBody");
+              // toastSuccess(
+              //   "Upper body measurements updated! Now update lower body.",
+              // );
+            } else if (bodyTab === "lowerBody") {
+              setBodyTab("fullBody");
+              // toastSuccess(
+              //   "Lower body measurements updated! Now update full body.",
+              // );
+            } else if (bodyTab === "fullBody") {
+              toastSuccess("Full body measurements updated successfully!");
+            } else {
+              toastSuccess("Profile updated successfully!");
+              console.log("Profile updated successfully!");
+            }
           },
         },
       );
@@ -214,6 +233,7 @@ const Settings = () => {
             {
               onSuccess: () => {
                 setProfileIsLoading(false);
+                toastSuccess("Profile picture updated successfully!");
               },
             },
           );
@@ -264,7 +284,7 @@ const Settings = () => {
       types: [],
     },
   });
-  // console.log("settings");
+
   return (
     <>
       <div className="bg-white px-6 py-4 mb-6">
@@ -375,7 +395,9 @@ const Settings = () => {
                         required
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+
+                    {/* Mobile responsive grid - single column on mobile */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-gray-700 mb-4">
                           Phone Number
@@ -387,17 +409,36 @@ const Settings = () => {
                             name: "phone",
                             required: true,
                           }}
-                          onChange={(value) => {
-                            // Ensure `+` is included and validate
-                            if (!value.startsWith("+")) {
-                              value = "+" + value;
+                          onChange={(value, data) => {
+                            // Ensure Nigeria always uses +234
+                            if (data.countryCode === "ng") {
+                              // If user is typing after +234, keep their input
+                              if (value && value.startsWith("+234")) {
+                                setFieldValue("phone", value);
+                              } else {
+                                // Default to +234 for Nigeria
+                                setFieldValue("phone", "+234");
+                              }
+                            } else {
+                              // For other countries, handle normally
+                              const formattedValue = value.startsWith("+")
+                                ? value
+                                : "+" + value;
+                              setFieldValue("phone", formattedValue);
                             }
-                            setFieldValue("phone", value);
                           }}
+                          onCountryChange={(countryCode) => {
+                            // Force +234 when Nigeria is selected
+                            if (countryCode === "ng") {
+                              setFieldValue("phone", "+234");
+                            }
+                          }}
+                          defaultCountry="ng"
+                          onlyCountries={["ng"]}
                           containerClass="w-full disabled:bg-gray-100"
                           dropdownClass="flex flex-col gap-2 text-black disabled:bg-gray-100"
                           buttonClass="bg-gray-100 !border !border-gray-100 hover:!bg-gray-100 disabled:bg-gray-100"
-                          inputClass="!w-full px-4 font-sans disabled:bg-gray-100  !h-[54px] !py-4 border border-gray-300 !rounded-md focus:outline-none"
+                          inputClass="!w-full px-4 font-sans disabled:bg-gray-100 !h-[54px] !py-4 border border-gray-300 !rounded-md focus:outline-none"
                         />
                       </div>
                       <div>
@@ -415,7 +456,8 @@ const Settings = () => {
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-gray-700 mb-4">
                           Alternate Phone Number
@@ -462,26 +504,30 @@ const Settings = () => {
                       </div>
                     </div>
 
-                    {/* Coordinates Display */}
+                    {/* Coordinates Display - Improved overflow handling */}
                     {(values.latitude || values.longitude) && (
-                      <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg">
                         <div>
                           <label className="block text-gray-700 mb-2 text-sm font-medium">
                             Latitude
                           </label>
-                          <div className="w-full p-3 bg-white border border-blue-200 rounded-lg text-sm text-gray-600">
-                            {values.latitude || "Not set"}
+                          <div className="w-full p-3 bg-white border border-blue-200 rounded-lg text-sm text-gray-600 overflow-hidden">
+                            <span className="break-all">
+                              {values.latitude || "Not set"}
+                            </span>
                           </div>
                         </div>
                         <div>
                           <label className="block text-gray-700 mb-2 text-sm font-medium">
                             Longitude
                           </label>
-                          <div className="w-full p-3 bg-white border border-blue-200 rounded-lg text-sm text-gray-600">
-                            {values.longitude || "Not set"}
+                          <div className="w-full p-3 bg-white border border-blue-200 rounded-lg text-sm text-gray-600 overflow-hidden">
+                            <span className="break-all">
+                              {values.longitude || "Not set"}
+                            </span>
                           </div>
                         </div>
-                        <div className="col-span-2">
+                        <div className="col-span-1 lg:col-span-2">
                           <p className="text-xs text-blue-600">
                             📍 These coordinates are automatically set when you
                             select an address using Google Places autocomplete
@@ -503,9 +549,9 @@ const Settings = () => {
 
                 {activeTab === "bodyMeasurement" && (
                   <div>
-                    <div className="border-b-4 border-[#D9D9D9] flex space-x-10 text-gray-500">
+                    <div className="border-b-4 border-[#D9D9D9] flex space-x-6 lg:space-x-10 text-gray-500 overflow-x-auto">
                       <button
-                        className={`pb-2 ${
+                        className={`pb-2 whitespace-nowrap ${
                           bodyTab === "upperBody"
                             ? "border-b-1 border-purple-600 text-purple-600"
                             : ""
@@ -515,7 +561,7 @@ const Settings = () => {
                         Upper Body
                       </button>
                       <button
-                        className={`pb-2 ${
+                        className={`pb-2 whitespace-nowrap ${
                           bodyTab === "lowerBody"
                             ? "border-b-1 border-purple-600 text-purple-600"
                             : ""
@@ -525,7 +571,7 @@ const Settings = () => {
                         Lower Body
                       </button>
                       <button
-                        className={`pb-2 ${
+                        className={`pb-2 whitespace-nowrap ${
                           bodyTab === "fullBody"
                             ? "border-b-1 border-purple-600 text-purple-600"
                             : ""
@@ -538,7 +584,7 @@ const Settings = () => {
 
                     {bodyTab === "upperBody" && (
                       <form
-                        className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8"
+                        className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-8"
                         onSubmit={handleSubmit}
                       >
                         <div>
@@ -741,11 +787,11 @@ const Settings = () => {
                           </div>
                         </div>
 
-                        <div className="col-span-1 sm:col-span-2">
+                        <div className="col-span-1 lg:col-span-2">
                           <button
                             disabled={updateIsPending}
                             type="submit"
-                            className="w-full sm:w-auto mt-4 bg-gradient text-white px-6 py-2"
+                            className="w-full lg:w-auto mt-4 bg-gradient text-white px-6 py-2 rounded-md"
                           >
                             {updateIsPending
                               ? "Please wait..."
@@ -757,7 +803,7 @@ const Settings = () => {
                     {bodyTab === "lowerBody" && (
                       <form
                         onSubmit={handleSubmit}
-                        className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4"
+                        className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4"
                       >
                         <div>
                           <label className="block text-gray-700 mb-4">
@@ -887,7 +933,7 @@ const Settings = () => {
                           </div>
                         </div>
 
-                        <div className="sm:col-span-2">
+                        <div className="lg:col-span-2">
                           <label className="block text-gray-700 mb-4">
                             {"Trouser Length (Waist to Ankle)"}
                           </label>
@@ -919,11 +965,11 @@ const Settings = () => {
                           </div>
                         </div>
 
-                        <div className="sm:col-span-2 flex flex-col sm:flex-row justify-between gap-4 mt-2">
+                        <div className="lg:col-span-2 flex flex-col lg:flex-row justify-between gap-4 mt-2">
                           <button
                             disabled={updateIsPending}
                             type="submit"
-                            className="w-full sm:w-auto bg-gradient text-white px-6 py-2"
+                            className="w-full lg:w-auto bg-gradient text-white px-6 py-2 rounded-md"
                           >
                             {updateIsPending
                               ? "Please wait..."
@@ -935,7 +981,7 @@ const Settings = () => {
                     {bodyTab === "fullBody" && (
                       <form
                         onSubmit={handleSubmit}
-                        className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4"
+                        className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4"
                       >
                         <div>
                           <label className="block text-gray-700 mb-4">
@@ -1000,11 +1046,11 @@ const Settings = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="sm:col-span-2 flex flex-col sm:flex-row justify-between gap-4 mt-2">
+                        <div className="lg:col-span-2 flex flex-col lg:flex-row justify-between gap-4 mt-2">
                           <button
                             disabled={updateIsPending}
                             type="submit"
-                            className="w-full sm:w-auto bg-gradient text-white px-6 py-2"
+                            className="w-full lg:w-auto bg-gradient text-white px-6 py-2 rounded-md"
                           >
                             {updateIsPending
                               ? "Please wait..."
@@ -1019,16 +1065,8 @@ const Settings = () => {
             </div>
           )}
 
-          {/* {activeSection === "Bank Details" && (
-            <div>
-              <h2 className="text-xl font-medium mb-4">Bank Details</h2>
-              <BankDetails />
-            </div>
-          )}*/}
-
           {activeSection === "Security" && (
             <div>
-              {/* <h2 className="text-xl font-medium mb-4">Security Settings</h2>*/}
               <SecuritySettings />
             </div>
           )}

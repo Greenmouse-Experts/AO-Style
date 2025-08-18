@@ -53,6 +53,9 @@ const CartPage = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
 
+  // Add duplicate detection state
+  const [duplicateError, setDuplicateError] = useState(null);
+
   // API hooks
   const {
     data: cartResponse,
@@ -97,27 +100,138 @@ const CartPage = () => {
   // console.log("🚚 Delivery Fee Value:", deliveryData?.data?.data?.delivery_fee);
 
   // Immediate logging when delivery data changes
-  // useEffect(() => {
-  //   if (deliveryData) {
-  //     console.log("🚚 CartPage: Delivery data received!");
-  //     console.log("🚚 CartPage: Full deliveryData object:", deliveryData);
-  //     console.log("🚚 CartPage: deliveryData.data:", deliveryData.data);
-  //     console.log(
-  //       "🚚 CartPage: deliveryData.data.data:",
-  //       deliveryData.data?.data,
-  //     );
-  //     console.log(
-  //       "🚚 CartPage: Final delivery_fee extracted:",
-  //       deliveryData?.data?.data?.delivery_fee,
-  //     );
-  //   } else {
-  //     console.log("🚚 CartPage: No delivery data available");
-  //   }
-  // }, [deliveryData]);
+  useEffect(() => {
+    if (deliveryData) {
+      console.log("🚚 CartPage: Delivery data received!");
+      console.log("🚚 CartPage: Full deliveryData object:", deliveryData);
+      console.log("🚚 CartPage: deliveryData.data:", deliveryData.data);
+      console.log(
+        "🚚 CartPage: deliveryData.data.data:",
+        deliveryData.data?.data,
+      );
+      console.log(
+        "🚚 CartPage: Final delivery_fee extracted:",
+        deliveryData?.data?.data?.delivery_fee,
+      );
+    } else {
+      console.log("🚚 CartPage: No delivery data available");
+    }
+  }, [deliveryData]);
+  
   const { carybinUser, setCaryBinUser } = useCarybinUserStore();
   const { toastSuccess, toastError } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+
+  console.log(carybinUser);
+  // Duplicate Detection Function
+  const checkForDuplicateItems = (items) => {
+    console.log("🔍 Checking for duplicate items...", items);
+
+    // Create a map to track fabric+style combinations
+    const itemCombinations = new Map();
+    const duplicates = [];
+
+    items.forEach((item, index) => {
+      const fabricId = item.product_id || item.product?.id;
+      const styleId = item.style_product?.id || null;
+
+      // Create a unique key for fabric+style combination
+      // If item has style, key includes both fabric and style
+      // If item has no style, key is just fabric
+      const combinationKey = styleId
+        ? `fabric_${fabricId}_style_${styleId}`
+        : `fabric_${fabricId}_no_style`;
+
+      console.log(`🔍 Item ${index + 1}:`, {
+        fabricId,
+        styleId,
+        combinationKey,
+        hasStyle: !!styleId,
+        itemName: item.product?.name,
+        styleName: item.style_product?.name,
+      });
+
+      // Check if this combination already exists
+      if (itemCombinations.has(combinationKey)) {
+        const existingItem = itemCombinations.get(combinationKey);
+        duplicates.push({
+          current: {
+            index,
+            id: item.id,
+            fabricId,
+            styleId,
+            fabricName: item.product?.name,
+            styleName: item.style_product?.name,
+            combinationKey,
+          },
+          existing: existingItem,
+        });
+
+        console.log("❌ Duplicate found!", {
+          currentItem: item.product?.name,
+          currentStyle: item.style_product?.name,
+          existingItem: existingItem.fabricName,
+          existingStyle: existingItem.styleName,
+          combinationKey,
+        });
+      } else {
+        // Store this combination
+        itemCombinations.set(combinationKey, {
+          index,
+          id: item.id,
+          fabricId,
+          styleId,
+          fabricName: item.product?.name,
+          styleName: item.style_product?.name,
+          combinationKey,
+        });
+      }
+    });
+
+    console.log("🔍 Duplicate check results:", {
+      totalItems: items.length,
+      uniqueCombinations: itemCombinations.size,
+      duplicatesFound: duplicates.length,
+      duplicateDetails: duplicates,
+    });
+
+    return {
+      hasDuplicates: duplicates.length > 0,
+      duplicates,
+      uniqueCombinations: Array.from(itemCombinations.values()),
+    };
+  };
+
+  // Check for duplicates when items change
+  useEffect(() => {
+    if (items && items.length > 0) {
+      const duplicateCheck = checkForDuplicateItems(items);
+
+      if (duplicateCheck.hasDuplicates) {
+        const duplicateMessages = duplicateCheck.duplicates.map((dup) => {
+          const fabricName = dup.current.fabricName || "Unknown Fabric";
+          const styleName = dup.current.styleName;
+
+          if (styleName) {
+            return `"${fabricName}" with style "${styleName}"`;
+          } else {
+            return `"${fabricName}" (no style)`;
+          }
+        });
+
+        const errorMessage = `Duplicate items found in cart: ${duplicateMessages.join(", ")}. Please remove duplicates before proceeding.`;
+        setDuplicateError(errorMessage);
+
+        console.log("❌ Duplicate error set:", errorMessage);
+      } else {
+        setDuplicateError(null);
+        console.log("✅ No duplicates found, clearing error");
+      }
+    } else {
+      setDuplicateError(null);
+    }
+  }, [items]);
 
   // Fetch user profile if not already in store (important for Google login)
   const {
@@ -455,8 +569,25 @@ const CartPage = () => {
     return baseAddress;
   };
 
-  // Handle proceeding to payment
+  // Handle proceeding to payment - Updated with duplicate detection
   const handleProceedToPayment = async () => {
+    // Add duplicate check at the beginning
+    if (duplicateError) {
+      toastError(duplicateError);
+      console.log("❌ Blocking payment due to duplicates:", duplicateError);
+      return;
+    }
+
+    // Double-check for duplicates before payment
+    const duplicateCheck = checkForDuplicateItems(items);
+    if (duplicateCheck.hasDuplicates) {
+      const errorMsg =
+        "Duplicate items detected in cart. Please remove duplicates before proceeding.";
+      toastError(errorMsg);
+      setDuplicateError(errorMsg);
+      return;
+    }
+
     if (!navigator.onLine) {
       toastError("No internet connection. Please check your network.");
       return;
@@ -1159,7 +1290,7 @@ const CartPage = () => {
                         carybinUser?.alternative_phone ||
                         "Not provided"}
                     </p>
-                    <p>
+                    {/* <p>
                       <span className="font-medium">Email Verified:</span>{" "}
                       <span
                         className={
@@ -1170,7 +1301,7 @@ const CartPage = () => {
                       >
                         {carybinUser?.is_email_verified ? "✅ Yes" : "❌ No"}
                       </span>
-                    </p>
+                    </p>*/}
                   </div>
                 </div>
 
@@ -1181,15 +1312,29 @@ const CartPage = () => {
                     Delivery Address
                   </h3>
                   <div className="space-y-2 text-sm">
-                    <p>
-                      <span className="font-medium">Full Address:</span>{" "}
-                      {carybinUser?.address ||
-                        "2 Metalbox Rd, Ogba, Lagos 101233, Lagos, Nigeria"}
-                    </p>
-                    <p>
-                      <span className="font-medium">State:</span>{" "}
-                      {carybinUser?.state || "Lagos State"}
-                    </p>
+                    {carybinUser?.profile?.address ? (
+                      <p>
+                        <span className="font-medium">Full Address:</span>{" "}
+                        {carybinUser.profile.address}
+                      </p>
+                    ) : (
+                      <div className="p-3 bg-yellow-100 border border-yellow-300 rounded text-yellow-800 flex flex-col gap-2">
+                        <span className="font-medium">Full Address:</span>{" "}
+                        <span>
+                          <strong>
+                            Address required to complete checkout.
+                          </strong>
+                        </span>
+                        <a
+                          href={`/${currentUrl}/settings`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-700 underline font-medium hover:text-blue-900"
+                        >
+                          Update your address
+                        </a>
+                      </div>
+                    )}
                     <p>
                       <span className="font-medium">Country:</span>{" "}
                       {carybinUser?.country || "NG"}
@@ -1204,22 +1349,24 @@ const CartPage = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="mt-3 text-xs text-blue-600 bg-blue-100 p-2 rounded">
-                    <p>
-                      💡 Address from your profile -{" "}
-                      <button
-                        onClick={() => {
-                          console.log(
-                            "📝 User wants to update profile address",
-                          );
-                          window.open(`${currentUrl}/settings`);
-                        }}
-                        className="underline hover:text-blue-800"
-                      >
-                        Update if needed
-                      </button>
-                    </p>
-                  </div>
+                  {carybinUser?.profile?.address && (
+                    <div className="mt-3 text-xs text-blue-600 bg-blue-100 p-2 rounded">
+                      <p>
+                        💡 Address from your profile -{" "}
+                        <button
+                          onClick={() => {
+                            console.log(
+                              "📝 User wants to update profile address",
+                            );
+                            window.open(`${currentUrl}/settings`);
+                          }}
+                          className="underline hover:text-blue-800"
+                        >
+                          Update if needed
+                        </button>
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Order Items */}
@@ -1331,15 +1478,27 @@ const CartPage = () => {
                 </div>
 
                 {/* Payment Button */}
-                <button
-                  disabled={billingPending || createPaymentPending}
-                  onClick={handleProceedToPayment}
-                  className="w-full cursor-pointer py-4 bg-gradient text-white hover:from-purple-600 hover:to-pink-600 transition rounded-lg font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                >
-                  {billingPending || createPaymentPending
-                    ? "Processing..."
-                    : `Proceed to Payment - ${formatPrice(finalTotal)}`}
-                </button>
+                {!carybinUser?.profile?.address ? (
+                  <button
+                    onClick={() => {
+                      // Redirect to address update page
+                      window.open(`/${currentUrl}/settings`, "_blank");
+                    }}
+                    className="w-full cursor-pointer py-4 bg-yellow-500 text-white hover:bg-yellow-600 transition rounded-lg font-bold text-lg shadow-lg"
+                  >
+                    Update Address to Complete Checkout
+                  </button>
+                ) : (
+                  <button
+                    disabled={billingPending || createPaymentPending}
+                    onClick={handleProceedToPayment}
+                    className="w-full cursor-pointer py-4 bg-gradient text-white hover:from-purple-600 hover:to-pink-600 transition rounded-lg font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                  >
+                    {billingPending || createPaymentPending
+                      ? "Processing..."
+                      : `Proceed to Payment - ${formatPrice(finalTotal)}`}
+                  </button>
+                )}
 
                 <div className="text-xs text-gray-500 text-center space-y-1">
                   <p>By proceeding, you agree to our terms and conditions</p>

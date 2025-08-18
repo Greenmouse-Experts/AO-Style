@@ -70,7 +70,7 @@ const OrderDetails = () => {
 
   // Always call these hooks to maintain consistent hook order
   const orderDetails = data?.data;
-  const orderPurchase = data?.data?.payment?.purchase?.items;
+  const orderPurchase = data?.data?.order_items;
 
   // Check if order is delivered and show review section automatically
   const isDelivered = orderDetails?.status === "DELIVERED";
@@ -382,37 +382,53 @@ const OrderDetails = () => {
                     <h6 className="font-semibold text-gray-800 mb-4">
                       Purchase Items
                     </h6>
-                    <div className="space-y-3">
-                      {orderPurchase.map((item, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center gap-4 p-3 border rounded-lg"
-                        >
-                          <img
-                            src={
-                              item.purchase_type === "STYLE"
-                                ? "https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170600/AoStyle/image_bwjfib.jpg"
-                                : "https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170603/AoStyle/image1_s3s2sd.jpg"
-                            }
-                            alt={item.name || "Product"}
-                            className="w-16 h-16 rounded-md object-cover"
-                          />
-                          <div className="flex-1">
-                            <p className="font-semibold">
-                              {item.name || "Product Item"}
-                            </p>
-                            <p className="text-gray-500">
-                              Quantity: {item.quantity || 1}
-                            </p>
-                            <p className="text-blue-600">
-                              N{" "}
-                              {item.price
-                                ? parseInt(item.price).toLocaleString()
-                                : "0"}
-                            </p>
+                    <div className="space-y-4">
+                      {orderPurchase.map((item, index) => {
+                        const isStyle = item.product.type === "STYLE";
+                        const tagLabel = isStyle ? "Style" : "Fabric";
+                        const tagColor = isStyle
+                          ? "bg-purple-100 text-purple-700"
+                          : "bg-blue-100 text-blue-700";
+                        const imageSrc = isStyle
+                          ? item.product.style?.photos?.[0]
+                          : item.product.fabric?.photos?.[0];
+                        return (
+                          <div
+                            key={index}
+                            className="flex items-center gap-5 p-4 border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition"
+                          >
+                            <img
+                              src={imageSrc}
+                              alt={item.product.name || "Product"}
+                              className="w-20 h-20 rounded-lg object-cover border border-gray-100"
+                            />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="font-semibold text-lg">
+                                  {item.product.name || "Product Item"}
+                                </p>
+                                <span
+                                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${tagColor} border border-gray-200`}
+                                >
+                                  {tagLabel}
+                                </span>
+                              </div>
+                              <p className="text-gray-500 mb-1">
+                                Quantity:{" "}
+                                <span className="font-medium">
+                                  {item.quantity || 1}
+                                </span>
+                              </p>
+                              <p className="text-blue-600 font-semibold">
+                                N{" "}
+                                {item.price
+                                  ? parseInt(item.price).toLocaleString()
+                                  : "0"}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}

@@ -214,7 +214,7 @@ export default function OrderRequests() {
           );
         }
         return (
-          <div className="badge badge-info badge-soft">
+          <div className="badge badge-primary badge-soft">
             {item.status.replaceAll("_", " ")}
           </div>
         );
@@ -283,16 +283,16 @@ export default function OrderRequests() {
         navigate(`/logistics/orders/${item.id}`);
       },
     },
-    {
-      key: "accept",
-      label: "Accept Order",
-      icon: <CheckCircle className="w-4 h-4 text-success" />,
-      action: (item: Order) => {
-        // Placeholder for accept order logic
-        console.log(`Accepting order ${item.id}`);
-        // navigate(`/logistics/orders/${item.id}`);
-      },
-    },
+    // {
+    //   key: "accept",
+    //   label: "Accept Order",
+    //   icon: <CheckCircle className="w-4 h-4 text-success" />,
+    //   action: (item: Order) => {
+    //     // Placeholder for accept order logic
+    //     console.log(`Accepting order ${item.id}`);
+    //     // navigate(`/logistics/orders/${item.id}`);
+    //   },
+    // },
   ];
 
   return (

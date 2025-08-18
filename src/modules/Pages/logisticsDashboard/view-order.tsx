@@ -219,7 +219,10 @@ interface OrderItem {
   deleted_at: null;
   product: Product;
 }
-
+interface LogisticAgent {
+  id: string;
+  name: string;
+}
 interface OrderLogisticsData {
   statusCode: number;
   data: {
@@ -236,7 +239,7 @@ interface OrderLogisticsData {
     payment: PaymentData;
     user: User;
     order_items: OrderItem[];
-    logistics_agent: null;
+    logistics_agent: LogisticAgent;
   };
 }
 export default function ViewOrderLogistics() {
@@ -308,6 +311,7 @@ export default function ViewOrderLogistics() {
         </div>
         <div>
           <button
+            disabled={order_data?.logistics_agent_id != null}
             onClick={async () =>
               toast.promise(async () => await accept_mutation.mutateAsync(), {
                 pending: "Accepting order...",
@@ -318,6 +322,10 @@ export default function ViewOrderLogistics() {
           >
             Accept Order
           </button>
+          <div className="mt-2 text-primary font-semibold  text-center">
+            {order_data?.logistics_agent != null &&
+              "order taken by: " + order_data.logistics_agent.name}
+          </div>
         </div>
       </div>
 
@@ -382,10 +390,15 @@ export default function ViewOrderLogistics() {
                 className="flex items-center p-4 bg-base-100 shadow-xl border border-base-300 rounded-lg gap-4"
               >
                 <div className="w-24 h-24 overflow-hidden rounded-md flex-shrink-0">
-                  {item.product.style?.photos &&
-                  item.product.style.photos.length > 0 ? (
+                  {item.product.style?.photos?.[0] ? (
                     <img
                       src={item.product.style.photos[0]}
+                      alt={item.product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : item.product.fabric?.photos?.[0] ? (
+                    <img
+                      src={item.product.fabric.photos[0]}
                       alt={item.product.name}
                       className="w-full h-full object-cover"
                     />

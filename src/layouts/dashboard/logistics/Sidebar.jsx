@@ -114,12 +114,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             text="Orders"
             toggleSidebar={toggleSidebar}
           />
-          <SidebarItem
+          {/* <SidebarItem
             to="/logistics/order-requests"
             icon={<FaStore />}
             text="Order Requests"
             toggleSidebar={toggleSidebar}
-          />
+          />*/}
           <SidebarItem
             to="/logistics/inbox"
             icon={<FaCommentDots />}

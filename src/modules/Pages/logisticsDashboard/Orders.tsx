@@ -338,7 +338,10 @@ export default function OrderRequests() {
       key: "view",
       label: "View",
       icon: <Eye className="w-4 h-4 text-primary" />,
-      action: (item: Order) => navigate(`/logistics/orders/${item.id}`),
+      action: (item: Order) => {
+        console.log(item, "view");
+        // navigate(`/logistics/orders/${item.id}`)
+      },
     },
     {
       key: "accept",
@@ -347,7 +350,7 @@ export default function OrderRequests() {
       action: (item: Order) => {
         // Placeholder for accept order logic
         console.log(`Accepting order ${item.id}`);
-        navigate(`/logistics/orders/${item.id}`);
+        // navigate(`/logistics/orders/${item.id}`);
       },
     },
   ];

@@ -97,7 +97,7 @@ const OrderPage = () => {
   } = useGetVendorOrder({
     ...queryParams,
   });
-
+  console.log(orderData);
   const columns = useMemo(
     () => [
       { label: "Transaction ID", key: "transactionId" },

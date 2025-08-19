@@ -366,12 +366,12 @@ const OrderDetails = () => {
                           {orderDetails?.payment?.currency || "NGN"}
                         </span>
                       </div>
-                      <div className="flex justify-between">
+                      {/* <div className="flex justify-between">
                         <span className="text-gray-600">Auto Renew:</span>
                         <span className="font-medium">
                           {orderDetails?.payment?.auto_renew ? "Yes" : "No"}
                         </span>
-                      </div>
+                      </div>*/}
                     </div>
                   </div>
                 </div>
@@ -438,19 +438,21 @@ const OrderDetails = () => {
                   <div className="flex justify-between items-center pb-2">
                     <span className="text-gray-600 font-medium">Subtotal:</span>
                     <span className="font-semibold">
-                      N {parseInt(totalAmount || 0).toLocaleString()}
+                      ₦ {parseInt(totalAmount || 0).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between items-center pb-2 mt-2">
                     <span className="text-gray-600 font-medium">
                       Delivery Fee:
                     </span>
-                    <span className="font-semibold">N 0</span>
+                    <span className="font-semibold">
+                      ₦ {orderDetails?.payment?.purchase?.delivery_fee || "N/A"}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center pb-2 mt-2">
                     <span className="text-gray-600 font-medium">Discount:</span>
                     <span className="font-semibold">
-                      N{" "}
+                      ₦{" "}
                       {parseInt(
                         orderDetails?.payment?.discount_applied || 0,
                       ).toLocaleString()}
@@ -462,7 +464,7 @@ const OrderDetails = () => {
                     </span>
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-lg">
-                        N {parseInt(totalAmount || 0).toLocaleString()}
+                        ₦ {parseInt(totalAmount || 0).toLocaleString()}
                       </span>
                       <span
                         className={`px-3 py-1 rounded-full text-sm ${

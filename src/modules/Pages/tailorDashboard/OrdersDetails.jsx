@@ -10,16 +10,30 @@ import {
   Truck,
   Ruler,
   User,
+  Upload,
+  Image as ImageIcon,
+  Loader2,
 } from "lucide-react";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import useGetSingleOrder from "../../../hooks/order/useGetSingleOrder";
 import Loader from "../../../components/ui/Loader";
+import useUploadImage from "../../../hooks/multimedia/useUploadImage";
+// import CaryBinApi from "../../../services/CarybinBaseUrl";
+import useUpdateOrderStatus from "../../../hooks/order/useUpdateOrderStatus";
 
 const OrderDetails = () => {
   const [showUploadPopup, setShowUploadPopup] = useState(false);
   const [markReceivedChecked, setMarkReceivedChecked] = useState(false);
   const [markSentChecked, setMarkSentChecked] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState("");
+  const [currentActionType, setCurrentActionType] = useState(null); // 'received' or 'sent'
+  const { isPending: isImageUploading, uploadImageMutate } = useUploadImage();
+  const { isPending: isStatusUpdating, updateOrderStatusMutate } =
+    useUpdateOrderStatus();
 
   // Get order ID from URL params
   const { id } = useParams();
@@ -123,23 +137,179 @@ const OrderDetails = () => {
     return colors[status] || "bg-gray-100 text-gray-600";
   };
 
+  // Handle file selection
+  const handleFileSelect = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // File size validation (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      alert("File size exceeds 5MB limit. Please choose a smaller file.");
+      return;
+    }
+
+    // File type validation
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file.");
+      return;
+    }
+
+    // Set the selected file
+    setSelectedFile(file);
+
+    // Create image preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Upload image to multimedia endpoint using your existing service
+  const uploadImageToMultimedia = async (file) => {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    return new Promise((resolve, reject) => {
+      uploadImageMutate(formData, {
+        onSuccess: (result) => {
+          // Adjust based on your API response structure
+          console.log(result);
+          const imageUrl =
+            result?.data?.data?.url ||
+            result?.url ||
+            result?.data?.image_url ||
+            result?.imageUrl;
+          resolve(imageUrl);
+        },
+        onError: (error) => {
+          reject(
+            new Error(`Upload failed: ${error?.message || "Unknown error"}`),
+          );
+        },
+      });
+    });
+  };
+
+  // Update order status with image
+  const updateOrderStatus = async (imageUrl, actionType) => {
+    const statusData = {
+      status: actionType === "received" ? "PROCESSING" : "SHIPPED",
+      metadata: {
+        image: imageUrl,
+      },
+    };
+
+    return new Promise((resolve, reject) => {
+      updateOrderStatusMutate(
+        { id, statusData },
+        {
+          onSuccess: (result) => {
+            console.log("✅ Order status updated:", result);
+            resolve(result);
+          },
+          onError: (error) => {
+            reject(
+              new Error(error?.message || "Failed to update order status"),
+            );
+          },
+        },
+      );
+    });
+  };
+
+  // Handle complete upload flow
+  const handleCompleteUpload = async () => {
+    if (!selectedFile) {
+      alert("Please select an image first.");
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadStatus("Uploading image...");
+
+    try {
+      // Step 1: Upload image to multimedia endpoint
+      console.log("📤 Step 1: Uploading to multimedia endpoint...");
+      const imageUrl = await uploadImageToMultimedia(selectedFile);
+
+      if (!imageUrl) {
+        throw new Error("No image URL received from multimedia upload");
+      }
+
+      console.log("✅ Image uploaded successfully, URL:", imageUrl);
+      setUploadStatus("Updating order status...");
+
+      // Step 2: Update order status with image URL
+      console.log("📊 Step 2: Updating order status...");
+      await updateOrderStatus(imageUrl, currentActionType);
+
+      console.log("✅ Order status updated successfully");
+      setUploadStatus("Complete!");
+
+      // Show success message
+      const actionText =
+        currentActionType === "received"
+          ? "marked as completed"
+          : "marked as shipped";
+      alert(`Success! Garment image uploaded and order ${actionText}.`);
+
+      // Update checkbox state
+      if (currentActionType === "received") {
+        setMarkReceivedChecked(true);
+      } else if (currentActionType === "sent") {
+        setMarkSentChecked(true);
+      }
+
+      // Close popup and reset state
+      handleClosePopup();
+
+      // Refetch order data to get updated status
+      refetch();
+    } catch (error) {
+      console.error("❌ Upload flow error:", error);
+      setUploadStatus("Upload failed");
+      alert(`Upload failed: ${error.message || "Unknown error occurred"}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleCheckboxChange = (type) => {
     if (type === "received") {
-      setMarkReceivedChecked(!markReceivedChecked);
       if (!markReceivedChecked) {
+        setCurrentActionType("received");
         setShowUploadPopup(true);
+      } else {
+        setMarkReceivedChecked(false);
       }
     } else if (type === "sent") {
-      setMarkSentChecked(!markSentChecked);
       if (!markSentChecked) {
+        setCurrentActionType("sent");
         setShowUploadPopup(true);
+      } else {
+        setMarkSentChecked(false);
       }
     }
   };
 
-  const handleUpload = () => {
-    alert("Tailored garment image uploaded successfully!");
+  const handleClosePopup = () => {
     setShowUploadPopup(false);
+    setSelectedFile(null);
+    setImagePreview(null);
+    setUploadStatus("");
+    setCurrentActionType(null);
+    // Reset file input
+    const fileInput = document.getElementById("garment-upload");
+    if (fileInput) fileInput.value = "";
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   const getStatusIcon = (status) => {
@@ -153,6 +323,24 @@ const OrderDetails = () => {
       default:
         return <Clock className="w-5 h-5 text-yellow-600" />;
     }
+  };
+
+  const getActionTitle = () => {
+    if (currentActionType === "received") {
+      return "Mark Tailoring Complete";
+    } else if (currentActionType === "sent") {
+      return "Mark as Shipped";
+    }
+    return "Upload Finished Garment";
+  };
+
+  const getActionDescription = () => {
+    if (currentActionType === "received") {
+      return "Upload a clear picture of the finished tailored garment to mark this order as completed.";
+    } else if (currentActionType === "sent") {
+      return "Upload a picture showing the garment is ready for shipping to the customer.";
+    }
+    return "Upload a clear picture of the finished tailored garment.";
   };
 
   return (
@@ -287,31 +475,28 @@ const OrderDetails = () => {
                       </div>
 
                       <div className="p-6">
-                        <div className="flex flex-col lg:flex-row gap-6">
-                          <div className="lg:w-32 lg:h-32 w-full h-48 bg-gray-100 rounded-xl flex items-center justify-center">
-                            <rewrite_this>
-                              {purchaseItem?.product?.fabric?.photos?.[0] ? (
-                                <img
-                                  src={
-                                    purchaseItem.product?.fabric?.photos?.[0]
-                                  }
-                                  alt={
-                                    purchaseItem?.product?.name ||
-                                    "Fabric Photo"
-                                  }
-                                  className="w-full h-full object-cover rounded-xl"
-                                />
-                              ) : (
-                                <img
-                                  src={purchaseItem.product?.style?.photos?.[0]}
-                                  alt={
-                                    purchaseItem?.product?.name ||
-                                    "Fabric Photo"
-                                  }
-                                  className="w-full h-full object-cover rounded-xl"
-                                />
-                              )}
-                            </rewrite_this>
+                        <div className="flex flex-col lg:flex-row gap-6 items-center">
+                          <div className="lg:w-32 lg:h-32 w-full h-48 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden">
+                            {purchaseItem?.product?.fabric?.photos?.[0] ||
+                            purchaseItem?.product?.style?.photos?.[0] ? (
+                              <img
+                                src={
+                                  purchaseItem?.product?.fabric?.photos?.[0] ||
+                                  purchaseItem?.product?.style?.photos?.[0]
+                                }
+                                alt={
+                                  purchaseItem?.product?.name || "Product Photo"
+                                }
+                                className="w-full h-full object-cover rounded-xl"
+                              />
+                            ) : (
+                              <div className="text-center">
+                                <ImageIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                                <p className="text-sm text-gray-500">
+                                  No image
+                                </p>
+                              </div>
+                            )}
                           </div>
 
                           <div className="flex-1">
@@ -346,54 +531,6 @@ const OrderDetails = () => {
                                       parseInt(purchaseItem?.quantity || 1),
                                   )}
                                 </p>
-                              </div>
-                            </div>
-
-                            {/* Info message for tailor */}
-                            {/* <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                  <span className="text-white text-sm">ℹ️</span>
-                                </div>
-                                <div>
-                                  <p className="text-blue-800 font-medium">
-                                    This is a fabric-only order
-                                  </p>
-                                  <p className="text-blue-600 text-sm">
-                                    No tailoring services are required for this
-                                    item.
-                                  </p>
-                                </div>
-                              </div>
-                            </div>*/}
-
-                            {/* Customer Information for fabric-only orders */}
-                            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                              <div className="flex items-center gap-3 mb-3">
-                                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                                  <User className="w-4 h-4 text-white" />
-                                </div>
-                                <span className="font-semibold text-gray-700">
-                                  Customer Information
-                                </span>
-                              </div>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600 font-medium">
-                                    Email:
-                                  </span>
-                                  <span className="text-gray-900 font-semibold truncate ml-2">
-                                    {orderInfo?.user?.email}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600 font-medium">
-                                    Phone:
-                                  </span>
-                                  <span className="text-gray-900 font-semibold">
-                                    {orderInfo?.user?.phone || "N/A"}
-                                  </span>
-                                </div>
                               </div>
                             </div>
                           </div>
@@ -459,7 +596,7 @@ const OrderDetails = () => {
                     className="w-5 h-5 text-purple-600 border-2 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
                     checked={markReceivedChecked}
                     onChange={() => handleCheckboxChange("received")}
-                    disabled={orderInfo?.status === "DELIVERED"}
+                    disabled={orderInfo?.status === "DELIVERED" || isUploading}
                   />
                 </label>
               </div>
@@ -479,77 +616,12 @@ const OrderDetails = () => {
                     className="w-5 h-5 text-purple-600 border-2 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
                     checked={markSentChecked}
                     onChange={() => handleCheckboxChange("sent")}
-                    disabled={orderInfo?.status === "DELIVERED"}
+                    disabled={orderInfo?.status === "DELIVERED" || isUploading}
                   />
                 </label>
               </div>
             </div>
           </div>
-
-          {/* Customer Contact */}
-          {/* <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">
-              Customer Contact
-            </h3>
-
-            <div className="space-y-4">
-              <div>
-                <span className="text-sm text-gray-500 font-medium">
-                  Email Address
-                </span>
-                <p className="text-gray-900 font-semibold break-all">
-                  <a
-                    href={`mailto:${orderInfo?.user?.email}`}
-                    className="hover:underline"
-                  >
-                    {orderInfo?.user?.email}
-                  </a>
-                </p>
-              </div>
-              <div>
-                <span className="text-sm text-gray-500 font-medium">
-                  Phone Number
-                </span>
-                <p className="text-gray-900 font-semibold">
-                  <a
-                    href={`tel:${orderInfo?.user?.phone.replace(/\s+/g, "")}`}
-                    className="hover:underline"
-                  >
-                    {orderInfo?.user?.phone}
-                  </a>
-                </p>
-              </div>
-
-              <div className="pt-4 border-t border-gray-200">
-                <p className="text-sm font-medium text-gray-700 mb-3">
-                  Contact Customer
-                </p>
-                <div className="flex gap-3">
-                  <a
-                    href={`tel:${orderInfo?.user?.phone.replace(/\s+/g, "")}`}
-                    className="flex items-center justify-center w-10 h-10 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors"
-                    title="Call"
-                  >
-                    <Phone size={18} />
-                  </a>
-                  <a
-                    href={`sms:${orderInfo?.user?.phone.replace(/\s+/g, "")}`}
-                    className="flex items-center justify-center w-10 h-10 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
-                    title="Send SMS"
-                  >
-                    <MessageSquare size={18} />
-                  </a>
-                  <a
-                    href={`mailto:${orderInfo?.user?.email}`}
-                    className="flex items-center justify-center w-10 h-10 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition-colors"
-                    title="Send Email"
-                  >
-                    <Mail size={18} />
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>*/}
 
           {/* Order Timeline */}
           <div className="bg-white rounded-xl shadow-sm p-6">
@@ -570,19 +642,34 @@ const OrderDetails = () => {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                <div
+                  className={`w-3 h-3 rounded-full ${orderInfo?.status === "PROCESSING" || orderInfo?.status === "SHIPPED" || orderInfo?.status === "DELIVERED" ? "bg-orange-500" : "bg-gray-300"}`}
+                ></div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">
+                  <p
+                    className={`text-sm font-medium ${orderInfo?.status === "PROCESSING" || orderInfo?.status === "SHIPPED" || orderInfo?.status === "DELIVERED" ? "text-gray-900" : "text-gray-500"}`}
+                  >
                     In Progress
                   </p>
                   <p className="text-xs text-gray-500">Currently tailoring</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
+                <div
+                  className={`w-3 h-3 rounded-full ${orderInfo?.status === "SHIPPED" || orderInfo?.status === "DELIVERED" ? "bg-blue-500" : "bg-gray-300"}`}
+                ></div>
                 <div className="flex-1">
-                  <p className="text-sm text-gray-500">Ready for Delivery</p>
-                  <p className="text-xs text-gray-400">Pending</p>
+                  <p
+                    className={`text-sm ${orderInfo?.status === "SHIPPED" || orderInfo?.status === "DELIVERED" ? "font-medium text-gray-900" : "text-gray-500"}`}
+                  >
+                    Ready for Delivery
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {orderInfo?.status === "SHIPPED" ||
+                    orderInfo?.status === "DELIVERED"
+                      ? "Shipped"
+                      : "Pending"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -590,66 +677,188 @@ const OrderDetails = () => {
         </div>
       </div>
 
-      {/* Upload Popup */}
+      {/* Enhanced Upload Popup */}
       {showUploadPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-semibold text-gray-900">
-                  Upload Finished Garment
+                  {getActionTitle()}
                 </h3>
                 <button
-                  onClick={() => setShowUploadPopup(false)}
+                  onClick={handleClosePopup}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
+                  disabled={isUploading}
                 >
                   <X size={24} />
                 </button>
               </div>
 
               <p className="text-gray-600 mb-6 leading-relaxed">
-                Upload a clear picture of the finished tailored garment to mark
-                this order as completed.
+                {getActionDescription()}
               </p>
 
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center mb-6 hover:border-purple-400 transition-colors">
-                <div className="flex justify-center mb-4">
-                  <Scissors className="w-12 h-12 text-gray-400" />
-                </div>
-                <p className="text-gray-600 font-medium mb-2">
-                  Click to upload photo
-                </p>
-                <p className="text-gray-400 text-sm mb-4">Max file size: 5MB</p>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  id="garment-upload"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      const file = e.target.files[0];
-                      if (file.size <= 5 * 1024 * 1024) {
-                        handleUpload();
-                      } else {
-                        alert("File size exceeds 5MB limit.");
-                      }
-                    }
-                  }}
-                />
-                <label
-                  htmlFor="garment-upload"
-                  className="inline-block px-6 py-2 bg-purple-100 text-purple-700 rounded-lg cursor-pointer hover:bg-purple-200 transition-colors font-medium"
-                >
-                  Browse Files
-                </label>
+              {/* File Upload Area */}
+              <div className="mb-6">
+                {!selectedFile ? (
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-purple-400 transition-colors">
+                    <div className="flex justify-center mb-4">
+                      <Upload className="w-12 h-12 text-gray-400" />
+                    </div>
+                    <p className="text-gray-600 font-medium mb-2">
+                      Click to upload photo
+                    </p>
+                    <p className="text-gray-400 text-sm mb-4">
+                      Max file size: 5MB • JPG, PNG, GIF
+                    </p>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      id="garment-upload"
+                      onChange={handleFileSelect}
+                      disabled={isUploading}
+                    />
+                    <label
+                      htmlFor="garment-upload"
+                      className={`inline-block px-6 py-2 rounded-lg cursor-pointer font-medium transition-colors ${
+                        isUploading
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                      }`}
+                    >
+                      Browse Files
+                    </label>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Image Preview */}
+                    <div className="border border-gray-200 rounded-xl overflow-hidden">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-full h-48 object-cover"
+                      />
+                    </div>
+
+                    {/* File Details */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <ImageIcon className="w-5 h-5 text-purple-600" />
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">
+                              {selectedFile.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {formatFileSize(selectedFile.size)}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setSelectedFile(null);
+                            setImagePreview(null);
+                            const fileInput =
+                              document.getElementById("garment-upload");
+                            if (fileInput) fileInput.value = "";
+                          }}
+                          className="text-gray-400 hover:text-red-500 transition-colors"
+                          disabled={isUploading}
+                        >
+                          <X size={18} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Change File Button */}
+                    <div className="text-center">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        id="garment-upload-change"
+                        onChange={handleFileSelect}
+                        disabled={isUploading}
+                      />
+                      <label
+                        htmlFor="garment-upload-change"
+                        className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-colors cursor-pointer ${
+                          isUploading
+                            ? "border-gray-300 text-gray-400 cursor-not-allowed"
+                            : "border-purple-300 text-purple-700 hover:bg-purple-50"
+                        }`}
+                      >
+                        <Upload size={16} />
+                        Change Image
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {/* Upload Status */}
+                {uploadStatus && (
+                  <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      {isUploading && (
+                        <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+                      )}
+                      <p className="text-sm font-medium text-blue-800">
+                        {uploadStatus}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <button
-                onClick={handleUpload}
-                className="w-full py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
-              >
-                Confirm Upload & Mark Complete
-              </button>
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={handleClosePopup}
+                  className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  disabled={isUploading}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCompleteUpload}
+                  className={`flex-1 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+                    selectedFile && !isUploading
+                      ? "bg-purple-600 text-white hover:bg-purple-700"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  }`}
+                  disabled={!selectedFile || isUploading}
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4" />
+                      {currentActionType === "received"
+                        ? "Complete & Upload"
+                        : "Ship & Upload"}
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Instructions */}
+              <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <h4 className="text-sm font-semibold text-amber-800 mb-2">
+                  Upload Instructions:
+                </h4>
+                <ul className="text-xs text-amber-700 space-y-1 list-disc list-inside">
+                  <li>Take a clear, well-lit photo of the finished garment</li>
+                  <li>Ensure the entire garment is visible in the frame</li>
+                  <li>Avoid blurry or poorly lit images</li>
+                  <li>Maximum file size: 5MB</li>
+                  <li>Supported formats: JPG, PNG, GIF</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>

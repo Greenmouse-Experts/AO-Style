@@ -808,7 +808,6 @@ const CartPage = () => {
             subtotal: totals.subtotal,
             delivery_fee: delivery_fee, // Keep in main payment data
             vat_amount: estimatedVat,
-            metadata: metadata,
             country: addressInfo.country,
             postal_code: addressInfo.postal_code,
             ...(shouldIncludeMetadata && { metadata }), // Now includes delivery fee in metadata
@@ -1143,9 +1142,7 @@ const CartPage = () => {
                           {deliveryLoading ? (
                             <span className="text-gray-400">Loading...</span>
                           ) : deliveryError ? (
-                            <span className="text-red-500">
-                              Error loading fee
-                            </span>
+                            <span className="text-red-500">UPDATE ADDRESS</span>
                           ) : (
                             formatPrice(delivery_fee)
                           )}
@@ -1200,39 +1197,66 @@ const CartPage = () => {
                     </div>
 
                     {/* Checkout Button */}
-                    <button
-                      onClick={() => {
-                        console.log("🛒 User initiated checkout process");
-                        console.log("📊 Checkout initiation data:", {
-                          total_items: items.length,
-                          subtotal: totals.subtotal,
-                          delivery_fee: delivery_fee,
-                          vat_amount: estimatedVat,
-                          final_total: finalTotal,
-                          has_coupon: !!appliedCoupon,
-                          coupon_code: appliedCoupon?.code,
-                          discount_amount: discountAmount,
-                          user_email: carybinUser?.email,
-                          policy_agreed: agreedToPolicy,
-                          user_profile_address: getProfileAddress(),
-                          timestamp: new Date().toISOString(),
-                        });
-                        console.log(
-                          "🚀 Opening review modal with profile address",
-                        );
-                        setShowConfirmationModal(true);
-                      }}
-                      disabled={
-                        !agreedToPolicy ||
-                        createPaymentPending ||
-                        billingPending
-                      }
-                      className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-xl font-bold text-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-105"
-                    >
-                      {createPaymentPending || billingPending
-                        ? "Processing..."
-                        : "Proceed to Checkout"}
-                    </button>
+                    {deliveryError ? (
+                      <button
+                        onClick={() => {
+                          // Redirect to address update page
+                          window.open(`/${currentUrl}/settings`, "_blank");
+                        }}
+                        className="w-full cursor-pointer py-4 px-2 bg-purple-500 text-white hover:bg-purple-600 transition rounded-xl font-bold text-md shadow-lg flex items-center justify-center gap-2"
+                      >
+                        {/* Info/Warning/Alert Icon */}
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="w-5 h-5 text-yellow-300"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 9v2m0 4h.01M12 5a7 7 0 100 14 7 7 0 000-14z"
+                          />
+                        </svg>
+                        Update Address to Proceed
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          console.log("🛒 User initiated checkout process");
+                          console.log("📊 Checkout initiation data:", {
+                            total_items: items.length,
+                            subtotal: totals.subtotal,
+                            delivery_fee: delivery_fee,
+                            vat_amount: estimatedVat,
+                            final_total: finalTotal,
+                            has_coupon: !!appliedCoupon,
+                            coupon_code: appliedCoupon?.code,
+                            discount_amount: discountAmount,
+                            user_email: carybinUser?.email,
+                            policy_agreed: agreedToPolicy,
+                            user_profile_address: getProfileAddress(),
+                            timestamp: new Date().toISOString(),
+                          });
+                          console.log(
+                            "🚀 Opening review modal with profile address",
+                          );
+                          setShowConfirmationModal(true);
+                        }}
+                        disabled={
+                          !agreedToPolicy ||
+                          createPaymentPending ||
+                          billingPending
+                        }
+                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-xl font-bold text-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-105"
+                      >
+                        {createPaymentPending || billingPending
+                          ? "Processing..."
+                          : "Proceed to Checkout"}
+                      </button>
+                    )}
 
                     {/* Continue Shopping */}
                     <Link

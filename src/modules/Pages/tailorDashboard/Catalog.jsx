@@ -396,8 +396,8 @@ export default function StylesTable() {
                           {style.status}
                         </span>
                       </td>
-                      <td className="hidden md:table-cell">{style.rating}</td>
-                      <td className="hidden md:table-cell">{style.income}</td>
+                      {/* <td className="hidden md:table-cell">{style.rating}</td>
+                      <td className="hidden md:table-cell">{style.income}</td>*/}
                       <td className="relative">
                         <button
                           className="cursor-pointer"
@@ -421,7 +421,7 @@ export default function StylesTable() {
                                 state={{ info: style }}
                                 className="block  cursor-pointer w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
                               >
-                                {isAdminStyleRoute ? "View" : "Edit"}
+                                {isAdminStyleRoute ? "View" : "View/Edit"}
                               </Link>
                             ) : currProd == "all" ? (
                               <></>
@@ -435,7 +435,7 @@ export default function StylesTable() {
                                 state={{ info: style }}
                                 className="block  cursor-pointer w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
                               >
-                                Edit
+                                View/Edit
                               </Link>
                             )}
 
@@ -464,6 +464,7 @@ export default function StylesTable() {
                                           },
                                         );
                                         refetch();
+                                        console.log(resp);
                                         return resp.data;
                                       },
                                       {

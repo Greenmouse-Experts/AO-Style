@@ -6,6 +6,8 @@
     "moduleResolution": "Node",
     "lib": ["ES2022", "DOM"],
     "jsx": "react-jsx" /* Added to support .tsx files */,
+    "allowJs": true, // Allow JavaScript files to be compiled
+    "checkJs": false, // Skip type checking .js files
 
     /* Performance optimizations */
     "skipLibCheck": true, // Don't type-check .d.ts files in node_modules

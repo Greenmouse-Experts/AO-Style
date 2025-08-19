@@ -612,8 +612,8 @@ const ViewCustomer = () => {
                       <th className="hidden md:table-cell">Price</th>
                       {/* <th className="hidden md:table-cell">Sold</th> */}
                       <th>Status</th>
-                      <th className="hidden md:table-cell">Rating</th>
-                      <th className="hidden md:table-cell">Income</th>
+                      {/* <th className="hidden md:table-cell">Rating</th>
+                      <th className="hidden md:table-cell">Income</th>*/}
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -671,8 +671,8 @@ const ViewCustomer = () => {
                             {style.status}
                           </span>
                         </td>
-                        <td className="hidden md:table-cell">{style.rating}</td>
-                        <td className="hidden md:table-cell">{style.income}</td>
+                        {/* <td className="hidden md:table-cell">{style.rating}</td>
+                        <td className="hidden md:table-cell">{style.income}</td>*/}
                         <td className="relative">
                           <button
                             className="cursor-pointer"

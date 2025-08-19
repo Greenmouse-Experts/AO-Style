@@ -244,7 +244,7 @@ const OrderPage = () => {
                 "Unknown",
               product: firstItem?.name || "Product Item",
               quantity: firstItem?.quantity || 1,
-              amount: `₦${formatNumberWithCommas(details?.total_amount || details?.payment?.amount || 0)}`,
+              amount: `₦${formatNumberWithCommas(details?.payment?.purchase?.items?.[0]?.price ?? 0)}`,
               productStatus: details?.payment?.payment_status || "PENDING",
               orderStatus: details?.status || "PENDING",
               dateAdded: details?.created_at

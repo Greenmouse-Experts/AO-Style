@@ -36,8 +36,8 @@ const OrderDetails = () => {
   const orderMetadata = data?.data?.payment?.metadata || [];
 
   // Filter to show only fabric items for fabric vendors
-  const fabricOnlyPurchase = orderPurchase.filter(
-    (item) => item?.purchase_type === "FABRIC",
+  const fabricOnlyPurchase = orderInfo?.order_items?.filter(
+    (item) => item?.product?.type === "FABRIC",
   );
   const fabricOnlyMetadata = orderMetadata.filter(
     (meta) => meta?.fabric_product_id,
@@ -45,7 +45,7 @@ const OrderDetails = () => {
 
   // Calculate fabric-only total amount
   const fabricOnlyTotal = fabricOnlyPurchase.reduce((total, item) => {
-    return total + (item?.price * item?.quantity || 0);
+    return total + (item?.product?.price * item?.quantity || 0);
   }, 0);
 
   // Fabric vendors only deal with fabric orders
@@ -284,18 +284,22 @@ const OrderDetails = () => {
                         <div className="flex items-center justify-between">
                           <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                             <Package className="w-5 h-5 text-purple-600" />
-                            {purchaseItem?.name || "Fabric Product"}
+                            {purchaseItem?.product?.name || "Fabric Product"}
                           </h3>
                           <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
-                            {purchaseItem?.purchase_type || "FABRIC"}
+                            {purchaseItem?.product?.type}
                           </span>
                         </div>
                       </div>
 
                       <div className="p-6">
-                        <div className="flex flex-col lg:flex-row gap-6">
+                        <div className="flex flex-col lg:flex-row gap-6 items-center">
                           <div className="lg:w-32 lg:h-32 w-full h-48 bg-gray-100 rounded-xl flex items-center justify-center">
-                            <Package className="w-12 h-12 text-gray-400" />
+                            <img
+                              src={purchaseItem?.product?.fabric?.photos?.[0]}
+                              alt={purchaseItem?.name || "Fabric Product"}
+                              className="w-32 h-32 object-cover rounded-xl border border-gray-200"
+                            />
                           </div>
 
                           <div className="flex-1">
@@ -315,7 +319,7 @@ const OrderDetails = () => {
                                 <p className="text-lg font-bold text-purple-600">
                                   ₦
                                   {formatNumberWithCommas(
-                                    parseInt(purchaseItem?.price || 0),
+                                    parseInt(purchaseItem?.product?.price || 0),
                                   )}
                                 </p>
                               </div>
@@ -326,42 +330,11 @@ const OrderDetails = () => {
                                 <p className="text-2xl font-bold text-purple-600">
                                   ₦
                                   {formatNumberWithCommas(
-                                    parseInt(purchaseItem?.price || 0) *
-                                      parseInt(purchaseItem?.quantity || 1),
+                                    parseInt(
+                                      purchaseItem?.product?.price || 0,
+                                    ) * parseInt(purchaseItem?.quantity || 1),
                                   )}
                                 </p>
-                              </div>
-                            </div>
-
-                            {/* Customer Information for fabric-only orders */}
-                            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                              <div className="flex items-center gap-3 mb-3">
-                                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                  <span className="text-sm text-white font-bold">
-                                    C
-                                  </span>
-                                </div>
-                                <span className="font-semibold text-gray-700">
-                                  Customer Information
-                                </span>
-                              </div>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600 font-medium">
-                                    Email:
-                                  </span>
-                                  <span className="text-gray-900 font-semibold truncate ml-2">
-                                    {orderInfo?.user?.email}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600 font-medium">
-                                    Phone:
-                                  </span>
-                                  <span className="text-gray-900 font-semibold">
-                                    {orderInfo?.user?.phone || "N/A"}
-                                  </span>
-                                </div>
                               </div>
                             </div>
                           </div>

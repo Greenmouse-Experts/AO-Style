@@ -437,7 +437,7 @@ const ProductPage = () => {
                 }
                 className="w-full sm:w-auto"
               >
-                <button className="flex items-center justify-center bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl w-full sm:w-auto font-medium">
+                <button className="flex items-center justify-center bg-gradient text-white px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl w-full sm:w-auto font-medium">
                   <svg
                     className="w-5 h-5 mr-2"
                     fill="none"
@@ -862,62 +862,34 @@ const ProductPage = () => {
 
               return (
                 <>
-                  {row?.status === "DRAFT" ? (
+                  {isAdminFabricRoute && row?.status === "DRAFT" ? (
                     <button
                       onClick={() => {
                         console.log("🚀 Publishing fabric product:", row);
-                        if (isAdminFabricRoute) {
-                          updateAdminFabricMutate(
-                            {
-                              id: row?.id,
-                              product: {
-                                name: row?.name,
-                                sku: row?.sku,
-                                category_id: row?.category_id,
-                                status: "PUBLISHED",
-                                approval_status: "PUBLISHED",
-                              },
+                        updateAdminFabricMutate(
+                          {
+                            id: row?.id,
+                            product: {
+                              name: row?.name,
+                              sku: row?.sku,
+                              category_id: row?.category_id,
+                              status: "PUBLISHED",
+                              approval_status: "PUBLISHED",
                             },
-                            {
-                              onSuccess: (response) => {
-                                console.log(
-                                  "✅ Publish Success Response:",
-                                  response,
-                                );
-                                setOpenDropdown(null);
-                              },
-                              onError: (error) => {
-                                console.error("❌ Publish Error:", error);
-                              },
+                          },
+                          {
+                            onSuccess: (response) => {
+                              console.log(
+                                "✅ Publish Success Response:",
+                                response,
+                              );
+                              setOpenDropdown(null);
                             },
-                          );
-                        } else {
-                          updateFabricMutate(
-                            {
-                              id: row?.id,
-                              business_id: businessDetails?.data?.id,
-                              product: {
-                                name: row?.name,
-                                sku: row?.sku,
-                                category_id: row?.category_id,
-                                status: "PUBLISHED",
-                                approval_status: "PUBLISHED",
-                              },
+                            onError: (error) => {
+                              console.error("❌ Publish Error:", error);
                             },
-                            {
-                              onSuccess: (response) => {
-                                console.log(
-                                  "✅ Publish Success Response:",
-                                  response,
-                                );
-                                setOpenDropdown(null);
-                              },
-                              onError: (error) => {
-                                console.error("❌ Publish Error:", error);
-                              },
-                            },
-                          );
-                        }
+                          },
+                        );
                       }}
                       className="flex items-center w-full px-4 py-3 text-sm text-green-700 hover:bg-green-50 transition-colors duration-150"
                     >
@@ -940,62 +912,34 @@ const ProductPage = () => {
                     </button>
                   ) : null}
 
-                  {/* {row?.status === "PUBLISHED" ? (
+                  {isAdminFabricRoute && row?.status === "PUBLISHED" ? (
                     <button
                       onClick={() => {
                         console.log("📝 Unpublishing fabric product:", row);
-                        if (isAdminFabricRoute) {
-                          updateAdminFabricMutate(
-                            {
-                              id: row?.id,
-                              product: {
-                                name: row?.name,
-                                sku: row?.sku,
-                                category_id: row?.category_id,
-                                status: "DRAFT",
-                                approval_status: "DRAFT",
-                              },
+                        updateAdminFabricMutate(
+                          {
+                            id: row?.id,
+                            product: {
+                              name: row?.name,
+                              sku: row?.sku,
+                              category_id: row?.category_id,
+                              status: "DRAFT",
+                              approval_status: "DRAFT",
                             },
-                            {
-                              onSuccess: (response) => {
-                                console.log(
-                                  "✅ Unpublish Success Response:",
-                                  response,
-                                );
-                                setOpenDropdown(null);
-                              },
-                              onError: (error) => {
-                                console.error("❌ Unpublish Error:", error);
-                              },
+                          },
+                          {
+                            onSuccess: (response) => {
+                              console.log(
+                                "✅ Unpublish Success Response:",
+                                response,
+                              );
+                              setOpenDropdown(null);
                             },
-                          );
-                        } else {
-                          updateFabricMutate(
-                            {
-                              id: row?.id,
-                              business_id: businessDetails?.data?.id,
-                              product: {
-                                name: row?.name,
-                                sku: row?.sku,
-                                category_id: row?.category_id,
-                                status: "DRAFT",
-                                approval_status: "DRAFT",
-                              },
+                            onError: (error) => {
+                              console.error("❌ Unpublish Error:", error);
                             },
-                            {
-                              onSuccess: (response) => {
-                                console.log(
-                                  "✅ Unpublish Success Response:",
-                                  response,
-                                );
-                                setOpenDropdown(null);
-                              },
-                              onError: (error) => {
-                                console.error("❌ Unpublish Error:", error);
-                              },
-                            },
-                          );
-                        }
+                          },
+                        );
                       }}
                       className="flex items-center w-full px-4 py-3 text-sm text-yellow-700 hover:bg-yellow-50 transition-colors duration-150"
                     >
@@ -1016,7 +960,7 @@ const ProductPage = () => {
                         ? "Unpublishing..."
                         : "Unpublish Product"}
                     </button>
-                  ) : null}*/}
+                  ) : null}
 
                   <Link
                     state={{ info: row?.original || row }}

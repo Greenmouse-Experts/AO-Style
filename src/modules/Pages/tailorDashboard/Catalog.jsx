@@ -336,8 +336,8 @@ export default function StylesTable() {
                     <th className="hidden md:table-cell">Price</th>
                     {/* <th className="hidden md:table-cell">Sold</th> */}
                     <th>Status</th>
-                    <th className="hidden md:table-cell">Rating</th>
-                    <th className="hidden md:table-cell">Income</th>
+                    {/* <th className="hidden md:table-cell">Rating</th>
+                    <th className="hidden md:table-cell">Income</th>*/}
                     <th>Action</th>
                   </tr>
                 </thead>
@@ -396,8 +396,8 @@ export default function StylesTable() {
                           {style.status}
                         </span>
                       </td>
-                      <td className="hidden md:table-cell">{style.rating}</td>
-                      <td className="hidden md:table-cell">{style.income}</td>
+                      {/* <td className="hidden md:table-cell">{style.rating}</td>
+                      <td className="hidden md:table-cell">{style.income}</td>*/}
                       <td className="relative">
                         <button
                           className="cursor-pointer"
@@ -421,7 +421,7 @@ export default function StylesTable() {
                                 state={{ info: style }}
                                 className="block  cursor-pointer w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
                               >
-                                {isAdminStyleRoute ? "View" : "Edit"}
+                                {isAdminStyleRoute ? "View" : "View/Edit"}
                               </Link>
                             ) : currProd == "all" ? (
                               <></>
@@ -435,7 +435,7 @@ export default function StylesTable() {
                                 state={{ info: style }}
                                 className="block  cursor-pointer w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
                               >
-                                Edit
+                                View/Edit
                               </Link>
                             )}
 
@@ -464,6 +464,7 @@ export default function StylesTable() {
                                           },
                                         );
                                         refetch();
+                                        console.log(resp);
                                         return resp.data;
                                       },
                                       {
@@ -526,7 +527,7 @@ export default function StylesTable() {
                                 </Link>
                               </>
                             )}
-                            {style?.status === "DRAFT" ? (
+                            {/* {style?.status === "DRAFT" ? (
                               <button
                                 onClick={() => {
                                   if (isAdminStyleRoute) {
@@ -573,7 +574,7 @@ export default function StylesTable() {
                                   ? "Please wait..."
                                   : "Publish Style"}
                               </button>
-                            ) : null}
+                            ) : null}*/}
 
                             <button
                               onClick={() => {

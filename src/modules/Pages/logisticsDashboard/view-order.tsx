@@ -303,7 +303,7 @@ export default function ViewOrderLogistics() {
       <div className="bg-base-100 p-4 rounded-md mb-6 flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold">Order Details</h2>
-          <div className="label mt-2">Order ID: {id}</div>
+          <div className="opacity-65 mt-2 wrap-break-word">Order ID: {id}</div>
           <div className="flex items-center gap-2 mt-2">
             <p className="text-sm">Status:</p>
             <div className="badge badge-success gap-2">Shipped</div>

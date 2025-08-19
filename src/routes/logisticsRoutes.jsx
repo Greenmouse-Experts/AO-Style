@@ -3,7 +3,7 @@ import LogisticsDashboard from "../modules/Pages/logisticsDashboard";
 import ViewOrdersLogistics from "../modules/Pages/logisticsDashboard/view-order";
 import OrderRequested from "../modules/Pages/logisticsDashboard/OrderRequested";
 // import OrderRequested from "../modules/Pages/logisticsDashboard/";
-// import Orders from "../modules/Pages/logisticsDashboard/Orders";
+import Orders from "../modules/Pages/logisticsDashboard/Orders";
 import NotificationPage from "../modules/Pages/logisticsDashboard/NotificationPage";
 import InboxPage from "../modules/Pages/logisticsDashboard/Inbox";
 import Settings from "../modules/Pages/logisticsDashboard/Settings";

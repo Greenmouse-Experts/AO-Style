@@ -405,51 +405,44 @@ export default function ViewOrderLogistics() {
         <div className="lg:col-span-2 bg-base-100 p-6 rounded-lg shadow-md">
           <h3 className="text-xl font-semibold mb-4">Ordered Items</h3>
           <div className="flex flex-col gap-4">
-            {order_data?.order_items.map((item) => (
+            {order_data?.order_items.map((item: OrderItem) => (
               <div
                 key={item.id}
-                className="flex items-center p-4 bg-base-100 shadow-xl border border-base-300 rounded-lg gap-4"
+                className="card compact bg-base-100 shadow-md border border-base-200"
               >
-                <div className="w-24 h-24 overflow-hidden rounded-md flex-shrink-0">
-                  {item.product.style?.photos?.[0] ? (
-                    <img
-                      src={item.product.style.photos[0]}
-                      alt={item.product.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : item.product.fabric?.photos?.[0] ? (
-                    <img
-                      src={item.product.fabric.photos[0]}
-                      alt={item.product.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
-                      No Image
+                <div className="flex flex-row items-center space-x-4 p-4">
+                  <div className="avatar">
+                    <div className="w-20 rounded">
+                      {item.product.style?.photos?.[0] ? (
+                        <img
+                          src={item.product.style.photos[0]}
+                          alt={item.product.name}
+                        />
+                      ) : item.product.fabric?.photos?.[0] ? (
+                        <img
+                          src={item.product.fabric.photos[0]}
+                          alt={item.product.name}
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
+                          No Image
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                <div className="flex-grow flex flex-col justify-between">
-                  <div>
-                    <h4
-                      className="text-lg font-semibold"
-                      title={item.product.name}
-                    >
-                      {item.product.name}
-                    </h4>
-                    <p className="text-sm text-gray-600">
+                  </div>
+                  <div className="card-body">
+                    <h2 className="card-title">{item.product.name}</h2>
+                    <p className="text-sm opacity-50">
                       Quantity: {item.quantity}
                     </p>
-                  </div>
-                  <div className="flex justify-end mt-2">
-                    <button
-                      className="btn btn-sm btn-outline btn-primary"
-                      onClick={() => {
-                        console.log(order_data);
-                      }}
-                    >
-                      View Detaill
-                    </button>
+                    <p className="text-sm">
+                      Pickup Address: {item.product.creator.profile.address}
+                    </p>
+                    <div className="card-actions justify-end">
+                      <button className="btn btn-primary btn-sm">
+                        View Detail
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

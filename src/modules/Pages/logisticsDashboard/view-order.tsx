@@ -376,26 +376,29 @@ export default function ViewOrderLogistics() {
               <p>
                 <strong className="text-base-content/70">Address:</strong>{" "}
                 {/*{order_data?.payment.metadata || "N/A"}*/}
-                {order_data?.payment.metadata[1].order_summary.delivery_address}
+                {
+                  order_data?.payment.metadata[1]?.order_summary
+                    .delivery_address
+                }
               </p>
               <p>
                 <strong className="text-base-content/70">City:</strong>{" "}
-                {order_data?.payment.metadata[1].order_summary.delivery_city ||
+                {order_data?.payment.metadata[1]?.order_summary.delivery_city ||
                   "N/A"}
               </p>
               <p>
                 <strong className="text-base-content/70">State:</strong>{" "}
-                {order_data?.payment.metadata[1].order_summary.delivery_state ||
-                  "N/A"}
+                {order_data?.payment.metadata[1]?.order_summary
+                  .delivery_state || "N/A"}
               </p>
               <p>
                 <strong className="text-base-content/70">Country:</strong>{" "}
-                {order_data?.payment.metadata[1].order_summary
+                {order_data?.payment.metadata[1]?.order_summary
                   .delivery_country || "N/A"}
               </p>
               <p>
                 <strong className="text-base-content/70">Zip Code:</strong>{" "}
-                {order_data?.payment.metadata[1].order_summary.postal_code ||
+                {order_data?.payment.metadata[1]?.order_summary.postal_code ||
                   "N/A"}
               </p>
             </div>

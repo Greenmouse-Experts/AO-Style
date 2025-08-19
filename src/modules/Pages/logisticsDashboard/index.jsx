@@ -4,6 +4,7 @@ import DoughnutChartComponent from "./components/DoughnutChartComponent";
 import OrderRequests from "./components/OrderRequests";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import DashOrderRequests from "./components/DashOrderRequests";
+import WalletPage from "../salesDashboard/components/WalletPage";
 export default function LogisticsDashboard() {
   const { carybinUser } = useCarybinUserStore();
 
@@ -15,7 +16,7 @@ export default function LogisticsDashboard() {
         </h1>
         <p className="text-gray-500">Another day to earn by delivering goods</p>
       </div>
-      <Cards />
+      {/* <Cards />*/}
       {/* <OrderRequests />*/}
       <DashOrderRequests />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
@@ -23,7 +24,8 @@ export default function LogisticsDashboard() {
           <BarChartComponent />
         </div>
         <div className="lg:col-span-1">
-          <DoughnutChartComponent />
+          {/* <DoughnutChartComponent />*/}
+          <WalletPage />
         </div>
       </div>
     </>

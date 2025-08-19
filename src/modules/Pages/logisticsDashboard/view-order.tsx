@@ -349,7 +349,7 @@ export default function ViewOrderLogistics() {
         <div className="bg-base-100 p-6 rounded-lg shadow-md flex flex-col gap-6">
           <h3 className="text-xl font-semibold mb-2">Delivery Information</h3>
           <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
+            {/*<div className="flex flex-col gap-2">
               <h4 className="text-lg font-medium text-primary">
                 Customer Information
               </h4>
@@ -367,8 +367,8 @@ export default function ViewOrderLogistics() {
                 <strong className="text-base-content/70">Phone:</strong>{" "}
                 {order_data?.user.phone || "N/A"}
               </p>
-            </div>
-            <div className="divider"></div>
+            </div>*/}
+            {/*<div className="divider"></div>*/}
             <div className="flex flex-col gap-2">
               <h4 className="text-lg font-medium text-primary">
                 Delivery Address

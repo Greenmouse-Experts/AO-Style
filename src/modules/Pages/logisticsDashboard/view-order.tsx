@@ -436,7 +436,10 @@ export default function ViewOrderLogistics() {
                       Quantity: {item.quantity}
                     </p>
                     <p className="text-sm">
-                      Pickup Address: {item.product.creator.profile.address}
+                      <p className="label">Pickup Address:</p>
+                      <div className="mt-2">
+                        {item.product.creator.profile.address}
+                      </div>
                     </p>
                     <div className="card-actions justify-end">
                       <button className="btn btn-primary btn-sm">

@@ -441,11 +441,11 @@ export default function ViewOrderLogistics() {
                         {item.product.creator.profile.address}
                       </div>
                     </p>
-                    <div className="card-actions justify-end">
+                    {/*<div className="card-actions justify-end">
                       <button className="btn btn-primary btn-sm">
                         View Detail
                       </button>
-                    </div>
+                    </div>*/}
                   </div>
                 </div>
               </div>

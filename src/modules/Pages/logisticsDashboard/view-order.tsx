@@ -51,6 +51,22 @@ interface MetadataItem {
   style_product_name: string;
   fabric_product_name: string;
 }
+interface order_summary {
+  order_summary: {
+    subtotal: number;
+    vat_amount: number;
+    coupon_code: string;
+    final_total: number;
+    postal_code: string;
+    delivery_fee: number;
+    delivery_city: string;
+    delivery_state: string;
+    delivery_address: string;
+    delivery_country: string;
+    total_style_items: number;
+    total_fabric_items: number;
+  };
+}
 
 interface VendorCharge {
   fabric_vendor_fee: number;
@@ -98,7 +114,7 @@ interface PaymentData {
   auto_renew: boolean;
   is_renewal: boolean;
   is_upgrade: boolean;
-  metadata: MetadataItem[];
+  metadata: [MetadataItem, order_summary];
   purchase: Purchase;
   transaction_type: null;
   order_id: null;
@@ -359,23 +375,28 @@ export default function ViewOrderLogistics() {
               </h4>
               <p>
                 <strong className="text-base-content/70">Address:</strong>{" "}
-                {order_data?.user.profile.address || "N/A"}
+                {/*{order_data?.payment.metadata || "N/A"}*/}
+                {order_data?.payment.metadata[1].order_summary.delivery_address}
               </p>
               <p>
                 <strong className="text-base-content/70">City:</strong>{" "}
-                {order_data?.user.profile.city || "N/A"}
+                {order_data?.payment.metadata[1].order_summary.delivery_city ||
+                  "N/A"}
               </p>
               <p>
                 <strong className="text-base-content/70">State:</strong>{" "}
-                {order_data?.user.profile.state || "N/A"}
+                {order_data?.payment.metadata[1].order_summary.delivery_state ||
+                  "N/A"}
               </p>
               <p>
                 <strong className="text-base-content/70">Country:</strong>{" "}
-                {order_data?.user.profile.country || "N/A"}
+                {order_data?.payment.metadata[1].order_summary
+                  .delivery_country || "N/A"}
               </p>
               <p>
                 <strong className="text-base-content/70">Zip Code:</strong>{" "}
-                {order_data?.user.profile.zip_code || "N/A"}
+                {order_data?.payment.metadata[1].order_summary.postal_code ||
+                  "N/A"}
               </p>
             </div>
           </div>

@@ -283,6 +283,16 @@ export default function OrderRequests() {
         navigate(`/logistics/orders/${item.id}`);
       },
     },
+    {
+      key: "locate",
+      label: "locate",
+      icon: <Eye className="w-4 h-4 text-primary" />,
+      action: (item: Order) => {
+        console.log(item, "view");
+        // dialogRef.current?.showModal();
+        navigate(`/logistics/orders/${item.id}/map`);
+      },
+    },
     // {
     //   key: "accept",
     //   label: "Accept Order",

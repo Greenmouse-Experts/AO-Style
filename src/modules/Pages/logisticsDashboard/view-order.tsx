@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
@@ -346,7 +346,7 @@ export default function ViewOrderLogistics() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-base-100 p-6 rounded-lg shadow-md flex flex-col gap-6">
+        <div className="bg-base-100 h-fit p-6 rounded-lg shadow-md flex flex-col gap-6">
           <h3 className="text-xl font-semibold mb-2">Delivery Information</h3>
           <div className="flex flex-col gap-4">
             {/*<div className="flex flex-col gap-2">
@@ -402,6 +402,12 @@ export default function ViewOrderLogistics() {
                   "N/A"}
               </p>
             </div>
+            <Link
+              to={`/logistics/orders/${id}/map`}
+              className="btn btn-primary"
+            >
+              See On Map
+            </Link>
           </div>
         </div>
 

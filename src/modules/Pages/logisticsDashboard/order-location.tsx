@@ -3,9 +3,23 @@ import { useParams } from "react-router-dom";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
 import { toast } from "react-toastify";
 import GoogleMapReact from "google-map-react";
-import { MdLocationPin } from "react-icons/md";
-import { MapPin } from "lucide-react";
+import { ChevronLeft, MapPin } from "lucide-react";
+import { useState, useEffect } from "react";
 
+// Define the AnyReactComponent for the destination marker
+const AnyReactComponent = ({ text }) => (
+  <div className=" z-20 " data-theme="nord">
+    <div className="flex flex-col p-2 w-fit justify-center items-center gap-2">
+      {" "}
+      <div className="bg-primary size-12 grid place-items-center rounded-full border-white border">
+        <MapPin />
+      </div>
+      <div className="badge mx-auto h-fit shadow-md text-center">{text}</div>
+    </div>
+  </div>
+);
+
+// Interface definitions (as provided in the original code)
 interface MeasurementData {
   full_body: {
     height: number;
@@ -222,10 +236,12 @@ interface OrderItem {
   deleted_at: null;
   product: Product;
 }
+
 interface LogisticAgent {
   id: string;
   name: string;
 }
+
 interface OrderLogisticsData {
   statusCode: number;
   data: {
@@ -245,15 +261,17 @@ interface OrderLogisticsData {
     logistics_agent: LogisticAgent;
   };
 }
-const AnyReactComponent = ({ text }) => (
-  <div className="bg-red-500 z-20" data-theme="nord">
-    <div className="bg-primary size-12 grid place-items-center   rounded-full border-white border">
-      <MapPin />
-    </div>
-  </div>
-);
+
 export default function LogisticMapLocation() {
   const { id } = useParams();
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const [directions, setDirections] =
+    useState<google.maps.DirectionsResult | null>(null);
+
+  // Fetch order data
   const query = useQuery<OrderLogisticsData>({
     queryKey: ["logistic", id, "view"],
     queryFn: async () => {
@@ -262,6 +280,7 @@ export default function LogisticMapLocation() {
       return resp.data;
     },
   });
+
   const accept_mutation = useMutation({
     mutationFn: async () => {
       let resp = await CaryBinApi.patch(`/orders/${id}/accept-order`);
@@ -271,31 +290,89 @@ export default function LogisticMapLocation() {
       toast.error(err?.data?.message || "failed to accept order");
     },
   });
-  const cordinates = query.data?.data.user.profile.coordinates;
 
-  if (query.isFetching) return <div>Loading...</div>;
+  const coordinates = query.data?.data.user.profile.coordinates;
+
+  // Get user's current location
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          toast.error(
+            "Unable to retrieve your location. Please allow location access.",
+          );
+          console.error("Geolocation error:", error);
+        },
+      );
+    } else {
+      toast.error("Geolocation is not supported by your browser.");
+    }
+  }, []);
+
+  // Default map properties
   const defaultProps = {
     center: {
-      lat: parseFloat(cordinates?.latitude),
-      lng: parseFloat(cordinates?.longitude),
+      lat: coordinates ? parseFloat(coordinates.latitude) : 10.99835602,
+      lng: coordinates ? parseFloat(coordinates.longitude) : 77.01502627,
     },
     zoom: 11,
   };
 
-  // const defaultProps = {
-  //   center: {
-  //     lat: 10.99835602,
-  //     lng: 77.01502627,
-  //   },
-  //   zoom: 11,
-  // };
-  const handleApiLoaded = (map, maps) => {
-    // use map and maps objects
+  // Handle Google Maps API loading and directions
+  const handleApiLoaded = (map: any, maps: any) => {
+    if (userLocation && coordinates) {
+      const directionsService = new maps.DirectionsService();
+      const directionsRenderer = new maps.DirectionsRenderer();
+      directionsRenderer.setMap(map);
+
+      // Calculate directions
+      directionsService.route(
+        {
+          origin: new maps.LatLng(userLocation.lat, userLocation.lng),
+          destination: new maps.LatLng(
+            parseFloat(coordinates.latitude),
+            parseFloat(coordinates.longitude),
+          ),
+          travelMode: maps.TravelMode.DRIVING,
+        },
+        (
+          result: google.maps.DirectionsResult,
+          status: google.maps.DirectionsStatus,
+        ) => {
+          if (status === maps.DirectionsStatus.OK) {
+            setDirections(result);
+            directionsRenderer.setDirections(result);
+          } else {
+            toast.error("Failed to calculate directions.");
+            console.error("Directions request failed due to " + status);
+          }
+        },
+      );
+    }
   };
+
+  if (query.isFetching)
+    return (
+      <div className="w-full h-screen flex justify-center items-center">
+        <span className="loading loading-ring loading-lg"></span>
+      </div>
+    );
 
   return (
     <div>
-      {/*map {id}*/}
+      <div
+        onClick={(e) => window.history.back()}
+        className="btn my-2 btn-secondary"
+        data-theme="nord"
+      >
+        <ChevronLeft /> Back
+      </div>
       <div className="h-[520px] w-full">
         <GoogleMapReact
           bootstrapURLKeys={{ key: "AIzaSyBstumBKZoQNTHm3Y865tWEHkkFnNiHGGE" }}
@@ -304,11 +381,20 @@ export default function LogisticMapLocation() {
           yesIWantToUseGoogleMapApiInternals
           onGoogleApiLoaded={({ map, maps }) => handleApiLoaded(map, maps)}
         >
-          <AnyReactComponent
-            lat={cordinates?.latitude}
-            lng={cordinates?.longitude}
-            text="My Marker"
-          />
+          {/*{coordinates && (
+            <AnyReactComponent
+              lat={parseFloat(coordinates.latitude)}
+              lng={parseFloat(coordinates.longitude)}
+              text="Destination"
+            />
+          )}
+          {userLocation && (
+            <AnyReactComponent
+              lat={userLocation.lat}
+              lng={userLocation.lng}
+              text="Your Location"
+            />
+          )}*/}
         </GoogleMapReact>
       </div>
     </div>

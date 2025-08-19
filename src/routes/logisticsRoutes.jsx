@@ -21,10 +21,10 @@ export const logisticsRoutes = [
         index: true,
         element: <LogisticsDashboard />,
       },
-      // {
-      //   path: "/logistics/orders",
-      //   element: <Orders />,
-      // },
+      {
+        path: "/logistics/orders",
+        element: <Orders />,
+      },
       {
         path: "/logistics/orders/:id",
         element: <ViewOrdersLogistics />,

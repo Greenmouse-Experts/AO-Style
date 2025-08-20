@@ -36,17 +36,27 @@ const OrderDetails = () => {
   const orderMetadata = data?.data?.payment?.metadata || [];
 
   // Filter to show only fabric items for fabric vendors
-  const fabricOnlyPurchase = orderInfo?.order_items?.filter(
-    (item) => item?.product?.type === "FABRIC",
-  );
-  const fabricOnlyMetadata = orderMetadata.filter(
-    (meta) => meta?.fabric_product_id,
-  );
+  const fabricOnlyPurchase = Array.isArray(orderInfo?.order_items)
+    ? orderInfo.order_items.filter(
+        (item) =>
+          item?.product?.type?.toUpperCase() === "FABRIC" ||
+          item?.type?.toUpperCase() === "FABRIC",
+      )
+    : [];
+  const fabricOnlyMetadata = Array.isArray(orderMetadata)
+    ? orderMetadata.filter((meta) => meta?.fabric_product_id)
+    : [];
+
+  // --- FIX: Always show all fabric items, regardless of metadata ---
+  // If both metadata and purchase items exist, show all unique fabric items.
+  // Sometimes metadata may not contain all fabrics, so always show all from fabricOnlyPurchase.
 
   // Calculate fabric-only total amount
-  const fabricOnlyTotal = fabricOnlyPurchase.reduce((total, item) => {
-    return total + (item?.product?.price * item?.quantity || 0);
-  }, 0);
+  const fabricOnlyTotal = Array.isArray(fabricOnlyPurchase)
+    ? fabricOnlyPurchase.reduce((total, item) => {
+        return total + (item?.product?.price * item?.quantity || 0);
+      }, 0)
+    : 0;
 
   // Fabric vendors only deal with fabric orders
   const hasTailoringComponents = false;
@@ -273,9 +283,15 @@ const OrderDetails = () => {
               Ordered Product(s)
             </h2>
             <div className="space-y-6">
-              {fabricOnlyMetadata.length === 0
-                ? // Render fabric-only orders directly from purchase items
-                  fabricOnlyPurchase.map((purchaseItem, index) => (
+              {/* Always show all fabric items from fabricOnlyPurchase */}
+              {fabricOnlyPurchase.length > 0 ? (
+                fabricOnlyPurchase.map((purchaseItem, index) => {
+                  // Try to find matching metadata for extra info (like color, quantity, etc)
+                  const metaItem = fabricOnlyMetadata.find(
+                    (meta) =>
+                      meta.fabric_product_id === purchaseItem.product_id,
+                  );
+                  return (
                     <div
                       key={purchaseItem?.id || index}
                       className="border border-gray-200 rounded-xl overflow-hidden"
@@ -309,7 +325,10 @@ const OrderDetails = () => {
                                   Quantity:
                                 </span>
                                 <p className="text-lg font-bold text-gray-900">
-                                  {purchaseItem?.quantity || 1}
+                                  {/* Prefer metadata quantity if available */}
+                                  {metaItem?.quantity ||
+                                    purchaseItem?.quantity ||
+                                    1}
                                 </p>
                               </div>
                               <div>
@@ -332,139 +351,40 @@ const OrderDetails = () => {
                                   {formatNumberWithCommas(
                                     parseInt(
                                       purchaseItem?.product?.price || 0,
-                                    ) * parseInt(purchaseItem?.quantity || 1),
+                                    ) *
+                                      parseInt(
+                                        metaItem?.quantity ||
+                                          purchaseItem?.quantity ||
+                                          1,
+                                      ),
                                   )}
                                 </p>
                               </div>
                             </div>
+                            {/* Show color if available in metadata */}
+                            {metaItem?.color && (
+                              <div className="flex items-center gap-2 mt-2">
+                                <span className="font-medium text-gray-600">
+                                  Color:
+                                </span>
+                                <span
+                                  className="inline-block w-5 h-5 rounded-full border-2 border-white shadow-md"
+                                  style={{
+                                    backgroundColor: metaItem?.color,
+                                  }}
+                                ></span>
+                                <span className="text-gray-900">
+                                  {metaItem?.color}
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
                     </div>
-                  ))
-                : // Render orders with metadata (fabric only)
-                  fabricOnlyMetadata.map((metaItem, id) => {
-                    const purchaseItem = fabricOnlyPurchase.find(
-                      (item) =>
-                        item?.product_id === metaItem?.fabric_product_id,
-                    );
-
-                    return (
-                      <div
-                        key={id}
-                        className="border border-gray-200 rounded-xl overflow-hidden"
-                      >
-                        <div className="p-6">
-                          <div className="flex flex-col lg:flex-row gap-6">
-                            {/* Product Image */}
-                            <div className="flex-shrink-0">
-                              <div className="relative">
-                                <img
-                                  src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170603/AoStyle/image1_s3s2sd.jpg"
-                                  alt={metaItem?.fabric_product_name}
-                                  className="w-32 h-32 lg:w-20 lg:h-20 rounded-xl object-cover border border-gray-200"
-                                />
-                                <div className="absolute -top-2 -right-2 bg-purple-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
-                                  FABRIC
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Product Details */}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-6">
-                                <div className="flex-1">
-                                  <h3 className="text-xl font-bold text-gray-900 mb-3">
-                                    {metaItem?.fabric_product_name}
-                                  </h3>
-                                  <div className="flex flex-wrap items-center gap-6 text-sm">
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-medium text-gray-600">
-                                        Color:
-                                      </span>
-                                      <span
-                                        className="inline-block w-5 h-5 rounded-full border-2 border-white shadow-md"
-                                        style={{
-                                          backgroundColor: metaItem?.color,
-                                        }}
-                                      ></span>
-                                      <span className="text-gray-900">
-                                        {metaItem?.color}
-                                      </span>
-                                    </div>
-                                    <div>
-                                      <span className="font-medium text-gray-600">
-                                        Quantity:
-                                      </span>
-                                      <span className="font-bold text-purple-600 ml-1">
-                                        {metaItem?.quantity} Yards
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="text-right lg:text-left">
-                                  <div className="text-2xl font-bold text-purple-600 mb-3">
-                                    ₦
-                                    {formatNumberWithCommas(
-                                      parseInt(purchaseItem?.price || 0),
-                                    )}
-                                  </div>
-                                  <button
-                                    onClick={() =>
-                                      setActiveReviewModal(
-                                        metaItem?.fabric_product_id,
-                                      )
-                                    }
-                                    className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm font-medium"
-                                  >
-                                    <Star size={16} />
-                                    View Reviews
-                                  </button>
-                                </div>
-                              </div>
-
-                              {/* Customer Information */}
-                              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                                <div className="flex items-center gap-3 mb-3">
-                                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                    <span className="text-sm text-white font-bold">
-                                      C
-                                    </span>
-                                  </div>
-                                  <span className="font-semibold text-gray-700">
-                                    Customer Information
-                                  </span>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-600 font-medium">
-                                      Name:
-                                    </span>
-                                    <span className="text-gray-900 font-semibold">
-                                      {metaItem?.customer_name}
-                                    </span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-gray-600 font-medium">
-                                      Email:
-                                    </span>
-                                    <span className="text-gray-900 font-semibold truncate ml-2">
-                                      {metaItem?.customer_email}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-            </div>
-
-            {/* Empty state */}
-            {fabricOnlyPurchase.length === 0 &&
-              fabricOnlyMetadata.length === 0 && (
+                  );
+                })
+              ) : (
                 <div className="text-center py-12">
                   <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-500 text-lg font-medium mb-2">
@@ -475,6 +395,7 @@ const OrderDetails = () => {
                   </p>
                 </div>
               )}
+            </div>
           </div>
         </div>
 

@@ -61,22 +61,15 @@ export default function CustomTable(props: CustomTableProps) {
                     ))}
                     {!props.columns?.find((item) => item.key == "action") && (
                       <>
-                        <td>
+                        <td className="dropdown dropdown-end">
                           <button
                             className="btn btn-square label btn-ghost"
                             popoverTarget={popoverId}
-                            style={
-                              {
-                                anchorName: anchorName,
-                              } /* as React.CSSProperties */
-                            }
                           >
                             <MenuIcon />
                           </button>
                           <ul
-                            className="dropdown dropdown-bottom dropdown-end menu w-52 rounded-box bg-base-100 shadow-xl"
-                            popover="auto"
-                            id={popoverId}
+                            className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-xl "
                             style={
                               {
                                 positionAnchor: anchorName,

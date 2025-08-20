@@ -74,6 +74,18 @@ const OrderPage = () => {
     ...queryParams,
   });
 
+  const statusOptions = useMemo(
+    () => [
+      { value: "DELIVERED_TO_TAILOR", label: "Delivered to Tailor" },
+      { value: "PROCESSING", label: "Processing" },
+      { value: "SHIPPED", label: "Shipped" },
+      { value: "IN_TRANSIT", label: "In Transit" },
+      { value: "OUT_FOR_DELIVERY", label: "Out for Delivery" },
+      { value: "DELIVERED", label: "Delivered" },
+      { value: "CANCELLED", label: "Cancelled" },
+    ],
+    [],
+  );
   console.log("Vendor Orders Data:", orderData);
   console.log("Raw vendor orders array:", orderData?.data);
   console.log("First vendor order item:", orderData?.data?.[0]);
@@ -590,7 +602,7 @@ const OrderPage = () => {
         className="modal"
       >
         <ToastContainer />
-        <div className="modal-box">
+        <div className="modal-box  max-w-2xl ">
           <h3 className="font-bold text-lg mb-4">Update Order Status</h3>
           <form
             onSubmit={async (e) => {
@@ -614,6 +626,7 @@ const OrderPage = () => {
             }}
             className="space-y-4"
           >
+            <></>
             {currentItem && (
               <>
                 <div className="form-control">
@@ -652,18 +665,34 @@ const OrderPage = () => {
                     className="input input-bordered w-full"
                   />
                 </div>
+
+                {/* Status Progress Bar */}
                 <div className="form-control">
                   <label className="label">
-                    <span className="label-text">Amount</span>
+                    <span className="label-text">Order Status Progress</span>
                   </label>
-                  <input
-                    disabled
-                    type="text"
-                    value={currentItem.amount || ""}
-                    readOnly
-                    className="input input-bordered w-full"
-                  />
+                  <div className="w-full flex flex-col gap-2">
+                    <ul className="steps w-full">
+                      {statusOptions.map((option, idx) => {
+                        // Find the index of the current status in statusOptions
+                        const currentStatusIndex = statusOptions.findIndex(
+                          (opt) => opt.value === currentItem.orderStatus,
+                        );
+                        // DaisyUI: step-primary for completed, step for pending
+                        const stepClass =
+                          idx <= currentStatusIndex
+                            ? "step step-primary"
+                            : "step";
+                        return (
+                          <li key={option.value} className={stepClass}>
+                            <span className="text-xs">{option.label}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
                 </div>
+                {/* Status Select */}
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text">Order Status</span>
@@ -671,7 +700,7 @@ const OrderPage = () => {
                   <select
                     name="status"
                     className="select select-bordered w-full"
-                    defaultValue={currentItem.orderStatus || "PROCESSING"} // Set initial value from currentItem, default to "PROCESSING" if not available
+                    defaultValue={currentItem.orderStatus || "PROCESSING"}
                     onChange={(e) => {
                       // In a real application, you'd likely manage this with useState for actual updates
                       // For now, we're just displaying the selected value.
@@ -679,15 +708,23 @@ const OrderPage = () => {
                       console.log("Selected new status:", e.target.value);
                     }}
                   >
-                    <option value="DELIVERED_TO_TAILOR">
-                      Delivered to Tailor
-                    </option>
-                    <option value="PROCESSING">Processing</option>
-                    <option value="SHIPPED">Shipped</option>
-                    <option value="IN_TRANSIT">In Transit</option>
-                    <option value="OUT_FOR_DELIVERY">Out for Delivery</option>
-                    <option value="DELIVERED">Delivered</option>
-                    <option value="CANCELLED">Cancelled</option>
+                    {statusOptions.map((option, idx) => {
+                      // Find the index of the current status in statusOptions
+                      const currentStatusIndex = statusOptions.findIndex(
+                        (opt) => opt.value === currentItem.orderStatus,
+                      );
+                      // Disable options that are before the current status
+                      const isDisabled = idx < currentStatusIndex;
+                      return (
+                        <option
+                          key={option.value}
+                          value={option.value}
+                          disabled={isDisabled}
+                        >
+                          {option.label}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
               </>

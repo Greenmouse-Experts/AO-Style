@@ -68,7 +68,7 @@ export default function CustomTable(props: CustomTableProps) {
                               role="button"
                               className="btn btn-square btn-ghost "
                             >
-                              <span>
+                              <span className="label">
                                 <MenuIcon />
                               </span>
                             </div>

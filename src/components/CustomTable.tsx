@@ -61,34 +61,58 @@ export default function CustomTable(props: CustomTableProps) {
                     ))}
                     {!props.columns?.find((item) => item.key == "action") && (
                       <>
-                        <td className="dropdown dropdown-end">
-                          <button
-                            className="btn btn-square label btn-ghost"
-                            popoverTarget={popoverId}
+                        <td className="">
+                          <div className="dropdown dropdown-end">
+                            <div
+                              tabIndex={0}
+                              role="button"
+                              className="btn btn-square btn-ghost "
+                            >
+                              <span>
+                                <MenuIcon />
+                              </span>
+                            </div>
+                            <ul
+                              tabIndex={0}
+                              className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
+                            >
+                              {props.actions?.map((action) => {
+                                return (
+                                  <li>
+                                    <button
+                                      onClick={() => action.action(item)}
+                                      className=""
+                                    >
+                                      {action.label}
+                                    </button>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+
+                          {/*<div
+                            role="button"
+                            className="btn btn-square btn-ghost m-1"
                           >
-                            <MenuIcon />
-                          </button>
-                          <ul
-                            className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-xl "
-                            style={
-                              {
-                                positionAnchor: anchorName,
-                              } /* as React.CSSProperties */
-                            }
-                          >
-                            {props.actions?.map((action) => {
-                              return (
-                                <li>
-                                  <button
-                                    onClick={() => action.action(item)}
-                                    className=""
-                                  >
-                                    {action.label}
-                                  </button>
-                                </li>
-                              );
-                            })}
-                          </ul>
+                            <span>
+                              <MenuIcon />
+                            </span>
+                            <ul className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-xl ">
+                              {props.actions?.map((action) => {
+                                return (
+                                  <li>
+                                    <button
+                                      onClick={() => action.action(item)}
+                                      className=""
+                                    >
+                                      {action.label}
+                                    </button>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>*/}
                         </td>
                       </>
                     )}

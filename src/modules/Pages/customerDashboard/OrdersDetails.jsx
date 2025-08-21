@@ -71,6 +71,7 @@ const OrderDetails = () => {
   // Always call these hooks to maintain consistent hook order
   const orderDetails = data?.data;
   const orderPurchase = data?.data?.order_items;
+  const metaData = data?.data?.payment?.metadata;
 
   // Check if order is delivered and show review section automatically
   const isDelivered = orderDetails?.status === "DELIVERED";
@@ -176,7 +177,8 @@ const OrderDetails = () => {
       name: item?.name,
       quantity: item?.quantity,
       price: item?.price,
-      subtotal: item?.quantity * item?.price,
+      subtotal:
+        orderDetails?.payment?.metadata[1]?.order_summary?.subtotal || 0,
       purchase_type: item?.purchase_type,
     });
   });
@@ -438,7 +440,18 @@ const OrderDetails = () => {
                   <div className="flex justify-between items-center pb-2">
                     <span className="text-gray-600 font-medium">Subtotal:</span>
                     <span className="font-semibold">
-                      ₦ {parseInt(totalAmount || 0).toLocaleString()}
+                      ₦{" "}
+                      {parseInt(
+                        orderDetails?.payment?.metadata[1]?.order_summary
+                          ?.subtotal || 0,
+                      ).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center pb-2">
+                    <span className="text-gray-600 font-medium">Tax:</span>
+                    <span className="font-semibold">
+                      ₦{" "}
+                      {orderDetails?.payment?.metadata[1]?.order_summary?.vat_amount.toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between items-center pb-2 mt-2">

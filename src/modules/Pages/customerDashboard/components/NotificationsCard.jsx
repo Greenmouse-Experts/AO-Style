@@ -35,7 +35,7 @@ export default function NotificationsCard() {
     <div className="bg-white p-6 rounded-xl">
       <h3 className="font-medium text-lg mb-4">Recent Notifications</h3>
       {data?.data?.length ? (
-        data?.data.map((notification, index) => (
+        data?.data.slice(0, 3).map((notification, index) => (
           <div
             key={notification?.id}
             onClick={() => {

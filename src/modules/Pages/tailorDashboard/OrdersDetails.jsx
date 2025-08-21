@@ -517,7 +517,7 @@ const OrderDetails = () => {
                                 <p className="text-lg font-bold text-purple-600">
                                   ₦
                                   {formatNumberWithCommas(
-                                    parseInt(purchaseItem?.price || 0),
+                                    parseInt(purchaseItem?.product?.price || 0),
                                   )}
                                 </p>
                               </div>
@@ -528,8 +528,9 @@ const OrderDetails = () => {
                                 <p className="text-2xl font-bold text-purple-600">
                                   ₦
                                   {formatNumberWithCommas(
-                                    parseInt(purchaseItem?.price || 0) *
-                                      parseInt(purchaseItem?.quantity || 1),
+                                    parseInt(
+                                      purchaseItem?.product?.price || 0,
+                                    ) * parseInt(purchaseItem?.quantity || 1),
                                   )}
                                 </p>
                               </div>

@@ -151,7 +151,7 @@ const OrderPage = () => {
                     )}...`
                   : details?.payment?.purchase?.items[0]?.name,
               amount: `${formatNumberWithCommas(
-                details?.payment?.purchase?.items[1]?.price ?? 0,
+                details?.payment?.purchase?.items[1]?.vendor_amount ?? 0,
               )}`,
 
               status: `${details?.payment?.payment_status}`,

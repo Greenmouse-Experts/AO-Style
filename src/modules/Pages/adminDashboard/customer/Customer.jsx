@@ -226,6 +226,14 @@ const CustomersTable = () => {
         return navigate(`/admin/view-customers/${item.id}`);
       },
     },
+    {
+      key: "delete_customer",
+      label: "Delete Customer",
+      action: async (item) => {
+        handleDeleteUser(item);
+        // return navigate(`/admin/view-customers/${item.id}`);
+      },
+    },
   ];
   return (
     <div className="bg-white p-6 rounded-xl overflow-x-auto">

@@ -6,6 +6,7 @@ import Noti from "./components/Noti";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useVendorSummaryStat from "../../../hooks/analytics/useGetVendorSummmary";
 import Loader from "../../../components/ui/Loader";
+import NewOrders from "./components/AddedUser";
 
 export default function FabricDashboard() {
   const { carybinUser } = useCarybinUserStore();
@@ -42,7 +43,8 @@ export default function FabricDashboard() {
       <Cards vendorSummaryStat={vendorSummaryStat?.data} />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <AddedUser />
+          {/* <AddedUser />*/}
+          <NewOrders />
         </div>
         <div className="lg:col-span-1">
           <TopSelling />

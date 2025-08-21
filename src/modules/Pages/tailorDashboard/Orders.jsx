@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { act, useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import { formatDateStr, formatNumberWithCommas } from "../../../lib/helper";
 import useQueryParams from "../../../hooks/useQueryParams";
@@ -15,73 +15,48 @@ import { CSVLink } from "react-csv";
 import ReusableTable from "../adminDashboard/components/ReusableTable";
 import useGetVendorOrder from "../../../hooks/order/useGetVendorOrder";
 import { useEffect } from "react";
-
-const orders = [
-  {
-    id: "01",
-    orderId: "ORD-123RFWJ2",
-    customer: "Funmi Daniels",
-    measurement: "View Measurement",
-    amount: "N 50,000",
-    dueDate: "10 Days Left",
-    status: "Ongoing",
-  },
-  {
-    id: "02",
-    orderId: "ORD-123RFWJ2",
-    customer: "Funmi Daniels",
-    measurement: "View Measurement",
-    amount: "N 50,000",
-    dueDate: "10 Days Left",
-    status: "Ongoing",
-  },
-  {
-    id: "03",
-    orderId: "ORD-123RFWJ2",
-    customer: "Funmi Daniels",
-    measurement: "View Measurement",
-    amount: "N 50,000",
-    dueDate: "10 Days Left",
-    status: "Completed",
-  },
-  {
-    id: "04",
-    orderId: "ORD-123RFWJ2",
-    customer: "Funmi Daniels",
-    measurement: "View Measurement",
-    amount: "N 50,000",
-    dueDate: "10 Days Left",
-    status: "Ongoing",
-  },
-  {
-    id: "05",
-    orderId: "ORD-123RFWJ2",
-    customer: "Funmi Daniels",
-    measurement: "View Measurement",
-    amount: "N 50,000",
-    dueDate: "10 Days Left",
-    status: "Cancelled",
-  },
-  {
-    id: "06",
-    orderId: "ORD-123RFWJ2",
-    customer: "Funmi Daniels",
-    measurement: "View Measurement",
-    amount: "N 50,000",
-    dueDate: "10 Days Left",
-    status: "Ongoing",
-  },
-];
+import { toast, ToastContainer } from "react-toastify";
+import { useMutation } from "@tanstack/react-query";
+import CustomTable from "../../../components/CustomTable";
 
 const OrderPage = () => {
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [currentItem, setCurrentItem] = useState(null);
+  const nav = useNavigate();
+  const dialogRef = useRef(null);
+  const update_status = useMutation({
+    mutationFn: async (status) => {
+      return await CaryBinApi.put(`/orders/${currentItem.id}/status `, {
+        status,
+      });
+    },
+    onError: (err) => {
+      console.error(err);
+      toast.error(err?.data?.message || "error occured");
+    },
+    onSuccess: () => {
+      toast.success("status updated");
+      refetch();
 
-  const filteredOrders = orders.filter(
-    (order) =>
-      (filter === "all" || order.status.toLowerCase() === filter) &&
-      order.orderId.toLowerCase().includes(searchTerm.toLowerCase()),
+      setTimeout((handler) => {
+        toast.dismiss();
+        dialogRef.current.close();
+      }, 800);
+    },
+  });
+  const statusOptions = useMemo(
+    () => [
+      { value: "DELIVERED_TO_TAILOR", label: "Delivered to Tailor" },
+      { value: "PROCESSING", label: "Processing" },
+      { value: "SHIPPED", label: "Shipped" },
+      { value: "IN_TRANSIT", label: "In Transit" },
+      { value: "OUT_FOR_DELIVERY", label: "Out for Delivery" },
+      { value: "DELIVERED", label: "Delivered" },
+      { value: "CANCELLED", label: "Cancelled" },
+    ],
+    [],
   );
 
   const { queryParams, updateQueryParams } = useQueryParams({
@@ -131,40 +106,31 @@ const OrderPage = () => {
           </span>
         ),
       },
-      {
-        label: "Action",
-        key: "action",
-        render: (_, row) => (
-          <div className="relative">
-            <button
-              onClick={() =>
-                setOpenDropdown(openDropdown === row.id ? null : row.id)
-              }
-              className="px-2 py-1 cursor-pointer rounded-md"
-            >
-              •••
-            </button>
-            {openDropdown === row.id && (
-              <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
-                <Link to={`/tailor/orders/orders-details/${row.id}`}>
-                  <button className="block cursor-pointer w-full text-left px-4 py-2 hover:bg-gray-100">
-                    View Details
-                  </button>
-                </Link>
-                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
-                  Cancel Order
-                </button>
-                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
-                  Track Order
-                </button>
-              </div>
-            )}
-          </div>
-        ),
-      },
     ],
     [openDropdown],
   );
+  const actions = [
+    {
+      key: "update-status",
+      label: "Update Status",
+      action: (item) => {
+        setCurrentItem(item);
+        dialogRef.current.showModal();
+      },
+    },
+    {
+      label: "View Details",
+      key: "view-details",
+      action: (item) => {
+        return nav(`/tailor/orders/orders-details/${item.id}`);
+        // <Link to={}>
+        //   <button className="block cursor-pointer w-full text-left px-4 py-2 hover:bg-gray-100">
+        //     View Details
+        //   </button>
+        // </Link>;
+      },
+    },
+  ];
 
   const fabricOrderData = useMemo(
     () =>
@@ -264,7 +230,7 @@ const OrderPage = () => {
     });
     doc.save("TailorOrders.pdf");
   };
-
+  console.log(fabricOrderData[2]);
   return (
     <div className="">
       <div className="bg-white px-6 py-4 mb-6">
@@ -371,11 +337,31 @@ const OrderPage = () => {
         </div>
 
         {/* Table Section */}
-        <ReusableTable
+        {/* <ReusableTable
           loading={isPending}
           columns={columns}
           data={fabricOrderData}
-        />
+        />*/}
+
+        {isPending ? (
+          <div
+            className="flex justify-center items-center h-full"
+            data-theme="nord"
+          >
+            <div className="">
+              <div className="loading loading-ball"></div>
+              loading
+            </div>
+          </div>
+        ) : (
+          <CustomTable
+            columns={columns}
+            data={fabricOrderData}
+            actions={actions}
+          />
+        )}
+
+        {/* <CustomTable columns={columns} data={fabricOrderData} />*/}
 
         {!fabricOrderData?.length && !isPending ? (
           <p className="flex-1 text-center text-sm md:text-sm">
@@ -431,6 +417,164 @@ const OrderPage = () => {
           </div>
         )}
       </div>
+      <dialog
+        ref={dialogRef}
+        data-theme="nord"
+        id="my_modal_1"
+        className="modal"
+      >
+        <ToastContainer />
+        <div className="modal-box  max-w-2xl ">
+          <h3 className="font-bold text-lg mb-4">Update Order Status</h3>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              return console.log(currentItem);
+
+              let form = new FormData(e.target);
+              let status = form.get("status");
+              // return console.log(status);
+              toast.promise(
+                async () =>
+                  // .catch((err) =>
+                  //   toast.error(
+                  //     err?.data?.message.toLowerCase() || "failed",
+                  //   ),
+                  // )
+                  (await update_status.mutateAsync(status)).data,
+                {
+                  pending: "pending",
+                  // success: `status changed ${status}`,
+                },
+              );
+            }}
+            className="space-y-4"
+          >
+            <></>
+            {currentItem && (
+              <>
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Order ID</span>
+                  </label>
+                  <input
+                    disabled
+                    type="text"
+                    value={currentItem.id || ""}
+                    readOnly
+                    className="input input-bordered w-full"
+                  />
+                </div>
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Customer Name</span>
+                  </label>
+                  <input
+                    disabled
+                    type="text"
+                    value={currentItem.customer || ""}
+                    readOnly
+                    className="input input-bordered w-full"
+                  />
+                </div>
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Product</span>
+                  </label>
+                  <input
+                    disabled
+                    type="text"
+                    value={currentItem.product || ""}
+                    readOnly
+                    className="input input-bordered w-full"
+                  />
+                </div>
+
+                {/* Status Progress Bar */}
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Order Status Progress</span>
+                  </label>
+                  <div className="w-full flex flex-col gap-2">
+                    <ul className="steps w-full">
+                      {statusOptions.map((option, idx) => {
+                        // Find the index of the current status in statusOptions
+                        const currentStatusIndex = statusOptions.findIndex(
+                          (opt) => opt.value === currentItem.status,
+                        );
+                        // DaisyUI: step-primary for completed, step for pending
+                        const stepClass =
+                          idx <= currentStatusIndex
+                            ? "step step-primary"
+                            : "step";
+                        return (
+                          <li key={option.value} className={stepClass}>
+                            <span className="text-xs">{option.label}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                </div>
+                {/* Status Select */}
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Order Status</span>
+                  </label>
+                  <select
+                    name="status"
+                    className="select select-bordered w-full"
+                    defaultValue={currentItem.orderStatus || "PROCESSING"}
+                    onChange={(e) => {
+                      // In a real application, you'd likely manage this with useState for actual updates
+                      // For now, we're just displaying the selected value.
+                      // This would be the place to call a function to update the backend.
+                      console.log("Selected new status:", e.target.value);
+                    }}
+                  >
+                    {statusOptions.map((option, idx) => {
+                      // Find the index of the current status in statusOptions
+                      const currentStatusIndex = statusOptions.findIndex(
+                        (opt) => opt.value === currentItem.orderStatus,
+                      );
+                      // Disable options that are before the current status
+                      const isDisabled = idx < currentStatusIndex;
+                      return (
+                        <option
+                          key={option.value}
+                          value={option.value}
+                          disabled={isDisabled}
+                        >
+                          {option.label}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              </>
+            )}
+
+            <div className="modal-action">
+              <button
+                type="submit"
+                className="btn"
+                onClick={() => dialogRef.current.close()}
+              >
+                Close
+              </button>
+              <button
+                disabled={update_status.isPending}
+                type="submit"
+                className="btn btn-primary text-white"
+              >
+                Update Status
+              </button>
+              {/* In a real scenario, you'd have an update button here */}
+              {/* <button type="button" className="btn btn-primary">Update Status</button> */}
+            </div>
+          </form>
+        </div>
+      </dialog>
     </div>
   );
 };

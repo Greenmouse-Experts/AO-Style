@@ -61,41 +61,58 @@ export default function CustomTable(props: CustomTableProps) {
                     ))}
                     {!props.columns?.find((item) => item.key == "action") && (
                       <>
-                        <td>
-                          <button
-                            className="btn btn-square label btn-ghost"
-                            popoverTarget={popoverId}
-                            style={
-                              {
-                                anchorName: anchorName,
-                              } /* as React.CSSProperties */
-                            }
+                        <td className="">
+                          <div className="dropdown dropdown-end">
+                            <div
+                              tabIndex={0}
+                              role="button"
+                              className="btn btn-square btn-ghost "
+                            >
+                              <span className="label">
+                                <MenuIcon />
+                              </span>
+                            </div>
+                            <ul
+                              tabIndex={0}
+                              className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
+                            >
+                              {props.actions?.map((action) => {
+                                return (
+                                  <li>
+                                    <button
+                                      onClick={() => action.action(item)}
+                                      className=""
+                                    >
+                                      {action.label}
+                                    </button>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+
+                          {/*<div
+                            role="button"
+                            className="btn btn-square btn-ghost m-1"
                           >
-                            <MenuIcon />
-                          </button>
-                          <ul
-                            className="dropdown dropdown-bottom dropdown-end menu w-52 rounded-box bg-base-100 shadow-xl"
-                            popover="auto"
-                            id={popoverId}
-                            style={
-                              {
-                                positionAnchor: anchorName,
-                              } /* as React.CSSProperties */
-                            }
-                          >
-                            {props.actions?.map((action) => {
-                              return (
-                                <li>
-                                  <button
-                                    onClick={() => action.action(item)}
-                                    className=""
-                                  >
-                                    {action.label}
-                                  </button>
-                                </li>
-                              );
-                            })}
-                          </ul>
+                            <span>
+                              <MenuIcon />
+                            </span>
+                            <ul className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-xl ">
+                              {props.actions?.map((action) => {
+                                return (
+                                  <li>
+                                    <button
+                                      onClick={() => action.action(item)}
+                                      className=""
+                                    >
+                                      {action.label}
+                                    </button>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>*/}
                         </td>
                       </>
                     )}

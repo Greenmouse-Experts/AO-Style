@@ -41,7 +41,7 @@ const NewOrders = () => {
 
             {openDropdown === row.id && (
               <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
-                <Link to={`/fabric/orders/orders-details?id=${row.order_id}`}>
+                <Link to={`/tailor/orders/orders-details/${row.order_id}`}>
                   <button className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
                     View Details
                   </button>

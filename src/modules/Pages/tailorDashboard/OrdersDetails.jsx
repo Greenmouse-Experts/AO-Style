@@ -430,14 +430,14 @@ const OrderDetails = () => {
                     {orderInfo?.payment?.payment_status}
                   </span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-gray-100">
+                {/* <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-gray-600 font-medium">
                     Total Amount:
                   </span>
                   <span className="text-2xl font-bold text-purple-600">
                     ₦{formatNumberWithCommas(parseInt(orderInfo?.total_amount))}
                   </span>
-                </div>
+                </div>*/}
               </div>
             </div>
           </div>
@@ -451,7 +451,8 @@ const OrderDetails = () => {
             <div className="space-y-6">
               {orderPurchase.map(
                 (purchaseItem, index) =>
-                  purchaseItem?.product?.type && (
+                  purchaseItem?.product?.type &&
+                  purchaseItem?.product?.type == "STYLE" && (
                     <div
                       key={purchaseItem?.id || index}
                       className="border border-gray-200 rounded-xl overflow-hidden"

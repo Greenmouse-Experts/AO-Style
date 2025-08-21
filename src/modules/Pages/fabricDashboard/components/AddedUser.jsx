@@ -120,7 +120,12 @@ const NewOrders = () => {
   return (
     <div className="bg-white p-6 rounded-xl overflow-x-auto">
       <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
-        <h2 className="text-lg font-semibold">Recent Orders</h2>
+        <div className="flex w-full items-center" data-theme="nord">
+          <h2 className="text-lg font-semibold">Recent Orders</h2>
+          <Link to="/fabric/orders" className="btn btn-primary ml-auto btn-sm">
+            See More
+          </Link>
+        </div>
         <div className="flex flex-wrap gap-3 w-full sm:w-auto">
           {/* <input
             type="text"

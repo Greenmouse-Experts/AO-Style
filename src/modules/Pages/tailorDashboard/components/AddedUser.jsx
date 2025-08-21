@@ -17,52 +17,12 @@ const NewOrders = () => {
     data: vendorRecentOrder,
   } = useGetVendorRecentOrder();
 
-  // Order Data
-  const data = [
-    {
-      id: "01",
-      orderId: "AD2343SDIFJ43FMD",
-      description: "Red Agbada and Cap",
-      price: "N 200,000",
-    },
-    {
-      id: "02",
-      orderId: "AD2343SDIFJ43FMD",
-      description: "Red Agbada and Cap",
-      price: "N 200,000",
-    },
-    {
-      id: "03",
-      orderId: "AD2343SDIFJ43FMD",
-      description: "Red Agbada and Cap",
-      price: "N 200,000",
-    },
-    {
-      id: "04",
-      orderId: "AD2343SDIFJ43FMD",
-      description: "Red Agbada and Cap",
-      price: "N 200,000",
-    },
-    {
-      id: "05",
-      orderId: "AD2343SDIFJ43FMD",
-      description: "Red Agbada and Cap",
-      price: "N 200,000",
-    },
-    {
-      id: "06",
-      orderId: "AD2343SDIFJ43FMD",
-      description: "Red Agbada and Cap",
-      price: "N 200,000",
-    },
-  ];
-
   // Table Columns
   const columns = useMemo(
     () => [
       //   { label: "Order ID", key: "orderId" },
       { label: "Product", key: "product" },
-      { label: "Order Description", key: "description" },
+      // { label: "Order Description", key: "description" },
 
       { label: "Price", key: "price" },
       { label: "Order Date", key: "dateAdded" },
@@ -99,14 +59,7 @@ const NewOrders = () => {
         ),
       },
     ],
-    [openDropdown]
-  );
-  const filteredData = data.filter((order) =>
-    Object.values(order).some(
-      (value) =>
-        typeof value === "string" &&
-        value.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    [openDropdown],
   );
 
   // Toggle dropdown function
@@ -128,12 +81,12 @@ const NewOrders = () => {
   const recentOrderData = useMemo(
     () =>
       vendorRecentOrder?.data
-        ? vendorRecentOrder?.data.map((details) => {
+        ? vendorRecentOrder?.data.slice(0, 3).map((details) => {
             return {
               ...details,
               orderId: `${details?.order?.id}`,
               price: `${formatNumberWithCommas(
-                details?.order?.total_amount ?? 0
+                details?.order?.total_amount ?? 0,
               )}`,
               description:
                 details?.product?.description?.length > 20
@@ -144,7 +97,7 @@ const NewOrders = () => {
                   ? `${details?.product?.name.slice(0, 15)}...`
                   : details?.product?.name,
               amount: `${formatNumberWithCommas(
-                details?.payment?.amount ?? 0
+                details?.payment?.amount ?? 0,
               )}`,
 
               status: `${details?.payment?.payment_status}`,
@@ -152,14 +105,14 @@ const NewOrders = () => {
                 details?.created_at
                   ? formatDateStr(
                       details?.created_at.split(".").shift(),
-                      "D/M/YYYY h:mm A"
+                      "D/M/YYYY h:mm A",
                     )
                   : ""
               }`,
             };
           })
         : [],
-    [vendorRecentOrder?.data]
+    [vendorRecentOrder?.data],
   );
 
   console.log(vendorRecentOrder?.data);

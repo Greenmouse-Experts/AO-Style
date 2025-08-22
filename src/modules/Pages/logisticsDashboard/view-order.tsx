@@ -1,8 +1,9 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
+import { useItemMap } from "../../../store/useTempStore";
 interface MeasurementData {
   full_body: {
     height: number;
@@ -260,6 +261,8 @@ interface OrderLogisticsData {
 }
 export default function ViewOrderLogistics() {
   const { id } = useParams();
+  const setItem = useItemMap((state) => state.setItem);
+  const nav = useNavigate();
   const query = useQuery<OrderLogisticsData>({
     queryKey: ["logistic", id, "view"],
     queryFn: async () => {
@@ -450,11 +453,17 @@ export default function ViewOrderLogistics() {
                         {item.product.creator.profile.address}
                       </div>
                     </p>
-                    {/*<div className="card-actions justify-end">
-                      <button className="btn btn-primary btn-sm">
-                        View Detail
+                    <div className="card-actions justify-end">
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => {
+                          setItem(item);
+                          nav(`/logistics/orders/item/${item.id}/map`);
+                        }}
+                      >
+                        View pickup
                       </button>
-                    </div>*/}
+                    </div>
                   </div>
                 </div>
               </div>

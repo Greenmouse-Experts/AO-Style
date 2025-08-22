@@ -76,6 +76,7 @@ const OrderPage = () => {
 
   const statusOptions = useMemo(
     () => [
+      { value: "PAID", label: "Paid" },
       { value: "DELIVERED_TO_TAILOR", label: "Delivered to Tailor" },
       { value: "PROCESSING", label: "Processing" },
       { value: "SHIPPED", label: "Shipped" },

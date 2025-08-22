@@ -920,6 +920,7 @@ const updateOrderStatus = async (imageUrl, actionType) => {
     );
   });
 };
+
 import {
   Phone,
   MessageSquare,
@@ -1163,6 +1164,7 @@ const OrderDetails = () => {
       </div>
     );
   }
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -1173,7 +1175,6 @@ const OrderDetails = () => {
           </h1>
           <div className="flex justify-between items-start">
             <div className="flex-1">
-              {/* {{ REWRITTEN_CODE }}*/}
               <div className="bg-white rounded-lg p-6">
                 {/* Order Details Header */}
                 <div className="flex items-center justify-between mb-6">
@@ -1190,7 +1191,7 @@ const OrderDetails = () => {
                 </div>
                 {/* Order Details Grid */}
                 <div className="grid grid-cols-3 gap-8 mb-6">
-                  {/* STYLE */}
+                  {/* FABRIC */}
                   <div>
                     <p className="text-sm text-gray-500 mb-2">FABRIC</p>
                     <div className="flex items-center gap-4">
@@ -1198,7 +1199,7 @@ const OrderDetails = () => {
                         {orderPurchase[0]?.product?.fabric?.photos?.[0] ? (
                           <img
                             src={orderPurchase[0]?.product?.fabric?.photos?.[0]}
-                            alt="Style"
+                            alt="Fabric"
                             className="w-full h-full object-cover rounded"
                           />
                         ) : (
@@ -1222,12 +1223,6 @@ const OrderDetails = () => {
                         <p className="text-sm text-gray-500">
                           X {orderPurchase[0]?.quantity || 1} Piece
                         </p>
-                        {/* <p className="text-blue-600 font-medium">
-                          ₦
-                          {formatNumberWithCommas(
-                            orderPurchase[0]?.product?.price,
-                          )}
-                        </p>*/}
                       </div>
                     </div>
                   </div>
@@ -1239,7 +1234,7 @@ const OrderDetails = () => {
                         {orderPurchase[1]?.product?.style?.photos?.[0] ? (
                           <img
                             src={orderPurchase[1]?.product?.style?.photos?.[0]}
-                            alt="Fabric"
+                            alt="Style"
                             className="w-full h-full object-cover rounded"
                           />
                         ) : (
@@ -1258,10 +1253,10 @@ const OrderDetails = () => {
                               ? orderPurchase[1]?.product?.name.slice(0, 28) +
                                 "..."
                               : orderPurchase[1]?.product?.name
-                            : "Fabric Name"}
+                            : "Style Name"}
                         </p>
                         <p className="text-sm text-gray-500">
-                          X {orderPurchase[1]?.quantity || 2} Yards
+                          X {orderPurchase[1]?.quantity || 1} Piece
                         </p>
                         <p className="text-blue-600 font-medium">
                           ₦
@@ -1290,7 +1285,10 @@ const OrderDetails = () => {
                     <span className="text-lg font-semibold">Order Total :</span>
                     <div className="flex items-center gap-3">
                       <span className="text-2xl font-bold text-gray-900">
-                        ₦ {formatNumberWithCommas(orderInfo?.total_amount)}
+                        ₦{" "}
+                        {formatNumberWithCommas(
+                          orderPurchase[1]?.product?.price,
+                        )}
                       </span>
                       <span className="px-3 py-1 bg-yellow-100 text-yellow-600 rounded-full text-sm font-medium">
                         {orderInfo?.status || "Pending"}
@@ -1299,7 +1297,6 @@ const OrderDetails = () => {
                   </div>
                 </div>
               </div>
-              {/* {{ REWRITTEN_CODE }}*/}
             </div>
 
             {/* Right Sidebar */}
@@ -1359,7 +1356,6 @@ const OrderDetails = () => {
 
         {/* Measurement Modal */}
         {showMeasurementModal && (
-          // {{REWRITTEN_CODE}}
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
             <div className="bg-gradient-to-br from-purple-50 via-white to-blue-50 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto relative border border-purple-100">
               <button
@@ -1543,7 +1539,6 @@ const OrderDetails = () => {
               </div>
             </div>
           </div>
-          // {{REWRITTEN_CODE}}
         )}
 
         {/* Delivery Details */}
@@ -1556,12 +1551,6 @@ const OrderDetails = () => {
                 {orderInfo?.user?.profile?.address}
               </p>
             </div>
-            {/* <div>
-              <p className="text-sm text-gray-500 mb-2">DELIVERY DATE</p>
-              <p className="text-gray-900">
-                {formatDateStr(orderInfo?.updated_at)} (10 days left)
-              </p>
-            </div>*/}
             <div>
               <p className="text-sm text-gray-500 mb-2">DELIVERY METHOD</p>
               <p className="text-gray-900">
@@ -1578,7 +1567,7 @@ const OrderDetails = () => {
             <div>
               <p className="text-sm text-gray-500 mb-2">CUSTOMER NAME</p>
               <p className="text-gray-900">
-                {orderInfo?.payment?.metadata[0].customer_name || "N/A"}
+                {orderInfo?.payment?.metadata[0]?.customer_name || "N/A"}
               </p>
             </div>
             <div>
@@ -1746,4 +1735,3 @@ const OrderDetails = () => {
 };
 
 export default OrderDetails;
-// {{REWRITTEN_CODE}}

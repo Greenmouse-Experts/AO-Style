@@ -1361,7 +1361,7 @@ const OrderDetails = () => {
         {showMeasurementModal && (
           // {{REWRITTEN_CODE}}
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-gradient-to-br from-purple-50 via-white to-blue-50 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto relative border border-purple-100">
+            <div className="bg-gradient-to-br from-purple-50 via-white to-blue-50 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto relative border border-purple-100">
               <button
                 className="absolute top-4 right-4 text-gray-400 hover:text-purple-600 transition-colors focus:outline-none"
                 onClick={handleCloseMeasurementModal}
@@ -1384,58 +1384,62 @@ const OrderDetails = () => {
                       Upper Body
                     </h4>
                     <ul className="space-y-3">
-                      <li className="flex justify-between items-center text-sm">
-                        <span className="text-gray-700">
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
                           Bust Circumference
                         </span>
-                        <span className="font-semibold text-purple-700">
+                        <span className="font-semibold text-purple-700 text-right">
                           {measurement?.upper_body?.bust_circumference ?? "--"}{" "}
                           {measurement?.upper_body?.bust_circumference_unit ??
                             ""}
                         </span>
                       </li>
-                      <li className="flex justify-between items-center text-sm">
-                        <span className="text-gray-700">Shoulder Width</span>
-                        <span className="font-semibold text-purple-700">
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
+                          Shoulder Width
+                        </span>
+                        <span className="font-semibold text-purple-700 text-right">
                           {measurement?.upper_body?.shoulder_width ?? "--"}{" "}
                           {measurement?.upper_body?.shoulder_width_unit ?? ""}
                         </span>
                       </li>
-                      <li className="flex justify-between items-center text-sm">
-                        <span className="text-gray-700">
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
                           Armhole Circumference
                         </span>
-                        <span className="font-semibold text-purple-700">
+                        <span className="font-semibold text-purple-700 text-right">
                           {measurement?.upper_body?.armhole_circumference ??
                             "--"}{" "}
                           {measurement?.upper_body
                             ?.armhole_circumference_unit ?? ""}
                         </span>
                       </li>
-                      <li className="flex justify-between items-center text-sm">
-                        <span className="text-gray-700">Sleeve Length</span>
-                        <span className="font-semibold text-purple-700">
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
+                          Sleeve Length
+                        </span>
+                        <span className="font-semibold text-purple-700 text-right">
                           {measurement?.upper_body?.sleeve_length ?? "--"}{" "}
                           {measurement?.upper_body?.sleeve_length_unit ?? ""}
                         </span>
                       </li>
-                      <li className="flex justify-between items-center text-sm">
-                        <span className="text-gray-700">
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
                           Bicep Circumference
                         </span>
-                        <span className="font-semibold text-purple-700">
+                        <span className="font-semibold text-purple-700 text-right">
                           {measurement?.upper_body?.bicep_circumference ?? "--"}{" "}
                           {measurement?.upper_body?.bicep_circumference_unit ??
                             ""}
                         </span>
                       </li>
-                      <li className="flex justify-between items-center text-sm">
-                        <span className="text-gray-700">
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
                           Wrist Circumference
                         </span>
-                        <span className="font-semibold text-purple-700">
-                          {measurement?.upper_body?.waist_circumference ?? "--"}{" "}
-                          {measurement?.upper_body?.waist_circumference_unit ??
+                        <span className="font-semibold text-purple-700 text-right">
+                          {measurement?.upper_body?.wrist_circumference ?? "--"}{" "}
+                          {measurement?.upper_body?.wrist_circumference_unit ??
                             ""}
                         </span>
                       </li>
@@ -1448,47 +1452,51 @@ const OrderDetails = () => {
                       Lower Body
                     </h4>
                     <ul className="space-y-3">
-                      <li className="flex justify-between items-center text-sm">
-                        <span className="text-gray-700">
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
                           Waist Circumference
                         </span>
-                        <span className="font-semibold text-blue-700">
+                        <span className="font-semibold text-blue-700 text-right">
                           {measurement?.lower_body?.waist_circumference ?? "--"}{" "}
                           {measurement?.lower_body?.waist_circumference_unit ??
                             ""}
                         </span>
                       </li>
-                      <li className="flex justify-between items-center text-sm">
-                        <span className="text-gray-700">Hip Circumference</span>
-                        <span className="font-semibold text-blue-700">
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
+                          Hip Circumference
+                        </span>
+                        <span className="font-semibold text-blue-700 text-right">
                           {measurement?.lower_body?.hip_circumference ?? "--"}{" "}
                           {measurement?.lower_body?.hip_circumference_unit ??
                             ""}
                         </span>
                       </li>
-                      <li className="flex justify-between items-center text-sm">
-                        <span className="text-gray-700">
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
                           Thigh Circumference
                         </span>
-                        <span className="font-semibold text-blue-700">
+                        <span className="font-semibold text-blue-700 text-right">
                           {measurement?.lower_body?.thigh_circumference ?? "--"}{" "}
                           {measurement?.lower_body?.thigh_circumference_unit ??
                             ""}
                         </span>
                       </li>
-                      <li className="flex justify-between items-center text-sm">
-                        <span className="text-gray-700">
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
                           Knee Circumference
                         </span>
-                        <span className="font-semibold text-blue-700">
+                        <span className="font-semibold text-blue-700 text-right">
                           {measurement?.lower_body?.knee_circumference ?? "--"}{" "}
                           {measurement?.lower_body?.knee_circumference_unit ??
                             ""}
                         </span>
                       </li>
-                      <li className="flex justify-between items-center text-sm">
-                        <span className="text-gray-700">Trouser Length</span>
-                        <span className="font-semibold text-blue-700">
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
+                          Trouser Length
+                        </span>
+                        <span className="font-semibold text-blue-700 text-right">
                           {measurement?.lower_body?.trouser_length ?? "--"}{" "}
                           {measurement?.lower_body?.trouser_length_unit ?? ""}
                         </span>
@@ -1502,16 +1510,20 @@ const OrderDetails = () => {
                       Full Body
                     </h4>
                     <ul className="space-y-3">
-                      <li className="flex justify-between items-center text-sm">
-                        <span className="text-gray-700">Height</span>
-                        <span className="font-semibold text-amber-700">
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
+                          Height
+                        </span>
+                        <span className="font-semibold text-amber-700 text-right">
                           {measurement?.full_body?.height ?? "--"}{" "}
                           {measurement?.full_body?.height_unit ?? ""}
                         </span>
                       </li>
-                      <li className="flex justify-between items-center text-sm">
-                        <span className="text-gray-700">Dress/Gown Length</span>
-                        <span className="font-semibold text-amber-700">
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
+                          Dress/Gown Length
+                        </span>
+                        <span className="font-semibold text-amber-700 text-right">
                           {measurement?.full_body?.dress_length ?? "--"}{" "}
                           {measurement?.full_body?.dress_length_unit ?? ""}
                         </span>

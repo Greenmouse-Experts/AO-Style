@@ -4,7 +4,7 @@ import GoogleMapReact from "google-map-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { BackButton } from "../salesDashboard/ViewVendorDetails";
-
+import { AnyReactComponent } from "./order-location";
 export default function ViewItemMap() {
   const { id } = useParams();
   const item = useItemMap((state) => state.item);
@@ -12,14 +12,9 @@ export default function ViewItemMap() {
     lat: number;
     lng: number;
   } | null>(null);
-  const coordinates = item.product.creator.profile.coordinates;
-  const defaultProps = {
-    center: {
-      lat: coordinates ? parseFloat(coordinates.latitude) : 10.99835602,
-      lng: coordinates ? parseFloat(coordinates.longitude) : 77.01502627,
-    },
-    zoom: 11,
-  };
+  const [mapInstance, setMapInstance] = useState<any>(null);
+  const [mapsApi, setMapsApi] = useState<any>(null);
+  const coordinates = item?.product?.creator?.profile?.coordinates;
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -42,26 +37,27 @@ export default function ViewItemMap() {
     }
   }, []);
 
-  const handleApiLoaded = (map: any, maps: any) => {
-    if (userLocation && coordinates) {
-      const directionsService = new maps.DirectionsService();
-      const directionsRenderer = new maps.DirectionsRenderer();
-      directionsRenderer.setMap(map);
+  // Re-run directions when userLocation + map + coordinates are ready
+  useEffect(() => {
+    if (userLocation && coordinates && mapInstance && mapsApi) {
+      const directionsService = new mapsApi.DirectionsService();
+      const directionsRenderer = new mapsApi.DirectionsRenderer();
+      directionsRenderer.setMap(mapInstance);
 
       directionsService.route(
         {
-          origin: new maps.LatLng(userLocation.lat, userLocation.lng),
-          destination: new maps.LatLng(
+          origin: new mapsApi.LatLng(userLocation.lat, userLocation.lng),
+          destination: new mapsApi.LatLng(
             parseFloat(coordinates.latitude),
             parseFloat(coordinates.longitude),
           ),
-          travelMode: maps.TravelMode.DRIVING,
+          travelMode: mapsApi.TravelMode.DRIVING,
         },
         (
           result: google.maps.DirectionsResult,
           status: google.maps.DirectionsStatus,
         ) => {
-          if (status === maps.DirectionsStatus.OK) {
+          if (status === mapsApi.DirectionsStatus.OK) {
             directionsRenderer.setDirections(result);
           } else {
             toast.error("Failed to calculate directions.");
@@ -70,47 +66,41 @@ export default function ViewItemMap() {
         },
       );
     }
+  }, [userLocation, coordinates, mapInstance, mapsApi]);
+
+  const defaultProps = {
+    center: {
+      lat: coordinates ? parseFloat(coordinates.latitude) : 10.99835602,
+      lng: coordinates ? parseFloat(coordinates.longitude) : 77.01502627,
+    },
+    zoom: 11,
   };
 
   return (
-    <div data-theme="nord" className="flex bg-transparent  flex-col h-full">
-      <div className="py-2  flex items-center mb-2">
+    <div data-theme="nord" className="flex bg-transparent flex-col h-full">
+      <div className="py-2 flex items-center mb-2">
         <button
           onClick={() => window.history.back()}
           className="btn btn-ghost btn-xs mr-2"
         >
           <BackButton />
         </button>
-        <h1 className="text-lg font-bold ">
+        <h1 className="text-lg font-bold">
           Pickup Location for{" "}
-          <span className="text-primary">{item.product.name}</span>
+          <span className="text-primary">{item?.product?.name}</span>
         </h1>
       </div>
-      <div className="flex-1 relative  shadow-inner rounded-lg overflow-hidden">
+      <div className="flex-1 relative shadow-inner rounded-lg overflow-hidden">
         <GoogleMapReact
-          bootstrapURLKeys={{ key: "AIzaSyBstumBKZoQNTHm3Y865tWEHkkFnNiHGGE" }}
+          bootstrapURLKeys={{
+            key: "AIzaSyBstumBKZoQNTHm3Y865tWEHkkFnNiHGGE",
+          }}
           defaultCenter={defaultProps.center}
           defaultZoom={defaultProps.zoom}
           yesIWantToUseGoogleMapApiInternals
-          onGoogleApiLoaded={({ map, maps }) => handleApiLoaded(map, maps)}
-          options={{
-            styles: [
-              {
-                featureType: "poi",
-                elementType: "labels",
-                stylers: [{ visibility: "off" }],
-              },
-              {
-                featureType: "road",
-                elementType: "geometry",
-                stylers: [{ color: "#ffffff" }],
-              },
-              {
-                featureType: "water",
-                elementType: "geometry",
-                stylers: [{ color: "#c9e7ff" }],
-              },
-            ],
+          onGoogleApiLoaded={({ map, maps }) => {
+            setMapInstance(map);
+            setMapsApi(maps);
           }}
         />
       </div>

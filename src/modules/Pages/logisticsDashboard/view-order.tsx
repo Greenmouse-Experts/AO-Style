@@ -449,9 +449,9 @@ export default function ViewOrderLogistics() {
                     </p>
                     <p className="text-sm">
                       <p className="label">Pickup Address:</p>
-                      <div className="mt-2">
+                      <span className="mt-2 block">
                         {item.product.creator.profile.address}
-                      </div>
+                      </span>
                     </p>
                     <div className="card-actions justify-end">
                       <button

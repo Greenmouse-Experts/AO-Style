@@ -3,6 +3,7 @@ import { useItemMap } from "../../../store/useTempStore";
 import GoogleMapReact from "google-map-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { BackButton } from "../salesDashboard/ViewVendorDetails";
 
 export default function ViewItemMap() {
   const { id } = useParams();
@@ -11,8 +12,6 @@ export default function ViewItemMap() {
     lat: number;
     lng: number;
   } | null>(null);
-  const [directions, setDirections] =
-    useState<google.maps.DirectionsResult | null>(null);
   const coordinates = item.product.creator.profile.coordinates;
   const defaultProps = {
     center: {
@@ -21,6 +20,7 @@ export default function ViewItemMap() {
     },
     zoom: 11,
   };
+
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -41,12 +41,13 @@ export default function ViewItemMap() {
       toast.error("Geolocation is not supported by your browser.");
     }
   }, []);
+
   const handleApiLoaded = (map: any, maps: any) => {
     if (userLocation && coordinates) {
       const directionsService = new maps.DirectionsService();
       const directionsRenderer = new maps.DirectionsRenderer();
       directionsRenderer.setMap(map);
-      // Calculate directions
+
       directionsService.route(
         {
           origin: new maps.LatLng(userLocation.lat, userLocation.lng),
@@ -61,7 +62,6 @@ export default function ViewItemMap() {
           status: google.maps.DirectionsStatus,
         ) => {
           if (status === maps.DirectionsStatus.OK) {
-            setDirections(result);
             directionsRenderer.setDirections(result);
           } else {
             toast.error("Failed to calculate directions.");
@@ -71,34 +71,22 @@ export default function ViewItemMap() {
       );
     }
   };
+
   return (
-    <div data-theme="nord" className="flex flex-col h-full">
-      <div className="px-6 py-4 bg-base-200 border-b border-base-300 flex items-center">
+    <div data-theme="nord" className="flex bg-transparent  flex-col h-full">
+      <div className="py-2  flex items-center mb-2">
         <button
           onClick={() => window.history.back()}
-          className="btn btn-ghost btn-sm mr-4"
+          className="btn btn-ghost btn-xs mr-2"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="w-5 h-5"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15.75 19.5L8.25 12l7.5-7.5"
-            />
-          </svg>
+          <BackButton />
         </button>
-        <h1 className="text-xl font-semibold text-base-content">
+        <h1 className="text-lg font-bold ">
           Pickup Location for{" "}
           <span className="text-primary">{item.product.name}</span>
         </h1>
       </div>
-      <div className="flex-1 relative">
+      <div className="flex-1 relative  shadow-inner rounded-lg overflow-hidden">
         <GoogleMapReact
           bootstrapURLKeys={{ key: "AIzaSyBstumBKZoQNTHm3Y865tWEHkkFnNiHGGE" }}
           defaultCenter={defaultProps.center}
@@ -112,9 +100,26 @@ export default function ViewItemMap() {
                 elementType: "labels",
                 stylers: [{ visibility: "off" }],
               },
+              {
+                featureType: "road",
+                elementType: "geometry",
+                stylers: [{ color: "#ffffff" }],
+              },
+              {
+                featureType: "water",
+                elementType: "geometry",
+                stylers: [{ color: "#c9e7ff" }],
+              },
             ],
           }}
         />
+      </div>
+      <div className="p-4 bg-base-200 border-t border-base-300">
+        <p className="text-sm text-secondary">
+          Note: The map above shows the pickup location for your selected item.
+          Please ensure you have enabled location services for accurate
+          directions.
+        </p>
       </div>
     </div>
   );

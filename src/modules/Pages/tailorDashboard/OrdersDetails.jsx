@@ -871,6 +871,7 @@
 // export default OrderDetails;
 
 // Upload image to multimedia endpoint using your existing service
+// {{REWRITTEN_CODE}}
 const uploadImageToMultimedia = async (file) => {
   const formData = new FormData();
   formData.append("image", file);
@@ -952,6 +953,7 @@ const OrderDetails = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("");
   const [currentActionType, setCurrentActionType] = useState(null);
+  const [showMeasurementModal, setShowMeasurementModal] = useState(false);
   const { isPending: isImageUploading, uploadImageMutate } = useUploadImage();
   const { isPending: isStatusUpdating, updateOrderStatusMutate } =
     useUpdateOrderStatus();
@@ -971,6 +973,7 @@ const OrderDetails = () => {
   const orderInfo = data?.data || {};
   const orderPurchase = data?.data?.order_items || [];
   const orderMetadata = data?.data?.payment?.metadata || [];
+  const measurement = orderInfo?.payment?.metadata[0]?.measurement[0] || {};
 
   console.log("order info", orderInfo);
   // Determine if this is a fabric-only order or has tailoring/style components
@@ -1120,6 +1123,10 @@ const OrderDetails = () => {
     return "Upload Image";
   };
 
+  // Measurement Modal
+  const handleOpenMeasurementModal = () => setShowMeasurementModal(true);
+  const handleCloseMeasurementModal = () => setShowMeasurementModal(false);
+
   if (getOrderIsPending) {
     return (
       <div className="m-auto flex h-[80vh] items-center justify-center">
@@ -1268,7 +1275,10 @@ const OrderDetails = () => {
                   {/* MEASUREMENTS */}
                   <div>
                     <p className="text-sm text-gray-500 mb-2">MEASUREMENTS</p>
-                    <button className="flex items-center gap-2 text-blue-600 hover:text-blue-700">
+                    <button
+                      className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+                      onClick={handleOpenMeasurementModal}
+                    >
                       <Ruler className="w-4 h-4" />
                       <span className="text-sm">See measurement</span>
                     </button>
@@ -1342,26 +1352,199 @@ const OrderDetails = () => {
                     </label>
                   </div>
                 </div>
-
-                <div className="mt-8">
-                  <h4 className="text-lg font-semibold mb-4">Order Support</h4>
-                  <p className="text-sm text-gray-500 mb-3">NEED HELP ?</p>
-                  <div className="flex gap-3">
-                    <button className="flex items-center justify-center w-10 h-10 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200">
-                      <Phone className="w-5 h-5" />
-                    </button>
-                    <button className="flex items-center justify-center w-10 h-10 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200">
-                      <MessageSquare className="w-5 h-5" />
-                    </button>
-                    <button className="flex items-center justify-center w-10 h-10 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200">
-                      <Mail className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Measurement Modal */}
+        {showMeasurementModal && (
+          // {{REWRITTEN_CODE}}
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-gradient-to-br from-purple-50 via-white to-blue-50 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto relative border border-purple-100">
+              <button
+                className="absolute top-4 right-4 text-gray-400 hover:text-purple-600 transition-colors focus:outline-none"
+                onClick={handleCloseMeasurementModal}
+                aria-label="Close"
+              >
+                <X size={28} />
+              </button>
+              <div className="p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <Ruler className="w-7 h-7 text-purple-600" />
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Measurement Details
+                  </h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {/* Upper Body */}
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <h4 className="font-bold text-purple-700 mb-4 text-base flex items-center gap-2">
+                      <span className="inline-block w-2 h-2 bg-purple-400 rounded-full"></span>
+                      Upper Body
+                    </h4>
+                    <ul className="space-y-3">
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
+                          Bust Circumference
+                        </span>
+                        <span className="font-semibold text-purple-700 text-right">
+                          {measurement?.upper_body?.bust_circumference ?? "--"}{" "}
+                          {measurement?.upper_body?.bust_circumference_unit ??
+                            ""}
+                        </span>
+                      </li>
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
+                          Shoulder Width
+                        </span>
+                        <span className="font-semibold text-purple-700 text-right">
+                          {measurement?.upper_body?.shoulder_width ?? "--"}{" "}
+                          {measurement?.upper_body?.shoulder_width_unit ?? ""}
+                        </span>
+                      </li>
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
+                          Armhole Circumference
+                        </span>
+                        <span className="font-semibold text-purple-700 text-right">
+                          {measurement?.upper_body?.armhole_circumference ??
+                            "--"}{" "}
+                          {measurement?.upper_body
+                            ?.armhole_circumference_unit ?? ""}
+                        </span>
+                      </li>
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
+                          Sleeve Length
+                        </span>
+                        <span className="font-semibold text-purple-700 text-right">
+                          {measurement?.upper_body?.sleeve_length ?? "--"}{" "}
+                          {measurement?.upper_body?.sleeve_length_unit ?? ""}
+                        </span>
+                      </li>
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
+                          Bicep Circumference
+                        </span>
+                        <span className="font-semibold text-purple-700 text-right">
+                          {measurement?.upper_body?.bicep_circumference ?? "--"}{" "}
+                          {measurement?.upper_body?.bicep_circumference_unit ??
+                            ""}
+                        </span>
+                      </li>
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
+                          Wrist Circumference
+                        </span>
+                        <span className="font-semibold text-purple-700 text-right">
+                          {measurement?.upper_body?.wrist_circumference ?? "--"}{" "}
+                          {measurement?.upper_body?.wrist_circumference_unit ??
+                            ""}
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+                  {/* Lower Body */}
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <h4 className="font-bold text-blue-700 mb-4 text-base flex items-center gap-2">
+                      <span className="inline-block w-2 h-2 bg-blue-400 rounded-full"></span>
+                      Lower Body
+                    </h4>
+                    <ul className="space-y-3">
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
+                          Waist Circumference
+                        </span>
+                        <span className="font-semibold text-blue-700 text-right">
+                          {measurement?.lower_body?.waist_circumference ?? "--"}{" "}
+                          {measurement?.lower_body?.waist_circumference_unit ??
+                            ""}
+                        </span>
+                      </li>
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
+                          Hip Circumference
+                        </span>
+                        <span className="font-semibold text-blue-700 text-right">
+                          {measurement?.lower_body?.hip_circumference ?? "--"}{" "}
+                          {measurement?.lower_body?.hip_circumference_unit ??
+                            ""}
+                        </span>
+                      </li>
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
+                          Thigh Circumference
+                        </span>
+                        <span className="font-semibold text-blue-700 text-right">
+                          {measurement?.lower_body?.thigh_circumference ?? "--"}{" "}
+                          {measurement?.lower_body?.thigh_circumference_unit ??
+                            ""}
+                        </span>
+                      </li>
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
+                          Knee Circumference
+                        </span>
+                        <span className="font-semibold text-blue-700 text-right">
+                          {measurement?.lower_body?.knee_circumference ?? "--"}{" "}
+                          {measurement?.lower_body?.knee_circumference_unit ??
+                            ""}
+                        </span>
+                      </li>
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
+                          Trouser Length
+                        </span>
+                        <span className="font-semibold text-blue-700 text-right">
+                          {measurement?.lower_body?.trouser_length ?? "--"}{" "}
+                          {measurement?.lower_body?.trouser_length_unit ?? ""}
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+                  {/* Full Body */}
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <h4 className="font-bold text-amber-700 mb-4 text-base flex items-center gap-2">
+                      <span className="inline-block w-2 h-2 bg-amber-400 rounded-full"></span>
+                      Full Body
+                    </h4>
+                    <ul className="space-y-3">
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
+                          Height
+                        </span>
+                        <span className="font-semibold text-amber-700 text-right">
+                          {measurement?.full_body?.height ?? "--"}{" "}
+                          {measurement?.full_body?.height_unit ?? ""}
+                        </span>
+                      </li>
+                      <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
+                        <span className="text-gray-700 pr-2 flex-shrink-0">
+                          Dress/Gown Length
+                        </span>
+                        <span className="font-semibold text-amber-700 text-right">
+                          {measurement?.full_body?.dress_length ?? "--"}{" "}
+                          {measurement?.full_body?.dress_length_unit ?? ""}
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                {/* Divider */}
+                <div className="mt-8 flex justify-end">
+                  <button
+                    className="px-6 py-2 rounded-lg bg-purple-600 text-white font-semibold hover:bg-purple-700 transition-colors shadow"
+                    onClick={handleCloseMeasurementModal}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          // {{REWRITTEN_CODE}}
+        )}
 
         {/* Delivery Details */}
         <div className="bg-white rounded-lg p-6 mb-6">
@@ -1394,7 +1577,9 @@ const OrderDetails = () => {
           <div className="grid grid-cols-3 gap-8">
             <div>
               <p className="text-sm text-gray-500 mb-2">CUSTOMER NAME</p>
-              <p className="text-gray-900">Customer Name</p>
+              <p className="text-gray-900">
+                {orderInfo?.payment?.metadata[0].customer_name || "N/A"}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-500 mb-2">FABRIC VENDOR NAME</p>
@@ -1561,3 +1746,4 @@ const OrderDetails = () => {
 };
 
 export default OrderDetails;
+// {{REWRITTEN_CODE}}

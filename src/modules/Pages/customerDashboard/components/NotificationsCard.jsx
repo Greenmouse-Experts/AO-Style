@@ -1,4 +1,3 @@
-import { Bell } from "lucide-react";
 import useQueryParams from "../../../../hooks/useQueryParams";
 import useGetNotification from "../../../../hooks/notification/useGetNotification";
 import useMarkReadNotification from "../../../../hooks/notification/useMarkReadNotification";
@@ -34,11 +33,11 @@ export default function NotificationsCard() {
 
   return (
     <div className="bg-white p-6 rounded-xl">
-      <div className="flex w-full items-center" data-theme="nord">
+      <div className="flex w-full items-center gap-2" data-theme="nord">
         <h2 className="text-lg font-semibold">Notifications</h2>
         <Link
           to="/customer/notifications"
-          className="btn btn-primary ml-auto btn-sm"
+          className="btn btn-soft btn-primary ml-auto btn-xs"
         >
           See More
         </Link>
@@ -55,14 +54,7 @@ export default function NotificationsCard() {
             className={`flex items-start py-2 last:border-none gap-3 ${
               !notification?.read ? "bg-purple-100 cursor-pointer" : ""
             }`}
-            // className="flex items-start gap-3 py-2 last:border-none"
           >
-            <div className="flex items-center justify-center bg-gray-200 rounded-full">
-              <img
-                src=" https://res.cloudinary.com/greenmouse-tech/image/upload/v1741985895/AoStyle/image_cuxdyt.png"
-                className="w-14 h-14 rounded-md"
-              />
-            </div>
             <div>
               <p className="text-sm font-medium"> {notification.title}</p>
               <p className="text-xs text-gray-500 mt-3">

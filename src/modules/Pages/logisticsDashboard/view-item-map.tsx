@@ -40,10 +40,12 @@ export default function ViewItemMap() {
   const [directions, setDirections] =
     useState<google.maps.DirectionsResult | null>(null);
 
-  // Get user location once on mount
+  // Subscribe to realtime location updates
   useEffect(() => {
+    let watchId: number | null = null;
+
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
+      watchId = navigator.geolocation.watchPosition(
         (pos) =>
           setUserLocation({
             lat: pos.coords.latitude,
@@ -55,6 +57,12 @@ export default function ViewItemMap() {
         },
       );
     }
+
+    return () => {
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
   }, []);
 
   if (!isLoaded) return <>Loading map…</>;

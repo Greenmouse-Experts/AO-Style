@@ -1,0 +1,45 @@
+{
+  "compilerOptions": {
+    /* Core settings */
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "lib": ["ES2022", "DOM"],
+    "jsx": "react-jsx" /* Added to support .tsx files */,
+    "allowJs": true, // Allow JavaScript files to be compiled
+    "checkJs": false, // Skip type checking .js files
+
+    /* Performance optimizations */
+    "skipLibCheck": true, // Don't type-check .d.ts files in node_modules
+    "noEmit": true, // Don't generate JS output
+    "incremental": false, // Disable .tsbuildinfo cache to save memory
+    "tsBuildInfoFile": "./.tsbuildinfo", // Still allow manual control if needed
+
+    /* Type checking */
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* Module resolution */
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    /* Project size control */
+    "resolveJsonModule": true,
+    "isolatedModules": true
+  },
+
+  /* Tell TS to ignore heavy or useless folders */
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    ".next",
+    "out",
+    "coverage",
+    "**/*.spec.ts",
+    "**/*.test.ts"
+  ],
+
+  /* Limit watch scope for LSP */
+  "include": ["src"]
+}

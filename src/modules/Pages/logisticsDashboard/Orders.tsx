@@ -1,64 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
+import { AlertCircle, CheckCircle, Eye, Loader2 } from "lucide-react"; // Import Lucide Icons
 import CaryBinApi from "../../../services/CarybinBaseUrl";
 import CustomTable from "../../../components/CustomTable";
-interface VendorCharge {
-  fabric_vendor_fee: number;
-  fashion_designer_fee: number;
-}
+import { useNavigate } from "react-router-dom";
+import { useRef, useState } from "react";
 
-interface PurchaseItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  created_at: string;
-  product_id: string;
-  purchase_type: string;
-  vendor_amount: number;
-  vendor_charge: VendorCharge;
-}
-
-interface Purchase {
-  items: PurchaseItem[];
-  coupon_id: null;
-  coupon_type: null;
-  coupon_value: null;
-}
-
-interface Payment {
-  id: string;
-  user_id: string;
-  purchase_type: string;
-  purchase_id: null;
-  amount: string;
-  discount_applied: string;
-  payment_status: string;
-  transaction_id: string;
-  payment_method: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: null;
-  billing_at_payment: null;
-  billing_id: null;
-  interval: null;
-  currency: string;
-  auto_renew: boolean;
-  is_renewal: boolean;
-  is_upgrade: boolean;
-  metadata: null;
-  purchase: Purchase;
-  transaction_type: null;
-  order_id: null;
-}
-
+// Interfaces (unchanged from original)
+// Interfaces
 interface Measurement {
-  full_body: {
+  full_body?: {
     height: number;
     height_unit: string;
     dress_length: number;
     dress_length_unit: string;
   };
-  lower_body: {
+  lower_body?: {
     trouser_length: number;
     hip_circumference: number;
     knee_circumference: number;
@@ -70,7 +26,7 @@ interface Measurement {
     thigh_circumference_unit: string;
     waist_circumference_unit: string;
   };
-  upper_body: {
+  upper_body?: {
     sleeve_length: number;
     shoulder_width: number;
     bust_circumference: number;
@@ -84,24 +40,25 @@ interface Measurement {
     waist_circumference_unit: string;
     armhole_circumference_unit: string;
   };
+  customer_name?: string;
 }
 
 interface UserProfile {
   id: string;
   user_id: string;
-  profile_picture: string;
+  profile_picture: string | null;
   address: string;
-  bio: string;
-  date_of_birth: string;
-  gender: string;
+  bio: string | null;
+  date_of_birth: string | null;
+  gender: string | null;
   created_at: string;
   updated_at: string;
-  deleted_at: null;
+  deleted_at: string | null;
   country: string;
   state: string;
   country_code: string;
-  approved_by_admin: null;
-  years_of_experience: null;
+  approved_by_admin: string | null;
+  years_of_experience: string | null;
   measurement: Measurement;
   coordinates: {
     latitude: string;
@@ -116,32 +73,6 @@ interface User {
   profile: UserProfile;
 }
 
-interface FabricDetails {
-  id: string;
-  product_id: string;
-  market_id: string;
-  weight_per_unit: string;
-  location: {
-    latitude: string;
-    longitude: string;
-  };
-  local_name: string;
-  manufacturer_name: string;
-  material_type: string;
-  alternative_names: string;
-  fabric_texture: string;
-  feel_a_like: string;
-  quantity: number;
-  minimum_yards: string;
-  available_colors: string;
-  fabric_colors: string;
-  photos: string[];
-  video_url: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: null;
-}
-
 interface Product {
   id: string;
   business_id: string;
@@ -151,20 +82,20 @@ interface Product {
   sku: string;
   description: string;
   gender: string;
-  tags: string[];
+  tags: [];
   price: string;
   original_price: string;
   currency: string;
   type: string;
   status: string;
   approval_status: string;
-  published_at: null;
-  archived_at: null;
+  published_at: string | null;
+  archived_at: string | null;
   created_at: string;
   updated_at: string;
-  deleted_at: null;
-  fabric: FabricDetails;
-  style: null;
+  deleted_at: string | null;
+  fabric: any | null; // Placeholder, adjust if specific fabric interface is known
+  style: any | null; // Placeholder, adjust if specific style interface is known
 }
 
 interface OrderItem {
@@ -175,7 +106,7 @@ interface OrderItem {
   price: string;
   created_at: string;
   updated_at: string;
-  deleted_at: null;
+  deleted_at: string | null;
   product: Product;
 }
 
@@ -185,13 +116,14 @@ interface Order {
   status: string;
   total_amount: string;
   payment_id: string;
-  metadata: null;
-  logistics_agent_id: null;
+  metadata: any | null;
+  logistics_agent_id: string | null;
   created_at: string;
   updated_at: string;
-  deleted_at: null;
-  payment: Payment;
+  deleted_at: string | null;
+  payment: any; // Placeholder, adjust if specific payment interface is known
   user: User;
+  logistics_agent: any | null;
   order_items: OrderItem[];
 }
 
@@ -200,87 +132,241 @@ interface OrderRequestsResponse {
   data: Order[];
   count: number;
 }
+
 export default function OrderRequests() {
-  const query = useQuery<OrderRequestsResponse>({
-    queryKey: ["logistics", "orders"],
-    queryFn: async () => {
-      let resp = await CaryBinApi.get("/orders/available-orders");
-      return resp.data;
-    },
-  });
+  const navigate = useNavigate();
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [selectedItem, setSelectedItem] = useState<Order | null>(null);
+  const { data, isFetching, isError, error, refetch } =
+    useQuery<OrderRequestsResponse>({
+      queryKey: ["logistics", "orders"],
+      queryFn: async () => {
+        const resp = await CaryBinApi.get("/orders/available-orders");
+        return resp.data;
+      },
+    });
 
-  if (query.isFetching)
-    <>
-      <div data-theme="nord">
-        <div className="animate-spin loading-bars"></div>
-        <span>Loading Orders</span>
-      </div>
-    </>;
-
-  if (query.isError)
+  // Loading State
+  if (isFetching) {
     return (
-      <div data-theme="nord">
-        <div>Error Occured loading Orders</div>
-        <button className="btn btn-primary" onClick={query.refetch}>
-          Reload
+      <div
+        data-theme="nord"
+        className="flex flex-col items-center justify-center min-h-[50vh] gap-4"
+        aria-live="polite"
+      >
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <span className="text-base-content text-lg">Loading Orders...</span>
+      </div>
+    );
+  }
+
+  // Error State
+  if (isError) {
+    return (
+      <div
+        data-theme="nord"
+        className="flex flex-col items-center justify-center min-h-[50vh] gap-4"
+        aria-live="assertive"
+      >
+        <div className="alert alert-error max-w-md">
+          <AlertCircle className="w-6 h-6 text-error-content" />
+          <span className="text-error-content">
+            {error?.message || "An error occurred while loading orders"}
+          </span>
+        </div>
+        <button
+          className="btn btn-primary btn-md"
+          onClick={() => refetch()}
+          aria-label="Retry loading orders"
+        >
+          Try Again
         </button>
       </div>
     );
-  interface ColumnDef<T> {
-    key: string;
-    label: string;
-    render?: (item: T) => React.ReactNode;
   }
 
-  const columns: ColumnDef<Order>[] = [
+  // Columns
+  const columns: {
+    key: string;
+    label: string;
+    render?: (_, item: Order) => JSX.Element;
+  }[] = [
     {
-      key: "order_id",
-      label: "Order ID",
-      render: (item: Order) => {
-        return <span>{item.id}</span>;
-      },
-    },
-    {
-      key: "customer_name",
-      label: "Customer Name",
-      render: (item: Order) => {
-        return <span>{item.user.profile.address}</span>;
-      },
-    },
-    {
-      key: "order_date",
-      label: "Order Date",
-      render: (item: Order) => {
-        return <span>{new Date(item.created_at).toLocaleString()}</span>;
-      },
-    },
-    {
-      key: "order_status",
-      label: "Order Status",
-      render: (item: Order) => {
-        return <span>{item.status}</span>;
-      },
-    },
-    {
-      key: "total_amount",
-      label: "Total Amount",
-      render: (item: Order) => {
+      key: "id",
+      label: "id",
+      render: (_, item) => {
         return (
-          <span>
-            {item.payment.currency} {item.total_amount}
-          </span>
+          <div className=" w-[80px] overflow-ellipsis" data-theme="nord">
+            {item.id}
+          </div>
         );
+      },
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: (_, item) => {
+        if (item.status.toLocaleLowerCase() == "paid") {
+          return (
+            <div className="badge badge-success badge-soft">
+              {item.status.replaceAll("_", " ")}
+            </div>
+          );
+        }
+        return (
+          <div className="badge badge-primary badge-soft">
+            {item.status.replaceAll("_", " ")}
+          </div>
+        );
+      },
+    },
+    {
+      key: "amount",
+      label: "Amount",
+      render: (_, item) => {
+        return <>{item.total_amount}</>;
+      },
+    },
+    {
+      key: "location",
+      label: "location",
+      render: (_, item) => {
+        return <>{item.user.profile.address}</>;
+      },
+    },
+    {
+      key: "logistic",
+      label: "logistic ID",
+      render: (_, item) => {
+        return <>{item.total_amount}</>;
+      },
+    },
+    {
+      key: "items",
+      label: "items",
+      render: (_, item) => {
+        return <>{item.order_items.length}</>;
       },
     },
   ];
 
+  // Helper function to map order status to badge classes
+  // const getStatusBadgeClass = (status: string) => {
+  //   switch (status.toLowerCase()) {
+  //     case "pending":
+  //       return "badge-warning";
+  //     case "completed":
+  //       return "badge-success";
+  //     case "cancelled":
+  //       return "badge-error";
+  //     default:
+  //       return "badge-neutral";
+  //   }
+  // };
+
+  // Actions
+  interface ActionConfig {
+    key: string;
+    label: string;
+    icon: JSX.Element; // Assuming icons are JSX elements
+    action: (item: Order) => void;
+  }
+
+  const actions: ActionConfig[] = [
+    {
+      key: "view",
+      label: "View",
+      icon: <Eye className="w-4 h-4 text-primary" />,
+      action: (item: Order) => {
+        console.log(item, "view");
+        // dialogRef.current?.showModal();
+        navigate(`/logistics/orders/${item.id}`);
+      },
+    },
+    {
+      key: "locate",
+      label: "locate",
+      icon: <Eye className="w-4 h-4 text-primary" />,
+      action: (item: Order) => {
+        console.log(item, "view");
+        // dialogRef.current?.showModal();
+        navigate(`/logistics/orders/${item.id}/map`);
+      },
+    },
+    // {
+    //   key: "accept",
+    //   label: "Accept Order",
+    //   icon: <CheckCircle className="w-4 h-4 text-success" />,
+    //   action: (item: Order) => {
+    //     // Placeholder for accept order logic
+    //     console.log(`Accepting order ${item.id}`);
+    //     // navigate(`/logistics/orders/${item.id}`);
+    //   },
+    // },
+  ];
+
   return (
-    <div data-theme="nord" className="bg-transparent">
-      <div className="p-3 round-md my-4  bg-white mb-4">
-        <h2 className="font-bold text-xl my-2">Orders</h2>
-        <div className="font-semibold opacity-80">Dashboard {">"} Orders</div>
+    <div data-theme="nord" className="min-h-screen flex flex-col  bg-base-100">
+      <div className="p-4 rounded-box outline outline-current/20 m-4">
+        <h2 className="font-bold text-2xl text-base-content mb-2">
+          Orders Available
+        </h2>
+        <div className="breadcrumbs text-base-content">
+          <ul>
+            <li>Dashboard</li>
+            <li>Orders</li>
+          </ul>
+        </div>
       </div>
-      <CustomTable data={query.data?.data || []} columns={columns} />
+      <CustomTable data={data?.data} actions={actions} columns={columns} />
+      <dialog
+        ref={dialogRef}
+        className="modal"
+        open={!!selectedItem}
+        onClose={() => setSelectedItem(null)}
+      >
+        <div className="modal-box bg-base-100">
+          <form method="dialog">
+            <button
+              className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+              onClick={() => setSelectedItem(null)}
+            >
+              ✕
+            </button>
+          </form>
+          <h3 className="font-bold text-lg text-base-content">Order Details</h3>
+          <div className="py-4 text-base-content">
+            <p>
+              <span className="font-semibold">Order ID:</span>{" "}
+              {selectedItem?.id}
+            </p>
+            <p>
+              <span className="font-semibold">Customer Name:</span>{" "}
+              {selectedItem?.user?.profile?.name || "N/A"}
+            </p>
+            <p>
+              <span className="font-semibold">Status:</span>{" "}
+              <span className={""}>{selectedItem?.status}</span>
+            </p>
+            <p>
+              <span className="font-semibold">Total Amount:</span>{" "}
+              {selectedItem?.total_amount}
+            </p>
+            <p>
+              <span className="font-semibold">Items:</span>{" "}
+              {selectedItem?.order_items.length}
+            </p>
+            {selectedItem?.order_items.map((item) => (
+              <div key={item.id} className="mt-2 ml-2">
+                - {item.product.name} (x{item.quantity})
+              </div>
+            ))}
+          </div>
+        </div>
+        <form method="dialog" className="modal-backdrop">
+          <button onClick={() => setSelectedItem(null)}>close</button>
+        </form>
+      </dialog>
     </div>
   );
 }

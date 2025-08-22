@@ -1,7 +1,4 @@
 import { useState } from "react";
-import { Search } from "lucide-react";
-import { Link } from "react-router-dom";
-import ReusableTable from "../salesDashboard/components/ReusableTable";
 import { GeneralTransactionComponent } from "../../../components/GeneralTransactionComponents";
 import WalletPage from "./components/WalletPage";
 import WithdrawalModal from "./components/WithdrawalModal";

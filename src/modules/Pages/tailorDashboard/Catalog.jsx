@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, MoreVertical } from "lucide-react";
+import { Search, MoreVertical, MenuIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails";
 import useQueryParams from "../../../hooks/useQueryParams";
@@ -407,7 +407,7 @@ export default function StylesTable() {
                             )
                           }
                         >
-                          <MoreVertical className="text-gray-500" />
+                          <MenuIcon className="label" />
                         </button>
                         {openDropdown === style.id && (
                           <div className="absolute cursor-pointer right-0 mt-2 bg-white shadow-md rounded-md py-2 w-32 z-50">
@@ -483,7 +483,7 @@ export default function StylesTable() {
                                 {style.status != "ARCHIVED" && (
                                   <>
                                     {" "}
-                                    <button
+                                    {/* <button
                                       onClick={async (e) => {
                                         let buisnss_id = businessDetails.data;
                                         toast.promise(
@@ -515,7 +515,7 @@ export default function StylesTable() {
                                       className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
                                     >
                                       Archive
-                                    </button>
+                                    </button>*/}
                                   </>
                                 )}
                                 <Link

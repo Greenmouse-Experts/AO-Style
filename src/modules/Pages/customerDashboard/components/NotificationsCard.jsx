@@ -2,6 +2,7 @@ import { Bell } from "lucide-react";
 import useQueryParams from "../../../../hooks/useQueryParams";
 import useGetNotification from "../../../../hooks/notification/useGetNotification";
 import useMarkReadNotification from "../../../../hooks/notification/useMarkReadNotification";
+import { Link } from "react-router-dom";
 
 const notifications = [
   {
@@ -33,9 +34,17 @@ export default function NotificationsCard() {
 
   return (
     <div className="bg-white p-6 rounded-xl">
-      <h3 className="font-medium text-lg mb-4">Recent Notifications</h3>
+      <div className="flex w-full items-center" data-theme="nord">
+        <h2 className="text-lg font-semibold">Notifications</h2>
+        <Link
+          to="/customer/notifications"
+          className="btn btn-primary ml-auto btn-sm"
+        >
+          See More
+        </Link>
+      </div>
       {data?.data?.length ? (
-        data?.data.map((notification, index) => (
+        data?.data.slice(0, 3).map((notification, index) => (
           <div
             key={notification?.id}
             onClick={() => {

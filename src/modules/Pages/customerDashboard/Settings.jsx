@@ -133,6 +133,7 @@ const Settings = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      // return console.log(val.phone);
       console.log("Form submission values:", val);
       console.log("Coordinates being sent:", {
         latitude: val.latitude,
@@ -417,7 +418,7 @@ const Settings = () => {
                                 setFieldValue("phone", value);
                               } else {
                                 // Default to +234 for Nigeria
-                                setFieldValue("phone", "+234");
+                                setFieldValue("phone", value);
                               }
                             } else {
                               // For other countries, handle normally

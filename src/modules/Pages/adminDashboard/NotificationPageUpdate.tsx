@@ -9,6 +9,8 @@ import useDebounce from "../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 import { formatDateStr } from "../../../lib/helper";
 import useMarkReadNotification from "../../../hooks/notification/useMarkReadNotification";
+import { toast } from "react-toastify";
+import CaryBinApi from "../../../services/CarybinBaseUrl";
 
 export default function NotificationPageUpdate() {
   const [filter, setFilter] = useState("all");
@@ -177,10 +179,24 @@ export default function NotificationPageUpdate() {
                           ? "bg-gray-200 cursor-not-allowed"
                           : "bg-green-500 hover:bg-green-600"
                       }`}
-                      onClick={() =>
+                      onClick={async () => {
+                        console.log("notif");
                         !notification.read &&
-                        markReadNotificationMutate({ id: notification.id })
-                      }
+                          (await toast.promise(
+                            async () => {
+                              return (
+                                await CaryBinApi.patch(
+                                  "/notification-track/mark-read/" +
+                                    notification.id,
+                                )
+                              ).data;
+                            },
+                            {
+                              pending: "reading",
+                              success: "patched",
+                            },
+                          ));
+                      }}
                       disabled={notification.read || markReadIsPending}
                       title={
                         notification.read ? "Marked as Read" : "Mark as Read"

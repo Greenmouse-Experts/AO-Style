@@ -42,35 +42,37 @@ export default function NotificationsCard() {
           See More
         </Link>
       </div>
-      {data?.data?.length ? (
-        data?.data.slice(0, 3).map((notification, index) => (
-          <div
-            key={notification?.id}
-            onClick={() => {
-              if (!notification?.read) {
-                markReadNotificationMutate({ id: notification?.id });
-              }
-            }}
-            className={`flex items-start py-2 last:border-none gap-3 ${
-              !notification?.read ? "bg-purple-100 cursor-pointer" : ""
-            }`}
-          >
-            <div>
-              <p className="text-sm font-medium"> {notification.title}</p>
-              <p className="text-xs text-gray-500 mt-3">
-                {notification.message}
-              </p>
+      <div className="p-2">
+        {data?.data?.length ? (
+          data?.data.slice(0, 3).map((notification, index) => (
+            <div
+              key={notification?.id}
+              onClick={() => {
+                if (!notification?.read) {
+                  markReadNotificationMutate({ id: notification?.id });
+                }
+              }}
+              className={`flex items-start py-4 px-4 last:border-none gap-3 ${
+                !notification?.read ? "bg-purple-100 cursor-pointer" : ""
+              }`}
+            >
+              <div>
+                <p className="text-sm font-medium"> {notification.title}</p>
+                <p className="text-xs text-gray-500 mt-3">
+                  {notification.message}
+                </p>
+              </div>
+              {!notification.read && (
+                <span className="ml-auto text-[#A14DF6] text-xl">•</span>
+              )}
             </div>
-            {!notification.read && (
-              <span className="ml-auto text-[#A14DF6] text-xl">•</span>
-            )}
-          </div>
-        ))
-      ) : (
-        <p className="flex items-center justify-center text-center my-auto h-full text-sm md:text-sm">
-          No notifications found.
-        </p>
-      )}
+          ))
+        ) : (
+          <p className="flex items-center justify-center text-center my-auto h-full text-sm md:text-sm py-8">
+            No notifications found.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

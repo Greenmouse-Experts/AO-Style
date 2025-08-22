@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Menu } from "lucide-react";
+import { Bell, Menu, ShoppingCart } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import useToast from "../../../hooks/useToast";
 import Cookies from "js-cookie";
@@ -51,12 +51,12 @@ export default function Navbar({ toggleSidebar }) {
 
         {/* Right: Notification & Profile */}
         <div className="flex items-center space-x-6">
-          <Link
+          {/* <Link
             to="/view-cart"
             className="relative bg-purple-100 p-2 rounded-full"
           >
-            cart
-          </Link>
+            <ShoppingCart size={20} className="text-purple-600" />
+          </Link>*/}
           <Link
             to="/customer/notifications"
             className="relative bg-purple-100 p-2 rounded-full"

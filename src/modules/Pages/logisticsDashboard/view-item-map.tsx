@@ -1,83 +1,69 @@
 import { useParams } from "react-router-dom";
 import { useItemMap } from "../../../store/useTempStore";
-import GoogleMapReact from "google-map-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { BackButton } from "../salesDashboard/ViewVendorDetails";
-import { AnyReactComponent } from "./order-location";
+import {
+  GoogleMap,
+  useJsApiLoader,
+  DirectionsRenderer,
+  DirectionsService,
+} from "@react-google-maps/api";
+
+const containerStyle = {
+  width: "100%",
+  height: "520px",
+};
+
 export default function ViewItemMap() {
-  const { id } = useParams();
   const item = useItemMap((state) => state.item);
+  const coordinates = item?.product?.creator?.profile?.coordinates;
+
+  const destination = coordinates
+    ? {
+        lat: parseFloat(coordinates.latitude),
+        lng: parseFloat(coordinates.longitude),
+      }
+    : null;
+
+  const { isLoaded } = useJsApiLoader({
+    id: "google-map-script",
+    googleMapsApiKey: "AIzaSyBstumBKZoQNTHm3Y865tWEHkkFnNiHGGE", // move this to env var ideally
+    libraries: ["places"],
+  });
+
   const [userLocation, setUserLocation] = useState<{
     lat: number;
     lng: number;
   } | null>(null);
-  const [mapInstance, setMapInstance] = useState<any>(null);
-  const [mapsApi, setMapsApi] = useState<any>(null);
-  const coordinates = item?.product?.creator?.profile?.coordinates;
 
+  const [directions, setDirections] =
+    useState<google.maps.DirectionsResult | null>(null);
+
+  // Get user location once on mount
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        (pos) =>
           setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        },
-        (error) => {
-          toast.error(
-            "Unable to retrieve your location. Please allow location access.",
-          );
-          console.error("Geolocation error:", error);
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+          }),
+        (err) => {
+          toast.error("Enable location services to see directions.");
+          console.error(err);
         },
       );
-    } else {
-      toast.error("Geolocation is not supported by your browser.");
     }
   }, []);
 
-  // Re-run directions when userLocation + map + coordinates are ready
-  useEffect(() => {
-    if (userLocation && coordinates && mapInstance && mapsApi) {
-      const directionsService = new mapsApi.DirectionsService();
-      const directionsRenderer = new mapsApi.DirectionsRenderer();
-      directionsRenderer.setMap(mapInstance);
+  if (!isLoaded) return <>Loading map…</>;
+  if (!destination) return <>No destination provided.</>;
 
-      directionsService.route(
-        {
-          origin: new mapsApi.LatLng(userLocation.lat, userLocation.lng),
-          destination: new mapsApi.LatLng(
-            parseFloat(coordinates.latitude),
-            parseFloat(coordinates.longitude),
-          ),
-          travelMode: mapsApi.TravelMode.DRIVING,
-        },
-        (
-          result: google.maps.DirectionsResult,
-          status: google.maps.DirectionsStatus,
-        ) => {
-          if (status === mapsApi.DirectionsStatus.OK) {
-            directionsRenderer.setDirections(result);
-          } else {
-            toast.error("Failed to calculate directions.");
-            console.error("Directions request failed due to " + status);
-          }
-        },
-      );
-    }
-  }, [userLocation, coordinates, mapInstance, mapsApi]);
-
-  const defaultProps = {
-    center: {
-      lat: coordinates ? parseFloat(coordinates.latitude) : 10.99835602,
-      lng: coordinates ? parseFloat(coordinates.longitude) : 77.01502627,
-    },
-    zoom: 11,
-  };
+  const center = userLocation || destination;
 
   return (
-    <div data-theme="nord" className="flex bg-transparent flex-col h-full">
+    <div className="flex flex-col h-full">
       <div className="py-2 flex items-center mb-2">
         <button
           onClick={() => window.history.back()}
@@ -90,27 +76,30 @@ export default function ViewItemMap() {
           <span className="text-primary">{item?.product?.name}</span>
         </h1>
       </div>
-      <div className="flex-1 relative shadow-inner rounded-lg overflow-hidden">
-        <GoogleMapReact
-          bootstrapURLKeys={{
-            key: "AIzaSyBstumBKZoQNTHm3Y865tWEHkkFnNiHGGE",
-          }}
-          defaultCenter={defaultProps.center}
-          defaultZoom={defaultProps.zoom}
-          yesIWantToUseGoogleMapApiInternals
-          onGoogleApiLoaded={({ map, maps }) => {
-            setMapInstance(map);
-            setMapsApi(maps);
-          }}
-        />
-      </div>
-      <div className="p-4 bg-base-200 border-t border-base-300">
-        <p className="text-sm text-secondary">
-          Note: The map above shows the pickup location for your selected item.
-          Please ensure you have enabled location services for accurate
-          directions.
-        </p>
-      </div>
+
+      <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={11}>
+        {/* Request directions when we have both points */}
+        {userLocation && destination && !directions && (
+          <DirectionsService
+            options={{
+              origin: userLocation,
+              destination: destination,
+              travelMode: google.maps.TravelMode.DRIVING,
+            }}
+            callback={(res, status) => {
+              if (status === "OK" && res) {
+                setDirections(res);
+              } else {
+                toast.error("Could not calculate directions.");
+                console.error("DirectionsService failed:", status);
+              }
+            }}
+          />
+        )}
+
+        {/* Render the route */}
+        {directions && <DirectionsRenderer directions={directions} />}
+      </GoogleMap>
     </div>
   );
 }

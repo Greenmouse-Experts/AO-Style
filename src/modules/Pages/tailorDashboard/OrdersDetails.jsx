@@ -1271,7 +1271,7 @@ const OrderDetails = () => {
                   <div>
                     <p className="text-sm text-gray-500 mb-2">MEASUREMENTS</p>
                     <button
-                      className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+                      className="flex items-center gap-2 text-blue-600 hover:text-blue-700 cursor-pointer"
                       onClick={handleOpenMeasurementModal}
                     >
                       <Ruler className="w-4 h-4" />

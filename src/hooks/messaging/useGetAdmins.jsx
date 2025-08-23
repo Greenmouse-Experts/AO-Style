@@ -8,13 +8,13 @@ const useGetAdmins = () => {
       const response = await CaryBinApi.get(
         "/auth/admins/owner-super-administrator",
       );
-      console.log(response.data);
+      // console.log(response.data);
       return response.data;
     },
     retry: (failureCount, error) => {
       // Don't retry if it's a 401 error (unauthorized)
       if (error?.response?.status === 401) {
-        console.log("❌ Admin fetch: 401 error, not retrying");
+        // console.log("❌ Admin fetch: 401 error, not retrying");
         return false;
       }
       return failureCount < 3;
@@ -24,18 +24,18 @@ const useGetAdmins = () => {
   });
 
   // Log the complete query state and data
-  console.log("📊 GET ADMINS - QUERY STATE:", {
-    isPending,
-    isError,
-    isSuccess,
-    error,
-    data,
-  });
-  console.log("📊 GET ADMINS - FULL DATA OBJECT:", data);
-  console.log(
-    "📊 GET ADMINS - DATA STRINGIFIED:",
-    JSON.stringify(data, null, 2),
-  );
+  // console.log("📊 GET ADMINS - QUERY STATE:", {
+  //   isPending,
+  //   isError,
+  //   isSuccess,
+  //   error,
+  //   data,
+  // });
+  // console.log("📊 GET ADMINS - FULL DATA OBJECT:", data);
+  // console.log(
+  //   "📊 GET ADMINS - DATA STRINGIFIED:",
+  //   JSON.stringify(data, null, 2),
+  // );
 
   return {
     data: data?.data || [],

@@ -108,7 +108,18 @@ interface OrderItem {
       updated_at: string;
       deleted_at: string | null;
     };
-    style: string | null;
+    style: {
+      id: string;
+      product_id: string;
+      estimated_sewing_time: number;
+      minimum_fabric_qty: string;
+      location: any;
+      photos: string[];
+      video_url: string;
+      created_at: string;
+      updated_at: string;
+      deleted_at: string | null;
+    } | null;
   };
 }
 interface ItemMap {

@@ -26,7 +26,7 @@ export default function CustomTable(props: CustomTableProps) {
 
   return (
     <div data-theme="nord" className="p-2  " id="cus-app">
-      <div className="static">
+      <div className="overflow-x-scroll static">
         <table className="table static">
           {/* head */}
           <thead>
@@ -51,7 +51,7 @@ export default function CustomTable(props: CustomTableProps) {
                   <tr key={rowIdx}>
                     {props.columns?.map((col, colIdx) => (
                       <td
-                        className="whitespace-nowrap max-w-sm text-ellipsis overflow-hidden"
+                        className=" max-w-sm text-ellipsis overflow-hidden"
                         key={colIdx}
                       >
                         {col.render
@@ -62,7 +62,7 @@ export default function CustomTable(props: CustomTableProps) {
                     {!props.columns?.find((item) => item.key == "action") && (
                       <>
                         <td className="">
-                          <div className="dropdown dropdown-end ">
+                          <div className="dropdown dropdown-end">
                             <div
                               tabIndex={0}
                               role="button"
@@ -74,7 +74,7 @@ export default function CustomTable(props: CustomTableProps) {
                             </div>
                             <ul
                               tabIndex={0}
-                              className="dropdown-content menu bg-base-100 rounded-box  w-52 p-2 shadow-sm "
+                              className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
                             >
                               {props.actions?.map((action) => {
                                 return (

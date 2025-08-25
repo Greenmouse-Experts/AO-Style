@@ -272,7 +272,7 @@ const Subscriptions = () => {
         className="py-6 border-b border-current/20 mb-12 flex flex-col gap-4"
       >
         <div>
-          <div className="text-sm text-gray-600">Current Plan:</div>
+          <div className="text-sm text-gray-600">Current Plan: </div>
           <div className="font-bold text-xl text-neutral-800">
             {free_plan.data?.data?.subscriptions[0]?.plan_name_at_subscription}
           </div>

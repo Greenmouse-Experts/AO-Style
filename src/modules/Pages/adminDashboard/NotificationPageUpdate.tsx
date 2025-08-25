@@ -20,7 +20,7 @@ export default function NotificationPageUpdate() {
     "pagination[page]": 1,
   });
 
-  const { data, isPending } = useGetNotification({
+  const { data, isPending, refetch } = useGetNotification({
     ...queryParams,
   });
 
@@ -188,12 +188,15 @@ export default function NotificationPageUpdate() {
                                 await CaryBinApi.patch(
                                   "/notification-track/mark-read/" +
                                     notification.id,
-                                )
+                                ).then((res) => {
+                                  refetch();
+                                  return res;
+                                })
                               ).data;
                             },
                             {
                               pending: "reading",
-                              success: "patched",
+                              success: "read",
                             },
                           ));
                       }}

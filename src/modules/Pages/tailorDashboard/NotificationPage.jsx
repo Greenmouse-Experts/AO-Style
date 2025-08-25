@@ -50,6 +50,7 @@ export default function NotificationPage() {
     return notification.text.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
+  return <>ss</>;
   return (
     <div className="">
       <div className="bg-white px-6 py-4 mb-6">

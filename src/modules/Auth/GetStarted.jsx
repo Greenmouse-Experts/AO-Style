@@ -16,16 +16,12 @@ export default function GetStarted() {
         <h1 className="md:text-3xl text-2xl font-normal text-black mb-4">
           Choose A User Type :
         </h1>
-        <p className="text-black mt-2">
-          Select a user type to start enjoying the perks of the platform
+      </div>
+      <div className="flex flex-col items-center mb-8">
+        <p className="text-center text-purple-500 text-3xl md:text-4xl font-extrabold tracking-wide underline">
+          JOIN AS{" "}
         </p>
       </div>
-      <div>
-        <p className="text-center text-black text-lg font-semibold mb-6">
-          Join as:
-        </p>
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:mt-8 mt-1">
         {[
           {

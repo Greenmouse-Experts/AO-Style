@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { FaEllipsisH, FaCalendarAlt } from "react-icons/fa";
+import { FaEllipsisH, FaCalendarAlt, FaBars, FaTh } from "react-icons/fa";
 import { useFormik } from "formik";
 import { useLocation } from "react-router-dom";
 import ReusableTable from "../adminDashboard/components/ReusableTable";
@@ -14,10 +14,18 @@ import ViewSubscription from "./ViewSubscription";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import SubscriptionModal from "./SubscribeModal";
 import useGetUserSubscription from "../../../hooks/subscription/useGetUserSub";
+import { useQuery } from "@tanstack/react-query";
+import CaryBinApi from "../../../services/CarybinBaseUrl";
 
 const Subscriptions = () => {
   const location = useLocation();
-
+  const free_plan = useQuery({
+    queryKey: ["free-plan"],
+    queryFn: async () => {
+      let resp = await CaryBinApi.get("/auth/view-profile");
+      return resp.data;
+    },
+  });
   const [currentView, setCurrentView] = useState(null);
 
   const { isOpen, closeModal, openModal } = useModalState();
@@ -98,7 +106,7 @@ const Subscriptions = () => {
     {
       ...queryParams,
     },
-    currUrl == "/fabric/subscription" ? "fabric-vendor" : "fashion-designer"
+    currUrl == "/fabric/subscription" ? "fabric-vendor" : "fashion-designer",
   );
 
   const [queryString, setQueryString] = useState(queryParams.q);
@@ -122,34 +130,35 @@ const Subscriptions = () => {
                 details?.subscription_plan_prices[0]?.period == "free"
                   ? "Free"
                   : details?.subscription_plan_prices[0]?.period == "monthly"
-                  ? "Monthly"
-                  : details?.subscription_plan_prices[0]?.period == "quarterly"
-                  ? "Quarterly"
-                  : details?.subscription_plan_prices[0]?.period ==
-                    "semi_annually"
-                  ? "Semi Annually"
-                  : "Yearly"
+                    ? "Monthly"
+                    : details?.subscription_plan_prices[0]?.period ==
+                        "quarterly"
+                      ? "Quarterly"
+                      : details?.subscription_plan_prices[0]?.period ==
+                          "semi_annually"
+                        ? "Semi Annually"
+                        : "Yearly"
               }`,
               planDescription:
                 details?.description.length > 15
                   ? `${details?.description.slice(0, 15)}...`
                   : details?.description,
               amount: ` ${formatNumberWithCommas(
-                details?.subscription_plan_prices[0]?.price ?? 0
+                details?.subscription_plan_prices[0]?.price ?? 0,
               )}`,
 
               dateAdded: `${
                 details?.created_at
                   ? formatDateStr(
                       details?.created_at.split(".").shift(),
-                      "D/M/YYYY h:mm A"
+                      "D/M/YYYY h:mm A",
                     )
                   : ""
               }`,
             };
           })
         : [],
-    [subscriptionData?.data]
+    [subscriptionData?.data],
   );
 
   useUpdatedEffect(() => {
@@ -248,7 +257,7 @@ const Subscriptions = () => {
         ),
       },
     ],
-    [openDropdown]
+    [openDropdown],
   );
 
   //   const totalPages = Math.ceil(
@@ -257,12 +266,43 @@ const Subscriptions = () => {
 
   return (
     <div className="bg-white p-6  rounded-xl overflow-visible">
+      {/* <>loading {JSON.stringify(free_plan.data)}</>*/}
+      <div
+        data-theme="nord"
+        className="py-6 border-b border-current/20 mb-12 flex flex-col gap-4"
+      >
+        <div>
+          <div className="text-sm text-gray-600">Current Plan:</div>
+          <div className="font-bold text-xl text-neutral-800">
+            {free_plan.data?.data?.subscriptions[0]?.plan_name_at_subscription}
+          </div>
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          {free_plan.data?.data?.subscriptions[0]?.is_active ? (
+            <span className="bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">
+              Active
+            </span>
+          ) : (
+            <span className="bg-red-100 text-red-700 px-2.5 py-1 rounded-full font-medium">
+              Inactive
+            </span>
+          )}
+          <span className="text-gray-500">
+            |{" "}
+            {formatDateStr(
+              free_plan.data?.data?.subscriptions[0]?.created_at?.split(".")[0],
+              "D/M/YYYY h:mm A",
+            )}
+          </span>
+        </div>
+      </div>
       <div className="flex flex-wrap justify-between items-center pb-3  gap-4">
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <h2 className="text-lg font-semibold">Subscriptions</h2>
         </div>
+
         <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
-          {/* <div className="flex items-center space-x-2 border border-gray-200 rounded-md p-1">
+          <div className="flex items-center space-x-2 border border-gray-200 rounded-md p-1">
             <button
               className={`p-2 rounded ${
                 activeTab === "table" ? "text-[#9847FE]" : "text-gray-600"
@@ -285,7 +325,7 @@ const Subscriptions = () => {
             >
               <FaTh size={16} />
             </button>
-          </div> */}
+          </div>
           <input
             type="text"
             placeholder="Search subscription..."
@@ -310,14 +350,14 @@ const Subscriptions = () => {
             columns={columns}
             data={subscriptionRes}
           />
-          {/* 
+          {/*
           {!fabricData?.length && !isPending ? (
             <p className="flex-1 text-center text-sm md:text-sm">
               No subscription found.
             </p>
           ) : (
             <></>
-          )} */}
+          )}*/}
         </>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -387,52 +427,6 @@ const Subscriptions = () => {
           ))}
         </div>
       )}
-
-      {/* {fabricData?.length > 0 && (
-        <div className="flex justify-between items-center mt-4">
-          <div className="flex items-center">
-            <p className="text-sm text-gray-600">Items per page: </p>
-            <select
-              value={queryParams["pagination[limit]"] || 10}
-              onChange={(e) =>
-                updateQueryParams({
-                  "pagination[limit]": +e.target.value,
-                })
-              }
-              className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={15}>15</option>
-              <option value={20}>20</option>
-            </select>
-          </div>
-          <div className="flex gap-1">
-            <button
-              onClick={() => {
-                updateQueryParams({
-                  "pagination[page]": +queryParams["pagination[page]"] - 1,
-                });
-              }}
-              disabled={(queryParams["pagination[page]"] ?? 1) == 1}
-              className="px-3 py-1 rounded-md bg-gray-200"
-            >
-              ◀
-            </button>
-            <button
-              onClick={() => {
-                updateQueryParams({
-                  "pagination[page]": +queryParams["pagination[page]"] + 1,
-                });
-              }}
-              disabled={(queryParams["pagination[page]"] ?? 1) == totalPages}
-              className="px-3 py-1 rounded-md bg-gray-200"
-            >
-              ▶
-            </button>
-          </div>
-        </div>
-      )} */}
 
       {isOpen && (
         <ViewSubscription onClose={closeModal} currentView={currentView} />

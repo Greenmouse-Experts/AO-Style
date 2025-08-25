@@ -199,7 +199,7 @@ export default function SalesRepUsers() {
         if (parsed_role == "fashion-designer") {
           path = "tailors";
         }
-        nav(`/admin/${path}/view/` + item.id);
+        nav(`/admin/sales-rep/view-sales/user/${item.id}`);
       },
     },
   ];

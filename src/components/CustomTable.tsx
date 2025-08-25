@@ -22,8 +22,6 @@ interface CustomTableProps {
 }
 
 export default function CustomTable(props: CustomTableProps) {
-  // return <>{JSON.stringify(props.data)}</>;
-
   return (
     <div data-theme="nord" className="p-2 static  " id="cus-app">
       <table className="w-full">

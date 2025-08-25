@@ -144,7 +144,15 @@ export default function SalesRepUsers() {
 
   const columns = [
     { key: "name", label: "Name" },
-    { key: "email", label: "Email Address" },
+    {
+      key: "email",
+      label: "Email Address",
+      render: (_: any, item: UserData) => (
+        <div className="max-w-[120px] overflow-hidden text-ellipsis whitespace-nowrap ">
+          {item.email}
+        </div>
+      ),
+    },
     {
       key: "role.name",
       label: "Role",
@@ -152,22 +160,22 @@ export default function SalesRepUsers() {
     },
     { key: "phone", label: "Phone Number" },
     { key: "created_at", label: "Date Joined" },
-    {
-      key: "profile.address",
-      label: "Address",
-      render: (_: any, item: UserData) =>
-        item.profile.address?.trim() || "...address missing",
-    },
+    // {
+    //   key: "profile.address",
+    //   label: "Address",
+    //   render: (_: any, item: UserData) =>
+    //     item.profile.address?.trim() || "...address missing",
+    // },
     {
       key: "business_info.business_name",
       label: "Business Name",
       render: (_: any, item: UserData) => item.business_info.business_name,
     },
-    {
-      key: "business_info.location",
-      label: "Business Location",
-      render: (_: any, item: UserData) => item.business_info.location,
-    },
+    // {
+    //   key: "business_info.location",
+    //   label: "Business Location",
+    //   render: (_: any, item: UserData) => item.business_info.location,
+    // },
   ];
 
   type UserType =

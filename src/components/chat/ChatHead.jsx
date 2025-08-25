@@ -36,6 +36,13 @@ const ChatHead = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
+  // Drag functionality states
+  const [position, setPosition] = useState({ x: 24, y: 24 }); // Start at bottom-right (24px from edges)
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const chatHeadRef = useRef(null);
+
   // Admin-specific states
   const [userType, setUserType] = useState("");
   const [users, setUsers] = useState([]);
@@ -132,6 +139,81 @@ const ChatHead = () => {
     "Market Rep": "market-representative",
     Logistics: "logistics-agent",
   };
+
+  // Drag functionality
+  const handleMouseDown = (e) => {
+    if (isOpen) return; // Don't allow dragging when chat window is open
+
+    setIsDragging(true);
+    const rect = chatHeadRef.current.getBoundingClientRect();
+    setDragStart({
+      x: e.clientX,
+      y: e.clientY,
+    });
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+
+    // Prevent text selection during drag
+    e.preventDefault();
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging || isOpen) return;
+
+    const newX = e.clientX - dragOffset.x;
+    const newY = e.clientY - dragOffset.y;
+
+    // Get viewport dimensions
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const chatHeadSize = 64; // Approximate size of chat head button
+
+    // Constrain position to viewport bounds
+    const constrainedX = Math.max(
+      0,
+      Math.min(viewportWidth - chatHeadSize, newX),
+    );
+    const constrainedY = Math.max(
+      0,
+      Math.min(viewportHeight - chatHeadSize, newY),
+    );
+
+    setPosition({
+      x: constrainedX,
+      y: constrainedY,
+    });
+  };
+
+  const handleMouseUp = (e) => {
+    if (!isDragging) return;
+
+    setIsDragging(false);
+
+    // Check if this was a click (not a drag)
+    const dragDistance =
+      Math.abs(e.clientX - dragStart.x) + Math.abs(e.clientY - dragStart.y);
+    if (dragDistance < 5) {
+      // This was a click, open the chat
+      setIsOpen(true);
+    }
+  };
+
+  // Add global mouse event listeners for dragging
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+      document.body.style.userSelect = "none"; // Prevent text selection
+
+      return () => {
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+        document.body.style.userSelect = "";
+      };
+    }
+  }, [isDragging, dragOffset, dragStart, isOpen]);
 
   // Handle admin profile fetching
   useEffect(() => {
@@ -845,11 +927,19 @@ const ChatHead = () => {
   return (
     <>
       {/* Chat Head Button */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div
+        className="fixed z-50"
+        style={{
+          left: `${position.x}px`,
+          top: `${position.y}px`,
+          cursor: isDragging ? "grabbing" : isOpen ? "default" : "grab",
+        }}
+      >
         {!isOpen && (
           <button
-            onClick={() => setIsOpen(true)}
-            className="relative bg-purple-600 hover:bg-purple-700 text-white rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110"
+            ref={chatHeadRef}
+            onMouseDown={handleMouseDown}
+            className="relative bg-purple-600 hover:bg-purple-700 text-white rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110 select-none"
           >
             <MessageCircle size={24} />
             {unreadCount > 0 && (
@@ -866,6 +956,13 @@ const ChatHead = () => {
             className={`bg-white rounded-lg shadow-2xl border-gray-200 border transition-all duration-300 ${
               isMinimized ? "w-80 h-12" : "w-80 h-[440px]"
             }`}
+            style={{
+              // Position chat window relative to chat head position
+              transform:
+                position.x > window.innerWidth / 2
+                  ? "translateX(-100%)" // Show on left if chat head is on right side
+                  : "translateX(0)", // Show on right if chat head is on left side
+            }}
           >
             {/* Header */}
             <div className="bg-purple-600 text-white p-3 rounded-t-lg flex items-center justify-between">

@@ -8,6 +8,8 @@ import {
   Clock,
   CheckCircle,
   Truck,
+  Play,
+  Maximize2,
 } from "lucide-react";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
@@ -18,6 +20,9 @@ const OrderDetails = () => {
   const [showUploadPopup, setShowUploadPopup] = useState(false);
   const [markReceivedChecked, setMarkReceivedChecked] = useState(false);
   const [activeReviewModal, setActiveReviewModal] = useState(null);
+  // const [expandedVideo, setExpandedVideo] = useState(null);
+  // Video Modal logic
+  const [expandedVideo, setExpandedVideo] = useState(null);
 
   // Get order ID from URL params
   const { id } = useParams();
@@ -32,8 +37,16 @@ const OrderDetails = () => {
 
   // Extract order information from API response
   const orderInfo = data?.data || {};
-  const orderPurchase = data?.data?.payment?.purchase?.items || [];
+  const orderPurchase = data?.data?.order_items || [];
   const orderMetadata = data?.data?.payment?.metadata || [];
+
+  const handleExpandVideo = (videoType) => {
+    setExpandedVideo(videoType);
+  };
+
+  const handleCloseVideoModal = () => {
+    setExpandedVideo(null);
+  };
 
   // Filter to show only fabric items for fabric vendors
   const fabricOnlyPurchase = Array.isArray(orderInfo?.order_items)
@@ -291,11 +304,18 @@ const OrderDetails = () => {
                     (meta) =>
                       meta.fabric_product_id === purchaseItem.product_id,
                   );
+                  // Video URLs for this product
+                  const fabricVideoUrl =
+                    purchaseItem?.product?.fabric?.video_url || "";
+                  const styleVideoUrl =
+                    purchaseItem?.product?.style?.video_url || "";
+
                   return (
                     <div
                       key={purchaseItem?.id || index}
                       className="border border-gray-200 rounded-xl overflow-hidden"
                     >
+                      {/* Product Header */}
                       <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
                         <div className="flex items-center justify-between">
                           <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
@@ -308,43 +328,56 @@ const OrderDetails = () => {
                         </div>
                       </div>
 
+                      {/* Product Content */}
                       <div className="p-6">
-                        <div className="flex flex-col lg:flex-row gap-6 items-center">
-                          <div className="lg:w-32 lg:h-32 w-full h-48 bg-gray-100 rounded-xl flex items-center justify-center">
-                            <img
-                              src={purchaseItem?.product?.fabric?.photos?.[0]}
-                              alt={purchaseItem?.name || "Fabric Product"}
-                              className="w-32 h-32 object-cover rounded-xl border border-gray-200"
-                            />
+                        {/* Main Product Info */}
+                        <div className="flex flex-col lg:flex-row gap-6">
+                          {/* Product Image */}
+                          <div className="w-full lg:w-48 flex-shrink-0">
+                            <div className="aspect-square bg-gray-100 rounded-xl overflow-hidden">
+                              {purchaseItem?.product?.fabric?.photos?.[0] ? (
+                                <img
+                                  src={
+                                    purchaseItem?.product?.fabric?.photos?.[0]
+                                  }
+                                  alt={purchaseItem?.name || "Fabric Product"}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <Package className="w-12 h-12 text-gray-400" />
+                                </div>
+                              )}
+                            </div>
                           </div>
 
+                          {/* Product Details */}
                           <div className="flex-1">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                              <div>
-                                <span className="text-sm font-medium text-gray-600">
-                                  Quantity:
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
+                              <div className="text-center sm:text-left">
+                                <span className="text-sm font-medium text-gray-500 block mb-1">
+                                  QUANTITY
                                 </span>
-                                <p className="text-lg font-bold text-gray-900">
-                                  {/* Prefer metadata quantity if available */}
+                                <p className="text-2xl font-bold text-gray-900">
                                   {metaItem?.quantity ||
                                     purchaseItem?.quantity ||
                                     1}
                                 </p>
                               </div>
-                              <div>
-                                <span className="text-sm font-medium text-gray-600">
-                                  Unit Price:
+                              <div className="text-center sm:text-left">
+                                <span className="text-sm font-medium text-gray-500 block mb-1">
+                                  UNIT PRICE
                                 </span>
-                                <p className="text-lg font-bold text-purple-600">
+                                <p className="text-2xl font-bold text-purple-600">
                                   ₦
                                   {formatNumberWithCommas(
                                     parseInt(purchaseItem?.product?.price || 0),
                                   )}
                                 </p>
                               </div>
-                              <div>
-                                <span className="text-sm font-medium text-gray-600">
-                                  Total:
+                              <div className="text-center sm:text-left">
+                                <span className="text-sm font-medium text-gray-500 block mb-1">
+                                  TOTAL
                                 </span>
                                 <p className="text-2xl font-bold text-purple-600">
                                   ₦
@@ -361,25 +394,96 @@ const OrderDetails = () => {
                                 </p>
                               </div>
                             </div>
-                            {/* Show color if available in metadata */}
+
+                            {/* Color Info */}
                             {metaItem?.color && (
-                              <div className="flex items-center gap-2 mt-2">
-                                <span className="font-medium text-gray-600">
+                              <div className="flex items-center gap-3 mb-6 p-4 bg-gray-50 rounded-lg">
+                                <span className="font-medium text-gray-700">
                                   Color:
                                 </span>
                                 <span
-                                  className="inline-block w-5 h-5 rounded-full border-2 border-white shadow-md"
+                                  className="inline-block w-6 h-6 rounded-full border-2 border-white shadow-md"
                                   style={{
                                     backgroundColor: metaItem?.color,
                                   }}
                                 ></span>
-                                <span className="text-gray-900">
+                                <span className="text-gray-900 font-medium">
                                   {metaItem?.color}
                                 </span>
                               </div>
                             )}
                           </div>
                         </div>
+
+                        {/* Video Section */}
+                        {(fabricVideoUrl || styleVideoUrl) && (
+                          <div className="mt-8 pt-6 border-t border-gray-200">
+                            <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                              Preview Videos
+                            </h4>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                              {/* Fabric Video */}
+                              {fabricVideoUrl && (
+                                <div className="bg-gray-50 border border-gray-200 rounded-xl p-5">
+                                  <div className="flex items-center justify-between mb-4">
+                                    <h5 className="font-semibold text-gray-900 flex items-center gap-2">
+                                      <Play className="w-4 h-4 text-blue-600" />
+                                      Fabric Preview
+                                    </h5>
+                                    <button
+                                      onClick={() => setExpandedVideo("fabric")}
+                                      className="text-blue-600 hover:text-blue-700 flex items-center gap-1 text-sm font-medium transition-colors bg-white hover:bg-blue-50 px-3 py-1 rounded-lg border border-blue-200"
+                                    >
+                                      <Maximize2 className="w-4 h-4" />
+                                      Expand
+                                    </button>
+                                  </div>
+                                  <div className="bg-black rounded-lg overflow-hidden">
+                                    <video
+                                      src={fabricVideoUrl}
+                                      controls
+                                      className="w-full h-48 object-contain"
+                                      preload="metadata"
+                                    >
+                                      Your browser does not support the video
+                                      tag.
+                                    </video>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Style Video */}
+                              {styleVideoUrl && (
+                                <div className="bg-gray-50 border border-gray-200 rounded-xl p-5">
+                                  <div className="flex items-center justify-between mb-4">
+                                    <h5 className="font-semibold text-gray-900 flex items-center gap-2">
+                                      <Play className="w-4 h-4 text-blue-600" />
+                                      Style Preview
+                                    </h5>
+                                    <button
+                                      onClick={() => setExpandedVideo("style")}
+                                      className="text-blue-600 hover:text-blue-700 flex items-center gap-1 text-sm font-medium transition-colors bg-white hover:bg-blue-50 px-3 py-1 rounded-lg border border-blue-200"
+                                    >
+                                      <Maximize2 className="w-4 h-4" />
+                                      Expand
+                                    </button>
+                                  </div>
+                                  <div className="bg-black rounded-lg overflow-hidden">
+                                    <video
+                                      src={styleVideoUrl}
+                                      controls
+                                      className="w-full h-48 object-contain"
+                                      preload="metadata"
+                                    >
+                                      Your browser does not support the video
+                                      tag.
+                                    </video>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -502,7 +606,52 @@ const OrderDetails = () => {
           </div>*/}
         </div>
       </div>
-
+      {expandedVideo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden relative">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <Play className="w-5 h-5 text-blue-600" />
+                {expandedVideo === "fabric"
+                  ? "Fabric Preview"
+                  : "Style Preview"}
+              </h3>
+              <button
+                onClick={handleCloseVideoModal}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="bg-black rounded-xl overflow-hidden">
+                <video
+                  src={
+                    expandedVideo === "fabric"
+                      ? orderPurchase[0]?.product?.fabric?.video_url
+                      : orderPurchase[1]?.product?.style?.video_url
+                  }
+                  controls
+                  className="w-full max-h-[70vh] object-contain"
+                  autoPlay
+                >
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+              <div className="mt-4 text-center">
+                <p className="text-sm text-gray-600">
+                  {expandedVideo === "fabric" ? "Fabric" : "Style"}:{" "}
+                  <span className="font-medium">
+                    {expandedVideo === "fabric"
+                      ? orderPurchase[0]?.product?.name
+                      : orderPurchase[1]?.product?.name}
+                  </span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Upload Popup */}
       {showUploadPopup && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -516,6 +665,50 @@ const OrderDetails = () => {
                   onClick={() => setShowUploadPopup(false)}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
+                  {/* Video Expansion Modal */}
+                  {expandedVideo && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden relative">
+                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                            {expandedVideo === "fabric"
+                              ? "Fabric Preview"
+                              : "Style Preview"}
+                          </h3>
+                          <button
+                            onClick={() => setExpandedVideo(null)}
+                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                          >
+                            <X className="w-6 h-6" />
+                          </button>
+                        </div>
+                        <div className="bg-black rounded-xl overflow-hidden p-6">
+                          <video
+                            src={
+                              expandedVideo === "fabric"
+                                ? orderPurchase[0]?.product?.fabric?.video_url
+                                : orderPurchase[1]?.product?.style?.video_url
+                            }
+                            controls
+                            className="w-full h-[60vh] object-contain"
+                            preload="metadata"
+                          >
+                            Your browser does not support the video tag.
+                          </video>
+                        </div>
+                        <div className="mt-4 text-center">
+                          <p className="text-sm text-gray-600">
+                            {expandedVideo === "fabric" ? "Fabric" : "Style"}:{" "}
+                            <span className="font-medium">
+                              {expandedVideo === "fabric"
+                                ? orderPurchase[0]?.product?.name
+                                : orderPurchase[1]?.product?.name}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <X size={24} />
                 </button>
               </div>

@@ -76,17 +76,83 @@ const OrderPage = () => {
 
   const statusOptions = useMemo(
     () => [
-      { value: "PAID", label: "Paid" },
-      { value: "DELIVERED_TO_TAILOR", label: "Delivered to Tailor" },
-      { value: "PROCESSING", label: "Processing" },
-      { value: "SHIPPED", label: "Shipped" },
-      { value: "IN_TRANSIT", label: "In Transit" },
-      { value: "OUT_FOR_DELIVERY", label: "Out for Delivery" },
-      { value: "DELIVERED", label: "Delivered" },
-      { value: "CANCELLED", label: "Cancelled" },
+      {
+        value: "PAID",
+        label: "Paid",
+        to: [{ value: "DELIVERED_TO_TAILOR", label: "Delivered to Tailor" }],
+      },
+      { value: "DELIVERED_TO_TAILOR", label: "Delivered to Tailor", to: [] },
+      {
+        value: "PROCESSING",
+        label: "Processing",
+        to: [{ value: "SHIPPED", label: "Shipped" }],
+      },
+      {
+        value: "SHIPPED",
+        label: "Shipped",
+        to: [{ value: "IN_TRANSIT", label: "In Transit" }],
+      },
+      {
+        value: "IN_TRANSIT",
+        label: "In Transit",
+        to: [{ value: "OUT_FOR_DELIVERY", label: "Out for Delivery" }],
+      },
+      { value: "OUT_FOR_DELIVERY", label: "Out for Delivery", to: [] },
+      { value: "DELIVERED", label: "Delivered", to: [] },
+      { value: "CANCELLED", label: "Cancelled", to: [] },
     ],
     [],
   );
+
+  const status_select = useMemo(() => {
+    let data = {
+      PAID: {
+        value: "PAID",
+        label: "Paid",
+        to: [
+          { value: "DELIVERED_TO_TAILOR", label: "Delivered to Tailor" },
+          { value: "PROCESSING", label: "Processing" },
+        ],
+      },
+      DELIVERED_TO_TAILOR: {
+        value: "DELIVERED_TO_TAILOR",
+        label: "Delivered to Tailor",
+        to: [],
+      },
+      PROCESSING: {
+        value: "PROCESSING",
+        label: "Processing",
+        to: [{ value: "SHIPPED", label: "Shipped" }],
+      },
+      SHIPPED: {
+        value: "SHIPPED",
+        label: "Shipped",
+        to: [{ value: "IN_TRANSIT", label: "In Transit" }],
+      },
+      IN_TRANSIT: {
+        value: "IN_TRANSIT",
+        label: "In Transit",
+        to: [{ value: "OUT_FOR_DELIVERY", label: "Out for Delivery" }],
+      },
+      OUT_FOR_DELIVERY: {
+        value: "OUT_FOR_DELIVERY",
+        label: "Out for Delivery",
+        to: [],
+      },
+      DELIVERED: {
+        value: "DELIVERED",
+        label: "Delivered",
+        to: [{ value: "CANCELLED", label: "Cancelled" }],
+      },
+      CANCELLED: {
+        value: "CANCELLED",
+        label: "Cancelled",
+        to: [],
+      },
+    };
+    return data;
+  }, [currentItem]);
+
   console.log("Vendor Orders Data:", orderData);
   console.log("Raw vendor orders array:", orderData?.data);
   console.log("First vendor order item:", orderData?.data?.[0]);
@@ -709,23 +775,17 @@ const OrderPage = () => {
                       console.log("Selected new status:", e.target.value);
                     }}
                   >
-                    {statusOptions.map((option, idx) => {
-                      // Find the index of the current status in statusOptions
-                      const currentStatusIndex = statusOptions.findIndex(
-                        (opt) => opt.value === currentItem.orderStatus,
-                      );
-                      // Disable options that are before the current status
-                      const isDisabled = idx < currentStatusIndex;
-                      return (
-                        <option
-                          key={option.value}
-                          value={option.value}
-                          disabled={isDisabled}
-                        >
-                          {option.label}
+                    <option value={currentItem.status} readonly>
+                      {" "}
+                      {currentItem.status}
+                    </option>
+                    {status_select[currentItem?.status].to.map((status) => (
+                      <>
+                        <option key={status.value} value={status.value}>
+                          {status.label}
                         </option>
-                      );
-                    })}
+                      </>
+                    ))}
                   </select>
                 </div>
               </>
@@ -733,7 +793,7 @@ const OrderPage = () => {
 
             <div className="modal-action">
               <button
-                type="submit"
+                type="button"
                 className="btn"
                 onClick={() => dialogRef.current.close()}
               >

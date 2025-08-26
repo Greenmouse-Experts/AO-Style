@@ -278,40 +278,47 @@ const Subscriptions = () => {
   return (
     <div className="bg-white p-6  rounded-xl overflow-visible">
       {/* <>loading {JSON.stringify(free_plan.data)}</>*/}
-      <div className="py-6 border-b border-gray-200 mb-8 flex flex-col gap-4">
-        <div className="flex items-center gap-2">
-          <div className="text-base font-medium text-gray-700">
-            Current Plan:
+      <div data-theme="nord" className="card card-border bg-base-100 mb-6">
+        <div className="card-body">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-base-content/70 text-sm font-medium">
+              Current Plan:
+            </span>
+            <h3 className="text-xl font-bold text-primary">
+              {free_plan.data?.data?.subscriptions[0]
+                ?.plan_name_at_subscription || plan?.name}
+            </h3>
           </div>
-          <div className="font-bold text-xl text-gray-900">
-            {is_free
-              ? plan_data.name
-              : free_plan.data?.data?.subscriptions[0]
-                  ?.plan_name_at_subscription || "N/A"}
+
+          <div className="flex flex-wrap items-center gap-4 text-sm">
+            {!is_free &&
+              (free_plan.data?.data?.subscriptions[0]?.is_active ? (
+                <div className="badge badge-success badge-outline">Active</div>
+              ) : (
+                <div className="badge badge-error badge-outline">Inactive</div>
+              ))}
+
+            <div className="flex items-center gap-4 text-base-content/60">
+              <span>
+                {formatDateStr(
+                  free_plan.data?.data?.subscriptions[0]?.created_at?.split(
+                    ".",
+                  )[0],
+                  "D/M/YYYY h:mm A",
+                )}
+              </span>
+              <span>Max products: {plan.max_quantity}</span>
+            </div>
           </div>
+
+          {is_free && (
+            <div className="mt-4 p-4 bg-base-200 rounded-lg">
+              <p className="text-base-content/70 text-sm">
+                {plan_data.description}
+              </p>
+            </div>
+          )}
         </div>
-        <div className="flex items-center gap-3 text-sm">
-          {!is_free &&
-            (free_plan.data?.data?.subscriptions[0]?.is_active ? (
-              <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">
-                Active
-              </span>
-            ) : (
-              <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium">
-                Inactive
-              </span>
-            ))}
-          <span className="text-gray-500">
-            |{" "}
-            {formatDateStr(
-              free_plan.data?.data?.subscriptions[0]?.created_at?.split(".")[0],
-              "D/M/YYYY h:mm A",
-            )}
-          </span>
-        </div>
-        {is_free && (
-          <p className="text-gray-600 text-sm">{plan_data.description}</p>
-        )}
       </div>
 
       <div className="flex flex-wrap justify-between items-center pb-3  gap-4">

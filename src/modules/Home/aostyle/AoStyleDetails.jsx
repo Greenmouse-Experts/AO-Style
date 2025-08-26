@@ -521,11 +521,22 @@ export default function AnkaraGownPage() {
               {/* Image Gallery */}
               <div className="w-full md:w-1/2">
                 <div className="mb-4">
-                  <img
-                    src={styleInfo?.style?.photos[selectedImage]}
-                    alt={styleInfo?.name}
-                    className="w-full h-64 sm:h-80 md:h-96 object-cover rounded"
-                  />
+                  {/* Show selected image or video in the big box */}
+                  {styleInfo?.style?.video_url && selectedImage === "video" ? (
+                    <video
+                      src={styleInfo.style.video_url}
+                      controls
+                      className="w-full h-64 sm:h-80 md:h-96 object-cover rounded"
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : (
+                    <img
+                      src={styleInfo?.style?.photos[selectedImage]}
+                      alt={styleInfo?.name}
+                      className="w-full h-64 sm:h-80 md:h-96 object-cover rounded"
+                    />
+                  )}
                 </div>
                 <div className="flex gap-2 overflow-x-auto">
                   {styleInfo?.style?.photos?.map((image, index) => (
@@ -546,11 +557,19 @@ export default function AnkaraGownPage() {
                     </div>
                   ))}
                   {styleInfo?.style?.video_url && (
-                    <div className="flex-shrink-0 w-32 h-20 rounded-lg overflow-hidden border-2 transition-all border-gray-200 ml-2 flex items-center justify-center bg-black relative">
+                    <div
+                      className={`flex-shrink-0 w-32 h-20 rounded-lg overflow-hidden border-2 transition-all ml-2 flex items-center justify-center bg-black relative cursor-pointer ${
+                        selectedImage === "video"
+                          ? "border-purple-500"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                      // onClick={() => setSelectedImage("video")}
+                    >
                       <video
                         src={styleInfo.style.video_url}
-                        controls
+                        // controls
                         className="w-full h-full object-cover rounded-lg"
+                        onClick={() => setSelectedImage("video")}
                         // poster={mainImage}
                       >
                         Your browser does not support the video tag.

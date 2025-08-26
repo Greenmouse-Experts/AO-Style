@@ -394,17 +394,28 @@ export default function ShopDetails() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
             {/* Image Section - Enhanced layout */}
             <div className="space-y-4">
-              {/* Main Image */}
+              {/* Main Image or Video */}
               <div className="relative bg-gray-50 rounded-xl overflow-hidden">
-                <img
-                  src={mainImage}
-                  alt={productVal?.product?.name}
-                  className="w-full h-96 lg:h-[500px] object-cover"
-                />
+                {mainImage === productVal?.video_url ? (
+                  <video
+                    src={productVal.video_url}
+                    controls
+                    className="w-full h-96 lg:h-[500px] object-cover rounded-xl"
+                    poster={productVal?.photos?.[0]}
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                ) : (
+                  <img
+                    src={mainImage}
+                    alt={productVal?.product?.name}
+                    className="w-full h-96 lg:h-[500px] object-cover"
+                  />
+                )}
                 {/* Heart icon removed as requested */}
               </div>
 
-              {/* Thumbnail Images */}
+              {/* Thumbnail Images & Video */}
               <div className="flex gap-2 overflow-x-auto pb-2">
                 {productVal?.photos?.map((img, index) => (
                   <button
@@ -424,15 +435,20 @@ export default function ShopDetails() {
                   </button>
                 ))}
                 {productVal?.video_url && (
-                  <div className="flex-shrink-0 w-32 h-20 rounded-lg overflow-hidden border-2 transition-all border-gray-200 ml-2 flex items-center justify-center bg-black relative">
+                  <button
+                    type="button"
+                    onClick={() => setMainImage(productVal.video_url)}
+                    className={`flex-shrink-0 w-32 h-20 rounded-lg overflow-hidden border-2 transition-all ml-2 flex items-center justify-center bg-black relative ${
+                      mainImage === productVal.video_url
+                        ? "border-purple-500 ring-2 ring-purple-200"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
                     <video
                       src={productVal.video_url}
-                      controls
-                      className="w-full h-full object-cover rounded-lg"
-                      poster={mainImage}
-                    >
-                      Your browser does not support the video tag.
-                    </video>
+                      className="w-full h-full object-cover rounded-lg pointer-events-none"
+                      poster={productVal?.photos?.[0]}
+                    />
                     {/* Video tag/icon overlay */}
                     <div className="absolute top-2 left-2 bg-black/70 rounded-full p-1 flex items-center justify-center">
                       <svg
@@ -444,7 +460,7 @@ export default function ShopDetails() {
                         <polygon points="10,8 16,12 10,16" fill="white" />
                       </svg>
                     </div>
-                  </div>
+                  </button>
                 )}
               </div>
             </div>

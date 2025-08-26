@@ -194,7 +194,7 @@ const OrderPage = () => {
         render: (value) => <span className="text-center block">{value}</span>,
       },
       {
-        label: "Amount",
+        label: "Unit Price",
         key: "amount",
         width: "w-24",
         render: (value) => (

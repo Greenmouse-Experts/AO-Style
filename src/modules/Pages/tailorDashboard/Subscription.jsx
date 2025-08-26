@@ -382,7 +382,7 @@ const Subscriptions = () => {
                   Product Limit
                 </p>
                 <p className="text-sm font-semibold text-base-content">
-                  {plan.max_quantity} products
+                  {plan?.max_quantity} products
                 </p>
               </div>
             </div>

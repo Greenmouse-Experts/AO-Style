@@ -255,7 +255,12 @@ export default function ShopDetails() {
 
   const handleDirectAddToCart = () => {
     console.log("🛒 Adding fabric directly to cart:", fabricData);
-
+    // Check if user is logged in (token exists)
+    if (!token) {
+      // Redirect to login page
+      navigate("/login");
+      return;
+    }
     addCartMutate(fabricData, {
       onSuccess: (data) => {
         setIsCartSelectionModalOpen(false);
@@ -281,6 +286,13 @@ export default function ShopDetails() {
       styleName: styleData?.name,
       measurementCount: measurementData?.length,
     });
+
+    // Check if user is logged in (token exists)
+    if (!token) {
+      // Redirect to login page
+      navigate("/login");
+      return;
+    }
 
     // Create combined payload with fabric, style, and measurements
     const combinedPayload = {
@@ -934,7 +946,16 @@ export default function ShopDetails() {
                     </p>
                   </div>
                 )}
-
+                {productVal?.product?.gender && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Gender Suitability
+                    </span>
+                    <p className="text-sm font-medium text-gray-900 capitalize">
+                      {productVal?.product?.gender}
+                    </p>
+                  </div>
+                )}
                 {/* Manufacturer's Name */}
                 {productVal?.manufacturer_name && (
                   <div className="space-y-1">

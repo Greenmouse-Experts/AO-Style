@@ -75,6 +75,7 @@ const CartPage = () => {
   const cartData = cartResponse?.data;
   const items = cartData?.items || [];
   console.log("🛒 Cart Items:", items);
+  console.log("🛒 Cart Data:", cartData);
   const cartUser = cartData?.user;
   const cartMeta = {
     id: cartData?.id,
@@ -322,8 +323,9 @@ const CartPage = () => {
         item.price_at_time || item.product?.price || 0,
       );
       const stylePrice = parseFloat(item.style_product?.price || 0);
+      const measurementCount = item?.measurement?.length || 0;
       const quantity = parseInt(item.quantity || 1);
-      const itemTotal = fabricPrice * quantity + stylePrice;
+      const itemTotal = fabricPrice * quantity + stylePrice * measurementCount;
 
       console.log("💰 Cart Item Pricing:", {
         itemId: item.id,

@@ -73,7 +73,7 @@ export default function CustomTable(props: CustomTableProps) {
                               role="button"
                               className="btn btn-square btn-ghost btn-sm hover:bg-base-300"
                             >
-                              <MenuIcon className="w-4 h-4" />
+                              <MenuIcon className="size-6 label" />
                             </div>
                             <ul
                               tabIndex={0}

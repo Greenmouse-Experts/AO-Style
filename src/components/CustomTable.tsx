@@ -22,76 +22,72 @@ interface CustomTableProps {
 }
 
 export default function CustomTable(props: CustomTableProps) {
-  // return <>{JSON.stringify(props.data)}</>;
-
   return (
-    <div data-theme="nord" className="p-2  " id="cus-app">
-      <div className="overflow-x-scroll static">
-        <table className="table static">
-          {/* head */}
-          <thead>
-            <tr>
-              {props.columns &&
-                props.columns.map((column) => (
-                  <th className="capitalize">{column.label}</th>
-                ))}
-              {!props.columns?.find((item) => item.key == "action") && (
-                <>
-                  <th>Action</th>
-                </>
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {props.data &&
-              props.data.map((item, rowIdx) => {
-                const popoverId = `popover-${nanoid()}`;
-                const anchorName = `--anchor-${nanoid()}`;
-                return (
-                  <tr key={rowIdx}>
-                    {props.columns?.map((col, colIdx) => (
-                      <td
-                        className="whitespace-nowrap max-w-sm text-ellipsis overflow-hidden"
-                        key={colIdx}
-                      >
-                        {col.render
-                          ? col.render(item[col.key], item)
-                          : item[col.key]}
-                      </td>
-                    ))}
-                    {!props.columns?.find((item) => item.key == "action") && (
-                      <>
-                        <td className="">
-                          <div className="dropdown dropdown-end">
-                            <div
-                              tabIndex={0}
-                              role="button"
-                              className="btn btn-square btn-ghost "
-                            >
-                              <span className="label">
-                                <MenuIcon />
-                              </span>
-                            </div>
-                            <ul
-                              tabIndex={0}
-                              className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
-                            >
-                              {props.actions?.map((action) => {
-                                return (
-                                  <li>
-                                    <button
-                                      onClick={() => action.action(item)}
-                                      className=""
-                                    >
-                                      {action.label}
-                                    </button>
-                                  </li>
-                                );
-                              })}
-                            </ul>
+    <div data-theme="nord" className="p-2 static  " id="cus-app">
+      <table className="w-full">
+        <thead>
+          <tr>
+            {props.columns &&
+              props.columns.map((column) => (
+                <th className="capitalize">{column.label}</th>
+              ))}
+            {!props.columns?.find((item) => item.key == "action") && (
+              <>
+                <th>Action</th>
+              </>
+            )}
+          </tr>
+        </thead>
+        <tbody>
+          {props.data &&
+            props.data.map((item, rowIdx) => {
+              // const popoverId = `popover-${nanoid()}`;
+              // const anchorName = `--anchor-${nanoid()}`;
+              return (
+                <tr key={rowIdx}>
+                  {props.columns?.map((col, colIdx) => (
+                    <td
+                      className="  text-ellipsis overflow-hidden"
+                      key={colIdx}
+                    >
+                      {col.render
+                        ? col.render(item[col.key], item)
+                        : item[col.key]}
+                    </td>
+                  ))}
+                  {!props.columns?.find((item) => item.key == "action") && (
+                    <>
+                      <td className="">
+                        <div className="dropdown dropdown-end ">
+                          <div
+                            tabIndex={0}
+                            role="button"
+                            className="btn btn-square btn-ghost "
+                          >
+                            <span className="label">
+                              <MenuIcon />
+                            </span>
                           </div>
+                          <ul
+                            tabIndex={0}
+                            className="z-50 dropdown-content menu bg-base-100 rounded-box  w-52 p-2 shadow-sm"
+                          >
+                            {props.actions?.map((action) => {
+                              return (
+                                <li>
+                                  <button
+                                    onClick={() => action.action(item)}
+                                    className=""
+                                  >
+                                    {action.label}
+                                  </button>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
 
-                          {/*<div
+                        {/*<div
                             role="button"
                             className="btn btn-square btn-ghost m-1"
                           >
@@ -113,15 +109,14 @@ export default function CustomTable(props: CustomTableProps) {
                               })}
                             </ul>
                           </div>*/}
-                        </td>
-                      </>
-                    )}
-                  </tr>
-                );
-              })}
-          </tbody>
-        </table>
-      </div>
+                      </td>
+                    </>
+                  )}
+                </tr>
+              );
+            })}
+        </tbody>
+      </table>
     </div>
   );
 }

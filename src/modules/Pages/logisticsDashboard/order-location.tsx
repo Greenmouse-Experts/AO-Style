@@ -7,7 +7,7 @@ import { ChevronLeft, MapPin } from "lucide-react";
 import { useState, useEffect } from "react";
 
 // Define the AnyReactComponent for the destination marker
-const AnyReactComponent = ({ text }) => (
+export const AnyReactComponent = ({ text }) => (
   <div className=" z-20 " data-theme="nord">
     <div className="flex flex-col p-2 w-fit justify-center items-center gap-2">
       {" "}
@@ -380,22 +380,7 @@ export default function LogisticMapLocation() {
           defaultZoom={defaultProps.zoom}
           yesIWantToUseGoogleMapApiInternals
           onGoogleApiLoaded={({ map, maps }) => handleApiLoaded(map, maps)}
-        >
-          {/*{coordinates && (
-            <AnyReactComponent
-              lat={parseFloat(coordinates.latitude)}
-              lng={parseFloat(coordinates.longitude)}
-              text="Destination"
-            />
-          )}
-          {userLocation && (
-            <AnyReactComponent
-              lat={userLocation.lat}
-              lng={userLocation.lng}
-              text="Your Location"
-            />
-          )}*/}
-        </GoogleMapReact>
+        ></GoogleMapReact>
       </div>
     </div>
   );

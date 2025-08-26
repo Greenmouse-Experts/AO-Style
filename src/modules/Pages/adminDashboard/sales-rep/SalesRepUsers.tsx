@@ -93,19 +93,24 @@ interface API_RESPONSE {
 
 export default function SalesRepUsers() {
   const { salesId } = useParams();
-  const [isDialogOpen, setDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+  const [selectedTab, setTab] = useState<string>("fashion-designer");
 
   const query = useQuery<API_RESPONSE>({
-    queryKey: ["sales_rep_user", salesId],
+    queryKey: ["sales_rep_user", salesId, selectedTab],
     queryFn: async () => {
-      let resp = await CaryBinApi.get("/auth/fetch-vendors/" + salesId);
+      let resp = await CaryBinApi.get("/auth/fetch-vendors/" + salesId, {
+        params: {
+          role: selectedTab,
+        },
+      });
       return resp.data;
     },
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   });
+
   const nav = useNavigate();
+
   if (query.isLoading) {
     return (
       <div
@@ -139,7 +144,15 @@ export default function SalesRepUsers() {
 
   const columns = [
     { key: "name", label: "Name" },
-    { key: "email", label: "Email Address" },
+    {
+      key: "email",
+      label: "Email Address",
+      render: (_: any, item: UserData) => (
+        <div className="max-w-[120px] overflow-hidden text-ellipsis whitespace-nowrap ">
+          {item.email}
+        </div>
+      ),
+    },
     {
       key: "role.name",
       label: "Role",
@@ -147,23 +160,24 @@ export default function SalesRepUsers() {
     },
     { key: "phone", label: "Phone Number" },
     { key: "created_at", label: "Date Joined" },
-    {
-      key: "profile.address",
-      label: "Address",
-      render: (_: any, item: UserData) =>
-        item.profile.address?.trim() || "...address missing",
-    },
+    // {
+    //   key: "profile.address",
+    //   label: "Address",
+    //   render: (_: any, item: UserData) =>
+    //     item.profile.address?.trim() || "...address missing",
+    // },
     {
       key: "business_info.business_name",
       label: "Business Name",
       render: (_: any, item: UserData) => item.business_info.business_name,
     },
-    {
-      key: "business_info.location",
-      label: "Business Location",
-      render: (_: any, item: UserData) => item.business_info.location,
-    },
+    // {
+    //   key: "business_info.location",
+    //   label: "Business Location",
+    //   render: (_: any, item: UserData) => item.business_info.location,
+    // },
   ];
+
   type UserType =
     | "user"
     | "market-representative"
@@ -176,7 +190,6 @@ export default function SalesRepUsers() {
       key: "view detail",
       label: "View Details",
       action: (item: UserData) => {
-        let sim_path;
         let role = item.role.name as UserType;
         let path = role.toLocaleLowerCase().replaceAll(" ", "-");
         let parsed_role = role.toLocaleLowerCase().replaceAll(" ", "-");
@@ -186,24 +199,85 @@ export default function SalesRepUsers() {
         if (parsed_role == "fashion-designer") {
           path = "tailors";
         }
-        // return console.log(path);
-        nav(`/admin/${path}/view/` + item.id);
-        // setSelectedUser(item);
+        nav(`/admin/sales-rep/view-sales/user/${item.id}`);
       },
     },
   ];
 
+  const tabs = [
+    { value: undefined, label: "All" },
+    {
+      value: "fashion-designer",
+      label: "Tailors",
+    },
+    {
+      value: "fabric-vendor",
+      label: "Vendors",
+    },
+  ];
+
+  const handleTabChange = (tabValue: string) => {
+    setTab(tabValue);
+  };
+
   return (
-    <div id="cus-app" data-theme="nord">
-      <CustomTable
-        columns={columns}
-        data={query.data?.data}
-        actions={actions}
-      />
-      <div className="py-2">
-        {query.data?.data && query.data.data.length === 0 && (
-          <p className="text-center text-gray-500 mt-4">No users added</p>
-        )}
+    <div id="cus-app" data-theme="nord" className="p-6">
+      {/* Page Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-base-content mb-2">
+          Sales Representative Users
+        </h1>
+        <p className="text-base-content/70">
+          Manage and view users under this sales representative
+        </p>
+      </div>
+
+      {/* Enhanced Tabs */}
+      <div className="tabs tabs-lift tabs-primary mb-6" data-theme="nord">
+        {tabs.map((tab) => (
+          <button
+            key={tab.value}
+            className={`tab [--tab-border-color:var(--color-primary)] ${selectedTab === tab.value ? "tab-active" : ""}`}
+            onClick={() => handleTabChange(tab.value)}
+          >
+            {tab.label}
+            {query.data?.count !== undefined && (
+              <span className="badge badge-sm ml-2">{query.data.count}</span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Table Section */}
+      <div className="card bg-base-100 shadow-md">
+        <div className="card-body">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="card-title text-lg">
+              {tabs.find((tab) => tab.value === selectedTab)?.label} List
+            </h2>
+            <div className="text-sm text-base-content/70">
+              Total: {query.data?.count || 0} users
+            </div>
+          </div>
+
+          <CustomTable
+            columns={columns}
+            data={query.data?.data}
+            actions={actions}
+          />
+
+          {query.data?.data && query.data.data.length === 0 && (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">📋</div>
+              <h3 className="text-lg font-semibold text-base-content mb-2">
+                No {tabs.find((tab) => tab.value === selectedTab)?.label} Found
+              </h3>
+              <p className="text-base-content/70">
+                There are no users in this category yet.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

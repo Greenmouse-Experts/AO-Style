@@ -410,7 +410,7 @@ export default function StylesTable() {
                           <MenuIcon className="label" />
                         </button>
                         {openDropdown === style.id && (
-                          <div className="absolute cursor-pointer right-0 mt-2 bg-white shadow-md rounded-md py-2 w-32 z-50">
+                          <div className="absolute cursor-pointer right-0 mt-2 bg-white shadow-md rounded-md py-2 w-32 z-[10000]">
                             {!isAdminStyleRoute || isAdminStyleRoute ? (
                               <Link
                                 to={

@@ -19,9 +19,9 @@ const ChatHead = () => {
 
   // If no tokens are present, don't render the chat head
   if (!adminToken && !userToken) {
-    console.log(
-      "🚫 ChatHead: No authentication tokens found, hiding chat head",
-    );
+    // console.log(
+    //   "🚫 ChatHead: No authentication tokens found, hiding chat head",
+    // );
     return null;
   }
 
@@ -64,28 +64,28 @@ const ChatHead = () => {
 
   // Console log the complete admin data for debugging
   useEffect(() => {
-    console.log("🚀🚀🚀 CHAT HEAD - COMPLETE GET ADMINS RESPONSE 🚀🚀🚀");
-    console.log("📋 FULL RAW RESPONSE:", rawResponse);
-    console.log(
-      "📋 RAW RESPONSE STRINGIFIED:",
-      JSON.stringify(rawResponse, null, 2),
-    );
-    console.log("📋 AVAILABLE ADMINS ARRAY:", availableAdmins);
-    console.log("📋 ADMINS FETCH ERROR:", adminsFetchError);
-    console.log("📋 IS FETCHING:", adminsFetching);
-    console.log("📋 ADMIN COUNT:", availableAdmins?.length || 0);
-    if (availableAdmins?.length > 0) {
-      console.log("📋 FIRST ADMIN OBJECT:", availableAdmins[0]);
-      console.log(
-        "📋 ALL ADMIN IDS:",
-        availableAdmins.map((admin) => admin.id),
-      );
-      console.log(
-        "📋 ALL ADMIN NAMES:",
-        availableAdmins.map((admin) => admin.name),
-      );
-    }
-    console.log("🚀🚀🚀 END GET ADMINS RESPONSE LOG 🚀🚀🚀");
+    // console.log("🚀🚀🚀 CHAT HEAD - COMPLETE GET ADMINS RESPONSE 🚀🚀🚀");
+    // console.log("📋 FULL RAW RESPONSE:", rawResponse);
+    // console.log(
+    //   "📋 RAW RESPONSE STRINGIFIED:",
+    //   JSON.stringify(rawResponse, null, 2),
+    // );
+    // console.log("📋 AVAILABLE ADMINS ARRAY:", availableAdmins);
+    // console.log("📋 ADMINS FETCH ERROR:", adminsFetchError);
+    // console.log("📋 IS FETCHING:", adminsFetching);
+    // console.log("📋 ADMIN COUNT:", availableAdmins?.length || 0);
+    // if (availableAdmins?.length > 0) {
+    //   console.log("📋 FIRST ADMIN OBJECT:", availableAdmins[0]);
+    //   console.log(
+    //     "📋 ALL ADMIN IDS:",
+    //     availableAdmins.map((admin) => admin.id),
+    //   );
+    //   console.log(
+    //     "📋 ALL ADMIN NAMES:",
+    //     availableAdmins.map((admin) => admin.name),
+    //   );
+    // }
+    // console.log("🚀🚀🚀 END GET ADMINS RESPONSE LOG 🚀🚀🚀");
   }, [availableAdmins, adminsFetchError, adminsFetching, rawResponse]);
 
   // Admin messaging states for non-admin users
@@ -217,29 +217,29 @@ const ChatHead = () => {
   useEffect(() => {
     const fetchAdminProfile = async () => {
       if (!adminToken) {
-        console.log("=== NO ADMIN TOKEN - SETTING PROFILE LOADING FALSE ===");
+        // console.log("=== NO ADMIN TOKEN - SETTING PROFILE LOADING FALSE ===");
         setProfileLoading(false);
         return;
       }
 
-      console.log("=== FETCHING ADMIN PROFILE FOR CHAT HEAD ===");
-      console.log("Admin token exists:", !!adminToken);
+      // console.log("=== FETCHING ADMIN PROFILE FOR CHAT HEAD ===");
+      // console.log("Admin token exists:", !!adminToken);
 
       try {
         const response = await AuthService.GetUser();
-        console.log("Admin profile response:", response);
+        // console.log("Admin profile response:", response);
 
         if (response.data?.statusCode === 200 && response.data?.data) {
           setAdminProfile(response.data.data);
-          console.log("✅ Admin profile loaded successfully for chat head");
+          // console.log("✅ Admin profile loaded successfully for chat head");
         } else {
-          console.log("❌ Admin profile response invalid:", response.data);
+          // console.log("❌ Admin profile response invalid:", response.data);
         }
       } catch (error) {
-        console.error("❌ Error fetching admin profile for chat head:", error);
+        // console.error("❌ Error fetching admin profile for chat head:", error);
       } finally {
         setProfileLoading(false);
-        console.log("=== ADMIN PROFILE LOADING COMPLETE FOR CHAT HEAD ===");
+        // console.log("=== ADMIN PROFILE LOADING COMPLETE FOR CHAT HEAD ===");
       }
     };
 
@@ -256,26 +256,26 @@ const ChatHead = () => {
   useEffect(() => {
     if (!isAdmin) {
       if (profileSuccess && profileData) {
-        console.log("=== 🟢 CHAT HEAD: USER PROFILE LOADED ===");
-        console.log("Full profile data:", JSON.stringify(profileData, null, 2));
-        console.log("Profile ID (chat head):", profileData.id);
-        console.log("User type:", currentUserUrl);
-        console.log("Compare with customer inbox profile ID!");
-        console.log("Expected socket event: chatsRetrieved:" + profileData.id);
-        console.log("=========================================");
+        // console.log("=== 🟢 CHAT HEAD: USER PROFILE LOADED ===");
+        // console.log("Full profile data:", JSON.stringify(profileData, null, 2));
+        // console.log("Profile ID (chat head):", profileData.id);
+        // console.log("User type:", currentUserUrl);
+        // console.log("Compare with customer inbox profile ID!");
+        // console.log("Expected socket event: chatsRetrieved:" + profileData.id);
+        // console.log("=========================================");
         // Set profile state like inbox does - THIS IS THE KEY FIX!
         setUserProfile(profileData);
         setProfileLoading(false);
       } else if (profileError) {
-        console.error("=== ❌ CHAT HEAD: PROFILE LOADING ERROR ===");
-        console.error("Error:", profileError);
-        console.error("==========================================");
+        // console.error("=== ❌ CHAT HEAD: PROFILE LOADING ERROR ===");
+        // console.error("Error:", profileError);
+        // console.error("==========================================");
         setProfileLoading(false);
       } else if (profilePending) {
-        console.log("=== ⏳ CHAT HEAD: USER PROFILE LOADING ===");
-        console.log("Profile is loading...");
-        console.log("User type:", currentUserUrl);
-        console.log("========================================");
+        // console.log("=== ⏳ CHAT HEAD: USER PROFILE LOADING ===");
+        // console.log("Profile is loading...");
+        // console.log("User type:", currentUserUrl);
+        // console.log("========================================");
         setProfileLoading(true);
       }
     }
@@ -290,48 +290,48 @@ const ChatHead = () => {
 
   // Initialize socket connection
   useEffect(() => {
-    console.log("🟣🟣🟣 CHAT HEAD: SOCKET EFFECT RUNNING 🟣🟣🟣");
-    console.log("Current token:", !!(isAdmin ? adminToken : userToken));
-    console.log("Profile loading:", profileLoading);
-    console.log("Is admin:", isAdmin);
-    console.log("User ID:", userId);
-    console.log("Admin ID:", adminId);
-    console.log("Current user URL:", currentUserUrl);
+    // console.log("🟣🟣🟣 CHAT HEAD: SOCKET EFFECT RUNNING 🟣🟣🟣");
+    // console.log("Current token:", !!(isAdmin ? adminToken : userToken));
+    // console.log("Profile loading:", profileLoading);
+    // console.log("Is admin:", isAdmin);
+    // console.log("User ID:", userId);
+    // console.log("Admin ID:", adminId);
+    // console.log("Current user URL:", currentUserUrl);
 
     // Don't connect if not authenticated - check both tokens like inbox
     if (!(isAdmin ? adminToken : userToken)) {
-      console.log("❌ Socket: No token, skipping connection");
-      console.log("  - Admin token:", !!adminToken);
-      console.log("  - User token:", !!userToken);
-      console.log("  - Is admin:", isAdmin);
+      // console.log("❌ Socket: No token, skipping connection");
+      // console.log("  - Admin token:", !!adminToken);
+      // console.log("  - User token:", !!userToken);
+      // console.log("  - Is admin:", isAdmin);
       return;
     }
 
     // Wait for profile to be loaded before initializing socket (like fabric vendor)
     // Use EXACT same condition as inbox: userToken && userId && !profileLoading
     if (!isAdmin && (!userToken || !userId || profileLoading)) {
-      console.log("❌ Socket: Non-admin profile not ready");
-      console.log("  - User token:", !!userToken);
-      console.log("  - User ID:", !!userId);
-      console.log("  - Profile loading:", profileLoading);
+      // console.log("❌ Socket: Non-admin profile not ready");
+      // console.log("  - User token:", !!userToken);
+      // console.log("  - User ID:", !!userId);
+      // console.log("  - Profile loading:", profileLoading);
       return;
     }
 
     // For admin users, wait for profile loading to complete
     if (isAdmin && profileLoading) {
-      console.log("❌ Socket: Admin profile still loading, waiting...");
+      // console.log("❌ Socket: Admin profile still loading, waiting...");
       return;
     }
 
-    console.log("=== INITIALIZING SOCKET CONNECTION ===");
-    console.log("User type:", currentUserUrl);
-    console.log("Is admin:", isAdmin);
-    console.log("Current user ID:", currentUserId);
-    console.log(
-      "Token:",
-      (isAdmin ? adminToken : userToken)?.substring(0, 20) + "...",
-    );
-    console.log("======================================");
+    // console.log("=== INITIALIZING SOCKET CONNECTION ===");
+    // console.log("User type:", currentUserUrl);
+    // console.log("Is admin:", isAdmin);
+    // console.log("Current user ID:", currentUserId);
+    // console.log(
+    //   "Token:",
+    //   (isAdmin ? adminToken : userToken)?.substring(0, 20) + "...",
+    // );
+    // console.log("======================================");
 
     const socketInstance = io("https://api-staging.carybin.com/", {
       auth: { token: isAdmin ? adminToken : userToken },
@@ -345,11 +345,11 @@ const ChatHead = () => {
     });
 
     socketInstance.on("connect", () => {
-      console.log("=== SOCKET CONNECTED ===");
-      console.log("Socket ID:", socketInstance.id);
-      console.log("User type:", currentUserUrl);
-      console.log("User ID:", currentUserId);
-      console.log("========================");
+      // console.log("=== SOCKET CONNECTED ===");
+      // console.log("Socket ID:", socketInstance.id);
+      // console.log("User type:", currentUserUrl);
+      // console.log("User ID:", currentUserId);
+      // console.log("========================");
       setIsConnected(true);
       setSocket(socketInstance);
 
@@ -357,17 +357,17 @@ const ChatHead = () => {
     });
 
     socketInstance.on("disconnect", (reason) => {
-      console.log("=== SOCKET DISCONNECTED ===");
-      console.log("Reason:", reason);
-      console.log("User type:", currentUserUrl);
-      console.log("===========================");
+      // console.log("=== SOCKET DISCONNECTED ===");
+      // console.log("Reason:", reason);
+      // console.log("User type:", currentUserUrl);
+      // console.log("===========================");
       setIsConnected(false);
     });
 
     // Listen for chats retrieved events - both general and user-specific
     socketInstance.on("chatsRetrieved", (data) => {
-      console.log("🚨🚨🚨 CHAT HEAD: chatsRetrieved EVENT RECEIVED! 🚨🚨🚨");
-      console.log("Data received:", data);
+      // console.log("🚨🚨🚨 CHAT HEAD: chatsRetrieved EVENT RECEIVED! 🚨🚨🚨");
+      // console.log("Data received:", data);
 
       if (data?.status === "success" && data?.data?.result) {
         console.log("✅ CHAT HEAD: SUCCESS - Setting chats:", data.data.result);
@@ -844,20 +844,20 @@ const ChatHead = () => {
   }, [messages]);
 
   // Debug logging for render conditions
-  console.log("=== CHAT HEAD RENDER CONDITIONS ===");
-  console.log("Current token:", !!(isAdmin ? adminToken : userToken));
-  console.log("Profile loading:", profileLoading);
-  console.log("Current user URL:", currentUserUrl);
-  console.log("Is admin:", isAdmin);
-  console.log("Admin ID:", adminId);
-  console.log("User ID:", userId);
-  console.log("===================================");
+  // console.log("=== CHAT HEAD RENDER CONDITIONS ===");
+  // console.log("Current token:", !!(isAdmin ? adminToken : userToken));
+  // console.log("Profile loading:", profileLoading);
+  // console.log("Current user URL:", currentUserUrl);
+  // console.log("Is admin:", isAdmin);
+  // console.log("Admin ID:", adminId);
+  // console.log("User ID:", userId);
+  // console.log("===================================");
 
-  // Don't render for non-authenticated users
-  console.log("🟣🟣🟣 CHAT HEAD: RENDER CHECK 🟣🟣🟣");
-  console.log("Has token:", !!(isAdmin ? adminToken : userToken));
-  console.log("Profile loading:", profileLoading);
-  console.log("User type:", currentUserUrl);
+  // // Don't render for non-authenticated users
+  // console.log("🟣🟣🟣 CHAT HEAD: RENDER CHECK 🟣🟣🟣");
+  // console.log("Has token:", !!(isAdmin ? adminToken : userToken));
+  // console.log("Profile loading:", profileLoading);
+  // console.log("User type:", currentUserUrl);
 
   // Don't render for non-authenticated users or if profile is still loading
   if (!(isAdmin ? adminToken : userToken)) {

@@ -110,14 +110,14 @@ const OrderPage = () => {
     [openDropdown],
   );
   const actions = [
-    {
-      key: "update-status",
-      label: "Update Status",
-      action: (item) => {
-        setCurrentItem(item);
-        dialogRef.current.showModal();
-      },
-    },
+    // {
+    //   key: "update-status",
+    //   label: "Update Status",
+    //   action: (item) => {
+    //     setCurrentItem(item);
+    //     dialogRef.current.showModal();
+    //   },
+    // },
     {
       label: "View Details",
       key: "view-details",

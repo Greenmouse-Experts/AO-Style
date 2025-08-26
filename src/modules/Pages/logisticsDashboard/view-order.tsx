@@ -1,8 +1,10 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
+import { useItemMap } from "../../../store/useTempStore";
+import { useRef } from "react";
 interface MeasurementData {
   full_body: {
     height: number;
@@ -260,6 +262,8 @@ interface OrderLogisticsData {
 }
 export default function ViewOrderLogistics() {
   const { id } = useParams();
+  const setItem = useItemMap((state) => state.setItem);
+  const nav = useNavigate();
   const query = useQuery<OrderLogisticsData>({
     queryKey: ["logistic", id, "view"],
     queryFn: async () => {
@@ -267,6 +271,7 @@ export default function ViewOrderLogistics() {
       return resp.data;
     },
   });
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const accept_mutation = useMutation({
     mutationFn: async () => {
       let resp = await CaryBinApi.patch(`/orders/${id}/accept-order`);
@@ -276,7 +281,7 @@ export default function ViewOrderLogistics() {
       toast.error(err?.data?.message || "failed to accept order");
     },
   });
-  if (query.isFetching) {
+  if (query.isLoading) {
     return (
       <div
         data-theme="nord"
@@ -349,26 +354,6 @@ export default function ViewOrderLogistics() {
         <div className="bg-base-100 h-fit p-6 rounded-lg shadow-md flex flex-col gap-6">
           <h3 className="text-xl font-semibold mb-2">Delivery Information</h3>
           <div className="flex flex-col gap-4">
-            {/*<div className="flex flex-col gap-2">
-              <h4 className="text-lg font-medium text-primary">
-                Customer Information
-              </h4>
-              <p>
-                <strong className="text-base-content/70">Name:</strong>{" "}
-                {order_data?.user.profile.name || "N/A"}
-              </p>
-              <p>
-                <strong className="text-base-content/70">Email:</strong>{" "}
-                <span className="wrap-anywhere">
-                  {order_data?.user.email || "N/A"}
-                </span>
-              </p>
-              <p>
-                <strong className="text-base-content/70">Phone:</strong>{" "}
-                {order_data?.user.phone || "N/A"}
-              </p>
-            </div>*/}
-            {/*<div className="divider"></div>*/}
             <div className="flex flex-col gap-2">
               <h4 className="text-lg font-medium text-primary">
                 Delivery Address
@@ -408,6 +393,12 @@ export default function ViewOrderLogistics() {
             >
               See On Map
             </Link>
+            <button
+              onClick={() => dialogRef.current?.showModal()}
+              className="btn  btn-success"
+            >
+              Complete Order
+            </button>
           </div>
         </div>
 
@@ -446,15 +437,21 @@ export default function ViewOrderLogistics() {
                     </p>
                     <p className="text-sm">
                       <p className="label">Pickup Address:</p>
-                      <div className="mt-2">
+                      <span className="mt-2 block">
                         {item.product.creator.profile.address}
-                      </div>
+                      </span>
                     </p>
-                    {/*<div className="card-actions justify-end">
-                      <button className="btn btn-primary btn-sm">
-                        View Detail
+                    <div className="card-actions justify-end">
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => {
+                          setItem(item);
+                          nav(`/logistics/orders/item/${item.id}/map`);
+                        }}
+                      >
+                        View pickup
                       </button>
-                    </div>*/}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -462,6 +459,35 @@ export default function ViewOrderLogistics() {
           </div>
         </div>
       </div>
+      <dialog ref={dialogRef} className="modal">
+        <div className="modal-box bg-base-100 rounded-lg shadow-md">
+          <form method="dialog" className="w-full">
+            <h3 className="font-bold text-lg mb-4">Complete Order</h3>
+            <div className="form-control w-full mb-4">
+              <label className="label">
+                <span className="label-text">Delivery Code</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Enter delivery code"
+                className="input input-bordered w-full"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => dialogRef.current?.close()}
+              >
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-primary">
+                Complete
+              </button>
+            </div>
+          </form>
+        </div>
+      </dialog>
     </div>
   );
 }

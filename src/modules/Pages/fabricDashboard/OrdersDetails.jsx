@@ -75,18 +75,18 @@ const OrderDetails = () => {
   const hasTailoringComponents = false;
   const isFabricOnlyOrder = true;
 
-  console.log("📋 Order Details - API Data:", data);
-  console.log("📋 Order Info:", orderInfo);
-  console.log("📋 Order Purchase Items:", orderPurchase);
-  console.log("📋 Order Metadata:", orderMetadata);
-  console.log("📋 Fabric Only Purchase Items:", fabricOnlyPurchase);
-  console.log("📋 Fabric Only Metadata:", fabricOnlyMetadata);
-  console.log("📋 Fabric Only Total:", fabricOnlyTotal);
-  console.log("📋 Is Fabric Only Order:", isFabricOnlyOrder);
-  console.log("📋 Has Tailoring Components:", hasTailoringComponents);
-  console.log("📋 Order ID from params:", id);
-  console.log("📋 Loading state:", getOrderIsPending);
-  console.log("📋 Error state:", isError);
+  // console.log("📋 Order Details - API Data:", data);
+  // console.log("📋 Order Info:", orderInfo);
+  // console.log("📋 Order Purchase Items:", orderPurchase);
+  // console.log("📋 Order Metadata:", orderMetadata);
+  // console.log("📋 Fabric Only Purchase Items:", fabricOnlyPurchase);
+  // console.log("📋 Fabric Only Metadata:", fabricOnlyMetadata);
+  // console.log("📋 Fabric Only Total:", fabricOnlyTotal);
+  // console.log("📋 Is Fabric Only Order:", isFabricOnlyOrder);
+  // console.log("📋 Has Tailoring Components:", hasTailoringComponents);
+  // console.log("📋 Order ID from params:", id);
+  // console.log("📋 Loading state:", getOrderIsPending);
+  // console.log("📋 Error state:", isError);
 
   // Loading state
   if (getOrderIsPending) {

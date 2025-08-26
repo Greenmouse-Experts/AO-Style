@@ -11,6 +11,7 @@ import LogisticsAnnouncementsPage from "../modules/Pages/logisticsDashboard/Anno
 import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPageUpdate";
 import TransactionPage from "../modules/Pages/fabricDashboard/TransactionPage";
 import LogisticMapLocation from "../modules/Pages/logisticsDashboard/order-location";
+import ViewItemMap from "../modules/Pages/logisticsDashboard/view-item-map";
 
 export const logisticsRoutes = [
   {
@@ -36,6 +37,10 @@ export const logisticsRoutes = [
       {
         path: "/logistics/orders/:id/map",
         element: <LogisticMapLocation />,
+      },
+      {
+        path: "/logistics/orders/item/:id/map",
+        element: <ViewItemMap />,
       },
       {
         path: "/logistics/transactions",

@@ -104,7 +104,25 @@ export default function ShopDetails() {
     location?.state?.measurementData ||
     JSON.parse(localStorage.getItem("measurement_data") || "[]");
   const fromStyleFirst = location?.state?.fromStyleFirst || !!styleData;
+  const handleRemoveStyle = () => {
+    // Clear localStorage
+    localStorage.removeItem("selected_style");
+    localStorage.removeItem("measurement_data");
 
+    // Option 1: Navigate back to the same route to trigger a refresh
+    navigate(location.pathname, { replace: true });
+
+    // Option 2: Alternative - reload the page (less elegant but works)
+    // window.location.reload();
+
+    // Option 3: If you want to use state management instead of navigation
+    // You would need to add state variables at the component level:
+    // const [localStyleData, setLocalStyleData] = useState(styleData);
+    // const [localFromStyleFirst, setLocalFromStyleFirst] = useState(fromStyleFirst);
+    // Then update them here:
+    // setLocalStyleData(null);
+    // setLocalFromStyleFirst(false);
+  };
   // Debug logging for received data
   console.log("🎨 ShopDetails Data Debug:", {
     fromStyleFirst: fromStyleFirst,
@@ -392,8 +410,8 @@ export default function ShopDetails() {
       ) : (
         <section className="Resizer section px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-            {/* Image Section - Enhanced layout */}
-            <div className="space-y-4">
+            {/* Image Section - Enhanced layout with sticky positioning */}
+            <div className="lg:sticky lg:top-4 lg:self-start space-y-4 lg:max-h-screen lg:overflow-y-auto">
               {/* Main Image or Video */}
               <div className="relative bg-gray-50 rounded-xl overflow-hidden">
                 {mainImage === productVal?.video_url ? (
@@ -469,7 +487,27 @@ export default function ShopDetails() {
             <div className="space-y-6">
               {/* Style Information - Show when coming from style-first workflow */}
               {fromStyleFirst && styleData && (
-                <div className="bg-[#FFF2FF] p-4 rounded-lg border border-purple-200">
+                <div className="bg-[#FFF2FF] p-4 rounded-lg border border-purple-200 relative">
+                  {/* X button at top right */}
+                  <button
+                    className="absolute top-3 right-3 p-1 rounded-full hover:bg-purple-100 transition-colors"
+                    aria-label="Remove selected style"
+                    onClick={handleRemoveStyle}
+                  >
+                    <svg
+                      className="w-5 h-5 text-purple-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
                   <h2 className="text-sm font-medium text-gray-500 mb-4 uppercase tracking-wide">
                     Selected Style
                   </h2>
@@ -703,13 +741,44 @@ export default function ShopDetails() {
                     to add this item to your cart.
                   </p>
                 )}
+
                 {fromStyleFirst && styleData && (
-                  <p className="text-sm text-purple-600 bg-purple-50 p-3 rounded-lg border border-purple-200">
-                    <span className="font-medium">
-                      Minimum yards required for style -
-                    </span>{" "}
-                    {styleData?.style?.minimum_fabric_qty || 0}
-                  </p>
+                  <div className="space-y-2">
+                    {Array.isArray(measurementData) &&
+                    measurementData.length === 1 ? (
+                      <p className="text-sm text-purple-600 bg-purple-50 p-3 rounded-lg border border-purple-200">
+                        <span className="font-medium">
+                          Minimum yards required for style -
+                        </span>{" "}
+                        {styleData?.style?.minimum_fabric_qty || 0}
+                      </p>
+                    ) : Array.isArray(measurementData) &&
+                      measurementData.length > 1 ? (
+                      <div className="text-sm bg-purple-50 p-3 rounded-lg border border-purple-200 flex flex-col gap-1">
+                        <span className="font-medium text-purple-700">
+                          Multiple measurements detected:
+                        </span>
+                        <span>
+                          <span className="font-medium text-purple-700">
+                            Minimum yards required ={" "}
+                          </span>
+                          {styleData?.style?.minimum_fabric_qty || 0} yards
+                          {" × "}
+                          {measurementData.length} measurements
+                          {" = "}
+                          <span className="font-bold text-purple-900">
+                            {(styleData?.style?.minimum_fabric_qty || 0) *
+                              measurementData.length}{" "}
+                            yards
+                          </span>
+                        </span>
+                        <span className="text-xs text-purple-500">
+                          Please ensure your quantity is at least this amount to
+                          proceed.
+                        </span>
+                      </div>
+                    ) : null}
+                  </div>
                 )}
               </div>
 
@@ -828,7 +897,80 @@ export default function ShopDetails() {
                   )}
                 </div>
               )}
+              {/* Additional Product Details */}
+              <div className="grid grid-cols-2 gap-4 p-4 bg-white rounded-lg border border-gray-200 mt-4">
+                {/* Gender Suitability */}
+                {productVal?.gender_suitability && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Gender Suitability
+                    </span>
+                    <p className="text-sm font-medium text-gray-900 capitalize">
+                      {productVal.gender_suitability}
+                    </p>
+                  </div>
+                )}
 
+                {/* Weight per yard */}
+                {productVal?.weight_per_unit && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Weight per Yard
+                    </span>
+                    <p className="text-sm font-medium text-gray-900">
+                      {productVal.weight_per_unit} g
+                    </p>
+                  </div>
+                )}
+
+                {/* Local Name */}
+                {productVal?.local_name && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Local Name
+                    </span>
+                    <p className="text-sm font-medium text-gray-900 capitalize">
+                      {productVal.local_name}
+                    </p>
+                  </div>
+                )}
+
+                {/* Manufacturer's Name */}
+                {productVal?.manufacturer_name && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Manufacturer
+                    </span>
+                    <p className="text-sm font-medium text-gray-900">
+                      {productVal.manufacturer_name}
+                    </p>
+                  </div>
+                )}
+
+                {/* Fabric Texture */}
+                {productVal?.fabric_texture && (
+                  <div className="space-y-1 col-span-2">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Fabric Texture
+                    </span>
+                    <p className="text-sm font-medium text-gray-900">
+                      {productVal.fabric_texture}
+                    </p>
+                  </div>
+                )}
+
+                {/* Quantity */}
+                {typeof productVal?.quantity !== "undefined" && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Quantity Available
+                    </span>
+                    <p className="text-sm font-medium text-gray-900">
+                      {productVal.quantity}
+                    </p>
+                  </div>
+                )}
+              </div>
               {/* Add to Cart Button */}
               <div className="pt-6 border-t border-gray-200">
                 <button

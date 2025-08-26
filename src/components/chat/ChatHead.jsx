@@ -48,6 +48,10 @@ const ChatHead = () => {
   // User profile state (match inbox pattern)
   const [userProfile, setUserProfile] = useState(null);
 
+  const [position, setPosition] = useState({ x: 24, y: 24 }); // 24px from right and bottom
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
   // Fetch admins for non-admin users
   const {
     data: availableAdmins,
@@ -133,6 +137,50 @@ const ChatHead = () => {
     Logistics: "logistics-agent",
   };
 
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+
+    const newX =
+      window.innerWidth - (e.clientX - dragOffset.x) - (isOpen ? 320 : 56); // 320px is chat width, 56px is button width
+    const newY =
+      window.innerHeight - (e.clientY - dragOffset.y) - (isOpen ? 440 : 56); // 440px is chat height, 56px is button height
+
+    // Keep within bounds
+    const boundedX = Math.max(
+      24,
+      Math.min(newX, window.innerWidth - (isOpen ? 320 : 56) - 24),
+    );
+    const boundedY = Math.max(
+      24,
+      Math.min(newY, window.innerHeight - (isOpen ? 440 : 56) - 24),
+    );
+
+    setPosition({ x: boundedX, y: boundedY });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+      return () => {
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+      };
+    }
+  }, [isDragging, dragOffset]);
   // Handle admin profile fetching
   useEffect(() => {
     const fetchAdminProfile = async () => {
@@ -845,11 +893,20 @@ const ChatHead = () => {
   return (
     <>
       {/* Chat Head Button */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div
+        className="fixed z-50 select-none"
+        style={{
+          right: `${position.x}px`,
+          bottom: `${position.y}px`,
+          cursor: isDragging ? "grabbing" : "grab",
+        }}
+      >
         {!isOpen && (
           <button
             onClick={() => setIsOpen(true)}
+            onMouseDown={handleMouseDown}
             className="relative bg-purple-600 hover:bg-purple-700 text-white rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110"
+            style={{ cursor: isDragging ? "grabbing" : "grab" }}
           >
             <MessageCircle size={24} />
             {unreadCount > 0 && (
@@ -868,7 +925,10 @@ const ChatHead = () => {
             }`}
           >
             {/* Header */}
-            <div className="bg-purple-600 text-white p-3 rounded-t-lg flex items-center justify-between">
+            <div
+              className="bg-purple-600 text-white p-3 rounded-t-lg flex items-center justify-between cursor-grab active:cursor-grabbing"
+              onMouseDown={handleMouseDown}
+            >
               <div className="flex items-center space-x-2">
                 <MessageCircle size={20} />
                 <span className="font-medium">

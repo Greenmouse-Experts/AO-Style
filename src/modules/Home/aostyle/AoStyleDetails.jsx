@@ -1596,7 +1596,7 @@ export default function AnkaraGownPage() {
                 <button
                   onClick={handleConfirmAddToCart}
                   disabled={addCartPending}
-                  className="w-full flex items-center justify-center space-x-2 px-6 py-4 bg-gradient text-white rounded-xl font-semibold hover:bg-purple-700 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full cursor-pointer flex items-center justify-center space-x-2 px-6 py-4 bg-gradient text-white rounded-xl font-semibold hover:bg-purple-700 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <svg
                     className="w-5 h-5"
@@ -1614,6 +1614,13 @@ export default function AnkaraGownPage() {
                   <span>
                     {addCartPending ? "Adding to Cart..." : "Add to Cart"}
                   </span>
+                </button>
+                <button
+                  onClick={setShowCartModal(false)}
+                  disabled={addCartPending}
+                  className="w-full flex items-center justify-center space-x-2 px-6 py-4 text-black rounded-xl transition-all duration-200 cursor-pointer shadow-lg disabled:opacity-50 border border-gray-300"
+                >
+                  <span>Select more measurements</span>
                 </button>
                 {/*
                 <button

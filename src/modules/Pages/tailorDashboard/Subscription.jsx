@@ -272,31 +272,29 @@ const Subscriptions = () => {
   return (
     <div className="bg-white p-6  rounded-xl overflow-visible">
       {/* <>loading {JSON.stringify(free_plan.data)}</>*/}
-      <div
-        data-theme="nord"
-        className="py-6 border-b border-current/20 mb-12 flex flex-col gap-4"
-      >
-        <div>
-          <div className="text-sm text-gray-600">Current Plan: </div>
-          <div className="font-bold text-xl text-neutral-800">
+      <div className="py-6 border-b border-gray-200 mb-8 flex flex-col gap-4">
+        <div className="flex items-center gap-2">
+          <div className="text-base font-medium text-gray-700">
+            Current Plan:
+          </div>
+          <div className="font-bold text-xl text-gray-900">
             {is_free
               ? plan_data.name
               : free_plan.data?.data?.subscriptions[0]
-                  ?.plan_name_at_subscription}
+                  ?.plan_name_at_subscription || "N/A"}
           </div>
         </div>
-        <div className="flex items-center gap-2 text-sm">
-          {!is_free ? (
-            free_plan.data?.data?.subscriptions[0]?.is_active ? (
-              <span className="bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">
+        <div className="flex items-center gap-3 text-sm">
+          {!is_free &&
+            (free_plan.data?.data?.subscriptions[0]?.is_active ? (
+              <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">
                 Active
               </span>
             ) : (
-              <span className="bg-red-100 text-red-700 px-2.5 py-1 rounded-full font-medium">
+              <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium">
                 Inactive
               </span>
-            )
-          ) : null}
+            ))}
           <span className="text-gray-500">
             |{" "}
             {formatDateStr(
@@ -305,8 +303,11 @@ const Subscriptions = () => {
             )}
           </span>
         </div>
-        {is_free && plan_data.description}
+        {is_free && (
+          <p className="text-gray-600 text-sm">{plan_data.description}</p>
+        )}
       </div>
+      ```
       <div className="flex flex-wrap justify-between items-center pb-3  gap-4">
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <h2 className="text-lg font-semibold">Subscriptions</h2>
@@ -353,7 +354,6 @@ const Subscriptions = () => {
         </div>
       </div>
       <p className="text-sm text-gray-500 mb-4">All Subscription Plans</p>
-
       {activeTab === "table" ? (
         <>
           <ReusableTable
@@ -438,11 +438,9 @@ const Subscriptions = () => {
           ))}
         </div>
       )}
-
       {isOpen && (
         <ViewSubscription onClose={closeModal} currentView={currentView} />
       )}
-
       {subIsOpen && (
         <SubscriptionModal
           refetch={refetch}

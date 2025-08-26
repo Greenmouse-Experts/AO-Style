@@ -265,6 +265,10 @@ const Subscriptions = () => {
   //     data?.count / (queryParams["pagination[limit]"] ?? 10)
   //   );
 
+  const plan = free_plan.data?.data?.subscriptions[0];
+  const is_free = plan?.name === "Free Plan" ? true : false;
+  const plan_data = plan;
+
   return (
     <div className="bg-white p-6  rounded-xl overflow-visible">
       {/* <>loading {JSON.stringify(free_plan.data)}</>*/}
@@ -275,19 +279,24 @@ const Subscriptions = () => {
         <div>
           <div className="text-sm text-gray-600">Current Plan: </div>
           <div className="font-bold text-xl text-neutral-800">
-            {free_plan.data?.data?.subscriptions[0]?.plan_name_at_subscription}
+            {is_free
+              ? plan_data.name
+              : free_plan.data?.data?.subscriptions[0]
+                  ?.plan_name_at_subscription}
           </div>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          {free_plan.data?.data?.subscriptions[0]?.is_active ? (
-            <span className="bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">
-              Active
-            </span>
-          ) : (
-            <span className="bg-red-100 text-red-700 px-2.5 py-1 rounded-full font-medium">
-              Inactive
-            </span>
-          )}
+          {!is_free ? (
+            free_plan.data?.data?.subscriptions[0]?.is_active ? (
+              <span className="bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">
+                Active
+              </span>
+            ) : (
+              <span className="bg-red-100 text-red-700 px-2.5 py-1 rounded-full font-medium">
+                Inactive
+              </span>
+            )
+          ) : null}
           <span className="text-gray-500">
             |{" "}
             {formatDateStr(
@@ -296,6 +305,7 @@ const Subscriptions = () => {
             )}
           </span>
         </div>
+        {is_free && plan_data.description}
       </div>
       <div className="flex flex-wrap justify-between items-center pb-3  gap-4">
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">

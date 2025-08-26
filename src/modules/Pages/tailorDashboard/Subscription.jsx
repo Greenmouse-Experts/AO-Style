@@ -313,7 +313,7 @@ const Subscriptions = () => {
           <p className="text-gray-600 text-sm">{plan_data.description}</p>
         )}
       </div>
-      ```
+
       <div className="flex flex-wrap justify-between items-center pb-3  gap-4">
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <h2 className="text-lg font-semibold">Subscriptions</h2>

@@ -133,7 +133,13 @@ const CustomersTable = () => {
       { label: "Name", key: "name" },
       { label: "Phone Number", key: "phone" },
       { label: "Email Address", key: "email" },
-      { label: "Location", key: "location" },
+      {
+        label: "Location",
+        key: "location",
+        render: (_, row) => {
+          return <span className="max-w-md line-clamp-1">{row.location}</span>;
+        },
+      },
       { label: "Date Joined", key: "dateJoined" },
     ],
     [],

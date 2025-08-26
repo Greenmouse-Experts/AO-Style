@@ -25,7 +25,7 @@ export default function CustomTable(props: CustomTableProps) {
   return (
     <div data-theme="nord" className="" id="cus-app">
       <div className="">
-        <table className="table  w-full">
+        <table className="table  w-full text-xs">
           <thead>
             <tr className=" rounded-t-2xl bg-base-200/50">
               {props.columns &&

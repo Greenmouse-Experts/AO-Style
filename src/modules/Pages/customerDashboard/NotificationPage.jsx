@@ -53,7 +53,7 @@ export default function NotificationPage() {
   return (
     <div className="">
       <div className="bg-white px-6 py-4 mb-6">
-        <h1 className="text-2xl font-medium mb-3">Notifications</h1>
+        <h1 className="text-2xl font-medium mb-3">Notification</h1>
         <p className="text-gray-500">
           <Link to="/customer" className="text-blue-500 hover:underline">
             Dashboard

@@ -545,6 +545,29 @@ export default function AnkaraGownPage() {
                       />
                     </div>
                   ))}
+                  {styleInfo?.style?.video_url && (
+                    <div className="flex-shrink-0 w-32 h-20 rounded-lg overflow-hidden border-2 transition-all border-gray-200 ml-2 flex items-center justify-center bg-black relative">
+                      <video
+                        src={styleInfo.style.video_url}
+                        controls
+                        className="w-full h-full object-cover rounded-lg"
+                        // poster={mainImage}
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                      {/* Video tag/icon overlay */}
+                      <div className="absolute top-2 left-2 bg-black/70 rounded-full p-1 flex items-center justify-center">
+                        <svg
+                          className="w-5 h-5 text-white"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle cx="12" cy="12" r="10" opacity="0.5" />
+                          <polygon points="10,8 16,12 10,16" fill="white" />
+                        </svg>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

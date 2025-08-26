@@ -25,21 +25,23 @@ export default function CustomTable(props: CustomTableProps) {
   return (
     <div data-theme="nord" className="" id="cus-app">
       <div className=" relative overflow-visible">
-        <table className="table  block w-full text-xs">
-          <thead>
-            <tr className=" rounded-t-2xl bg-base-200/50">
+        <table className="table   w-full text-xs">
+          <thead className="">
+            <tr className=" rounded-2xl bg-base-200/50">
               {props.columns &&
                 props.columns.map((column, idx) => (
                   <th
                     key={idx}
-                    className="capitalize text-left  text-xs font-semibold text-base-content "
+                    className="capitalize text-left   text-xs font-semibold text-base-content/70 "
                   >
                     {column.label}
                   </th>
                 ))}
               {!props.columns?.find((item) => item.key == "action") && (
                 <>
-                  <th className="font-semibold text-base-content ">Action</th>
+                  <th className="font-semibold text-xs text-base-content/70 ">
+                    Action
+                  </th>
                 </>
               )}
             </tr>
@@ -66,7 +68,7 @@ export default function CustomTable(props: CustomTableProps) {
                     ))}
                     {!props.columns?.find((item) => item.key == "action") && (
                       <>
-                        <td className="py-3 px-4  z-50 relative">
+                        <td className="py-3 px-4   relative">
                           <div className="dropdown dropdown-end relative">
                             <div
                               tabIndex={0}

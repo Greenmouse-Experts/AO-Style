@@ -712,7 +712,7 @@ export default function AnkaraGownPage() {
                         />
                       </svg>
                       <span className="text-green-700 font-medium text-sm">
-                        {styleInfo.creator.profile.address}
+                        {styleInfo.creator.profile.country}
                       </span>
                     </div>
                   )}

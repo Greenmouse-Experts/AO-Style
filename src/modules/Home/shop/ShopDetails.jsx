@@ -977,13 +977,17 @@ export default function ShopDetails() {
                   disabled={
                     !selectedColor ||
                     addCartPending ||
-                    quantity < styleData?.style?.minimum_fabric_qty
+                    quantity <
+                      styleData?.style?.minimum_fabric_qty *
+                        measurementData.length
                   }
                   onClick={handleShowCartSelection}
                   className={
                     !selectedColor ||
                     addCartPending ||
-                    quantity < styleData?.style?.minimum_fabric_qty
+                    quantity <
+                      styleData?.style?.minimum_fabric_qty *
+                        measurementData.length
                       ? "w-full flex items-center justify-center space-x-3 py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 bg-gray-200 text-gray-500 cursor-not-allowed"
                       : "w-full flex items-center justify-center space-x-3 py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 bg-gradient text-white hover:bg-purple-700 hover:shadow-lg transform hover:-translate-y-0.5"
                   }

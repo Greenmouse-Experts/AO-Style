@@ -132,7 +132,26 @@ const OrderDetails = () => {
     });
   });
   console.log("=========================");
+  const calculateSubtotal = () => {
+    if (!orderDetails?.order_items || orderDetails.order_items.length === 0) {
+      return 0;
+    }
 
+    return orderDetails.order_items.reduce((total, item) => {
+      const itemPrice = parseInt(item?.product?.price || 0);
+      const itemQuantity = parseInt(item?.quantity || 1);
+      return total + itemPrice * itemQuantity;
+    }, 0);
+  };
+
+  const subtotalAmount = calculateSubtotal();
+  const deliveryFee = parseInt(
+    orderDetails?.payment?.purchase?.delivery_fee || 0,
+  );
+  const taxAmount = parseInt(orderDetails?.payment?.purchase?.tax_amount || 0);
+  const discountAmount = parseInt(
+    orderDetails?.payment?.purchase?.coupon_value || 0,
+  );
   // Removed handleStepClick - customers should not be able to manually change order progress
 
   return (
@@ -312,12 +331,12 @@ const OrderDetails = () => {
                           {orderDetails?.payment?.currency || "NGN"}
                         </span>
                       </div>
-                      <div className="flex justify-between">
+                      {/* <div className="flex justify-between">
                         <span className="text-gray-600">Auto Renew:</span>
                         <span className="font-medium">
                           {orderDetails?.payment?.auto_renew ? "Yes" : "No"}
                         </span>
-                      </div>
+                      </div>*/}
                     </div>
                   </div>
                 </div>
@@ -338,7 +357,7 @@ const OrderDetails = () => {
                             src={
                               item?.product?.type === "FABRIC"
                                 ? item?.product?.fabric?.photos[0]
-                                : "https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170603/AoStyle/image1_s3s2sd.jpg"
+                                : item?.product?.style?.photos[0]
                             }
                             alt={item.name || "Product"}
                             className="w-16 h-16 rounded-md object-cover"
@@ -370,22 +389,42 @@ const OrderDetails = () => {
                   <div className="flex justify-between items-center pb-2">
                     <span className="text-gray-600 font-medium">Subtotal:</span>
                     <span className="font-semibold">
-                      N {parseInt(totalAmount || 0).toLocaleString()}
+                      ₦ {subtotalAmount.toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between items-center pb-2 mt-2">
                     <span className="text-gray-600 font-medium">
                       Delivery Fee:
                     </span>
-                    <span className="font-semibold">N 0</span>
+                    <span className="font-semibold">
+                      ₦{" "}
+                      {orderDetails?.payment?.purchase?.delivery_fee
+                        ? parseInt(
+                            orderDetails?.payment?.purchase?.delivery_fee,
+                          ).toLocaleString()
+                        : "0"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center pb-2 mt-2">
+                    <span className="text-gray-600 font-medium">Tax:</span>
+                    <span className="font-semibold">
+                      ₦{" "}
+                      {orderDetails?.payment?.purchase?.tax_amount
+                        ? parseInt(
+                            orderDetails?.payment?.purchase?.tax_amount,
+                          ).toLocaleString()
+                        : "0"}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center pb-2 mt-2">
                     <span className="text-gray-600 font-medium">Discount:</span>
                     <span className="font-semibold">
-                      N{" "}
-                      {parseInt(
-                        orderDetails?.payment?.discount_applied || 0,
-                      ).toLocaleString()}
+                      ₦{" "}
+                      {orderDetails?.payment?.discount_applied > 0
+                        ? parseInt(
+                            orderDetails?.payment?.discount_applied,
+                          ).toLocaleString()
+                        : "-"}
                     </span>
                   </div>
                   <div className="flex justify-between items-center mt-4 pt-2 border-t">
@@ -461,7 +500,7 @@ const OrderDetails = () => {
               </div>
             </div>
           </div>
-          <div className="bg-white p-4 rounded-md">
+          {/* <div className="bg-white p-4 rounded-md">
             <h5 className="text-lg font-medium leading-loose border-b border-[#D9D9D9] pb-3 mb-3">
               Order Support
             </h5>
@@ -471,7 +510,7 @@ const OrderDetails = () => {
               <MessageSquare className="text-purple-500" size={24} />
               <Mail className="text-purple-500" size={24} />
             </div>
-          </div>
+          </div>*/}
         </div>
       </div>
 

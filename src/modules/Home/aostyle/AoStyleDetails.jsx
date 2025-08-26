@@ -671,7 +671,52 @@ export default function AnkaraGownPage() {
                     </div>
                   )}
                 </div>
-
+                {/* Location and Gender Display */}
+                <div className="flex flex-wrap gap-4 items-center mb-2">
+                  {/* Gender */}
+                  {styleInfo?.gender && (
+                    <div className="flex items-center gap-2 bg-blue-50 rounded-lg px-3 py-1">
+                      <svg
+                        className="w-5 h-5 text-blue-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M12 14v7m0 0h-3m3 0h3M12 7a5 5 0 100 10 5 5 0 000-10z"
+                        />
+                      </svg>
+                      <span className="text-blue-700 font-medium text-sm">
+                        {styleInfo.gender.charAt(0).toUpperCase() +
+                          styleInfo.gender.slice(1)}
+                      </span>
+                    </div>
+                  )}
+                  {/* Location */}
+                  {styleInfo?.creator?.profile?.address && (
+                    <div className="flex items-center gap-2 bg-green-50 rounded-lg px-3 py-1">
+                      <svg
+                        className="w-5 h-5 text-green-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M12 11c1.657 0 3-1.343 3-3S13.657 5 12 5s-3 1.343-3 3 1.343 3 3 3zm0 0v8m0 0c-4.418 0-8-3.582-8-8a8 8 0 1116 0c0 4.418-3.582 8-8 8z"
+                        />
+                      </svg>
+                      <span className="text-green-700 font-medium text-sm">
+                        {styleInfo.creator.profile.address}
+                      </span>
+                    </div>
+                  )}
+                </div>
                 {styleInfo?.tags?.length > 0 && (
                   <div>
                     <p className="font-medium mb-2">Tags:</p>

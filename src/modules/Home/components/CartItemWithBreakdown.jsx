@@ -15,10 +15,6 @@ const CartItemWithBreakdown = ({
   const fabricPrice = parseFloat(
     item.price_at_time || item.product?.price || 0,
   );
-  const stylePrice = parseFloat(item.style_product?.price || 0);
-  const quantity = parseInt(item.quantity || 1);
-  const fabricTotal = fabricPrice * quantity;
-  const itemTotal = fabricTotal + stylePrice;
 
   const measurementCount = getMeasurementCount
     ? getMeasurementCount(item.measurement)
@@ -27,6 +23,11 @@ const CartItemWithBreakdown = ({
       : item.measurement
         ? 1
         : 0;
+
+  const stylePrice = parseFloat(item.style_product?.price || 0);
+  const quantity = parseInt(item.quantity || 1);
+  const fabricTotal = fabricPrice * quantity;
+  const itemTotal = fabricTotal + stylePrice * measurementCount;
 
   // Get the first image from photos array or fallback to product.image
   const productImage =

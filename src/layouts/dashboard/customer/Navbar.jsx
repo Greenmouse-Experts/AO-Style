@@ -6,6 +6,7 @@ import Cookies from "js-cookie";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useSessionManager from "../../../hooks/useSessionManager";
 import useGetNotification from "../../../hooks/notification/useGetNotification";
+import useGetCart from "../../../hooks/cart/useGetCart";
 
 export default function Navbar({ toggleSidebar }) {
   const { toastSuccess } = useToast();
@@ -17,7 +18,12 @@ export default function Navbar({ toggleSidebar }) {
 
   const { carybinUser, logOut } = useCarybinUserStore();
   const { clearAuthData } = useSessionManager();
+  const { data: cartResponse, isPending: isCartPending } = useGetCart();
 
+  // Get cart data from API response
+  const cartData = cartResponse?.data;
+  const items = cartData?.items || [];
+  const cartCount = items.length;
   const handleSignOut = () => {
     toastSuccess("Logout Successfully");
     logOut();
@@ -51,12 +57,19 @@ export default function Navbar({ toggleSidebar }) {
 
         {/* Right: Notification & Profile */}
         <div className="flex items-center space-x-6">
-          {/* <Link
+          <Link
             to="/view-cart"
             className="relative bg-purple-100 p-2 rounded-full"
           >
             <ShoppingCart size={20} className="text-purple-600" />
-          </Link>*/}
+            {cartCount > 0 ? (
+              <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                {cartCount}
+              </span>
+            ) : (
+              <></>
+            )}
+          </Link>
           <Link
             to="/customer/notifications"
             className="relative bg-purple-100 p-2 rounded-full"

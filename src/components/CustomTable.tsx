@@ -24,7 +24,7 @@ interface CustomTableProps {
 export default function CustomTable(props: CustomTableProps) {
   return (
     <div data-theme="nord" className="" id="cus-app">
-      <div className=" ">
+      <div className=" relative overflow-visible">
         <table className="table  block w-full text-xs">
           <thead>
             <tr className=" rounded-t-2xl bg-base-200/50">
@@ -66,7 +66,7 @@ export default function CustomTable(props: CustomTableProps) {
                     ))}
                     {!props.columns?.find((item) => item.key == "action") && (
                       <>
-                        <td className="py-3 px-4  z-50">
+                        <td className="py-3 px-4  z-50 relative">
                           <div className="dropdown dropdown-end overflow-visible">
                             <div
                               tabIndex={0}

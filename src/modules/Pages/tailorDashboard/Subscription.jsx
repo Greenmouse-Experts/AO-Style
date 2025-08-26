@@ -100,6 +100,7 @@ const Subscriptions = () => {
   const {
     isPending,
     isLoading,
+    refetch,
     isError,
     data: subscriptionData,
   } = useGetUserSubscription(
@@ -433,7 +434,11 @@ const Subscriptions = () => {
       )}
 
       {subIsOpen && (
-        <SubscriptionModal onClose={subCloseModal} currentView={currentView} />
+        <SubscriptionModal
+          refetch={refetch}
+          onClose={subCloseModal}
+          currentView={currentView}
+        />
       )}
     </div>
   );

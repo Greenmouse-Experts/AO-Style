@@ -335,14 +335,14 @@ const OrderDetails = () => {
                 {/* Order Details - Clean Layout */}
                 <div className="space-y-8 mb-6">
                   {/* Product Information Row - Product Card Style */}
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* FABRIC - Product Card Style */}
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    {/* FABRIC */}
+                    <div className="flex flex-col">
+                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
                         FABRIC
                       </h3>
-                      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow h-[400px] flex flex-col">
-                        {/* Product Image */}
+                      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow flex flex-col h-full">
+                        {/* Image */}
                         <div className="h-48 bg-gray-100 overflow-hidden flex-shrink-0">
                           {orderPurchase[0]?.product?.fabric?.photos?.[0] ? (
                             <img
@@ -350,7 +350,7 @@ const OrderDetails = () => {
                                 orderPurchase[0]?.product?.fabric?.photos?.[0]
                               }
                               alt="Fabric"
-                              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                              className="w-full h-full object-cover"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
@@ -358,26 +358,20 @@ const OrderDetails = () => {
                             </div>
                           )}
                         </div>
-
-                        {/* Product Info */}
-                        <div className="p-4 flex-1 flex flex-col justify-between">
-                          <div>
-                            <h4
-                              className="font-semibold text-gray-900 text-base leading-tight mb-2 min-h-[2.5rem] flex items-start"
-                              title={
-                                orderPurchase[0]?.product?.name ||
-                                "Product Name"
-                              }
-                            >
-                              {(
-                                orderPurchase[0]?.product?.name ||
-                                "Product Name"
-                              ).length > 35
-                                ? `${(orderPurchase[0]?.product?.name || "Product Name").substring(0, 35)}...`
-                                : orderPurchase[0]?.product?.name ||
-                                  "Product Name"}
-                            </h4>
-                          </div>
+                        {/* Info */}
+                        <div className="p-4 flex flex-col flex-1 justify-between">
+                          <h4
+                            className="font-semibold text-gray-900 text-base leading-tight mb-2 min-h-[2.5rem]"
+                            title={
+                              orderPurchase[0]?.product?.name || "Product Name"
+                            }
+                          >
+                            {(orderPurchase[0]?.product?.name || "Product Name")
+                              .length > 35
+                              ? `${(orderPurchase[0]?.product?.name || "Product Name").substring(0, 35)}...`
+                              : orderPurchase[0]?.product?.name ||
+                                "Product Name"}
+                          </h4>
                           <div className="flex items-center justify-between mt-auto">
                             <p className="text-sm text-gray-600">
                               Qty:{" "}
@@ -394,21 +388,22 @@ const OrderDetails = () => {
                       </div>
                     </div>
 
-                    {/* STYLE - Product Card Style */}
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+                    {/* STYLE */}
+                    <div className="flex flex-col">
+                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
                         STYLE
                       </h3>
-                      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow h-[400px] flex flex-col">
-                        {/* Product Image */}
-                        <div className="h-48 bg-gray-100 overflow-hidden flex-shrink-0">
+                      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow flex flex-col h-full">
+                        {/* Image */}
+                        <div className="h-48 bg-gray-100 overflow-hidden flex-shrink-0 relative">
                           {orderPurchase[1]?.product?.style?.photos?.[0] ? (
                             <img
                               src={
                                 orderPurchase[1]?.product?.style?.photos?.[0]
                               }
                               alt="Style"
-                              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                              className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                              style={{ minWidth: "100%", minHeight: "100%" }}
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
@@ -416,23 +411,19 @@ const OrderDetails = () => {
                             </div>
                           )}
                         </div>
-
-                        {/* Product Info */}
-                        <div className="p-4 flex-1 flex flex-col justify-between">
-                          <div>
-                            <h4
-                              className="font-semibold text-gray-900 text-base leading-tight mb-2 min-h-[2.5rem] flex items-start"
-                              title={
-                                orderPurchase[1]?.product?.name || "Style Name"
-                              }
-                            >
-                              {(orderPurchase[1]?.product?.name || "Style Name")
-                                .length > 35
-                                ? `${(orderPurchase[1]?.product?.name || "Style Name").substring(0, 35)}...`
-                                : orderPurchase[1]?.product?.name ||
-                                  "Style Name"}
-                            </h4>
-                          </div>
+                        {/* Info */}
+                        <div className="p-4 flex flex-col flex-1 justify-between">
+                          <h4
+                            className="font-semibold text-gray-900 text-base leading-tight mb-2 min-h-[2.5rem]"
+                            title={
+                              orderPurchase[1]?.product?.name || "Style Name"
+                            }
+                          >
+                            {(orderPurchase[1]?.product?.name || "Style Name")
+                              .length > 35
+                              ? `${(orderPurchase[1]?.product?.name || "Style Name").substring(0, 35)}...`
+                              : orderPurchase[1]?.product?.name || "Style Name"}
+                          </h4>
                           <div className="space-y-2 mt-auto">
                             <div className="flex items-center justify-between">
                               <p className="text-sm text-gray-600">
@@ -461,14 +452,14 @@ const OrderDetails = () => {
                       </div>
                     </div>
 
-                    {/* MEASUREMENTS - Compact Style */}
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+                    {/* MEASUREMENTS */}
+                    <div className="flex flex-col">
+                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
                         MEASUREMENTS
                       </h3>
-                      <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
+                      <div className="bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col h-full">
                         <button
-                          className="w-full p-6 text-center hover:bg-gray-50 rounded-xl transition-colors group"
+                          className="flex flex-col flex-1 p-6 text-center hover:bg-gray-50 transition-colors group justify-center"
                           onClick={handleOpenMeasurementModal}
                         >
                           <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-200 transition-colors">
@@ -484,78 +475,8 @@ const OrderDetails = () => {
                       </div>
                     </div>
                   </div>
-                  {/* Video Preview Section */}
-                  {(orderPurchase[0]?.product?.fabric?.video_url ||
-                    orderPurchase[1]?.product?.style?.video_url) && (
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                        Preview Videos
-                      </h3>
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Fabric Video */}
-                        {orderPurchase[0]?.product?.fabric?.video_url && (
-                          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-                            <div className="flex items-center justify-between mb-4">
-                              <h4 className="font-semibold text-gray-900 flex items-center gap-2">
-                                <Play className="w-4 h-4 text-blue-600" />
-                                Fabric Preview
-                              </h4>
-                              <button
-                                onClick={() => handleExpandVideo("fabric")}
-                                className="text-blue-600 hover:text-blue-700 flex items-center gap-1 text-sm font-medium transition-colors bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-lg"
-                              >
-                                <Maximize2 className="w-4 h-4" />
-                                Expand
-                              </button>
-                            </div>
-                            <div className="bg-black rounded-lg overflow-hidden">
-                              <video
-                                src={
-                                  orderPurchase[0]?.product?.fabric?.video_url
-                                }
-                                controls
-                                className="w-full h-48 object-contain"
-                                preload="metadata"
-                              >
-                                Your browser does not support the video tag.
-                              </video>
-                            </div>
-                          </div>
-                        )}
 
-                        {/* Style Video */}
-                        {orderPurchase[1]?.product?.style?.video_url && (
-                          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-                            <div className="flex items-center justify-between mb-4">
-                              <h4 className="font-semibold text-gray-900 flex items-center gap-2">
-                                <Play className="w-4 h-4 text-blue-600" />
-                                Style Preview
-                              </h4>
-                              <button
-                                onClick={() => handleExpandVideo("style")}
-                                className="text-blue-600 hover:text-blue-700 flex items-center gap-1 text-sm font-medium transition-colors bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-lg"
-                              >
-                                <Maximize2 className="w-4 h-4" />
-                                Expand
-                              </button>
-                            </div>
-                            <div className="bg-black rounded-lg overflow-hidden">
-                              <video
-                                src={
-                                  orderPurchase[1]?.product?.style?.video_url
-                                }
-                                controls
-                                className="w-full h-48 object-contain"
-                                preload="metadata"
-                              >
-                                Your browser does not support the video tag.
-                              </video>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                  {/* Video Preview Section */}
                 </div>
 
                 {/* Order Total */}

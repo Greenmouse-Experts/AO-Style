@@ -26,10 +26,10 @@ export default function CustomTable(props: CustomTableProps) {
     <div data-theme="nord" className="p-2 static  " id="cus-app">
       <table className="w-full">
         <thead>
-          <tr>
+          <tr className="">
             {props.columns &&
               props.columns.map((column) => (
-                <th className="capitalize">{column.label}</th>
+                <th className="capitalize text-left">{column.label}</th>
               ))}
             {!props.columns?.find((item) => item.key == "action") && (
               <>

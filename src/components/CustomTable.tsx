@@ -67,7 +67,7 @@ export default function CustomTable(props: CustomTableProps) {
                     {!props.columns?.find((item) => item.key == "action") && (
                       <>
                         <td className="py-3 px-4  z-50 relative">
-                          <div className="dropdown dropdown-end overflow-visible">
+                          <div className="dropdown dropdown-end relative">
                             <div
                               tabIndex={0}
                               role="button"

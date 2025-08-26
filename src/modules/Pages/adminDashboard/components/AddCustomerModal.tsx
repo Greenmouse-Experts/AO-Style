@@ -9,7 +9,19 @@ export default function AddNewCustomerModal({ isOpen, onClose }: any) {
   const [addAddress, setAddAddress] = useState(false);
   const mutate = useMutation({
     mutationFn: async (data: any) => {
-      let resp = await CaryBinApi.post("/contact/invite", { ...data });
+      const busiRes = await CaryBinApi.get("/onboard/fetch-businesses?q=user");
+
+      const businessId = busiRes.data.data[0]?.id;
+      if (!businessId) {
+        throw new Error("No business found");
+      }
+
+      // Second request using the businessId
+      const resp = await CaryBinApi.post("/contact/invite", {
+        ...data,
+        business_id: businessId,
+      });
+
       return resp.data;
     },
     onSuccess: () => {
@@ -28,7 +40,7 @@ export default function AddNewCustomerModal({ isOpen, onClose }: any) {
     e.preventDefault();
     let business_id = userData?.data?.id;
     const data = {
-      business_id: business_id,
+      // business_id: business_id,
       email: e.target.email.value,
       name: e.target.name.value,
       role: e.target.role.value,

@@ -18,7 +18,7 @@ export default function GetStarted() {
         </h1>
       </div>
       <div className="flex flex-col items-center mb-8">
-        <p className="text-center text-purple-500 text-3xl md:text-4xl font-extrabold tracking-wide underline">
+        <p className="text-center text-purple-500 text-3xl md:text-4xl font-extrabold tracking-wide">
           JOIN AS{" "}
         </p>
       </div>

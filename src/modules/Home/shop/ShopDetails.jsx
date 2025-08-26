@@ -423,6 +423,29 @@ export default function ShopDetails() {
                     />
                   </button>
                 ))}
+                {productVal?.video_url && (
+                  <div className="flex-shrink-0 w-32 h-20 rounded-lg overflow-hidden border-2 transition-all border-gray-200 ml-2 flex items-center justify-center bg-black relative">
+                    <video
+                      src={productVal.video_url}
+                      controls
+                      className="w-full h-full object-cover rounded-lg"
+                      poster={mainImage}
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                    {/* Video tag/icon overlay */}
+                    <div className="absolute top-2 left-2 bg-black/70 rounded-full p-1 flex items-center justify-center">
+                      <svg
+                        className="w-5 h-5 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle cx="12" cy="12" r="10" opacity="0.5" />
+                        <polygon points="10,8 16,12 10,16" fill="white" />
+                      </svg>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -472,7 +495,132 @@ export default function ShopDetails() {
                     per yard
                   </span>
                 </div>
+
+                {/* Product Status Badge */}
+                {productVal?.approval_status && (
+                  <div className="inline-flex items-center">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        productVal.approval_status === "PUBLISHED"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {productVal.approval_status}
+                    </span>
+                  </div>
+                )}
               </div>
+
+              {/* Product Details Grid */}
+              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                {/* Material Type */}
+                {productVal?.material_type && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Material
+                    </span>
+                    <p className="text-sm font-medium text-gray-900 capitalize">
+                      {productVal.material_type}
+                    </p>
+                  </div>
+                )}
+
+                {/* Business Type */}
+                {productVal?.business_id && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Business ID
+                    </span>
+                    <p className="text-sm font-medium text-gray-900">
+                      {productVal.business_id}
+                    </p>
+                  </div>
+                )}
+
+                {/* Minimum Yards */}
+                {productVal?.minimum_yards && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Minimum Order
+                    </span>
+                    <p className="text-sm font-medium text-gray-900">
+                      {productVal.minimum_yards} yards
+                    </p>
+                  </div>
+                )}
+
+                {/* Currency */}
+                {productVal?.currency && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Currency
+                    </span>
+                    <p className="text-sm font-medium text-gray-900">
+                      {productVal.currency}
+                    </p>
+                  </div>
+                )}
+
+                {/* Category */}
+                {productVal?.category?.name && (
+                  <div className="space-y-1 col-span-2">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Category
+                    </span>
+                    <p className="text-sm font-medium text-gray-900">
+                      {productVal.category.name}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Product Description */}
+              {productVal?.description && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                    Description
+                  </h3>
+                  <div className="text-sm text-gray-600 leading-relaxed bg-white p-4 rounded-lg border border-gray-200">
+                    {productVal.description
+                      .split("\n")
+                      .map((paragraph, index) => (
+                        <p key={index} className={index > 0 ? "mt-3" : ""}>
+                          {paragraph}
+                        </p>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Creator Information */}
+              {productVal?.creator && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                    Created By
+                  </h3>
+                  <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                      <svg
+                        className="w-5 h-5 text-purple-600"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        {productVal.creator.name ||
+                          `Creator ${productVal.creator.id?.slice(-8)}`}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {productVal.creator.role || "Creator"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Tags Section */}
               {productVal?.product?.tags?.length > 0 && (
@@ -616,6 +764,45 @@ export default function ShopDetails() {
                   </div>
                 </div>
               </div>
+
+              {/* Timestamps */}
+              {(productVal?.created_at || productVal?.updated_at) && (
+                <div className="grid grid-cols-2 gap-4 text-xs text-gray-500 pt-4 border-t border-gray-200">
+                  {productVal?.created_at && (
+                    <div>
+                      <span className="font-semibold">Created:</span>
+                      <br />
+                      {new Date(productVal.created_at).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        },
+                      )}
+                    </div>
+                  )}
+                  {productVal?.updated_at && (
+                    <div>
+                      <span className="font-semibold">Updated:</span>
+                      <br />
+                      {new Date(productVal.updated_at).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        },
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Add to Cart Button */}
               <div className="pt-6 border-t border-gray-200">
                 <button

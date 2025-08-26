@@ -114,6 +114,12 @@ const Subscriptions = () => {
 
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
 
+  // Handle Paystack success callback
+  const handlePaystackSuccess = () => {
+    refetch();
+    free_plan.refetch();
+  };
+
   const subscriptionRes = useMemo(
     () =>
       subscriptionData?.data
@@ -393,28 +399,6 @@ const Subscriptions = () => {
                     >
                       View Details
                     </button>
-                    <button
-                      className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
-                      onClick={() => {
-                        setIsAddModalOpen(true);
-                        handleDropdownToggle(null);
-                        setNewCategory(item);
-                        setType("Edit");
-                      }}
-                    >
-                      Edit Fabric
-                    </button>
-                    <button
-                      className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-left"
-                      onClick={() => {
-                        setIsAddModalOpen(true);
-                        handleDropdownToggle(null);
-                        setNewCategory(item);
-                        setType("Remove");
-                      }}
-                    >
-                      Remove Fabric
-                    </button>
                   </div>
                 )}
               </div>
@@ -446,6 +430,7 @@ const Subscriptions = () => {
           refetch={refetch}
           onClose={subCloseModal}
           currentView={currentView}
+          onPaystackSuccess={handlePaystackSuccess}
         />
       )}
     </div>

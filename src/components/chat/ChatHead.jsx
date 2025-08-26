@@ -36,6 +36,12 @@ const ChatHead = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
+  // Position state for dragging
+  const [position, setPosition] = useState({ x: window.innerWidth - 320 }); // Default to right side
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0 });
+  const chatHeadRef = useRef(null);
+
   // Admin-specific states
   const [userType, setUserType] = useState("");
   const [users, setUsers] = useState([]);
@@ -131,6 +137,80 @@ const ChatHead = () => {
     Fabric: "fabric-vendor",
     "Market Rep": "market-representative",
     Logistics: "logistics-agent",
+  };
+
+  // Handle horizontal dragging
+  const handleMouseDown = (e) => {
+    if (isOpen) return; // Don't allow dragging when chat is open
+
+    setIsDragging(true);
+    const rect = chatHeadRef.current.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+    });
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+
+    const chatHeadWidth = 80; // Approximate width of chat head button
+    const minX = 20; // Minimum distance from left edge
+    const maxX = window.innerWidth - chatHeadWidth - 20; // Maximum distance from right edge
+
+    const newX = Math.max(minX, Math.min(maxX, e.clientX - dragOffset.x));
+
+    setPosition({ x: newX });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Add event listeners for dragging
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+      return () => {
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+      };
+    }
+  }, [isDragging, dragOffset]);
+
+  // Handle window resize to keep chat head in bounds
+  useEffect(() => {
+    const handleResize = () => {
+      const chatHeadWidth = 80;
+      const maxX = window.innerWidth - chatHeadWidth - 20;
+      if (position.x > maxX) {
+        setPosition({ x: maxX });
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [position.x]);
+
+  // Determine chat window position based on chat head position
+  const getChatWindowPosition = () => {
+    const chatWindowWidth = 320; // 80 * 4 (w-80 in Tailwind)
+    const viewportWidth = window.innerWidth;
+    const chatHeadCenter = position.x + 40; // Center of chat head button
+
+    // If chat head is in the right half of the screen, show window to the left
+    if (chatHeadCenter > viewportWidth / 2) {
+      return {
+        right: `${viewportWidth - position.x}px`,
+        left: "auto",
+      };
+    } else {
+      // If chat head is in the left half, show window to the right
+      return {
+        left: `${position.x}px`,
+        right: "auto",
+      };
+    }
   };
 
   // Handle admin profile fetching
@@ -845,11 +925,16 @@ const ChatHead = () => {
   return (
     <>
       {/* Chat Head Button */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-6 z-50" style={{ left: `${position.x}px` }}>
         {!isOpen && (
           <button
+            ref={chatHeadRef}
+            onMouseDown={handleMouseDown}
             onClick={() => setIsOpen(true)}
-            className="relative bg-purple-600 hover:bg-purple-700 text-white rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110"
+            className={`relative bg-purple-600 hover:bg-purple-700 text-white rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110 ${
+              isDragging ? "cursor-grabbing" : "cursor-grab"
+            }`}
+            style={{ cursor: isDragging ? "grabbing" : "grab" }}
           >
             <MessageCircle size={24} />
             {unreadCount > 0 && (
@@ -866,6 +951,7 @@ const ChatHead = () => {
             className={`bg-white rounded-lg shadow-2xl border-gray-200 border transition-all duration-300 ${
               isMinimized ? "w-80 h-12" : "w-80 h-[440px]"
             }`}
+            style={getChatWindowPosition()}
           >
             {/* Header */}
             <div className="bg-purple-600 text-white p-3 rounded-t-lg flex items-center justify-between">
@@ -1254,3 +1340,5 @@ const ChatHead = () => {
     </>
   );
 };
+
+export default ChatHead;

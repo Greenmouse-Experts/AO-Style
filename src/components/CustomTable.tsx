@@ -24,15 +24,15 @@ interface CustomTableProps {
 export default function CustomTable(props: CustomTableProps) {
   return (
     <div data-theme="nord" className="" id="cus-app">
-      <div className="">
-        <table className="table  w-full text-xs">
+      <div className=" ">
+        <table className="table  block w-full text-xs">
           <thead>
             <tr className=" rounded-t-2xl bg-base-200/50">
               {props.columns &&
                 props.columns.map((column, idx) => (
                   <th
                     key={idx}
-                    className="capitalize text-left font-semibold text-base-content "
+                    className="capitalize text-left  text-xs font-semibold text-base-content "
                   >
                     {column.label}
                   </th>
@@ -66,8 +66,8 @@ export default function CustomTable(props: CustomTableProps) {
                     ))}
                     {!props.columns?.find((item) => item.key == "action") && (
                       <>
-                        <td className="py-3 px-4">
-                          <div className="dropdown dropdown-end">
+                        <td className="py-3 px-4  z-50">
+                          <div className="dropdown dropdown-end overflow-visible">
                             <div
                               tabIndex={0}
                               role="button"
@@ -76,7 +76,7 @@ export default function CustomTable(props: CustomTableProps) {
                               <MenuIcon className="size-6 label" />
                             </div>
                             <ul
-                              tabIndex={0}
+                              // tabIndex={0}
                               className="z-50 dropdown-content menu bg-base-100 rounded-lg border border-base-300 w-52 p-2 shadow-lg"
                             >
                               {props.actions?.map((action, actionIdx) => {
@@ -93,29 +93,6 @@ export default function CustomTable(props: CustomTableProps) {
                               })}
                             </ul>
                           </div>
-
-                          {/*<div
-                            role="button"
-                            className="btn btn-square btn-ghost m-1"
-                          >
-                            <span>
-                              <MenuIcon />
-                            </span>
-                            <ul className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-xl ">
-                              {props.actions?.map((action) => {
-                                return (
-                                  <li>
-                                    <button
-                                      onClick={() => action.action(item)}
-                                      className=""
-                                    >
-                                      {action.label}
-                                    </button>
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          </div>*/}
                         </td>
                       </>
                     )}

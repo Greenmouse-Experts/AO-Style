@@ -158,19 +158,6 @@ export default function NotificationPageUpdate() {
                     >
                       <div className="flex items-start gap-4">
                         {/* Notification Icon */}
-                        <div
-                          className={`p-3 rounded-full ${
-                            !notification?.read
-                              ? "bg-purple-100"
-                              : "bg-gray-100"
-                          }`}
-                        >
-                          <img
-                            src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741985895/AoStyle/image_cuxdyt.png"
-                            className="w-8 h-8"
-                            alt="notification"
-                          />
-                        </div>
 
                         {/* Content */}
                         <div className="flex-1 min-w-0">

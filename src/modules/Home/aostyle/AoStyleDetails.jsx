@@ -521,11 +521,22 @@ export default function AnkaraGownPage() {
               {/* Image Gallery */}
               <div className="w-full md:w-1/2">
                 <div className="mb-4">
-                  <img
-                    src={styleInfo?.style?.photos[selectedImage]}
-                    alt={styleInfo?.name}
-                    className="w-full h-64 sm:h-80 md:h-96 object-cover rounded"
-                  />
+                  {/* Show selected image or video in the big box */}
+                  {styleInfo?.style?.video_url && selectedImage === "video" ? (
+                    <video
+                      src={styleInfo.style.video_url}
+                      controls
+                      className="w-full h-64 sm:h-80 md:h-96 object-cover rounded"
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : (
+                    <img
+                      src={styleInfo?.style?.photos[selectedImage]}
+                      alt={styleInfo?.name}
+                      className="w-full h-64 sm:h-80 md:h-96 object-cover rounded"
+                    />
+                  )}
                 </div>
                 <div className="flex gap-2 overflow-x-auto">
                   {styleInfo?.style?.photos?.map((image, index) => (
@@ -545,6 +556,37 @@ export default function AnkaraGownPage() {
                       />
                     </div>
                   ))}
+                  {styleInfo?.style?.video_url && (
+                    <div
+                      className={`flex-shrink-0 w-32 h-20 rounded-lg overflow-hidden border-2 transition-all ml-2 flex items-center justify-center bg-black relative cursor-pointer ${
+                        selectedImage === "video"
+                          ? "border-purple-500"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                      // onClick={() => setSelectedImage("video")}
+                    >
+                      <video
+                        src={styleInfo.style.video_url}
+                        // controls
+                        className="w-full h-full object-cover rounded-lg"
+                        onClick={() => setSelectedImage("video")}
+                        // poster={mainImage}
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                      {/* Video tag/icon overlay */}
+                      <div className="absolute top-2 left-2 bg-black/70 rounded-full p-1 flex items-center justify-center">
+                        <svg
+                          className="w-5 h-5 text-white"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle cx="12" cy="12" r="10" opacity="0.5" />
+                          <polygon points="10,8 16,12 10,16" fill="white" />
+                        </svg>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1573,7 +1615,7 @@ export default function AnkaraGownPage() {
                 <button
                   onClick={handleConfirmAddToCart}
                   disabled={addCartPending}
-                  className="w-full flex items-center justify-center space-x-2 px-6 py-4 bg-gradient text-white rounded-xl font-semibold hover:bg-purple-700 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full cursor-pointer flex items-center justify-center space-x-2 px-6 py-4 bg-gradient text-white rounded-xl font-semibold hover:bg-purple-700 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <svg
                     className="w-5 h-5"
@@ -1591,6 +1633,13 @@ export default function AnkaraGownPage() {
                   <span>
                     {addCartPending ? "Adding to Cart..." : "Add to Cart"}
                   </span>
+                </button>
+                <button
+                  onClick={setShowCartModal(false)}
+                  disabled={addCartPending}
+                  className="w-full flex items-center justify-center space-x-2 px-6 py-4 text-black rounded-xl transition-all duration-200 cursor-pointer shadow-lg disabled:opacity-50 border border-gray-300"
+                >
+                  <span>Select more measurements</span>
                 </button>
                 {/*
                 <button

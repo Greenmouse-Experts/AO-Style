@@ -1489,7 +1489,8 @@ const CartPage = () => {
                                 {" "}
                                 + Style: ₦
                                 {formatNumberWithCommas(
-                                  item.style_product.price,
+                                  item.style_product.price *
+                                    item.measurement.length,
                                 )}
                               </span>
                             )}

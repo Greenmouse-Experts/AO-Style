@@ -323,21 +323,21 @@ const OrderDetails = () => {
                 </div>
 
                 {/* Purchase Items */}
-                {orderPurchase && orderPurchase.length > 0 && (
+                {orderDetails.order_items && orderPurchase.length > 0 && (
                   <div className="mt-6">
                     <h6 className="font-semibold text-gray-800 mb-4">
                       Purchase Items
                     </h6>
                     <div className="space-y-3">
-                      {orderPurchase.map((item, index) => (
+                      {orderDetails.order_items.map((item, index) => (
                         <div
                           key={index}
                           className="flex items-center gap-4 p-3 border rounded-lg"
                         >
                           <img
                             src={
-                              item.purchase_type === "STYLE"
-                                ? "https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170600/AoStyle/image_bwjfib.jpg"
+                              item?.product?.type === "FABRIC"
+                                ? item?.product?.fabric?.photos[0]
                                 : "https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170603/AoStyle/image1_s3s2sd.jpg"
                             }
                             alt={item.name || "Product"}
@@ -345,15 +345,17 @@ const OrderDetails = () => {
                           />
                           <div className="flex-1">
                             <p className="font-semibold">
-                              {item.name || "Product Item"}
+                              {item?.product?.name || "Product Item"}
                             </p>
                             <p className="text-gray-500">
                               Quantity: {item.quantity || 1}
                             </p>
                             <p className="text-blue-600">
                               N{" "}
-                              {item.price
-                                ? parseInt(item.price).toLocaleString()
+                              {item?.product?.price
+                                ? parseInt(
+                                    item?.product?.price,
+                                  ).toLocaleString()
                                 : "0"}
                             </p>
                           </div>

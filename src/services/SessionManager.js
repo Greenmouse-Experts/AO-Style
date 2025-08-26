@@ -9,6 +9,7 @@ class SessionManager {
     this.warningShown = false;
     this.lastActivity = Date.now();
     this.isUserActive = true;
+    this.monitoringInterval = null;
   }
 
   // Set authentication data from login response
@@ -126,6 +127,20 @@ class SessionManager {
     return now >= expiry;
   }
 
+  // Get time until access token expires (in seconds)
+  getTimeUntilAccessTokenExpiry() {
+    const authData = this.getAuthData();
+    if (!authData || !authData.tokenExpiry) return 0;
+
+    const now = Date.now();
+    const timeLeft = Math.max(
+      0,
+      Math.floor((authData.tokenExpiry - now) / 1000),
+    );
+
+    return timeLeft;
+  }
+
   // Get time until refresh token expires (in seconds)
   getTimeUntilRefreshExpiry() {
     const authData = this.getAuthData();
@@ -202,6 +217,8 @@ class SessionManager {
           refreshToken: response.data.refreshToken || authData.refreshToken,
           refreshTokenExpiry:
             response.data.refreshTokenExpiry || authData.refreshTokenExpiry,
+          user: authData.user,
+          userType: authData.userType,
         });
 
         return true;
@@ -218,12 +235,66 @@ class SessionManager {
     }
   }
 
-  // Handle session expiry - show modal only when refresh token expires and user is active
-  handleSessionExpiry() {
-    const timeLeft = this.getTimeUntilRefreshExpiry();
+  // Handle session expiry - improved logic for automatic logout
+  async handleSessionExpiry() {
+    const authData = this.getAuthData();
+    if (!authData) return;
 
-    if (timeLeft <= 0) {
-      // Refresh token expired
+    const accessTokenTimeLeft = this.getTimeUntilAccessTokenExpiry();
+    const refreshTokenTimeLeft = this.getTimeUntilRefreshExpiry();
+
+    // For Google SSO (no refresh token) - check access token only
+    if (!authData.refreshToken) {
+      if (accessTokenTimeLeft <= 0) {
+        console.log(
+          "🚪 SessionManager: Google SSO access token expired, logging out",
+        );
+        this.performLogout();
+        return;
+      }
+
+      // Show warning 5 minutes before expiry for Google SSO
+      if (accessTokenTimeLeft <= 300 && !this.warningShown) {
+        // 5 minutes
+        console.log(
+          "⚠️ SessionManager: Google SSO token expiring soon, showing warning",
+        );
+        this.warningShown = true;
+        this.notifySessionExpiry("access_token_warning", accessTokenTimeLeft);
+      }
+      return;
+    }
+
+    // For normal auth with refresh tokens
+
+    // Try to refresh access token if it's expired but refresh token is valid
+    if (accessTokenTimeLeft <= 0 && refreshTokenTimeLeft > 0) {
+      console.log(
+        "🔄 SessionManager: Access token expired, attempting refresh",
+      );
+      const refreshSuccess = await this.refreshAccessToken();
+
+      if (!refreshSuccess) {
+        console.log("❌ SessionManager: Failed to refresh token, logging out");
+        this.performLogout();
+        return;
+      }
+    }
+
+    // Auto-refresh access token when it's about to expire (5 minutes before)
+    if (
+      accessTokenTimeLeft > 0 &&
+      accessTokenTimeLeft <= 300 &&
+      refreshTokenTimeLeft > 0
+    ) {
+      console.log(
+        "🔄 SessionManager: Access token expiring soon, pre-emptive refresh",
+      );
+      await this.refreshAccessToken();
+    }
+
+    // Handle refresh token expiry
+    if (refreshTokenTimeLeft <= 0) {
       if (this.isUserInactive()) {
         // User is inactive, auto logout
         console.log(
@@ -236,8 +307,19 @@ class SessionManager {
           "⚠️ SessionManager: Refresh token expired + user active, showing modal",
         );
         this.warningShown = true;
-        this.notifySessionExpiry();
+        this.notifySessionExpiry("refresh_token_expired", refreshTokenTimeLeft);
       }
+      return;
+    }
+
+    // Show warning when refresh token is about to expire (10 minutes before)
+    if (refreshTokenTimeLeft <= 600 && !this.warningShown) {
+      // 10 minutes
+      console.log(
+        "⚠️ SessionManager: Refresh token expiring soon, showing warning",
+      );
+      this.warningShown = true;
+      this.notifySessionExpiry("refresh_token_warning", refreshTokenTimeLeft);
     }
   }
 
@@ -284,12 +366,12 @@ class SessionManager {
   }
 
   // Notify about session expiry (for modal)
-  notifySessionExpiry() {
+  notifySessionExpiry(type = "warning", timeRemaining = 0) {
     this.sessionExpiryCallbacks.forEach((callback) => {
       try {
         callback({
-          type: "warning",
-          timeRemaining: this.getTimeUntilRefreshExpiry(),
+          type,
+          timeRemaining,
         });
       } catch (error) {
         console.error("❌ SessionManager: Error in expiry callback", error);
@@ -349,6 +431,12 @@ class SessionManager {
     return true;
   }
 
+  // Force logout (can be called manually)
+  forceLogout() {
+    console.log("🚪 SessionManager: Force logout requested");
+    this.performLogout();
+  }
+
   // Start monitoring session
   startMonitoring() {
     // Track user activity
@@ -371,21 +459,25 @@ class SessionManager {
       );
     });
 
-    // Check every 30 seconds
-    setInterval(() => {
+    // Check every 30 seconds instead of 1 hour for more responsive auto-logout
+    this.monitoringInterval = setInterval(async () => {
       const authData = this.getAuthData();
       if (!authData) return;
 
-      const timeLeft = this.getTimeUntilRefreshExpiry();
+      // Handle session expiry check
+      await this.handleSessionExpiry();
+    }, 30000); // Check every 30 seconds
 
-      // Only handle expiry when refresh token is actually expired
-      if (timeLeft <= 0 && !this.warningShown) {
-        console.log(
-          "💀 SessionManager: Refresh token expired, handling expiry",
-        );
-        this.handleSessionExpiry();
-      }
-    }, 3600000); // Check every 1 hour (3600000 ms)
+    console.log("👁️ SessionManager: Monitoring started (30s intervals)");
+  }
+
+  // Stop monitoring (useful for cleanup)
+  stopMonitoring() {
+    if (this.monitoringInterval) {
+      clearInterval(this.monitoringInterval);
+      this.monitoringInterval = null;
+      console.log("🛑 SessionManager: Monitoring stopped");
+    }
   }
 }
 

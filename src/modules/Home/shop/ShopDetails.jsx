@@ -687,15 +687,25 @@ export default function ShopDetails() {
                     to add this item to your cart.
                   </p>
                 )}
+                {fromStyleFirst && styleData && (
+                  <p className="text-sm text-purple-600 bg-purple-50 p-3 rounded-lg border border-purple-200">
+                    <span className="font-medium">
+                      Minimum yards required for style -
+                    </span>{" "}
+                    {styleData?.style?.minimum_fabric_qty || 0}
+                  </p>
+                )}
               </div>
 
               {/* Quantity Selector */}
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                   Quantity (Yards)
-                  <span className="ml-2 text-xs text-gray-500 font-normal normal-case">
-                    (Min: {productVal?.minimum_yards})
-                  </span>
+                  {
+                    <span className="ml-2 text-xs text-gray-500 font-normal normal-case">
+                      (Min: {productVal?.minimum_yards})
+                    </span>
+                  }
                 </h3>
                 <div className="flex items-center">
                   <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
@@ -806,10 +816,16 @@ export default function ShopDetails() {
               {/* Add to Cart Button */}
               <div className="pt-6 border-t border-gray-200">
                 <button
-                  disabled={!selectedColor || addCartPending}
+                  disabled={
+                    !selectedColor ||
+                    addCartPending ||
+                    quantity < styleData?.style?.minimum_fabric_qty
+                  }
                   onClick={handleShowCartSelection}
                   className={
-                    !selectedColor || addCartPending
+                    !selectedColor ||
+                    addCartPending ||
+                    quantity < styleData?.style?.minimum_fabric_qty
                       ? "w-full flex items-center justify-center space-x-3 py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 bg-gray-200 text-gray-500 cursor-not-allowed"
                       : "w-full flex items-center justify-center space-x-3 py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 bg-gradient text-white hover:bg-purple-700 hover:shadow-lg transform hover:-translate-y-0.5"
                   }

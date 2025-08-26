@@ -249,7 +249,7 @@ const CartItemWithBreakdown = ({
                 <div className="col-span-2 text-center">
                   <div className="text-xs text-gray-500 mb-1">Style Total</div>
                   <div className="font-bold text-purple-600">
-                    ₦{stylePrice.toLocaleString()}
+                    ₦{(stylePrice * measurementCount).toLocaleString()}
                   </div>
                 </div>
               </div>

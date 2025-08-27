@@ -110,8 +110,8 @@ const OrderPage = () => {
         value: "PAID",
         label: "Paid",
         to: [
-          { value: "DELIVERED_TO_TAILOR", label: "Delivered to Tailor" },
-          { value: "PROCESSING", label: "Processing" },
+          { value: "DISPATCHED_TO_AGENT", label: "Dispatched to Agent" },
+          { value: "OUT_FOR_DELIVERY", label: "Out for Delivery" },
         ],
       },
       DELIVERED_TO_TAILOR: {
@@ -775,10 +775,10 @@ const OrderPage = () => {
                       console.log("Selected new status:", e.target.value);
                     }}
                   >
-                    <option value={currentItem.status} readonly>
+                    {/* <option value={currentItem.status} readonly>
                       {" "}
                       {currentItem.status}
-                    </option>
+                    </option>*/}
                     {status_select[currentItem?.status].to.map((status) => (
                       <>
                         <option key={status.value} value={status.value}>

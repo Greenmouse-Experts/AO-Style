@@ -492,7 +492,11 @@ const Subscriptions = () => {
                 {openDropdown === item.id && (
                   <div className="absolute right-0 mt-2 w-32 bg-white rounded-md z-10 border border-gray-200">
                     <button
-                      to={`.`}
+                      onClick={() => {
+                        openModal();
+                        setCurrentView(row);
+                        setOpenDropdown(null);
+                      }}
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
                     >
                       View Details

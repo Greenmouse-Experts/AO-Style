@@ -1235,19 +1235,20 @@ const AddProduct = () => {
                   type="submit"
                   onClick={(e) => {
                     e.preventDefault();
-                    console.log(businessDetails);
+                    handleSubmit();
+                    // console.log(businessDetails);
                   }}
-                  // disabled={
-                  //   isPending ||
-                  //   uploadVideoIsPending ||
-                  //   updateIsPending ||
-                  //   closeUpViewIsPending ||
-                  //   spreadOutViewIsPending ||
-                  //   manufacturersIsPending ||
-                  //   fabricIsPending ||
-                  //   createAdminIsPending ||
-                  //   updateAdminIsPending
-                  // }
+                  disabled={
+                    isPending ||
+                    uploadVideoIsPending ||
+                    updateIsPending ||
+                    closeUpViewIsPending ||
+                    spreadOutViewIsPending ||
+                    manufacturersIsPending ||
+                    fabricIsPending ||
+                    createAdminIsPending ||
+                    updateAdminIsPending
+                  }
                   className="mt-6 w-full cursor-pointer py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-md hover:opacity-90"
                 >
                   {isPending ||

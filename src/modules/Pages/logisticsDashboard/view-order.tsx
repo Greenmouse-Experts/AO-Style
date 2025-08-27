@@ -463,15 +463,19 @@ export default function ViewOrderLogistics() {
         <div className="modal-box bg-base-100 rounded-lg shadow-md">
           <form method="dialog" className="w-full">
             <h3 className="font-bold text-lg mb-4">Complete Order</h3>
-            <div className="form-control w-full mb-4">
-              <label className="label">
-                <span className="label-text">Delivery Code</span>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              id="imageInput"
+            />
+            <div className="h-42 w-full my-4" data-theme="nord">
+              <label
+                htmlFor="imageInput"
+                className="size-full grid place-items-center alert alert-success bg-[var(--color-primary)]/20 "
+              >
+                <h2>Upload Proof</h2>
               </label>
-              <input
-                type="text"
-                placeholder="Enter delivery code"
-                className="input input-bordered w-full"
-              />
             </div>
             <div className="flex justify-end gap-2">
               <button

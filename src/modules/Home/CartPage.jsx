@@ -692,7 +692,7 @@ const CartPage = () => {
             ) {
               purchases.push({
                 purchase_id: item.style_product.id,
-                quantity: 1, // Style is always quantity 1 (flat fee)
+                quantity: item?.measurement?.length, // Style is always quantity 1 (flat fee)
                 purchase_type: "STYLE",
               });
 

@@ -7,6 +7,7 @@ import { useItemMap } from "../../../store/useTempStore";
 import { useRef, useState } from "react";
 import useGetUser from "../../../hooks/user/useGetSingleUser";
 import useGetUserProfile from "../../Auth/hooks/useGetProfile";
+import CustomBackbtn from "../../../components/CustomBackBtn";
 interface MeasurementData {
   full_body: {
     height: number;
@@ -356,9 +357,12 @@ export default function ViewOrderLogistics() {
   console.log(is_transit, "transit", is_allowed, "allowed");
   return (
     <div data-theme="nord" className="bg-transparent p-6">
-      <div className="bg-base-100 p-4 rounded-md mb-6 flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold">Order Details</h2>
+      <div className="bg-base-100 shadow p-4 rounded-md mb-6 flex justify-between items-center">
+        <div className="flex flex-col gap-2 py-4">
+          <div className="flex items-center gap-3">
+            <CustomBackbtn />
+            <h2 className="text-2xl font-bold">Order Details</h2>
+          </div>
           <div className="opacity-65 mt-2 wrap-break-word">Order ID: {id}</div>
           <div className="flex items-center gap-2 mt-2">
             <p className="text-sm">Status:</p>

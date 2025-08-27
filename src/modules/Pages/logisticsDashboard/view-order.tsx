@@ -352,6 +352,8 @@ export default function ViewOrderLogistics() {
   const order_data = query.data?.data;
   const allow_start = ["OUT_FOR_DELIVERY", "SHIPPED"];
   const is_allowed = order_data?.logistics_agent_id == data.id;
+  const is_transit = order_data?.status == "IN_TRANSIT";
+  console.log(is_transit, "transit", is_allowed, "allowed");
   return (
     <div data-theme="nord" className="bg-transparent p-6">
       <div className="bg-base-100 p-4 rounded-md mb-6 flex justify-between items-center">
@@ -360,7 +362,7 @@ export default function ViewOrderLogistics() {
           <div className="opacity-65 mt-2 wrap-break-word">Order ID: {id}</div>
           <div className="flex items-center gap-2 mt-2">
             <p className="text-sm">Status:</p>
-            <div className="badge badge-success gap-2">Shipped</div>
+            <div className="badge badge-info gap-2">{order_data?.status}</div>
           </div>
         </div>
         <div>
@@ -447,20 +449,17 @@ export default function ViewOrderLogistics() {
                 START
               </div>
             ) : null}
-            {is_allowed &&
-              order_data?.status == "IN_TRANSIT" &&
-              order_data.order_items && (
-                <button
-                  disabled={
-                    order_mutation.isPending ||
-                    order_data?.status == "DELIVERED"
-                  }
-                  onClick={() => dialogRef.current?.showModal()}
-                  className="btn  btn-success"
-                >
-                  Complete Order
-                </button>
-              )}
+            {is_allowed && is_transit && (
+              <button
+                disabled={
+                  order_mutation.isPending || order_data?.status == "DELIVERED"
+                }
+                onClick={() => dialogRef.current?.showModal()}
+                className="btn  btn-success"
+              >
+                Complete Order
+              </button>
+            )}
           </div>
         </div>
 

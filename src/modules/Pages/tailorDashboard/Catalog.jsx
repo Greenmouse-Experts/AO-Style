@@ -465,8 +465,7 @@ export default function StylesTable() {
                                             },
                                           },
                                         );
-                                        refetch();
-                                        console.log(resp);
+
                                         return resp.data;
                                       },
                                       {
@@ -475,6 +474,7 @@ export default function StylesTable() {
                                         error: "error",
                                       },
                                     );
+                                    refetch();
                                   }}
                                   className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
                                 >

@@ -24,7 +24,7 @@ interface CustomTableProps {
 export default function CustomTable(props: CustomTableProps) {
   return (
     <div data-theme="nord" className="" id="cus-app">
-      <div className=" relative overflow-visible">
+      <div className=" relative overflow-x-scroll">
         <table className="table   w-full text-xs">
           <thead className="">
             <tr className=" rounded-2xl bg-base-200/50">
@@ -49,8 +49,8 @@ export default function CustomTable(props: CustomTableProps) {
           <tbody>
             {props.data &&
               props.data.map((item, rowIdx) => {
-                // const popoverId = `popover-${nanoid()}`;
-                // const anchorName = `--anchor-${nanoid()}`;
+                const popoverId = `popover-${nanoid()}`;
+                const anchorName = `--anchor-${nanoid()}`;
                 return (
                   <tr
                     key={rowIdx}

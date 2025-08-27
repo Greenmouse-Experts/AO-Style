@@ -48,6 +48,7 @@ const OrderPage = () => {
     mutationFn: async (status) => {
       return await CaryBinApi.put(`/orders/${currentItem.id}/status `, {
         status,
+        q: debouncedSearchTerm,
       });
     },
     onError: (err) => {

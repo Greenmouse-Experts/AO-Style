@@ -79,23 +79,29 @@ const OrderPage = () => {
       {
         value: "PAID",
         label: "Paid",
-        to: [{ value: "DELIVERED_TO_TAILOR", label: "Delivered to Tailor" }],
+        to: [
+          { value: "DISPATCHED_TO_AGENT", label: "Dispatched" },
+          {
+            value: "PROCESSING",
+            label: "Processing",
+          },
+        ],
       },
-      { value: "DELIVERED_TO_TAILOR", label: "Delivered to Tailor", to: [] },
+      { value: "DISPATCHED_TO_AGENT", label: "Dispatched to Agent", to: [] },
       {
         value: "PROCESSING",
         label: "Processing",
-        to: [{ value: "SHIPPED", label: "Shipped" }],
+        to: [],
       },
       {
         value: "SHIPPED",
         label: "Shipped",
-        to: [{ value: "IN_TRANSIT", label: "In Transit" }],
+        to: [],
       },
       {
         value: "IN_TRANSIT",
         label: "In Transit",
-        to: [{ value: "OUT_FOR_DELIVERY", label: "Out for Delivery" }],
+        to: [],
       },
       { value: "OUT_FOR_DELIVERY", label: "Out for Delivery", to: [] },
       { value: "DELIVERED", label: "Delivered", to: [] },
@@ -112,6 +118,7 @@ const OrderPage = () => {
         to: [
           { value: "DISPATCHED_TO_AGENT", label: "Dispatched to Agent" },
           { value: "OUT_FOR_DELIVERY", label: "Out for Delivery" },
+          { value: "CANCELLED", label: "Cancelled" },
         ],
       },
       DELIVERED_TO_TAILOR: {
@@ -127,12 +134,12 @@ const OrderPage = () => {
       SHIPPED: {
         value: "SHIPPED",
         label: "Shipped",
-        to: [{ value: "IN_TRANSIT", label: "In Transit" }],
+        to: [],
       },
       IN_TRANSIT: {
         value: "IN_TRANSIT",
         label: "In Transit",
-        to: [{ value: "OUT_FOR_DELIVERY", label: "Out for Delivery" }],
+        to: [],
       },
       OUT_FOR_DELIVERY: {
         value: "OUT_FOR_DELIVERY",
@@ -786,6 +793,9 @@ const OrderPage = () => {
                         </option>
                       </>
                     ))}
+                    {/* <option key={"Cancel"} value={"CANCELLED"}>
+                      Cancel
+                    </option>*/}
                   </select>
                 </div>
               </>

@@ -1,6 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import CaryBinApi from "../../../../services/CarybinBaseUrl";
+import { toast } from "react-toastify";
 
 interface UserProfile {
   id: string;
@@ -113,8 +114,23 @@ interface UserDetailsResponse {
 
 export default function SalesRepAddedUser() {
   const { userId } = useParams();
-
-  const { data, isLoading, error } = useQuery({
+  const accept_kyc = useMutation({
+    mutationFn: async (id: string) => {
+      const resp = await CaryBinApi.patch(`/onboard/review-kyc/${id}`, {
+        is_approved: true,
+        // is_rejected: false
+      });
+      return resp.data as UserDetailsResponse;
+    },
+    onSuccess: () => {
+      toast.success("KYC accepted successfully");
+      refetch();
+    },
+    // onError: () => {
+    //   toast.error("Failed to accept KYC");
+    // },
+  });
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["user", userId],
     queryFn: async () => {
       const resp = await CaryBinApi.get(`/auth/user-details/${userId}`);
@@ -339,9 +355,29 @@ export default function SalesRepAddedUser() {
                 <div>
                   <span className="font-semibold">Reviewed At:</span>
                   <span className="ml-2">
-                    {new Date(kyc.reviewed_at).toLocaleDateString()}
+                    {kyc.reviewed_at
+                      ? new Date(kyc.reviewed_at).toLocaleDateString()
+                      : "Not Reviewed"}
                   </span>
                 </div>
+                <button
+                  onClick={() =>
+                    toast.promise(
+                      async () => {
+                        await accept_kyc.mutateAsync(kyc?.id);
+                      },
+                      {
+                        success: "Kyc approved successfully",
+                        isPending: "Approving Kyc...",
+                        error: "Failed to approve kyc",
+                      },
+                    )
+                  }
+                  disabled={kyc?.is_approved || accept_kyc.isPending}
+                  className="btn btn-primary btn-block"
+                >
+                  {kyc?.is_approved ? "Approved" : "Approve Kyc"}
+                </button>
               </div>
             </div>
           </div>

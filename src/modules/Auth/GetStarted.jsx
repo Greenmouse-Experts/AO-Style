@@ -13,9 +13,9 @@ export default function GetStarted() {
         </Link>
       </div>
       <div className="text-center md:mb-10 mb-8">
-        <h1 className="md:text-3xl text-2xl font-normal text-black mb-4">
+        {/* <h1 className="md:text-3xl text-2xl font-normal text-black mb-4">
           Choose A User Type :
-        </h1>
+        </h1>*/}
       </div>
       <div className="flex flex-col items-center mb-8">
         <p className="text-center text-purple-500 text-3xl md:text-4xl font-extrabold tracking-wide">

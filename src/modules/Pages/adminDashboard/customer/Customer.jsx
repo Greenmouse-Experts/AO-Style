@@ -367,12 +367,12 @@ const CustomersTable = () => {
                     >
                       View Details
                     </Link>
-                    <button
+                    {/* <button
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
                       onClick={() => console.log("Edit user", item.id)}
                     >
                       Edit User
-                    </button>
+                    </button>*/}
                     <button
                       className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full text-left"
                       onClick={() => handleDeleteUser(item)}

@@ -9,7 +9,7 @@ import InboxPage from "../modules/Pages/logisticsDashboard/Inbox";
 import Settings from "../modules/Pages/logisticsDashboard/Settings";
 import LogisticsAnnouncementsPage from "../modules/Pages/logisticsDashboard/Announcements";
 import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPageUpdate";
-import TransactionPage from "../modules/Pages/fabricDashboard/TransactionPage";
+import TransactionPage from "../modules/Pages/logisticsDashboard/TransactionPage";
 import LogisticMapLocation from "../modules/Pages/logisticsDashboard/order-location";
 import ViewItemMap from "../modules/Pages/logisticsDashboard/view-item-map";
 

@@ -111,7 +111,7 @@ export default function BarChartComponent() {
       </div>
 
       {/* Chart */}
-      <ResponsiveContainer width="100%" className={" -ml-10"} height={360}>
+      <ResponsiveContainer width="100%" className={" "} height={360}>
         {/* Use the transformed chartData for the BarChart */}
         <BarChart data={chartData} barGap={2} barCategoryGap={10}>
           <XAxis dataKey="name" />

@@ -72,7 +72,7 @@ export default function SalesSummaryChart() {
       <div className="grid grid-cols-2 gap-4">
         <LegendItem
           color="#3B82F6"
-          label="Organizations"
+          label="Users"
           value={metrics.total_organizations}
         />
         <LegendItem

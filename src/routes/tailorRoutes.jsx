@@ -15,6 +15,7 @@ import TransactionPage from "../modules/Pages/tailorDashboard/TransactionPage";
 
 // import TransactionPage from "../modules/Pages/fabricDashboard/TransactionPage";
 import ViewTailorStyle from "../modules/Pages/tailorDashboard/ViewStyle";
+import ViewTransactionDetail from "../components/ViewTransactionDetails";
 
 export const tailorRoute = [
   {
@@ -74,6 +75,10 @@ export const tailorRoute = [
       {
         path: "/tailor/transactions",
         element: <TransactionPage />,
+      },
+      {
+        path: "/tailor/transactions/:id",
+        element: <ViewTransactionDetail />,
       },
       {
         path: "/tailor/settings",

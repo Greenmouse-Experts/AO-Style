@@ -706,7 +706,17 @@ export default function ShopDetails() {
                   </div>
                 </div>
               )}
-
+              {/* SKU Section */}
+              {productVal?.product?.sku && (
+                <div className="space-y-1 bg-gray-50 rounded-lg p-4">
+                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    SKU
+                  </span>
+                  <p className="text-sm font-medium text-gray-900">
+                    {productVal.product.sku}
+                  </p>
+                </div>
+              )}
               {/* Available Colours */}
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">

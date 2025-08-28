@@ -16,6 +16,7 @@ export default function GetStarted() {
         {/* <h1 className="md:text-3xl text-2xl font-normal text-black mb-4">
           ChooseUser Type :
         </h1>*/}
+        <div className="text-2xl font-bold text-purple-500">JOIN AS</div>
       </div>
       <div className="flex flex-col items-center mb-8">
         <p className="text-center text-purple-500 text-3xl md:text-4xl font-extrabold tracking-wide">

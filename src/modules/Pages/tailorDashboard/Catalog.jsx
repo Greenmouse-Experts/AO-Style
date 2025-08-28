@@ -444,10 +444,12 @@ export default function StylesTable() {
                                 <button
                                   onClick={async (e) => {
                                     let buisnss_id = businessDetails.data;
+                                    const new_id = style.business_info.id;
+
                                     toast.promise(
                                       async () => {
                                         let resp = await CaryBinApi.patch(
-                                          "/style/" + style.id,
+                                          "/manage-style/" + style.id,
                                           {
                                             product: {
                                               status:
@@ -459,12 +461,11 @@ export default function StylesTable() {
                                           },
                                           {
                                             headers: {
-                                              "Business-Id": buisnss_id.id,
+                                              "Business-Id": new_id,
                                             },
                                           },
                                         );
-                                        refetch();
-                                        console.log(resp);
+
                                         return resp.data;
                                       },
                                       {
@@ -473,6 +474,7 @@ export default function StylesTable() {
                                         error: "error",
                                       },
                                     );
+                                    refetch();
                                   }}
                                   className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
                                 >

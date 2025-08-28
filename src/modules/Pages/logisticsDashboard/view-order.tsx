@@ -2,9 +2,12 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
 import { AlertCircle, Loader2 } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import { useItemMap } from "../../../store/useTempStore";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import useGetUser from "../../../hooks/user/useGetSingleUser";
+import useGetUserProfile from "../../Auth/hooks/useGetProfile";
+import CustomBackbtn from "../../../components/CustomBackBtn";
 interface MeasurementData {
   full_body: {
     height: number;
@@ -263,6 +266,8 @@ interface OrderLogisticsData {
 export default function ViewOrderLogistics() {
   const { id } = useParams();
   const setItem = useItemMap((state) => state.setItem);
+  const [delivery_code, setDeliveryCode] = useState<string>("");
+  const { data } = useGetUserProfile();
   const nav = useNavigate();
   const query = useQuery<OrderLogisticsData>({
     queryKey: ["logistic", id, "view"],
@@ -281,6 +286,23 @@ export default function ViewOrderLogistics() {
       toast.error(err?.data?.message || "failed to accept order");
     },
   });
+
+  const order_mutation = useMutation({
+    mutationFn: async (status: string, code?: string) => {
+      let resp = await CaryBinApi.put(`/orders/${id}/status`, {
+        status: status,
+        user_delivery_code: code,
+      });
+      return resp.data;
+    },
+    onError: (err) => {
+      toast.error(err?.data?.message || "failed to order");
+    },
+    onSuccess: () => {
+      query.refetch();
+    },
+  });
+
   if (query.isLoading) {
     return (
       <div
@@ -293,6 +315,16 @@ export default function ViewOrderLogistics() {
       </div>
     );
   }
+  // const allow_start = [
+  //   // "DISPATCHED_TO_AGENT",
+  //   // "DELIVERED_TO_TAILOR",
+  //   // "PROCESSING",
+  //   "OUT_FOR_DELIVERY",
+  //   // "IN_TRANSIT",
+  //   // "DELIVERED",
+  //   // "CANCELLED (at any stage)",
+  // ];
+  //
 
   // Error State
   if (query.isError) {
@@ -319,15 +351,22 @@ export default function ViewOrderLogistics() {
     );
   }
   const order_data = query.data?.data;
+  const allow_start = ["OUT_FOR_DELIVERY", "SHIPPED"];
+  const is_allowed = order_data?.logistics_agent_id == data.id;
+  const is_transit = order_data?.status == "IN_TRANSIT";
+  console.log(is_transit, "transit", is_allowed, "allowed");
   return (
     <div data-theme="nord" className="bg-transparent p-6">
-      <div className="bg-base-100 p-4 rounded-md mb-6 flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold">Order Details</h2>
+      <div className="bg-base-100 shadow p-4 rounded-md mb-6 flex justify-between items-center">
+        <div className="flex flex-col gap-2 py-4">
+          <div className="flex items-center gap-3">
+            <CustomBackbtn />
+            <h2 className="text-2xl font-bold">Order Details</h2>
+          </div>
           <div className="opacity-65 mt-2 wrap-break-word">Order ID: {id}</div>
           <div className="flex items-center gap-2 mt-2">
             <p className="text-sm">Status:</p>
-            <div className="badge badge-success gap-2">Shipped</div>
+            <div className="badge badge-info gap-2">{order_data?.status}</div>
           </div>
         </div>
         <div>
@@ -393,12 +432,38 @@ export default function ViewOrderLogistics() {
             >
               See On Map
             </Link>
-            <button
-              onClick={() => dialogRef.current?.showModal()}
-              className="btn  btn-success"
-            >
-              Complete Order
-            </button>
+            {/*<div>{JSON.stringify(is_allowed)} </div>*/}
+            {is_allowed && allow_start.includes(order_data?.status || "") ? (
+              <div
+                disabled={order_mutation.isPending}
+                className="btn btn-secondary"
+                onClick={() => {
+                  toast.promise(
+                    async () => {
+                      return await order_mutation.mutateAsync("IN_TRANSIT");
+                    },
+                    {
+                      pending: "Starting...",
+                      success: "Order started!",
+                      error: "Failed to start order",
+                    },
+                  );
+                }}
+              >
+                START
+              </div>
+            ) : null}
+            {is_allowed && is_transit && (
+              <button
+                disabled={
+                  order_mutation.isPending || order_data?.status == "DELIVERED"
+                }
+                onClick={() => dialogRef.current?.showModal()}
+                className="btn  btn-success"
+              >
+                Complete Order
+              </button>
+            )}
           </div>
         </div>
 
@@ -461,13 +526,15 @@ export default function ViewOrderLogistics() {
       </div>
       <dialog ref={dialogRef} className="modal">
         <div className="modal-box bg-base-100 rounded-lg shadow-md">
-          <form method="dialog" className="w-full">
+          <div className="w-full">
             <h3 className="font-bold text-lg mb-4">Complete Order</h3>
-            <div className="form-control w-full mb-4">
+            <div className="w-full my-4">
               <label className="label">
                 <span className="label-text">Delivery Code</span>
               </label>
               <input
+                value={delivery_code}
+                onChange={(e) => setDeliveryCode(e.target.value)}
                 type="text"
                 placeholder="Enter delivery code"
                 className="input input-bordered w-full"
@@ -477,16 +544,37 @@ export default function ViewOrderLogistics() {
               <button
                 type="button"
                 className="btn btn-ghost"
-                onClick={() => dialogRef.current?.close()}
+                onClick={() => {
+                  dialogRef.current?.close();
+                }}
               >
                 Cancel
               </button>
-              <button type="submit" className="btn btn-primary">
+              <button
+                disabled={!delivery_code.trim() || order_mutation.isPending}
+                className="btn btn-primary"
+                onClick={async () => {
+                  toast.promise(
+                    async () => {
+                      return await await order_mutation.mutateAsync(
+                        "DELIVERED",
+                        delivery_code.toString(),
+                      );
+                    },
+                    {
+                      pending: "pending",
+                      success: "success",
+                      // error: "error",
+                    },
+                  );
+                }}
+              >
                 Complete
               </button>
             </div>
-          </form>
+          </div>
         </div>
+        <ToastContainer />
       </dialog>
     </div>
   );

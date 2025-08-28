@@ -5,7 +5,7 @@ import useCreateSubscriptionPayment from "../../../hooks/subscription/useCreateS
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useVerifySubPay from "../../../hooks/subscription/useVerifySubPay";
 
-const SubscriptionModal = ({ onClose, currentView }) => {
+const SubscriptionModal = ({ onClose, refetch, currentView }) => {
   const { isPending: createPending, createSubMutate } =
     useCreateSubscriptionPayment();
   const { carybinUser } = useCarybinUserStore();
@@ -43,7 +43,7 @@ const SubscriptionModal = ({ onClose, currentView }) => {
             onSuccess: () => {
               setVerifyPayment("");
             },
-          }
+          },
         );
       },
       onClose: function () {
@@ -52,6 +52,7 @@ const SubscriptionModal = ({ onClose, currentView }) => {
     });
 
     handler.openIframe();
+    refetch();
   };
 
   return (
@@ -127,7 +128,7 @@ const SubscriptionModal = ({ onClose, currentView }) => {
                           payment_id: data?.data?.data?.payment_id,
                         });
                       },
-                    }
+                    },
                   )
                 }
                 className={`px-4 py-2 rounded-lg hover:shadow-lg cursor-pointer duration-200 transition-colors flex items-center space-x-2 bg-gradient-to-r hover:from-[#8036D3] from-[#9847FE] to-[#8036D3] text-white hover:to-[#6B2BB5] `}

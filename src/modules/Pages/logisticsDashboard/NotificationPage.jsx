@@ -115,11 +115,11 @@ export default function NotificationPage() {
               key={notification.id}
               className={`flex flex-wrap items-center p-5 gap-3 ${notification.unread ? "bg-purple-100" : ""}`}
             >
-              <img
+              {/* <img
                 src="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741985895/AoStyle/image_cuxdyt.png"
                 className="w-14 h-14"
                 alt="icon"
-              />
+              />*/}
               <p className="flex-1 text-sm md:text-sm">{notification.text}</p>
               <span className="text-gray-500 text-xs md:text-sm">
                 {notification.time}

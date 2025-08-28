@@ -48,6 +48,7 @@ const OrderPage = () => {
     mutationFn: async (status) => {
       return await CaryBinApi.put(`/orders/${currentItem.id}/status `, {
         status,
+        q: debouncedSearchTerm,
       });
     },
     onError: (err) => {
@@ -79,23 +80,29 @@ const OrderPage = () => {
       {
         value: "PAID",
         label: "Paid",
-        to: [{ value: "DELIVERED_TO_TAILOR", label: "Delivered to Tailor" }],
+        to: [
+          { value: "DISPATCHED_TO_AGENT", label: "Dispatched" },
+          {
+            value: "PROCESSING",
+            label: "Processing",
+          },
+        ],
       },
-      { value: "DELIVERED_TO_TAILOR", label: "Delivered to Tailor", to: [] },
+      { value: "DISPATCHED_TO_AGENT", label: "Dispatched to Agent", to: [] },
       {
         value: "PROCESSING",
         label: "Processing",
-        to: [{ value: "SHIPPED", label: "Shipped" }],
+        to: [],
       },
       {
         value: "SHIPPED",
         label: "Shipped",
-        to: [{ value: "IN_TRANSIT", label: "In Transit" }],
+        to: [],
       },
       {
         value: "IN_TRANSIT",
         label: "In Transit",
-        to: [{ value: "OUT_FOR_DELIVERY", label: "Out for Delivery" }],
+        to: [],
       },
       { value: "OUT_FOR_DELIVERY", label: "Out for Delivery", to: [] },
       { value: "DELIVERED", label: "Delivered", to: [] },
@@ -110,8 +117,9 @@ const OrderPage = () => {
         value: "PAID",
         label: "Paid",
         to: [
-          { value: "DELIVERED_TO_TAILOR", label: "Delivered to Tailor" },
-          { value: "PROCESSING", label: "Processing" },
+          { value: "DISPATCHED_TO_AGENT", label: "Dispatched to Agent" },
+          { value: "OUT_FOR_DELIVERY", label: "Out for Delivery" },
+          { value: "CANCELLED", label: "Cancelled" },
         ],
       },
       DELIVERED_TO_TAILOR: {
@@ -127,12 +135,12 @@ const OrderPage = () => {
       SHIPPED: {
         value: "SHIPPED",
         label: "Shipped",
-        to: [{ value: "IN_TRANSIT", label: "In Transit" }],
+        to: [],
       },
       IN_TRANSIT: {
         value: "IN_TRANSIT",
         label: "In Transit",
-        to: [{ value: "OUT_FOR_DELIVERY", label: "Out for Delivery" }],
+        to: [],
       },
       OUT_FOR_DELIVERY: {
         value: "OUT_FOR_DELIVERY",
@@ -775,10 +783,10 @@ const OrderPage = () => {
                       console.log("Selected new status:", e.target.value);
                     }}
                   >
-                    <option value={currentItem.status} readonly>
+                    {/* <option value={currentItem.status} readonly>
                       {" "}
                       {currentItem.status}
-                    </option>
+                    </option>*/}
                     {status_select[currentItem?.status].to.map((status) => (
                       <>
                         <option key={status.value} value={status.value}>
@@ -786,6 +794,9 @@ const OrderPage = () => {
                         </option>
                       </>
                     ))}
+                    {/* <option key={"Cancel"} value={"CANCELLED"}>
+                      Cancel
+                    </option>*/}
                   </select>
                 </div>
               </>

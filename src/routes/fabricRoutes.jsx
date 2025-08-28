@@ -68,7 +68,7 @@ export const fabricRoutes = [
       },
       {
         path: "/fabric/notifications",
-        element: <NotificationPage />,
+        element: <NotificationPageUpdate />,
       },
       {
         path: "/fabric/notification/:id",

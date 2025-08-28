@@ -100,6 +100,7 @@ const Subscriptions = () => {
   const {
     isPending,
     isLoading,
+    refetch,
     isError,
     data: subscriptionData,
   } = useGetUserSubscription(
@@ -112,6 +113,12 @@ const Subscriptions = () => {
   const [queryString, setQueryString] = useState(queryParams.q);
 
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
+
+  // Handle Paystack success callback
+  const handlePaystackSuccess = () => {
+    refetch();
+    free_plan.refetch();
+  };
 
   const subscriptionRes = useMemo(
     () =>
@@ -264,38 +271,147 @@ const Subscriptions = () => {
   //     data?.count / (queryParams["pagination[limit]"] ?? 10)
   //   );
 
+  const plan = free_plan.data?.data?.subscriptions[0];
+  const is_free = plan?.name === "Free Plan" ? true : false;
+  const plan_data = plan;
+
   return (
     <div className="bg-white p-6  rounded-xl overflow-visible">
       {/* <>loading {JSON.stringify(free_plan.data)}</>*/}
       <div
         data-theme="nord"
-        className="py-6 border-b border-current/20 mb-12 flex flex-col gap-4"
+        className="card card-border bg-gradient-to-br from-primary/5 to-accent/5 mb-6 shadow-lg"
       >
-        <div>
-          <div className="text-sm text-gray-600">Current Plan: </div>
-          <div className="font-bold text-xl text-neutral-800">
-            {free_plan.data?.data?.subscriptions[0]?.plan_name_at_subscription}
+        <div className="card-body">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <svg
+                  className="w-6 h-6 text-primary"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p className="text-base-content/70 text-sm font-medium mb-1">
+                  Current Plan
+                </p>
+                <h3 className="text-2xl font-bold text-primary">
+                  {free_plan.data?.data?.subscriptions[0]
+                    ?.plan_name_at_subscription || plan?.name}
+                </h3>
+              </div>
+            </div>
+
+            {!is_free &&
+              (free_plan.data?.data?.subscriptions[0]?.is_active ? (
+                <div className="badge badge-success badge-lg gap-2">
+                  <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20">
+                    <circle cx="10" cy="10" r="10" />
+                  </svg>
+                  Active Plan
+                </div>
+              ) : (
+                <div className="badge badge-error badge-lg gap-2">
+                  <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20">
+                    <circle cx="10" cy="10" r="10" />
+                  </svg>
+                  Inactive
+                </div>
+              ))}
           </div>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          {free_plan.data?.data?.subscriptions[0]?.is_active ? (
-            <span className="bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">
-              Active
-            </span>
-          ) : (
-            <span className="bg-red-100 text-red-700 px-2.5 py-1 rounded-full font-medium">
-              Inactive
-            </span>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="flex items-center gap-3 p-3 bg-base-200/50 rounded-lg">
+              <div className="w-8 h-8 rounded-full bg-info/10 flex items-center justify-center">
+                <svg
+                  className="w-4 h-4 text-info"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p className="text-xs text-base-content/60 font-medium">
+                  Started
+                </p>
+                <p className="text-sm font-semibold text-base-content">
+                  {formatDateStr(
+                    free_plan.data?.data?.subscriptions[0]?.created_at?.split(
+                      ".",
+                    )[0],
+                    "D/M/YYYY h:mm A",
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 bg-base-200/50 rounded-lg">
+              <div className="w-8 h-8 rounded-full bg-success/10 flex items-center justify-center">
+                <svg
+                  className="w-4 h-4 text-success"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p className="text-xs text-base-content/60 font-medium">
+                  Product Limit
+                </p>
+                <p className="text-sm font-semibold text-base-content">
+                  {plan?.max_quantity} products
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {is_free && (
+            <div className="alert alert-primary">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <div>
+                <p className="font-medium">Free Plan Benefits</p>
+                <p className="text-sm opacity-80">{plan_data.description}</p>
+              </div>
+            </div>
           )}
-          <span className="text-gray-500">
-            |{" "}
-            {formatDateStr(
-              free_plan.data?.data?.subscriptions[0]?.created_at?.split(".")[0],
-              "D/M/YYYY h:mm A",
-            )}
-          </span>
         </div>
       </div>
+
       <div className="flex flex-wrap justify-between items-center pb-3  gap-4">
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <h2 className="text-lg font-semibold">Subscriptions</h2>
@@ -342,7 +458,6 @@ const Subscriptions = () => {
         </div>
       </div>
       <p className="text-sm text-gray-500 mb-4">All Subscription Plans</p>
-
       {activeTab === "table" ? (
         <>
           <ReusableTable
@@ -377,32 +492,14 @@ const Subscriptions = () => {
                 {openDropdown === item.id && (
                   <div className="absolute right-0 mt-2 w-32 bg-white rounded-md z-10 border border-gray-200">
                     <button
-                      to={`.`}
+                      onClick={() => {
+                        openModal();
+                        setCurrentView(row);
+                        setOpenDropdown(null);
+                      }}
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
                     >
                       View Details
-                    </button>
-                    <button
-                      className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
-                      onClick={() => {
-                        setIsAddModalOpen(true);
-                        handleDropdownToggle(null);
-                        setNewCategory(item);
-                        setType("Edit");
-                      }}
-                    >
-                      Edit Fabric
-                    </button>
-                    <button
-                      className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-left"
-                      onClick={() => {
-                        setIsAddModalOpen(true);
-                        handleDropdownToggle(null);
-                        setNewCategory(item);
-                        setType("Remove");
-                      }}
-                    >
-                      Remove Fabric
                     </button>
                   </div>
                 )}
@@ -427,13 +524,16 @@ const Subscriptions = () => {
           ))}
         </div>
       )}
-
       {isOpen && (
         <ViewSubscription onClose={closeModal} currentView={currentView} />
       )}
-
       {subIsOpen && (
-        <SubscriptionModal onClose={subCloseModal} currentView={currentView} />
+        <SubscriptionModal
+          refetch={refetch}
+          onClose={subCloseModal}
+          currentView={currentView}
+          onPaystackSuccess={handlePaystackSuccess}
+        />
       )}
     </div>
   );

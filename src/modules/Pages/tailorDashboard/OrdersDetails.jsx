@@ -24,6 +24,7 @@ import Loader from "../../../components/ui/Loader";
 import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 import useUpdateOrderStatus from "../../../hooks/order/useUpdateOrderStatus";
 import MeasurementsModal from "./components/MeasurementsModal";
+import CustomBackbtn from "../../../components/CustomBackBtn";
 
 const OrderDetails = () => {
   const [showUploadPopup, setShowUploadPopup] = useState(false);
@@ -347,9 +348,10 @@ const OrderDetails = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Order Details
-          </h1>
+          <div className="flex items-center gap-2 mb-4">
+            <CustomBackbtn />
+            <h1 className="text-2xl font-bold text-gray-900 ">Order Details</h1>
+          </div>
           <div className="flex justify-between items-start">
             <div className="flex-1">
               <div className="bg-white rounded-lg p-6">

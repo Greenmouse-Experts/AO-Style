@@ -1,6 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import CaryBinApi from "../../../../services/CarybinBaseUrl";
+import { toast } from "react-toastify";
+import { useRef } from "react";
+import CustomBackbtn from "../../../../components/CustomBackBtn";
 
 interface UserProfile {
   id: string;
@@ -113,8 +116,24 @@ interface UserDetailsResponse {
 
 export default function SalesRepAddedUser() {
   const { userId } = useParams();
-
-  const { data, isLoading, error } = useQuery({
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const accept_kyc = useMutation({
+    mutationFn: async (id: string) => {
+      const resp = await CaryBinApi.patch(`/onboard/review-kyc/${id}`, {
+        is_approved: true,
+        // is_rejected: false
+      });
+      return resp.data as UserDetailsResponse;
+    },
+    onSuccess: () => {
+      toast.success("KYC accepted successfully");
+      refetch();
+    },
+    // onError: () => {
+    //   toast.error("Failed to accept KYC");
+    // },
+  });
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["user", userId],
     queryFn: async () => {
       const resp = await CaryBinApi.get(`/auth/user-details/${userId}`);
@@ -151,10 +170,9 @@ export default function SalesRepAddedUser() {
   return (
     <div className="container mx-auto p-6 space-y-6" data-theme="nord">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-base-content mb-2">
-          User Details
-        </h1>
+      <div className="mb-6 flex gap-2 items-center">
+        <CustomBackbtn />
+        <h1 className="text-2xl font-bold text-base-content ">User Details</h1>
       </div>
       <div className="flex items-center gap-4 mb-6">
         <div className="avatar">
@@ -312,7 +330,15 @@ export default function SalesRepAddedUser() {
         {kyc && (
           <div className="card card-border">
             <div className="card-body">
-              <h2 className="card-title">KYC Information</h2>
+              <div className="flex">
+                <h2 className="card-title items-center">KYC Information</h2>
+                <span
+                  className="btn btn-sm ml-auto btn-primary"
+                  onClick={() => dialogRef.current?.showModal()}
+                >
+                  View Kyc
+                </span>
+              </div>
               <div className="space-y-3">
                 <div>
                   <span className="font-semibold">Status:</span>
@@ -339,9 +365,29 @@ export default function SalesRepAddedUser() {
                 <div>
                   <span className="font-semibold">Reviewed At:</span>
                   <span className="ml-2">
-                    {new Date(kyc.reviewed_at).toLocaleDateString()}
+                    {kyc.reviewed_at
+                      ? new Date(kyc.reviewed_at).toLocaleDateString()
+                      : "Not Reviewed"}
                   </span>
                 </div>
+                <button
+                  onClick={() =>
+                    toast.promise(
+                      async () => {
+                        await accept_kyc.mutateAsync(kyc?.id);
+                      },
+                      {
+                        success: "Kyc approved successfully",
+                        isPending: "Approving Kyc...",
+                        error: "Failed to approve kyc",
+                      },
+                    )
+                  }
+                  disabled={kyc?.is_approved || accept_kyc.isPending}
+                  className="btn btn-primary btn-block"
+                >
+                  {kyc?.is_approved ? "Approved" : "Approve Kyc"}
+                </button>
               </div>
             </div>
           </div>
@@ -362,6 +408,118 @@ export default function SalesRepAddedUser() {
           </div>
         </div>
       )}
+
+      {/*<button className="btn" onClick={()=>document.getElementById('my_modal_2').showModal()}>open modal</button>*/}
+      <dialog ref={dialogRef} id="my_modal_2" className="modal">
+        <div className="modal-box max-w-4xl  max-h-[640px]">
+          <form method="dialog">
+            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+              ✕
+            </button>
+          </form>
+
+          <h3 className="font-bold text-lg mb-4">KYC Documents</h3>
+
+          <div className="space-y-6">
+            {/* ID Type Information */}
+            <div className="alert alert-info">
+              <div>
+                <h4 className="font-semibold">Document Type</h4>
+                <p className="text-sm opacity-70">{data.data.kyc.id_type}</p>
+              </div>
+            </div>
+
+            {/* Document Images Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Front Document */}
+              <div className="card card-border">
+                <div className="card-body p-4">
+                  <h4 className="card-title text-base mb-3">Front Document</h4>
+                  <div className="aspect-video bg-base-200 rounded-lg overflow-hidden">
+                    <img
+                      src={data.data.kyc.doc_front}
+                      alt="Front document"
+                      className="w-full h-full object-contain hover:object-cover transition-all duration-300 cursor-pointer"
+                      onClick={(e) => {
+                        const img = e.target as HTMLImageElement;
+                        img.classList.toggle("object-contain");
+                        img.classList.toggle("object-cover");
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Back Document */}
+              <div className="card card-border">
+                <div className="card-body p-4">
+                  <h4 className="card-title text-base mb-3">Back Document</h4>
+                  <div className="aspect-video bg-base-200 rounded-lg overflow-hidden">
+                    <img
+                      src={data.data.kyc.doc_back}
+                      alt="Back document"
+                      className="w-full h-full object-contain hover:object-cover transition-all duration-300 cursor-pointer"
+                      onClick={(e) => {
+                        const img = e.target as HTMLImageElement;
+                        img.classList.toggle("object-contain");
+                        img.classList.toggle("object-cover");
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Utility Document - Full Width */}
+            <div className="card card-border">
+              <div className="card-body p-4">
+                <h4 className="card-title text-base mb-3">Utility Document</h4>
+                <div className="aspect-video bg-base-200 rounded-lg overflow-hidden">
+                  <img
+                    src={data.data.kyc.utility_doc}
+                    alt="Utility document"
+                    className="w-full h-full object-contain hover:object-cover transition-all duration-300 cursor-pointer"
+                    onClick={(e) => {
+                      const img = e.target as HTMLImageElement;
+                      img.classList.toggle("object-contain");
+                      img.classList.toggle("object-cover");
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="card-actions justify-end pt-4 border-t border-base-300">
+              <form method="dialog">
+                <button className="btn btn-ghost">Close</button>
+              </form>
+              <button
+                onClick={() => {
+                  toast.promise(
+                    async () => {
+                      await accept_kyc.mutateAsync(kyc?.id);
+                      dialogRef.current?.close();
+                    },
+                    {
+                      success: "KYC approved successfully",
+                      pending: "Approving KYC...",
+                      error: "Failed to approve KYC",
+                    },
+                  );
+                }}
+                disabled={kyc?.is_approved || accept_kyc.isPending}
+                className="btn btn-primary"
+              >
+                {kyc?.is_approved ? "Already Approved" : "Approve KYC"}
+              </button>
+            </div>
+          </div>
+        </div>
+        <form method="dialog" className="modal-backdrop">
+          <button>close</button>
+        </form>
+      </dialog>
     </div>
   );
 }

@@ -250,7 +250,7 @@ export default function LogisticsOrdersHandled({ id }: { id: string }) {
     queryFn: async () => {
       let resp = await CaryBinApi.get("/orders/fetch", {
         params: {
-          // user_id: id,
+          user_id: id,
           status: currentStatus,
         },
       });
@@ -417,7 +417,7 @@ export default function LogisticsOrdersHandled({ id }: { id: string }) {
   return (
     <div className="flex flex-col" data-theme="nord">
       <h2 className="my-2 text-xl font-bold mb-4">Orders Handled</h2>
-      <div className="">
+      <div className="flex gap-2">
         <div role="tablist" className="tabs tabs-lift">
           {status.map((item) => (
             <a
@@ -429,6 +429,9 @@ export default function LogisticsOrdersHandled({ id }: { id: string }) {
               {item.label}
             </a>
           ))}
+        </div>
+        <div className="badge my-auto badge-primary badge-soft">
+          count: {orders.data?.count}
         </div>
       </div>
       <CustomTable data={data} columns={columns} actions={actions} />

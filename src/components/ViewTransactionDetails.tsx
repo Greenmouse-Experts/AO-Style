@@ -13,6 +13,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { FaMoneyBill } from "react-icons/fa";
+import CustomBackbtn from "./CustomBackBtn";
 
 interface TransactionDetail {
   id: string;
@@ -106,6 +107,9 @@ export default function ViewTransactionDetail() {
     <div className="min-h-screen bg-transparent py-8 px-4" data-theme="nord">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
+        <div className="mb-2 bg-transparent">
+          <CustomBackbtn />
+        </div>
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold text-base-content mb-3">
             Transaction Details

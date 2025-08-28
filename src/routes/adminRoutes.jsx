@@ -58,6 +58,7 @@ import AdminCharges from "../modules/Pages/adminDashboard/charge/AdminCharges";
 import SalesRepUser from "../modules/Pages/adminDashboard/sales-rep/SalesRepUser";
 import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPageUpdate";
 import SalesRepAddedUser from "../modules/Pages/adminDashboard/sales-rep/sales-rep-added-user";
+import ViewOrderLogistics from "../modules/Pages/logisticsDashboard/view-order";
 
 export const adminRoutes = [
   {
@@ -178,8 +179,12 @@ export const adminRoutes = [
       },
 
       {
-        path: "/admin/logistics/view/:tailorId",
+        path: "/admin/logistics/view/:id",
         element: <ViewLogistics />,
+      },
+      {
+        path: "/admin/logistics/orders-details/:id",
+        element: <ViewOrderLogistics />,
       },
 
       {

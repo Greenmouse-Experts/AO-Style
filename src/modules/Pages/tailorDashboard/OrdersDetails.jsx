@@ -144,7 +144,7 @@ const OrderDetails = () => {
   // Update order status with image
   const updateOrderStatus = async (imageUrl, actionType) => {
     const statusData = {
-      status: actionType === "received" ? "PROCESSING" : "SHIPPED",
+      status: actionType === "received" ? "PROCESSING" : "OUT_FOR_DELIVERY",
       metadata: {
         image: imageUrl,
       },
@@ -342,6 +342,8 @@ const OrderDetails = () => {
       </div>
     );
   }
+
+  const status_options = ["PROCESSING", "OUT_FOR_DELIVERY"];
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -579,14 +581,17 @@ const OrderDetails = () => {
                       <input
                         type="checkbox"
                         className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                        checked={markReceivedChecked}
+                        checked={
+                          orderInfo.status === "PROCESSING" ||
+                          orderInfo.status === "OUT_FOR_DELIVERY"
+                        }
                         onChange={() => handleCheckboxChange("received")}
                         disabled={isUploading}
                       />
                     </label>
                   </div>
 
-                  <div>
+                  {/* <div>
                     <p className="text-sm text-gray-500 mb-2">TAILORING</p>
                     <label className="flex items-center justify-between">
                       <span className="text-gray-900">Mark as Completed</span>
@@ -598,7 +603,7 @@ const OrderDetails = () => {
                         disabled={isUploading}
                       />
                     </label>
-                  </div>
+                  </div>*/}
 
                   <div>
                     <p className="text-sm text-gray-500 mb-2">
@@ -609,7 +614,7 @@ const OrderDetails = () => {
                       <input
                         type="checkbox"
                         className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                        checked={markSentChecked}
+                        checked={orderInfo?.status === "OUT_FOR_DELIVERY"}
                         onChange={() => handleCheckboxChange("sent")}
                         disabled={isUploading}
                       />

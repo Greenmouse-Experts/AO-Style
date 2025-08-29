@@ -6,7 +6,7 @@ import NotificationsCard from "./components/NotificationsCard";
 import UpcomingDelivery from "./components/UpcomingDelivery";
 import ExpensesChart from "./components/ExpensesChart";
 import useGetCustomerRecentOrdersStat from "../../../hooks/analytics/useGetCustomerRecentOrders";
-
+import useGetCustomerSingleOrder from "../../../hooks/order/useGetCustomerSingleOrder";
 export default function CustomerDashboard() {
   const {
     isPending,
@@ -14,11 +14,19 @@ export default function CustomerDashboard() {
     isError,
     data: customerRecentOrderStat,
   } = useGetCustomerRecentOrdersStat();
+  console.log("gotten it alredy", customerRecentOrderStat);
+  const {
+    isPending: getUserIsPending,
+    data,
+    isErrororderId: getUserIsError,
+    error,
+    data: orderData,
+  } = useGetCustomerSingleOrder(customerRecentOrderStat?.data[0]?.id);
 
   if (isPending) return;
   return (
     <div className="max-w-full overflow-hidden">
-      {/* Main Header and Stats Section */}
+      {/* Main Header and Stats Section */}orderId
       <div className="grid grid-cols-1 xl:grid-cols-4 lg:grid-cols-1 gap-6 min-h-0">
         <div className="xl:col-span-3 lg:col-span-1 min-w-0">
           <HeaderCard />
@@ -28,24 +36,13 @@ export default function CustomerDashboard() {
           <CalendarWidget />
         </div>
       </div>
-
       {/* Orders Section */}
       <div className="mt-6 bg-white p-6 rounded-xl">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-medium">Recent Orders</h2>
-
-          {/* <div className="hidden md:flex gap-4">
-                        <button className="bg-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm">
-                            Export As ⌄
-                       </button>
-                        <button className="bg-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm">
-                            Sort: Newest First ⌄
-                        </button>
-                    </div> */}
         </div>
         <OrdersTable customerRecentOrderStat={customerRecentOrderStat} />
       </div>
-
       {/* New Section for Orders & Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-1 gap-6 mt-6">
         <NotificationsCard />

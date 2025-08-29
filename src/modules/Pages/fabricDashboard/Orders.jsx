@@ -90,21 +90,22 @@ const OrderPage = () => {
       },
       { value: "DISPATCHED_TO_AGENT", label: "Dispatched to Agent", to: [] },
       {
+        value: "DELIVERED_TO_TAILOR",
+        label: "Delivered to Tailor",
+        to: [],
+      },
+      {
         value: "PROCESSING",
         label: "Processing",
         to: [],
       },
-      {
-        value: "SHIPPED",
-        label: "Shipped",
-        to: [],
-      },
+      { value: "OUT_FOR_DELIVERY", label: "Out for Delivery", to: [] },
       {
         value: "IN_TRANSIT",
         label: "In Transit",
         to: [],
       },
-      { value: "OUT_FOR_DELIVERY", label: "Out for Delivery", to: [] },
+
       { value: "DELIVERED", label: "Delivered", to: [] },
       { value: "CANCELLED", label: "Cancelled", to: [] },
     ],

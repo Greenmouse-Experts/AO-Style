@@ -35,8 +35,8 @@ const KYCVerificationUpdate = () => {
     utility_upload: null,
     utility_doc_name: null,
     location: kycInfo?.location ?? "",
-    // state: kycInfo?.state ?? "",
-    // city: kycInfo?.city ?? "",
+    state: kycInfo?.state ?? "",
+    city: kycInfo?.city ?? "",
     country: kycInfo?.country ?? "",
     id_type: kycInfo?.id_type ?? "",
   };

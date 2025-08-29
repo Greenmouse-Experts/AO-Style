@@ -173,7 +173,7 @@ const OrderPage = () => {
         ? orderData?.data.map((details) => {
             return {
               ...details,
-              orderId: `#${details?.payment?.id?.split("-")[0]?.toUpperCase() ?? ""}`,
+              orderId: `${details?.payment?.id ? details.payment.id.replace(/-/g, "").slice(0, 12).toUpperCase() : ""}`,
               transactionId: `${details?.payment?.transaction_id || "N/A"}`,
               product:
                 details?.payment?.purchase?.items &&

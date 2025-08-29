@@ -56,11 +56,11 @@ const WithdrawalModal = ({ isOpen, onClose, businessWallet }) => {
       );
       return "Insufficient balance";
     }
-    if (numValue < 100) {
+    if (numValue < 20000) {
       console.log(
         "❌ WithdrawalModal - Validation failed: Below minimum amount",
       );
-      return "Minimum withdrawal amount is ₦100";
+      return "Minimum withdrawal amount is ₦20,000";
     }
     console.log("✅ WithdrawalModal - Validation passed");
     return null;
@@ -281,7 +281,7 @@ const WithdrawalModal = ({ isOpen, onClose, businessWallet }) => {
                   <li>
                     • Withdrawals will be sent to your registered bank account
                   </li>
-                  <li>• Minimum withdrawal amount: ₦100</li>
+                  <li>• Minimum withdrawal amount: ₦20,000</li>
                 </ul>
               </div>
             </div>

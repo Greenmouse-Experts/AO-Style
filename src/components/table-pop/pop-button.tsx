@@ -1,19 +1,58 @@
 import { Menu } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { usePopper } from "react-popper";
 type Actions = {
   key: string;
   label: string;
   action: (item: any) => any;
 };
+type currentIndex = number;
 type item = any;
-export default function PopUp(props: { actions: Actions[]; item: any }) {
+export default function PopUp(props: {
+  actions: Actions[];
+  item: any;
+  currentIndex: currentIndex | null;
+  setIndex: (index: number | null) => void;
+  itemIndex: number;
+}) {
   const [referenceElement, setReferenceElement] =
     useState<HTMLDivElement | null>(null);
   const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(
     null,
   );
   const [isOpen, setIsOpen] = useState(false);
+  const popupRef = useRef<HTMLDivElement>(null);
+
+  const togglePopup = () => {
+    if (props.itemIndex === props.currentIndex) {
+      return setIsOpen(true);
+    }
+    return setIsOpen(false);
+  };
+
+  useEffect(() => {
+    togglePopup();
+  }, [props.currentIndex]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        isOpen &&
+        popupRef.current &&
+        !popupRef.current.contains(event.target as Node) &&
+        referenceElement &&
+        !referenceElement.contains(event.target as Node)
+      ) {
+        props.setIndex(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen, props.setIndex, referenceElement]);
+
   const { styles, attributes } = usePopper(referenceElement, popperElement, {
     placement: "bottom-start",
     modifiers: [
@@ -25,25 +64,26 @@ export default function PopUp(props: { actions: Actions[]; item: any }) {
       },
     ],
   });
-
-  const togglePopup = () => {
-    setIsOpen(!isOpen);
+  const openPopup = () => {
+    props.setIndex(props.itemIndex);
   };
-
   return (
     <>
       <div
         data-theme="nord"
         ref={setReferenceElement}
-        onClick={togglePopup}
+        onClick={openPopup}
         className="btn btn-square"
       >
         <Menu className="label" />
       </div>
       {isOpen && (
         <div
+          ref={(el) => {
+            setPopperElement(el);
+            popupRef.current = el;
+          }}
           className="card card-border bg-base-100 shadow-lg p-2 z-50"
-          ref={setPopperElement}
           {...attributes.popper}
           style={styles.popper}
         >

@@ -1,6 +1,7 @@
 import { MenuIcon } from "lucide-react";
 import { nanoid } from "nanoid";
 import PopUp from "./table-pop/pop-button";
+import { useState } from "react";
 // import CaryBinApi from "../services/CarybinBaseUrl";
 // import { Link } from "react-router-dom";
 
@@ -23,6 +24,7 @@ interface CustomTableProps {
 }
 
 export default function CustomTable(props: CustomTableProps) {
+  const [selectedItem, setSelectedItem] = useState<number | null>(null);
   return (
     <div data-theme="nord" className="" id="cus-app">
       <div className=" relative overflow-x-scroll">
@@ -67,10 +69,19 @@ export default function CustomTable(props: CustomTableProps) {
                           : item[col.key]}
                       </td>
                     ))}
-                    {!props.columns?.find((item) => item.key == "action") && (
+                    {!props.columns?.find(
+                      (item, index) => item.key == "action",
+                    ) && (
                       <>
                         <td>
-                          <PopUp actions={props.actions} item={item} />
+                          <PopUp
+                            itemIndex={rowIdx}
+                            setIndex={setSelectedItem}
+                            currentIndex={selectedItem}
+                            key={rowIdx + "menu"}
+                            actions={props?.actions || []}
+                            item={item}
+                          />
                         </td>
                         {/*<td className="py-3 px-4   relative">
                           <div className="dropdown dropdown-end relative">

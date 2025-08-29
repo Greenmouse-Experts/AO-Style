@@ -392,7 +392,7 @@ const CustomersTable = () => {
                     >
                       View Details
                     </Link>
-                    <button
+                    {/* <button
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
                       onClick={() => console.log("Edit user", item.id)}
                     >
@@ -403,7 +403,7 @@ const CustomersTable = () => {
                       onClick={() => console.log("Remove user", item.id)}
                     >
                       Remove User
-                    </button>
+                    </button>*/}
                   </div>
                 )}
               </div>

@@ -120,7 +120,7 @@ const OrderPage = () => {
         to: [
           { value: "DISPATCHED_TO_AGENT", label: "Dispatched to Agent" },
           { value: "OUT_FOR_DELIVERY", label: "Out for Delivery" },
-          { value: "CANCELLED", label: "Cancelled" },
+          { value: "CANCELLED", label: "Cancel" },
         ],
       },
       DELIVERED_TO_TAILOR: {

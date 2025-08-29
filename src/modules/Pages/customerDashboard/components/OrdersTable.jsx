@@ -69,7 +69,7 @@ const OrdersTable = (customerRecentOrderStat) => {
             (details) => {
               return {
                 ...details,
-                transactionId: `#${details?.payment?.id?.split("-")[0]?.toUpperCase() ?? ""}`,
+                transactionId: `${details?.payment?.id?.split("-")[0]?.toUpperCase() ?? ""}`,
                 amount: `${formatNumberWithCommas(
                   details?.payment?.amount ?? 0,
                 )}`,
@@ -91,7 +91,7 @@ const OrdersTable = (customerRecentOrderStat) => {
 
   const columns = useMemo(
     () => [
-      { key: "transactionId", label: "Transaction ID" },
+      { key: "transactionId", label: "Order ID" },
 
       // { key: "category", label: "Category" },
       { key: "amount", label: "Amount" },

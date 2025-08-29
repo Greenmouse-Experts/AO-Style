@@ -6,8 +6,11 @@ import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useVerifySubPay from "../../../hooks/subscription/useVerifySubPay";
 
 const SubscriptionModal = ({ onClose, refetch, currentView }) => {
-  const { isPending: createPending, createSubMutate } =
-    useCreateSubscriptionPayment();
+  const {
+    isPending: createPending,
+    createSubMutate,
+    onError,
+  } = useCreateSubscriptionPayment();
   const { carybinUser } = useCarybinUserStore();
 
   const { isPending: verifyPending, verifyPaymentMutate } = useVerifySubPay();
@@ -130,7 +133,6 @@ const SubscriptionModal = ({ onClose, refetch, currentView }) => {
                         refetch();
                       },
                       onError: (error) => {
-                        console.error(error);
                         refetch();
                       },
                     },

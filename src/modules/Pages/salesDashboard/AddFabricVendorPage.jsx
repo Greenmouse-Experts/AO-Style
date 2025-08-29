@@ -14,6 +14,7 @@ import PhoneInput from "react-phone-input-2";
 
 import useAddFabricVendor from "../../../hooks/marketRep/useAddFabricVendor";
 import { usePlacesWidget } from "react-google-autocomplete";
+import CustomLocationInput from "../../../components/customLocationInput";
 
 const initialValues = {
   name: "",
@@ -516,8 +517,9 @@ export default function AddFabricVendorPage() {
                     <option value="franchise">Franchise</option>
                   </select>
                 </div>
-                <div className="mt-4 w-full">
-                  <label className="block text-gray-600 font-medium mb-4">
+                <div className="mt-3 w-full">
+                  <CustomLocationInput setFieldValue={setFieldValue} />
+                  {/* <label className="block text-gray-600 font-medium mb-4">
                     Business Address
                   </label>
                   <input
@@ -531,6 +533,7 @@ export default function AddFabricVendorPage() {
                     placeholder="Enter your business address"
                     className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                   />
+                </div>*/}
                 </div>
               </div>
 

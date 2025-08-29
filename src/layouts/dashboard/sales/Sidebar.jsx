@@ -7,6 +7,7 @@ import {
   FaBell,
   FaCreditCard,
   FaCog,
+  FaBullhorn,
 } from "react-icons/fa";
 import { GiScissors } from "react-icons/gi";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
@@ -55,6 +56,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     staleTime: 10000,
   });
 
+  const handleClick = () => {
+    window.scrollTo(0, 0);
+    if (window.innerWidth < 768) {
+      toggleSidebar(); // Close sidebar only on mobile
+    }
+  };
   const handleSignOut = () => {
     toastSuccess("Logout Successfully");
     logOut();

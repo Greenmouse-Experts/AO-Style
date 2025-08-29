@@ -138,7 +138,7 @@ const OrderPage = () => {
         ? orderData?.data.map((details) => {
             return {
               ...details,
-              transactionId: `#${details?.payment?.id?.split("-")[0]?.toUpperCase()}`,
+              transactionId: `${details?.payment?.id ? details.payment.id.replace(/-/g, "").slice(0, 12).toUpperCase() : ""}`,
               customer:
                 details?.user?.email?.length > 15
                   ? `${details?.user?.email.slice(0, 15)}...`

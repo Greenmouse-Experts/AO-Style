@@ -84,7 +84,7 @@ const NewOrders = () => {
         ? vendorRecentOrder?.data.slice(0, 3).map((details) => {
             return {
               ...details,
-              orderId: `#${details?.order?.id?.split("-")[0]?.toUpperCase()}`,
+              orderId: `#${details?.order?.id.replace(/-/g, "").slice(0, 12).toUpperCase()}`,
               price: `${formatNumberWithCommas(
                 details?.order?.total_amount ?? 0,
               )}`,

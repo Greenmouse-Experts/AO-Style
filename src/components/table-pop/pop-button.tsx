@@ -6,7 +6,8 @@ type Actions = {
   label: string;
   action: (item: any) => any;
 };
-export default function PopUp(props: { actions: Actions[] }) {
+type item = any;
+export default function PopUp(props: { actions: Actions[]; item: any }) {
   const [referenceElement, setReferenceElement] =
     useState<HTMLDivElement | null>(null);
   const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(
@@ -52,7 +53,7 @@ export default function PopUp(props: { actions: Actions[] }) {
                 <button
                   key={action.key}
                   className="btn btn-ghost btn-sm justify-start"
-                  onClick={() => action.action(action)}
+                  onClick={() => action.action(props.item)}
                 >
                   {action.label}
                 </button>

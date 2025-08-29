@@ -70,7 +70,7 @@ export default function CustomTable(props: CustomTableProps) {
                     {!props.columns?.find((item) => item.key == "action") && (
                       <>
                         <td>
-                          <PopUp actions={props.actions} />
+                          <PopUp actions={props.actions} item={item} />
                         </td>
                         {/*<td className="py-3 px-4   relative">
                           <div className="dropdown dropdown-end relative">

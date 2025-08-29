@@ -337,7 +337,11 @@ const CustomersTable = () => {
 
       {activeTab === "table" ? (
         <>
-          <CustomTable columns={columns} data={TailorData} actions={actions} />
+          <CustomTable
+            columns={columns}
+            data={TailorData || []}
+            actions={actions}
+          />
           {/* <ReusableTable
             columns={columns}
             data={TailorData}

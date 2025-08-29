@@ -20,6 +20,7 @@ import useToast from "../../../../hooks/useToast";
 import { useTempStore } from "../../../../store/useTempStore";
 import AddFabricModal from "../components/AddFabricModal";
 import CustomTabs from "../../../../components/CustomTabs";
+import CustomTable from "../../../../components/CustomTable";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -134,87 +135,34 @@ const CustomersTable = () => {
       { label: "Email Address", key: "email" },
       { label: "Location", key: "location" },
       { label: "Date Joined", key: "dateJoined" },
-      {
-        label: "Action",
-        key: "action",
-        render: (_, row) => (
-          <div className=" relative">
-            <button
-              className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
-              onClick={() => toggleDropdown(row.id)}
-            >
-              <FaEllipsisH />
-            </button>
-            {openDropdown === row.id && (
-              <div className="dropdown-menu absolute z-[99999] right-2 rounded mt-2 w-50 bg-white rounded-md border-gray-200">
-                <Link
-                  to={`/admin/fabric-vendor/view/${row.id}`}
-                  state={{ info: row.id }}
-                >
-                  <button className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
-                    View Details
-                  </button>
-                </Link>
-                {/* <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
-                  Edit User
-                </button>
-                <button
-                  state={{ info: row }}
-                  onClick={() => {
-                    setUser(row);
-                    console.log("clicked");
-                    nav(`/admin/orders/vendor/` + row.id);
-                  }}
-                  // to={"/admin/fabric/orders/orders-details"}
-                  // to={`/admin/orders/vendor/` + row.id}
-                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
-                >
-                  View Orders
-                </button>*/}
-                {row?.profile?.approved_by_admin ? (
-                  <>
-                    {" "}
-                    <button
-                      onClick={() => {
-                        setSuspendModalOpen(true);
-                        setNewCategory(row);
-                        setOpenDropdown(null);
-                      }}
-                      className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center"
-                    >
-                      {"Suspend Vendor"}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    {" "}
-                    <button
-                      onClick={() => {
-                        setSuspendModalOpen(true);
-                        setNewCategory(row);
-                        setOpenDropdown(null);
-                      }}
-                      className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
-                    >
-                      {"Unsuspend Vendor"}
-                    </button>
-                  </>
-                )}
-                <button
-                  onClick={() => handleDeleteUser(row)}
-                  className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center"
-                >
-                  Delete Vendor
-                </button>
-              </div>
-            )}
-          </div>
-        ),
-      },
     ],
     [openDropdown],
   );
-
+  const actions = [
+    {
+      key: "view-details",
+      label: "View Details",
+      action: (item) => {
+        return nav(`/admin/fabric-vendor/view/${item.id}`);
+      },
+    },
+    {
+      key: "suspend-vendor",
+      label: "Suspend Vendor",
+      action: (item) => {
+        setSuspendModalOpen(true);
+        setNewCategory(row);
+        setOpenDropdown(null);
+      },
+    },
+    {
+      key: "delete-vendor",
+      label: "Delete Vendor",
+      action: (item) => {
+        handleDeleteUser(item);
+      },
+    },
+  ];
   const handleDeleteUser = (user) => {
     setUserToDelete(user);
     setDeleteModalOpen(true);
@@ -384,11 +332,17 @@ const CustomersTable = () => {
       />
       {activeTab === "table" ? (
         <>
-          <ReusableTable
+          <CustomTable
+            loading={isPending}
+            columns={columns}
+            actions={actions}
+            data={FabricData || []}
+          />
+          {/* <ReusableTable
             loading={isPending}
             columns={columns}
             data={FabricData}
-          />
+          />*/}
           {FabricData?.length > 0 && (
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center">

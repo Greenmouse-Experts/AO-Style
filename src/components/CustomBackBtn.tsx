@@ -4,7 +4,7 @@ export default function CustomBackbtn() {
   };
 
   return (
-    <div data-theme="nord">
+    <div data-theme="nord" className="bg-transparent">
       <button className="btn btn-soft btn-sm" onClick={handleBack}>
         <svg
           xmlns="http://www.w3.org/2000/svg"

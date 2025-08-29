@@ -8,6 +8,12 @@ import {
   ShoppingBag,
   Shirt,
   Wallet,
+  Package,
+  CheckCircle,
+  Clock,
+  Users,
+  TrendingUp,
+  Star,
 } from "lucide-react";
 import useGetUser from "../../../../hooks/user/useGetSingleUser";
 import Loader from "../../../../components/ui/Loader";
@@ -30,9 +36,37 @@ import CustomTable from "../../../../components/CustomTable";
 import CustomBackbtn from "../../../../components/CustomBackBtn";
 import LogisticsOrdersHandled from "../logistics/components/logistic-orders-handled";
 
-// Removed static catalogData to prevent duplication with dynamic data
-
-// Removed static ordersData to prevent duplication with dynamic data
+// Stat Card Component
+const StatCard = ({ title, value, change, icon: Icon, color, trend }) => (
+  <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+    <div className="flex items-center justify-between">
+      <div className="flex-1">
+        <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
+        <p className="text-2xl font-bold text-gray-900">{value}</p>
+        {change && (
+          <div
+            className={`flex items-center mt-2 text-sm ${
+              trend === "up"
+                ? "text-green-600"
+                : trend === "down"
+                  ? "text-red-600"
+                  : "text-gray-600"
+            }`}
+          >
+            {trend === "up" && <TrendingUp className="w-4 h-4 mr-1" />}
+            {trend === "down" && (
+              <TrendingUp className="w-4 h-4 mr-1 rotate-180" />
+            )}
+            <span>{change}</span>
+          </div>
+        )}
+      </div>
+      <div className={`p-3 rounded-full ${color}`}>
+        <Icon className="w-6 h-6 text-white" />
+      </div>
+    </div>
+  </div>
+);
 
 const ViewLogistics = () => {
   const { id: tailorId } = useParams();
@@ -514,13 +548,6 @@ const ViewLogistics = () => {
                 >
                   Edit User
                 </Link>
-                {/* <Link
-                  state={{ info: row.id }}
-                  to={`/admin/orders/vendor/` + row.id}
-                  className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                >
-                  Edit User
-                </Link>*/}
               </div>
             )}
           </div>
@@ -529,6 +556,35 @@ const ViewLogistics = () => {
     ],
     [openDropdown, businessData],
   );
+
+  // Calculate statistics based on fetched data
+  const statsData = useMemo(() => {
+    const orders = fabricOrderData || [];
+    const totalOrders = orders.length;
+    const completedOrders = orders.filter(
+      (order) => order.status === "Completed" || order.status === "COMPLETED",
+    ).length;
+    const ongoingOrders = orders.filter(
+      (order) => order.status === "Ongoing" || order.status === "PENDING",
+    ).length;
+
+    const totalRevenue = orders.reduce((sum, order) => {
+      const amount = parseFloat(order.amount?.replace(/,/g, "") || 0);
+      return sum + amount;
+    }, 0);
+
+    // Calculate completion rate
+    const completionRate =
+      totalOrders > 0 ? Math.round((completedOrders / totalOrders) * 100) : 0;
+
+    return {
+      totalOrders,
+      completedOrders,
+      ongoingOrders,
+      totalRevenue,
+      completionRate,
+    };
+  }, [fabricOrderData]);
 
   // Filter Catalog Data
 
@@ -596,8 +652,44 @@ const ViewLogistics = () => {
           </div>
         </div>
 
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatCard
+            title="Total Orders"
+            value={statsData.totalOrders.toLocaleString()}
+            icon={Package}
+            color="bg-blue-500"
+            change="All time"
+          />
+
+          <StatCard
+            title="Completed Orders"
+            value={statsData.completedOrders.toLocaleString()}
+            icon={CheckCircle}
+            color="bg-green-500"
+            change={`${statsData.completionRate}% completion rate`}
+            trend="up"
+          />
+
+          <StatCard
+            title="Ongoing Orders"
+            value={statsData.ongoingOrders.toLocaleString()}
+            icon={Clock}
+            color="bg-orange-500"
+            change="Currently processing"
+          />
+
+          <StatCard
+            title="Total Revenue"
+            value={`₦${formatNumberWithCommas(statsData.totalRevenue)}`}
+            icon={Wallet}
+            color="bg-purple-500"
+            change="Gross earnings"
+            trend="up"
+          />
+        </div>
+
         <div className="bg-white rounded-lg">
-          {/* <CustomTable columns={columns} />*/}
           <ReusableTable
             columns={customerColumns}
             data={customerData}
@@ -607,7 +699,7 @@ const ViewLogistics = () => {
 
         {/* Orders Handled */}
         <div
-          className="mt-12 bg-base-100 p-3 shadow  rounded-md"
+          className="mt-12 bg-base-100 p-3 shadow rounded-md"
           data-theme="nord"
         >
           <LogisticsOrdersHandled id={tailorId} />

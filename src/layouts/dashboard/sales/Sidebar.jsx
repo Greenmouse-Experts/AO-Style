@@ -125,6 +125,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             toggleSidebar={toggleSidebar}
           />
           <SidebarItem
+            to="/sales/announcements"
+            icon={<FaBullhorn />}
+            text="Announcements"
+            onClick={handleClick}
+          />
+          <SidebarItem
             to="/sales/notifications"
             icon={<FaBell />}
             text="Notifications"

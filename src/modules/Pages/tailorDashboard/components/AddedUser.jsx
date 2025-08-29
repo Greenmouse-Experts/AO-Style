@@ -20,7 +20,7 @@ const NewOrders = () => {
   // Table Columns
   const columns = useMemo(
     () => [
-      //   { label: "Order ID", key: "orderId" },
+      { label: "Order ID", key: "orderId" },
       { label: "Product", key: "product" },
       // { label: "Order Description", key: "description" },
 
@@ -84,7 +84,7 @@ const NewOrders = () => {
         ? vendorRecentOrder?.data.slice(0, 3).map((details) => {
             return {
               ...details,
-              orderId: `${details?.order?.id}`,
+              orderId: `#${details?.order?.id?.split("-")[0]?.toUpperCase()}`,
               price: `${formatNumberWithCommas(
                 details?.order?.total_amount ?? 0,
               )}`,

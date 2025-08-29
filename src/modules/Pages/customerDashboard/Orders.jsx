@@ -173,7 +173,7 @@ const OrderPage = () => {
         ? orderData?.data.map((details) => {
             return {
               ...details,
-              orderId: `#${details?.payment?.id?.slice(-12).toUpperCase()}`,
+              orderId: `#${details?.payment?.id?.split("-")[0]?.toUpperCase() ?? ""}`,
               transactionId: `${details?.payment?.transaction_id || "N/A"}`,
               product:
                 details?.payment?.purchase?.items &&
@@ -344,9 +344,6 @@ const OrderPage = () => {
               filename="MyOrders.csv"
               className="hidden"
             />
-            <button className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md text-sm">
-              Sort: Newest First ▼
-            </button>
           </div>
         </div>
 

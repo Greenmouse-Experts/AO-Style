@@ -196,9 +196,12 @@ export default function OrderRequests() {
       label: "id",
       render: (_, item) => {
         return (
-          <div className=" w-[80px] overflow-ellipsis" data-theme="nord">
+          <span
+            className="bg-transparent w-[80px] line-clamp-1 overflow-ellipsis"
+            data-theme="nord"
+          >
             {item.id}
-          </div>
+          </span>
         );
       },
     },
@@ -220,13 +223,13 @@ export default function OrderRequests() {
         );
       },
     },
-    {
-      key: "amount",
-      label: "Amount",
-      render: (_, item) => {
-        return <>{item.total_amount}</>;
-      },
-    },
+    // {
+    //   key: "amount",
+    //   label: "Amount",
+    //   render: (_, item) => {
+    //     return <>{item.total_amount}</>;
+    //   },
+    // },
     {
       key: "location",
       label: "location",
@@ -238,7 +241,7 @@ export default function OrderRequests() {
       key: "logistic",
       label: "logistic ID",
       render: (_, item) => {
-        return <>{item.total_amount}</>;
+        return <>{item?.logistics_agent_id || "N/A"}</>;
       },
     },
     {

@@ -5,12 +5,19 @@ import WithdrawalModal from "./components/WithdrawalModal";
 import ViewWithdrawalsModal from "./components/ViewWithdrawalsModal";
 import BarChartComponent from "../salesDashboard/components/BarChartComponent";
 import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails";
+import Cards from "./components/Cards";
+import useVendorSummaryStat from "../../../hooks/analytics/useGetVendorSummmary";
 
 export default function TransactionPage() {
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [isViewWithdrawalsModalOpen, setIsViewWithdrawalsModalOpen] =
     useState(false);
-
+  const {
+    isPending,
+    isLoading,
+    isError,
+    data: vendorSummaryStat,
+  } = useVendorSummaryStat();
   const { data: businessData } = useGetBusinessDetails();
   const businessWallet = businessData?.data?.business_wallet;
 
@@ -36,6 +43,8 @@ export default function TransactionPage() {
 
   return (
     <>
+      {/* <Cards vendorSummaryStat={vendorSummaryStat?.data} />*/}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 mb-6">
         <div className="lg:col-span-2">
           <BarChartComponent />

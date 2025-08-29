@@ -245,7 +245,7 @@ const CustomersTable = () => {
         setOpenDropdown(null);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mouseown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
@@ -459,7 +459,7 @@ const CustomersTable = () => {
                 {openDropdown === item.id && (
                   <div className="absolute right-0 mt-2 w-32 bg-white rounded-md z-10 border border-gray-200">
                     <Link
-                      to={`/admin/fabric-vendor/view/${row.id}`}
+                      to={`/admin/fabric-vendor/view/${item.id}`}
                       state={{ info: item.id }}
                       className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
                     >

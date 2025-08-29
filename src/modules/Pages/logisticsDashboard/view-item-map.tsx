@@ -10,6 +10,7 @@ import {
   DirectionsService,
 } from "@react-google-maps/api";
 import { MessageCircleIcon, PhoneIcon } from "lucide-react";
+import CustomBackbtn from "../../../components/CustomBackBtn";
 
 const containerStyle = {
   width: "100%",
@@ -75,6 +76,9 @@ export default function ViewItemMap() {
 
   return (
     <div className="flex flex-col h-full bg-transparent" data-theme="nord">
+      <div className="mb-2 bg-transparent w-fit">
+        <CustomBackbtn />
+      </div>
       <div className="grid  grid-cols-1 md:flex gap-2 flex-1">
         <div className="md:w-sm h-full bg-base-100 p-2">
           <div className="text-2xl font-semibold my-2 text-primary mb-4">

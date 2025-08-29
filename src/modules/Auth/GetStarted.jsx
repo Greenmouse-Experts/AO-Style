@@ -13,13 +13,14 @@ export default function GetStarted() {
         </Link>
       </div>
       <div className="text-center md:mb-10 mb-8">
-        <h1 className="md:text-3xl text-2xl font-normal text-black mb-4">
-          Choose A User Type :
-        </h1>
+        {/* <h1 className="md:text-3xl text-2xl font-normal text-black mb-4">
+          ChooseUser Type :
+        </h1>*/}
+        <div className="text-2xl font-bold text-purple-500">JOIN AS</div>
       </div>
       <div className="flex flex-col items-center mb-8">
         <p className="text-center text-purple-500 text-3xl md:text-4xl font-extrabold tracking-wide">
-          JOIN AS{" "}
+          {" "}
         </p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:mt-8 mt-1">
@@ -30,7 +31,7 @@ export default function GetStarted() {
             image:
               "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741609872/AoStyle/image_k5w7sy.png",
             link: "/sign-in-as-customer",
-            btnText: "Join As A Customer",
+            btnText: "Customer",
           },
           {
             title: "Fabric Vendor",
@@ -39,7 +40,7 @@ export default function GetStarted() {
             image:
               "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741609873/AoStyle/image1_iv6dde.png",
             link: "/sign-in-as-fabric-vendor",
-            btnText: "Join As A Fabric Vendor",
+            btnText: "Fabric Vendor",
           },
           {
             title: "Tailor/Fashion Designer",
@@ -48,7 +49,7 @@ export default function GetStarted() {
             image:
               "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741609873/AoStyle/image2_hnlipu.png",
             link: "/sign-in-as-tailor-designer",
-            btnText: "Join As A Tailor/Designer",
+            btnText: "Tailor/Designer",
           },
           {
             title: "Logistics Agent",
@@ -57,7 +58,7 @@ export default function GetStarted() {
             image:
               "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741609876/AoStyle/image3_jvbthg.png",
             link: "/sign-in-as-logistics",
-            btnText: "Join As Logistic Agent",
+            btnText: " Logistic Agent",
           },
         ].map((user, index) => (
           <div

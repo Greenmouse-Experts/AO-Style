@@ -19,6 +19,7 @@ import useToast from "../../../hooks/useToast";
 import useUpdateStyle from "../../../hooks/style/useUpdateStyle";
 import useUpdateAdminStyle from "../../../hooks/style/useUpdateAdminStyle";
 import useCreateAdminStyle from "../../../hooks/style/useCreateAdminStyle";
+import CustomBackbtn from "../../../components/CustomBackBtn";
 
 export default function StyleForm() {
   const { toastError } = useToast();
@@ -343,6 +344,9 @@ export default function StyleForm() {
 
   return (
     <>
+      <div className="mb-2">
+        <CustomBackbtn />
+      </div>
       <div className="bg-white p-6 mb-6 rounded-lg">
         <h1 className="text-xl md:text-2xl font-medium mb-3">
           {styleInfo && !isAdminEditRoute

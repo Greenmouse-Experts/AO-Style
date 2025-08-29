@@ -4,129 +4,51 @@ import {
   FaUsers,
   FaPaperPlane,
   FaList,
-  FaEye,
+  FaPlus,
   FaCalendarAlt,
-  FaFilter,
-  FaSearch,
-  FaSpinner,
-  FaExclamationCircle,
-  FaCheck,
+  FaUserTie,
 } from "react-icons/fa";
+import useSendAnnouncement from "../../../hooks/announcement/useSendAnnouncement";
+import useToast from "../../../hooks/useToast";
+import AnnouncementService from "../../../services/api/announcement";
 
-const AnnouncementsManager = () => {
+const AnnouncementsPage = () => {
   const [activeTab, setActiveTab] = useState("create");
-  const [announcements, setAnnouncements] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterRole, setFilterRole] = useState("");
-
   const [formData, setFormData] = useState({
     subject: "",
     message: "",
     role: "",
   });
+  const [adminAnnouncements, setAdminAnnouncements] = useState([]);
+  const [loadingAnnouncements, setLoadingAnnouncements] = useState(false);
 
-  // Mock API functions - replace with your actual API calls
-  const sendAnnouncement = async (payload) => {
-    setLoading(true);
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+  const { mutate: sendAnnouncement, isPending: isSending } =
+    useSendAnnouncement();
 
-      // Add to announcements list for demo
-      const newAnnouncement = {
-        id: Date.now(),
-        ...payload,
-        createdAt: new Date().toISOString(),
-        status: "sent",
-      };
+  const { toastError } = useToast();
 
-      setAnnouncements((prev) => [newAnnouncement, ...prev]);
-      setFormData({ subject: "", message: "", role: "" });
-
-      return { success: true };
-    } catch (err) {
-      throw new Error("Failed to send announcement");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchAnnouncements = async (role = "") => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Simulate API call to GET /announcements?role=user
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Mock data - replace with actual API call
-      const mockData = [
-        {
-          id: 1,
-          subject: "Platform Maintenance Schedule",
-          message:
-            "We will be performing scheduled maintenance on Sunday, 3 AM - 5 AM UTC. Some services may be temporarily unavailable during this time.",
-          role: "user",
-          createdAt: "2025-01-15T10:30:00Z",
-          status: "sent",
-        },
-        {
-          id: 2,
-          subject: "New Features Available",
-          message:
-            "Check out our latest features including improved order tracking and enhanced communication tools.",
-          role: "fashion-designer",
-          createdAt: "2025-01-14T14:20:00Z",
-          status: "sent",
-        },
-        {
-          id: 3,
-          subject: "Payment System Update",
-          message:
-            "We've updated our payment system for faster and more secure transactions. Please update your payment methods if needed.",
-          role: "fabric-vendor",
-          createdAt: "2025-01-13T09:15:00Z",
-          status: "sent",
-        },
-        {
-          id: 4,
-          subject: "Weekly Market Insights",
-          message:
-            "This week's market trends show increased demand for sustainable fabrics and eco-friendly materials.",
-          role: "market-representative",
-          createdAt: "2025-01-12T16:45:00Z",
-          status: "sent",
-        },
-        {
-          id: 5,
-          subject: "Delivery Route Optimization",
-          message:
-            "We've optimized delivery routes in major cities to reduce delivery times by up to 30%.",
-          role: "logistics-agent",
-          createdAt: "2025-01-11T11:30:00Z",
-          status: "sent",
-        },
-      ];
-
-      // Filter by role if specified
-      const filteredData = role
-        ? mockData.filter((item) => item.role === role)
-        : mockData;
-      setAnnouncements(filteredData);
-    } catch (err) {
-      setError("Failed to fetch announcements");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Fetch admin announcements when the tab switches to "view"
   useEffect(() => {
     if (activeTab === "view") {
-      fetchAnnouncements(filterRole);
+      fetchAdminAnnouncements();
     }
-  }, [activeTab, filterRole]);
+  }, [activeTab]);
+
+  const fetchAdminAnnouncements = async () => {
+    setLoadingAnnouncements(true);
+    try {
+      const response = await AnnouncementService.getAdminAnnouncements();
+      // Handle the nested data structure: response.data.data
+      const announcementsData = response.data?.data || [];
+      setAdminAnnouncements(announcementsData);
+    } catch (error) {
+      console.error("Error fetching admin announcements:", error);
+      toastError("Failed to fetch announcements. Please try again.");
+      setAdminAnnouncements([]);
+    } finally {
+      setLoadingAnnouncements(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -136,17 +58,14 @@ const AnnouncementsManager = () => {
     }));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = (e) => {
     if (!navigator.onLine) {
-      setError("No internet connection. Please check your network.");
+      toastError("No internet connection. Please check your network.");
       return;
     }
+    e.preventDefault();
 
-    if (!formData.subject || !formData.message || !formData.role) {
-      setError("Please fill in all required fields.");
-      return;
-    }
-
+    // Map the frontend role values to backend expected values using the correct mapping
     const roleMapping = {
       Customer: "user",
       Tailor: "fashion-designer",
@@ -161,52 +80,55 @@ const AnnouncementsManager = () => {
       role: roleMapping[formData.role] || formData.role,
     };
 
-    try {
-      await sendAnnouncement(payload);
-      setError(null);
-    } catch (err) {
-      setError(err.message);
-    }
-  };
+    console.log("Sending announcement:", payload);
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+    sendAnnouncement(payload, {
+      onSuccess: () => {
+        // Reset form on success
+        setFormData({ subject: "", message: "", role: "" });
+        // Refresh admin announcements if we're on the view tab
+        if (activeTab === "view") {
+          fetchAdminAnnouncements();
+        }
+      },
     });
   };
 
+  const formatDate = (dateString) => {
+    try {
+      return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (error) {
+      return "Invalid Date";
+    }
+  };
+
+  const getRoleBadgeColor = (role) => {
+    const colors = {
+      user: "bg-blue-100 text-blue-800",
+      "fashion-designer": "bg-purple-100 text-purple-800",
+      "fabric-vendor": "bg-green-100 text-green-800",
+      "market-representative": "bg-orange-100 text-orange-800",
+      "logistics-agent": "bg-red-100 text-red-800",
+    };
+    return colors[role] || "bg-gray-100 text-gray-800";
+  };
+
   const getRoleDisplayName = (role) => {
-    const roleMap = {
+    const roleNames = {
       user: "Customer",
       "fashion-designer": "Tailor",
       "fabric-vendor": "Fabric Vendor",
       "market-representative": "Market Rep",
       "logistics-agent": "Logistics",
     };
-    return roleMap[role] || role;
+    return roleNames[role] || role;
   };
-
-  const getRoleBadgeColor = (role) => {
-    const colorMap = {
-      user: "bg-blue-100 text-blue-800",
-      "fashion-designer": "bg-purple-100 text-purple-800",
-      "fabric-vendor": "bg-green-100 text-green-800",
-      "market-representative": "bg-orange-100 text-orange-800",
-      "logistics-agent": "bg-indigo-100 text-indigo-800",
-    };
-    return colorMap[role] || "bg-gray-100 text-gray-800";
-  };
-
-  const filteredAnnouncements = announcements.filter(
-    (announcement) =>
-      announcement.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      announcement.message.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -220,51 +142,43 @@ const AnnouncementsManager = () => {
             <h1 className="text-3xl font-bold text-gray-900">Announcements</h1>
           </div>
           <p className="text-gray-600">
-            Manage and send announcements to specific user groups across the
+            Create and manage announcements for different user groups across the
             platform.
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="mb-6">
-          <div className="flex space-x-4 border-b border-gray-200">
-            <button
-              onClick={() => setActiveTab("create")}
-              className={`pb-3 px-4 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === "create"
-                  ? "border-purple-500 text-purple-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              <FaPaperPlane className="inline h-4 w-4 mr-2" />
-              Create Announcement
-            </button>
-            <button
-              onClick={() => setActiveTab("view")}
-              className={`pb-3 px-4 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === "view"
-                  ? "border-purple-500 text-purple-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              <FaList className="inline h-4 w-4 mr-2" />
-              View Announcements
-            </button>
+        <div className="mb-8">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab("create")}
+                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
+                  activeTab === "create"
+                    ? "border-purple-500 text-purple-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                <FaPlus className="h-4 w-4" />
+                <span>Create Announcement</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("view")}
+                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
+                  activeTab === "view"
+                    ? "border-purple-500 text-purple-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                <FaList className="h-4 w-4" />
+                <span>View Sent Announcements</span>
+              </button>
+            </nav>
           </div>
         </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-            <div className="flex items-center">
-              <FaExclamationCircle className="h-5 w-5 text-red-600 mr-2" />
-              <span className="text-red-800">{error}</span>
-            </div>
-          </div>
-        )}
-
-        {/* Create Tab */}
-        {activeTab === "create" && (
+        {/* Tab Content */}
+        {activeTab === "create" ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Announcement Form */}
             <div className="lg:col-span-2">
@@ -276,7 +190,7 @@ const AnnouncementsManager = () => {
                   </h2>
                 </div>
 
-                <div className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       <FaUsers className="inline h-4 w-4 mr-2" />
@@ -334,14 +248,13 @@ const AnnouncementsManager = () => {
                   </div>
 
                   <button
-                    type="button"
-                    onClick={handleSubmit}
-                    disabled={loading}
+                    type="submit"
+                    disabled={isSending}
                     className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-4 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   >
-                    {loading ? (
+                    {isSending ? (
                       <>
-                        <FaSpinner className="animate-spin h-4 w-4 mr-2" />
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                         Sending Announcement...
                       </>
                     ) : (
@@ -351,7 +264,7 @@ const AnnouncementsManager = () => {
                       </>
                     )}
                   </button>
-                </div>
+                </form>
               </div>
             </div>
 
@@ -391,7 +304,7 @@ const AnnouncementsManager = () => {
                 </div>
               )}
 
-              {/* Tips Card */}
+              {/* Info Card */}
               <div className="bg-blue-50 rounded-xl border border-blue-200 p-6">
                 <h3 className="text-lg font-semibold text-blue-900 mb-3">
                   Announcement Tips
@@ -419,108 +332,95 @@ const AnnouncementsManager = () => {
               </div>
             </div>
           </div>
-        )}
-
-        {/* View Tab */}
-        {activeTab === "view" && (
+        ) : (
+          /* View Announcements Tab */
           <div className="space-y-6">
-            {/* Filters and Search */}
+            {/* Header for announcements list */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-                <div className="flex items-center space-x-4">
-                  <div className="relative">
-                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                    <input
-                      type="text"
-                      placeholder="Search announcements..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  <div className="relative">
-                    <select
-                      value={filterRole}
-                      onChange={(e) => setFilterRole(e.target.value)}
-                      className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    >
-                      <option value="">All Roles</option>
-                      <option value="user">Customer</option>
-                      <option value="fashion-designer">Tailor</option>
-                      <option value="fabric-vendor">Fabric Vendor</option>
-                      <option value="market-representative">Market Rep</option>
-                      <option value="logistics-agent">Logistics</option>
-                    </select>
-                    <FaFilter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
-                  </div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <FaUserTie className="h-5 w-5 text-purple-600" />
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Sent Announcements
+                  </h2>
                 </div>
-
-                <div className="text-sm text-gray-600">
-                  {filteredAnnouncements.length} announcements found
-                </div>
+                <button
+                  onClick={fetchAdminAnnouncements}
+                  disabled={loadingAnnouncements}
+                  className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                >
+                  {loadingAnnouncements ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Loading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaBullhorn className="h-4 w-4" />
+                      <span>Refresh</span>
+                    </>
+                  )}
+                </button>
               </div>
-            </div>
 
-            {/* Announcements List */}
-            <div className="space-y-4">
-              {loading ? (
-                <div className="flex justify-center items-center py-12">
-                  <FaSpinner className="animate-spin h-8 w-8 text-purple-600" />
+              {loadingAnnouncements ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
                   <span className="ml-3 text-gray-600">
                     Loading announcements...
                   </span>
                 </div>
-              ) : filteredAnnouncements.length === 0 ? (
+              ) : adminAnnouncements.length === 0 ? (
                 <div className="text-center py-12">
-                  <FaEye className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <FaBullhorn className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
                     No announcements found
                   </h3>
-                  <p className="text-gray-600">
-                    {searchTerm || filterRole
-                      ? "Try adjusting your search or filter criteria."
-                      : "No announcements have been sent yet."}
+                  <p className="text-gray-500">
+                    You haven't sent any announcements yet. Create your first
+                    announcement using the "Create Announcement" tab.
                   </p>
                 </div>
               ) : (
-                filteredAnnouncements.map((announcement) => (
-                  <div
-                    key={announcement.id}
-                    className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900">
-                            {announcement.subject}
-                          </h3>
+                <div className="space-y-4">
+                  {adminAnnouncements.map((announcement, index) => (
+                    <div
+                      key={announcement.id || index}
+                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center space-x-3">
                           <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(announcement.role)}`}
+                            className={`text-xs font-medium px-2 py-1 rounded-full ${getRoleBadgeColor(
+                              announcement.role,
+                            )}`}
                           >
                             {getRoleDisplayName(announcement.role)}
                           </span>
+                          {announcement.createdAt && (
+                            <div className="flex items-center text-xs text-gray-500">
+                              <FaCalendarAlt className="h-3 w-3 mr-1" />
+                              {formatDate(announcement.createdAt)}
+                            </div>
+                          )}
                         </div>
-                        <div className="flex items-center text-sm text-gray-500 space-x-4">
-                          <div className="flex items-center">
-                            <FaCalendarAlt className="h-4 w-4 mr-1" />
-                            {formatDate(announcement.createdAt)}
-                          </div>
-                          <div className="flex items-center">
-                            <FaCheck className="h-4 w-4 mr-1 text-green-500" />
-                            Sent
-                          </div>
-                        </div>
+                        {announcement.id && (
+                          <span className="text-xs text-gray-400 font-mono">
+                            ID: {announcement.id.substring(0, 8)}...
+                          </span>
+                        )}
                       </div>
-                    </div>
 
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-gray-700 text-sm leading-relaxed">
-                        {announcement.message}
+                      <h4 className="font-medium text-gray-900 mb-2">
+                        {announcement.subject || "No subject"}
+                      </h4>
+
+                      <p className="text-gray-700 text-sm bg-gray-50 p-3 rounded-lg">
+                        {announcement.message || "No message content"}
                       </p>
                     </div>
-                  </div>
-                ))
+                  ))}
+                </div>
               )}
             </div>
           </div>
@@ -530,4 +430,4 @@ const AnnouncementsManager = () => {
   );
 };
 
-export default AnnouncementsManager;
+export default AnnouncementsPage;

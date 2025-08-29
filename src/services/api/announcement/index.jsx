@@ -29,6 +29,30 @@ const getAnnouncements = (role) => {
     });
 };
 
+// Add function to get announcements sent by admin
+const getAdminAnnouncements = () => {
+  const endpoint = "/announcements";
+  console.log(
+    "AnnouncementService.getAdminAnnouncements - Endpoint:",
+    endpoint,
+  );
+  return CaryBinApi.get(endpoint)
+    .then((response) => {
+      console.log(
+        "AnnouncementService.getAdminAnnouncements - Response:",
+        response,
+      );
+      return response;
+    })
+    .catch((error) => {
+      console.error(
+        "AnnouncementService.getAdminAnnouncements - Error:",
+        error,
+      );
+      throw error;
+    });
+};
+
 const getAnnouncementById = (id) => {
   console.log("AnnouncementService.getAnnouncementById - ID:", id);
   return CaryBinApi.get(`/announcements/${id}`);
@@ -82,6 +106,7 @@ const getAnnouncementsWithTimestamp = (role, createdAt) => {
 const AnnouncementService = {
   sendAnnouncement,
   getAnnouncements,
+  getAdminAnnouncements,
   getAnnouncementById,
   getAnnouncementsWithTimestamp,
 };

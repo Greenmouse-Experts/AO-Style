@@ -11,7 +11,7 @@ import InboxPage from "../modules/Pages/salesDashboard/Inbox";
 import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPageUpdate";
 import ViewVendorDetails from "../modules/Pages/salesDashboard/ViewVendorDetails";
 import ViewTransactionDetail from "../components/ViewTransactionDetails";
-
+import MarketRepAnnouncements from "../modules/Pages/salesDashboard/Announcements";
 export const salesRoutes = [
   {
     path: "/sales",
@@ -61,7 +61,10 @@ export const salesRoutes = [
         path: "/sales/settings",
         element: <SettingPages />,
       },
-      // Add other sales dashboard routes here
+      {
+        path: "/sales/announcements",
+        element: <MarketRepAnnouncements />,
+      },
     ],
   },
 ];

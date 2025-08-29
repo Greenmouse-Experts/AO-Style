@@ -243,7 +243,7 @@ const OrdersTable = () => {
     },
     {
       key: "review",
-      label: "see reviews",
+      label: "See Reviews",
       action: (item) => {
         setActiveReviewModal(item.payment.purchase.items[0].product_id);
         setOpenDropdown(null);

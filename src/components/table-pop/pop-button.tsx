@@ -74,9 +74,9 @@ export default function PopUp(props: {
         data-theme="nord"
         ref={setReferenceElement}
         onClick={openPopup}
-        className="btn btn-square"
+        className="btn btn-circle btn-ghost"
       >
-        <Menu className="label" />
+        <Menu size={20} />
       </div>
       <Portal>
         {isOpen && (
@@ -86,22 +86,23 @@ export default function PopUp(props: {
               setPopperElement(el);
               popupRef.current = el;
             }}
-            className="card card-border bg-base-100 shadow-lg p-2 z-50"
+            className="shadow-lg border border-current/20 rounded-xl bg-base-100 z-50 p-2"
+            style={{
+              ...styles.popper,
+              width: "150px",
+            }}
             {...attributes.popper}
-            style={styles.popper}
           >
-            <div className="card-body p-0">
-              <div className="flex flex-col gap-2">
-                {props?.actions?.map((action) => (
-                  <button
-                    key={action.key}
-                    className="btn btn-ghost btn-sm justify-start"
-                    onClick={() => action.action(props.item)}
-                  >
-                    {action.label}
-                  </button>
-                ))}
-              </div>
+            <div className="flex flex-col gap-1">
+              {props?.actions?.map((action) => (
+                <button
+                  key={action.key}
+                  className="btn btn-ghost  btn-sm"
+                  onClick={() => action.action(props.item)}
+                >
+                  {action.label}
+                </button>
+              ))}
             </div>
           </div>
         )}

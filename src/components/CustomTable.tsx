@@ -57,7 +57,7 @@ export default function CustomTable(props: CustomTableProps) {
                 return (
                   <tr
                     key={rowIdx}
-                    className="hover:bg-base-200 border-base-300"
+                    className="hover:bg-base-300 border-base-300"
                   >
                     {props.columns?.map((col, colIdx) => (
                       <td
@@ -83,34 +83,6 @@ export default function CustomTable(props: CustomTableProps) {
                             item={item}
                           />
                         </td>
-                        {/*<td className="py-3 px-4   relative">
-                          <div className="dropdown dropdown-end relative">
-                            <div
-                              tabIndex={0}
-                              role="button"
-                              className="btn btn-square btn-ghost btn-sm hover:bg-base-300"
-                            >
-                              <MenuIcon className="size-6 label" />
-                            </div>
-                            <ul
-                              // tabIndex={0}
-                              className="z-50 dropdown-content menu bg-base-100 rounded-lg border border-base-300 w-52 p-2 shadow-lg"
-                            >
-                              {props.actions?.map((action, actionIdx) => {
-                                return (
-                                  <li key={actionIdx}>
-                                    <button
-                                      onClick={() => action.action(item)}
-                                      className="text-left hover:bg-base-200 rounded-md px-3 py-2 text-base-content"
-                                    >
-                                      {action.label}
-                                    </button>
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          </div>
-                        </td>*/}
                       </>
                     )}
                   </tr>

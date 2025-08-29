@@ -1,5 +1,6 @@
 import { MenuIcon } from "lucide-react";
 import { nanoid } from "nanoid";
+import PopUp from "./table-pop/pop-button";
 // import CaryBinApi from "../services/CarybinBaseUrl";
 // import { Link } from "react-router-dom";
 
@@ -69,41 +70,7 @@ export default function CustomTable(props: CustomTableProps) {
                     {!props.columns?.find((item) => item.key == "action") && (
                       <>
                         <td>
-                          {" "}
-                          <button
-                            className="btn btn-square"
-                            popoverTarget={popoverId}
-                            style={
-                              {
-                                anchorName: anchorName,
-                              } /* as React.CSSProperties */
-                            }
-                          >
-                            <MenuIcon className="size-6 label" />
-                          </button>
-                          <ul
-                            className="dropdown dropdown-end menu w-52 rounded-box bg-base-100 shadow-sm"
-                            popover="auto"
-                            id={popoverId}
-                            style={
-                              {
-                                positionAnchor: anchorName,
-                              } /* as React.CSSProperties */
-                            }
-                          >
-                            {props.actions?.map((action, actionIdx) => {
-                              return (
-                                <li key={actionIdx}>
-                                  <button
-                                    onClick={() => action.action(item)}
-                                    className="text-left hover:bg-base-200 rounded-md px-3 py-2 text-base-content"
-                                  >
-                                    {action.label}
-                                  </button>
-                                </li>
-                              );
-                            })}
-                          </ul>
+                          <PopUp actions={props.actions} />
                         </td>
                         {/*<td className="py-3 px-4   relative">
                           <div className="dropdown dropdown-end relative">

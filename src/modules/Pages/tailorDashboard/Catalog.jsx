@@ -22,10 +22,11 @@ import { CSVLink } from "react-csv";
 import useToast from "../../../hooks/useToast";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
 import { toast } from "react-toastify";
+import { usePopper } from "react-popper";
 
 export default function StylesTable() {
   const [newCategory, setNewCategory] = useState();
-
+  const { style, attributes } = usePopper();
   const [currProd, setCurrProd] = useState("all");
 
   const isAdminStyleRoute = location.pathname === "/admin/styles-products";
@@ -332,6 +333,7 @@ export default function StylesTable() {
               <table className="w-full text-left border-collapse mb-12">
                 <thead>
                   <tr className="border-b border-gray-200 text-gray-500 text-sm">
+                    <th className="py-3">SKU</th>
                     <th className="py-3">Style</th>
                     <th className="hidden md:table-cell">Price</th>
                     {/* <th className="hidden md:table-cell">Sold</th> */}
@@ -348,6 +350,7 @@ export default function StylesTable() {
                       key={style.id}
                       className="border-b border-gray-200 text-sm"
                     >
+                      <td>{style.sku}</td>
                       <td className="flex items-center space-x-3 py-4">
                         {style?.style?.photos[0] ? (
                           <img

@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { Search } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaEllipsisH } from "react-icons/fa";
 import ReusableTable from "../adminDashboard/components/ReusableTable";
 import useGetAllMarketRepVendor from "../../../hooks/marketRep/useGetAllReps";
@@ -10,13 +10,14 @@ import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 import useDebounce from "../../../hooks/useDebounce";
 import { useMemo } from "react";
 import { formatDateStr } from "../../../lib/helper";
+import CustomTable from "../../../components/CustomTable";
 
 export default function FabricVendorPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("All Fabric Vendors");
   const dropdownRef = useRef(null);
   const [openDropdown, setOpenDropdown] = useState(null);
-
+  const nav = useNavigate();
   const toggleDropdown = (id) => {
     setOpenDropdown(openDropdown === id ? null : id);
   };
@@ -90,38 +91,47 @@ export default function FabricVendorPage() {
     //     </span>
     //   ),
     // },
-    {
-      label: "Action",
-      key: "action",
-      render: (_, row) => (
-        <div className="" ref={dropdownRef}>
-          <button
-            className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
-            onClick={() => {
-              toggleDropdown(row.id);
-            }}
-          >
-            <FaEllipsisH />
-          </button>
+    // {
+    //   label: "Action",
+    //   key: "action",
+    //   render: (_, row) => (
+    //     <div className="" ref={dropdownRef}>
+    //       <button
+    //         className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
+    //         onClick={() => {
+    //           toggleDropdown(row.id);
+    //         }}
+    //       >
+    //         <FaEllipsisH />
+    //       </button>
 
-          {openDropdown === row.id && (
-            <div className="absolute cursor-pointer right-0 mt-2 w-40 bg-white rounded-md z-10">
-              <Link
-                to={`/sales/view-vendor/${row.id}`}
-                className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
-              >
-                View Fabric Vendor
-              </Link>
-              {/* <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
-                Edit Fabric Vendor
-              </button>
-              <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">
-                Remove Fabric Vendor
-              </button> */}
-            </div>
-          )}
-        </div>
-      ),
+    //       {openDropdown === row.id && (
+    //         <div className="absolute cursor-pointer right-0 mt-2 w-40 bg-white rounded-md z-10">
+    //           <Link
+    //             to={`/sales/view-vendor/${row.id}`}
+    //             className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
+    //           >
+    //             View Fabric Vendor
+    //           </Link>
+    //           {/* <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
+    //             Edit Fabric Vendor
+    //           </button>
+    //           <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">
+    //             Remove Fabric Vendor
+    //           </button> */}
+    //         </div>
+    //       )}
+    //     </div>
+    //   ),
+    // },
+  ];
+  const action = [
+    {
+      key: "view",
+      label: "view",
+      action: (row) => {
+        nav(`/sales/view-vendor/${row.id}`);
+      },
     },
   ];
 
@@ -202,10 +212,16 @@ export default function FabricVendorPage() {
 
         {/* Table Section */}
         <div className="overflow-x-auto">
-          <ReusableTable
+          {/* <ReusableTable
             columns={columns}
             data={fabVendorData || []}
             loading={isPending}
+          />*/}
+
+          <CustomTable
+            columns={columns}
+            data={fabVendorData || []}
+            actions={action}
           />
         </div>
 

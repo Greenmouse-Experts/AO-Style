@@ -127,6 +127,11 @@ const SubscriptionModal = ({ onClose, refetch, currentView }) => {
                             +currentView?.subscription_plan_prices[0]?.price,
                           payment_id: data?.data?.data?.payment_id,
                         });
+                        refetch();
+                      },
+                      onError: (error) => {
+                        console.error(error);
+                        refetch();
                       },
                     },
                   )

@@ -1,6 +1,7 @@
 import { Menu } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { usePopper } from "react-popper";
+import Portal from "../portal";
 type Actions = {
   key: string;
   label: string;
@@ -54,7 +55,7 @@ export default function PopUp(props: {
   }, [isOpen, props.setIndex, referenceElement]);
 
   const { styles, attributes } = usePopper(referenceElement, popperElement, {
-    placement: "bottom-start",
+    placement: "bottom-end",
     modifiers: [
       {
         name: "offset",
@@ -77,31 +78,34 @@ export default function PopUp(props: {
       >
         <Menu className="label" />
       </div>
-      {isOpen && (
-        <div
-          ref={(el) => {
-            setPopperElement(el);
-            popupRef.current = el;
-          }}
-          className="card card-border bg-base-100 shadow-lg p-2 z-50"
-          {...attributes.popper}
-          style={styles.popper}
-        >
-          <div className="card-body p-0">
-            <div className="flex flex-col gap-2">
-              {props?.actions?.map((action) => (
-                <button
-                  key={action.key}
-                  className="btn btn-ghost btn-sm justify-start"
-                  onClick={() => action.action(props.item)}
-                >
-                  {action.label}
-                </button>
-              ))}
+      <Portal>
+        {isOpen && (
+          <div
+            data-theme="nord"
+            ref={(el) => {
+              setPopperElement(el);
+              popupRef.current = el;
+            }}
+            className="card card-border bg-base-100 shadow-lg p-2 z-50"
+            {...attributes.popper}
+            style={styles.popper}
+          >
+            <div className="card-body p-0">
+              <div className="flex flex-col gap-2">
+                {props?.actions?.map((action) => (
+                  <button
+                    key={action.key}
+                    className="btn btn-ghost btn-sm justify-start"
+                    onClick={() => action.action(props.item)}
+                  >
+                    {action.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Portal>
     </>
   );
 }

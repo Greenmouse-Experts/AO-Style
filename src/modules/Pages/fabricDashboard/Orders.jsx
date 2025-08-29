@@ -769,37 +769,39 @@ const OrderPage = () => {
                   </div>
                 </div>
                 {/* Status Select */}
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Order Status</span>
-                  </label>
-                  <select
-                    name="status"
-                    className="select select-bordered w-full"
-                    defaultValue={currentItem.orderStatus || "PROCESSING"}
-                    onChange={(e) => {
-                      // In a real application, you'd likely manage this with useState for actual updates
-                      // For now, we're just displaying the selected value.
-                      // This would be the place to call a function to update the backend.
-                      console.log("Selected new status:", e.target.value);
-                    }}
-                  >
-                    {/* <option value={currentItem.status} readonly>
+                {status_select[currentItem?.status]?.to?.length > 0 && (
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">Order Status</span>
+                    </label>
+                    <select
+                      name="status"
+                      className="select select-bordered w-full"
+                      defaultValue={currentItem.orderStatus || "PROCESSING"}
+                      onChange={(e) => {
+                        // In a real application, you'd likely manage this with useState for actual updates
+                        // For now, we're just displaying the selected value.
+                        // This would be the place to call a function to update the backend.
+                        console.log("Selected new status:", e.target.value);
+                      }}
+                    >
+                      {/* <option value={currentItem.status} readonly>
                       {" "}
                       {currentItem.status}
                     </option>*/}
-                    {status_select[currentItem?.status]?.to?.map((status) => (
-                      <>
-                        <option key={status.value} value={status.value}>
-                          {status.label}
-                        </option>
-                      </>
-                    ))}
-                    {/* <option key={"Cancel"} value={"CANCELLED"}>
+                      {status_select[currentItem?.status]?.to?.map((status) => (
+                        <>
+                          <option key={status.value} value={status.value}>
+                            {status.label}
+                          </option>
+                        </>
+                      ))}
+                      {/* <option key={"Cancel"} value={"CANCELLED"}>
                       Cancel
                     </option>*/}
-                  </select>
-                </div>
+                    </select>
+                  </div>
+                )}
               </>
             )}
 

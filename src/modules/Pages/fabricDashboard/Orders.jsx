@@ -787,7 +787,7 @@ const OrderPage = () => {
                       {" "}
                       {currentItem.status}
                     </option>*/}
-                    {status_select[currentItem?.status].to.map((status) => (
+                    {status_select[currentItem?.status]?.to?.map((status) => (
                       <>
                         <option key={status.value} value={status.value}>
                           {status.label}

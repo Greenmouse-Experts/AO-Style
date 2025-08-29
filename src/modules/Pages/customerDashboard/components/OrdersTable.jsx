@@ -69,7 +69,7 @@ const OrdersTable = (customerRecentOrderStat) => {
             (details) => {
               return {
                 ...details,
-                transactionId: `${details?.payment?.id?.split("-")[0]?.toUpperCase() ?? ""}`,
+                transactionId: `${details?.payment?.id?.replace(/-/g, "").slice(0, 12).toUpperCase() ?? ""}`,
                 amount: `${formatNumberWithCommas(
                   details?.payment?.amount ?? 0,
                 )}`,

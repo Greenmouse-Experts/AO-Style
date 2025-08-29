@@ -74,9 +74,9 @@ export default function PopUp(props: {
         data-theme="nord"
         ref={setReferenceElement}
         onClick={openPopup}
-        className="btn btn-circle btn-ghost"
+        className="btn btn-circle "
       >
-        <Menu size={20} />
+        <Menu size={20} className="label" />
       </div>
       <Portal>
         {isOpen && (

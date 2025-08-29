@@ -71,27 +71,27 @@ const OrdersTable = (customerRecentOrderStat) => {
                 ...details,
                 transactionId: `${details?.payment?.transaction_id}`,
                 amount: `${formatNumberWithCommas(
-                  details?.payment?.amount ?? 0
+                  details?.payment?.amount ?? 0,
                 )}`,
                 status: `${details?.payment?.payment_status}`,
                 dateAdded: `${
                   details?.created_at
                     ? formatDateStr(
                         details?.created_at.split(".").shift(),
-                        "D/M/YYYY h:mm A"
+                        "D/M/YYYY h:mm A",
                       )
                     : ""
                 }`,
               };
-            }
+            },
           )
         : [],
-    [customerRecentOrderStat?.customerRecentOrderStat?.data]
+    [customerRecentOrderStat?.customerRecentOrderStat?.data],
   );
 
   const columns = useMemo(
     () => [
-      { key: "transactionId", label: "Transaction ID" },
+      { key: "transactionId", label: "Order ID" },
 
       { key: "category", label: "Category" },
       { key: "amount", label: "Amount" },
@@ -109,8 +109,8 @@ const OrdersTable = (customerRecentOrderStat) => {
               value === "PENDING"
                 ? "bg-yellow-100 text-yellow-600"
                 : value === "Cancelled"
-                ? "bg-red-100 text-red-600"
-                : "bg-green-100 text-green-600"
+                  ? "bg-red-100 text-red-600"
+                  : "bg-green-100 text-green-600"
             }`}
           >
             {value}
@@ -118,7 +118,7 @@ const OrdersTable = (customerRecentOrderStat) => {
         ),
       },
     ],
-    []
+    [],
   );
 
   return <ReusableTable columns={columns} data={recentOrderData} />;

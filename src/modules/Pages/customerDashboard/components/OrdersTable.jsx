@@ -69,7 +69,7 @@ const OrdersTable = (customerRecentOrderStat) => {
             (details) => {
               return {
                 ...details,
-                transactionId: `${details?.payment?.transaction_id}`,
+                transactionId: `#${details?.payment?.id?.split("-")[0]?.toUpperCase() ?? ""}`,
                 amount: `${formatNumberWithCommas(
                   details?.payment?.amount ?? 0,
                 )}`,
@@ -93,7 +93,7 @@ const OrdersTable = (customerRecentOrderStat) => {
     () => [
       { key: "transactionId", label: "Order ID" },
 
-      { key: "category", label: "Category" },
+      // { key: "category", label: "Category" },
       { key: "amount", label: "Amount" },
       {
         label: "Date",

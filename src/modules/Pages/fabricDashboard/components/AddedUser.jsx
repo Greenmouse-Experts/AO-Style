@@ -20,7 +20,7 @@ const NewOrders = () => {
   // Table Columns
   const columns = useMemo(
     () => [
-      //   { label: "Order ID", key: "orderId" },
+      { label: "Order ID", key: "orderId" },
       { label: "Product", key: "product" },
       // { label: "Order Description", key: "description" },
 
@@ -84,7 +84,7 @@ const NewOrders = () => {
         ? vendorRecentOrder?.data.slice(0, 3).map((details) => {
             return {
               ...details,
-              orderId: `${details?.order?.id}`,
+              orderId: `#${details?.order?.id?.split("-")[0]?.toUpperCase()}`,
               price: `${formatNumberWithCommas(
                 details?.order?.total_amount ?? 0,
               )}`,
@@ -126,21 +126,7 @@ const NewOrders = () => {
             See More
           </Link>
         </div>
-        <div className="flex flex-wrap gap-3 w-full sm:w-auto">
-          {/* <input
-            type="text"
-            placeholder="Search orders..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
-          /> */}
-          {/* <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-            Export As ▾
-          </button>
-          <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-            Sort: Newest First ▾
-          </button> */}
-        </div>
+        <div className="flex flex-wrap gap-3 w-full sm:w-auto"></div>
       </div>
 
       {/* Table */}

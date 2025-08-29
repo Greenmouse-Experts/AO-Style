@@ -354,7 +354,7 @@ const OrderPage = () => {
             return {
               ...details,
               id: details?.id,
-              orderId: details?.id,
+              orderId: details?.id?.split("-")[0]?.toUpperCase(),
               productId: firstItem?.product_id || firstItem?.id,
               customer:
                 details?.user?.email?.split("@")[0] ||

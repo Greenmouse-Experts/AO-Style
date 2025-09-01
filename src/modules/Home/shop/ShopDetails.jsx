@@ -21,6 +21,7 @@ import SubmitProductModal from "../components/SubmitProduct";
 import { generateUniqueId } from "../../../lib/helper";
 import { Tooltip } from "antd";
 import AuthenticatedProductReviews from "../../../components/reviews/AuthenticatedProductReviews";
+import CustomBackbtn from "../../../components/CustomBackBtn";
 
 const product = {
   name: "Luxury Embellished Lace Fabrics",
@@ -413,7 +414,6 @@ export default function ShopDetails() {
         just="Enjoy a wide selection of Materials & Designs"
         backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741604351/AoStyle/image_ugfmjr.jpg"
       />
-
       {productIsPending ? (
         <div className="h-screen flex items-center">
           {" "}
@@ -421,6 +421,9 @@ export default function ShopDetails() {
         </div>
       ) : (
         <section className="Resizer section px-4">
+          <div className="mb-4">
+            <CustomBackbtn />
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
             {/* Image Section - Enhanced layout with sticky positioning */}
             <div className="lg:sticky lg:top-4 lg:self-start space-y-4 lg:max-h-screen lg:overflow-y-auto">

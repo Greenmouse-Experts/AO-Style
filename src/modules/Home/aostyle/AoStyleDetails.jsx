@@ -11,6 +11,7 @@ import Cookies from "js-cookie";
 import AuthenticatedProductReviews from "../../../components/reviews/AuthenticatedProductReviews";
 import useAddCart from "../../../hooks/cart/useAddCart";
 import useToast from "../../../hooks/useToast";
+import CustomBackbtn from "../../../components/CustomBackBtn";
 
 export default function AnkaraGownPage() {
   const location = useLocation();
@@ -444,6 +445,9 @@ export default function AnkaraGownPage() {
         backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1743712882/AoStyle/image_lslmok.png"
       />
       <section className="Resizer section px-2 sm:px-4">
+        <div className="mb-4">
+          <CustomBackbtn />
+        </div>
         <div>
           <div className="p-2 sm:p-6">
             {/* Conditionally render the Fabric section */}

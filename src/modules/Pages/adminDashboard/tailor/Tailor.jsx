@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import ReusableTable from "../components/ReusableTable";
 import { FaEllipsisH, FaBars, FaTh, FaPhone, FaEnvelope } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { BsFilter } from "react-icons/bs";
 import useQueryParams from "../../../../hooks/useQueryParams";
 import useGetAllUsersByRole from "../../../../hooks/admin/useGetAllUserByRole";
@@ -123,7 +123,7 @@ const CustomersTable = () => {
   };
 
   const dropdownRef = useRef(null);
-
+  const nav = useNavigate();
   const columns = useMemo(
     () => [
       {
@@ -151,73 +151,99 @@ const CustomersTable = () => {
       { label: "Email Address", key: "email" },
       { label: "Location", key: "location" },
       { label: "Date Joined", key: "dateJoined" },
-      {
-        label: "Action",
-        key: "action",
-        render: (_, row) => (
-          <div className="relative">
-            <button
-              className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
-              onClick={() => {
-                toggleDropdown(row.id);
-              }}
-            >
-              <FaEllipsisH />
-            </button>
-            {openDropdown === row.id && (
-              <div className="dropdown-menu absolute z-[99999] right-2 rounded mt-2 w-50 bg-white rounded-md border-gray-200">
-                <Link
-                  to={`/admin/tailors/view-tailor/${row.id}`}
-                  className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
-                >
-                  View Tailors Details
-                </Link>
-                {/* <button className="block cursor-pointer px-4 cursor-pointer py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
-                  Edit User
-                </button> */}
-                {row?.profile?.approved_by_admin ? (
-                  <>
-                    {" "}
-                    <button
-                      onClick={() => {
-                        setSuspendModalOpen(true);
-                        setNewCategory(row);
-                        setOpenDropdown(null);
-                      }}
-                      className="block text-red-500 hover:bg-red-100 cursor-pointer px-4 py-2  w-full text-center"
-                    >
-                      {"Suspend Tailor"}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    {" "}
-                    <button
-                      onClick={() => {
-                        setSuspendModalOpen(true);
-                        setNewCategory(row);
-                        setOpenDropdown(null);
-                      }}
-                      className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
-                    >
-                      {"Unsuspend Tailor"}
-                    </button>
-                  </>
-                )}
-                <button
-                  onClick={() => handleDeleteUser(row)}
-                  className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center"
-                >
-                  Delete Tailor
-                </button>
-              </div>
-            )}
-          </div>
-        ),
-      },
+      // {
+      //   label: "Action",
+      //   key: "action",
+      //   render: (_, row) => (
+      //     <div className="relative">
+      //       <button
+      //         className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
+      //         onClick={() => {
+      //           toggleDropdown(row.id);
+      //         }}
+      //       >
+      //         <FaEllipsisH />
+      //       </button>
+      //       {openDropdown === row.id && (
+      //         <div className="dropdown-menu absolute z-[99999] right-2 rounded mt-2 w-50 bg-white rounded-md border-gray-200">
+      //           <Link
+      //             to={`/admin/tailors/view-tailor/${row.id}`}
+      //             className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+      //           >
+      //             View Tailors Details
+      //           </Link>
+      //           {/* <button className="block cursor-pointer px-4 cursor-pointer py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
+      //             Edit User
+      //           </button> */}
+      //           {row?.profile?.approved_by_admin ? (
+      //             <>
+      //               {" "}
+      //               <button
+      //                 onClick={() => {
+      //                   setSuspendModalOpen(true);
+      //                   setNewCategory(row);
+      //                   setOpenDropdown(null);
+      //                 }}
+      //                 className="block text-red-500 hover:bg-red-100 cursor-pointer px-4 py-2  w-full text-center"
+      //               >
+      //                 {"Suspend Tailor"}
+      //               </button>
+      //             </>
+      //           ) : (
+      //             <>
+      //               {" "}
+      //               <button
+      //                 onClick={() => {
+      //                   setSuspendModalOpen(true);
+      //                   setNewCategory(row);
+      //                   setOpenDropdown(null);
+      //                 }}
+      //                 className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+      //               >
+      //                 {"Unsuspend Tailor"}
+      //               </button>
+      //             </>
+      //           )}
+      //           <button
+      //             onClick={() => handleDeleteUser(row)}
+      //             className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center"
+      //           >
+      //             Delete Tailor
+      //           </button>
+      //         </div>
+      //       )}
+      //     </div>
+      //   ),
+      // },
     ],
     [openDropdown],
   );
+
+  const actions = [
+    {
+      key: "view-details",
+      label: "View Details",
+      action: (item) => {
+        return nav(`/admin/tailors/view-tailor/${item.id}`);
+      },
+    },
+    {
+      key: "suspend-tailor",
+      label: "Suspend Tailor",
+      action: (item) => {
+        setSuspendModalOpen(true);
+        setNewCategory(row);
+        setOpenDropdown(null);
+      },
+    },
+    {
+      key: "delete-tailor",
+      label: "Delete Tailor",
+      action: (item) => {
+        handleDeleteUser(item);
+      },
+    },
+  ];
 
   const toggleDropdown = (rowId) => {
     setOpenDropdown(openDropdown === rowId ? null : rowId);
@@ -311,12 +337,16 @@ const CustomersTable = () => {
 
       {activeTab === "table" ? (
         <>
-          {/* <CustomTable columns={columns} data={TailorData} />*/}
-          <ReusableTable
+          <CustomTable
+            columns={columns}
+            data={TailorData || []}
+            actions={actions}
+          />
+          {/* <ReusableTable
             columns={columns}
             data={TailorData}
             loading={isPending}
-          />
+          />*/}
           {TailorData?.length > 0 && (
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center">
@@ -392,7 +422,7 @@ const CustomersTable = () => {
                     >
                       View Details
                     </Link>
-                    <button
+                    {/* <button
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
                       onClick={() => console.log("Edit user", item.id)}
                     >
@@ -403,7 +433,7 @@ const CustomersTable = () => {
                       onClick={() => console.log("Remove user", item.id)}
                     >
                       Remove User
-                    </button>
+                    </button>*/}
                   </div>
                 )}
               </div>

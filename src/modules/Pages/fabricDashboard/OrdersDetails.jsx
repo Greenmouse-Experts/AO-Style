@@ -473,7 +473,7 @@ const OrderDetails = () => {
                     className="w-5 h-5 text-purple-600 border-2 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
                     checked={markReceivedChecked}
                     onChange={() => handleCheckboxChange("received")}
-                    disabled={orderInfo?.status === "DELIVERED"}
+                    disabled={orderInfo?.status === "DISPATCH"}
                   />
                 </label>
               </div>

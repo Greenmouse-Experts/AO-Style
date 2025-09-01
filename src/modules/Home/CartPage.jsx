@@ -35,6 +35,7 @@ import { formatNumberWithCommas } from "../../lib/helper";
 import CartItemStyle from "./components/CartItemStyle";
 import CartItemStyleDesktop from "./components/CartItemStyleDesktop";
 import CartItemWithBreakdown from "./components/CartItemWithBreakdown";
+import CustomBackbtn from "../../components/CustomBackBtn";
 
 const initialValues = {
   address: "",
@@ -961,6 +962,10 @@ const CartPage = () => {
         </div>
       ) : (
         <div className="Resizer section px-2 sm:px-4 py-4 sm:py-8">
+          {" "}
+          <div className="mb-4">
+            <CustomBackbtn />
+          </div>
           <div className="max-w-7xl mx-auto">
             {/* Cart Header with User Info */}
             <div className="mb-4 sm:mb-6">

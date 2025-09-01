@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import ReusableTable from "../components/ReusableTable";
 import { FaEllipsisH } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useGetAllMarketRep from "../../../../hooks/marketRep/useGetMarketRep";
 import useQueryParams from "../../../../hooks/useQueryParams";
 import useGetBusinessDetails from "../../../../hooks/settings/useGetBusinessDetails";
@@ -17,6 +17,7 @@ import useToast from "../../../../hooks/useToast";
 import AddMarketModal from "./AddMarketModal";
 import * as XLSX from "xlsx";
 import { CSVLink } from "react-csv";
+import CustomTable from "../../../../components/CustomTable";
 
 const NewlyAddedUsers = () => {
   const [currView, setCurrView] = useState("approved");
@@ -40,7 +41,7 @@ const NewlyAddedUsers = () => {
   const [suspendModalOpen, setSuspendModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
-
+  const nav = useNavigate();
   const [newCategory, setNewCategory] = useState();
 
   const { data: businessData } = useGetBusinessDetails();
@@ -92,7 +93,31 @@ const NewlyAddedUsers = () => {
 
   const totalPageCount =
     currView === "invites" ? totalallInvitePages : totalPages;
-
+  const actions = [
+    {
+      key: "view-details",
+      label: "View Details",
+      action: (item) => {
+        return nav(`/admin/sales-rep/view-sales/${item.id}`);
+      },
+    },
+    {
+      key: "suspend-vendor",
+      label: "Suspend Vendor",
+      action: (item) => {
+        setSuspendModalOpen(true);
+        setNewCategory(row);
+        setOpenDropdown(null);
+      },
+    },
+    {
+      key: "delete-vendor",
+      label: "Delete Vendor",
+      action: (item) => {
+        handleDeleteUser(item);
+      },
+    },
+  ];
   const MarketRepData = useMemo(
     () =>
       getAllMarketRepData?.data
@@ -183,74 +208,74 @@ const NewlyAddedUsers = () => {
           </span>
         ),
       },
-      {
-        label: "Action",
-        key: "action",
-        render: (_, row) => (
-          <div className="relative">
-            <button
-              className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
-              onClick={() => {
-                toggleDropdown(row.id);
-              }}
-            >
-              <FaEllipsisH />
-            </button>
-            {openDropdown === row.id && (
-              <div className="dropdown-menu absolute right-0 mt-2 w-50 bg-white rounded-md z-10 border-gray-200">
-                <Link
-                  to={`/admin/sales-rep/view-sales/${row.id}`}
-                  onClick={() => {
-                    clearAllFilters();
-                  }}
-                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
-                >
-                  View Market Rep
-                </Link>
+      // {
+      //   label: "Action",
+      //   key: "action",
+      //   render: (_, row) => (
+      //     <div className="relative">
+      //       <button
+      //         className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
+      //         onClick={() => {
+      //           toggleDropdown(row.id);
+      //         }}
+      //       >
+      //         <FaEllipsisH />
+      //       </button>
+      //       {openDropdown === row.id && (
+      //         <div className="dropdown-menu absolute right-0 mt-2 w-50 bg-white rounded-md z-10 border-gray-200">
+      //           <Link
+      //             to={`/admin/sales-rep/view-sales/${row.id}`}
+      //             onClick={() => {
+      //               clearAllFilters();
+      //             }}
+      //             className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+      //           >
+      //             View Market Rep
+      //           </Link>
 
-                {row.profile?.approved_by_admin !== null ? (
-                  row?.profile?.approved_by_admin ? (
-                    <>
-                      {" "}
-                      <button
-                        onClick={() => {
-                          setSuspendModalOpen(true);
-                          setNewCategory(row);
-                          setOpenDropdown(null);
-                        }}
-                        className="block text-red-500 hover:bg-red-100 cursor-pointer px-4 py-2  w-full text-center"
-                      >
-                        {"Suspend User"}
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => {
-                          setSuspendModalOpen(true);
-                          setNewCategory(row);
-                          setOpenDropdown(null);
-                        }}
-                        className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
-                      >
-                        {"Unsuspend User"}
-                      </button>
-                    </>
-                  )
-                ) : (
-                  <></>
-                )}
-                <button
-                  onClick={() => handleDeleteUser(row)}
-                  className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center"
-                >
-                  Delete Market Rep
-                </button>
-              </div>
-            )}
-          </div>
-        ),
-      },
+      //           {row.profile?.approved_by_admin !== null ? (
+      //             row?.profile?.approved_by_admin ? (
+      //               <>
+      //                 {" "}
+      //                 <button
+      //                   onClick={() => {
+      //                     setSuspendModalOpen(true);
+      //                     setNewCategory(row);
+      //                     setOpenDropdown(null);
+      //                   }}
+      //                   className="block text-red-500 hover:bg-red-100 cursor-pointer px-4 py-2  w-full text-center"
+      //                 >
+      //                   {"Suspend User"}
+      //                 </button>
+      //               </>
+      //             ) : (
+      //               <>
+      //                 <button
+      //                   onClick={() => {
+      //                     setSuspendModalOpen(true);
+      //                     setNewCategory(row);
+      //                     setOpenDropdown(null);
+      //                   }}
+      //                   className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+      //                 >
+      //                   {"Unsuspend User"}
+      //                 </button>
+      //               </>
+      //             )
+      //           ) : (
+      //             <></>
+      //           )}
+      //           <button
+      //             onClick={() => handleDeleteUser(row)}
+      //             className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center"
+      //           >
+      //             Delete Market Rep
+      //           </button>
+      //         </div>
+      //       )}
+      //     </div>
+      //   ),
+      // },
     ],
     [toggleDropdown, openDropdown],
   );
@@ -446,12 +471,17 @@ const NewlyAddedUsers = () => {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
         />
-
-        <ReusableTable
+        <CustomTable
+          actions={actions}
           loading={isPending || allInviteIsPending}
           columns={currView == "invites" ? inviteRepColumn : columns}
           data={currView == "invites" ? InviteData : MarketRepData}
         />
+        {/* <ReusableTable
+          loading={isPending || allInviteIsPending}
+          columns={currView == "invites" ? inviteRepColumn : columns}
+          data={currView == "invites" ? InviteData : MarketRepData}
+        />*/}
         <div className="flex justify-between items-center mt-4">
           <div className="flex items-center">
             <p className="text-sm text-gray-600">Items per page: </p>

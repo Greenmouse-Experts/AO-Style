@@ -251,7 +251,7 @@ export default function LogisticsOrdersHandled({ id }: { id: string }) {
       let resp = await CaryBinApi.get("/orders/fetch", {
         params: {
           user_id: id,
-          status: currentStatus,
+          ...(currentStatus.trim() ? { status: currentStatus } : {}),
         },
       });
       return resp.data;

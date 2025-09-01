@@ -1,5 +1,7 @@
 import { MenuIcon } from "lucide-react";
 import { nanoid } from "nanoid";
+import PopUp from "./table-pop/pop-button";
+import { useState } from "react";
 // import CaryBinApi from "../services/CarybinBaseUrl";
 // import { Link } from "react-router-dom";
 
@@ -22,6 +24,7 @@ interface CustomTableProps {
 }
 
 export default function CustomTable(props: CustomTableProps) {
+  const [selectedItem, setSelectedItem] = useState<number | null>(null);
   return (
     <div data-theme="nord" className="" id="cus-app">
       <div className=" relative overflow-x-scroll">
@@ -54,7 +57,7 @@ export default function CustomTable(props: CustomTableProps) {
                 return (
                   <tr
                     key={rowIdx}
-                    className="hover:bg-base-200 border-base-300"
+                    className="hover:bg-base-300 border-base-300"
                   >
                     {props.columns?.map((col, colIdx) => (
                       <td
@@ -66,73 +69,20 @@ export default function CustomTable(props: CustomTableProps) {
                           : item[col.key]}
                       </td>
                     ))}
-                    {!props.columns?.find((item) => item.key == "action") && (
+                    {!props.columns?.find(
+                      (item, index) => item.key == "action",
+                    ) && (
                       <>
                         <td>
-                          {" "}
-                          <button
-                            className="btn btn-square"
-                            popoverTarget={popoverId}
-                            style={
-                              {
-                                anchorName: anchorName,
-                              } /* as React.CSSProperties */
-                            }
-                          >
-                            <MenuIcon className="size-6 label" />
-                          </button>
-                          <ul
-                            className="dropdown dropdown-end menu w-52 rounded-box bg-base-100 shadow-sm"
-                            popover="auto"
-                            id={popoverId}
-                            style={
-                              {
-                                positionAnchor: anchorName,
-                              } /* as React.CSSProperties */
-                            }
-                          >
-                            {props.actions?.map((action, actionIdx) => {
-                              return (
-                                <li key={actionIdx}>
-                                  <button
-                                    onClick={() => action.action(item)}
-                                    className="text-left hover:bg-base-200 rounded-md px-3 py-2 text-base-content"
-                                  >
-                                    {action.label}
-                                  </button>
-                                </li>
-                              );
-                            })}
-                          </ul>
+                          <PopUp
+                            itemIndex={rowIdx}
+                            setIndex={setSelectedItem}
+                            currentIndex={selectedItem}
+                            key={rowIdx + "menu"}
+                            actions={props?.actions || []}
+                            item={item}
+                          />
                         </td>
-                        {/*<td className="py-3 px-4   relative">
-                          <div className="dropdown dropdown-end relative">
-                            <div
-                              tabIndex={0}
-                              role="button"
-                              className="btn btn-square btn-ghost btn-sm hover:bg-base-300"
-                            >
-                              <MenuIcon className="size-6 label" />
-                            </div>
-                            <ul
-                              // tabIndex={0}
-                              className="z-50 dropdown-content menu bg-base-100 rounded-lg border border-base-300 w-52 p-2 shadow-lg"
-                            >
-                              {props.actions?.map((action, actionIdx) => {
-                                return (
-                                  <li key={actionIdx}>
-                                    <button
-                                      onClick={() => action.action(item)}
-                                      className="text-left hover:bg-base-200 rounded-md px-3 py-2 text-base-content"
-                                    >
-                                      {action.label}
-                                    </button>
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          </div>
-                        </td>*/}
                       </>
                     )}
                   </tr>

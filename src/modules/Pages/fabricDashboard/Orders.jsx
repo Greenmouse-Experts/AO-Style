@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import useGetOrder from "../../../hooks/order/useGetOrder";
 import useQueryParams from "../../../hooks/useQueryParams";
@@ -18,6 +18,7 @@ import { useRef } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
 import { useMutation } from "@tanstack/react-query";
+import CustomTable from "../../../components/CustomTable";
 
 const OrderPage = () => {
   const [filter, setFilter] = useState("all");
@@ -30,6 +31,7 @@ const OrderPage = () => {
     "pagination[limit]": 10,
     "pagination[page]": 1,
   });
+  const nav = useNavigate();
   const update_status = useMutation({
     mutationFn: async (status) => {
       return await CaryBinApi.put(`/orders/${currentItem.id}/status `, {
@@ -76,21 +78,22 @@ const OrderPage = () => {
       },
       { value: "DISPATCHED_TO_AGENT", label: "Dispatched to Agent", to: [] },
       {
+        value: "DELIVERED_TO_TAILOR",
+        label: "Delivered to Tailor",
+        to: [],
+      },
+      {
         value: "PROCESSING",
         label: "Processing",
         to: [],
       },
-      {
-        value: "SHIPPED",
-        label: "Shipped",
-        to: [],
-      },
+      { value: "OUT_FOR_DELIVERY", label: "Out for Delivery", to: [] },
       {
         value: "IN_TRANSIT",
         label: "In Transit",
         to: [],
       },
-      { value: "OUT_FOR_DELIVERY", label: "Out for Delivery", to: [] },
+
       { value: "DELIVERED", label: "Delivered", to: [] },
       { value: "CANCELLED", label: "Cancelled", to: [] },
     ],
@@ -105,7 +108,7 @@ const OrderPage = () => {
         to: [
           { value: "DISPATCHED_TO_AGENT", label: "Dispatched to Agent" },
           { value: "OUT_FOR_DELIVERY", label: "Out for Delivery" },
-          { value: "CANCELLED", label: "Cancelled" },
+          { value: "CANCELLED", label: "Cancel" },
         ],
       },
       DELIVERED_TO_TAILOR: {
@@ -243,95 +246,78 @@ const OrderPage = () => {
           </span>
         ),
       },
-      {
-        label: "Actions",
-        key: "action",
-        width: "w-24",
-        render: (_, row) => (
-          <div className="relative">
-            <button
-              onClick={() =>
-                setOpenDropdown(openDropdown === row.id ? null : row.id)
-              }
-              className="px-3 py-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
-            >
-              •••
-            </button>
-            {openDropdown === row.id && (
-              <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md z-20 border border-gray-200">
-                <Link to={`/fabric/orders/orders-details/${row.id}`}>
-                  <button className="block w-full text-left px-4 py-2 hover:bg-gray-50 text-sm font-medium text-gray-700">
-                    View Details
-                  </button>
-                </Link>
-                <button
-                  onClick={() => {
-                    setCurrentItem(row);
-                    dialogRef.current.showModal();
-                  }}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-50 text-sm font-medium text-gray-700 border-t border-gray-100"
-                >
-                  Update Status
-                </button>
-              </div>
-            )}
-          </div>
-        ),
-      },
+      // {
+      //   label: "Actions",
+      //   key: "action",
+      //   width: "w-24",
+      //   render: (_, row) => (
+      //     <div className="relative">
+      //       <button
+      //         onClick={() =>
+      //           setOpenDropdown(openDropdown === row.id ? null : row.id)
+      //         }
+      //         className="px-3 py-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+      //       >
+      //         •••
+      //       </button>
+      //       {openDropdown === row.id && (
+      //         <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md z-20 border border-gray-200">
+      //           <Link to={`/fabric/orders/orders-details/${row.id}`}>
+      //             <button className="block w-full text-left px-4 py-2 hover:bg-gray-50 text-sm font-medium text-gray-700">
+      //               View Details
+      //             </button>
+      //           </Link>
+      //           <button
+      //             onClick={() => {
+      //               setCurrentItem(row);
+      //               dialogRef.current.showModal();
+      //             }}
+      //             className="block w-full text-left px-4 py-2 hover:bg-gray-50 text-sm font-medium text-gray-700 border-t border-gray-100"
+      //           >
+      //             Update Status
+      //           </button>
+      //         </div>
+      //       )}
+      //     </div>
+      //   ),
+      // },
     ],
     [openDropdown],
   );
 
-  const columns = [
-    { label: "#", key: "id" },
-    { label: "Order ID", key: "orderId" },
-    { label: "Customer", key: "customer" },
-    { label: "Product", key: "product" },
-    { label: "Amount", key: "amount" },
-    // { label: "Location", key: "location" },
-    { label: "Order Date", key: "dateAdded" },
+  const actions = [
     {
-      label: "Status",
-      key: "status",
-      render: (status) => (
-        <span className="px-3 py-1 text-sm rounded-full bg-yellow-100 text-yellow-700">
-          {status}
-        </span>
-      ),
+      key: "view-details",
+      label: "View Details",
+      action: (item) => {
+        return nav(`/fabric/orders/orders-details/${item.id}`);
+      },
     },
     {
-      label: "Action",
-      key: "action",
-      render: (_, row) => (
-        <div className="relative">
-          <button
-            onClick={() =>
-              setOpenDropdown(openDropdown === row.id ? null : row.id)
-            }
-            className="px-2 py-1 cursor-pointer rounded-md"
-          >
-            •••
-          </button>
-          {openDropdown === row.id && (
-            <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
-              <Link to={`/fabric/orders/orders-details/${row.id}`}>
-                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
-                  View Details
-                </button>
-              </Link>
-              <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
-                Cancel Order
-              </button>
-              <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
-                Track Order
-              </button>
-            </div>
-          )}
-        </div>
-      ),
+      key: "update status",
+      label: "Update Status",
+      action: (item) => {
+        setCurrentItem(item);
+        return dialogRef.current.showModal();
+      },
     },
+    // {
+    //   key: "suspend-vendor",
+    //   label: "Suspend",
+    //   action: (item) => {
+    //     setSuspendModalOpen(true);
+    //     setNewCategory(row);
+    //     setOpenDropdown(null);
+    //   },
+    // },
+    // {
+    //   key: "delete-vendor",
+    //   label: "Delete",
+    //   action: (item) => {
+    //     handleDeleteUser(item);
+    //   },
+    // },
   ];
-
   const fabricOrderData = useMemo(
     () =>
       orderData?.data
@@ -548,7 +534,14 @@ const OrderPage = () => {
                         <button className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md text-sm">Sort: Newest First ▼</button> */}
           </div>
         </div>
-        <div className="overflow-x-auto">
+        {
+          <CustomTable
+            columns={updatedColumn}
+            data={fabricOrderData || []}
+            actions={actions}
+          />
+        }
+        {/* <div className="overflow-x-auto">
           <div className="min-w-full inline-block align-middle">
             <div className="overflow-hidden border border-gray-200 rounded-lg">
               <table className="min-w-full divide-y divide-gray-200">
@@ -611,7 +604,7 @@ const OrderPage = () => {
               </table>
             </div>
           </div>
-        </div>
+        </div>*/}
 
         {!filteredFabricOrderData?.length && !isPending ? (
           <p className="flex-1 text-center text-sm md:text-sm py-8">
@@ -763,37 +756,39 @@ const OrderPage = () => {
                   </div>
                 </div>
                 {/* Status Select */}
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Order Status</span>
-                  </label>
-                  <select
-                    name="status"
-                    className="select select-bordered w-full"
-                    defaultValue={currentItem.orderStatus || "PROCESSING"}
-                    onChange={(e) => {
-                      // In a real application, you'd likely manage this with useState for actual updates
-                      // For now, we're just displaying the selected value.
-                      // This would be the place to call a function to update the backend.
-                      console.log("Selected new status:", e.target.value);
-                    }}
-                  >
-                    {/* <option value={currentItem.status} readonly>
+                {status_select[currentItem?.status]?.to?.length > 0 && (
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">Order Status</span>
+                    </label>
+                    <select
+                      name="status"
+                      className="select select-bordered w-full"
+                      defaultValue={currentItem.orderStatus || "PROCESSING"}
+                      onChange={(e) => {
+                        // In a real application, you'd likely manage this with useState for actual updates
+                        // For now, we're just displaying the selected value.
+                        // This would be the place to call a function to update the backend.
+                        console.log("Selected new status:", e.target.value);
+                      }}
+                    >
+                      {/* <option value={currentItem.status} readonly>
                       {" "}
                       {currentItem.status}
                     </option>*/}
-                    {status_select[currentItem?.status].to.map((status) => (
-                      <>
-                        <option key={status.value} value={status.value}>
-                          {status.label}
-                        </option>
-                      </>
-                    ))}
-                    {/* <option key={"Cancel"} value={"CANCELLED"}>
+                      {status_select[currentItem?.status]?.to?.map((status) => (
+                        <>
+                          <option key={status.value} value={status.value}>
+                            {status.label}
+                          </option>
+                        </>
+                      ))}
+                      {/* <option key={"Cancel"} value={"CANCELLED"}>
                       Cancel
                     </option>*/}
-                  </select>
-                </div>
+                    </select>
+                  </div>
+                )}
               </>
             )}
 

@@ -118,29 +118,50 @@ const Subscriptions = () => {
     },
     currUrl == "/fabric/subscription" ? "fabric-vendor" : "fashion-designer",
   );
-
+  console.log(subscriptionData);
   const [queryString, setQueryString] = useState(queryParams.q);
 
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
 
+  // Get the active plan as the last item in the subscriptions array
+  const activePlan =
+    free_plan.data?.data?.subscriptions &&
+    free_plan.data?.data?.subscriptions.length > 0
+      ? free_plan.data?.data?.subscriptions[
+          free_plan.data?.data?.subscriptions.length - 1
+        ]
+      : undefined;
+
   // Handle Paystack success callback
   const handlePaystackSuccess = () => {
+    console.log("🔄 Paystack success - refreshing subscription data...");
     refetch();
     free_plan.refetch();
+
+    // Force a slight delay and additional refetch to ensure UI updates
+    setTimeout(() => {
+      refetch();
+      free_plan.refetch();
+      console.log("✅ Subscription data refreshed after upgrade");
+    }, 1000);
   };
 
   const subscriptionRes = useMemo(
     () =>
       subscriptionData?.data
         ? subscriptionData?.data.map((details) => {
+            // Determine if this plan is the active plan (last item)
+            const isActive =
+              details?.id === activePlan?.subscription_plan_id ||
+              details?.id ===
+                activePlan?.subscription_plan_prices?.[0]
+                  ?.subscription_plan_id ||
+              details?.name === activePlan?.plan_name_at_subscription;
+
             return {
               ...details,
               name: `${details?.name}`,
-              status: `${
-                details?.id === carybinUser?.subscriptions[0]?.plan_id
-                  ? "Active"
-                  : "Not-active"
-              }`,
+              status: isActive ? "Active" : "Not-active",
 
               planValidity: `${
                 details?.subscription_plan_prices[0]?.period == "free"
@@ -174,7 +195,7 @@ const Subscriptions = () => {
             };
           })
         : [],
-    [subscriptionData?.data],
+    [subscriptionData?.data, activePlan],
   );
 
   useUpdatedEffect(() => {
@@ -225,8 +246,61 @@ const Subscriptions = () => {
           </span>
         ),
       },
+
+      {
+        label: "Action",
+        key: "action",
+        render: (_, row) => (
+          <div className="relative">
+            <button
+              className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
+              onClick={() => toggleDropdown(row.id)}
+            >
+              <FaEllipsisH />
+            </button>
+
+            {openDropdown === row.id && (
+              <div className="absolute right-0 top-full mt-2 w-40 bg-white rounded-md z-50 shadow-lg">
+                <button
+                  onClick={() => {
+                    openModal();
+                    setCurrentView(row);
+                    setOpenDropdown(null);
+                  }}
+                  className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
+                >
+                  View plan
+                </button>
+
+                {row?.subscription_plan_prices[0]?.period === "free" ? (
+                  <></>
+                ) : activePlan?.subscription_plan_id == row?.id ||
+                  activePlan?.subscription_plan_prices?.[0]
+                    ?.subscription_plan_id == row?.id ||
+                  activePlan?.plan_name_at_subscription == row?.name ? (
+                  <span className="block px-4 py-2 text-green-600 text-sm font-medium">
+                    Current Plan
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => {
+                      console.log(row, "sub");
+                      subOpenModal();
+                      setCurrentView(row);
+                      setOpenDropdown(null);
+                    }}
+                    className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
+                  >
+                    {activePlan?.is_active ? "Upgrade Plan" : "Subscribe"}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        ),
+      },
     ],
-    [openDropdown],
+    [openDropdown, activePlan],
   );
 
   const actions = [
@@ -254,10 +328,10 @@ const Subscriptions = () => {
   //     data?.count / (queryParams["pagination[limit]"] ?? 10)
   //   );
 
-  const plan = free_plan.data?.data?.subscriptions[0];
+  // Use the last item as the active plan
+  const plan = activePlan;
   const is_free = plan?.name === "Free Plan" ? true : false;
   const plan_data = plan;
-
   if (isFetching) <>loading</>;
   return (
     <div className="bg-white p-6  rounded-xl ">
@@ -277,14 +351,13 @@ const Subscriptions = () => {
                   Current Plan
                 </p>
                 <h3 className="text-2xl font-bold text-primary">
-                  {free_plan.data?.data?.subscriptions[0]
-                    ?.plan_name_at_subscription || plan?.name}
+                  {plan?.plan_name_at_subscription || plan?.name}
                 </h3>
               </div>
             </div>
 
             {!is_free &&
-              (free_plan.data?.data?.subscriptions[0]?.is_active ? (
+              (plan?.is_active ? (
                 <div className="badge badge-success badge-lg gap-2">
                   <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20">
                     <circle cx="10" cy="10" r="10" />
@@ -312,9 +385,7 @@ const Subscriptions = () => {
                 </p>
                 <p className="text-sm font-semibold text-base-content">
                   {formatDateStr(
-                    free_plan.data?.data?.subscriptions[0]?.created_at?.split(
-                      ".",
-                    )[0],
+                    plan?.created_at?.split(".")[0],
                     "D/M/YYYY h:mm A",
                   )}
                 </p>
@@ -365,7 +436,7 @@ const Subscriptions = () => {
               </svg>
               <div>
                 <p className="font-medium">Free Plan Benefits</p>
-                <p className="text-sm opacity-80">{plan_data.description}</p>
+                <p className="text-sm opacity-80">{plan_data?.description}</p>
               </div>
             </div>
           )}
@@ -476,7 +547,10 @@ const Subscriptions = () => {
       )}
       {subIsOpen && (
         <SubscriptionModal
-          refetch={refetch}
+          refetch={() => {
+            refetch();
+            free_plan.refetch();
+          }}
           onClose={subCloseModal}
           currentView={currentView}
           onPaystackSuccess={handlePaystackSuccess}

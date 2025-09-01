@@ -31,8 +31,6 @@ const CustomersTable = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [activeTab, setActiveTab] = useState("table");
 
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
   const [suspendModalOpen, setSuspendModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
@@ -124,7 +122,7 @@ const CustomersTable = () => {
       render: (_, row) => (
         <div className="relative ">
           <button
-            className="bg-gray-100  cursor-pointer cursor-pointer text-gray-500 px-3 py-1 rounded-md"
+            className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
             onClick={() => toggleDropdown(row.id)}
           >
             <FaEllipsisH />
@@ -201,21 +199,27 @@ const CustomersTable = () => {
   };
 
   const confirmDeleteUser = () => {
+    console.log("🔴 Delete admin triggered:", userToDelete);
     if (userToDelete) {
+      console.log("🔴 Calling deleteSubAdminMutate with ID:", userToDelete.id);
       deleteSubAdminMutate(
         {
           id: userToDelete.id,
         },
         {
-          onSuccess: () => {
+          onSuccess: (data) => {
+            console.log("✅ Delete successful:", data);
             setDeleteModalOpen(false);
             setUserToDelete(null);
           },
-          onError: () => {
+          onError: (error) => {
+            console.log("❌ Delete failed:", error);
             // Error is handled in the hook
           },
         },
       );
+    } else {
+      console.log("❌ No user to delete");
     }
   };
 
@@ -506,79 +510,6 @@ const CustomersTable = () => {
           </div>
         )}
       </div>
-
-      {isAddModalOpen && (
-        <div
-          className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
-          onClick={() => {
-            setIsAddModalOpen(false);
-          }}
-        >
-          <div
-            className="bg-white rounded-lg p-6 w-full max-w-md"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-end">
-              <button
-                onClick={() => {
-                  setIsAddModalOpen(false);
-                }}
-                className="text-gray-500 cursor-pointer hover:text-gray-700 text-2xl"
-              >
-                ×
-              </button>
-            </div>
-            <h3 className="text-lg font-semibold mb-4 -mt-7">
-              {"Delete Admin"}
-            </h3>
-            <form
-              className="mt-6 space-y-4"
-              onSubmit={(e) => {
-                if (!navigator.onLine) {
-                  toastError(
-                    "No internet connection. Please check your network.",
-                  );
-                  return;
-                }
-                e.preventDefault();
-                deleteSubAdminMutate(
-                  {
-                    id: newCategory?.id,
-                  },
-                  {
-                    onSuccess: () => {
-                      setIsAddModalOpen(false);
-                      setNewCategory(null);
-                    },
-                  },
-                );
-              }}
-            >
-              <label className="block text-sm font-medium text-gray-700 mb-4">
-                Are you sure you want to delete {newCategory?.name}
-              </label>
-              <div className="flex w-full justify-end gap-4 mt-6">
-                <button
-                  className="mt-6 cursor-pointer w-full bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-3 text-sm rounded-md"
-                  //   className="bg-gray-300 hover:bg-gray-400 text-gray-800 w-full rounded-md"
-                  onClick={() => {
-                    setIsAddModalOpen(false);
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={deleteIsPending}
-                  className="mt-6 cursor-pointer w-full bg-gradient text-white px-4 py-3 text-sm rounded-md"
-                >
-                  {deleteIsPending ? "Please wait..." : "Delete Admin"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {suspendModalOpen && (
         <div

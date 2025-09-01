@@ -17,6 +17,10 @@ const useCreateSubscription = (business_id) => {
       queryClient.invalidateQueries({
         queryKey: ["get-subscription"],
       });
+      // Also invalidate any queries with params
+      queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey[0] === "get-subscription",
+      });
     },
     onError: (error) => {
       if (!navigator.onLine) {
@@ -34,3 +38,4 @@ const useCreateSubscription = (business_id) => {
 };
 
 export default useCreateSubscription;
+export { default as useUpgradeSubscription } from "./useUpgradeSubscription";

@@ -1,14 +1,3 @@
-/**
- * Customer Order Details Page
- *
- * Updated to:
- * - Use the /orders/details/id endpoint for order data
- * - Automatically show review section when order status is DELIVERED
- * - Support individual product reviews for both styles and fabrics
- * - Integrate with existing review system using ReviewForm component
- * - Display order progress based on actual order status
- * - Working ETA calculation using Google Maps Distance Matrix API
- */
 import React, { useState } from "react";
 import {
   CheckCircle,
@@ -141,12 +130,6 @@ const OrderDetails = () => {
         console.log("Origin (warehouse):", origin);
         console.log("Destination (user):", destination);
         console.log("API Key available:", !!GOOGLE_MAPS_API_KEY);
-
-        // Create a proxy request to avoid CORS issues
-        // Since we can't directly call Google's API from the frontend due to CORS,
-        // we'll use a simple calculation based on distance
-
-        // Calculate distance using Haversine formula
         const calculateDistance = (lat1, lon1, lat2, lon2) => {
           const R = 6371; // Radius of the Earth in kilometers
           const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -434,6 +417,18 @@ const OrderDetails = () => {
   const totalAmount =
     orderDetails?.total_amount || orderDetails?.payment?.amount || 0;
 
+  // --- SUBTOTAL CALCULATION LOGIC ---
+  // Calculate subtotal by summing (price * quantity) for each product
+  let calculatedSubtotal = 0;
+  if (orderPurchase && Array.isArray(orderPurchase)) {
+    calculatedSubtotal = orderPurchase.reduce((acc, item) => {
+      // Defensive: price and quantity may be string, so parseInt
+      const price = parseInt(item.price) || 0;
+      const quantity = parseInt(item.quantity) || 0;
+      return acc + price * quantity;
+    }, 0);
+  }
+
   console.log("=== CUSTOMER TOTAL AMOUNT DEBUG ===");
   console.log("Calculated totalAmount:", totalAmount);
   console.log("Order Purchase Array Length:", orderPurchase?.length || 0);
@@ -443,11 +438,12 @@ const OrderDetails = () => {
       name: item?.name,
       quantity: item?.quantity,
       price: item?.price,
-      subtotal:
-        orderDetails?.payment?.metadata[1]?.order_summary?.subtotal || 0,
+      itemTotal: (parseInt(item.price) || 0) * (parseInt(item.quantity) || 0),
+      subtotal: calculatedSubtotal,
       purchase_type: item?.purchase_type,
     });
   });
+  console.log("Calculated Subtotal:", calculatedSubtotal);
   console.log("====================================");
 
   // Additional debug info
@@ -565,50 +561,7 @@ const OrderDetails = () => {
         )}
       </div>
 
-      {/* ETA Display Section - Enhanced Debug Version */}
-      <div className="mt-4">
-        <div className="bg-gray-100 p-4 rounded-lg mb-4">
-          <h6 className="font-semibold mb-2">ETA Debug Information:</h6>
-          <div className="text-sm space-y-1">
-            <p>
-              Order Status: <strong>{orderDetails?.status || "N/A"}</strong>
-            </p>
-            <p>
-              User Coordinates Available:{" "}
-              <strong>
-                {orderDetails?.user?.profile?.coordinates ? "Yes" : "No"}
-              </strong>
-            </p>
-            {orderDetails?.user?.profile?.coordinates && (
-              <>
-                <p>
-                  Latitude:{" "}
-                  <strong>
-                    {orderDetails.user.profile.coordinates.latitude}
-                  </strong>
-                </p>
-                <p>
-                  Longitude:{" "}
-                  <strong>
-                    {orderDetails.user.profile.coordinates.longitude}
-                  </strong>
-                </p>
-              </>
-            )}
-            <p>
-              Should Show ETA:{" "}
-              <strong>
-                {["SHIPPED", "IN_TRANSIT", "OUT_FOR_DELIVERY"].includes(
-                  orderDetails?.status,
-                )
-                  ? "Yes"
-                  : "No"}
-              </strong>
-            </p>
-          </div>
-        </div>
-        <ETADisplay orderDetails={orderDetails} />
-      </div>
+      <ETADisplay orderDetails={orderDetails} />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
         <div className="bg-white p-6 rounded-md md:col-span-2">
@@ -629,7 +582,10 @@ const OrderDetails = () => {
                       <div className="flex justify-between">
                         <span className="text-gray-600">Order ID:</span>
                         <span className="font-medium">
-                          #{orderDetails?.id?.slice(-8).toUpperCase()}
+                          {orderDetails?.payment?.id
+                            ?.replace(/-/g, "")
+                            .slice(0, 12)
+                            .toUpperCase()}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -724,12 +680,38 @@ const OrderDetails = () => {
                                   {item.quantity || 1}
                                 </span>
                               </p>
-                              <p className="text-blue-600 font-semibold">
-                                N{" "}
-                                {item.price
-                                  ? parseInt(item.price).toLocaleString()
-                                  : "0"}
-                              </p>
+                              <div>
+                                <p className="text-gray-600 text-sm">
+                                  Amount:{" "}
+                                  <span className="font-semibold text-gray-700">
+                                    ₦
+                                    {item.price
+                                      ? parseInt(item.price).toLocaleString()
+                                      : "0"}
+                                  </span>
+                                </p>
+                                <div className="bg-gray-50 rounded-lg p-3 mt-2 shadow-sm border border-gray-100">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-medium text-gray-700">
+                                      Total Amount
+                                    </span>
+                                    <span className="flex items-center gap-2">
+                                      <span className="font-semibold text-lg text-blue-700">
+                                        ₦{" "}
+                                        {item.price && item.quantity
+                                          ? (
+                                              parseInt(item.price) *
+                                              parseInt(item.quantity)
+                                            ).toLocaleString()
+                                          : "0"}
+                                      </span>
+                                      <div className="text-xs text-gray-500 mt-1 text-right">
+                                        ({item.price} x {item.quantity})
+                                      </div>
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         );
@@ -743,18 +725,14 @@ const OrderDetails = () => {
                   <div className="flex justify-between items-center pb-2">
                     <span className="text-gray-600 font-medium">Subtotal:</span>
                     <span className="font-semibold">
-                      ₦{" "}
-                      {parseInt(
-                        orderDetails?.payment?.metadata[1]?.order_summary
-                          ?.subtotal || 0,
-                      ).toLocaleString()}
+                      ₦ {parseInt(calculatedSubtotal || 0).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between items-center pb-2">
                     <span className="text-gray-600 font-medium">Tax:</span>
                     <span className="font-semibold">
                       ₦{" "}
-                      {orderDetails?.payment?.metadata[1]?.order_summary?.vat_amount?.toLocaleString() ||
+                      {orderDetails?.payment?.purchase?.tax_amount?.toLocaleString() ||
                         "0"}
                     </span>
                   </div>
@@ -763,7 +741,9 @@ const OrderDetails = () => {
                       Delivery Fee:
                     </span>
                     <span className="font-semibold">
-                      ₦ {orderDetails?.payment?.purchase?.delivery_fee || "N/A"}
+                      ₦{" "}
+                      {orderDetails?.payment?.purchase?.delivery_fee?.toLocaleString() ||
+                        "N/A"}
                     </span>
                   </div>
                   <div className="flex justify-between items-center pb-2 mt-2">

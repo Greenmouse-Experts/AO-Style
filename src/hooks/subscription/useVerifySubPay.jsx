@@ -15,14 +15,31 @@ const useVerifySubPay = () => {
     mutationFn: (payload) => SubscriptionService.verifySubPayment(payload),
     mutationKey: ["verify-subpayment"],
     onSuccess(data) {
-      toastSuccess(data?.data?.message);
+      toastSuccess(data?.data?.message || "Payment verified successfully!");
 
+      // Invalidate all subscription-related queries
       queryClient.invalidateQueries({
         queryKey: ["get-user-subscription"],
       });
       queryClient.invalidateQueries({
-        queryKey: ["get-user-profile"],
+        queryKey: ["get-subscription"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["free-plan"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["user-profile"],
+      });
+
+      // Refetch queries to immediately update UI
+      setTimeout(() => {
+        queryClient.refetchQueries({
+          queryKey: ["get-user-subscription"],
+        });
+        queryClient.refetchQueries({
+          queryKey: ["free-plan"],
+        });
+      }, 500);
     },
     onError: (error) => {
       if (!navigator.onLine) {
@@ -30,10 +47,14 @@ const useVerifySubPay = () => {
         return;
       }
 
-      if (Array.isArray(error?.data?.message)) {
-        toastError(error?.data?.message[0]);
-      } else {
+      if (Array.isArray(error?.response?.data?.message)) {
+        toastError(error?.response?.data?.message[0]);
+      } else if (error?.response?.data?.message) {
+        toastError(error?.response?.data?.message);
+      } else if (error?.data?.message) {
         toastError(error?.data?.message);
+      } else {
+        toastError("Payment verification failed");
       }
     },
   });

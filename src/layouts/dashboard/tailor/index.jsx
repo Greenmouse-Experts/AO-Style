@@ -9,17 +9,19 @@ import useToast from "../../../hooks/useToast";
 import useCrossTabLogout from "../../../hooks/useGlobalLayout";
 import useSessionManager from "../../../hooks/useSessionManager";
 import SessionExpiryModal from "../../../components/SessionExpiryModal";
+import sessionManager from "../../../services/SessionManager";
 
 export default function DashboardLayout() {
   useCrossTabLogout();
 
-  // Session management
+  // Enhanced session management
   const {
-    isSessionModalOpen,
-    timeRemaining,
+    showExpiryModal,
+    timeUntilExpiry,
     isRefreshing,
-    handleExtendSession,
-    handleLogout,
+    sessionModalType,
+    extendSession,
+    closeExpiryModal,
   } = useSessionManager();
   useEffect(() => {
     window.history.pushState(null, "", window.location.href);
@@ -48,6 +50,15 @@ export default function DashboardLayout() {
   useEffect(() => {
     if (data && isSuccess) {
       setCaryBinUser(data);
+      // Update session manager with user data
+      const authData = sessionManager.getAuthData();
+      if (authData) {
+        sessionManager.setAuthData({
+          ...authData,
+          user: data,
+          userType: "tailor",
+        });
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
@@ -104,11 +115,12 @@ export default function DashboardLayout() {
 
       {/* Session Expiry Modal */}
       <SessionExpiryModal
-        isOpen={isSessionModalOpen}
-        onExtendSession={handleExtendSession}
-        onLogout={handleLogout}
-        timeRemaining={timeRemaining}
+        isOpen={showExpiryModal}
+        onExtendSession={extendSession}
+        onLogout={closeExpiryModal}
+        timeRemaining={timeUntilExpiry}
         isRefreshing={isRefreshing}
+        sessionModalType={sessionModalType}
       />
     </div>
   );

@@ -104,7 +104,7 @@ const OrderPage = () => {
   const columns = useMemo(
     () => [
       { key: "orderId", label: "Order ID" },
-      { key: "transactionId", label: "Transaction ID" },
+      // { key: "transactionId", label: "Transaction ID" },
       { key: "product", label: "Product" },
       { key: "amount", label: "Amount" },
       {

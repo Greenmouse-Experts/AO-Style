@@ -20,20 +20,6 @@ import CaryBinApi from "../../../services/CarybinBaseUrl";
 import { useMutation } from "@tanstack/react-query";
 import CustomTable from "../../../components/CustomTable";
 
-// Static data commented out - now using API endpoint
-// const orders = [
-//   {
-//     id: "01",
-//     orderId: "ORD-123RFWJ2",
-//     customer: "Funmi Daniels",
-//     product: "Ankara, Silk X2...",
-//     amount: "N 50,000",
-//     location: "Lekki, Lagos",
-//     orderDate: "24-02-25",
-//     status: "Ongoing",
-//   },
-// ];
-
 const OrderPage = () => {
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -368,17 +354,30 @@ const OrderPage = () => {
       (queryParams["pagination[limit]"] ?? 10),
   );
 
-  const [queryString, setQueryString] = useState(queryParams.q);
+  // --- SEARCH LOGIC REWRITE STARTS HERE ---
+  // Remove the old queryString/debouncedSearchTerm logic
+  // Instead, use a local searchTerm state and filter fabricOrderData in-memory
+  const [searchString, setSearchString] = useState("");
 
-  const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
-
-  useUpdatedEffect(() => {
-    // update search params with undefined if debouncedSearchTerm is an empty string
-    updateQueryParams({
-      q: debouncedSearchTerm.trim() || undefined,
-      "pagination[page]": 1,
+  // Filter orders by all details (orderId, customer, product, etc)
+  const filteredFabricOrderData = useMemo(() => {
+    if (!searchString?.trim()) return fabricOrderData;
+    const lower = searchString.trim().toLowerCase();
+    return fabricOrderData.filter((row) => {
+      // Check all relevant fields for a match
+      return (
+        (row.orderId && row.orderId.toLowerCase().includes(lower)) ||
+        (row.customer && row.customer.toLowerCase().includes(lower)) ||
+        (row.product && row.product.toLowerCase().includes(lower)) ||
+        (row.amount && row.amount.toLowerCase().includes(lower)) ||
+        (row.productStatus &&
+          row.productStatus.toLowerCase().includes(lower)) ||
+        (row.orderStatus && row.orderStatus.toLowerCase().includes(lower)) ||
+        (row.dateAdded && row.dateAdded.toLowerCase().includes(lower))
+      );
     });
-  }, [debouncedSearchTerm]);
+  }, [searchString, fabricOrderData]);
+  // --- END SEARCH LOGIC REWRITE ---
 
   const handleExport = (e) => {
     const value = e.target.value;
@@ -388,7 +387,7 @@ const OrderPage = () => {
   };
 
   const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(fabricOrderData);
+    const worksheet = XLSX.utils.json_to_sheet(filteredFabricOrderData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
     const excelBuffer = XLSX.write(workbook, {
@@ -416,7 +415,7 @@ const OrderPage = () => {
           "Order Status",
         ],
       ],
-      body: fabricOrderData?.map((row) => [
+      body: filteredFabricOrderData?.map((row) => [
         row.orderId,
         row.customer,
         row.product,
@@ -499,14 +498,10 @@ const OrderPage = () => {
               />
               <input
                 type="text"
-                placeholder="Search"
+                placeholder="Search by any detail (Order ID, Customer, Product, etc)"
                 className="w-full sm:w-[200px] pl-10 pr-4 py-2 border border-gray-200 rounded-md outline-none"
-                value={queryString}
-                onChange={(evt) =>
-                  setQueryString(
-                    evt.target.value ? evt.target.value : undefined,
-                  )
-                }
+                value={searchString}
+                onChange={(evt) => setSearchString(evt.target.value)}
               />
               <select
                 onChange={handleExport}
@@ -521,7 +516,7 @@ const OrderPage = () => {
               </select>
               <CSVLink
                 id="csvDownload"
-                data={fabricOrderData?.map((row) => ({
+                data={filteredFabricOrderData?.map((row) => ({
                   "Order ID": row.orderId,
                   Customer: row.customer,
                   Product: row.product,
@@ -577,7 +572,7 @@ const OrderPage = () => {
                         </div>
                       </td>
                     </tr>
-                  ) : fabricOrderData.length === 0 ? (
+                  ) : filteredFabricOrderData.length === 0 ? (
                     <tr>
                       <td
                         colSpan={updatedColumn.length}
@@ -587,7 +582,7 @@ const OrderPage = () => {
                       </td>
                     </tr>
                   ) : (
-                    fabricOrderData.map((row, rowIndex) => (
+                    filteredFabricOrderData.map((row, rowIndex) => (
                       <tr
                         key={rowIndex}
                         className="hover:bg-gray-50 transition-colors"
@@ -611,12 +606,12 @@ const OrderPage = () => {
           </div>
         </div>*/}
 
-        {!fabricOrderData?.length && !isPending ? (
+        {!filteredFabricOrderData?.length && !isPending ? (
           <p className="flex-1 text-center text-sm md:text-sm py-8">
             No orders found.
           </p>
         ) : null}
-        {fabricOrderData?.length > 0 && (
+        {filteredFabricOrderData?.length > 0 && (
           <div className="flex justify-between items-center mt-4">
             <div className="flex items-center">
               <p className="text-sm text-gray-600">Items per page: </p>

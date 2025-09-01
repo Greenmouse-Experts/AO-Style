@@ -19,6 +19,10 @@ const useEditSubscription = (id) => {
       queryClient.invalidateQueries({
         queryKey: ["get-subscription"],
       });
+      // Also invalidate any queries with params
+      queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey[0] === "get-subscription",
+      });
     },
     onError: (error) => {
       if (!navigator.onLine) {

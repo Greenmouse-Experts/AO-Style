@@ -512,7 +512,7 @@ const SubscriptionsPlansTable = () => {
       planPrice: "20,000",
     },
   ]);
-
+  console.log(subscriptionData);
   const subscriptionRes = useMemo(
     () =>
       subscriptionData?.data
@@ -695,15 +695,17 @@ const SubscriptionsPlansTable = () => {
 
   console.log(totalPages);
 
-  const new_data = subscriptionRes.filter((item) => {
-    if (tab == "vendor") return (item.userType = "Fabric Vendor");
-    return item.userType == "Tailors/Designers";
-  });
+  const new_data = useMemo(() => {
+    return subscriptionRes.filter((item) => {
+      if (tab == "vendor") return item.userType === "Fabric Vendor";
+      return item.userType === "Tailors/Designers";
+    });
+  }, [subscriptionRes, tab]);
 
   return (
     <div className="bg-white p-6 rounded-xl overflow-x-auto">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">Subscriptions Plans</h2>
+        <h2 className="text-lg font-semibold">Subscription Plans</h2>
 
         <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
           <input
@@ -715,15 +717,6 @@ const SubscriptionsPlansTable = () => {
             }
             className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
           />
-          {/* <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-            Filter ▾
-          </button> */}
-          {/* <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-            Report ▾
-          </button> */}
-          {/* <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-            Bulk Action ▾
-          </button> */}
           <button
             className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-light whitespace-nowrap"
             onClick={handleOpenAddModal}

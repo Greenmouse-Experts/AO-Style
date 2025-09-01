@@ -88,6 +88,7 @@ const AppWrapper = () => {
     showExpiryModal,
     timeUntilExpiry,
     isRefreshing,
+    sessionModalType,
     extendSession,
     closeExpiryModal,
   } = useSessionManager();
@@ -324,6 +325,7 @@ const AppWrapper = () => {
         onLogout={closeExpiryModal}
         timeRemaining={timeUntilExpiry}
         isRefreshing={isRefreshing}
+        sessionModalType={sessionModalType}
       />
       <SessionTestComponent />
 

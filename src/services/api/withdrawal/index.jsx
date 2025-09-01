@@ -6,6 +6,12 @@ const getWithdrawal = (params) => {
   });
 };
 
+const getAllWithdrawals = (params) => {
+  return CaryBinApi.get(`/withdraw/fetch-all`, {
+    params,
+  });
+};
+
 const createWithdrawal = (payload) => {
   return CaryBinApi.post(`/withdraw/request`, payload);
 };
@@ -21,6 +27,7 @@ const createWithdrawal = (payload) => {
 const WithdrawalService = {
   createWithdrawal,
   getWithdrawal,
+  getAllWithdrawals,
 };
 
 export default WithdrawalService;

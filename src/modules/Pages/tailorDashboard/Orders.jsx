@@ -18,9 +18,19 @@ import { useEffect } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import { useMutation } from "@tanstack/react-query";
 import CustomTable from "../../../components/CustomTable";
+import CaryBinApi from "../../../services/CarybinBaseUrl";
+
+const SEARCH_FIELDS = [
+  { label: "Order ID", value: "orderId" },
+  { label: "Customer", value: "customer" },
+  { label: "Product", value: "product" },
+  { label: "Amount", value: "amount" },
+  { label: "Status", value: "status" },
+];
 
 const OrderPage = () => {
   const [filter, setFilter] = useState("all");
+  const [searchField, setSearchField] = useState("orderId");
   const [searchTerm, setSearchTerm] = useState("");
   const [openDropdown, setOpenDropdown] = useState(null);
   const [currentItem, setCurrentItem] = useState(null);
@@ -64,29 +74,22 @@ const OrderPage = () => {
     "pagination[page]": 1,
   });
 
+  // Get all orders once, no search params
   const {
     isPending,
     isLoading,
     isError,
     data: orderData,
+    refetch,
   } = useGetVendorOrder({
     ...queryParams,
   });
-  console.log(orderData);
+
   const columns = useMemo(
     () => [
-      { label: "Transaction ID", key: "transactionId" },
+      { label: "Order ID", key: "transactionId" },
       { label: "Customer", key: "customer" },
       { label: "Product", key: "product" },
-      // {
-      //   label: "Body Measurement",
-      //   key: "measurement",
-      //   render: (text) => (
-      //     <Link to="#" className="text-blue-500 hover:underline">
-      //       {text}
-      //     </Link>
-      //   ),
-      // },
       { label: "Amount", key: "amount" },
       { label: "Order Date", key: "dateAdded" },
       {
@@ -169,21 +172,45 @@ const OrderPage = () => {
     [orderData?.data],
   );
 
+  // Simple search filtering - works for all fields
+  const filteredOrderData = useMemo(() => {
+    if (!searchTerm.trim()) return fabricOrderData;
+    const term = searchTerm.toLowerCase().trim();
+
+    return fabricOrderData.filter((row) => {
+      switch (searchField) {
+        case "orderId":
+          return row.transactionId?.toLowerCase().includes(term);
+        case "customer":
+          return row.customer?.toLowerCase().includes(term);
+        case "product":
+          return row.product?.toLowerCase().includes(term);
+        case "amount":
+          return row.amount
+            ?.toString()
+            .replace(/[₦,\s]/g, "")
+            .includes(term.replace(/[₦,\s]/g, ""));
+        case "status":
+          return row.status?.toLowerCase().includes(term);
+        default:
+          return false;
+      }
+    });
+  }, [fabricOrderData, searchField, searchTerm]);
+
   const totalPages = Math.ceil(
     orderData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
-  const [queryString, setQueryString] = useState(queryParams.q);
+  // Debounce search term for better UX (optional, but keeps UI snappy)
+  const debouncedSearchTerm = useDebounce(searchTerm ?? "", 200);
 
-  const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
-
+  // Update search params when search field or term changes (only for pagination, not for search)
   useUpdatedEffect(() => {
-    // update search params with undefined if debouncedSearchTerm is an empty string
     updateQueryParams({
-      q: debouncedSearchTerm.trim() || undefined,
       "pagination[page]": 1,
     });
-  }, [debouncedSearchTerm]);
+  }, [searchField, debouncedSearchTerm]);
 
   const handleExport = (e) => {
     const value = e.target.value;
@@ -193,7 +220,7 @@ const OrderPage = () => {
   };
 
   const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(fabricOrderData);
+    const worksheet = XLSX.utils.json_to_sheet(filteredOrderData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
     const excelBuffer = XLSX.write(workbook, {
@@ -212,7 +239,7 @@ const OrderPage = () => {
       head: [
         ["Transaction ID", "Customer", "Product", "Amount", "Date", "Status"],
       ],
-      body: fabricOrderData?.map((row) => [
+      body: filteredOrderData?.map((row) => [
         row.transactionId,
         row.customer,
         row.product,
@@ -230,7 +257,7 @@ const OrderPage = () => {
     });
     doc.save("TailorOrders.pdf");
   };
-  console.log(fabricOrderData[2]);
+
   return (
     <div className="">
       <div className="bg-white px-6 py-4 mb-6">
@@ -290,25 +317,32 @@ const OrderPage = () => {
 
           {/* Search & Actions */}
           <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-            <div className="relative w-full sm:w-auto">
-              <Search
-                className="absolute left-3 top-3 text-gray-400"
-                size={18}
-              />
-              <input
-                type="text"
-                placeholder="Search"
-                className="w-full sm:w-[200px] pl-10 pr-4 py-2 border border-gray-200 rounded-md outline-none"
-                value={queryString}
-                onChange={(evt) =>
-                  setQueryString(
-                    evt.target.value ? evt.target.value : undefined,
-                  )
-                }
-              />
+            <div className="flex gap-2 w-full sm:w-auto">
+              <select
+                value={searchField}
+                onChange={(e) => setSearchField(e.target.value)}
+                className="bg-gray-100 outline-none text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
+              >
+                {SEARCH_FIELDS.map((field) => (
+                  <option key={field.value} value={field.value}>
+                    {field.label}
+                  </option>
+                ))}
+              </select>
+              <div className="relative w-full sm:w-auto">
+                <Search
+                  className="absolute left-3 top-3 text-gray-400"
+                  size={18}
+                />
+                <input
+                  type="text"
+                  placeholder={`Search by ${SEARCH_FIELDS.find((f) => f.value === searchField)?.label || "Keyword"}...`}
+                  className="w-full sm:w-[200px] pl-10 pr-4 py-2 border border-gray-200 rounded-md outline-none"
+                  value={searchTerm}
+                  onChange={(evt) => setSearchTerm(evt.target.value)}
+                />
+              </div>
             </div>
-            {/* <button className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md text-sm">Export As ▼</button>
-                        <button className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md text-sm">Sort: Newest First ▼</button> */}
             <select
               onChange={handleExport}
               className="bg-gray-100 mt-2  md:ml-8 outline-none text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
@@ -316,13 +350,13 @@ const OrderPage = () => {
               <option value="" disabled selected>
                 Export As
               </option>
-              8<option value="csv">Export to CSV</option>{" "}
+              <option value="csv">Export to CSV</option>{" "}
               <option value="excel">Export to Excel</option>{" "}
               <option value="pdf">Export to PDF</option>{" "}
             </select>
             <CSVLink
               id="csvDownload"
-              data={fabricOrderData?.map((row) => ({
+              data={filteredOrderData?.map((row) => ({
                 "Transaction ID": row.transactionId,
                 Customer: row.customer,
                 Product: row.product,
@@ -337,12 +371,6 @@ const OrderPage = () => {
         </div>
 
         {/* Table Section */}
-        {/* <ReusableTable
-          loading={isPending}
-          columns={columns}
-          data={fabricOrderData}
-        />*/}
-
         {isPending ? (
           <div
             className="flex justify-center items-center h-full"
@@ -356,14 +384,14 @@ const OrderPage = () => {
         ) : (
           <CustomTable
             columns={columns}
-            data={fabricOrderData}
+            data={filteredOrderData}
             actions={actions}
           />
         )}
 
         {/* <CustomTable columns={columns} data={fabricOrderData} />*/}
 
-        {!fabricOrderData?.length && !isPending ? (
+        {!filteredOrderData?.length && !isPending ? (
           <p className="flex-1 text-center text-sm md:text-sm">
             No Order found.
           </p>
@@ -371,7 +399,7 @@ const OrderPage = () => {
           <></>
         )}
 
-        {fabricOrderData?.length > 0 && (
+        {filteredOrderData?.length > 0 && (
           <div className="flex justify-between items-center mt-4">
             <div className="flex items-center">
               <p className="text-sm text-gray-600">Items per page: </p>

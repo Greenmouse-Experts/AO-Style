@@ -235,29 +235,39 @@ class SessionManager {
     }
   }
 
-  // Handle session expiry - improved logic for automatic logout
+  // Enhanced session expiry handling with automatic logout for all user types
   async handleSessionExpiry() {
     const authData = this.getAuthData();
-    if (!authData) return;
+    if (!authData) {
+      console.log("🔍 SessionManager: No auth data found");
+      return;
+    }
 
     const accessTokenTimeLeft = this.getTimeUntilAccessTokenExpiry();
     const refreshTokenTimeLeft = this.getTimeUntilRefreshExpiry();
 
-    // For Google SSO (no refresh token) - check access token only
+    console.log("🔍 SessionManager: Checking session expiry", {
+      accessTokenTimeLeft,
+      refreshTokenTimeLeft,
+      hasRefreshToken: !!authData.refreshToken,
+      userType: authData.userType,
+      isUserInactive: this.isUserInactive(),
+    });
+
+    // For Google SSO or tokens without refresh capability
     if (!authData.refreshToken) {
       if (accessTokenTimeLeft <= 0) {
         console.log(
-          "🚪 SessionManager: Google SSO access token expired, logging out",
+          "🚪 SessionManager: Access token expired (no refresh token), forcing logout",
         );
         this.performLogout();
         return;
       }
 
-      // Show warning 5 minutes before expiry for Google SSO
-      if (accessTokenTimeLeft <= 300 && !this.warningShown) {
-        // 5 minutes
+      // Show warning 2 minutes before expiry for tokens without refresh
+      if (accessTokenTimeLeft <= 120 && !this.warningShown) {
         console.log(
-          "⚠️ SessionManager: Google SSO token expiring soon, showing warning",
+          "⚠️ SessionManager: Access token expiring soon (no refresh available)",
         );
         this.warningShown = true;
         this.notifySessionExpiry("access_token_warning", accessTokenTimeLeft);
@@ -267,6 +277,15 @@ class SessionManager {
 
     // For normal auth with refresh tokens
 
+    // If both tokens are expired, immediate logout
+    if (accessTokenTimeLeft <= 0 && refreshTokenTimeLeft <= 0) {
+      console.log(
+        "🚪 SessionManager: Both tokens expired, forcing immediate logout",
+      );
+      this.performLogout();
+      return;
+    }
+
     // Try to refresh access token if it's expired but refresh token is valid
     if (accessTokenTimeLeft <= 0 && refreshTokenTimeLeft > 0) {
       console.log(
@@ -275,16 +294,20 @@ class SessionManager {
       const refreshSuccess = await this.refreshAccessToken();
 
       if (!refreshSuccess) {
-        console.log("❌ SessionManager: Failed to refresh token, logging out");
+        console.log("❌ SessionManager: Refresh failed, forcing logout");
         this.performLogout();
         return;
+      } else {
+        console.log("✅ SessionManager: Token refresh successful");
+        // Reset warning flag after successful refresh
+        this.warningShown = false;
       }
     }
 
-    // Auto-refresh access token when it's about to expire (5 minutes before)
+    // Auto-refresh access token when it's about to expire (3 minutes before)
     if (
       accessTokenTimeLeft > 0 &&
-      accessTokenTimeLeft <= 300 &&
+      accessTokenTimeLeft <= 180 &&
       refreshTokenTimeLeft > 0
     ) {
       console.log(
@@ -293,28 +316,17 @@ class SessionManager {
       await this.refreshAccessToken();
     }
 
-    // Handle refresh token expiry
+    // Handle refresh token expiry - always logout when refresh token is expired
     if (refreshTokenTimeLeft <= 0) {
-      if (this.isUserInactive()) {
-        // User is inactive, auto logout
-        console.log(
-          "🚪 SessionManager: Refresh token expired + user inactive, auto logout",
-        );
-        this.performLogout();
-      } else {
-        // User is active, show modal to give them a chance to login again
-        console.log(
-          "⚠️ SessionManager: Refresh token expired + user active, showing modal",
-        );
-        this.warningShown = true;
-        this.notifySessionExpiry("refresh_token_expired", refreshTokenTimeLeft);
-      }
+      console.log(
+        "🚪 SessionManager: Refresh token expired, forcing logout for all users",
+      );
+      this.performLogout();
       return;
     }
 
-    // Show warning when refresh token is about to expire (10 minutes before)
-    if (refreshTokenTimeLeft <= 600 && !this.warningShown) {
-      // 10 minutes
+    // Show warning when refresh token is about to expire (5 minutes before)
+    if (refreshTokenTimeLeft <= 300 && !this.warningShown) {
       console.log(
         "⚠️ SessionManager: Refresh token expiring soon, showing warning",
       );
@@ -323,15 +335,18 @@ class SessionManager {
     }
   }
 
-  // Perform actual logout
+  // Enhanced logout with proper user type detection
   performLogout() {
     console.log("🚪 SessionManager: Performing logout");
 
-    // Clear stored data
+    const authData = this.getAuthData();
+    const currentPath = window.location.pathname;
+
+    // Clear stored data first
     this.clearAuthData();
     this.warningShown = false;
 
-    // Notify callbacks
+    // Notify callbacks about logout
     this.sessionExpiryCallbacks.forEach((callback) => {
       try {
         callback({ type: "logout" });
@@ -340,7 +355,7 @@ class SessionManager {
       }
     });
 
-    // Clear user stores
+    // Clear all user stores
     if (window.zustandStores) {
       window.zustandStores.forEach((store) => {
         try {
@@ -356,12 +371,36 @@ class SessionManager {
       });
     }
 
-    // Redirect to login
-    const isAdminRoute = window.location.pathname.includes("/admin");
-    const loginPath = isAdminRoute ? "/admin/login" : "/login";
+    // Determine appropriate login path based on current route
+    let loginPath = "/login";
 
-    if (window.location.pathname !== loginPath) {
-      window.location.href = loginPath;
+    // Check for admin routes
+    if (currentPath.includes("/admin")) {
+      loginPath = "/admin/login";
+    }
+    // Check for specific user type routes
+    else if (currentPath.includes("/fabric")) {
+      loginPath = "/login"; // Fabric vendors use regular login
+    } else if (currentPath.includes("/tailor")) {
+      loginPath = "/login"; // Tailors use regular login
+    } else if (currentPath.includes("/logistics")) {
+      loginPath = "/login"; // Logistics use regular login
+    } else if (currentPath.includes("/sales")) {
+      loginPath = "/login"; // Sales reps use regular login
+    }
+
+    console.log("🔄 SessionManager: Redirecting to login", {
+      currentPath,
+      loginPath,
+      userType: authData?.userType,
+    });
+
+    // Perform redirect only if not already on login page
+    if (currentPath !== loginPath) {
+      // Add a small delay to ensure all cleanup is complete
+      setTimeout(() => {
+        window.location.href = loginPath;
+      }, 100);
     }
   }
 
@@ -379,22 +418,66 @@ class SessionManager {
     });
   }
 
-  // Clear authentication data
+  // Enhanced clear authentication data for all user types
   clearAuthData() {
     this.authData = null;
 
-    // Clear cookies
+    // Clear all possible token cookies
     const tokenKeys = ["token", "adminToken"];
-    tokenKeys.forEach((key) => {
-      Cookies.remove(key);
-      Cookies.remove(`${key}_refresh`);
-      Cookies.remove(`${key}_refresh_expiry`);
+    const cookiesToClear = [
+      ...tokenKeys,
+      ...tokenKeys.map((key) => `${key}_refresh`),
+      ...tokenKeys.map((key) => `${key}_refresh_expiry`),
+      "currUserUrl",
+      "userType",
+      "fabricToken",
+      "tailorToken",
+      "logisticsToken",
+      "salesToken",
+    ];
+
+    cookiesToClear.forEach((cookieName) => {
+      Cookies.remove(cookieName);
+      // Also try to remove with different path and domain options
+      Cookies.remove(cookieName, { path: "/" });
+      Cookies.remove(cookieName, {
+        path: "/",
+        domain: window.location.hostname,
+      });
     });
 
-    // Clear other auth-related cookies
-    Cookies.remove("currUserUrl");
+    // Clear localStorage items that might contain auth data
+    const localStorageKeys = [
+      "authToken",
+      "userSession",
+      "carybinUser",
+      "adminUser",
+      "fabricUser",
+      "tailorUser",
+      "logisticsUser",
+      "salesUser",
+    ];
 
-    console.log("🧹 SessionManager: Auth data cleared");
+    localStorageKeys.forEach((key) => {
+      try {
+        localStorage.removeItem(key);
+      } catch (error) {
+        console.warn(
+          "❌ SessionManager: Error clearing localStorage",
+          key,
+          error,
+        );
+      }
+    });
+
+    // Clear sessionStorage as well
+    try {
+      sessionStorage.clear();
+    } catch (error) {
+      console.warn("❌ SessionManager: Error clearing sessionStorage", error);
+    }
+
+    console.log("🧹 SessionManager: All auth data cleared for all user types");
   }
 
   // Add session expiry callback
@@ -459,16 +542,39 @@ class SessionManager {
       );
     });
 
-    // Check every 30 seconds instead of 1 hour for more responsive auto-logout
+    // Check every 15 seconds for more responsive auto-logout
     this.monitoringInterval = setInterval(async () => {
       const authData = this.getAuthData();
-      if (!authData) return;
+      if (!authData) {
+        // No auth data, ensure we're not on a protected route
+        const currentPath = window.location.pathname;
+        const protectedRoutes = [
+          "/admin",
+          "/fabric",
+          "/tailor",
+          "/logistics",
+          "/sales",
+        ];
+        const isOnProtectedRoute = protectedRoutes.some((route) =>
+          currentPath.includes(route),
+        );
+
+        if (isOnProtectedRoute && !currentPath.includes("/login")) {
+          console.log(
+            "🔍 SessionManager: No auth data on protected route, redirecting",
+          );
+          this.performLogout();
+        }
+        return;
+      }
 
       // Handle session expiry check
       await this.handleSessionExpiry();
-    }, 30000); // Check every 30 seconds
+    }, 15000); // Check every 15 seconds for better responsiveness
 
-    console.log("👁️ SessionManager: Monitoring started (30s intervals)");
+    console.log(
+      "👁️ SessionManager: Enhanced monitoring started (15s intervals)",
+    );
   }
 
   // Stop monitoring (useful for cleanup)

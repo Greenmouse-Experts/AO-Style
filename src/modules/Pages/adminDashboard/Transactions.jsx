@@ -10,6 +10,7 @@ import useQueryParams from "../../../hooks/useQueryParams";
 import useFetchAllCartTransactions from "../../../hooks/admin/useFetchAllCartTransactions";
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 import { formatDateStr } from "../../../lib/helper";
+import useFetchAllWithdrawals from "../../../hooks/withdrawal/useFetchAllWithdrawals";
 import AnalyticsCards from "./components/TransactionPayment";
 import { Link, useNavigate } from "react-router-dom";
 import SalesRevenueChart from "./components/RegisterChart";
@@ -26,6 +27,7 @@ const PaymentTransactionTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [activeTab, setActiveTab] = useState("All Transactions");
+  const [payoutSubTab, setPayoutSubTab] = useState("All");
   const [selectAll, setSelectAll] = useState(false);
   const [selectedRows, setSelectedRows] = useState(new Set());
   const dropdownRef = useRef(null);
@@ -133,6 +135,13 @@ const PaymentTransactionTable = () => {
       return resp.data;
     },
   });
+
+  // Fetch withdrawal data for payouts tab using fetch-all endpoint
+  const { data: withdrawalData, isPending: isWithdrawalPending } =
+    useFetchAllWithdrawals({
+      status: payoutSubTab === "All" ? undefined : payoutSubTab.toUpperCase(),
+      q: debouncedSearchTerm,
+    });
   useUpdatedEffect(() => {
     // update search params with undefined if debouncedSearchTerm is an empty string
     updateQueryParams({
@@ -241,9 +250,13 @@ const PaymentTransactionTable = () => {
         render: (status) => (
           <span
             className={`px-2 py-1 text-sm rounded-full font-medium ${
-              status === "In-Progress"
+              status === "In-Progress" || status === "PENDING"
                 ? "bg-blue-100 text-blue-500"
-                : "bg-green-100 text-green-500"
+                : status === "ACCEPTED" || status === "Completed"
+                  ? "bg-green-100 text-green-500"
+                  : status === "DECLINED"
+                    ? "bg-red-100 text-red-500"
+                    : "bg-gray-100 text-gray-500"
             }`}
           >
             {status}
@@ -300,6 +313,43 @@ const PaymentTransactionTable = () => {
     [getAllTransactionData?.data, isPending],
   );
 
+  // Format withdrawal data for payouts using fetch-all endpoint structure
+  const WithdrawalData = useMemo(
+    () =>
+      withdrawalData?.data
+        ? withdrawalData.data.map((withdrawal) => {
+            return {
+              ...withdrawal,
+              transactionID: `WTH${withdrawal?.id}`,
+              userName: withdrawal?.user?.name || withdrawal?.user?.email,
+              amount: `₦${withdrawal?.amount?.toLocaleString()}`,
+              status: withdrawal?.status || "PENDING",
+              transactionType: "Withdrawal",
+              userType:
+                withdrawal?.user?.role?.name ||
+                withdrawal?.user?.role ||
+                "Unknown",
+              date: withdrawal?.created_at
+                ? formatDateStr(
+                    withdrawal.created_at.split(".").shift(),
+                    "DD MMM YYYY",
+                  )
+                : "",
+            };
+          })
+        : [],
+    [withdrawalData?.data],
+  );
+
+  // Debug withdrawal data
+  useEffect(() => {
+    if (activeTab === "Payouts") {
+      console.log("💸 Withdrawal Data:", withdrawalData);
+      console.log("💰 Formatted Withdrawal Data:", WithdrawalData);
+      console.log("🎯 Payout Sub Tab:", payoutSubTab);
+    }
+  }, [withdrawalData, WithdrawalData, payoutSubTab, activeTab]);
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
@@ -335,33 +385,50 @@ const PaymentTransactionTable = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
   const csv_data =
-    getAllTransactionData?.data.flatMap((transaction) => {
-      const user = transaction.user || {};
-      const profile = user.profile || {};
-      const items = transaction.purchase?.items || [];
+    activeTab === "Payouts"
+      ? withdrawalData?.data?.map((withdrawal) => ({
+          TransactionID: `WTH${withdrawal.id}`,
+          UserName: withdrawal.user?.name || withdrawal.user?.email,
+          UserType:
+            withdrawal.user?.role?.name || withdrawal.user?.role || "Unknown",
+          Amount: withdrawal.amount,
+          Status: withdrawal.status || "PENDING",
+          BankName: withdrawal.bank_name,
+          AccountNumber: withdrawal.account_number,
+          AccountName: withdrawal.account_name,
+          CreatedAt: withdrawal.created_at,
+          UpdatedAt: withdrawal.updated_at,
+          UserID: withdrawal.user?.id,
+          UserEmail: withdrawal.user?.email,
+          UserPhone: withdrawal.user?.phone,
+        })) || []
+      : getAllTransactionData?.data.flatMap((transaction) => {
+          const user = transaction.user || {};
+          const profile = user.profile || {};
+          const items = transaction.purchase?.items || [];
 
-      return items.map((item) => ({
-        TransactionID: transaction.transaction_id,
-        PaymentStatus: transaction.payment_status,
-        PaymentMethod: transaction.payment_method,
-        Amount: transaction.amount,
-        Currency: transaction.currency,
-        PurchaseType: transaction.purchase_type,
-        ProductName: item.name,
-        Quantity: item.quantity,
-        ProductPrice: item.price,
-        FabricVendorFee: item.vendor_charge?.fabric_vendor_fee ?? "",
-        FashionDesignerFee: item.vendor_charge?.fashion_designer_fee ?? "",
-        CreatedAt: transaction.created_at,
-        UpdatedAt: transaction.updated_at,
-        UserID: user.id,
-        UserEmail: user.email,
-        UserPhone: user.phone,
-        Address: profile.address,
-        State: profile.state,
-        Country: profile.country,
-      }));
-    }) || [];
+          return items.map((item) => ({
+            TransactionID: transaction.transaction_id,
+            PaymentStatus: transaction.payment_status,
+            PaymentMethod: transaction.payment_method,
+            Amount: transaction.amount,
+            Currency: transaction.currency,
+            PurchaseType: transaction.purchase_type,
+            ProductName: item.name,
+            Quantity: item.quantity,
+            ProductPrice: item.price,
+            FabricVendorFee: item.vendor_charge?.fabric_vendor_fee ?? "",
+            FashionDesignerFee: item.vendor_charge?.fashion_designer_fee ?? "",
+            CreatedAt: transaction.created_at,
+            UpdatedAt: transaction.updated_at,
+            UserID: user.id,
+            UserEmail: user.email,
+            UserPhone: user.phone,
+            Address: profile.address,
+            State: profile.state,
+            Country: profile.country,
+          }));
+        }) || [];
   const nav = useNavigate();
   const actions_col = [
     {
@@ -441,6 +508,30 @@ const PaymentTransactionTable = () => {
             </select>
           </div>
         </div>
+
+        {/* Sub-tabs for Payouts */}
+        {activeTab === "Payouts" && (
+          <div className="flex space-x-4 mb-4 border-b border-gray-100">
+            {["All", "ACCEPTED", "DECLINED", "PENDING"].map((subTab) => (
+              <button
+                key={subTab}
+                className={`text-sm font-medium pb-2 px-1 ${
+                  payoutSubTab === subTab
+                    ? "text-purple-600 border-b-2 border-purple-600"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+                onClick={() => {
+                  console.log("🎯 Switching to payout sub-tab:", subTab);
+                  setPayoutSubTab(subTab);
+                  setCurrentPage(1);
+                }}
+              >
+                {subTab === "All" ? "All Payouts" : subTab}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="flex border-b border-gray-200 mb-4"></div>
         {/* <ReusableTable
           columns={columns}
@@ -451,10 +542,12 @@ const PaymentTransactionTable = () => {
         />*/}
         <CustomTable
           columns={columns}
-          data={TransactionData}
+          data={activeTab === "Payouts" ? WithdrawalData : TransactionData}
           actions={actions_col}
+          loading={activeTab === "Payouts" ? isWithdrawalPending : isPending}
         />
-        {TransactionData?.length > 0 ? (
+        {(activeTab === "Payouts" ? WithdrawalData : TransactionData)?.length >
+        0 ? (
           <>
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center">
@@ -493,7 +586,14 @@ const PaymentTransactionTable = () => {
                     });
                   }}
                   disabled={
-                    (queryParams["pagination[page]"] ?? 1) == totalPages
+                    (queryParams["pagination[page]"] ?? 1) >=
+                    (activeTab === "Payouts"
+                      ? Math.ceil(
+                          (withdrawalData?.total ||
+                            withdrawalData?.data?.length ||
+                            0) / (queryParams["pagination[limit]"] ?? 10),
+                        )
+                      : totalPages)
                   }
                   className="px-3 py-1 rounded-md bg-gray-200"
                 >
@@ -503,7 +603,17 @@ const PaymentTransactionTable = () => {
             </div>
           </>
         ) : (
-          <></>
+          <div className="text-center py-8">
+            <p className="text-gray-500">
+              {activeTab === "Payouts" && isWithdrawalPending
+                ? "Loading withdrawal data..."
+                : activeTab === "Payouts"
+                  ? "No withdrawal requests found"
+                  : isPending
+                    ? "Loading transactions..."
+                    : "No transactions found"}
+            </p>
+          </div>
         )}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">

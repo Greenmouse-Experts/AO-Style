@@ -10,7 +10,6 @@ import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 import { formatDateStr } from "../../../lib/helper";
 import useMarkReadNotification from "../../../hooks/notification/useMarkReadNotification";
 import { toast } from "react-toastify";
-import CaryBinApi from "../../../services/CarybinBaseUrl";
 
 export default function NotificationPageUpdate() {
   const [filter, setFilter] = useState("all");
@@ -20,25 +19,14 @@ export default function NotificationPageUpdate() {
     "pagination[page]": 1,
   });
 
-  const { data, isPending } = useGetNotification({
+  const { data, isPending, refetch } = useGetNotification({
     ...queryParams,
   });
 
-  const { isPending: markReadIsPending } = useMarkReadNotification();
+  const { isPending: markReadIsPending, markReadNotificationMutate } =
+    useMarkReadNotification();
 
   const [queryString, setQueryString] = useState(queryParams.q);
-
-  // Local state to track read status for notifications
-  const [localNotifications, setLocalNotifications] = useState<
-    any[] | undefined
-  >(undefined);
-
-  // Sync localNotifications with fetched data
-  useEffect(() => {
-    if (data?.data) {
-      setLocalNotifications(data.data);
-    }
-  }, [data?.data]);
 
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
 
@@ -50,7 +38,7 @@ export default function NotificationPageUpdate() {
   }, [debouncedSearchTerm]);
 
   const totalPages = Math.ceil(
-    (data?.count ?? 0) / (queryParams["pagination[limit]"] ?? 10),
+    (data?.count ?? 0) / (Number(queryParams["pagination[limit]"]) ?? 10),
   );
 
   const filterButtons = [
@@ -145,9 +133,9 @@ export default function NotificationPageUpdate() {
             </div>
           ) : (
             <>
-              {localNotifications?.length ? (
+              {data?.data?.length ? (
                 <div className="divide-y divide-gray-100">
-                  {localNotifications.map((notification, idx) => (
+                  {data.data.map((notification: any, idx: number) => (
                     <div
                       key={notification?.id}
                       className={`relative p-6 transition-all duration-200 hover:bg-gray-50 ${
@@ -199,29 +187,10 @@ export default function NotificationPageUpdate() {
                               {!notification.read ? (
                                 <button
                                   className="inline-flex items-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white text-sm font-medium rounded-lg transition-colors duration-200"
-                                  onClick={async () => {
+                                  onClick={() => {
                                     if (!notification.read) {
-                                      await toast.promise(
-                                        async () => {
-                                          await CaryBinApi.patch(
-                                            "/notification-track/mark-read/" +
-                                              notification.id,
-                                          );
-                                          // Update local state to mark as read
-                                          setLocalNotifications((prev) =>
-                                            prev
-                                              ? prev.map((notif, i) =>
-                                                  i === idx
-                                                    ? { ...notif, read: true }
-                                                    : notif,
-                                                )
-                                              : prev,
-                                          );
-                                        },
-                                        {
-                                          pending: "reading",
-                                          success: "patched",
-                                        },
+                                      markReadNotificationMutate(
+                                        notification.id,
                                       );
                                     }
                                   }}
@@ -267,7 +236,7 @@ export default function NotificationPageUpdate() {
           )}
 
           {/* Pagination */}
-          {localNotifications?.length > 0 && (
+          {data?.data?.length > 0 && (
             <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="flex items-center gap-2">

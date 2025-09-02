@@ -16,14 +16,6 @@ import SubscriptionModal from "./SubscribeModal";
 import useGetUserSubscription from "../../../hooks/subscription/useGetUserSub";
 import { useQuery } from "@tanstack/react-query";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
-import CustomTable from "../../../components/CustomTable";
-import {
-  Calendar,
-  LayoutList,
-  LayoutGrid,
-  Check,
-  BadgeCheckIcon,
-} from "lucide-react";
 
 const Subscriptions = () => {
   const location = useLocation();
@@ -109,7 +101,6 @@ const Subscriptions = () => {
     isPending,
     isLoading,
     refetch,
-    isFetching,
     isError,
     data: subscriptionData,
   } = useGetUserSubscription(
@@ -122,6 +113,15 @@ const Subscriptions = () => {
   const [queryString, setQueryString] = useState(queryParams.q);
 
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
+
+  // Get the active plan as the last item in the subscriptions array
+  const activePlan =
+    free_plan.data?.data?.subscriptions &&
+    free_plan.data?.data?.subscriptions.length > 0
+      ? free_plan.data?.data?.subscriptions[
+          free_plan.data?.data?.subscriptions.length - 1
+        ]
+      : undefined;
 
   // Get the active plan as the last item in the subscriptions array
   const activePlan =
@@ -303,27 +303,6 @@ const Subscriptions = () => {
     [openDropdown, activePlan],
   );
 
-  const actions = [
-    {
-      key: "view-plan",
-      label: "View Plan",
-      action: (row) => {
-        openModal();
-        setCurrentView(row);
-        setOpenDropdown(null);
-      },
-    },
-    {
-      key: "subscribe",
-      label: "Subscribe",
-      action: (row) => {
-        console.log(row, "sub");
-        subOpenModal();
-        setCurrentView(row);
-        setOpenDropdown(null);
-      },
-    },
-  ];
   //   const totalPages = Math.ceil(
   //     data?.count / (queryParams["pagination[limit]"] ?? 10)
   //   );
@@ -332,9 +311,20 @@ const Subscriptions = () => {
   const plan = activePlan;
   const is_free = plan?.name === "Free Plan" ? true : false;
   const plan_data = plan;
-  if (isFetching) <>loading</>;
+
+  // Debug logging to understand data structure
+  console.log("DEBUG - User subscription data:", {
+    subscription: activePlan,
+    allPlans: subscriptionData?.data?.slice(0, 2), // First 2 plans for brevity
+    planComparison: {
+      userSubscriptionId: activePlan?.id,
+      firstPlanId: subscriptionData?.data?.[0]?.id,
+      userPlanId: activePlan?.subscription_plan_id,
+    },
+  });
+
   return (
-    <div className="bg-white p-6  rounded-xl ">
+    <div className="bg-white p-6  rounded-xl overflow-visible">
       {/* <>loading {JSON.stringify(free_plan.data)}</>*/}
       <div
         data-theme="nord"
@@ -344,40 +334,79 @@ const Subscriptions = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <BadgeCheckIcon className="size-5 text-primary" />
+                <svg
+                  className="w-6 h-6 text-primary"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                  />
+                </svg>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 text-primary"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-base-content/70 text-sm font-medium mb-1">
+                    Current Plan
+                  </p>
+                  <h3 className="text-2xl font-bold text-primary">
+                    {plan?.plan_name_at_subscription || plan?.name}
+                  </h3>
+                </div>
               </div>
-              <div>
-                <p className="text-base-content/70 text-sm font-medium mb-1">
-                  Current Plan
-                </p>
-                <h3 className="text-2xl font-bold text-primary">
-                  {plan?.plan_name_at_subscription || plan?.name}
-                </h3>
-              </div>
-            </div>
 
-            {!is_free &&
-              (plan?.is_active ? (
-                <div className="badge badge-success badge-lg gap-2">
-                  <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20">
-                    <circle cx="10" cy="10" r="10" />
-                  </svg>
-                  Active Plan
-                </div>
-              ) : (
-                <div className="badge badge-error badge-lg gap-2">
-                  <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20">
-                    <circle cx="10" cy="10" r="10" />
-                  </svg>
-                  Inactive
-                </div>
-              ))}
+              {!is_free &&
+                (plan?.is_active ? (
+                  <div className="badge badge-success badge-lg gap-2">
+                    <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20">
+                      <circle cx="10" cy="10" r="10" />
+                    </svg>
+                    Active
+                  </div>
+                ) : (
+                  <div className="badge badge-error badge-lg gap-2">
+                    <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20">
+                      <circle cx="10" cy="10" r="10" />
+                    </svg>
+                    Inactive
+                  </div>
+                ))}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div className="flex items-center gap-3 p-3 bg-base-200/50 rounded-lg">
               <div className="w-8 h-8 rounded-full bg-info/10 flex items-center justify-center">
-                <Calendar className="size-5 text-primary" />
+                <svg
+                  className="w-4 h-4 text-info"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
               </div>
               <div>
                 <p className="text-xs text-base-content/60 font-medium">
@@ -491,11 +520,19 @@ const Subscriptions = () => {
       <p className="text-sm text-gray-500 mb-4">All Subscription Plans</p>
       {activeTab === "table" ? (
         <>
-          <CustomTable
+          <ReusableTable
+            loading={isPending}
             columns={columns}
             data={subscriptionRes}
-            actions={actions}
           />
+          {/*
+          {!fabricData?.length && !isPending ? (
+            <p className="flex-1 text-center text-sm md:text-sm">
+              No subscription found.
+            </p>
+          ) : (
+            <></>
+          )}*/}
         </>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -530,7 +567,12 @@ const Subscriptions = () => {
 
               <div className="text-center mx-auto">
                 <h3 className="text-[#1E293B] font-medium mb-2">{item.name}</h3>
-
+                {/* <div className="flex items-center justify-center space-x-2 mt-2">
+                  <FaLayerGroup className="text-[#9847FE]" size={14} />
+                  <span className="text-gray-600 text-sm">
+                    {item.totalFabrics}
+                  </span>
+                </div> */}
                 <div className="flex items-center justify-center space-x-2 mt-2">
                   <FaCalendarAlt className="text-[#9847FE]" size={14} />
                   <span className="text-gray-600 text-sm">

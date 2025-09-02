@@ -123,15 +123,6 @@ const Subscriptions = () => {
         ]
       : undefined;
 
-  // Get the active plan as the last item in the subscriptions array
-  const activePlan =
-    free_plan.data?.data?.subscriptions &&
-    free_plan.data?.data?.subscriptions.length > 0
-      ? free_plan.data?.data?.subscriptions[
-          free_plan.data?.data?.subscriptions.length - 1
-        ]
-      : undefined;
-
   // Handle Paystack success callback
   const handlePaystackSuccess = () => {
     console.log("🔄 Paystack success - refreshing subscription data...");
@@ -347,48 +338,33 @@ const Subscriptions = () => {
                     d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
                   />
                 </svg>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-primary"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-base-content/70 text-sm font-medium mb-1">
-                    Current Plan
-                  </p>
-                  <h3 className="text-2xl font-bold text-primary">
-                    {plan?.plan_name_at_subscription || plan?.name}
-                  </h3>
-                </div>
               </div>
+              <div>
+                <p className="text-base-content/70 text-sm font-medium mb-1">
+                  Current Plan
+                </p>
+                <h3 className="text-2xl font-bold text-primary">
+                  {plan?.plan_name_at_subscription || plan?.name}
+                </h3>
+              </div>
+            </div>
 
-              {!is_free &&
-                (plan?.is_active ? (
-                  <div className="badge badge-success badge-lg gap-2">
-                    <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20">
-                      <circle cx="10" cy="10" r="10" />
-                    </svg>
-                    Active
-                  </div>
-                ) : (
-                  <div className="badge badge-error badge-lg gap-2">
-                    <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20">
-                      <circle cx="10" cy="10" r="10" />
-                    </svg>
-                    Inactive
-                  </div>
-                ))}
+            {!is_free &&
+              (plan?.is_active ? (
+                <div className="badge badge-success badge-lg gap-2">
+                  <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20">
+                    <circle cx="10" cy="10" r="10" />
+                  </svg>
+                  Active
+                </div>
+              ) : (
+                <div className="badge badge-error badge-lg gap-2">
+                  <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20">
+                    <circle cx="10" cy="10" r="10" />
+                  </svg>
+                  Inactive
+                </div>
+              ))}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -513,8 +489,8 @@ const Subscriptions = () => {
           />
 
           {/* <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-            Sort: Newest First ▾
-          </button> */}
+          Sort: Newest First ▾
+        </button> */}
         </div>
       </div>
       <p className="text-sm text-gray-500 mb-4">All Subscription Plans</p>
@@ -526,13 +502,13 @@ const Subscriptions = () => {
             data={subscriptionRes}
           />
           {/*
-          {!fabricData?.length && !isPending ? (
-            <p className="flex-1 text-center text-sm md:text-sm">
-              No subscription found.
-            </p>
-          ) : (
-            <></>
-          )}*/}
+        {!fabricData?.length && !isPending ? (
+          <p className="flex-1 text-center text-sm md:text-sm">
+            No subscription found.
+          </p>
+        ) : (
+          <></>
+        )}*/}
         </>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -554,7 +530,7 @@ const Subscriptions = () => {
                     <button
                       onClick={() => {
                         openModal();
-                        setCurrentView(row);
+                        setCurrentView(item);
                         setOpenDropdown(null);
                       }}
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
@@ -568,11 +544,11 @@ const Subscriptions = () => {
               <div className="text-center mx-auto">
                 <h3 className="text-[#1E293B] font-medium mb-2">{item.name}</h3>
                 {/* <div className="flex items-center justify-center space-x-2 mt-2">
-                  <FaLayerGroup className="text-[#9847FE]" size={14} />
-                  <span className="text-gray-600 text-sm">
-                    {item.totalFabrics}
-                  </span>
-                </div> */}
+                <FaLayerGroup className="text-[#9847FE]" size={14} />
+                <span className="text-gray-600 text-sm">
+                  {item.totalFabrics}
+                </span>
+              </div> */}
                 <div className="flex items-center justify-center space-x-2 mt-2">
                   <FaCalendarAlt className="text-[#9847FE]" size={14} />
                   <span className="text-gray-600 text-sm">

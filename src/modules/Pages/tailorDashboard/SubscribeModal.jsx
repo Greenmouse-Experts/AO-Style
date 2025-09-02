@@ -173,7 +173,7 @@ const SubscriptionModal = ({
             <div className="space-y-4">
               <p className="text-sm text-gray-500">
                 {isUpgrade
-                  ? `Are you sure you want to upgrade from ${currentSubscription?.subscription_plan_price?.subscription_plan?.name} to ${currentView?.name}?`
+                  ? `Are you sure you want to upgrade from ${currentSubscription?.name} to ${currentView?.name}?`
                   : "Are you sure you want to subscribe?"}
               </p>
 
@@ -185,7 +185,7 @@ const SubscriptionModal = ({
                   <p className="text-sm text-blue-800">
                     <strong>New Plan:</strong> {currentView?.name}
                   </p>
-                  <p className="text-sm text-blue-800">
+                  <p className="tsext-sm text-blue-800">
                     <strong>Price:</strong> ₦
                     {new Intl.NumberFormat().format(
                       currentView?.subscription_plan_prices?.[0]?.price,
@@ -210,7 +210,7 @@ const SubscriptionModal = ({
                     const upgradePayload = {
                       subscription_id: currentSubscription?.id,
                       new_plan_price_id:
-                        currentView?.subscription_plan_prices?.[0]?.id,
+                        currentView?.subscription_plan_prices[0]?.id,
                     };
                     console.log(
                       "🔄 Starting subscription upgrade flow:",

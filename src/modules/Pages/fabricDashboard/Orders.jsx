@@ -20,8 +20,18 @@ import CaryBinApi from "../../../services/CarybinBaseUrl";
 import { useMutation } from "@tanstack/react-query";
 import CustomTable from "../../../components/CustomTable";
 
+const SEARCH_FIELDS = [
+  { label: "Order ID", value: "orderId" },
+  { label: "Customer", value: "customer" },
+  { label: "Product", value: "product" },
+  { label: "Amount", value: "amount" },
+  { label: "Product Status", value: "productStatus" },
+  { label: "Order Status", value: "orderStatus" },
+];
+
 const OrderPage = () => {
   const [filter, setFilter] = useState("all");
+  const [searchField, setSearchField] = useState("orderId");
   const [searchTerm, setSearchTerm] = useState("");
   const [openDropdown, setOpenDropdown] = useState(null);
   const dialogRef = useRef(null);
@@ -354,30 +364,30 @@ const OrderPage = () => {
       (queryParams["pagination[limit]"] ?? 10),
   );
 
-  // --- SEARCH LOGIC REWRITE STARTS HERE ---
-  // Remove the old queryString/debouncedSearchTerm logic
-  // Instead, use a local searchTerm state and filter fabricOrderData in-memory
-  const [searchString, setSearchString] = useState("");
-
-  // Filter orders by all details (orderId, customer, product, etc)
+  // Advanced search filtering with field selection
   const filteredFabricOrderData = useMemo(() => {
-    if (!searchString?.trim()) return fabricOrderData;
-    const lower = searchString.trim().toLowerCase();
+    if (!searchTerm.trim()) return fabricOrderData;
+    const term = searchTerm.toLowerCase().trim();
+
     return fabricOrderData.filter((row) => {
-      // Check all relevant fields for a match
-      return (
-        (row.orderId && row.orderId.toLowerCase().includes(lower)) ||
-        (row.customer && row.customer.toLowerCase().includes(lower)) ||
-        (row.product && row.product.toLowerCase().includes(lower)) ||
-        (row.amount && row.amount.toLowerCase().includes(lower)) ||
-        (row.productStatus &&
-          row.productStatus.toLowerCase().includes(lower)) ||
-        (row.orderStatus && row.orderStatus.toLowerCase().includes(lower)) ||
-        (row.dateAdded && row.dateAdded.toLowerCase().includes(lower))
-      );
+      switch (searchField) {
+        case "orderId":
+          return row.orderId?.toLowerCase().includes(term);
+        case "customer":
+          return row.customer?.toLowerCase().includes(term);
+        case "product":
+          return row.product?.toLowerCase().includes(term);
+        case "amount":
+          return row.amount?.toString().toLowerCase().includes(term);
+        case "productStatus":
+          return row.productStatus?.toLowerCase().includes(term);
+        case "orderStatus":
+          return row.orderStatus?.toLowerCase().includes(term);
+        default:
+          return false;
+      }
     });
-  }, [searchString, fabricOrderData]);
-  // --- END SEARCH LOGIC REWRITE ---
+  }, [fabricOrderData, searchField, searchTerm]);
 
   const handleExport = (e) => {
     const value = e.target.value;
@@ -437,82 +447,100 @@ const OrderPage = () => {
   };
 
   return (
-    <div className="">
-      <div className="bg-white px-6 py-4 mb-6">
-        <h1 className="text-2xl font-medium mb-3">Fabric Vendor Orders</h1>
-        <p className="text-gray-500">
-          <Link to="/fabric" className="text-blue-500 hover:underline">
-            Dashboard
-          </Link>{" "}
-          &gt; Orders
-        </p>
-      </div>
-      <div className="bg-white p-4 rounded-lg">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pb-3 mb-4 gap-4">
-          <div className="flex flex-wrap justify-center sm:justify-start gap-3 text-gray-600 text-sm font-medium">
-            {["all", "ongoing", "completed", "cancelled"].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => {
-                  setFilter(tab);
-                  if (tab == "all") {
-                    updateQueryParams({
-                      ...queryParams,
-                      status: undefined,
-                    });
-                  }
-                  if (tab == "ongoing") {
-                    updateQueryParams({
-                      ...queryParams,
-                      status: "PROCESSING",
-                    });
-                  }
-                  if (tab == "completed") {
-                    updateQueryParams({
-                      ...queryParams,
-                      status: "DELIVERED",
-                    });
-                  }
-                  if (tab == "cancelled") {
-                    updateQueryParams({
-                      ...queryParams,
-                      status: "CANCELLED",
-                    });
-                  }
-                }}
-                className={`font-medium capitalize px-3 py-1 ${
-                  filter === tab
-                    ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
-                    : "text-gray-500"
-                }`}
-              >
-                {tab} Orders
-              </button>
-            ))}
-          </div>
-          <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-            <div className="relative w-full sm:w-auto">
-              <Search
-                className="absolute left-3 top-3 text-gray-400"
-                size={18}
-              />
-              <input
-                type="text"
-                placeholder="Search by any detail (Order ID, Customer, Product, etc)"
-                className="w-full sm:w-[200px] pl-10 pr-4 py-2 border border-gray-200 rounded-md outline-none"
-                value={searchString}
-                onChange={(evt) => setSearchString(evt.target.value)}
-              />
+    <>
+      <ToastContainer />
+      <div className="">
+        <div className="bg-white px-6 py-4 mb-6">
+          <h1 className="text-2xl font-medium mb-3">Fabric Vendor Orders</h1>
+          <p className="text-gray-500">
+            <Link to="/fabric" className="text-blue-500 hover:underline">
+              Dashboard
+            </Link>{" "}
+            &gt; Orders
+          </p>
+        </div>
+        <div className="bg-white p-4 rounded-lg">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pb-3 mb-4 gap-4">
+            <div className="flex flex-wrap justify-center sm:justify-start gap-3 text-gray-600 text-sm font-medium">
+              {["all", "ongoing", "completed", "cancelled"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => {
+                    setFilter(tab);
+                    if (tab == "all") {
+                      updateQueryParams({
+                        ...queryParams,
+                        status: undefined,
+                      });
+                    }
+                    if (tab == "ongoing") {
+                      updateQueryParams({
+                        ...queryParams,
+                        status: "PROCESSING",
+                      });
+                    }
+                    if (tab == "completed") {
+                      updateQueryParams({
+                        ...queryParams,
+                        status: "DELIVERED",
+                      });
+                    }
+                    if (tab == "cancelled") {
+                      updateQueryParams({
+                        ...queryParams,
+                        status: "CANCELLED",
+                      });
+                    }
+                  }}
+                  className={`font-medium capitalize px-3 py-1 ${
+                    filter === tab
+                      ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
+                      : "text-gray-500"
+                  }`}
+                >
+                  {tab} Orders
+                </button>
+              ))}
+            </div>
+            {/* Search & Actions */}
+            <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+              <div className="flex gap-2 w-full sm:w-auto">
+                <select
+                  value={searchField}
+                  onChange={(e) => setSearchField(e.target.value)}
+                  className="bg-gray-100 outline-none text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
+                >
+                  {SEARCH_FIELDS.map((field) => (
+                    <option key={field.value} value={field.value}>
+                      {field.label}
+                    </option>
+                  ))}
+                </select>
+                <div className="relative w-full sm:w-auto">
+                  <Search
+                    className="absolute left-3 top-3 text-gray-400"
+                    size={18}
+                  />
+                  <input
+                    type="text"
+                    placeholder={`Search by ${SEARCH_FIELDS.find((f) => f.value === searchField)?.label || "Keyword"}...`}
+                    className="w-full sm:w-[200px] pl-10 pr-4 py-2 border border-gray-200 rounded-md outline-none"
+                    value={searchTerm}
+                    onChange={(evt) => setSearchTerm(evt.target.value)}
+                  />
+                </div>
+              </div>
               <select
                 onChange={handleExport}
                 className="bg-gray-100 mt-2  md:ml-8 outline-none text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
+                defaultValue=""
               >
-                <option value="" disabled selected>
+                <option value="" disabled>
                   Export As
                 </option>
-                <option value="csv">Export to CSV</option>{" "}
-                <option value="excel">Export to Excel</option>{" "}
-                <option value="pdf">Export to PDF</option>{" "}
+                <option value="csv">Export to CSV</option>
+                <option value="excel">Export to Excel</option>
+                <option value="pdf">Export to PDF</option>
               </select>
               <CSVLink
                 id="csvDownload"
@@ -528,293 +556,228 @@ const OrderPage = () => {
                 }))}
                 filename="FabricVendorOrders.csv"
                 className="hidden"
-              />{" "}
+              />
             </div>
             {/* <button className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md text-sm">Export As ▼</button>
                         <button className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md text-sm">Sort: Newest First ▼</button> */}
           </div>
+          {
+            <CustomTable
+              columns={updatedColumn}
+              data={fabricOrderData || []}
+              actions={actions}
+            />
+          }
+
+          {!filteredFabricOrderData?.length && !isPending ? (
+            <p className="flex-1 text-center text-sm md:text-sm py-8">
+              No orders found.
+            </p>
+          ) : null}
+          {filteredFabricOrderData?.length > 0 && (
+            <div className="flex justify-between items-center mt-4">
+              <div className="flex items-center">
+                <p className="text-sm text-gray-600">Items per page: </p>
+                <select
+                  value={queryParams["pagination[limit]"] || 10}
+                  onChange={(e) =>
+                    updateQueryParams({
+                      "pagination[limit]": +e.target.value,
+                    })
+                  }
+                  className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={15}>15</option>
+                  <option value={20}>20</option>
+                </select>
+              </div>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => {
+                    updateQueryParams({
+                      "pagination[page]": +queryParams["pagination[page]"] - 1,
+                    });
+                  }}
+                  disabled={(queryParams["pagination[page]"] ?? 1) == 1}
+                  className="px-3 py-1 rounded-md bg-gray-200"
+                >
+                  ◀
+                </button>
+                <button
+                  onClick={() => {
+                    updateQueryParams({
+                      "pagination[page]": +queryParams["pagination[page]"] + 1,
+                    });
+                  }}
+                  disabled={
+                    (queryParams["pagination[page]"] ?? 1) == totalPages
+                  }
+                  className="px-3 py-1 rounded-md bg-gray-200"
+                >
+                  ▶
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-        {
-          <CustomTable
-            columns={updatedColumn}
-            data={fabricOrderData || []}
-            actions={actions}
-          />
-        }
-        {/* <div className="overflow-x-auto">
-          <div className="min-w-full inline-block align-middle">
-            <div className="overflow-hidden border border-gray-200 rounded-lg">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    {updatedColumn.map((column, index) => (
-                      <th
-                        key={index}
-                        className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${column.width || "w-auto"}`}
-                      >
-                        {column.label}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {isPending ? (
-                    <tr>
-                      <td
-                        colSpan={updatedColumn.length}
-                        className="px-4 py-8 text-center"
-                      >
-                        <div className="flex justify-center items-center">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
-                          <span className="ml-2 text-gray-500">
-                            Loading orders...
-                          </span>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : filteredFabricOrderData.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={updatedColumn.length}
-                        className="px-4 py-8 text-center text-gray-500"
-                      >
-                        No orders found.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredFabricOrderData.map((row, rowIndex) => (
-                      <tr
-                        key={rowIndex}
-                        className="hover:bg-gray-50 transition-colors"
-                      >
-                        {updatedColumn.map((column, colIndex) => (
-                          <td
-                            key={colIndex}
-                            className={`px-4 py-3 text-sm text-gray-900 ${column.width || "w-auto"}`}
-                          >
-                            {column.render
-                              ? column.render(row[column.key], row)
-                              : row[column.key]}
-                          </td>
-                        ))}
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>*/}
 
-        {!filteredFabricOrderData?.length && !isPending ? (
-          <p className="flex-1 text-center text-sm md:text-sm py-8">
-            No orders found.
-          </p>
-        ) : null}
-        {filteredFabricOrderData?.length > 0 && (
-          <div className="flex justify-between items-center mt-4">
-            <div className="flex items-center">
-              <p className="text-sm text-gray-600">Items per page: </p>
-              <select
-                value={queryParams["pagination[limit]"] || 10}
-                onChange={(e) =>
-                  updateQueryParams({
-                    "pagination[limit]": +e.target.value,
-                  })
-                }
-                className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={15}>15</option>
-                <option value={20}>20</option>
-              </select>
-            </div>
-            <div className="flex gap-1">
-              <button
-                onClick={() => {
-                  updateQueryParams({
-                    "pagination[page]": +queryParams["pagination[page]"] - 1,
-                  });
-                }}
-                disabled={(queryParams["pagination[page]"] ?? 1) == 1}
-                className="px-3 py-1 rounded-md bg-gray-200"
-              >
-                ◀
-              </button>
-              <button
-                onClick={() => {
-                  updateQueryParams({
-                    "pagination[page]": +queryParams["pagination[page]"] + 1,
-                  });
-                }}
-                disabled={(queryParams["pagination[page]"] ?? 1) == totalPages}
-                className="px-3 py-1 rounded-md bg-gray-200"
-              >
-                ▶
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <dialog
-        ref={dialogRef}
-        data-theme="nord"
-        id="my_modal_1"
-        className="modal"
-      >
-        <ToastContainer />
-        <div className="modal-box  max-w-2xl ">
-          <h3 className="font-bold text-lg mb-4">Update Order Status</h3>
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              let form = new FormData(e.target);
-              let status = form.get("status");
-              // return console.log(status);
-              toast.promise(
-                async () =>
-                  // .catch((err) =>
-                  //   toast.error(
-                  //     err?.data?.message.toLowerCase() || "failed",
-                  //   ),
-                  // )
-                  (await update_status.mutateAsync(status)).data,
-                {
-                  pending: "pending",
-                  // success: `status changed ${status}`,
-                },
-              );
-            }}
-            className="space-y-4"
-          >
-            <></>
-            {currentItem && (
-              <>
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Order ID</span>
-                  </label>
-                  <input
-                    disabled
-                    type="text"
-                    value={currentItem.orderId || ""}
-                    readOnly
-                    className="input input-bordered w-full"
-                  />
-                </div>
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Customer Name</span>
-                  </label>
-                  <input
-                    disabled
-                    type="text"
-                    value={currentItem.customer || ""}
-                    readOnly
-                    className="input input-bordered w-full"
-                  />
-                </div>
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Product</span>
-                  </label>
-                  <input
-                    disabled
-                    type="text"
-                    value={currentItem.product || ""}
-                    readOnly
-                    className="input input-bordered w-full"
-                  />
-                </div>
-
-                {/* Status Progress Bar */}
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Order Status Progress</span>
-                  </label>
-                  <div className="w-full flex flex-col gap-2">
-                    <ul className="steps w-full">
-                      {statusOptions.map((option, idx) => {
-                        // Find the index of the current status in statusOptions
-                        const currentStatusIndex = statusOptions.findIndex(
-                          (opt) => opt.value === currentItem.orderStatus,
-                        );
-                        // DaisyUI: step-primary for completed, step for pending
-                        const stepClass =
-                          idx <= currentStatusIndex
-                            ? "step step-primary"
-                            : "step";
-                        return (
-                          <li key={option.value} className={stepClass}>
-                            <span className="text-xs">{option.label}</span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                </div>
-                {/* Status Select */}
-                {status_select[currentItem?.status]?.to?.length > 0 && (
+        <dialog
+          ref={dialogRef}
+          data-theme="nord"
+          id="my_modal_1"
+          className="modal"
+        >
+          <div className="modal-box  max-w-2xl ">
+            <h3 className="font-bold text-lg mb-4">Update Order Status</h3>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                let form = new FormData(e.target);
+                let status = form.get("status");
+                // return console.log(status);
+                toast.promise(
+                  async () =>
+                    // .catch((err) =>
+                    //   toast.error(
+                    //     err?.data?.message.toLowerCase() || "failed",
+                    //   ),
+                    // )
+                    (await update_status.mutateAsync(status)).data,
+                  {
+                    pending: "pending",
+                    // success: `status changed ${status}`,
+                  },
+                );
+              }}
+              className="space-y-4"
+            >
+              {currentItem && (
+                <>
                   <div className="form-control">
                     <label className="label">
-                      <span className="label-text">Order Status</span>
+                      <span className="label-text">Order ID</span>
                     </label>
-                    <select
-                      name="status"
-                      className="select select-bordered w-full"
-                      defaultValue={currentItem.orderStatus || "PROCESSING"}
-                      onChange={(e) => {
-                        // In a real application, you'd likely manage this with useState for actual updates
-                        // For now, we're just displaying the selected value.
-                        // This would be the place to call a function to update the backend.
-                        console.log("Selected new status:", e.target.value);
-                      }}
-                    >
-                      {/* <option value={currentItem.status} readonly>
-                      {" "}
-                      {currentItem.status}
-                    </option>*/}
-                      {status_select[currentItem?.status]?.to?.map((status) => (
-                        <>
-                          <option key={status.value} value={status.value}>
-                            {status.label}
-                          </option>
-                        </>
-                      ))}
-                      {/* <option key={"Cancel"} value={"CANCELLED"}>
-                      Cancel
-                    </option>*/}
-                    </select>
+                    <input
+                      disabled
+                      type="text"
+                      value={currentItem.orderId || ""}
+                      readOnly
+                      className="input input-bordered w-full"
+                    />
                   </div>
-                )}
-              </>
-            )}
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">Customer Name</span>
+                    </label>
+                    <input
+                      disabled
+                      type="text"
+                      value={currentItem.customer || ""}
+                      readOnly
+                      className="input input-bordered w-full"
+                    />
+                  </div>
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">Product</span>
+                    </label>
+                    <input
+                      disabled
+                      type="text"
+                      value={currentItem.product || ""}
+                      readOnly
+                      className="input input-bordered w-full"
+                    />
+                  </div>
 
-            <div className="modal-action">
-              <button
-                type="button"
-                className="btn"
-                onClick={() => dialogRef.current.close()}
-              >
-                Close
-              </button>
-              <button
-                disabled={update_status.isPending}
-                type="submit"
-                className="btn btn-primary text-white"
-              >
-                Update Status
-              </button>
-              {/* In a real scenario, you'd have an update button here */}
-              {/* <button type="button" className="btn btn-primary">Update Status</button> */}
-            </div>
-          </form>
-        </div>
-      </dialog>
-    </div>
+                  {/* Status Progress Bar */}
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">Order Status Progress</span>
+                    </label>
+                    <div className="w-full flex flex-col gap-2">
+                      <ul className="steps w-full">
+                        {statusOptions.map((option, idx) => {
+                          // Find the index of the current status in statusOptions
+                          const currentStatusIndex = statusOptions.findIndex(
+                            (opt) => opt.value === currentItem.orderStatus,
+                          );
+                          // DaisyUI: step-primary for completed, step for pending
+                          const stepClass =
+                            idx <= currentStatusIndex
+                              ? "step step-primary"
+                              : "step";
+                          return (
+                            <li key={option.value} className={stepClass}>
+                              <span className="text-xs">{option.label}</span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  </div>
+                  {/* Status Select */}
+                  {status_select[currentItem?.status]?.to?.length > 0 && (
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text">Order Status</span>
+                      </label>
+                      <select
+                        name="status"
+                        className="select select-bordered w-full"
+                        defaultValue={currentItem.orderStatus || "PROCESSING"}
+                        onChange={(e) => {
+                          // In a real application, you'd likely manage this with useState for actual updates
+                          // For now, we're just displaying the selected value.
+                          // This would be the place to call a function to update the backend.
+                          console.log("Selected new status:", e.target.value);
+                        }}
+                      >
+                        {/* <option value={currentItem.status} readonly>
+                        {" "}
+                        {currentItem.status}
+                      </option>*/}
+                        {status_select[currentItem?.status]?.to?.map(
+                          (status) => (
+                            <option key={status.value} value={status.value}>
+                              {status.label}
+                            </option>
+                          ),
+                        )}
+                        {/* <option key={"Cancel"} value={"CANCELLED"}>
+                        Cancel
+                      </option>*/}
+                      </select>
+                    </div>
+                  )}
+                </>
+              )}
+
+              <div className="modal-action">
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => dialogRef.current.close()}
+                >
+                  Close
+                </button>
+                <button
+                  disabled={update_status.isPending}
+                  type="submit"
+                  className="btn btn-primary text-white"
+                >
+                  Update Status
+                </button>
+                {/* In a real scenario, you'd have an update button here */}
+                {/* <button type="button" className="btn btn-primary">Update Status</button> */}
+              </div>
+            </form>
+          </div>
+        </dialog>
+      </div>
+    </>
   );
 };
-
 export default OrderPage;

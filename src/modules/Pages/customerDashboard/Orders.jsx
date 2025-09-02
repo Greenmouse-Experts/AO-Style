@@ -9,7 +9,7 @@
  * - Export functionality for orders data
  * - Search and pagination support
  */
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Search } from "lucide-react";
 import ReusableTable from "../adminDashboard/components/ReusableTable";
@@ -24,6 +24,15 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
+import CustomTable from "../../../components/CustomTable";
+
+const SEARCH_FIELDS = [
+  { label: "Order ID", value: "orderId" },
+  { label: "Product", value: "product" },
+  { label: "Amount", value: "amount" },
+  { label: "Status", value: "status" },
+  { label: "Date", value: "dateAdded" },
+];
 
 // Static data commented out - now using API endpoint
 // const orders = [
@@ -85,6 +94,23 @@ import { CSVLink } from "react-csv";
 
 const OrderPage = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
+  const dropdownRef = useRef(null);
+  const [searchField, setSearchField] = useState("orderId");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   const { queryParams, updateQueryParams } = useQueryParams({
     "pagination[limit]": 10,
     "pagination[page]": 1,
@@ -134,19 +160,22 @@ const OrderPage = () => {
         label: "Action",
         key: "action",
         render: (_, row) => (
-          <div className="relative">
+          <div
+            className="relative"
+            ref={openDropdown === row.id ? dropdownRef : null}
+          >
             <button
               onClick={() => {
                 setOpenDropdown(openDropdown === row.id ? null : row.id);
               }}
-              className="px-2 py-1 cursor-pointer rounded-md"
+              className="px-2 py-1 cursor-pointer rounded-md hover:bg-gray-100"
             >
               •••
             </button>
             {openDropdown === row.id && (
-              <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
+              <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md z-[9999] border border-gray-200">
                 <Link to={`/customer/orders/orders-details/${row.id}`}>
-                  <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                  <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">
                     View Details
                   </button>
                 </Link>
@@ -155,7 +184,7 @@ const OrderPage = () => {
                     🔍 Debug Test
                   </button>
                 </Link>*/}
-                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm border-t border-gray-100">
                   Cancel Order
                 </button>
               </div>
@@ -204,20 +233,32 @@ const OrderPage = () => {
   );
 
   const [filter, setFilter] = useState("all");
-  const [queryString, setQueryString] = useState(queryParams.q);
 
-  const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
+  // Client-side search filtering
+  const filteredOrderData = useMemo(() => {
+    if (!searchTerm.trim()) return customersOrderData;
+    const term = searchTerm.toLowerCase().trim();
 
-  useUpdatedEffect(() => {
-    // update search params with undefined if debouncedSearchTerm is an empty string
-    updateQueryParams({
-      q: debouncedSearchTerm.trim() || undefined,
-      "pagination[page]": 1,
+    return customersOrderData.filter((row) => {
+      switch (searchField) {
+        case "orderId":
+          return row.orderId?.toLowerCase().includes(term);
+        case "product":
+          return row.product?.toLowerCase().includes(term);
+        case "amount":
+          return row.amount?.toString().toLowerCase().includes(term);
+        case "status":
+          return row.status?.toLowerCase().includes(term);
+        case "dateAdded":
+          return row.dateAdded?.toLowerCase().includes(term);
+        default:
+          return false;
+      }
     });
-  }, [debouncedSearchTerm]);
+  }, [customersOrderData, searchField, searchTerm]);
 
   const totalPages = Math.ceil(
-    (orderData?.count || customersOrderData?.length || 0) /
+    (orderData?.count || filteredOrderData?.length || 0) /
       (queryParams["pagination[limit]"] ?? 10),
   );
 
@@ -229,7 +270,7 @@ const OrderPage = () => {
   };
 
   const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(customersOrderData);
+    const worksheet = XLSX.utils.json_to_sheet(filteredOrderData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
     const excelBuffer = XLSX.write(workbook, {
@@ -248,7 +289,7 @@ const OrderPage = () => {
       head: [
         ["Order ID", "Transaction ID", "Product", "Amount", "Date", "Status"],
       ],
-      body: customersOrderData?.map((row) => [
+      body: filteredOrderData?.map((row) => [
         row.orderId,
         row.transactionId,
         row.product,
@@ -300,22 +341,31 @@ const OrderPage = () => {
           </div>
           {/* Search & Actions */}
           <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-            <div className="relative w-full sm:w-auto">
-              <Search
-                className="absolute left-3 top-3 text-gray-400"
-                size={18}
-              />
-              <input
-                type="text"
-                placeholder="Search"
-                className="w-full sm:w-[200px] pl-10 pr-4 py-2 border border-gray-200 rounded-md outline-none"
-                value={queryString}
-                onChange={(evt) =>
-                  setQueryString(
-                    evt.target.value ? evt.target.value : undefined,
-                  )
-                }
-              />
+            <div className="flex gap-2 w-full sm:w-auto">
+              <select
+                value={searchField}
+                onChange={(e) => setSearchField(e.target.value)}
+                className="bg-gray-100 outline-none text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
+              >
+                {SEARCH_FIELDS.map((field) => (
+                  <option key={field.value} value={field.value}>
+                    {field.label}
+                  </option>
+                ))}
+              </select>
+              <div className="relative w-full sm:w-auto">
+                <Search
+                  className="absolute left-3 top-3 text-gray-400"
+                  size={18}
+                />
+                <input
+                  type="text"
+                  placeholder={`Search by ${SEARCH_FIELDS.find((f) => f.value === searchField)?.label || "Keyword"}...`}
+                  className="w-full sm:w-[200px] pl-10 pr-4 py-2 border border-gray-200 rounded-md outline-none"
+                  value={searchTerm}
+                  onChange={(evt) => setSearchTerm(evt.target.value)}
+                />
+              </div>
             </div>
             {/* <button className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md text-sm">
               Export As ▼
@@ -333,7 +383,7 @@ const OrderPage = () => {
             </select>
             <CSVLink
               id="csvDownload"
-              data={customersOrderData?.map((row) => ({
+              data={filteredOrderData?.map((row) => ({
                 "Order ID": row.orderId,
                 "Transaction ID": row.transactionId,
                 Product: row.product,
@@ -348,13 +398,15 @@ const OrderPage = () => {
         </div>
 
         {/* Table Section */}
-        <ReusableTable
-          loading={isPending}
-          columns={columns}
-          data={customersOrderData}
-        />
+        <div className="overflow-visible relative">
+          <CustomTable
+            loading={isPending}
+            columns={columns}
+            data={filteredOrderData}
+          />
+        </div>
 
-        {!customersOrderData?.length && !isPending ? (
+        {!filteredOrderData?.length && !isPending ? (
           <p className="flex-1 text-center text-sm md:text-sm">
             No Order found.
           </p>
@@ -362,7 +414,7 @@ const OrderPage = () => {
           <></>
         )}
 
-        {customersOrderData?.length > 0 && (
+        {filteredOrderData?.length > 0 && (
           <div className="flex justify-between items-center mt-4">
             <div className="flex items-center">
               <p className="text-sm text-gray-600">Items per page: </p>

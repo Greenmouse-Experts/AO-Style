@@ -143,7 +143,7 @@ export default function SalesRepAddedUser() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="flex justify-center items-center min-h-screen bg-base-200">
         <div className="loading loading-spinner loading-lg"></div>
       </div>
     );
@@ -151,16 +151,20 @@ export default function SalesRepAddedUser() {
 
   if (error) {
     return (
-      <div className="alert alert-error">
-        <span>Error loading user details</span>
+      <div className="flex justify-center items-center min-h-screen bg-base-200">
+        <div className="alert alert-error shadow-lg">
+          <span>Error loading user details</span>
+        </div>
       </div>
     );
   }
 
   if (!data?.data) {
     return (
-      <div className="alert alert-warning">
-        <span>No user data found</span>
+      <div className="flex justify-center items-center min-h-screen bg-base-200">
+        <div className="alert alert-warning shadow-lg">
+          <span>No user data found</span>
+        </div>
       </div>
     );
   }
@@ -168,72 +172,82 @@ export default function SalesRepAddedUser() {
   const { user, business, kyc } = data.data;
 
   return (
-    <div className="container mx-auto p-6 space-y-6" data-theme="nord">
+    <div
+      className="container mx-auto px-4 py-8 space-y-8 max-w-5xl"
+      data-theme="nord"
+    >
       {/* Header */}
-      <div className="mb-6 flex gap-2 items-center">
+      <div className="flex gap-4 items-center mb-8">
         <CustomBackbtn />
-        <h1 className="text-2xl font-bold text-base-content ">User Details</h1>
+        <h1 className="text-3xl font-extrabold text-base-content tracking-tight">
+          User Details
+        </h1>
       </div>
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex flex-col md:flex-row items-center gap-6 mb-8 bg-base-100 rounded-xl shadow-lg p-6">
         <div className="avatar">
-          <div className="w-16 h-16 rounded-full">
+          <div className="w-24 h-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2 overflow-hidden flex items-center justify-center bg-base-200">
             {user.profile.profile_picture ? (
-              <img src={user.profile.profile_picture} alt={user.name} />
+              <img
+                src={user.profile.profile_picture}
+                alt={user.name}
+                className="object-cover w-full h-full"
+              />
             ) : (
-              <div className="avatar-placeholder bg-neutral text-neutral-content">
-                <span className="text-xl">
+              <div className="avatar-placeholder bg-neutral text-neutral-content w-full h-full flex items-center justify-center">
+                <span className="text-3xl font-bold">
                   {user.name.charAt(0).toUpperCase()}
                 </span>
               </div>
             )}
           </div>
         </div>
-        <div>
-          <h1 className="text-3xl font-bold">{user.name}</h1>
-          <p className="text-base-content/70">{user.role.name}</p>
+        <div className="flex flex-col gap-2">
+          <h1 className="text-2xl font-bold">{user.name}</h1>
+          <p className="text-base-content/70 text-lg">{user.role.name}</p>
+          <div className="flex gap-2 mt-2">
+            <span
+              className={`badge px-3 py-2 ${user.is_suspended ? "badge-error" : "badge-success"}`}
+            >
+              {user.is_suspended ? "Suspended" : "Active"}
+            </span>
+            {user.is_email_verified && (
+              <span className="badge badge-success badge-sm">
+                Email Verified
+              </span>
+            )}
+            {user.is_phone_verified && (
+              <span className="badge badge-success badge-sm">
+                Phone Verified
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
         {/* User Information Card */}
-        <div className="card card-border">
+        <div className="card card-border shadow-lg bg-base-100 rounded-xl">
           <div className="card-body">
-            <h2 className="card-title">User Information</h2>
-            <div className="space-y-3">
-              <div>
-                <span className="font-semibold">Email:</span>
+            <h2 className="card-title text-lg font-semibold mb-4">
+              User Information
+            </h2>
+            <div className="space-y-4">
+              <div className="flex items-center">
+                <span className="font-semibold w-32">Email:</span>
                 <span className="ml-2">{user.email}</span>
-                {user.is_email_verified && (
-                  <span className="badge badge-success badge-sm ml-2">
-                    Verified
-                  </span>
-                )}
               </div>
-              <div>
-                <span className="font-semibold">Phone:</span>
+              <div className="flex items-center">
+                <span className="font-semibold w-32">Phone:</span>
                 <span className="ml-2">{user.phone}</span>
-                {user.is_phone_verified && (
-                  <span className="badge badge-success badge-sm ml-2">
-                    Verified
-                  </span>
-                )}
               </div>
               {user.alternative_phone && (
-                <div>
-                  <span className="font-semibold">Alternative Phone:</span>
+                <div className="flex items-center">
+                  <span className="font-semibold w-32">Alt. Phone:</span>
                   <span className="ml-2">{user.alternative_phone}</span>
                 </div>
               )}
-              <div>
-                <span className="font-semibold">Status:</span>
-                <span
-                  className={`badge ml-2 ${user.is_suspended ? "badge-error" : "badge-success"}`}
-                >
-                  {user.is_suspended ? "Suspended" : "Active"}
-                </span>
-              </div>
-              <div>
-                <span className="font-semibold">Joined:</span>
+              <div className="flex items-center">
+                <span className="font-semibold w-32">Joined:</span>
                 <span className="ml-2">
                   {new Date(user.created_at).toLocaleDateString()}
                 </span>
@@ -243,39 +257,45 @@ export default function SalesRepAddedUser() {
         </div>
 
         {/* Profile Information Card */}
-        <div className="card card-border">
+        <div className="card card-border shadow-lg bg-base-100 rounded-xl">
           <div className="card-body">
-            <h2 className="card-title">Profile Details</h2>
-            <div className="space-y-3">
+            <h2 className="card-title text-lg font-semibold mb-4">
+              Profile Details
+            </h2>
+            <div className="space-y-4">
               {user.profile.bio && (
                 <div>
                   <span className="font-semibold">Bio:</span>
-                  <p className="mt-1">{user.profile.bio}</p>
+                  <p className="mt-1 text-base-content/80">
+                    {user.profile.bio}
+                  </p>
                 </div>
               )}
               {user.profile.date_of_birth && (
-                <div>
-                  <span className="font-semibold">Date of Birth:</span>
+                <div className="flex items-center">
+                  <span className="font-semibold w-32">Date of Birth:</span>
                   <span className="ml-2">
                     {new Date(user.profile.date_of_birth).toLocaleDateString()}
                   </span>
                 </div>
               )}
               {user.profile.gender && (
-                <div>
-                  <span className="font-semibold">Gender:</span>
+                <div className="flex items-center">
+                  <span className="font-semibold w-32">Gender:</span>
                   <span className="ml-2">{user.profile.gender}</span>
                 </div>
               )}
               {user.profile.address && (
                 <div>
                   <span className="font-semibold">Address:</span>
-                  <p className="mt-1">{user.profile.address}</p>
+                  <p className="mt-1 text-base-content/80">
+                    {user.profile.address}
+                  </p>
                 </div>
               )}
               {user.profile.years_of_experience && (
-                <div>
-                  <span className="font-semibold">Experience:</span>
+                <div className="flex items-center">
+                  <span className="font-semibold w-32">Experience:</span>
                   <span className="ml-2">
                     {user.profile.years_of_experience} years
                   </span>
@@ -287,37 +307,39 @@ export default function SalesRepAddedUser() {
 
         {/* Business Information Card */}
         {business && (
-          <div className="card card-border">
+          <div className="card card-border shadow-lg bg-base-100 rounded-xl">
             <div className="card-body">
-              <h2 className="card-title">Business Information</h2>
-              <div className="space-y-3">
-                <div>
-                  <span className="font-semibold">Business Name:</span>
+              <h2 className="card-title text-lg font-semibold mb-4">
+                Business Information
+              </h2>
+              <div className="space-y-4">
+                <div className="flex items-center">
+                  <span className="font-semibold w-40">Business Name:</span>
                   <span className="ml-2">{business.business_name}</span>
                 </div>
-                <div>
-                  <span className="font-semibold">Industry:</span>
+                <div className="flex items-center">
+                  <span className="font-semibold w-40">Industry:</span>
                   <span className="ml-2">
                     {business.industry || "Not specified"}
                   </span>
                 </div>
-                <div>
-                  <span className="font-semibold">Business Type:</span>
+                <div className="flex items-center">
+                  <span className="font-semibold w-40">Business Type:</span>
                   <span className="ml-2">{business.business_type}</span>
                 </div>
-                <div>
-                  <span className="font-semibold">Business Size:</span>
+                <div className="flex items-center">
+                  <span className="font-semibold w-40">Business Size:</span>
                   <span className="ml-2">
                     {business.business_size || "Not specified"}
                   </span>
                 </div>
-                <div>
-                  <span className="font-semibold">Location:</span>
+                <div className="flex items-center">
+                  <span className="font-semibold w-40">Location:</span>
                   <span className="ml-2">{business.location}</span>
                 </div>
                 {business.working_hours && (
-                  <div>
-                    <span className="font-semibold">Working Hours:</span>
+                  <div className="flex items-center">
+                    <span className="font-semibold w-40">Working Hours:</span>
                     <span className="ml-2">{business.working_hours}</span>
                   </div>
                 )}
@@ -328,32 +350,34 @@ export default function SalesRepAddedUser() {
 
         {/* KYC Information Card */}
         {kyc && (
-          <div className="card card-border">
+          <div className="card card-border shadow-lg bg-base-100 rounded-xl">
             <div className="card-body">
-              <div className="flex">
-                <h2 className="card-title items-center">KYC Information</h2>
+              <div className="flex items-center mb-4">
+                <h2 className="card-title text-lg font-semibold">
+                  KYC Information
+                </h2>
                 <span
-                  className="btn btn-sm ml-auto btn-primary"
+                  className="btn btn-sm ml-auto btn-primary rounded-full shadow"
                   onClick={() => dialogRef.current?.showModal()}
                 >
-                  View Kyc
+                  View KYC
                 </span>
               </div>
-              <div className="space-y-3">
-                <div>
-                  <span className="font-semibold">Status:</span>
+              <div className="space-y-4">
+                <div className="flex items-center">
+                  <span className="font-semibold w-32">Status:</span>
                   <span
-                    className={`badge ml-2 ${kyc.is_approved ? "badge-success" : "badge-warning"}`}
+                    className={`badge ml-2 px-3 py-2 ${kyc.is_approved ? "badge-success" : "badge-warning"}`}
                   >
                     {kyc.is_approved ? "Approved" : "Pending"}
                   </span>
                 </div>
-                <div>
-                  <span className="font-semibold">ID Type:</span>
+                <div className="flex items-center">
+                  <span className="font-semibold w-32">ID Type:</span>
                   <span className="ml-2">{kyc.id_type}</span>
                 </div>
-                <div>
-                  <span className="font-semibold">Location:</span>
+                <div className="flex items-center">
+                  <span className="font-semibold w-32">Location:</span>
                   <span className="ml-2">{`${kyc.city}, ${kyc.state}, ${kyc.country}`}</span>
                 </div>
                 {kyc.disapproval_reason && (
@@ -362,8 +386,8 @@ export default function SalesRepAddedUser() {
                     <p className="mt-1 text-error">{kyc.disapproval_reason}</p>
                   </div>
                 )}
-                <div>
-                  <span className="font-semibold">Reviewed At:</span>
+                <div className="flex items-center">
+                  <span className="font-semibold w-32">Reviewed At:</span>
                   <span className="ml-2">
                     {kyc.reviewed_at
                       ? new Date(kyc.reviewed_at).toLocaleDateString()
@@ -378,15 +402,15 @@ export default function SalesRepAddedUser() {
                       },
                       {
                         success: "Kyc approved successfully",
-                        isPending: "Approving Kyc...",
+                        pending: "Approving Kyc...",
                         error: "Failed to approve kyc",
                       },
                     )
                   }
                   disabled={kyc?.is_approved || accept_kyc.isPending}
-                  className="btn btn-primary btn-block"
+                  className={`btn btn-primary btn-block mt-2 ${kyc?.is_approved ? "btn-disabled" : ""}`}
                 >
-                  {kyc?.is_approved ? "Approved" : "Approve Kyc"}
+                  {kyc?.is_approved ? "Approved" : "Approve KYC"}
                 </button>
               </div>
             </div>
@@ -396,9 +420,9 @@ export default function SalesRepAddedUser() {
 
       {/* Suspension Information */}
       {user.is_suspended && (
-        <div className="alert alert-error">
+        <div className="alert alert-error shadow-lg mt-8">
           <div>
-            <h3 className="font-bold">Account Suspended</h3>
+            <h3 className="font-bold text-lg">Account Suspended</h3>
             {user.suspension_reason && <p>Reason: {user.suspension_reason}</p>}
             {user.suspended_at && (
               <p>
@@ -409,88 +433,104 @@ export default function SalesRepAddedUser() {
         </div>
       )}
 
-      {/*<button className="btn" onClick={()=>document.getElementById('my_modal_2').showModal()}>open modal</button>*/}
       <dialog ref={dialogRef} id="my_modal_2" className="modal">
-        <div className="modal-box max-w-4xl  max-h-[640px]">
-          <form method="dialog">
-            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
-              ✕
-            </button>
-          </form>
+        <div className="modal-box max-w-2xl max-h-[90vh] overflow-y-auto p-0 bg-base-100 rounded-xl shadow-xl">
+          {/* Modal Header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-base-300 bg-base-100 rounded-t-lg">
+            <h3 className="font-bold text-xl">KYC Documents</h3>
+            <form method="dialog">
+              <button
+                className="btn btn-sm btn-circle btn-ghost"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </form>
+          </div>
 
-          <h3 className="font-bold text-lg mb-4">KYC Documents</h3>
-
-          <div className="space-y-6">
+          {/* Modal Content */}
+          <div className="px-6 py-4">
             {/* ID Type Information */}
-            <div className="alert alert-info">
-              <div>
-                <h4 className="font-semibold">Document Type</h4>
-                <p className="text-sm opacity-70">{data.data.kyc.id_type}</p>
-              </div>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="badge badge-info text-base px-3 py-2 rounded-lg">
+                {data.data.kyc.id_type}
+              </span>
+              <span className="text-xs text-base-content/60">
+                Document Type
+              </span>
             </div>
 
             {/* Document Images Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
               {/* Front Document */}
-              <div className="card card-border">
-                <div className="card-body p-4">
-                  <h4 className="card-title text-base mb-3">Front Document</h4>
-                  <div className="aspect-video bg-base-200 rounded-lg overflow-hidden">
+              <div className="flex flex-col items-center bg-base-200 rounded-lg p-3 shadow-sm">
+                <span className="font-semibold mb-2 text-sm">Front</span>
+                <div className="w-full aspect-video rounded-lg overflow-hidden border border-base-300 bg-base-100 flex items-center justify-center">
+                  {data.data.kyc.doc_front ? (
                     <img
                       src={data.data.kyc.doc_front}
                       alt="Front document"
-                      className="w-full h-full object-contain hover:object-cover transition-all duration-300 cursor-pointer"
+                      className="max-h-40 w-auto object-contain cursor-zoom-in transition-all duration-200 hover:scale-105"
                       onClick={(e) => {
                         const img = e.target as HTMLImageElement;
-                        img.classList.toggle("object-contain");
-                        img.classList.toggle("object-cover");
+                        img.classList.toggle("scale-105");
                       }}
                     />
-                  </div>
+                  ) : (
+                    <span className="text-xs text-base-content/60">
+                      No image
+                    </span>
+                  )}
                 </div>
               </div>
 
               {/* Back Document */}
-              <div className="card card-border">
-                <div className="card-body p-4">
-                  <h4 className="card-title text-base mb-3">Back Document</h4>
-                  <div className="aspect-video bg-base-200 rounded-lg overflow-hidden">
+              <div className="flex flex-col items-center bg-base-200 rounded-lg p-3 shadow-sm">
+                <span className="font-semibold mb-2 text-sm">Back</span>
+                <div className="w-full aspect-video rounded-lg overflow-hidden border border-base-300 bg-base-100 flex items-center justify-center">
+                  {data.data.kyc.doc_back ? (
                     <img
                       src={data.data.kyc.doc_back}
                       alt="Back document"
-                      className="w-full h-full object-contain hover:object-cover transition-all duration-300 cursor-pointer"
+                      className="max-h-40 w-auto object-contain cursor-zoom-in transition-all duration-200 hover:scale-105"
                       onClick={(e) => {
                         const img = e.target as HTMLImageElement;
-                        img.classList.toggle("object-contain");
-                        img.classList.toggle("object-cover");
+                        img.classList.toggle("scale-105");
                       }}
                     />
-                  </div>
+                  ) : (
+                    <span className="text-xs text-base-content/60">
+                      No image
+                    </span>
+                  )}
                 </div>
               </div>
-            </div>
 
-            {/* Utility Document - Full Width */}
-            <div className="card card-border">
-              <div className="card-body p-4">
-                <h4 className="card-title text-base mb-3">Utility Document</h4>
-                <div className="aspect-video bg-base-200 rounded-lg overflow-hidden">
-                  <img
-                    src={data.data.kyc.utility_doc}
-                    alt="Utility document"
-                    className="w-full h-full object-contain hover:object-cover transition-all duration-300 cursor-pointer"
-                    onClick={(e) => {
-                      const img = e.target as HTMLImageElement;
-                      img.classList.toggle("object-contain");
-                      img.classList.toggle("object-cover");
-                    }}
-                  />
+              {/* Utility Document */}
+              <div className="flex flex-col items-center bg-base-200 rounded-lg p-3 shadow-sm">
+                <span className="font-semibold mb-2 text-sm">Utility</span>
+                <div className="w-full aspect-video rounded-lg overflow-hidden border border-base-300 bg-base-100 flex items-center justify-center">
+                  {data.data.kyc.utility_doc ? (
+                    <img
+                      src={data.data.kyc.utility_doc}
+                      alt="Utility document"
+                      className="max-h-40 w-auto object-contain cursor-zoom-in transition-all duration-200 hover:scale-105"
+                      onClick={(e) => {
+                        const img = e.target as HTMLImageElement;
+                        img.classList.toggle("scale-105");
+                      }}
+                    />
+                  ) : (
+                    <span className="text-xs text-base-content/60">
+                      No image
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="card-actions justify-end pt-4 border-t border-base-300">
+            <div className="flex justify-end gap-2 pt-4 border-t border-base-300">
               <form method="dialog">
                 <button className="btn btn-ghost">Close</button>
               </form>
@@ -509,7 +549,7 @@ export default function SalesRepAddedUser() {
                   );
                 }}
                 disabled={kyc?.is_approved || accept_kyc.isPending}
-                className="btn btn-primary"
+                className={`btn btn-primary ${kyc?.is_approved ? "btn-disabled" : ""}`}
               >
                 {kyc?.is_approved ? "Already Approved" : "Approve KYC"}
               </button>

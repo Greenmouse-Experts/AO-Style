@@ -194,7 +194,7 @@ const OrderDetails = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Order #{orderInfo?.id?.slice(-8)?.toUpperCase() || "N/A"}
+              Order ID: {orderInfo?.id?.slice(-8)?.toUpperCase() || "N/A"}
             </h1>
             <p className="text-gray-500 text-sm">
               <a
@@ -231,7 +231,7 @@ const OrderDetails = () => {
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-gray-600 font-medium">Order ID:</span>
                   <span className="font-semibold text-gray-900">
-                    #{orderInfo?.id?.slice(-8)?.toUpperCase()}
+                    {orderInfo?.id?.slice(-8)?.toUpperCase()}
                   </span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">

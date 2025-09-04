@@ -25,6 +25,7 @@ import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 import useUpdateOrderStatus from "../../../hooks/order/useUpdateOrderStatus";
 import MeasurementsModal from "./components/MeasurementsModal";
 import CustomBackbtn from "../../../components/CustomBackBtn";
+import useToast from "../../../hooks/useToast";
 
 const OrderDetails = () => {
   const [showUploadPopup, setShowUploadPopup] = useState(false);
@@ -41,6 +42,7 @@ const OrderDetails = () => {
   const { isPending: isImageUploading, uploadImageMutate } = useUploadImage();
   const { isPending: isStatusUpdating, updateOrderStatusMutate } =
     useUpdateOrderStatus();
+  const { toastSuccess, toastError } = useToast();
 
   // Get order ID from URL params
   const { id } = useParams();
@@ -156,12 +158,49 @@ const OrderDetails = () => {
         {
           onSuccess: (result) => {
             console.log("✅ Order status updated:", result);
+            const message =
+              result?.data?.message || "Order status updated successfully";
+            toastSuccess(message);
+            refetch();
             resolve(result);
           },
           onError: (error) => {
+            console.error("❌ Order status update failed:", error);
             reject(
               new Error(error?.message || "Failed to update order status"),
             );
+          },
+        },
+      );
+    });
+  };
+
+  // Update order status without image
+  const updateStatusOnly = async (newStatus) => {
+    const statusData = {
+      status: newStatus,
+    };
+
+    return new Promise((resolve, reject) => {
+      updateOrderStatusMutate(
+        { id, statusData },
+        {
+          onSuccess: (result) => {
+            console.log("✅ Order status updated:", result);
+            const message =
+              result?.data?.message || "Order status updated successfully";
+            toastSuccess(message);
+            refetch();
+            resolve(result);
+          },
+          onError: (error) => {
+            console.error("❌ Order status update failed:", error);
+            const errorMessage =
+              error?.response?.data?.message ||
+              error?.message ||
+              "Failed to update order status";
+            toastError(errorMessage);
+            reject(new Error(errorMessage));
           },
         },
       );
@@ -197,7 +236,7 @@ const OrderDetails = () => {
 
   const handleCompleteUpload = async () => {
     if (!selectedFile) {
-      alert("Please select an image first.");
+      toastError("Please select an image first.");
       return;
     }
 
@@ -230,7 +269,7 @@ const OrderDetails = () => {
           : currentActionType === "completed"
             ? "marked as completed"
             : "marked as sent";
-      alert(`Success! Garment image uploaded and order ${actionText}.`);
+      toastSuccess(`Success! Garment image uploaded and order ${actionText}.`);
 
       // Update checkbox state
       if (currentActionType === "received") {
@@ -249,7 +288,7 @@ const OrderDetails = () => {
     } catch (error) {
       console.error("❌ Upload flow error:", error);
       setUploadStatus("Upload failed");
-      alert(`Upload failed: ${error.message || "Unknown error occurred"}`);
+      toastError(`Upload failed: ${error.message || "Unknown error occurred"}`);
     } finally {
       setIsUploading(false);
     }
@@ -266,6 +305,42 @@ const OrderDetails = () => {
       setCurrentActionType("sent");
       setShowUploadPopup(true);
     }
+  };
+
+  // Handle status update directly (for buttons)
+  const handleStatusUpdate = async (newStatus) => {
+    try {
+      console.log("🔄 Updating order status to:", newStatus);
+      await updateStatusOnly(newStatus);
+    } catch (error) {
+      console.error("❌ Status update failed:", error);
+    }
+  };
+
+  // Check if status can be updated
+  const canUpdateToProcessing = () => {
+    const currentStatus = orderInfo?.status;
+    return (
+      !currentStatus || currentStatus === "PAID" || currentStatus === "PENDING"
+    );
+  };
+
+  const canUpdateToOutForDelivery = () => {
+    const currentStatus = orderInfo?.status;
+    return currentStatus === "PROCESSING";
+  };
+
+  const isStatusReached = (targetStatus) => {
+    const currentStatus = orderInfo?.status;
+    if (targetStatus === "PROCESSING") {
+      return (
+        currentStatus === "PROCESSING" || currentStatus === "OUT_FOR_DELIVERY"
+      );
+    }
+    if (targetStatus === "OUT_FOR_DELIVERY") {
+      return currentStatus === "OUT_FOR_DELIVERY";
+    }
+    return false;
   };
 
   const handleClosePopup = () => {
@@ -571,54 +646,149 @@ const OrderDetails = () => {
             {/* Right Sidebar */}
             <div className="w-80 ml-6">
               <div className="bg-white rounded-lg p-6">
-                <h3 className="text-lg font-semibold mb-4">Order Status</h3>
+                <h3 className="text-lg font-semibold mb-4">
+                  Order Status Management
+                </h3>
 
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm text-gray-500 mb-2">FABRIC</p>
-                    <label className="flex items-center justify-between">
-                      <span className="text-gray-900">Mark as Received</span>
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                        checked={
-                          orderInfo.status === "PROCESSING" ||
-                          orderInfo.status === "OUT_FOR_DELIVERY"
-                        }
-                        onChange={() => handleCheckboxChange("received")}
-                        disabled={isUploading}
-                      />
-                    </label>
+                <div className="space-y-6">
+                  {/* Current Status Display */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-600 mb-1">Current Status</p>
+                    <span className="px-3 py-1 bg-yellow-100 text-yellow-600 rounded-full text-sm font-medium">
+                      {orderInfo?.status || "Pending"}
+                    </span>
                   </div>
 
-                  {/* <div>
-                    <p className="text-sm text-gray-500 mb-2">TAILORING</p>
-                    <label className="flex items-center justify-between">
-                      <span className="text-gray-900">Mark as Completed</span>
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                        checked={markCompletedChecked}
-                        onChange={() => handleCheckboxChange("completed")}
-                        disabled={isUploading}
-                      />
-                    </label>
-                  </div>*/}
+                  {/* Status Update Actions */}
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-gray-900 font-medium">
+                          PROCESSING
+                        </span>
+                        {isStatusReached("PROCESSING") && (
+                          <span className="text-green-600 text-sm flex items-center">
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                            Completed
+                          </span>
+                        )}
+                      </div>
+                      {canUpdateToProcessing() ? (
+                        <button
+                          onClick={() => handleStatusUpdate("PROCESSING")}
+                          disabled={isStatusUpdating}
+                          className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {isStatusUpdating
+                            ? "Updating..."
+                            : "Mark as Processing"}
+                        </button>
+                      ) : isStatusReached("PROCESSING") ? (
+                        <div className="w-full px-4 py-2 bg-green-100 text-green-700 rounded-lg text-center">
+                          Status Reached
+                        </div>
+                      ) : (
+                        <div className="w-full px-4 py-2 bg-gray-100 text-gray-500 rounded-lg text-center">
+                          Previous steps required
+                        </div>
+                      )}
+                    </div>
 
-                  <div>
-                    <p className="text-sm text-gray-500 mb-2">
-                      OUT FOR DELIVERY
-                    </p>
-                    <label className="flex items-center justify-between">
-                      <span className="text-gray-900">Mark as Sent</span>
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                        checked={orderInfo?.status === "OUT_FOR_DELIVERY"}
-                        onChange={() => handleCheckboxChange("sent")}
-                        disabled={isUploading}
-                      />
-                    </label>
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-gray-900 font-medium">
+                          OUT FOR DELIVERY
+                        </span>
+                        {isStatusReached("OUT_FOR_DELIVERY") && (
+                          <span className="text-green-600 text-sm flex items-center">
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                            Completed
+                          </span>
+                        )}
+                      </div>
+                      {canUpdateToOutForDelivery() ? (
+                        <button
+                          onClick={() => handleStatusUpdate("OUT_FOR_DELIVERY")}
+                          disabled={isStatusUpdating}
+                          className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {isStatusUpdating
+                            ? "Updating..."
+                            : "Mark as Out for Delivery"}
+                        </button>
+                      ) : isStatusReached("OUT_FOR_DELIVERY") ? (
+                        <div className="w-full px-4 py-2 bg-green-100 text-green-700 rounded-lg text-center">
+                          Status Reached
+                        </div>
+                      ) : (
+                        <div className="w-full px-4 py-2 bg-gray-100 text-gray-500 rounded-lg text-center">
+                          Complete Processing first
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Status Flow Information */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-medium text-blue-900 mb-2">
+                      Status Flow
+                    </h4>
+                    <div className="text-sm text-blue-800 space-y-1">
+                      <div className="flex items-center">
+                        <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+                        <span>
+                          1. Mark as Processing when you start working on the
+                          order
+                        </span>
+                      </div>
+                      <div className="flex items-center">
+                        <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+                        <span>
+                          2. Mark as Out for Delivery when ready to ship
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Legacy Upload Options (if needed) */}
+                  <div className="border-t pt-4">
+                    <h4 className="font-medium text-gray-900 mb-3">
+                      Upload Progress Images (Optional)
+                    </h4>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="flex items-center justify-between">
+                          <span className="text-gray-700">
+                            Mark as Received (with image)
+                          </span>
+                          <input
+                            type="checkbox"
+                            className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                            checked={
+                              orderInfo.status === "PROCESSING" ||
+                              orderInfo.status === "OUT_FOR_DELIVERY"
+                            }
+                            onChange={() => handleCheckboxChange("received")}
+                            disabled={isUploading}
+                          />
+                        </label>
+                      </div>
+
+                      <div>
+                        <label className="flex items-center justify-between">
+                          <span className="text-gray-700">
+                            Mark as Sent (with image)
+                          </span>
+                          <input
+                            type="checkbox"
+                            className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                            checked={orderInfo?.status === "OUT_FOR_DELIVERY"}
+                            onChange={() => handleCheckboxChange("sent")}
+                            disabled={isUploading}
+                          />
+                        </label>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

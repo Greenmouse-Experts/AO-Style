@@ -1,13 +1,32 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
-import { AlertCircle, Loader2 } from "lucide-react";
+import {
+  AlertCircle,
+  Loader2,
+  Package,
+  MapPin,
+  Clock,
+  CheckCircle,
+  Truck,
+  User,
+  Phone,
+  Mail,
+  Navigation,
+  Star,
+  Calendar,
+  DollarSign,
+  ArrowRight,
+  Target,
+  Route,
+} from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import { useItemMap } from "../../../store/useTempStore";
 import { useRef, useState } from "react";
 import useGetUser from "../../../hooks/user/useGetSingleUser";
 import useGetUserProfile from "../../Auth/hooks/useGetProfile";
 import CustomBackbtn from "../../../components/CustomBackBtn";
+import useToast from "../../../hooks/useToast";
 import "react-toastify/dist/ReactToastify.css";
 
 interface MeasurementData {
@@ -58,7 +77,8 @@ interface MetadataItem {
   style_product_name: string;
   fabric_product_name: string;
 }
-interface order_summary {
+
+interface OrderSummary {
   order_summary: {
     subtotal: number;
     vat_amount: number;
@@ -109,6 +129,7 @@ interface PaymentData {
   amount: string;
   discount_applied: string;
   payment_status: string;
+  status: string;
   transaction_id: string;
   payment_method: string;
   created_at: string;
@@ -121,10 +142,9 @@ interface PaymentData {
   auto_renew: boolean;
   is_renewal: boolean;
   is_upgrade: boolean;
-  metadata: [MetadataItem, order_summary];
-  purchase: Purchase;
-  transaction_type: null;
-  order_id: null;
+  tailor_delivery_code: string | null;
+  user_delivery_code: string | null;
+  total_amount: string;
 }
 
 interface UserProfile {
@@ -155,8 +175,6 @@ interface User {
   email: string;
   phone: string;
   profile: UserProfile;
-  order_items: OrderItem[];
-  logistics_agent: null;
 }
 
 interface ProductFabric {
@@ -198,25 +216,19 @@ interface ProductStyle {
 interface Creator {
   id: string;
   name: string;
-  role: {
-    id: string;
-    name: string;
-  };
+  email: string;
+  phone: string;
   profile: UserProfile;
 }
 
 interface Product {
   id: string;
-  business_id: string;
-  category_id: string;
-  creator_id: string;
   name: string;
-  sku: string;
   description: string;
-  gender: string;
-  tags: [];
   price: string;
-  original_price: string;
+  category_id: string;
+  market_id: string;
+  location: {};
   currency: string;
   type: string;
   status: string;
@@ -226,26 +238,28 @@ interface Product {
   created_at: string;
   updated_at: string;
   deleted_at: null;
+  fabric: ProductFabric;
+  style: ProductStyle;
   creator: Creator;
-  fabric: ProductFabric | null;
-  style: ProductStyle | null;
 }
 
 interface OrderItem {
   id: string;
-  order_id: string;
   product_id: string;
   quantity: number;
-  price: string;
   created_at: string;
   updated_at: string;
   deleted_at: null;
   product: Product;
 }
+
 interface LogisticAgent {
   id: string;
   name: string;
+  email: string;
+  phone: string;
 }
+
 interface OrderLogisticsData {
   statusCode: number;
   data: {
@@ -255,340 +269,744 @@ interface OrderLogisticsData {
     total_amount: string;
     payment_id: string;
     metadata: null;
-    logistics_agent_id: null;
+    logistics_agent_id: string | null;
+    first_leg_logistics_agent_id: string | null;
+    tailor_delivery_code: string | null;
+    user_delivery_code: string | null;
     created_at: string;
     updated_at: string;
     deleted_at: null;
-    payment: PaymentData;
     user: User;
     order_items: OrderItem[];
-    logistics_agent: LogisticAgent;
+    logistics_agent: LogisticAgent | null;
+    payment: PaymentData;
   };
 }
+
 export default function ViewOrderLogistics() {
   const { id } = useParams();
   const setItem = useItemMap((state) => state.setItem);
   const [delivery_code, setDeliveryCode] = useState<string>("");
-  const { data } = useGetUserProfile();
+  const [tailor_delivery_code, setTailorDeliveryCode] = useState<string>("");
+  const [user_delivery_code, setUserDeliveryCode] = useState<string>("");
+  const { data: userProfile } = useGetUserProfile();
+  const { toastSuccess, toastError } = useToast();
   const nav = useNavigate();
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
   const query = useQuery<OrderLogisticsData>({
     queryKey: ["logistic", id, "view"],
     queryFn: async () => {
       let resp = await CaryBinApi.get("/orders/" + id);
+      console.log("🔍 Order data response:", resp.data);
       return resp.data;
     },
   });
-  const dialogRef = useRef<HTMLDialogElement>(null);
+
   const accept_mutation = useMutation({
     mutationFn: async () => {
+      const currentStatus = query.data?.data?.status;
       const route =
-        query.data?.data?.status == "DISPATCHED_TO_AGENT"
+        currentStatus == "DISPATCHED_TO_AGENT"
           ? `/orders/${id}/accept-order-first-leg`
           : `/orders/${id}/accept-order`;
+
+      console.log("🚛 Accepting order:", {
+        orderId: id,
+        currentStatus,
+        route,
+        isFirstLeg: currentStatus == "DISPATCHED_TO_AGENT",
+      });
+
       let resp = await CaryBinApi.patch(route);
+      console.log("✅ Accept order response:", resp.data);
       return resp.data;
     },
-    onError: (err: any) => {
-      toast.error(err?.data?.message || "failed to accept order");
-    },
-    onSuccess: () => {
-      toast.success("Order accepted successfully!");
+    onSuccess: (result) => {
+      console.log("✅ Order accepted successfully:", result);
+      const message = result?.message || "Order accepted successfully!";
+      toastSuccess(message);
       query.refetch();
+    },
+    onError: (error: any) => {
+      console.error("❌ Accept order failed:", error);
+      console.error("❌ Error response:", error?.response?.data);
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to accept order";
+      toastError(errorMessage);
     },
   });
 
   const order_mutation = useMutation({
     mutationFn: async ({ status, code }: { status: string; code?: string }) => {
-      let resp = await CaryBinApi.put(`/orders/${id}/status`, {
-        status: status,
-        user_delivery_code: code,
-      });
+      const payload: any = { status: status };
+      if (code) {
+        if (status === "DELIVERED_TO_TAILOR") {
+          payload.tailor_delivery_code = code;
+        } else if (status === "DELIVERED") {
+          payload.user_delivery_code = code;
+        }
+      }
+      let resp = await CaryBinApi.put(`/orders/${id}/status`, payload);
       return resp.data;
     },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "failed to update order");
-    },
-    onSuccess: () => {
+    onSuccess: (result) => {
+      console.log("✅ Status update successful:", result);
+      const message = result?.message || "Status updated successfully!";
+      toastSuccess(message);
       query.refetch();
-      if (dialogRef.current) {
-        dialogRef.current.close();
-      }
+      dialogRef.current?.close();
+      setDeliveryCode("");
+      setTailorDeliveryCode("");
+      setUserDeliveryCode("");
+    },
+    onError: (error: any) => {
+      console.error("❌ Status update failed:", error);
+      console.error("❌ Error response:", error?.response?.data);
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to update status";
+      toastError(errorMessage);
     },
   });
 
   if (query.isLoading) {
     return (
-      <div
-        data-theme="nord"
-        className="flex flex-col items-center justify-center min-h-[50vh] gap-4"
-        aria-live="polite"
-      >
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <span className="text-base-content text-lg">Loading Orders...</span>
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+          <p className="text-gray-600">Loading order details...</p>
+        </div>
       </div>
     );
   }
 
-  // Error State
   if (query.isError) {
     return (
-      <div
-        data-theme="nord"
-        className="flex flex-col items-center justify-center min-h-[50vh] gap-4"
-        aria-live="assertive"
-      >
-        <div className="alert alert-error max-w-md">
-          <AlertCircle className="w-6 h-6 text-error-content" />
-          <span className="text-error-content">
-            {query.error?.message || "An error occurred while loading orders"}
-          </span>
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center p-8 bg-red-50 rounded-lg border border-red-200">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-red-800 mb-2">
+            Error Loading Order
+          </h3>
+          <p className="text-red-600">
+            Failed to load order details. Please try again.
+          </p>
         </div>
-        <button
-          className="btn btn-primary btn-md"
-          onClick={() => query.refetch()}
-          aria-label="Retry loading orders"
-        >
-          Try Again
-        </button>
       </div>
     );
   }
+
   const order_data = query.data?.data;
-  const allow_start = ["OUT_FOR_DELIVERY", "SHIPPED"];
-  const is_allowed = order_data?.logistics_agent_id == data.id;
-  const is_transit = order_data?.status == "IN_TRANSIT";
-  console.log(is_transit, "transit", is_allowed, "allowed");
+  const isAssigned =
+    order_data?.logistics_agent_id === userProfile?.id ||
+    order_data?.first_leg_logistics_agent_id === userProfile?.id;
+  const currentStatus = order_data?.status;
+
+  // Debug logging
+  console.log("🔍 Order data debug:", {
+    order_data,
+    currentStatus,
+    logistics_agent_id: order_data?.logistics_agent_id,
+    first_leg_logistics_agent_id: order_data?.first_leg_logistics_agent_id,
+    userProfile_id: userProfile?.id,
+    isAssigned,
+    user_profile: order_data?.user?.profile,
+    order_items: order_data?.order_items,
+    payment: order_data?.payment,
+  });
+
+  // Delivery leg determination
+  const firstLegStatuses = ["DISPATCHED_TO_AGENT"];
+  const secondLegStatuses = ["OUT_FOR_DELIVERY", "SHIPPED"];
+  const transitStatuses = ["IN_TRANSIT"];
+
+  const isFirstLeg = firstLegStatuses.includes(currentStatus || "");
+  const isSecondLeg = secondLegStatuses.includes(currentStatus || "");
+  const isInTransit = transitStatuses.includes(currentStatus || "");
+  const isDelivered = currentStatus === "DELIVERED";
+
+  // Status flow for two-leg delivery
+  const getStatusInfo = () => {
+    switch (currentStatus) {
+      case "DISPATCHED_TO_AGENT":
+        return {
+          phase: "First Leg",
+          description: "Pickup from vendor → Deliver to tailor",
+          nextAction: "Deliver to Tailor",
+          nextStatus: "DELIVERED_TO_TAILOR",
+          codeType: "tailor_delivery_code",
+          icon: Package,
+          color: "blue",
+        };
+      case "OUT_FOR_DELIVERY":
+      case "SHIPPED":
+        return {
+          phase: "Second Leg",
+          description: "Pickup from tailor → Deliver to customer",
+          nextAction: "Start Delivery",
+          nextStatus: "IN_TRANSIT",
+          codeType: null,
+          icon: Truck,
+          color: "orange",
+        };
+      case "IN_TRANSIT":
+        return {
+          phase: "In Transit",
+          description: "En route to customer",
+          nextAction: "Complete Delivery",
+          nextStatus: "DELIVERED",
+          codeType: "user_delivery_code",
+          icon: Navigation,
+          color: "purple",
+        };
+      case "DELIVERED":
+        return {
+          phase: "Completed",
+          description: "Order delivered successfully",
+          nextAction: null,
+          nextStatus: null,
+          codeType: null,
+          icon: CheckCircle,
+          color: "green",
+        };
+      default:
+        return {
+          phase: "Pending",
+          description: "Waiting for assignment",
+          nextAction: null,
+          nextStatus: null,
+          codeType: null,
+          icon: Clock,
+          color: "gray",
+        };
+    }
+  };
+
+  const statusInfo = getStatusInfo();
+
+  const handleStatusUpdate = (newStatus: string, code?: string) => {
+    order_mutation.mutate({ status: newStatus, code });
+  };
+
+  const deliveryAddress = order_data?.user?.profile?.address;
+  const deliveryCity = order_data?.user?.profile?.state;
+  const deliveryState = order_data?.user?.profile?.state;
+  const deliveryCountry = order_data?.user?.profile?.country;
+
   return (
     <>
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
-      <div data-theme="nord" className="bg-transparent p-6">
-        <div className="bg-base-100 shadow p-4 rounded-md mb-6 flex justify-between items-center">
-          <div className="flex flex-col gap-2 py-4">
-            <div className="flex items-center gap-3">
+      <ToastContainer position="top-right" />
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 p-4">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
               <CustomBackbtn />
-              <h2 className="text-2xl font-bold">Order Details</h2>
-            </div>
-            <div className="opacity-65 mt-2 wrap-break-word">
-              Order ID: {id}
-            </div>
-            <div className="flex items-center gap-2 mt-2">
-              <p className="text-sm">Status:</p>
-              <div className="badge badge-info gap-2">{order_data?.status}</div>
-            </div>
-          </div>
-          <div>
-            <button
-              disabled={
-                order_data?.logistics_agent_id != null ||
-                accept_mutation.isPending
-              }
-              onClick={async () => {
-                await accept_mutation.mutateAsync();
-              }}
-              className="btn btn-primary text-white btn-block mt-3"
-            >
-              {accept_mutation.isPending ? "Accepting..." : "Accept Order"}
-            </button>
-            <div className="mt-2 text-primary font-semibold text-center">
-              {order_data?.logistics_agent != null &&
-                "order taken by: " + order_data.logistics_agent.name}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="bg-base-100 h-fit p-6 rounded-lg shadow-md flex flex-col gap-6">
-            <h3 className="text-xl font-semibold mb-2">Delivery Information</h3>
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <h4 className="text-lg font-medium text-primary">
-                  Delivery Address
-                </h4>
-                <p>
-                  <strong className="text-base-content/70">Address:</strong>{" "}
-                  {
-                    order_data?.payment.metadata[1]?.order_summary
-                      .delivery_address
-                  }
-                </p>
-                <p>
-                  <strong className="text-base-content/70">City:</strong>{" "}
-                  {order_data?.payment.metadata[1]?.order_summary
-                    .delivery_city || "N/A"}
-                </p>
-                <p>
-                  <strong className="text-base-content/70">State:</strong>{" "}
-                  {order_data?.payment.metadata[1]?.order_summary
-                    .delivery_state || "N/A"}
-                </p>
-                <p>
-                  <strong className="text-base-content/70">Country:</strong>{" "}
-                  {order_data?.payment.metadata[1]?.order_summary
-                    .delivery_country || "N/A"}
-                </p>
-                <p>
-                  <strong className="text-base-content/70">Zip Code:</strong>{" "}
-                  {order_data?.payment.metadata[1]?.order_summary.postal_code ||
-                    "N/A"}
-                </p>
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
+                  <div
+                    className={`w-3 h-3 rounded-full ${
+                      isDelivered
+                        ? "bg-green-500"
+                        : isInTransit
+                          ? "bg-purple-500 animate-pulse"
+                          : isFirstLeg || isSecondLeg
+                            ? "bg-orange-500"
+                            : "bg-gray-400"
+                    }`}
+                  ></div>
+                  <span className="text-sm font-medium text-gray-600">
+                    Order #{order_data?.id?.slice(-8).toUpperCase()}
+                  </span>
+                </div>
               </div>
-              <Link
-                to={`/logistics/orders/${id}/map`}
-                className="btn btn-primary"
-              >
-                See On Map
-              </Link>
-              {is_allowed && allow_start.includes(order_data?.status || "") ? (
-                <button
-                  disabled={order_mutation.isPending}
-                  className="btn btn-secondary"
-                  onClick={() => {
-                    toast.promise(
-                      async () => {
-                        return await order_mutation.mutateAsync({
-                          status: "IN_TRANSIT",
-                        });
-                      },
-                      {
-                        pending: "Starting...",
-                        success: "Order started!",
-                        error: "Failed to start order",
-                      },
-                    );
-                  }}
-                >
-                  {order_mutation.isPending ? "Starting..." : "START"}
-                </button>
-              ) : null}
-              {is_allowed && is_transit && (
-                <button
-                  disabled={
-                    order_mutation.isPending ||
-                    order_data?.status == "DELIVERED"
-                  }
-                  onClick={() => dialogRef.current?.showModal()}
-                  className="btn btn-success"
-                >
-                  Complete Order
-                </button>
-              )}
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                    Delivery Management
+                  </h1>
+                  <p className="text-gray-600">
+                    Manage your delivery assignments and track order progress
+                  </p>
+                </div>
+
+                {/* Status Badge */}
+                <div className="mt-4 lg:mt-0">
+                  <div
+                    className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${
+                      statusInfo.color === "green"
+                        ? "bg-green-100 text-green-800"
+                        : statusInfo.color === "purple"
+                          ? "bg-purple-100 text-purple-800"
+                          : statusInfo.color === "orange"
+                            ? "bg-orange-100 text-orange-800"
+                            : statusInfo.color === "blue"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    <statusInfo.icon className="w-4 h-4 mr-2" />
+                    {statusInfo.phase}: {currentStatus?.replace(/_/g, " ")}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="lg:col-span-2 bg-base-100 p-6 rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold mb-4">Ordered Items</h3>
-            <div className="flex flex-col gap-4">
-              {order_data?.order_items.map((item: OrderItem) => (
-                <div
-                  key={item.id}
-                  className="card compact bg-base-100 shadow-md border border-base-200"
-                >
-                  <div className="flex flex-row items-center space-x-4 p-4">
-                    <div className="avatar">
-                      <div className="w-20 rounded">
-                        {item.product.style?.photos?.[0] ? (
-                          <img
-                            src={item.product.style.photos[0]}
-                            alt={item.product.name}
-                          />
-                        ) : item.product.fabric?.photos?.[0] ? (
-                          <img
-                            src={item.product.fabric.photos[0]}
-                            alt={item.product.name}
-                          />
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column - Order Actions */}
+            <div className="lg:col-span-1 space-y-6">
+              {/* Assignment Status */}
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                <h3 className="text-lg font-semibold mb-4 flex items-center">
+                  <User className="w-5 h-5 mr-2 text-purple-600" />
+                  Assignment Status
+                </h3>
+
+                {!order_data?.logistics_agent_id &&
+                !order_data?.first_leg_logistics_agent_id ? (
+                  <div className="space-y-4">
+                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                      <p className="text-amber-800 text-sm font-medium">
+                        📋 Order available for assignment
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => accept_mutation.mutate()}
+                      disabled={accept_mutation.isPending}
+                      className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                    >
+                      {accept_mutation.isPending ? (
+                        <div className="flex items-center justify-center">
+                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                          Accepting...
+                        </div>
+                      ) : (
+                        "Accept Order"
+                      )}
+                    </button>
+                  </div>
+                ) : isAssigned ? (
+                  <div className="space-y-4">
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <p className="text-green-800 text-sm font-medium">
+                        ✅ Assigned to you
+                      </p>
+                    </div>
+
+                    {/* Status Update Actions */}
+                    {statusInfo.nextAction && (
+                      <div className="space-y-3">
+                        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <h4 className="font-medium text-blue-900 mb-1">
+                            {statusInfo.phase}
+                          </h4>
+                          <p className="text-blue-700 text-sm">
+                            {statusInfo.description}
+                          </p>
+                        </div>
+
+                        {statusInfo.codeType ? (
+                          <button
+                            onClick={() => dialogRef.current?.showModal()}
+                            disabled={order_mutation.isPending}
+                            className={`w-full px-4 py-3 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
+                              statusInfo.color === "blue"
+                                ? "bg-blue-600 hover:bg-blue-700 text-white"
+                                : statusInfo.color === "purple"
+                                  ? "bg-purple-600 hover:bg-purple-700 text-white"
+                                  : "bg-green-600 hover:bg-green-700 text-white"
+                            }`}
+                          >
+                            {order_mutation.isPending ? (
+                              <div className="flex items-center justify-center">
+                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                Updating...
+                              </div>
+                            ) : (
+                              statusInfo.nextAction
+                            )}
+                          </button>
                         ) : (
-                          <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
-                            No Image
-                          </div>
+                          <button
+                            onClick={() =>
+                              handleStatusUpdate(statusInfo.nextStatus!)
+                            }
+                            disabled={order_mutation.isPending}
+                            className="w-full px-4 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {order_mutation.isPending ? (
+                              <div className="flex items-center justify-center">
+                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                Starting...
+                              </div>
+                            ) : (
+                              statusInfo.nextAction
+                            )}
+                          </button>
                         )}
                       </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                    <p className="text-gray-600 text-sm">
+                      👤 Assigned to:{" "}
+                      {order_data?.logistics_agent?.name || "Another agent"}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Delivery Progress */}
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                <h3 className="text-lg font-semibold mb-4 flex items-center">
+                  <Route className="w-5 h-5 mr-2 text-purple-600" />
+                  Delivery Progress
+                </h3>
+
+                <div className="space-y-4">
+                  {/* First Leg */}
+                  <div className="flex items-center space-x-3">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        [
+                          "DELIVERED_TO_TAILOR",
+                          "OUT_FOR_DELIVERY",
+                          "SHIPPED",
+                          "IN_TRANSIT",
+                          "DELIVERED",
+                        ].includes(currentStatus || "")
+                          ? "bg-green-100 text-green-600"
+                          : currentStatus === "DISPATCHED_TO_AGENT"
+                            ? "bg-blue-100 text-blue-600"
+                            : "bg-gray-100 text-gray-400"
+                      }`}
+                    >
+                      {[
+                        "DELIVERED_TO_TAILOR",
+                        "OUT_FOR_DELIVERY",
+                        "SHIPPED",
+                        "IN_TRANSIT",
+                        "DELIVERED",
+                      ].includes(currentStatus || "") ? (
+                        <CheckCircle className="w-4 h-4" />
+                      ) : (
+                        <span className="text-xs font-bold">1</span>
+                      )}
                     </div>
-                    <div className="card-body">
-                      <h2 className="card-title">{item.product.name}</h2>
-                      <p className="text-sm opacity-50">
-                        Quantity: {item.quantity}
-                      </p>
-                      <p className="text-sm">
-                        <p className="label">Pickup Address:</p>
-                        <span className="mt-2 block">
-                          {item.product.creator.profile.address}
-                        </span>
-                      </p>
-                      <div className="card-actions justify-end">
-                        <button
-                          className="btn btn-primary btn-sm"
-                          onClick={() => {
-                            setItem(item);
-                            nav(`/logistics/orders/item/${item.id}/map`);
-                          }}
-                        >
-                          View pickup
-                        </button>
-                      </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">First Leg</p>
+                      <p className="text-sm text-gray-600">Vendor → Tailor</p>
+                    </div>
+                  </div>
+
+                  {/* Connection Line */}
+                  <div className="ml-4">
+                    <div
+                      className={`w-px h-6 ${
+                        [
+                          "OUT_FOR_DELIVERY",
+                          "SHIPPED",
+                          "IN_TRANSIT",
+                          "DELIVERED",
+                        ].includes(currentStatus || "")
+                          ? "bg-green-300"
+                          : "bg-gray-300"
+                      }`}
+                    ></div>
+                  </div>
+
+                  {/* Second Leg */}
+                  <div className="flex items-center space-x-3">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        currentStatus === "DELIVERED"
+                          ? "bg-green-100 text-green-600"
+                          : [
+                                "OUT_FOR_DELIVERY",
+                                "SHIPPED",
+                                "IN_TRANSIT",
+                              ].includes(currentStatus || "")
+                            ? "bg-purple-100 text-purple-600"
+                            : "bg-gray-100 text-gray-400"
+                      }`}
+                    >
+                      {currentStatus === "DELIVERED" ? (
+                        <CheckCircle className="w-4 h-4" />
+                      ) : (
+                        <span className="text-xs font-bold">2</span>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">Second Leg</p>
+                      <p className="text-sm text-gray-600">Tailor → Customer</p>
                     </div>
                   </div>
                 </div>
-              ))}
+              </div>
+
+              {/* Quick Actions */}
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                <h3 className="text-lg font-semibold mb-4 flex items-center">
+                  <Target className="w-5 h-5 mr-2 text-purple-600" />
+                  Quick Actions
+                </h3>
+
+                <div className="space-y-3">
+                  <Link
+                    to={`/logistics/orders/${id}/map`}
+                    className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <MapPin className="w-4 h-4 text-gray-600" />
+                      <span className="text-sm font-medium">View on Map</span>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-gray-400" />
+                  </Link>
+
+                  <button
+                    onClick={() => nav("/logistics/orders")}
+                    className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors w-full"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Package className="w-4 h-4 text-gray-600" />
+                      <span className="text-sm font-medium">All Orders</span>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-gray-400" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column - Order Details */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Customer Information */}
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                <h3 className="text-lg font-semibold mb-4 flex items-center">
+                  <User className="w-5 h-5 mr-2 text-purple-600" />
+                  Customer Information
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <Mail className="w-4 h-4 text-gray-400" />
+                      <span className="text-sm text-gray-600">
+                        {order_data?.user.email}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <Phone className="w-4 h-4 text-gray-400" />
+                      <span className="text-sm text-gray-600">
+                        {order_data?.user.phone}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-2">
+                      Delivery Address
+                    </h4>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p>{deliveryAddress}</p>
+                      <p>
+                        {deliveryCity}, {deliveryState}
+                      </p>
+                      <p>{deliveryCountry}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Order Items */}
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                <h3 className="text-lg font-semibold mb-4 flex items-center">
+                  <Package className="w-5 h-5 mr-2 text-purple-600" />
+                  Order Items ({order_data?.order_items.length})
+                </h3>
+
+                <div className="space-y-4">
+                  {order_data?.order_items.map((item: OrderItem) => (
+                    <div
+                      key={item.id}
+                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-start space-x-4">
+                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                          {item.product.style?.photos?.[0] ? (
+                            <img
+                              src={item.product.style.photos[0]}
+                              alt={item.product.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : item.product.fabric?.photos?.[0] ? (
+                            <img
+                              src={item.product.fabric.photos[0]}
+                              alt={item.product.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                              <Package className="w-6 h-6" />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-gray-900 truncate">
+                            {item.product.name}
+                          </h4>
+                          <p className="text-sm text-gray-600 mt-1">
+                            Quantity: {item.quantity}
+                          </p>
+
+                          <div className="mt-3">
+                            <p className="text-sm font-medium text-gray-700 mb-1">
+                              Pickup Location:
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {item.product.creator?.profile?.address ||
+                                "Address not available"}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex-shrink-0">
+                          <button
+                            className="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors"
+                            onClick={() => {
+                              setItem(item);
+                              nav(`/logistics/orders/item/${item.id}/map`);
+                            }}
+                          >
+                            View Pickup
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Order Summary */}
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                <h3 className="text-lg font-semibold mb-4 flex items-center">
+                  <DollarSign className="w-5 h-5 mr-2 text-purple-600" />
+                  Order Summary
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <p className="text-2xl font-bold text-gray-900">
+                      ₦
+                      {parseInt(
+                        order_data?.total_amount || "0",
+                      ).toLocaleString()}
+                    </p>
+                    <p className="text-sm text-gray-600">Total Amount</p>
+                  </div>
+
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <p className="text-2xl font-bold text-gray-900">
+                      {order_data?.order_items?.length || 0}
+                    </p>
+                    <p className="text-sm text-gray-600">Total Items</p>
+                  </div>
+
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <p className="text-base font-semibold text-gray-800 break-words">
+                      {order_data?.status?.replace(/_/g, " ") || "N/A"}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">Order Status</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Delivery Code Modal */}
         <dialog ref={dialogRef} className="modal">
-          <div className="modal-box bg-base-100 rounded-lg shadow-md">
-            <div className="w-full">
-              <h3 className="font-bold text-lg mb-4">Complete Order</h3>
-              <div className="w-full my-4">
-                <label className="label">
-                  <span className="label-text">Delivery Code</span>
+          <div className="modal-box max-w-md mx-auto bg-white rounded-2xl shadow-2xl">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                <CheckCircle className="w-6 h-6 mr-2 text-green-600" />
+                {statusInfo.nextAction}
+              </h3>
+
+              <div className="mb-6">
+                <p className="text-gray-600 text-sm mb-4">
+                  {statusInfo.codeType === "tailor_delivery_code"
+                    ? "Enter the delivery code provided by the tailor to confirm delivery."
+                    : "Enter the delivery code provided by the customer to complete the order."}
+                </p>
+
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Delivery Code
                 </label>
                 <input
-                  value={delivery_code}
-                  onChange={(e) => setDeliveryCode(e.target.value)}
+                  value={
+                    statusInfo.codeType === "tailor_delivery_code"
+                      ? tailor_delivery_code
+                      : user_delivery_code
+                  }
+                  onChange={(e) => {
+                    if (statusInfo.codeType === "tailor_delivery_code") {
+                      setTailorDeliveryCode(e.target.value);
+                    } else {
+                      setUserDeliveryCode(e.target.value);
+                    }
+                  }}
                   type="text"
                   placeholder="Enter delivery code"
-                  className="input input-bordered w-full"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 />
               </div>
-              <div className="flex justify-end gap-2">
+
+              <div className="flex space-x-3">
                 <button
                   type="button"
-                  className="btn btn-ghost"
+                  className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
                   onClick={() => {
                     dialogRef.current?.close();
+                    setTailorDeliveryCode("");
+                    setUserDeliveryCode("");
                   }}
                 >
                   Cancel
                 </button>
                 <button
-                  disabled={!delivery_code.trim() || order_mutation.isPending}
-                  className="btn btn-primary"
-                  onClick={async () => {
-                    toast.promise(
-                      async () => {
-                        return await order_mutation.mutateAsync({
-                          status: "DELIVERED",
-                          code: delivery_code,
-                        });
-                      },
-                      {
-                        pending: "Completing order...",
-                        success: "Order completed successfully!",
-                        error: "Failed to complete order",
-                      },
-                    );
+                  disabled={
+                    !(statusInfo.codeType === "tailor_delivery_code"
+                      ? tailor_delivery_code.trim()
+                      : user_delivery_code.trim()) || order_mutation.isPending
+                  }
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all"
+                  onClick={() => {
+                    const code =
+                      statusInfo.codeType === "tailor_delivery_code"
+                        ? tailor_delivery_code
+                        : user_delivery_code;
+                    handleStatusUpdate(statusInfo.nextStatus!, code);
                   }}
                 >
-                  {order_mutation.isPending ? "Completing..." : "Complete"}
+                  {order_mutation.isPending ? (
+                    <div className="flex items-center justify-center">
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      Confirming...
+                    </div>
+                  ) : (
+                    "Confirm Delivery"
+                  )}
                 </button>
               </div>
             </div>

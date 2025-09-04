@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
-import useGetOrder from "../../../hooks/order/useGetOrder";
+
 import useQueryParams from "../../../hooks/useQueryParams";
 import { formatDateStr, formatNumberWithCommas } from "../../../lib/helper";
 import ReusableTable from "../adminDashboard/components/ReusableTable";
@@ -33,7 +33,6 @@ const OrderPage = () => {
   const [filter, setFilter] = useState("all");
   const [searchField, setSearchField] = useState("orderId");
   const [searchTerm, setSearchTerm] = useState("");
-  const [openDropdown, setOpenDropdown] = useState(null);
   const dialogRef = useRef(null);
   const [currentItem, setCurrentItem] = useState(null);
   // Removed static filteredOrders - now using API data
@@ -42,6 +41,19 @@ const OrderPage = () => {
     "pagination[page]": 1,
   });
   const nav = useNavigate();
+
+  // Add debounced search term for API calls
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  // Update query params when search term changes
+  useUpdatedEffect(() => {
+    if (debouncedSearchTerm) {
+      updateQueryParams({ q: debouncedSearchTerm });
+    } else {
+      updateQueryParams({ q: undefined });
+    }
+  }, [debouncedSearchTerm]);
+
   const update_status = useMutation({
     mutationFn: async (status) => {
       return await CaryBinApi.put(`/orders/${currentItem.id}/status `, {
@@ -56,7 +68,7 @@ const OrderPage = () => {
       toast.success("status updated");
       refetch();
 
-      setTimeout((handler) => {
+      setTimeout(() => {
         toast.dismiss();
         dialogRef.current.close();
       }, 800);
@@ -65,8 +77,6 @@ const OrderPage = () => {
 
   const {
     isPending,
-    isLoading,
-    isError,
     data: orderData,
     refetch,
   } = useGetVendorOrder({
@@ -86,40 +96,94 @@ const OrderPage = () => {
           },
         ],
       },
+      {
+        value: "PROCESSING",
+        label: "Processing",
+        to: [],
+      },
       { value: "DISPATCHED_TO_AGENT", label: "Dispatched to Agent", to: [] },
+      { value: "OUT_FOR_DELIVERY", label: "Out for Delivery", to: [] },
       {
         value: "DELIVERED_TO_TAILOR",
         label: "Delivered to Tailor",
         to: [],
       },
       {
-        value: "PROCESSING",
-        label: "Processing",
-        to: [],
-      },
-      { value: "OUT_FOR_DELIVERY", label: "Out for Delivery", to: [] },
-      {
         value: "IN_TRANSIT",
         label: "In Transit",
         to: [],
       },
-
       { value: "DELIVERED", label: "Delivered", to: [] },
       { value: "CANCELLED", label: "Cancelled", to: [] },
     ],
     [],
   );
 
+  // Helper function to check if an order contains style items
+  const checkOrderHasStyles = useMemo(() => {
+    return (orderItem, ordersData) => {
+      if (!orderItem) return false;
+
+      // Find the original order data from orderData
+      const originalOrder = ordersData?.data?.find(
+        (order) => order.id === orderItem.id,
+      );
+      if (!originalOrder) return false;
+
+      const purchaseItems = originalOrder?.payment?.purchase?.items || [];
+
+      // Check if any purchase item has style information
+      const hasStyles = purchaseItems.some((item) => {
+        const isStyle =
+          item?.purchase_type === "STYLE" ||
+          item?.product?.type?.toUpperCase() === "STYLE" ||
+          item?.type?.toUpperCase() === "STYLE" ||
+          item?.product?.style || // Check for style object
+          (item?.product && item?.product?.purchase_type === "STYLE") ||
+          item?.name?.toLowerCase().includes("style") ||
+          item?.product?.name?.toLowerCase().includes("style");
+
+        console.log("Item check:", {
+          item_id: item?.id || item?.product_id,
+          purchase_type: item?.purchase_type,
+          product_type: item?.product?.type,
+          type: item?.type,
+          has_style_object: !!item?.product?.style,
+          name: item?.name || item?.product?.name,
+          is_style: isStyle,
+        });
+
+        return isStyle;
+      });
+
+      console.log("=== STYLE CHECK DEBUG ===");
+      console.log("Order ID:", orderItem.id);
+      console.log("Purchase Items Count:", purchaseItems.length);
+      console.log("Purchase Items:", purchaseItems);
+      console.log("Has Styles:", hasStyles);
+      console.log("========================");
+
+      return hasStyles;
+    };
+  }, []);
+
   const status_select = useMemo(() => {
+    // Check if current order has styles
+    const hasStyles = checkOrderHasStyles(currentItem, orderData);
+
     let data = {
       PAID: {
         value: "PAID",
         label: "Paid",
-        to: [
-          { value: "DISPATCHED_TO_AGENT", label: "Dispatched to Agent" },
-          { value: "OUT_FOR_DELIVERY", label: "Out for Delivery" },
-          { value: "CANCELLED", label: "Cancel" },
-        ],
+        to: hasStyles
+          ? [
+              { value: "DISPATCHED_TO_AGENT", label: "Dispatched to Agent" },
+              { value: "CANCELLED", label: "Cancel" },
+            ]
+          : [
+              { value: "OUT_FOR_DELIVERY", label: "Out for Delivery" },
+              { value: "CANCELLED", label: "Cancel" },
+            ],
       },
       DELIVERED_TO_TAILOR: {
         value: "DELIVERED_TO_TAILOR",
@@ -129,7 +193,9 @@ const OrderPage = () => {
       PROCESSING: {
         value: "PROCESSING",
         label: "Processing",
-        to: [{ value: "SHIPPED", label: "Shipped" }],
+        to: hasStyles
+          ? [{ value: "DISPATCHED_TO_AGENT", label: "Dispatched to Agent" }]
+          : [{ value: "OUT_FOR_DELIVERY", label: "Out for Delivery" }],
       },
       SHIPPED: {
         value: "SHIPPED",
@@ -144,12 +210,17 @@ const OrderPage = () => {
       OUT_FOR_DELIVERY: {
         value: "OUT_FOR_DELIVERY",
         label: "Out for Delivery",
-        to: [],
+        to: [], // No further updates allowed once OUT_FOR_DELIVERY is reached
+      },
+      DISPATCHED_TO_AGENT: {
+        value: "DISPATCHED_TO_AGENT",
+        label: "Dispatched to Agent",
+        to: [], // No further updates allowed once DISPATCHED_TO_AGENT is reached
       },
       DELIVERED: {
         value: "DELIVERED",
         label: "Delivered",
-        to: [{ value: "CANCELLED", label: "Cancelled" }],
+        to: [],
       },
       CANCELLED: {
         value: "CANCELLED",
@@ -158,16 +229,30 @@ const OrderPage = () => {
       },
     };
     return data;
-  }, [currentItem]);
+  }, [currentItem, orderData, checkOrderHasStyles]);
 
+  console.log("=== VENDOR ORDERS DATA DEBUG ===");
   console.log("Vendor Orders Data:", orderData);
   console.log("Raw vendor orders array:", orderData?.data);
-  console.log("First vendor order item:", orderData?.data?.[0]);
-  console.log("Payment object:", orderData?.data?.[0]?.payment);
-  console.log(
-    "Purchase items:",
-    orderData?.data?.[0]?.payment?.purchase?.items,
-  );
+  if (orderData?.data?.[0]) {
+    console.log("First vendor order item:", orderData?.data?.[0]);
+    console.log("Payment object:", orderData?.data?.[0]?.payment);
+    console.log(
+      "Purchase items:",
+      orderData?.data?.[0]?.payment?.purchase?.items,
+    );
+
+    // Check structure of purchase items
+    const firstPurchaseItems = orderData?.data?.[0]?.payment?.purchase?.items;
+    if (firstPurchaseItems && firstPurchaseItems.length > 0) {
+      console.log("First purchase item structure:", firstPurchaseItems[0]);
+      console.log(
+        "First purchase item product:",
+        firstPurchaseItems[0]?.product,
+      );
+    }
+  }
+  console.log("================================");
 
   const updatedColumn = useMemo(
     () => [
@@ -247,7 +332,8 @@ const OrderPage = () => {
                   ? "bg-red-100 text-red-600"
                   : status === "SHIPPED" ||
                       status === "IN_TRANSIT" ||
-                      status === "OUT_FOR_DELIVERY"
+                      status === "OUT_FOR_DELIVERY" ||
+                      status === "DISPATCHED_TO_AGENT"
                     ? "bg-yellow-100 text-yellow-600"
                     : "bg-blue-100 text-blue-600"
             }`}
@@ -292,42 +378,44 @@ const OrderPage = () => {
       //   ),
       // },
     ],
-    [openDropdown],
+    [],
   );
 
-  const actions = [
-    {
-      key: "view-details",
-      label: "View Details",
-      action: (item) => {
-        return nav(`/fabric/orders/orders-details/${item.id}`);
+  const actions = useMemo(() => {
+    return [
+      {
+        key: "view-details",
+        label: "View Details",
+        action: (item) => {
+          return nav(`/fabric/orders/orders-details/${item.id}`);
+        },
       },
-    },
-    {
-      key: "update status",
-      label: "Update Status",
-      action: (item) => {
-        setCurrentItem(item);
-        return dialogRef.current.showModal();
+      {
+        key: "update status",
+        label: "Update Status",
+        action: (item) => {
+          setCurrentItem(item);
+          return dialogRef.current.showModal();
+        },
       },
-    },
-    // {
-    //   key: "suspend-vendor",
-    //   label: "Suspend",
-    //   action: (item) => {
-    //     setSuspendModalOpen(true);
-    //     setNewCategory(row);
-    //     setOpenDropdown(null);
-    //   },
-    // },
-    // {
-    //   key: "delete-vendor",
-    //   label: "Delete",
-    //   action: (item) => {
-    //     handleDeleteUser(item);
-    //   },
-    // },
-  ];
+    ];
+  }, [nav]);
+  // {
+  //   key: "suspend-vendor",
+  //   label: "Suspend",
+  //   action: (item) => {
+  //     setSuspendModalOpen(true);
+  //     setNewCategory(row);
+  //     setOpenDropdown(null);
+  //   },
+  // },
+  // {
+  //   key: "delete-vendor",
+  //   label: "Delete",
+  //   action: (item) => {
+  //     handleDeleteUser(item);
+  //   },
+  // },
   const fabricOrderData = useMemo(
     () =>
       orderData?.data
@@ -718,27 +806,59 @@ const OrderPage = () => {
                       </ul>
                     </div>
                   </div>
+                  {/* Status Update Information */}
+                  {currentItem && (
+                    <div className="form-control">
+                      <div className="alert alert-info">
+                        <div className="flex-col items-start">
+                          <div className="font-medium">
+                            Status Update Rules:
+                          </div>
+                          <div className="text-sm mt-1">
+                            {checkOrderHasStyles(currentItem, orderData) ? (
+                              <span>
+                                📦 This order contains{" "}
+                                <strong>style items</strong>. You can only
+                                update status to{" "}
+                                <strong>"Dispatched to Agent"</strong>.
+                              </span>
+                            ) : (
+                              <span>
+                                🚛 This order contains{" "}
+                                <strong>fabric only</strong>. You can only
+                                update status to{" "}
+                                <strong>"Out for Delivery"</strong>.
+                              </span>
+                            )}
+                          </div>
+                          {(currentItem.orderStatus === "OUT_FOR_DELIVERY" ||
+                            currentItem.orderStatus ===
+                              "DISPATCHED_TO_AGENT") && (
+                            <div className="text-sm mt-1 text-success">
+                              ✅ Order has reached final vendor status. No
+                              further updates needed.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Status Select */}
-                  {status_select[currentItem?.status]?.to?.length > 0 && (
+                  {status_select[currentItem?.status]?.to?.length > 0 ? (
                     <div className="form-control">
                       <label className="label">
-                        <span className="label-text">Order Status</span>
+                        <span className="label-text">Update Order Status</span>
                       </label>
                       <select
                         name="status"
                         className="select select-bordered w-full"
-                        defaultValue={currentItem.orderStatus || "PROCESSING"}
-                        onChange={(e) => {
-                          // In a real application, you'd likely manage this with useState for actual updates
-                          // For now, we're just displaying the selected value.
-                          // This would be the place to call a function to update the backend.
-                          console.log("Selected new status:", e.target.value);
-                        }}
+                        defaultValue=""
+                        required
                       >
-                        {/* <option value={currentItem.status} readonly>
-                        {" "}
-                        {currentItem.status}
-                      </option>*/}
+                        <option value="" disabled>
+                          Select new status...
+                        </option>
                         {status_select[currentItem?.status]?.to?.map(
                           (status) => (
                             <option key={status.value} value={status.value}>
@@ -746,10 +866,27 @@ const OrderPage = () => {
                             </option>
                           ),
                         )}
-                        {/* <option key={"Cancel"} value={"CANCELLED"}>
-                        Cancel
-                      </option>*/}
                       </select>
+                    </div>
+                  ) : (
+                    <div className="form-control">
+                      <div className="alert alert-warning">
+                        <div className="flex-col items-start">
+                          <div className="font-medium">
+                            No Status Updates Available
+                          </div>
+                          <div className="text-sm mt-1">
+                            {currentItem?.orderStatus === "OUT_FOR_DELIVERY" ||
+                            currentItem?.orderStatus === "DISPATCHED_TO_AGENT"
+                              ? "This order has reached the final status for fabric vendors. You can only view progress from here."
+                              : currentItem?.orderStatus === "DELIVERED"
+                                ? "This order has been completed and delivered."
+                                : currentItem?.orderStatus === "CANCELLED"
+                                  ? "This order has been cancelled."
+                                  : "No status updates are available for this order at the moment."}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </>
@@ -763,13 +900,15 @@ const OrderPage = () => {
                 >
                   Close
                 </button>
-                <button
-                  disabled={update_status.isPending}
-                  type="submit"
-                  className="btn btn-primary text-white"
-                >
-                  Update Status
-                </button>
+                {status_select[currentItem?.status]?.to?.length > 0 && (
+                  <button
+                    disabled={update_status.isPending}
+                    type="submit"
+                    className="btn btn-primary text-white"
+                  >
+                    {update_status.isPending ? "Updating..." : "Update Status"}
+                  </button>
+                )}
                 {/* In a real scenario, you'd have an update button here */}
                 {/* <button type="button" className="btn btn-primary">Update Status</button> */}
               </div>

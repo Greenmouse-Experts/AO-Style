@@ -39,7 +39,11 @@ const OrderDetails = () => {
   const [currentActionType, setCurrentActionType] = useState(null);
   const [showMeasurementModal, setShowMeasurementModal] = useState(false);
   const [expandedVideo, setExpandedVideo] = useState(null);
-  const { isPending: isImageUploading, uploadImageMutate } = useUploadImage();
+
+  // New state for viewing attached order image
+  const [showOrderImageModal, setShowOrderImageModal] = useState(false);
+
+  const { uploadImageMutate } = useUploadImage();
   const { isPending: isStatusUpdating, updateOrderStatusMutate } =
     useUpdateOrderStatus();
   const { toastSuccess, toastError } = useToast();
@@ -58,7 +62,13 @@ const OrderDetails = () => {
   // Extract order information from API response
   const orderInfo = data?.data || {};
   const orderPurchase = data?.data?.order_items || [];
-  const orderMetadata = data?.data?.payment?.metadata || [];
+
+  // Get attached image from metadata (first found)
+  const attachedOrderImage =
+    orderInfo?.metadata?.image ||
+    orderInfo?.payment?.metadata?.find((meta) => meta?.image)?.image ||
+    null;
+
   const measurements = (() => {
     console.log("Raw orderMetadata:", orderInfo?.payment?.metadata);
 
@@ -96,26 +106,9 @@ const OrderDetails = () => {
     return result;
   })();
   console.log("order info", orderInfo);
-  // Determine if this is a fabric-only order or has tailoring/style components
-  const hasTailoringComponents = orderMetadata && orderMetadata.length > 0;
-  const isFabricOnlyOrder = !hasTailoringComponents;
 
   const formatNumberWithCommas = (num) => {
     return parseInt(num || 0).toLocaleString();
-  };
-
-  const formatDateStr = (dateStr, format) => {
-    if (!dateStr) return "N/A";
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("en-US", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  };
-
-  const displayOrderId = (id) => {
-    return `${id?.slice(-8)?.toUpperCase() || "N/A"}`;
   };
 
   // Upload image to multimedia endpoint
@@ -320,9 +313,7 @@ const OrderDetails = () => {
   // Check if status can be updated
   const canUpdateToProcessing = () => {
     const currentStatus = orderInfo?.status;
-    return (
-      !currentStatus || currentStatus === "PAID" || currentStatus === "PENDING"
-    );
+    return currentStatus === "DELIVERED_TO_TAILOR";
   };
 
   const canUpdateToOutForDelivery = () => {
@@ -334,11 +325,18 @@ const OrderDetails = () => {
     const currentStatus = orderInfo?.status;
     if (targetStatus === "PROCESSING") {
       return (
-        currentStatus === "PROCESSING" || currentStatus === "OUT_FOR_DELIVERY"
+        currentStatus === "PROCESSING" ||
+        currentStatus === "OUT_FOR_DELIVERY" ||
+        currentStatus === "IN_TRANSIT" ||
+        currentStatus === "DELIVERED"
       );
     }
     if (targetStatus === "OUT_FOR_DELIVERY") {
-      return currentStatus === "OUT_FOR_DELIVERY";
+      return (
+        currentStatus === "OUT_FOR_DELIVERY" ||
+        currentStatus === "IN_TRANSIT" ||
+        currentStatus === "DELIVERED"
+      );
     }
     return false;
   };
@@ -373,13 +371,13 @@ const OrderDetails = () => {
   const handleCloseMeasurementModal = () => setShowMeasurementModal(false);
 
   // Video Modal functions
-  const handleExpandVideo = (videoType) => {
-    setExpandedVideo(videoType);
-  };
-
   const handleCloseVideoModal = () => {
     setExpandedVideo(null);
   };
+
+  // Order Image Modal functions
+  const handleOpenOrderImageModal = () => setShowOrderImageModal(true);
+  const handleCloseOrderImageModal = () => setShowOrderImageModal(false);
 
   if (getOrderIsPending) {
     return (
@@ -417,8 +415,6 @@ const OrderDetails = () => {
       </div>
     );
   }
-
-  const status_options = ["PROCESSING", "OUT_FOR_DELIVERY"];
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -618,6 +614,20 @@ const OrderDetails = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* View Attached Order Image Button */}
+                  {attachedOrderImage && (
+                    <div className="flex justify-end mt-4">
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-medium hover:bg-blue-200 transition-colors"
+                        onClick={handleOpenOrderImageModal}
+                      >
+                        <Image className="w-5 h-5" />
+                        View Attached Order Image
+                      </button>
+                    </div>
+                  )}
 
                   {/* Video Preview Section */}
                 </div>
@@ -839,6 +849,42 @@ const OrderDetails = () => {
                     </span>
                   </p>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Order Image Modal */}
+        {showOrderImageModal && attachedOrderImage && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden relative">
+              <div className="flex items-center justify-between p-4 border-b">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <Image className="w-5 h-5 text-blue-600" />
+                  Attached Order Image
+                </h3>
+                <button
+                  onClick={handleCloseOrderImageModal}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              <div className="p-6 flex flex-col items-center">
+                <img
+                  src={attachedOrderImage}
+                  alt="Order Attached"
+                  className="rounded-xl max-h-[60vh] object-contain border border-gray-200"
+                  style={{ background: "#f3f4f6" }}
+                />
+                <a
+                  href={attachedOrderImage}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 text-blue-600 underline text-sm"
+                >
+                  Open in new tab
+                </a>
               </div>
             </div>
           </div>

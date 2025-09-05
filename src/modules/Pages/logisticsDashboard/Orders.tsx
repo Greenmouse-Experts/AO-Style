@@ -137,6 +137,12 @@ export default function OrderRequests() {
   const navigate = useNavigate();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [selectedItem, setSelectedItem] = useState<Order | null>(null);
+
+  // Helper function to format order ID - first 12 characters in uppercase without hyphens
+  const formatOrderId = (id: string) => {
+    if (!id) return "N/A";
+    return id.replace(/-/g, "").substring(0, 12).toUpperCase();
+  };
   const { data, isFetching, isError, error, refetch } =
     useQuery<OrderRequestsResponse>({
       queryKey: ["logistics", "orders"],
@@ -200,7 +206,7 @@ export default function OrderRequests() {
             className="bg-transparent w-[80px] line-clamp-1 overflow-ellipsis"
             data-theme="nord"
           >
-            {item.id}
+            {formatOrderId(item.id)}
           </span>
         );
       },
@@ -341,7 +347,7 @@ export default function OrderRequests() {
           <div className="py-4 text-base-content">
             <p>
               <span className="font-semibold">Order ID:</span>{" "}
-              {selectedItem?.id}
+              {formatOrderId(selectedItem?.id || "")}
             </p>
             <p>
               <span className="font-semibold">Customer Name:</span>{" "}

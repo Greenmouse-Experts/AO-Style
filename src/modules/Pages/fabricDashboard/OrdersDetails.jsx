@@ -10,18 +10,19 @@ import {
   Truck,
   Play,
   Maximize2,
+  AlertCircle,
+  ArrowRight,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import useGetSingleOrder from "../../../hooks/order/useGetSingleOrder";
+import useUpdateOrderStatus from "../../../hooks/order/useUpdateOrderStatus";
 import Loader from "../../../components/ui/Loader";
 
+import useToast from "../../../hooks/useToast";
+
 const OrderDetails = () => {
-  const [showUploadPopup, setShowUploadPopup] = useState(false);
-  const [markReceivedChecked, setMarkReceivedChecked] = useState(false);
   const [activeReviewModal, setActiveReviewModal] = useState(null);
-  // const [expandedVideo, setExpandedVideo] = useState(null);
-  // Video Modal logic
   const [expandedVideo, setExpandedVideo] = useState(null);
 
   // Get order ID from URL params
@@ -34,6 +35,11 @@ const OrderDetails = () => {
     isError,
     refetch,
   } = useGetSingleOrder(id);
+
+  // Status update hook
+  const { isPending: isStatusUpdating, updateOrderStatusMutate } =
+    useUpdateOrderStatus();
+  const { toastSuccess, toastError } = useToast();
 
   // Extract order information from API response
   const orderInfo = data?.data || {};
@@ -56,9 +62,6 @@ const OrderDetails = () => {
           item?.type?.toUpperCase() === "FABRIC",
       )
     : [];
-  const fabricOnlyMetadata = Array.isArray(orderMetadata)
-    ? orderMetadata.filter((meta) => meta?.fabric_product_id)
-    : [];
 
   // --- FIX: Always show all fabric items, regardless of metadata ---
   // If both metadata and purchase items exist, show all unique fabric items.
@@ -71,9 +74,33 @@ const OrderDetails = () => {
       }, 0)
     : 0;
 
-  // Fabric vendors only deal with fabric orders
-  const hasTailoringComponents = false;
-  const isFabricOnlyOrder = true;
+  // Detect if order has style items (proper order type detection)
+  const hasStyleItems = useMemo(() => {
+    if (!orderInfo?.order_items) return false;
+
+    return orderInfo.order_items.some((item) => {
+      const isStyle =
+        item?.product?.type?.toLowerCase().includes("style") ||
+        item?.type?.toLowerCase().includes("style") ||
+        item?.product?.name?.toLowerCase().includes("style") ||
+        item?.name?.toLowerCase().includes("style");
+
+      return isStyle;
+    });
+  }, [orderInfo?.order_items]);
+
+  // Check if order has metadata indicating style components
+  const hasStyleMetadata = useMemo(() => {
+    if (!orderMetadata) return false;
+
+    return orderMetadata.some(
+      (meta) =>
+        meta?.style_product_id || meta?.measurement || meta?.style_product_name,
+    );
+  }, [orderMetadata]);
+
+  // Final determination of order type
+  const isFabricOnlyOrder = !hasStyleItems && !hasStyleMetadata;
 
   // console.log("📋 Order Details - API Data:", data);
   // console.log("📋 Order Info:", orderInfo);
@@ -120,7 +147,7 @@ const OrderDetails = () => {
               console.log("📋 Retrying order fetch for ID:", id);
               refetch();
             }}
-            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
           >
             Retry
           </button>
@@ -129,59 +156,85 @@ const OrderDetails = () => {
     );
   }
 
-  const formatNumberWithCommas = (num) => {
-    return parseInt(num || 0).toLocaleString();
-  };
-
-  const formatDateStr = (dateStr, format) => {
-    if (!dateStr) return "N/A";
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("en-US", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const displayOrderId = (id) => {
-    return `#${id?.slice(-8)?.toUpperCase() || "N/A"}`;
+  const formatDateStr = (dateString) => {
+    if (!dateString) return "N/A";
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch {
+      return "Invalid Date";
+    }
   };
 
   const getStatusColor = (status) => {
     const colors = {
+      PAID: "bg-blue-100 text-blue-600",
+      DISPATCHED_TO_AGENT: "bg-purple-100 text-purple-600",
+      OUT_FOR_DELIVERY: "bg-orange-100 text-orange-600",
+      IN_TRANSIT: "bg-indigo-100 text-indigo-600",
       DELIVERED: "bg-green-100 text-green-600",
-      SHIPPED: "bg-blue-100 text-blue-600",
       CANCELLED: "bg-red-100 text-red-600",
       PENDING: "bg-yellow-100 text-yellow-600",
-      PROCESSING: "bg-purple-100 text-purple-600",
+      PROCESSING: "bg-blue-100 text-blue-600",
     };
     return colors[status] || "bg-gray-100 text-gray-600";
   };
 
-  const handleCheckboxChange = (type) => {
-    if (type === "received") {
-      setMarkReceivedChecked(!markReceivedChecked);
-      if (!markReceivedChecked) {
-        setShowUploadPopup(true);
-      }
+  // Status update handler
+  const handleStatusUpdate = (newStatus) => {
+    updateOrderStatusMutate(
+      { orderId: id, status: newStatus },
+      {
+        onSuccess: () => {
+          toastSuccess(`Order status updated to ${newStatus}`);
+          refetch();
+        },
+        onError: (error) => {
+          toastError(
+            error?.response?.data?.message || "Failed to update status",
+          );
+        },
+      },
+    );
+  };
+
+  // Check if fabric vendor can update status
+  const canUpdateStatus = () => {
+    const currentStatus = orderInfo?.status;
+    return currentStatus === "PAID" || currentStatus === "PENDING";
+  };
+
+  // Get the appropriate next status based on order type
+  const getNextStatus = () => {
+    if (isFabricOnlyOrder) {
+      return "OUT_FOR_DELIVERY";
+    } else {
+      return "DISPATCHED_TO_AGENT";
     }
   };
 
-  const handleUpload = () => {
-    alert("Fabric image uploaded successfully!");
-    setShowUploadPopup(false);
+  // Get status description based on order type
+  const getStatusDescription = () => {
+    if (isFabricOnlyOrder) {
+      return "Mark order ready for direct delivery to customer";
+    } else {
+      return "Dispatch fabric to logistics agent for delivery to tailor";
+    }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
       case "DELIVERED":
         return <CheckCircle className="w-5 h-5 text-green-600" />;
-      case "SHIPPED":
-        return <Truck className="w-5 h-5 text-blue-600" />;
+      case "DISPATCHED_TO_AGENT":
+        return <Package className="w-5 h-5 text-purple-600" />;
+      case "OUT_FOR_DELIVERY":
+        return <Truck className="w-5 h-5 text-orange-600" />;
+      case "IN_TRANSIT":
+        return <Truck className="w-5 h-5 text-indigo-600" />;
       case "PROCESSING":
-        return <Package className="w-5 h-5 text-orange-600" />;
+        return <Package className="w-5 h-5 text-blue-600" />;
+      case "PAID":
+        return <CheckCircle className="w-5 h-5 text-blue-600" />;
       default:
         return <Clock className="w-5 h-5 text-yellow-600" />;
     }
@@ -194,7 +247,7 @@ const OrderDetails = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Order ID: {orderInfo?.id?.slice(-8)?.toUpperCase() || "N/A"}
+              Order ID: {formatOrderId(orderInfo?.id || "")}
             </h1>
             <p className="text-gray-500 text-sm">
               <a
@@ -231,7 +284,7 @@ const OrderDetails = () => {
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-gray-600 font-medium">Order ID:</span>
                   <span className="font-semibold text-gray-900">
-                    {orderInfo?.id?.slice(-8)?.toUpperCase()}
+                    {formatOrderId(orderInfo?.id || "")}
                   </span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">
@@ -248,200 +301,159 @@ const OrderDetails = () => {
                     {formatDateStr(orderInfo?.created_at, "D MMM YYYY h:mm A")}
                   </span>
                 </div>
-              </div>
-              <div className="space-y-4">
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-gray-600 font-medium">
                     Payment Method:
                   </span>
+                  <span className="text-gray-900 capitalize">
+                    {orderInfo?.payment?.payment_method || "N/A"}
+                  </span>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="text-gray-600 font-medium">
+                    Total Amount:
+                  </span>
+                  <span className="font-semibold text-gray-900">
+                    ₦{(fabricOnlyTotal || 0).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span className="text-gray-600 font-medium">Items:</span>
                   <span className="text-gray-900">
-                    {orderInfo?.payment?.payment_method}
+                    {fabricOnlyPurchase.length} fabric item(s)
                   </span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-gray-600 font-medium">
-                    Payment Status:
+                    Delivery City:
                   </span>
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      orderInfo?.payment?.payment_status === "SUCCESS"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-yellow-100 text-yellow-700"
-                    }`}
-                  >
-                    {orderInfo?.payment?.payment_status}
+                  <span className="text-gray-900">
+                    {orderInfo?.payment?.order_summary?.delivery_city || "N/A"}
                   </span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">
                   <span className="text-gray-600 font-medium">
-                    Fabric Total:
+                    Customer Name:
                   </span>
-                  <span className="text-2xl font-bold text-purple-600">
-                    ₦{formatNumberWithCommas(parseInt(fabricOnlyTotal))}
-                  </span>
-                </div>
-                <div className="flex justify-between py-1 text-sm text-gray-500">
-                  <span>Full Order Total:</span>
-                  <span>
-                    ₦{formatNumberWithCommas(parseInt(orderInfo?.total_amount))}
+                  <span className="text-gray-900">
+                    {orderInfo?.user?.full_name || "N/A"}
                   </span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Ordered Products */}
+          {/* Product Details */}
           <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">
-              Ordered Product(s)
-            </h2>
-            <div className="space-y-6">
-              {/* Always show all fabric items from fabricOnlyPurchase */}
-              {fabricOnlyPurchase.length > 0 ? (
-                fabricOnlyPurchase.map((purchaseItem, index) => {
-                  // Try to find matching metadata for extra info (like color, quantity, etc)
-                  const metaItem = fabricOnlyMetadata.find(
-                    (meta) =>
-                      meta.fabric_product_id === purchaseItem.product_id,
-                  );
-                  // Video URLs for this product
-                  const fabricVideoUrl =
-                    purchaseItem?.product?.fabric?.video_url || "";
-                  const styleVideoUrl =
-                    purchaseItem?.product?.style?.video_url || "";
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">
+              Fabric Items ({fabricOnlyPurchase.length})
+            </h3>
+            <div className="space-y-4">
+              {fabricOnlyPurchase.map((item, index) => (
+                <div
+                  key={index}
+                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                >
+                  <div className="flex flex-col lg:flex-row gap-6">
+                    {/* Product Image */}
+                    <div className="lg:w-32 lg:h-32 w-full h-48 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                      {item?.product?.fabric?.image_url ? (
+                        <img
+                          src={item.product.fabric.image_url}
+                          alt={item.product?.name || "Fabric"}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Package className="w-8 h-8 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
 
-                  return (
-                    <div
-                      key={purchaseItem?.id || index}
-                      className="border border-gray-200 rounded-xl overflow-hidden"
-                    >
-                      {/* Product Header */}
-                      <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                            <Package className="w-5 h-5 text-purple-600" />
-                            {purchaseItem?.product?.name || "Fabric Product"}
-                          </h3>
-                          <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
-                            {purchaseItem?.product?.type}
-                          </span>
+                    {/* Product Details */}
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h4 className="text-lg font-semibold text-gray-900 mb-1">
+                            {item?.product?.name || "Fabric Item"}
+                          </h4>
+                          <div className="flex items-center gap-4 text-sm text-gray-600">
+                            <span>Qty: {item?.quantity || 1}</span>
+                            <span>
+                              ₦{(item?.product?.price || 0).toLocaleString()}/
+                              unit
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-semibold text-gray-900">
+                            ₦
+                            {(
+                              (item?.product?.price || 0) *
+                              (item?.quantity || 1)
+                            ).toLocaleString()}
+                          </p>
                         </div>
                       </div>
 
-                      {/* Product Content */}
-                      <div className="p-6">
-                        {/* Main Product Info */}
-                        <div className="flex flex-col lg:flex-row gap-6">
-                          {/* Product Image */}
-                          <div className="w-full lg:w-48 flex-shrink-0">
-                            <div className="aspect-square bg-gray-100 rounded-xl overflow-hidden">
-                              {purchaseItem?.product?.fabric?.photos?.[0] ? (
-                                <img
-                                  src={
-                                    purchaseItem?.product?.fabric?.photos?.[0]
-                                  }
-                                  alt={purchaseItem?.name || "Fabric Product"}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                  <Package className="w-12 h-12 text-gray-400" />
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Product Details */}
-                          <div className="flex-1">
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
-                              <div className="text-center sm:text-left">
-                                <span className="text-sm font-medium text-gray-500 block mb-1">
-                                  QUANTITY
-                                </span>
-                                <p className="text-2xl font-bold text-gray-900">
-                                  {metaItem?.quantity ||
-                                    purchaseItem?.quantity ||
-                                    1}
-                                </p>
-                              </div>
-                              <div className="text-center sm:text-left">
-                                <span className="text-sm font-medium text-gray-500 block mb-1">
-                                  UNIT PRICE
-                                </span>
-                                <p className="text-2xl font-bold text-purple-600">
-                                  ₦
-                                  {formatNumberWithCommas(
-                                    parseInt(purchaseItem?.product?.price || 0),
-                                  )}
-                                </p>
-                              </div>
-                              <div className="text-center sm:text-left">
-                                <span className="text-sm font-medium text-gray-500 block mb-1">
-                                  TOTAL
-                                </span>
-                                <p className="text-2xl font-bold text-purple-600">
-                                  ₦
-                                  {formatNumberWithCommas(
-                                    parseInt(
-                                      purchaseItem?.product?.price || 0,
-                                    ) *
-                                      parseInt(
-                                        metaItem?.quantity ||
-                                          purchaseItem?.quantity ||
-                                          1,
-                                      ),
-                                  )}
-                                </p>
-                              </div>
-                            </div>
-
-                            {/* Color Info */}
-                            {metaItem?.color && (
-                              <div className="flex items-center gap-3 mb-6 p-4 bg-gray-50 rounded-lg">
-                                <span className="font-medium text-gray-700">
-                                  Color:
-                                </span>
-                                <span
-                                  className="inline-block w-6 h-6 rounded-full border-2 border-white shadow-md"
-                                  style={{
-                                    backgroundColor: metaItem?.color,
-                                  }}
-                                ></span>
-                                <span className="text-gray-900 font-medium">
-                                  {metaItem?.color}
-                                </span>
-                              </div>
-                            )}
-                          </div>
+                      {/* Fabric Details */}
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-500 font-medium">
+                            Color:
+                          </span>
+                          <p className="text-gray-900">
+                            {item?.color || "Default"}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 font-medium">
+                            Material:
+                          </span>
+                          <p className="text-gray-900">
+                            {item?.product?.fabric?.material || "N/A"}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 font-medium">
+                            Weight:
+                          </span>
+                          <p className="text-gray-900">
+                            {item?.product?.fabric?.weight || "N/A"}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {item?.product?.fabric?.video_url && (
+                            <button
+                              onClick={() => handleExpandVideo("fabric")}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200 transition-colors text-xs font-medium"
+                            >
+                              <Play className="w-3 h-3" />
+                              Preview
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
-                  );
-                })
-              ) : (
-                <div className="text-center py-12">
-                  <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 text-lg font-medium mb-2">
-                    No products found
-                  </p>
-                  <p className="text-gray-400">
-                    This order doesn't contain any products.
-                  </p>
+                  </div>
                 </div>
-              )}
+              ))}
             </div>
           </div>
         </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Vendor Actions */}
+          {/* Order Actions */}
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-6">
               Order Actions
             </h3>
 
             <div className="space-y-4">
+              {/* Current Status Display */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
                   {getStatusIcon(orderInfo?.status)}
@@ -458,24 +470,90 @@ const OrderDetails = () => {
                 </p>
               </div>
 
-              <div className="border border-gray-200 rounded-lg p-4">
-                <label className="flex items-center justify-between cursor-pointer">
-                  <div className="flex-1">
-                    <span className="font-medium text-gray-900">
-                      Mark as Delivered
-                    </span>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Confirm order completion
+              {/* Order Type Information */}
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Package className="w-4 h-4 text-gray-600" />
+                  <span className="font-medium text-gray-700">Order Type</span>
+                </div>
+                <p className="text-sm text-gray-800 font-medium">
+                  {isFabricOnlyOrder ? "Fabric Only" : "Fabric + Style"}
+                </p>
+                <p className="text-xs text-gray-600 mt-1">
+                  {isFabricOnlyOrder
+                    ? "Direct delivery to customer"
+                    : "Delivery to tailor first, then to customer"}
+                </p>
+              </div>
+
+              {/* Status Update Action */}
+              {canUpdateStatus() ? (
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
+                    <div className="flex-1">
+                      <span className="font-medium text-gray-900 block mb-1">
+                        Ready to Dispatch?
+                      </span>
+                      <p className="text-sm text-gray-600 mb-3">
+                        {getStatusDescription()}
+                      </p>
+                      <button
+                        onClick={() => handleStatusUpdate(getNextStatus())}
+                        disabled={isStatusUpdating}
+                        className="w-full py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2"
+                      >
+                        {isStatusUpdating ? (
+                          "Updating..."
+                        ) : (
+                          <>
+                            Update to {getNextStatus().replace(/_/g, " ")}
+                            <ArrowRight className="w-4 h-4" />
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="text-center py-4">
+                    <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600">
+                      {orderInfo?.status === "DISPATCHED_TO_AGENT"
+                        ? "Order dispatched to logistics agent"
+                        : orderInfo?.status === "OUT_FOR_DELIVERY"
+                          ? "Order ready for delivery"
+                          : "Order has been processed"}
                     </p>
                   </div>
-                  <input
-                    type="checkbox"
-                    className="w-5 h-5 text-purple-600 border-2 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
-                    checked={markReceivedChecked}
-                    onChange={() => handleCheckboxChange("received")}
-                    disabled={orderInfo?.status === "DISPATCH"}
-                  />
-                </label>
+                </div>
+              )}
+
+              {/* Status Flow Information */}
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <h4 className="font-medium text-amber-900 mb-2 flex items-center gap-2">
+                  <Star className="w-4 h-4" />
+                  Expected Flow
+                </h4>
+                <div className="text-sm text-amber-800 space-y-1">
+                  {isFabricOnlyOrder ? (
+                    <>
+                      <div>1. Update to "OUT FOR DELIVERY" when ready</div>
+                      <div>
+                        2. Logistics will pick up and deliver to customer
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div>1. Update to "DISPATCHED TO AGENT" when ready</div>
+                      <div>2. Logistics will deliver fabric to tailor</div>
+                      <div>
+                        3. Tailor will process and prepare for final delivery
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -500,7 +578,7 @@ const OrderDetails = () => {
                   Phone Number
                 </span>
                 <p className="text-gray-900 font-semibold">
-                  {orderInfo?.user?.phone}
+                  {orderInfo?.user?.phone || "N/A"}
                 </p>
               </div>
 
@@ -536,6 +614,8 @@ const OrderDetails = () => {
           </div>*/}
         </div>
       </div>
+
+      {/* Video Expansion Modal */}
       {expandedVideo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden relative">
@@ -578,114 +658,6 @@ const OrderDetails = () => {
                   </span>
                 </p>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* Upload Popup */}
-      {showUploadPopup && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-gray-900">
-                  Upload Delivery Proof
-                </h3>
-                <button
-                  onClick={() => setShowUploadPopup(false)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  {/* Video Expansion Modal */}
-                  {expandedVideo && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-                      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden relative">
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                            {expandedVideo === "fabric"
-                              ? "Fabric Preview"
-                              : "Style Preview"}
-                          </h3>
-                          <button
-                            onClick={() => setExpandedVideo(null)}
-                            className="text-gray-400 hover:text-gray-600 transition-colors"
-                          >
-                            <X className="w-6 h-6" />
-                          </button>
-                        </div>
-                        <div className="bg-black rounded-xl overflow-hidden p-6">
-                          <video
-                            src={
-                              expandedVideo === "fabric"
-                                ? orderPurchase[0]?.product?.fabric?.video_url
-                                : orderPurchase[1]?.product?.style?.video_url
-                            }
-                            controls
-                            className="w-full h-[60vh] object-contain"
-                            preload="metadata"
-                          >
-                            Your browser does not support the video tag.
-                          </video>
-                        </div>
-                        <div className="mt-4 text-center">
-                          <p className="text-sm text-gray-600">
-                            {expandedVideo === "fabric" ? "Fabric" : "Style"}:{" "}
-                            <span className="font-medium">
-                              {expandedVideo === "fabric"
-                                ? orderPurchase[0]?.product?.name
-                                : orderPurchase[1]?.product?.name}
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  <X size={24} />
-                </button>
-              </div>
-
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                Upload a clear picture of the delivered fabric to mark this
-                order as completed.
-              </p>
-
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center mb-6 hover:border-purple-400 transition-colors">
-                <div className="flex justify-center mb-4">
-                  <Package className="w-12 h-12 text-gray-400" />
-                </div>
-                <p className="text-gray-600 font-medium mb-2">
-                  Click to upload photo
-                </p>
-                <p className="text-gray-400 text-sm mb-4">Max file size: 5MB</p>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  id="fabric-upload"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      const file = e.target.files[0];
-                      if (file.size <= 5 * 1024 * 1024) {
-                        handleUpload();
-                      } else {
-                        alert("File size exceeds 5MB limit.");
-                      }
-                    }
-                  }}
-                />
-                <label
-                  htmlFor="fabric-upload"
-                  className="inline-block px-6 py-2 bg-purple-100 text-purple-700 rounded-lg cursor-pointer hover:bg-purple-200 transition-colors font-medium"
-                >
-                  Browse Files
-                </label>
-              </div>
-
-              <button
-                onClick={handleUpload}
-                className="w-full py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
-              >
-                Confirm Upload & Mark Delivered
-              </button>
             </div>
           </div>
         </div>

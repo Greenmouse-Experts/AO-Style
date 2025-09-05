@@ -318,6 +318,12 @@ const OrderRequests = () => {
   const { data: user } = useGetUserProfile();
   const [status, setStatus] = useState("");
   const navigate = useNavigate();
+
+  // Helper function to format order ID - first 12 characters in uppercase without hyphens
+  const formatOrderId = (id: string) => {
+    if (!id) return "N/A";
+    return id.replace(/-/g, "").substring(0, 12).toUpperCase();
+  };
   const query = useQuery<OrderRequestsResponse>({
     queryKey: ["logistics", "orders", status],
     queryFn: async () => {
@@ -378,7 +384,7 @@ const OrderRequests = () => {
       render: (_, item) => {
         return (
           <div className=" w-[80px] overflow-ellipsis" data-theme="nord">
-            {item.id}
+            {formatOrderId(item.id)}
           </div>
         );
       },

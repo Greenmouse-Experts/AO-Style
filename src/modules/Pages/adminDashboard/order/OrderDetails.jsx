@@ -283,7 +283,13 @@ const OrderDetails = () => {
                       <div className="flex justify-between">
                         <span className="text-gray-600">Order ID:</span>
                         <span className="font-medium">
-                          #{orderDetails?.id?.slice(-8).toUpperCase()}
+                          #
+                          {orderDetails?.id
+                            ? orderDetails.id
+                                .replace(/-/g, "")
+                                .substring(0, 12)
+                                .toUpperCase()
+                            : "N/A"}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -466,7 +472,13 @@ const OrderDetails = () => {
               <div>
                 <p className="font-medium mb-1">Customer ID:</p>
                 <p className="text-gray-600">
-                  #{orderDetails?.user?.id?.slice(-8).toUpperCase()}
+                  #
+                  {orderDetails?.user?.id
+                    ? orderDetails.user.id
+                        .replace(/-/g, "")
+                        .substring(0, 12)
+                        .toUpperCase()
+                    : "N/A"}
                 </p>
               </div>
               <div>

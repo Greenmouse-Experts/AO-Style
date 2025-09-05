@@ -294,6 +294,12 @@ export default function ViewOrderLogistics() {
   const nav = useNavigate();
   const dialogRef = useRef<HTMLDialogElement>(null);
 
+  // Helper function to format order ID - first 12 characters in uppercase without hyphens
+  const formatOrderId = (id: string) => {
+    if (!id) return "N/A";
+    return id.replace(/-/g, "").substring(0, 12).toUpperCase();
+  };
+
   const query = useQuery<OrderLogisticsData>({
     queryKey: ["logistic", id, "view"],
     queryFn: async () => {
@@ -419,9 +425,18 @@ export default function ViewOrderLogistics() {
     payment: order_data?.payment,
   });
 
-  // Delivery leg determination
-  const firstLegStatuses = ["DISPATCHED_TO_AGENT"];
-  const secondLegStatuses = ["OUT_FOR_DELIVERY", "SHIPPED"];
+  // Helper function to check if order has style items
+  const hasStyleItems = () => {
+    return (
+      order_data?.order_items?.some((item) =>
+        item?.product?.type?.toLowerCase().includes("style"),
+      ) || false
+    );
+  };
+
+  // Delivery leg determination based on order type
+  const firstLegStatuses = ["DISPATCHED_TO_AGENT"]; // Fabric+Style orders: vendor to tailor
+  const secondLegStatuses = ["OUT_FOR_DELIVERY"]; // Tailor to customer OR fabric-only vendor to customer
   const transitStatuses = ["IN_TRANSIT"];
 
   const isFirstLeg = firstLegStatuses.includes(currentStatus || "");
@@ -429,13 +444,16 @@ export default function ViewOrderLogistics() {
   const isInTransit = transitStatuses.includes(currentStatus || "");
   const isDelivered = currentStatus === "DELIVERED";
 
-  // Status flow for two-leg delivery
+  // Status flow based on order type
   const getStatusInfo = () => {
+    const isStyleOrder = hasStyleItems();
+
     switch (currentStatus) {
       case "DISPATCHED_TO_AGENT":
+        // First leg: Fabric vendor to tailor (fabric+style orders only)
         return {
-          phase: "First Leg",
-          description: "Pickup from vendor → Deliver to tailor",
+          phase: "First Leg - Pickup",
+          description: "Pickup fabric from vendor → Deliver to tailor",
           nextAction: "Deliver to Tailor",
           nextStatus: "DELIVERED_TO_TAILOR",
           codeType: "tailor_delivery_code",
@@ -443,10 +461,12 @@ export default function ViewOrderLogistics() {
           color: "blue",
         };
       case "OUT_FOR_DELIVERY":
-      case "SHIPPED":
+        // Direct delivery for fabric-only OR second leg for fabric+style
         return {
-          phase: "Second Leg",
-          description: "Pickup from tailor → Deliver to customer",
+          phase: isStyleOrder ? "Second Leg - Pickup" : "Direct Delivery",
+          description: isStyleOrder
+            ? "Pickup completed item from tailor → Deliver to customer"
+            : "Pickup fabric from vendor → Deliver to customer",
           nextAction: "Start Delivery",
           nextStatus: "IN_TRANSIT",
           codeType: null,
@@ -476,7 +496,7 @@ export default function ViewOrderLogistics() {
       default:
         return {
           phase: "Pending",
-          description: "Waiting for assignment",
+          description: "Waiting for vendor to dispatch order",
           nextAction: null,
           nextStatus: null,
           codeType: null,
@@ -520,7 +540,7 @@ export default function ViewOrderLogistics() {
                     }`}
                   ></div>
                   <span className="text-sm font-medium text-gray-600">
-                    Order #{order_data?.id?.slice(-8).toUpperCase()}
+                    Order #{formatOrderId(order_data?.id || "")}
                   </span>
                 </div>
               </div>
@@ -692,7 +712,9 @@ export default function ViewOrderLogistics() {
                       }`}
                     >
                       {[
+                        "DISPATCHED_TO_AGENT",
                         "DELIVERED_TO_TAILOR",
+                        "PROCESSING",
                         "OUT_FOR_DELIVERY",
                         "SHIPPED",
                         "IN_TRANSIT",
@@ -714,6 +736,7 @@ export default function ViewOrderLogistics() {
                     <div
                       className={`w-px h-6 ${
                         [
+                          "DISPATCHED_TO_AGENT",
                           "OUT_FOR_DELIVERY",
                           "SHIPPED",
                           "IN_TRANSIT",
@@ -732,6 +755,7 @@ export default function ViewOrderLogistics() {
                         currentStatus === "DELIVERED"
                           ? "bg-green-100 text-green-600"
                           : [
+                                "DISPATCHED_TO_AGENT",
                                 "OUT_FOR_DELIVERY",
                                 "SHIPPED",
                                 "IN_TRANSIT",

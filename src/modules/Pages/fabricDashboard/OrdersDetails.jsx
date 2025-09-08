@@ -18,6 +18,7 @@ import { useParams } from "react-router-dom";
 import useGetSingleOrder from "../../../hooks/order/useGetSingleOrder";
 import useUpdateOrderStatus from "../../../hooks/order/useUpdateOrderStatus";
 import Loader from "../../../components/ui/Loader";
+import { formatOrderId } from "../../../lib/orderUtils";
 
 import useToast from "../../../hooks/useToast";
 
@@ -359,9 +360,9 @@ const OrderDetails = () => {
                   <div className="flex flex-col lg:flex-row gap-6">
                     {/* Product Image */}
                     <div className="lg:w-32 lg:h-32 w-full h-48 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                      {item?.product?.fabric?.image_url ? (
+                      {item?.product?.fabric?.photos ? (
                         <img
-                          src={item.product.fabric.image_url}
+                          src={item.product.fabric.photos[0]}
                           alt={item.product?.name || "Fabric"}
                           className="w-full h-full object-cover"
                         />
@@ -413,7 +414,7 @@ const OrderDetails = () => {
                             Material:
                           </span>
                           <p className="text-gray-900">
-                            {item?.product?.fabric?.material || "N/A"}
+                            {item?.product?.fabric?.material_type || "N/A"}
                           </p>
                         </div>
                         <div>
@@ -421,7 +422,7 @@ const OrderDetails = () => {
                             Weight:
                           </span>
                           <p className="text-gray-900">
-                            {item?.product?.fabric?.weight || "N/A"}
+                            {item?.product?.fabric?.weight_per_unit || "N/A"}
                           </p>
                         </div>
                         <div className="flex items-center gap-2">

@@ -19,6 +19,7 @@ import {
   ArrowRight,
   Target,
   Route,
+  Image as ImageIcon,
 } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import { useItemMap } from "../../../store/useTempStore";
@@ -76,6 +77,7 @@ interface MetadataItem {
   fabric_product_id: string;
   style_product_name: string;
   fabric_product_name: string;
+  image?: string;
 }
 
 interface OrderSummary {
@@ -251,6 +253,7 @@ interface OrderItem {
   updated_at: string;
   deleted_at: null;
   product: Product;
+  metadata?: any; // Accepts object or null
 }
 
 interface LogisticAgent {
@@ -293,6 +296,9 @@ export default function ViewOrderLogistics() {
   const { toastSuccess, toastError } = useToast();
   const nav = useNavigate();
   const dialogRef = useRef<HTMLDialogElement>(null);
+
+  // Modal state for viewing item image
+  const [viewImageUrl, setViewImageUrl] = useState<string | null>(null);
 
   // Helper function to format order ID - first 12 characters in uppercase without hyphens
   const formatOrderId = (id: string) => {
@@ -859,65 +865,94 @@ export default function ViewOrderLogistics() {
                 </h3>
 
                 <div className="space-y-4">
-                  {order_data?.order_items.map((item: OrderItem) => (
-                    <div
-                      key={item.id}
-                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex items-start space-x-4">
-                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                          {item.product.style?.photos?.[0] ? (
-                            <img
-                              src={item.product.style.photos[0]}
-                              alt={item.product.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : item.product.fabric?.photos?.[0] ? (
-                            <img
-                              src={item.product.fabric.photos[0]}
-                              alt={item.product.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400">
-                              <Package className="w-6 h-6" />
+                  {order_data?.order_items.map((item: OrderItem) => {
+                    // Check for image in metadata
+                    let metaImage: string | undefined = undefined;
+                    if (
+                      item.metadata &&
+                      typeof item.metadata === "object" &&
+                      "image" in item.metadata &&
+                      typeof item.metadata.image === "string"
+                    ) {
+                      metaImage = item.metadata.image;
+                    }
+
+                    return (
+                      <div
+                        key={item.id}
+                        className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-start space-x-4">
+                          <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                            {metaImage ? (
+                              <img
+                                src={metaImage}
+                                alt={item.product.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : item.product.style?.photos?.[0] ? (
+                              <img
+                                src={item.product.style.photos[0]}
+                                alt={item.product.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : item.product.fabric?.photos?.[0] ? (
+                              <img
+                                src={item.product.fabric.photos[0]}
+                                alt={item.product.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                <Package className="w-6 h-6" />
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-gray-900 truncate">
+                              {item.product.name}
+                            </h4>
+                            <p className="text-sm text-gray-600 mt-1">
+                              Quantity: {item.quantity}
+                            </p>
+
+                            <div className="mt-3">
+                              <p className="text-sm font-medium text-gray-700 mb-1">
+                                Pickup Location:
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {item.product.creator?.profile?.address ||
+                                  "Address not available"}
+                              </p>
                             </div>
-                          )}
-                        </div>
+                          </div>
 
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-gray-900 truncate">
-                            {item.product.name}
-                          </h4>
-                          <p className="text-sm text-gray-600 mt-1">
-                            Quantity: {item.quantity}
-                          </p>
-
-                          <div className="mt-3">
-                            <p className="text-sm font-medium text-gray-700 mb-1">
-                              Pickup Location:
-                            </p>
-                            <p className="text-sm text-gray-600">
-                              {item.product.creator?.profile?.address ||
-                                "Address not available"}
-                            </p>
+                          <div className="flex flex-col gap-2 flex-shrink-0">
+                            <button
+                              className="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors"
+                              onClick={() => {
+                                setItem(item);
+                                nav(`/logistics/orders/item/${item.id}/map`);
+                              }}
+                            >
+                              View Pickup
+                            </button>
+                            {metaImage && (
+                              <button
+                                className="px-3 py-2 bg-pink-100 text-pink-700 rounded-lg text-sm font-medium hover:bg-pink-200 transition-colors flex items-center justify-center"
+                                onClick={() => setViewImageUrl(metaImage!)}
+                                type="button"
+                              >
+                                <ImageIcon className="w-4 h-4 mr-1" />
+                                View Item Image
+                              </button>
+                            )}
                           </div>
                         </div>
-
-                        <div className="flex-shrink-0">
-                          <button
-                            className="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors"
-                            onClick={() => {
-                              setItem(item);
-                              nav(`/logistics/orders/item/${item.id}/map`);
-                            }}
-                          >
-                            View Pickup
-                          </button>
-                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
@@ -1036,6 +1071,53 @@ export default function ViewOrderLogistics() {
             </div>
           </div>
         </dialog>
+
+        {/* Modal for viewing item image */}
+        {viewImageUrl && (
+          <dialog
+            open
+            className="modal"
+            style={{
+              background: "rgba(0,0,0,0.3)",
+              position: "fixed",
+              zIndex: 50,
+              left: 0,
+              top: 0,
+              width: "100vw",
+              height: "100vh",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            onClick={() => setViewImageUrl(null)}
+          >
+            <div
+              className="modal-box bg-white rounded-2xl shadow-2xl max-w-lg p-4 relative"
+              style={{ maxWidth: 480, width: "90%" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl font-bold"
+                onClick={() => setViewImageUrl(null)}
+                aria-label="Close"
+                type="button"
+              >
+                ×
+              </button>
+              <div className="flex flex-col items-center">
+                <img
+                  src={viewImageUrl}
+                  alt="Order Item"
+                  className="max-h-96 w-auto rounded-lg border border-gray-200 object-contain"
+                  style={{ maxWidth: "100%" }}
+                />
+                <div className="mt-3 text-center text-gray-700 text-sm">
+                  Order Item Image
+                </div>
+              </div>
+            </div>
+          </dialog>
+        )}
       </div>
     </>
   );

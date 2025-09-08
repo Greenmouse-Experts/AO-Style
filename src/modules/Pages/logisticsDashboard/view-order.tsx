@@ -28,6 +28,7 @@ import useGetUser from "../../../hooks/user/useGetSingleUser";
 import useGetUserProfile from "../../Auth/hooks/useGetProfile";
 import CustomBackbtn from "../../../components/CustomBackBtn";
 import useToast from "../../../hooks/useToast";
+import { formatOrderId } from "../../../lib/orderUtils";
 import "react-toastify/dist/ReactToastify.css";
 
 interface MeasurementData {
@@ -299,12 +300,6 @@ export default function ViewOrderLogistics() {
 
   // Modal state for viewing item image
   const [viewImageUrl, setViewImageUrl] = useState<string | null>(null);
-
-  // Helper function to format order ID - first 12 characters in uppercase without hyphens
-  const formatOrderId = (id: string) => {
-    if (!id) return "N/A";
-    return id.replace(/-/g, "").substring(0, 12).toUpperCase();
-  };
 
   const query = useQuery<OrderLogisticsData>({
     queryKey: ["logistic", id, "view"],

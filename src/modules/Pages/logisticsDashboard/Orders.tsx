@@ -4,6 +4,7 @@ import CaryBinApi from "../../../services/CarybinBaseUrl";
 import CustomTable from "../../../components/CustomTable";
 import { useNavigate } from "react-router-dom";
 import { useRef, useState } from "react";
+import { formatOrderId } from "../../../lib/orderUtils";
 
 // Interfaces (unchanged from original)
 // Interfaces
@@ -138,16 +139,15 @@ export default function OrderRequests() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [selectedItem, setSelectedItem] = useState<Order | null>(null);
 
-  // Helper function to format order ID - first 12 characters in uppercase without hyphens
-  const formatOrderId = (id: string) => {
-    if (!id) return "N/A";
-    return id.replace(/-/g, "").substring(0, 12).toUpperCase();
-  };
   const { data, isFetching, isError, error, refetch } =
     useQuery<OrderRequestsResponse>({
       queryKey: ["logistics", "orders"],
       queryFn: async () => {
         const resp = await CaryBinApi.get("/orders/available-orders");
+        console.log("=== LOGISTICS ORDERS PAGE LOADED ===");
+        console.log("Available orders data:", resp.data);
+        console.log("Number of orders:", resp.data?.data?.length || 0);
+        console.log("====================================");
         return resp.data;
       },
     });
@@ -241,13 +241,6 @@ export default function OrderRequests() {
       label: "location",
       render: (_, item) => {
         return <>{item.user.profile.address}</>;
-      },
-    },
-    {
-      key: "logistic",
-      label: "logistic ID",
-      render: (_, item) => {
-        return <>{item?.logistics_agent_id || "N/A"}</>;
       },
     },
     {

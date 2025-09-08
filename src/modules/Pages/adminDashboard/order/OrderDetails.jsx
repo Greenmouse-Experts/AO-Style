@@ -23,18 +23,38 @@ import Loader from "../../../../components/ui/Loader";
 import ReviewForm from "../../../../components/reviews/ReviewForm";
 import { formatOrderId } from "../../../../lib/orderUtils";
 
-const orderSteps = [
-  "Order Placed",
-  "Processing",
-  "Shipped",
-  "Out for Delivery",
-  "Delivered",
-];
+// Dynamic order steps based on order type
+const getOrderSteps = (hasStyleItems) => {
+  if (hasStyleItems) {
+    // Orders with style items: Vendor → Tailor → Customer
+    return [
+      "Order Placed",
+      "Processing",
+      "Shipped to Tailor",
+      "Tailor Processing",
+      "Shipped to Customer",
+      "Delivered",
+    ];
+  } else {
+    // Fabric-only orders: Vendor → Customer
+    return [
+      "Order Placed",
+      "Processing",
+      "Shipped",
+      "Out for Delivery",
+      "Delivered",
+    ];
+  }
+};
 
 const statusMessages = {
   "Order Placed": "Your order has been placed and is awaiting processing.",
   Processing: "Your order is being processed and prepared for shipment.",
   Shipped: "Your order has been shipped and is in transit.",
+  "Shipped to Tailor":
+    "Your order has been shipped to the tailor for processing.",
+  "Tailor Processing": "Your order is being processed by the tailor.",
+  "Shipped to Customer": "Your order has been shipped to you from the tailor.",
   "Out for Delivery": "Your order is out for delivery.",
   Delivered: "Your order has been delivered successfully!",
 };
@@ -55,7 +75,13 @@ const OrderDetails = () => {
 
   // Always call these hooks to maintain consistent hook order
   const orderDetails = data?.data;
-  const orderPurchase = data?.data?.payment?.purchase?.items;
+  const orderPurchase = data?.data?.payment?.purchase?.items || [];
+
+  // Check if order has style items to determine progress flow
+  const hasStyleItems =
+    orderDetails?.order_items?.some((item) => item.purchase_type === "STYLE") ||
+    false;
+  const orderSteps = getOrderSteps(hasStyleItems);
 
   // Check if order is delivered and show review section automatically
   const isDelivered = orderDetails?.status === "DELIVERED";
@@ -69,22 +95,42 @@ const OrderDetails = () => {
   );
   console.log(
     "Fabric items:",
-    orderPurchase?.filter((item) => item.purchase_type === "FABRIC"),
+    orderDetails?.order_items?.filter(
+      (item) => item.purchase_type === "FABRIC",
+    ),
   );
+  console.log("hasStyleItems:", hasStyleItems);
+  console.log("orderSteps:", orderSteps);
+  console.log("Order type:", hasStyleItems ? "Fabric + Style" : "Fabric Only");
   console.log("Current step:", currentStep);
   console.log("============================");
 
   // Update currentStep based on order status
   const getStepFromStatus = (status) => {
-    const statusMap = {
-      PROCESSING: 1,
-      SHIPPED: 2,
-      IN_TRANSIT: 2,
-      OUT_FOR_DELIVERY: 3,
-      DELIVERED: 4,
-      CANCELLED: -1, // Special case for cancelled orders
-    };
-    return statusMap[status] || 0;
+    if (hasStyleItems) {
+      // Status mapping for orders with style items (6 steps)
+      const statusMap = {
+        PROCESSING: 1,
+        SHIPPED_TO_TAILOR: 2,
+        TAILOR_PROCESSING: 3,
+        SHIPPED_TO_CUSTOMER: 4,
+        OUT_FOR_DELIVERY: 4,
+        DELIVERED: 5,
+        CANCELLED: -1,
+      };
+      return statusMap[status] || 0;
+    } else {
+      // Status mapping for fabric-only orders (5 steps)
+      const statusMap = {
+        PROCESSING: 1,
+        SHIPPED: 2,
+        IN_TRANSIT: 2,
+        OUT_FOR_DELIVERY: 3,
+        DELIVERED: 4,
+        CANCELLED: -1,
+      };
+      return statusMap[status] || 0;
+    }
   };
 
   // Set current step based on order status

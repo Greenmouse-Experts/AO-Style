@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import CaryBinApi from "../../../../services/CarybinBaseUrl";
 import useGetUserProfile from "../../../Auth/hooks/useGetProfile";
 import CustomTable from "../../../../components/CustomTable";
+import { formatOrderId } from "../../../../lib/orderUtils";
 interface Order {
   id: string;
   user_id: string;
@@ -317,12 +318,6 @@ export default function DashOrderRequests() {
   const [status, setStatus] = useState("");
   const navigate = useNavigate();
 
-  // Helper function to format order ID - first 12 characters in uppercase without hyphens
-  const formatOrderId = (id: string) => {
-    if (!id) return "N/A";
-    return id.replace(/-/g, "").substring(0, 12).toUpperCase();
-  };
-
   const query = useQuery<OrderRequestsResponse>({
     queryKey: ["logistics", "orders", status],
     queryFn: async () => {
@@ -418,13 +413,6 @@ export default function DashOrderRequests() {
       label: "location",
       render: (_, item) => {
         return <>{item.user.profile.address}</>;
-      },
-    },
-    {
-      key: "logistic",
-      label: "logistic ID",
-      render: (_, item) => {
-        return <>{item.total_amount}</>;
       },
     },
     {

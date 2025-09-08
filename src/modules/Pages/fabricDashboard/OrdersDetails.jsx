@@ -13,7 +13,7 @@ import {
   AlertCircle,
   ArrowRight,
 } from "lucide-react";
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import useGetSingleOrder from "../../../hooks/order/useGetSingleOrder";
 import useUpdateOrderStatus from "../../../hooks/order/useUpdateOrderStatus";
@@ -36,6 +36,17 @@ const OrderDetails = () => {
     isError,
     refetch,
   } = useGetSingleOrder(id);
+
+  // Debug logging when page loads
+  console.log("=== FABRIC VENDOR ORDER DETAILS PAGE LOADED ===");
+  console.log("Order ID:", id);
+  console.log("Raw data:", data);
+  console.log("Is Loading:", getOrderIsPending);
+  console.log("Is Error:", isError);
+  console.log("Order Info:", orderInfo);
+  console.log("Order Purchase Items:", orderPurchase);
+  console.log("Order Metadata:", orderMetadata);
+  console.log("================================================");
 
   // Status update hook
   const { isPending: isStatusUpdating, updateOrderStatusMutate } =
@@ -63,6 +74,14 @@ const OrderDetails = () => {
           item?.type?.toUpperCase() === "FABRIC",
       )
     : [];
+
+  console.log("=== FABRIC VENDOR ORDER ANALYSIS ===");
+  console.log("Fabric only purchase items:", fabricOnlyPurchase);
+  console.log("Is fabric only order:", isFabricOnlyOrder);
+  console.log("Has style items:", hasStyleItems);
+  console.log("Can update status:", canUpdateStatus());
+  console.log("Current order status:", orderInfo?.status);
+  console.log("===================================");
 
   // --- FIX: Always show all fabric items, regardless of metadata ---
   // If both metadata and purchase items exist, show all unique fabric items.
@@ -182,17 +201,49 @@ const OrderDetails = () => {
 
   // Status update handler
   const handleStatusUpdate = (newStatus) => {
+    // Validation checks
+    if (!id) {
+      toastError("Order ID is missing");
+      return;
+    }
+
+    if (!newStatus) {
+      toastError("New status is required");
+      return;
+    }
+
+    if (!canUpdateStatus()) {
+      toastError("Cannot update status at this time");
+      return;
+    }
+
+    console.log("=== FABRIC VENDOR STATUS UPDATE ===");
+    console.log("Order ID:", id);
+    console.log("Current Status:", orderInfo?.status);
+    console.log("New Status:", newStatus);
+    console.log("Is Fabric Only Order:", isFabricOnlyOrder);
+    console.log("Validation passed - proceeding with update");
+    console.log("==================================");
+
     updateOrderStatusMutate(
-      { orderId: id, status: newStatus },
+      { id: id, statusData: { status: newStatus } },
       {
-        onSuccess: () => {
-          toastSuccess(`Order status updated to ${newStatus}`);
+        onSuccess: (response) => {
+          console.log("✅ Status update successful:", newStatus);
+          console.log("Response:", response);
+          toastSuccess(
+            `Order status updated to ${newStatus.replace(/_/g, " ")}`,
+          );
           refetch();
         },
         onError: (error) => {
-          toastError(
-            error?.response?.data?.message || "Failed to update status",
-          );
+          console.error("❌ Status update failed:", error);
+          console.error("Error details:", error?.response?.data);
+          const errorMessage =
+            error?.response?.data?.message ||
+            error?.message ||
+            "Failed to update order status";
+          toastError(errorMessage);
         },
       },
     );
@@ -200,18 +251,93 @@ const OrderDetails = () => {
 
   // Check if fabric vendor can update status
   const canUpdateStatus = () => {
+    if (!orderInfo?.status) {
+      console.log("Cannot update: No order status found");
+      return false;
+    }
+
     const currentStatus = orderInfo?.status;
-    return currentStatus === "PAID" || currentStatus === "PENDING";
+    const allowedStatuses = ["PAID", "PENDING", "PROCESSING"];
+    const canUpdate = allowedStatuses.includes(currentStatus);
+
+    console.log("Can update status check:", {
+      currentStatus,
+      allowedStatuses,
+      canUpdate,
+      isFabricOnlyOrder,
+      hasOrderData: !!orderInfo,
+    });
+
+    return canUpdate;
   };
 
   // Get the appropriate next status based on order type
   const getNextStatus = () => {
-    if (isFabricOnlyOrder) {
-      return "OUT_FOR_DELIVERY";
-    } else {
+    const currentStatus = orderInfo?.status;
+
+    console.log("Getting next status for:", {
+      currentStatus,
+      isFabricOnlyOrder,
+      hasStyleItems,
+    });
+
+    if (!currentStatus) {
+      console.warn(
+        "No current status found, defaulting to DISPATCHED_TO_AGENT",
+      );
       return "DISPATCHED_TO_AGENT";
     }
+
+    // For fabric-only orders: go directly to delivery
+    if (isFabricOnlyOrder) {
+      switch (currentStatus) {
+        case "PAID":
+        case "PENDING":
+        case "PROCESSING":
+          return "OUT_FOR_DELIVERY";
+        default:
+          console.warn(
+            `Unexpected status for fabric-only order: ${currentStatus}`,
+          );
+          return "OUT_FOR_DELIVERY";
+      }
+    } else {
+      // For orders with style items: go to logistics agent first
+      switch (currentStatus) {
+        case "PAID":
+        case "PENDING":
+        case "PROCESSING":
+          return "DISPATCHED_TO_AGENT";
+        default:
+          console.warn(`Unexpected status for style order: ${currentStatus}`);
+          return "DISPATCHED_TO_AGENT";
+      }
+    }
   };
+
+  // Comprehensive status update flow testing
+  const testStatusUpdateFlow = () => {
+    console.log("=== COMPREHENSIVE STATUS UPDATE TEST ===");
+    console.log("Order ID:", id);
+    console.log("Order Info:", orderInfo);
+    console.log("Current Status:", orderInfo?.status);
+    console.log("Order Items:", orderInfo?.order_items);
+    console.log("Fabric Items:", fabricOnlyPurchase);
+    console.log("Is Fabric Only:", isFabricOnlyOrder);
+    console.log("Has Style Items:", hasStyleItems);
+    console.log("Can Update Status:", canUpdateStatus());
+    console.log("Next Status:", getNextStatus());
+    console.log("Status Update Hook Available:", !!updateOrderStatusMutate);
+    console.log("Is Status Updating:", isStatusUpdating);
+    console.log("========================================");
+  };
+
+  // Run test on component mount
+  React.useEffect(() => {
+    if (orderInfo) {
+      testStatusUpdateFlow();
+    }
+  }, [orderInfo]);
 
   // Get status description based on order type
   const getStatusDescription = () => {
@@ -500,12 +626,37 @@ const OrderDetails = () => {
                         {getStatusDescription()}
                       </p>
                       <button
-                        onClick={() => handleStatusUpdate(getNextStatus())}
-                        disabled={isStatusUpdating}
+                        onClick={() => {
+                          const nextStatus = getNextStatus();
+                          if (
+                            window.confirm(
+                              `Are you sure you want to update the order status to "${nextStatus.replace(/_/g, " ")}"?`,
+                            )
+                          ) {
+                            handleStatusUpdate(nextStatus);
+                          }
+                        }}
+                        disabled={isStatusUpdating || !canUpdateStatus()}
                         className="w-full py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2"
+                        title={
+                          !canUpdateStatus()
+                            ? "Status cannot be updated at this time"
+                            : ""
+                        }
+                        onMouseEnter={() => {
+                          console.log("=== STATUS UPDATE BUTTON HOVER ===");
+                          console.log("Can update:", canUpdateStatus());
+                          console.log("Is updating:", isStatusUpdating);
+                          console.log("Next status:", getNextStatus());
+                          console.log("Current status:", orderInfo?.status);
+                          console.log("==================================");
+                        }}
                       >
                         {isStatusUpdating ? (
-                          "Updating..."
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            Updating...
+                          </>
                         ) : (
                           <>
                             Update to {getNextStatus().replace(/_/g, " ")}

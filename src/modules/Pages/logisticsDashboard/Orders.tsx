@@ -199,14 +199,14 @@ export default function OrderRequests() {
   }[] = [
     {
       key: "id",
-      label: "id",
+      label: "Order ID",
       render: (_, item) => {
         return (
           <span
             className="bg-transparent w-[80px] line-clamp-1 overflow-ellipsis"
             data-theme="nord"
           >
-            {formatOrderId(item.id)}
+            {formatOrderId(item.payment?.id || item.id)}
           </span>
         );
       },
@@ -250,6 +250,24 @@ export default function OrderRequests() {
         return <>{item.order_items.length}</>;
       },
     },
+    {
+      key: "created_at",
+      label: "Date Created",
+      render: (_, item) => {
+        const date = new Date(item.created_at);
+        return (
+          <span className="text-sm">
+            {date.toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </span>
+        );
+      },
+    },
   ];
 
   // Helper function to map order status to badge classes
@@ -282,7 +300,7 @@ export default function OrderRequests() {
       action: (item: Order) => {
         console.log(item, "view");
         // dialogRef.current?.showModal();
-        navigate(`/logistics/orders/${item.id}`);
+        navigate(`/logistics/orders/${item.payment?.id || item.id}`);
       },
     },
     {
@@ -292,7 +310,7 @@ export default function OrderRequests() {
       action: (item: Order) => {
         console.log(item, "view");
         // dialogRef.current?.showModal();
-        navigate(`/logistics/orders/${item.id}/map`);
+        navigate(`/logistics/orders/${item.payment?.id || item.id}/map`);
       },
     },
     // {
@@ -340,7 +358,9 @@ export default function OrderRequests() {
           <div className="py-4 text-base-content">
             <p>
               <span className="font-semibold">Order ID:</span>{" "}
-              {formatOrderId(selectedItem?.id || "")}
+              {formatOrderId(
+                selectedItem?.payment?.id || selectedItem?.id || "",
+              )}
             </p>
             <p>
               <span className="font-semibold">Customer Name:</span>{" "}

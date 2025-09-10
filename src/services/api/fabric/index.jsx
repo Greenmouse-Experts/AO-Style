@@ -35,12 +35,29 @@ const getAdminFabricProduct = (params) => {
 };
 
 const getManageFabricProduct = (params) => {
-  return CaryBinApi.get(`/manage-fabric/${params.id}`, {
-    params,
-    headers: {
-      "Business-id": params.id,
-    },
-  });
+  console.log("🔧 FABRIC SERVICE: Starting getManageFabricProduct API call");
+  console.log("🔧 FABRIC SERVICE: Original Params:", params);
+
+  // Remove id from params since access token handles authentication
+  const { id, ...cleanParams } = params || {};
+
+  console.log("🔧 FABRIC SERVICE: Clean Params (no id):", cleanParams);
+  console.log("🔧 FABRIC SERVICE: URL: /manage-fabric");
+  console.log("🔧 FABRIC SERVICE: Access token will handle authentication");
+
+  return CaryBinApi.get(`/manage-fabric`)
+    .then((response) => {
+      console.log("🔧 FABRIC SERVICE: API Response received:", response);
+      console.log("🔧 FABRIC SERVICE: Response status:", response.status);
+      console.log("🔧 FABRIC SERVICE: Response data:", response.data);
+      return response;
+    })
+    .catch((error) => {
+      console.error("🔧 FABRIC SERVICE: API Error:", error);
+      console.error("🔧 FABRIC SERVICE: Error response:", error.response);
+      console.error("🔧 FABRIC SERVICE: Error message:", error.message);
+      throw error;
+    });
 };
 
 const updateFabricProduct = (payload) => {

@@ -12,18 +12,28 @@ import {
   Maximize2,
   AlertCircle,
   ArrowRight,
+  Upload,
+  Image,
+  Loader2,
 } from "lucide-react";
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import useGetSingleOrder from "../../../hooks/order/useGetSingleOrder";
 import useUpdateOrderStatus from "../../../hooks/order/useUpdateOrderStatus";
+import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 import Loader from "../../../components/ui/Loader";
 import { formatOrderId } from "../../../lib/orderUtils";
+import FabricUploadDebug from "../../../components/debug/FabricUploadDebug";
 
 import useToast from "../../../hooks/useToast";
 
 const OrderDetails = () => {
   const [expandedVideo, setExpandedVideo] = useState(null);
+  const [showUploadPopup, setShowUploadPopup] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState("");
 
   // Get order ID from URL params
   const { id } = useParams();
@@ -39,6 +49,7 @@ const OrderDetails = () => {
   // Status update hook
   const { isPending: isStatusUpdating, updateOrderStatusMutate } =
     useUpdateOrderStatus();
+  const { uploadImageMutate } = useUploadImage();
   const { toastSuccess, toastError } = useToast();
 
   // Extract order information from API response
@@ -142,54 +153,273 @@ const OrderDetails = () => {
     return colors[status] || "bg-gray-100 text-gray-600";
   };
 
-  // Status update handler
-  const handleStatusUpdate = (newStatus) => {
-    // Validation checks
-    if (!id) {
-      toastError("Order ID is missing");
+  // File handling functions
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file size (5MB max)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toastError("File size must be less than 5MB");
       return;
     }
 
-    if (!newStatus) {
-      toastError("New status is required");
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toastError("Please select a valid image file");
       return;
     }
 
-    if (!canUpdateStatus()) {
-      toastError("Cannot update status at this time");
-      return;
-    }
+    setSelectedFile(file);
 
-    console.log("=== FABRIC VENDOR STATUS UPDATE ===");
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => setImagePreview(e.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
+  const getActionTitle = () => {
+    const nextStatus = getNextStatus();
+    return `Update Status to ${nextStatus.replace(/_/g, " ")}`;
+  };
+
+  // Update order status with image (following tailor dashboard pattern)
+  const updateOrderStatus = async (imageUrl) => {
+    const nextStatus = getNextStatus();
+    const statusData = {
+      status: nextStatus,
+      metadata: {
+        image: imageUrl,
+      },
+    };
+
+    console.log("=== FABRIC VENDOR STATUS UPDATE DETAILS ===");
     console.log("Order ID:", id);
     console.log("Current Status:", orderInfo?.status);
-    console.log("New Status:", newStatus);
-    console.log("Is Fabric Only Order:", isFabricOnlyOrder);
-    console.log("Validation passed - proceeding with update");
-    console.log("==================================");
+    console.log("Next Status:", nextStatus);
+    console.log("Status Data:", statusData);
+    console.log("Image URL:", imageUrl);
+    console.log("==========================================");
 
-    updateOrderStatusMutate(
-      { id: id, statusData: { status: newStatus } },
-      {
-        onSuccess: (response) => {
-          console.log("✅ Status update successful:", newStatus);
-          console.log("Response:", response);
-          toastSuccess(
-            `Order status updated to ${newStatus.replace(/_/g, " ")}`,
-          );
-          refetch();
+    return new Promise((resolve, reject) => {
+      updateOrderStatusMutate(
+        { id, statusData },
+        {
+          onSuccess: (result) => {
+            console.log(
+              "✅ FABRIC VENDOR Order status updated successfully:",
+              result,
+            );
+            console.log("Response data:", result?.data);
+            const message =
+              result?.data?.message || "Order status updated successfully";
+            toastSuccess(message);
+            refetch();
+            resolve(result);
+          },
+          onError: (error) => {
+            console.error(
+              "❌ FABRIC VENDOR Order status update failed:",
+              error,
+            );
+            console.error("Error response:", error?.response);
+            console.error("Error data:", error?.response?.data);
+            reject(
+              new Error(
+                error?.response?.data?.message ||
+                  error?.message ||
+                  "Failed to update order status",
+              ),
+            );
+          },
+        },
+      );
+    });
+  };
+
+  const uploadImageToMultimedia = async (file) => {
+    return new Promise((resolve, reject) => {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      console.log("🔄 Attempting multimedia upload...");
+      console.log("FormData contents:", {
+        hasImage: formData.has("image"),
+        fileName: file.name,
+        fileSize: file.size,
+      });
+
+      uploadImageMutate(formData, {
+        onSuccess: (result) => {
+          console.log("✅ Multimedia upload response received:");
+          console.log("Full response:", result);
+          console.log("Response structure check:", {
+            hasData: !!result?.data,
+            hasDataData: !!result?.data?.data,
+            hasDataUrl: !!result?.data?.url,
+            hasUrl: !!result?.url,
+            hasImageUrl: !!result?.imageUrl,
+            hasDataImageUrl: !!result?.data?.image_url,
+          });
+
+          const imageUrl =
+            result?.data?.data?.url ||
+            result?.url ||
+            result?.data?.image_url ||
+            result?.imageUrl ||
+            result?.data?.url;
+
+          console.log("Extracted image URL:", imageUrl);
+
+          if (imageUrl) {
+            resolve(imageUrl);
+          } else {
+            console.error("❌ No image URL found in response structure:");
+            console.error(
+              "Available keys in result:",
+              Object.keys(result || {}),
+            );
+            console.error(
+              "Available keys in result.data:",
+              Object.keys(result?.data || {}),
+            );
+            reject(new Error("No image URL in response"));
+          }
         },
         onError: (error) => {
-          console.error("❌ Status update failed:", error);
-          console.error("Error details:", error?.response?.data);
+          console.error("❌ Multimedia upload failed:");
+          console.error("Error object:", error);
+          console.error("Error response:", error?.response);
+          console.error("Error data:", error?.response?.data);
+          console.error("Error status:", error?.response?.status);
+
           const errorMessage =
             error?.response?.data?.message ||
+            error?.data?.message ||
             error?.message ||
-            "Failed to update order status";
-          toastError(errorMessage);
+            "Unknown upload error";
+
+          reject(new Error(`Upload failed: ${errorMessage}`));
         },
-      },
-    );
+      });
+    });
+  };
+
+  const handleCompleteUpload = async () => {
+    if (!selectedFile) {
+      toastError("Please select an image first.");
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadStatus("Uploading image...");
+
+    try {
+      // Debug: Check authentication and file details
+      console.log("=== FABRIC VENDOR UPLOAD DEBUG START ===");
+      console.log("📋 Upload Details:");
+      console.log("- File name:", selectedFile.name);
+      console.log("- File size:", selectedFile.size);
+      console.log("- File type:", selectedFile.type);
+      console.log("- Order ID:", id);
+      console.log("- Current status:", orderInfo?.status);
+      console.log("- Next status:", getNextStatus());
+
+      // Check authentication
+      const authData =
+        document.cookie.includes("token") ||
+        document.cookie.includes("adminToken");
+      console.log("- Has auth token:", authData);
+      console.log("- Navigator online:", navigator.onLine);
+      console.log("=====================================");
+
+      // Step 1: Upload image to multimedia endpoint
+      console.log("📤 Step 1: Uploading to multimedia endpoint...");
+      const imageUrl = await uploadImageToMultimedia(selectedFile);
+
+      if (!imageUrl) {
+        throw new Error("No image URL received from multimedia upload");
+      }
+
+      console.log("✅ Image uploaded successfully, URL:", imageUrl);
+      setUploadStatus("Updating order status...");
+
+      // Step 2: Update order status with image URL
+      console.log("📊 Step 2: Updating order status...");
+      console.log("About to call updateOrderStatus with imageUrl:", imageUrl);
+      console.log("Order ID being updated:", id);
+      console.log("Current order info:", orderInfo);
+      await updateOrderStatus(imageUrl);
+
+      console.log("✅ FABRIC VENDOR Order status updated successfully");
+      setUploadStatus("Complete!");
+
+      // Show success message
+      const nextStatus = getNextStatus();
+      const actionText =
+        nextStatus === "OUT_FOR_DELIVERY"
+          ? "marked as out for delivery"
+          : nextStatus === "DISPATCHED_TO_AGENT"
+            ? "dispatched to agent"
+            : "status updated";
+      toastSuccess(`Success! Fabric image uploaded and order ${actionText}.`);
+
+      // Close popup and reset state
+      handleClosePopup();
+
+      // Refetch order data to get updated status
+      refetch();
+    } catch (error) {
+      console.error("=== FABRIC VENDOR UPLOAD ERROR ===");
+      console.error("❌ Upload flow error:", error);
+      console.error("Error details:", {
+        message: error?.message,
+        response: error?.response,
+        data: error?.response?.data,
+        status: error?.response?.status,
+        stack: error?.stack,
+      });
+      console.error("================================");
+
+      setUploadStatus("Upload failed");
+
+      // Better error message based on error type
+      let errorMessage = "Unknown error occurred";
+      if (error?.response?.status === 401) {
+        errorMessage = "Authentication failed. Please log in again.";
+      } else if (error?.response?.status === 413) {
+        errorMessage = "File too large. Please select a smaller image.";
+      } else if (error?.response?.status === 422) {
+        errorMessage = "Invalid file format. Please select a valid image.";
+      } else if (error?.message?.includes("No image URL")) {
+        errorMessage =
+          "Upload completed but no image URL returned. Please try again.";
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+
+      toastError(`Upload failed: ${errorMessage}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleClosePopup = () => {
+    setShowUploadPopup(false);
+    setSelectedFile(null);
+    setImagePreview(null);
+    setUploadStatus("");
+    const fileInput = document.getElementById("fabric-upload");
+    if (fileInput) fileInput.value = "";
   };
 
   // Check if fabric vendor can update status
@@ -610,14 +840,17 @@ const OrderDetails = () => {
                       </p>
                       <button
                         onClick={() => {
-                          const nextStatus = getNextStatus();
-                          if (
-                            window.confirm(
-                              `Are you sure you want to update the order status to "${nextStatus.replace(/_/g, " ")}"?`,
-                            )
-                          ) {
-                            handleStatusUpdate(nextStatus);
-                          }
+                          console.log(
+                            "🔴 FABRIC VENDOR STATUS UPDATE BUTTON CLICKED",
+                          );
+                          console.log(
+                            "Current order status:",
+                            orderInfo?.status,
+                          );
+                          console.log("Next status:", getNextStatus());
+                          console.log("Can update status:", canUpdateStatus());
+                          console.log("Opening upload modal...");
+                          setShowUploadPopup(true);
                         }}
                         disabled={isStatusUpdating || !canUpdateStatus()}
                         className="w-full py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2"
@@ -720,6 +953,158 @@ const OrderDetails = () => {
           </div>
         </div>
       )}
+
+      {/* Upload Popup */}
+      {showUploadPopup && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          {console.log("🟢 FABRIC VENDOR UPLOAD MODAL IS RENDERING")}
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-gray-900">
+                  {getActionTitle()}
+                </h3>
+                <button
+                  onClick={handleClosePopup}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  disabled={isUploading}
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Upload a clear picture of the fabric to update the order status.
+              </p>
+
+              {/* File Upload Area */}
+              <div className="mb-6">
+                {!selectedFile ? (
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-purple-400 transition-colors">
+                    <div className="flex justify-center mb-4">
+                      <Upload className="w-12 h-12 text-gray-400" />
+                    </div>
+                    <p className="text-gray-600 font-medium mb-2">
+                      Click to upload photo
+                    </p>
+                    <p className="text-gray-400 text-sm mb-4">
+                      Max file size: 5MB • JPG, PNG, GIF
+                    </p>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      id="fabric-upload"
+                      onChange={handleFileSelect}
+                      disabled={isUploading}
+                    />
+                    <label
+                      htmlFor="fabric-upload"
+                      className={`inline-block px-6 py-2 rounded-lg cursor-pointer font-medium transition-colors ${
+                        isUploading
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                      }`}
+                    >
+                      Browse Files
+                    </label>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Image Preview */}
+                    <div className="border border-gray-200 rounded-xl overflow-hidden">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-full h-48 object-cover"
+                      />
+                    </div>
+
+                    {/* File Details */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Image className="w-5 h-5 text-purple-600" />
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">
+                              {selectedFile.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {formatFileSize(selectedFile.size)}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setSelectedFile(null);
+                            setImagePreview(null);
+                            const fileInput =
+                              document.getElementById("fabric-upload");
+                            if (fileInput) fileInput.value = "";
+                          }}
+                          className="text-gray-400 hover:text-red-500 transition-colors"
+                          disabled={isUploading}
+                        >
+                          <X size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Upload Status */}
+                {uploadStatus && (
+                  <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      {isUploading && (
+                        <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+                      )}
+                      <p className="text-sm font-medium text-blue-800">
+                        {uploadStatus}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={handleClosePopup}
+                  className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  disabled={isUploading}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCompleteUpload}
+                  className={`flex-1 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+                    selectedFile && !isUploading
+                      ? "bg-purple-600 text-white hover:bg-purple-700"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  }`}
+                  disabled={!selectedFile || isUploading}
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4" />
+                      Upload & Update
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Debug Component */}
+      <FabricUploadDebug />
     </div>
   );
 };

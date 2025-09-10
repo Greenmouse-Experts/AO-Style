@@ -376,11 +376,11 @@ const OrderRequests = () => {
   }[] = [
     {
       key: "id",
-      label: "id",
+      label: "Order ID",
       render: (_, item) => {
         return (
           <div className=" w-[80px] overflow-ellipsis" data-theme="nord">
-            {formatOrderId(item.id)}
+            {formatOrderId(item.payment?.id || item.id)}
           </div>
         );
       },
@@ -424,6 +424,24 @@ const OrderRequests = () => {
         return <>{item.order_items.length}</>;
       },
     },
+    {
+      key: "created_at",
+      label: "Date Created",
+      render: (_, item) => {
+        const date = new Date(item.created_at);
+        return (
+          <span className="text-sm">
+            {date.toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </span>
+        );
+      },
+    },
   ];
 
   const actions = [
@@ -434,7 +452,7 @@ const OrderRequests = () => {
       action: (item: Order) => {
         console.log(item, "view");
         // dialogRef.current?.showModal();
-        navigate(`/logistics/orders/${item.id}`);
+        navigate(`/logistics/orders/${item.payment?.id || item.id}`);
       },
     },
     {
@@ -444,7 +462,7 @@ const OrderRequests = () => {
       action: (item: Order) => {
         console.log(item, "view");
         // dialogRef.current?.showModal();
-        navigate(`/logistics/orders/${item.id}/map`);
+        navigate(`/logistics/orders/${item.payment?.id || item.id}/map`);
       },
     },
   ];

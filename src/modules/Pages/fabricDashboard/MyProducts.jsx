@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import ReusableTable from "../adminDashboard/components/ReusableTable";
 import { Search } from "lucide-react";
 import { FaEllipsisH } from "react-icons/fa";
@@ -18,6 +18,8 @@ import useDeleteFabric from "../../../hooks/fabric/useDeleteFabric";
 import useGetAdminFabricProduct from "../../../hooks/fabric/useGetAdminFabricProduct";
 import useUpdateAdminFabric from "../../../hooks/fabric/useUpdateAdminFabric";
 import useDeleteAdminFabric from "../../../hooks/fabric/useDeleteAdminFabric";
+import useUpdateAdminStyle from "../../../hooks/style/useUpdateAdminStyle";
+import useDeleteAdminStyle from "../../../hooks/style/useDeleteAdminStyle";
 
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -25,9 +27,9 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
 import useGetAdminManageFabricProduct from "../../../hooks/fabric/useGetManageFabric";
+import useGetAdminManageStyleProduct from "../../../hooks/style/useGetManageStyle";
 import useToast from "../../../hooks/useToast";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
-import { toast } from "react-toastify";
 import { useEffect } from "react";
 
 const ProductPage = () => {
@@ -38,6 +40,9 @@ const ProductPage = () => {
   }, [businessDetails]);
 
   const isAdminFabricRoute = location.pathname === "/admin/fabrics-products";
+  const isAdminStyleRoute = location.pathname === "/admin/styles-products";
+  const isAdminRoute = isAdminFabricRoute || isAdminStyleRoute;
+  const productType = isAdminStyleRoute ? "STYLE" : "FABRIC";
 
   const { queryParams, updateQueryParams } = useQueryParams({
     "pagination[page]": 1,
@@ -49,7 +54,7 @@ const ProductPage = () => {
     isPending,
     refetch,
   } = useGetFabricProduct({
-    type: "FABRIC",
+    type: productType,
     id: businessDetails?.data?.id,
     ...queryParams,
   });
@@ -59,7 +64,27 @@ const ProductPage = () => {
     isPending: adminProductIsPending,
     refetch: adRefetch,
   } = useGetAdminFabricProduct({
-    type: "FABRIC",
+    type: productType,
+    id: businessDetails?.data?.id,
+    ...queryParams,
+  });
+
+  // Add hook for managing fabric products (admin only) - for "My Products"
+  const {
+    data: getAllAdminManageFabricData,
+    isPending: adminManageFabricIsPending,
+    refetch: adManageFabricRefetch,
+  } = useGetAdminManageFabricProduct({
+    id: businessDetails?.data?.id,
+    ...queryParams,
+  });
+
+  // Add hook for managing style products (admin only) - for "My Products"
+  const {
+    data: getAllAdminManageStyleData,
+    isPending: adminManageStyleIsPending,
+    refetch: adManageStyleRefetch,
+  } = useGetAdminManageStyleProduct({
     id: businessDetails?.data?.id,
     ...queryParams,
   });
@@ -83,27 +108,81 @@ const ProductPage = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ x: 0, y: 0 });
 
-  const toggleDropdown = (id, event) => {
-    if (openDropdown === id) {
-      setOpenDropdown(null);
-    } else {
-      const rect = event.currentTarget.getBoundingClientRect();
-      setDropdownPosition({
-        x: rect.left - 150,
-        y: rect.top + rect.height + 5,
-      });
-      setOpenDropdown(id);
-    }
-  };
+  const toggleDropdown = useCallback(
+    (id, event) => {
+      if (openDropdown === id) {
+        setOpenDropdown(null);
+      } else {
+        const rect = event.currentTarget.getBoundingClientRect();
+        setDropdownPosition({
+          x: rect.left - 150,
+          y: rect.top + rect.height + 5,
+        });
+        setOpenDropdown(id);
+      }
+    },
+    [openDropdown],
+  );
 
-  const { isPending: updateIsPending, updateFabricMutate } = useUpdateFabric();
+  const { isPending: updateIsPending } = useUpdateFabric();
 
   const { isPending: updateAdminIsPending, updateAdminFabricMutate } =
     useUpdateAdminFabric();
 
-  const updatedData = isAdminFabricRoute
-    ? getAllAdminFabricData
+  const { isPending: updateAdminStyleIsPending, updateAdminStyleMutate } =
+    useUpdateAdminStyle();
+
+  const { isPending: deleteAdminStyleIsPending, deleteAdminStyleMutate } =
+    useDeleteAdminStyle();
+
+  // For "All Products" - use general admin data
+  const allProductsData = isAdminRoute
+    ? isAdminStyleRoute
+      ? getAllAdminFabricData // Using general endpoint for styles
+      : getAllAdminFabricData
     : getAllFabricData;
+
+  // For "My Products" - use manage endpoints
+  const myProductsData = isAdminRoute
+    ? isAdminStyleRoute
+      ? getAllAdminManageStyleData
+      : getAllAdminManageFabricData
+    : getAllFabricData;
+
+  // Choose data source based on current tab
+  const updatedData = currProd === "all" ? allProductsData : myProductsData;
+
+  // Debug logging for data source selection
+  console.log("🔄 DATA SOURCE DEBUG:", {
+    currProd,
+    isAdminRoute,
+    isAdminStyleRoute,
+    productType,
+    allProductsCount: allProductsData?.count || 0,
+    myProductsCount: myProductsData?.count || 0,
+    usingDataSource: currProd === "all" ? "allProductsData" : "myProductsData",
+    currentDataCount: updatedData?.count || 0,
+  });
+
+  // Debug API endpoint usage
+  console.log("🌐 ENDPOINT USAGE DEBUG:", {
+    businessId: businessDetails?.data?.id,
+    allProductsEndpoint: isAdminRoute
+      ? "/product-general/fetch"
+      : "/product-general",
+    myFabricsEndpoint: `/manage-fabric/${businessDetails?.data?.id}`,
+    myStylesEndpoint: `/manage-style/${businessDetails?.data?.id}`,
+    currentEndpoint:
+      currProd === "all"
+        ? isAdminRoute
+          ? "/product-general/fetch"
+          : "/product-general"
+        : isAdminStyleRoute
+          ? `/manage-style/${businessDetails?.data?.id}`
+          : `/manage-fabric/${businessDetails?.data?.id}`,
+    hasBusinessDetails: !!businessDetails?.data,
+    hasBusinessId: !!businessDetails?.data?.id,
+  });
 
   const FabricData = useMemo(() => {
     if (!updatedData?.data) return [];
@@ -151,10 +230,8 @@ const ProductPage = () => {
   console.log("📊 FABRIC DATA COUNT:", FabricData.length);
   console.log("🔍 RAW API DATA:", updatedData);
 
-  let admin_id = businessDetails?.data?.user_id;
-  // const admin_data =  FabricData.map((item)=> )
-  const admin_data =
-    FabricData.filter((item) => item.creator_id == admin_id) || [];
+  // For "My Products", we now use the manage endpoints directly, so no filtering needed
+  // admin_id is kept for potential future use in non-admin routes
   const { isPending: deleteIsPending, deleteFabricMutate } = useDeleteFabric();
 
   const { isPending: deleteAdminIsPending, deleteAdminFabricMutate } =
@@ -259,7 +336,7 @@ const ProductPage = () => {
         label: "Price",
         key: "price",
         width: "120px",
-        render: (price, row) => (
+        render: (price) => (
           <div className="text-right min-w-[120px]">
             <div className="text-lg font-bold text-green-700 whitespace-nowrap">
               {price}
@@ -336,13 +413,14 @@ const ProductPage = () => {
         ),
       },
     ],
-    [openDropdown, toggleDropdown],
+    [toggleDropdown],
   );
 
   const [newCategory, setNewCategory] = useState();
 
+  const currentData = currProd === "all" ? allProductsData : myProductsData;
   const totalPages = Math.ceil(
-    updatedData?.count / (queryParams["pagination[limit]"] ?? 10),
+    currentData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
   const handleExport = (e) => {
@@ -363,7 +441,10 @@ const ProductPage = () => {
     const blob = new Blob([excelBuffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
-    saveAs(blob, "MyProducts.xlsx");
+    saveAs(
+      blob,
+      `${currProd === "all" ? "All" : "My"}_${productType}_Products.xlsx`,
+    );
   };
 
   const exportToPDF = () => {
@@ -385,7 +466,9 @@ const ProductPage = () => {
         fontSize: 10,
       },
     });
-    doc.save("MyProducts.pdf");
+    doc.save(
+      `${currProd === "all" ? "All" : "My"}_${productType}_Products.pdf`,
+    );
   };
 
   const { toastError } = useToast();
@@ -395,11 +478,11 @@ const ProductPage = () => {
         <div className="flex flex-col lg:flex-row lg:justify-between items-start lg:items-center space-y-4 lg:space-y-0">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {!isAdminFabricRoute
+              {!isAdminRoute
                 ? "My Products"
                 : currProd == "all"
-                  ? "All Products"
-                  : "My Products"}
+                  ? `All ${productType === "STYLE" ? "Styles" : "Fabrics"}`
+                  : `My ${productType === "STYLE" ? "Styles" : "Fabrics"}`}
             </h1>
             <p className="text-gray-600 flex items-center">
               <Link
@@ -428,13 +511,9 @@ const ProductPage = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
-            {!isAdminFabricRoute ? (
+            {!isAdminRoute ? (
               <Link
-                to={
-                  isAdminFabricRoute
-                    ? "/admin/fabric/add-product"
-                    : "/fabric/product/add-product"
-                }
+                to="/fabric/product/add-product"
                 className="w-full sm:w-auto"
               >
                 <button className="flex items-center justify-center bg-gradient text-white px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl w-full sm:w-auto font-medium">
@@ -476,8 +555,10 @@ const ProductPage = () => {
             ) : (
               <Link
                 to={
-                  isAdminFabricRoute
-                    ? "/admin/fabric/add-product"
+                  isAdminRoute
+                    ? isAdminStyleRoute
+                      ? "/admin/style/add-product"
+                      : "/admin/fabric/add-product"
                     : "/fabric/product/add-product"
                 }
                 className="w-full sm:w-auto"
@@ -496,13 +577,13 @@ const ProductPage = () => {
                       d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                     />
                   </svg>
-                  Add New Product
+                  Add New {productType === "STYLE" ? "Style" : "Fabric"}
                 </button>
               </Link>
             )}
           </div>
         </div>
-        {isAdminFabricRoute && (
+        {isAdminRoute && (
           <div className="mt-6 pt-6 border-t border-gray-200">
             <div className="flex flex-wrap justify-center sm:justify-start gap-2">
               {["all", "my"].map((tab) => (
@@ -547,7 +628,8 @@ const ProductPage = () => {
                         />
                       </svg>
                     )}
-                    {tab === "all" ? "All" : "My"} Products
+                    {tab === "all" ? "All" : "My"}{" "}
+                    {productType === "STYLE" ? "Styles" : "Fabrics"}
                   </span>
                 </button>
               ))}
@@ -704,9 +786,8 @@ const ProductPage = () => {
                 Status: row.status,
                 Business: row.business_name,
                 Creator: row.creator_name,
-                "Created At": row.created_at,
               }))}
-              filename="MyProducts.csv"
+              filename={`${currProd === "all" ? "All" : "My"}_${productType}_Products.csv`}
               className="hidden"
             />
           </div>
@@ -716,15 +797,29 @@ const ProductPage = () => {
           <div className="overflow-x-auto">
             <ReusableTable
               columns={columns}
-              loading={isAdminFabricRoute ? adminProductIsPending : isPending}
-              data={currProd == "all" ? FabricData : []}
+              loading={
+                currProd === "all"
+                  ? isAdminRoute
+                    ? adminProductIsPending
+                    : isPending
+                  : isAdminRoute
+                    ? isAdminStyleRoute
+                      ? adminManageStyleIsPending
+                      : adminManageFabricIsPending
+                    : isPending
+              }
+              data={FabricData}
               emptyStateMessage={
-                !isAdminFabricRoute && !isPending && FabricData.length === 0
-                  ? "🎨 No fabric products found. Create your first product to get started!"
-                  : isAdminFabricRoute &&
-                      !adminProductIsPending &&
+                !isAdminRoute && !isPending && FabricData.length === 0
+                  ? `🎨 No ${productType.toLowerCase()} products found. Create your first product to get started!`
+                  : isAdminRoute &&
+                      !(currProd === "all"
+                        ? adminProductIsPending
+                        : isAdminStyleRoute
+                          ? adminManageStyleIsPending
+                          : adminManageFabricIsPending) &&
                       FabricData.length === 0
-                    ? "🏢 No admin fabric products found. Create your first product to get started!"
+                    ? `🏢 No ${currProd === "all" ? "admin" : "your"} ${productType.toLowerCase()} products found. Create your first product to get started!`
                     : undefined
               }
               className="border-0"
@@ -734,7 +829,15 @@ const ProductPage = () => {
         </div>
 
         {!(FabricData?.length > 0) &&
-          (isAdminFabricRoute ? adminProductIsPending : isPending) && (
+          (currProd === "all"
+            ? isAdminRoute
+              ? adminProductIsPending
+              : isPending
+            : isAdminRoute
+              ? isAdminStyleRoute
+                ? adminManageStyleIsPending
+                : adminManageFabricIsPending
+              : isPending) && (
             <div className="flex flex-col items-center justify-center py-12 bg-white rounded-xl shadow-sm border border-gray-200">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                 <svg
@@ -780,7 +883,7 @@ const ProductPage = () => {
                 <option value={20}>20 items</option>
               </select>
               <p className="text-sm text-gray-500">
-                of {updatedData?.count || FabricData.length} total
+                of {currentData?.count || FabricData.length} total
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -862,34 +965,54 @@ const ProductPage = () => {
 
               return (
                 <>
-                  {isAdminFabricRoute && row?.status === "DRAFT" ? (
+                  {isAdminRoute && row?.status === "DRAFT" ? (
                     <button
                       onClick={() => {
-                        console.log("🚀 Publishing fabric product:", row);
-                        updateAdminFabricMutate(
-                          {
-                            id: row?.id,
-                            product: {
-                              name: row?.name,
-                              sku: row?.sku,
-                              category_id: row?.category_id,
-                              status: "PUBLISHED",
-                              approval_status: "PUBLISHED",
-                            },
+                        console.log("🚀 Publishing product:", row);
+                        const updateData = {
+                          id: row?.id,
+                          product: {
+                            name: row?.name,
+                            sku: row?.sku,
+                            category_id: row?.category_id,
+                            status: "PUBLISHED",
+                            approval_status: "PUBLISHED",
                           },
-                          {
+                        };
+
+                        if (isAdminStyleRoute) {
+                          updateAdminStyleMutate(updateData, {
                             onSuccess: (response) => {
                               console.log(
-                                "✅ Publish Success Response:",
+                                "✅ Publish Style Success:",
                                 response,
                               );
                               setOpenDropdown(null);
+                              adManageStyleRefetch();
                             },
                             onError: (error) => {
-                              console.error("❌ Publish Error:", error);
+                              console.error("❌ Publish Style Error:", error);
                             },
-                          },
-                        );
+                          });
+                        } else {
+                          updateAdminFabricMutate(updateData, {
+                            onSuccess: (response) => {
+                              console.log(
+                                "✅ Publish Fabric Success:",
+                                response,
+                              );
+                              setOpenDropdown(null);
+                              if (currProd === "my") {
+                                adManageFabricRefetch();
+                              } else {
+                                adRefetch();
+                              }
+                            },
+                            onError: (error) => {
+                              console.error("❌ Publish Fabric Error:", error);
+                            },
+                          });
+                        }
                       }}
                       className="flex items-center w-full px-4 py-3 text-sm text-green-700 hover:bg-green-50 transition-colors duration-150"
                     >
@@ -906,40 +1029,65 @@ const ProductPage = () => {
                           d="M5 13l4 4L19 7"
                         />
                       </svg>
-                      {updateAdminIsPending || updateIsPending
+                      {updateAdminIsPending ||
+                      updateIsPending ||
+                      updateAdminStyleIsPending
                         ? "Publishing..."
-                        : "Publish Product"}
+                        : `Publish ${productType === "STYLE" ? "Style" : "Fabric"}`}
                     </button>
                   ) : null}
 
-                  {isAdminFabricRoute && row?.status === "PUBLISHED" ? (
+                  {isAdminRoute && row?.status === "PUBLISHED" ? (
                     <button
                       onClick={() => {
-                        console.log("📝 Unpublishing fabric product:", row);
-                        updateAdminFabricMutate(
-                          {
-                            id: row?.id,
-                            product: {
-                              name: row?.name,
-                              sku: row?.sku,
-                              category_id: row?.category_id,
-                              status: "DRAFT",
-                              approval_status: "DRAFT",
-                            },
+                        console.log("📝 Unpublishing product:", row);
+                        const updateData = {
+                          id: row?.id,
+                          product: {
+                            name: row?.name,
+                            sku: row?.sku,
+                            category_id: row?.category_id,
+                            status: "DRAFT",
+                            approval_status: "DRAFT",
                           },
-                          {
+                        };
+
+                        if (isAdminStyleRoute) {
+                          updateAdminStyleMutate(updateData, {
                             onSuccess: (response) => {
                               console.log(
-                                "✅ Unpublish Success Response:",
+                                "✅ Unpublish Style Success:",
                                 response,
                               );
                               setOpenDropdown(null);
+                              adManageStyleRefetch();
                             },
                             onError: (error) => {
-                              console.error("❌ Unpublish Error:", error);
+                              console.error("❌ Unpublish Style Error:", error);
                             },
-                          },
-                        );
+                          });
+                        } else {
+                          updateAdminFabricMutate(updateData, {
+                            onSuccess: (response) => {
+                              console.log(
+                                "✅ Unpublish Fabric Success:",
+                                response,
+                              );
+                              setOpenDropdown(null);
+                              if (currProd === "my") {
+                                adManageFabricRefetch();
+                              } else {
+                                adRefetch();
+                              }
+                            },
+                            onError: (error) => {
+                              console.error(
+                                "❌ Unpublish Fabric Error:",
+                                error,
+                              );
+                            },
+                          });
+                        }
                       }}
                       className="flex items-center w-full px-4 py-3 text-sm text-yellow-700 hover:bg-yellow-50 transition-colors duration-150"
                     >
@@ -956,17 +1104,21 @@ const ProductPage = () => {
                           d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.866-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"
                         />
                       </svg>
-                      {updateAdminIsPending || updateIsPending
+                      {updateAdminIsPending ||
+                      updateIsPending ||
+                      updateAdminStyleIsPending
                         ? "Unpublishing..."
-                        : "Unpublish Product"}
+                        : `Unpublish ${productType === "STYLE" ? "Style" : "Fabric"}`}
                     </button>
                   ) : null}
 
                   <Link
                     state={{ info: row?.original || row }}
                     to={
-                      isAdminFabricRoute
-                        ? "/admin/fabric/edit-product"
+                      isAdminRoute
+                        ? isAdminStyleRoute
+                          ? "/admin/style/edit-product"
+                          : "/admin/fabric/edit-product"
                         : "/fabric/product/edit-product"
                     }
                     className="flex items-center w-full px-4 py-3 text-sm text-blue-700 hover:bg-blue-50 transition-colors duration-150"
@@ -994,19 +1146,21 @@ const ProductPage = () => {
                         d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                       />
                     </svg>
-                    View/Edit Fabric
+                    View {productType === "STYLE" ? "Style" : "Fabric"}
                   </Link>
 
-                  {/* <Link
+                  <Link
                     state={{ info: row?.original || row }}
                     to={
-                      isAdminFabricRoute
-                        ? "/admin/fabric/edit-product"
+                      isAdminRoute
+                        ? isAdminStyleRoute
+                          ? "/admin/style/edit-product"
+                          : "/admin/fabric/edit-product"
                         : "/fabric/product/edit-product"
                     }
                     className="flex items-center w-full px-4 py-3 text-sm text-indigo-700 hover:bg-indigo-50 transition-colors duration-150"
                     onClick={() => {
-                      console.log("✏️ Editing fabric product:", row);
+                      console.log("✏️ Editing product:", row);
                       setOpenDropdown(null);
                     }}
                   >
@@ -1023,8 +1177,8 @@ const ProductPage = () => {
                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                       />
                     </svg>
-                    Edit Product
-                  </Link>*/}
+                    Edit {productType === "STYLE" ? "Style" : "Fabric"}
+                  </Link>
 
                   <button
                     onClick={() => {
@@ -1048,7 +1202,7 @@ const ProductPage = () => {
                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                       />
                     </svg>
-                    Remove Product
+                    Remove {productType === "STYLE" ? "Style" : "Fabric"}
                   </button>
                 </>
               );
@@ -1079,7 +1233,7 @@ const ProductPage = () => {
               </button>
             </div>
             <h3 className="text-lg font-semibold mb-4 -mt-7">
-              {"Delete Product"}
+              {`Delete ${productType === "STYLE" ? "Style" : "Fabric"}`}
             </h3>
             <form
               className="mt-6 space-y-4"
@@ -1091,28 +1245,44 @@ const ProductPage = () => {
                   return;
                 }
                 e.preventDefault();
-                if (isAdminFabricRoute) {
-                  deleteAdminFabricMutate(
-                    {
-                      id: newCategory?.id,
-                    },
-                    {
+                if (isAdminRoute) {
+                  const deleteData = { id: newCategory?.id };
+
+                  if (isAdminStyleRoute) {
+                    deleteAdminStyleMutate(deleteData, {
                       onSuccess: () => {
                         setIsAddModalOpen(false);
                         setNewCategory(null);
+                        if (currProd === "all") {
+                          adRefetch();
+                        } else {
+                          adManageStyleRefetch();
+                        }
                       },
-                    },
-                  );
+                    });
+                  } else {
+                    deleteAdminFabricMutate(deleteData, {
+                      onSuccess: () => {
+                        setIsAddModalOpen(false);
+                        setNewCategory(null);
+                        if (currProd === "all") {
+                          adRefetch();
+                        } else {
+                          adManageFabricRefetch();
+                        }
+                      },
+                    });
+                  }
                 } else {
                   deleteFabricMutate(
                     {
                       id: newCategory?.id,
-                      business_id: businessDetails?.data?.id,
                     },
                     {
                       onSuccess: () => {
                         setIsAddModalOpen(false);
                         setNewCategory(null);
+                        refetch();
                       },
                     },
                   );
@@ -1134,12 +1304,18 @@ const ProductPage = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={deleteIsPending || deleteAdminIsPending}
+                  disabled={
+                    deleteIsPending ||
+                    deleteAdminIsPending ||
+                    deleteAdminStyleIsPending
+                  }
                   className="mt-6 cursor-pointer w-full bg-gradient text-white px-4 py-3 text-sm rounded-md"
                 >
-                  {deleteIsPending || deleteAdminIsPending
+                  {deleteIsPending ||
+                  deleteAdminIsPending ||
+                  deleteAdminStyleIsPending
                     ? "Please wait..."
-                    : "Delete Product"}
+                    : `Delete ${productType === "STYLE" ? "Style" : "Fabric"}`}
                 </button>
               </div>
             </form>

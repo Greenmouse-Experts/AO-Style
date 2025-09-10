@@ -29,9 +29,15 @@ const onRequest = (request) => {
   } else {
     // Fallback to cookies if SessionManager doesn't have data
     const isAdminRoute = window.location.pathname.includes("/admin");
-    accessToken = isAdminRoute
-      ? Cookies.get("adminToken")
-      : Cookies.get("token");
+    const isFabricRoute = window.location.pathname.includes("/fabric");
+
+    if (isAdminRoute) {
+      accessToken = Cookies.get("adminToken");
+    } else if (isFabricRoute) {
+      accessToken = Cookies.get("fabricToken") || Cookies.get("token");
+    } else {
+      accessToken = Cookies.get("token");
+    }
     tokenSource = "Cookies";
   }
 

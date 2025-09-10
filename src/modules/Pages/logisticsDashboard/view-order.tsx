@@ -541,7 +541,7 @@ export default function ViewOrderLogistics() {
                     }`}
                   ></div>
                   <span className="text-sm font-medium text-gray-600">
-                    Order #{formatOrderId(order_data?.id || "")}
+                    Order ID: {formatOrderId(order_data?.payment_id || "")}
                   </span>
                 </div>
               </div>
@@ -733,7 +733,7 @@ export default function ViewOrderLogistics() {
                   </div>
 
                   {/* Connection Line */}
-                  <div className="ml-4">
+                  {/*<div className="ml-4">
                     <div
                       className={`w-px h-6 ${
                         [
@@ -747,10 +747,10 @@ export default function ViewOrderLogistics() {
                           : "bg-gray-300"
                       }`}
                     ></div>
-                  </div>
+                  </div>*/}
 
                   {/* Second Leg */}
-                  <div className="flex items-center space-x-3">
+                  {/*<div className="flex items-center space-x-3">
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center ${
                         currentStatus === "DELIVERED"
@@ -775,7 +775,7 @@ export default function ViewOrderLogistics() {
                       <p className="font-medium text-gray-900">Second Leg</p>
                       <p className="text-sm text-gray-600">Tailor → Customer</p>
                     </div>
-                  </div>
+                  </div>*/}
                 </div>
               </div>
 
@@ -914,7 +914,11 @@ export default function ViewOrderLogistics() {
 
                             <div className="mt-3">
                               <p className="text-sm font-medium text-gray-700 mb-1">
-                                Pickup Location:
+                                {item.product.fabric
+                                  ? "Pickup Location:"
+                                  : item.product.style
+                                    ? "Destination Address:"
+                                    : "Pickup Location:"}
                               </p>
                               <p className="text-sm text-gray-600">
                                 {item.product.creator?.profile?.address ||
@@ -958,17 +962,7 @@ export default function ViewOrderLogistics() {
                   Order Summary
                 </h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-gray-50 rounded-lg">
-                    <p className="text-2xl font-bold text-gray-900">
-                      ₦
-                      {parseInt(
-                        order_data?.total_amount || "0",
-                      ).toLocaleString()}
-                    </p>
-                    <p className="text-sm text-gray-600">Total Amount</p>
-                  </div>
-
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
                     <p className="text-2xl font-bold text-gray-900">
                       {order_data?.order_items?.length || 0}

@@ -38,14 +38,15 @@ const getManageFabricProduct = (params) => {
   console.log("🔧 FABRIC SERVICE: Starting getManageFabricProduct API call");
   console.log("🔧 FABRIC SERVICE: Original Params:", params);
 
-  // Remove id from params since access token handles authentication
-  const { id, ...cleanParams } = params || {};
+  const businessId = params?.id;
 
-  console.log("🔧 FABRIC SERVICE: Clean Params (no id):", cleanParams);
-  console.log("🔧 FABRIC SERVICE: URL: /manage-fabric");
-  console.log("🔧 FABRIC SERVICE: Access token will handle authentication");
+  console.log("🔧 FABRIC SERVICE: Business ID:", businessId);
+  console.log("🔧 FABRIC SERVICE: URL: /product-general/fetch/" + businessId);
+  console.log(
+    "🔧 FABRIC SERVICE: No headers, using businessId as URL parameter",
+  );
 
-  return CaryBinApi.get(`/manage-fabric`)
+  return CaryBinApi.get(`/product-general/fetch/${businessId}`)
     .then((response) => {
       console.log("🔧 FABRIC SERVICE: API Response received:", response);
       console.log("🔧 FABRIC SERVICE: Response status:", response.status);

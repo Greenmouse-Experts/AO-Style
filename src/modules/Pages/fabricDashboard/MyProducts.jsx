@@ -68,7 +68,7 @@ const ProductPage = () => {
     id: businessDetails?.data?.id,
     ...queryParams,
   });
-
+  console.log(businessDetails);
   // Add hook for managing fabric products (admin only) - for "My Products"
   const {
     data: getAllAdminManageFabricData,

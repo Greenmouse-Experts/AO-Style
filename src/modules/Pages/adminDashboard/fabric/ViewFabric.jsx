@@ -710,7 +710,7 @@ const ViewFabric = () => {
             <h2 className="text-lg font-medium text-gray-800">
               View Fabric Vendor:{" "}
               <span className="text-purple-600 font-medium">
-                {userData?.name}
+                view fabric vendor {userData?.name}
               </span>
             </h2>
             {businessData?.kyc?.is_approved ? (

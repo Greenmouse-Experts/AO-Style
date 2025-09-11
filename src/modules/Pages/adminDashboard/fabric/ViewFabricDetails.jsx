@@ -36,7 +36,7 @@ const ViewFabricDetails = () => {
     ...data?.data?.user,
     kyc: data?.data?.kyc ? { ...data?.data?.kyc } : null,
   };
-
+  console.log(tailorInfo);
   const queryParams = new URLSearchParams(location.search);
   const initialTab = queryParams.get("tab") || "personal";
 
@@ -96,7 +96,7 @@ const ViewFabricDetails = () => {
 
   const urlContainsTailors = location.pathname.includes("logistics")
     ? "View  Logistics"
-    : "View Fabric Vendor";
+    : "View Details";
 
   return (
     <React.Fragment>
@@ -678,7 +678,7 @@ const ViewFabricDetails = () => {
             </button>
           ) : activeTab === "kyc" &&
             tailorInfo?.kyc?.is_approved == false &&
-            tailorInfo?.kyc?.reviewed_by ? (
+            tailorInfo?.kyc?.disapproval_reason ? (
             <button
               // onClick={handleProceed}
               className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
@@ -693,7 +693,7 @@ const ViewFabricDetails = () => {
             </>
           ) : activeTab == "kyc" &&
             (tailorInfo?.kyc?.reviewed_by == null ||
-              !tailorInfo?.kyc?.is_approved) ? (
+              tailorInfo?.kyc?.is_approved == false) ? (
             <div className="flex space-x-4">
               <button
                 onClick={() => {

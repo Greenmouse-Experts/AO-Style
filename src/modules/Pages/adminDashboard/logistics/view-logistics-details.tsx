@@ -637,31 +637,35 @@ export default function ViewLogisticsDetails() {
               Proceed to KYC
             </button>
           )}
-          {activeTab === "kyc" && tailorInfo?.kyc?.is_approved ? (
+          {activeTab === "kyc" && tailorInfo?.kyc?.is_approved === true ? (
             <button
-              // onClick={handleProceed}
               className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
+              disabled
             >
-              Approved{" "}
+              Approved
             </button>
           ) : activeTab === "kyc" &&
-            tailorInfo?.kyc?.is_approved == false &&
+            tailorInfo?.kyc?.is_approved === false &&
             tailorInfo?.kyc?.reviewed_by ? (
             <button
-              // onClick={handleProceed}
               className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
+              disabled
             >
-              Rejected{" "}
+              Rejected
             </button>
-          ) : activeTab == "kyc" && tailorInfo?.kyc == null ? (
-            <>
-              <button className="bg-gradient text-white cursor-not-allowed py-3 px-6 rounded-md hover:opacity-90">
-                Awaiting Submission{" "}
-              </button>
-            </>
-          ) : activeTab == "kyc" &&
-            (tailorInfo?.kyc?.reviewed_by == null ||
-              !tailorInfo?.kyc?.is_approved) ? (
+          ) : activeTab === "kyc" && tailorInfo?.kyc == null ? (
+            <button
+              className="bg-gradient text-white cursor-not-allowed py-3 px-6 rounded-md hover:opacity-90"
+              disabled
+            >
+              Awaiting Submission
+            </button>
+          ) : activeTab === "kyc" &&
+            tailorInfo?.kyc &&
+            tailorInfo?.kyc?.is_approved !== true &&
+            (!tailorInfo?.kyc?.reviewed_by ||
+              (tailorInfo?.kyc?.is_approved === false &&
+                !tailorInfo?.kyc?.reviewed_by)) ? (
             <div className="flex space-x-4">
               <button
                 onClick={() => {
@@ -669,9 +673,8 @@ export default function ViewLogisticsDetails() {
                 }}
                 className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
               >
-                {"Reject"}
+                Reject
               </button>
-
               <button
                 disabled={isPending}
                 onClick={handleProceed}
@@ -680,9 +683,7 @@ export default function ViewLogisticsDetails() {
                 {isPending ? "Please wait..." : "Approve"}
               </button>
             </div>
-          ) : (
-            <></>
-          )}
+          ) : null}
         </div>
       </div>
       <RejectKycModal

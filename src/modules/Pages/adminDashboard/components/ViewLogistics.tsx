@@ -101,7 +101,7 @@ const ViewLogistics = () => {
     type: "FABRIC",
     id: businessData?.id,
   });
-
+  console.log(businessData, "sall fabric");
   const { isPending: updateAdminIsPending, updateAdminFabricMutate } =
     useUpdateAdminFabric();
 

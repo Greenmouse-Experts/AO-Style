@@ -24,7 +24,11 @@ function useGetAdminManageStyleProduct(params) {
         console.log("🎨 Manage Style Product Data:", data?.data);
         console.log("🎨 Manage Style Product Params:", params);
         console.log("🎨 Manage Style Product Count:", data?.data?.length || 0);
-        console.log("🎨 Endpoint Called: /manage-style");
+        console.log(
+          "🎨 Endpoint Called: /product-general/fetch with business_id=" +
+            params?.id +
+            " and type=STYLE",
+        );
         console.log("🎨 Business ID Used:", params?.id);
         console.log("🎨 Response Status:", data?.status);
         console.log("🎨 Response Headers:", data?.headers);
@@ -38,7 +42,11 @@ function useGetAdminManageStyleProduct(params) {
         console.error("❌ Error Message:", error?.response?.data?.message);
         console.error("❌ Full Error Response:", error?.response);
         console.error("❌ Error Data:", error?.response?.data);
-        console.error("❌ Failed Endpoint: /manage-style");
+        console.error(
+          "❌ Failed Endpoint: /product-general/fetch with business_id=" +
+            params?.id +
+            " and type=STYLE",
+        );
         console.error("❌ Network Error:", error?.code);
         console.error("🎨 ===== END STYLE ERROR =====");
       },

@@ -1117,9 +1117,9 @@ const ProductPage = () => {
                     to={
                       isAdminRoute
                         ? isAdminStyleRoute
-                          ? "/admin/style/edit-product"
-                          : "/admin/fabric/edit-product"
-                        : "/fabric/product/edit-product"
+                          ? "/admin/style/view-product"
+                          : "/admin/fabric/view-product"
+                        : "/fabric/product/view-product"
                     }
                     className="flex items-center w-full px-4 py-3 text-sm text-blue-700 hover:bg-blue-50 transition-colors duration-150"
                     onClick={() => {

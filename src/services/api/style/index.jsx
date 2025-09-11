@@ -43,14 +43,26 @@ const getManageStyleProduct = (params) => {
   console.log("🎨 STYLE SERVICE: Starting getManageStyleProduct API call");
   console.log("🎨 STYLE SERVICE: Original Params:", params);
 
-  // Remove id from params since access token handles authentication
-  const { id, ...cleanParams } = params || {};
+  const businessId = params?.id;
+  const queryParams = {
+    business_id: businessId,
+    type: "STYLE",
+    ...params,
+  };
 
-  console.log("🎨 STYLE SERVICE: Clean Params (no id):", cleanParams);
-  console.log("🎨 STYLE SERVICE: URL: /manage-style");
-  console.log("🎨 STYLE SERVICE: Access token will handle authentication");
+  // Remove id from query params since we're using business_id
+  delete queryParams.id;
 
-  return CaryBinApi.get(`/manage-style`)
+  console.log("🎨 STYLE SERVICE: Business ID:", businessId);
+  console.log("🎨 STYLE SERVICE: Query Params:", queryParams);
+  console.log("🎨 STYLE SERVICE: URL: /product-general/fetch");
+  console.log(
+    "🎨 STYLE SERVICE: Using business_id and type as query parameters",
+  );
+
+  return CaryBinApi.get(`/product-general/fetch`, {
+    params: queryParams,
+  })
     .then((response) => {
       console.log("🎨 STYLE SERVICE: API Response received:", response);
       console.log("🎨 STYLE SERVICE: Response status:", response.status);

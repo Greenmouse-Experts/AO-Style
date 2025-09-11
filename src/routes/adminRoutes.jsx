@@ -59,6 +59,7 @@ import SalesRepUser from "../modules/Pages/adminDashboard/sales-rep/SalesRepUser
 import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPageUpdate";
 import SalesRepAddedUser from "../modules/Pages/adminDashboard/sales-rep/sales-rep-added-user";
 import ViewOrderLogistics from "../modules/Pages/logisticsDashboard/view-order";
+import ViewFabricProduct from "../modules/Pages/fabricDashboard/ViewProduct";
 
 export const adminRoutes = [
   {
@@ -219,6 +220,10 @@ export const adminRoutes = [
         path: "/admin/fabric/edit-product",
         element: <AddNewProduct />,
       },
+      {
+        path: "/admin/fabric/view-product",
+        element: <ViewFabricProduct />,
+      },
 
       {
         path: "/admin/styles-products",
@@ -232,6 +237,10 @@ export const adminRoutes = [
       {
         path: "/admin/style/edit-product",
         element: <AddStyle />,
+      },
+      {
+        path: "/admin/style/view-product",
+        element: <ViewFabricProduct />,
       },
 
       {

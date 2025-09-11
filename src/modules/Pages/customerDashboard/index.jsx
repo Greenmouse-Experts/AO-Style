@@ -26,7 +26,7 @@ export default function CustomerDashboard() {
   if (isPending) return;
   return (
     <div className="max-w-full overflow-hidden">
-      {/* Main Header and Stats Section */}orderId
+      {/* Main Header and Stats Section */}
       <div className="grid grid-cols-1 xl:grid-cols-4 lg:grid-cols-1 gap-6 min-h-0">
         <div className="xl:col-span-3 lg:col-span-1 min-w-0">
           <HeaderCard />

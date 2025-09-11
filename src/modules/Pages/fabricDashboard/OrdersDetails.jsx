@@ -29,11 +29,13 @@ import useToast from "../../../hooks/useToast";
 
 const OrderDetails = () => {
   const [expandedVideo, setExpandedVideo] = useState(null);
-  const [showUploadPopup, setShowUploadPopup] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("");
+  const [currentActionType, setCurrentActionType] = useState(null);
+  const [pendingStatus, setPendingStatus] = useState(null);
 
   // Get order ID from URL params
   const { id } = useParams();
@@ -188,6 +190,9 @@ const OrderDetails = () => {
   };
 
   const getActionTitle = () => {
+    if (pendingStatus) {
+      return `Update Status to ${pendingStatus.replace(/_/g, " ")}`;
+    }
     const nextStatus = getNextStatus();
     return `Update Status to ${nextStatus.replace(/_/g, " ")}`;
   };
@@ -373,8 +378,8 @@ const OrderDetails = () => {
             : "status updated";
       toastSuccess(`Success! Fabric image uploaded and order ${actionText}.`);
 
-      // Close popup and reset state
-      handleClosePopup();
+      // Close modal and reset state
+      handleCloseUploadModal();
 
       // Refetch order data to get updated status
       refetch();
@@ -413,11 +418,13 @@ const OrderDetails = () => {
     }
   };
 
-  const handleClosePopup = () => {
-    setShowUploadPopup(false);
+  const handleCloseUploadModal = () => {
+    setShowUploadModal(false);
     setSelectedFile(null);
     setImagePreview(null);
     setUploadStatus("");
+    setCurrentActionType(null);
+    setPendingStatus(null);
     const fileInput = document.getElementById("fabric-upload");
     if (fileInput) fileInput.value = "";
   };
@@ -847,12 +854,17 @@ const OrderDetails = () => {
                             "Current order status:",
                             orderInfo?.status,
                           );
-                          console.log("Next status:", getNextStatus());
+                          const nextStatus = getNextStatus();
+                          console.log("Next status:", nextStatus);
                           console.log("Can update status:", canUpdateStatus());
                           console.log("Opening upload modal...");
-                          setShowUploadPopup(true);
+                          setPendingStatus(nextStatus);
+                          setCurrentActionType("fabric_dispatch");
+                          setShowUploadModal(true);
                         }}
-                        disabled={isStatusUpdating || !canUpdateStatus()}
+                        disabled={
+                          isStatusUpdating || isUploading || !canUpdateStatus()
+                        }
                         className="w-full py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2"
                         title={
                           !canUpdateStatus()
@@ -868,7 +880,7 @@ const OrderDetails = () => {
                           console.log("==================================");
                         }}
                       >
-                        {isStatusUpdating ? (
+                        {isStatusUpdating || isUploading ? (
                           <>
                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                             Updating...
@@ -954,8 +966,8 @@ const OrderDetails = () => {
         </div>
       )}
 
-      {/* Upload Popup */}
-      {showUploadPopup && (
+      {/* Upload Modal */}
+      {showUploadModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           {console.log("🟢 FABRIC VENDOR UPLOAD MODAL IS RENDERING")}
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
@@ -965,7 +977,7 @@ const OrderDetails = () => {
                   {getActionTitle()}
                 </h3>
                 <button
-                  onClick={handleClosePopup}
+                  onClick={handleCloseUploadModal}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                   disabled={isUploading}
                 >
@@ -974,7 +986,12 @@ const OrderDetails = () => {
               </div>
 
               <p className="text-gray-600 mb-6 leading-relaxed">
-                Upload a clear picture of the fabric to update the order status.
+                Upload a clear picture of the fabric to update the order status
+                to{" "}
+                <span className="font-semibold text-purple-600">
+                  {pendingStatus?.replace("_", " ")}
+                </span>
+                . Image upload is required to proceed.
               </p>
 
               {/* File Upload Area */}
@@ -1070,7 +1087,7 @@ const OrderDetails = () => {
               {/* Action Buttons */}
               <div className="flex gap-3">
                 <button
-                  onClick={handleClosePopup}
+                  onClick={handleCloseUploadModal}
                   className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                   disabled={isUploading}
                 >
@@ -1093,7 +1110,7 @@ const OrderDetails = () => {
                   ) : (
                     <>
                       <Upload className="w-4 h-4" />
-                      Upload & Update
+                      Update Status (with image)
                     </>
                   )}
                 </button>

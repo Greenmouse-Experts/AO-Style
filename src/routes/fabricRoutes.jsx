@@ -40,7 +40,7 @@ export const fabricRoutes = [
         element: <Coupons />,
       },
       {
-        path: "/fabric/view-product/:id",
+        path: "/fabric/product/view-product",
         element: <ViewFabricProduct />,
       },
       {

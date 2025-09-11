@@ -1,33 +1,34 @@
 import { useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import SecuritySettings from "./components/SecuritySettings";
 import BankDetails from "./components/BankDetails";
 import KYCVerification from "./components/KYCVerification";
 import { useFormik } from "formik";
-import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
+import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 import useUpdateProfile from "../../../hooks/settings/useUpdateProfile";
-// import KYCVerificationUpdate from "../adminDashboard/components/KYCVerification";
+import BankDetailsUpdate from "../tailorDashboard/components/BankDetails";
+import KYCVerificationUpdate from "../adminDashboard/components/KYCVerification";
 import PhoneInput from "react-phone-input-2";
-import Select from "react-select";
 import {
   useCountries,
   useStates,
 } from "../../../hooks/location/useGetCountries";
-import KYCVerificationUpdate from "../adminDashboard/components/KYCVerification";
-import BankDetailsUpdate from "../tailorDashboard/components/BankDetails";
+import useToast from "../../../hooks/useToast";
+import { usePlacesWidget } from "react-google-autocomplete";
 
 const Settings = () => {
+  const query = new URLSearchParams(useLocation().search);
+  const q = query.get("q");
+
   const [activeTab, setActiveTab] = useState("personalDetails");
-  const [bodyTab, setBodyTab] = useState("upperBody");
-  const [activeSection, setActiveSection] = useState("Profile");
-
-  const { carybinUser } = useCarybinUserStore();
-
+  const [activeSection, setActiveSection] = useState(q ?? "Profile");
   const { data: countries, isLoading: loadingCountries } = useCountries();
 
   const countriesOptions =
     countries?.map((c) => ({ label: c.name, value: c.name })) || [];
+
+  const { carybinUser } = useCarybinUserStore();
 
   const initialValues = {
     name: carybinUser?.name ?? "",
@@ -37,35 +38,48 @@ const Settings = () => {
     country: carybinUser?.profile?.country ?? "",
     state: carybinUser?.profile?.state ?? "",
     phone: carybinUser?.phone ?? "",
+    latitude: carybinUser?.profile?.coordinates?.latitude ?? "",
+    longitude: carybinUser?.profile?.coordinates?.longitude ?? "",
   };
 
-  const [profileIsLoading, setProfileIsLoading] = useState(false);
-
   const { isPending, uploadImageMutate } = useUploadImage();
-
+  const [profileIsLoading, setProfileIsLoading] = useState(false);
   const { isPending: updateIsPending, updatePersonalMutate } =
     useUpdateProfile();
+  const { toastError } = useToast();
 
-  const {
-    handleSubmit,
-    values,
-    handleChange,
-    resetForm,
-    // setFieldError,
-    setFieldValue,
-  } = useFormik({
-    initialValues: initialValues,
-    validateOnChange: false,
-    validateOnBlur: false,
-    enableReinitialize: true,
-    onSubmit: (val) => {
-      updatePersonalMutate(val, {
-        onSuccess: () => {
-          resetForm();
-        },
-      });
-    },
-  });
+  const { handleSubmit, values, handleChange, resetForm, setFieldValue } =
+    useFormik({
+      initialValues: initialValues,
+      validateOnChange: false,
+      validateOnBlur: false,
+      enableReinitialize: true,
+      onSubmit: (val) => {
+        console.log("🔍 Fabric Vendor Settings Form Values:", val);
+        console.log("📍 Coordinates being sent:", {
+          latitude: val.latitude,
+          longitude: val.longitude,
+        });
+        if (!navigator.onLine) {
+          toastError("No internet connection. Please check your network.");
+          return;
+        }
+        updatePersonalMutate(
+          {
+            ...val,
+            coordinates: {
+              longitude: val.longitude || "",
+              latitude: val.latitude || "",
+            },
+          },
+          {
+            onSuccess: () => {
+              resetForm();
+            },
+          },
+        );
+      },
+    });
 
   const { data: states, isLoading: loadingStates } = useStates(values.country);
 
@@ -101,12 +115,50 @@ const Settings = () => {
     fileInputRef.current?.click();
   };
 
+  const { ref } = usePlacesWidget({
+    apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
+    onPlaceSelected: (place) => {
+      console.log("🗺️ Google Place Selected:", place);
+      const lat = place.geometry?.location?.lat();
+      const lng = place.geometry?.location?.lng();
+      console.log("📍 Setting coordinates from Google Places:", { lat, lng });
+
+      // Extract state and country from address components
+      let state = "";
+      let country = "";
+
+      if (place.address_components) {
+        place.address_components.forEach((component) => {
+          const types = component.types;
+          if (types.includes("administrative_area_level_1")) {
+            state = component.long_name;
+          }
+          if (types.includes("country")) {
+            country = component.long_name;
+          }
+        });
+      }
+
+      console.log("🌍 Extracted location data:", { state, country });
+
+      setFieldValue("address", place.formatted_address);
+      setFieldValue("latitude", lat ? lat.toString() : "");
+      setFieldValue("longitude", lng ? lng.toString() : "");
+      setFieldValue("state", state);
+      setFieldValue("country", country);
+    },
+    options: {
+      componentRestrictions: { country: "ng" },
+      types: [],
+    },
+  });
+
   return (
     <>
       <div className="bg-white px-6 py-4 mb-6">
         <h1 className="text-2xl font-medium mb-3">Settings</h1>
         <p className="text-gray-500">
-          <Link to="/logistics" className="text-blue-500 hover:underline">
+          <Link to="/fabric" className="text-blue-500 hover:underline">
             Dashboard
           </Link>{" "}
           &gt; Settings
@@ -145,12 +197,9 @@ const Settings = () => {
                     className="w-24 h-24 rounded-full"
                   />
                 ) : (
-                  <>
-                    {" "}
-                    <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white">
-                      {values?.name?.charAt(0).toUpperCase() || "?"}
-                    </div>
-                  </>
+                  <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white">
+                    {values?.name?.charAt(0).toUpperCase() || "?"}
+                  </div>
                 )}
                 <button
                   disabled={isPending || profileIsLoading}
@@ -201,7 +250,7 @@ const Settings = () => {
                         required
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-gray-700 mb-4">
                           Phone Number
@@ -241,7 +290,7 @@ const Settings = () => {
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-gray-700 mb-4">
                           Alternate Phone Number
@@ -267,97 +316,56 @@ const Settings = () => {
                         />
                       </div>
                       <div>
-                        {" "}
                         <label className="block text-gray-700 mb-4">
                           Address
                         </label>
                         <input
                           type="text"
+                          ref={ref}
                           className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                           placeholder="Enter full detailed address"
                           required
-                          name={"address"}
+                          name="address"
                           maxLength={150}
+                          onChange={(e) => {
+                            setFieldValue("address", e.currentTarget.value);
+                            setFieldValue("latitude", "");
+                            setFieldValue("longitude", "");
+                          }}
                           value={values.address}
-                          onChange={handleChange}
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-gray-700 mb-4">
-                          Country
-                        </label>
-                        <Select
-                          options={countriesOptions}
-                          name="country"
-                          value={countriesOptions?.find(
-                            (opt) => opt.value === values.country,
-                          )}
-                          onChange={(selectedOption) => {
-                            setFieldValue("country", selectedOption.value);
-                          }}
-                          placeholder="Select"
-                          className="w-full p-2 border border-[#CCCCCC] outline-none rounded-lg"
-                          styles={{
-                            control: (base, state) => ({
-                              ...base,
-                              border: "none",
-                              boxShadow: "none",
-                              outline: "none",
-                              backgroundColor: "#fff",
-                              "&:hover": {
-                                border: "none",
-                              },
-                            }),
-                            indicatorSeparator: () => ({
-                              display: "none",
-                            }),
-                            menu: (base) => ({
-                              ...base,
-                              zIndex: 9999,
-                            }),
-                          }}
-                        />{" "}
-                      </div>
 
-                      <div>
-                        <label className="block text-gray-700 mb-4">
-                          State
-                        </label>
-                        <Select
-                          options={statesOptions}
-                          name="state"
-                          value={statesOptions?.find(
-                            (opt) => opt.value === values.state,
-                          )}
-                          onChange={(selectedOption) => {
-                            setFieldValue("state", selectedOption.value);
-                          }}
-                          placeholder="Select"
-                          className="w-full p-2 border border-[#CCCCCC] outline-none rounded-lg"
-                          styles={{
-                            control: (base, state) => ({
-                              ...base,
-                              border: "none",
-                              boxShadow: "none",
-                              outline: "none",
-                              backgroundColor: "#fff",
-                              "&:hover": {
-                                border: "none",
-                              },
-                            }),
-                            indicatorSeparator: () => ({
-                              display: "none",
-                            }),
-                            menu: (base) => ({
-                              ...base,
-                              zIndex: 9999,
-                            }),
-                          }}
-                        />{" "}
+                    {/* Coordinates Display */}
+                    {(values.latitude || values.longitude) && (
+                      <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg">
+                        <div>
+                          <label className="block text-gray-700 mb-2 text-sm font-medium">
+                            Latitude
+                          </label>
+                          <div className="w-full p-3 bg-white border border-blue-200 rounded-lg text-sm text-gray-600">
+                            {values.latitude || "Not set"}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-gray-700 mb-2 text-sm font-medium">
+                            Longitude
+                          </label>
+                          <div className="w-full p-3 bg-white border border-blue-200 rounded-lg text-sm text-gray-600">
+                            {values.longitude || "Not set"}
+                          </div>
+                        </div>
+                        <div className="col-span-2">
+                          <p className="text-xs text-blue-600">
+                            📍 These coordinates are automatically set when you
+                            select an address using Google Places autocomplete
+                            above.
+                          </p>
+                        </div>
                       </div>
-                    </div>
+                    )}
+
                     <button
                       disabled={updateIsPending}
                       type="submit"
@@ -372,31 +380,27 @@ const Settings = () => {
           )}
 
           {activeSection === "KYC" && (
-            <div className="">
+            <div>
               <KYCVerificationUpdate />
             </div>
           )}
 
           {activeSection === "Bank Details" && (
-            <div className="">
+            <div>
               <BankDetailsUpdate />
             </div>
           )}
 
           {activeSection === "Security" && (
-            <div className="">
+            <div>
+              {/* <h2 className="text-xl font-medium mb-4">Security Settings</h2>*/}
               <SecuritySettings />
             </div>
-          )}
-          {activeSection === "Settings" && (
-            <h2 className="text-xl font-medium">General Settings</h2>
-          )}
-          {activeSection === "Support" && (
-            <h2 className="text-xl font-medium">Support & Help</h2>
           )}
         </div>
       </div>
     </>
   );
 };
+
 export default Settings;

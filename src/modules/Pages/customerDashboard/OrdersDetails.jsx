@@ -1,13 +1,3 @@
-/**
- * Customer Order Details Page
- *
- * Updated to:
- * - Use the /orders/details/id endpoint for order data
- * - Automatically show review section when order status is DELIVERED
- * - Support individual product reviews for both styles and fabrics
- * - Integrate with existing review system using ReviewForm component
- * - Display order progress based on actual order status
- */
 import React, { useState } from "react";
 import {
   CheckCircle,
@@ -18,26 +8,57 @@ import {
   FileText,
   X,
 } from "lucide-react";
-import { Link, useSearchParams } from "react-router-dom";
-import useGetSingleOrder from "../../../hooks/order/useGetSingleOrder";
+import { Link, useParams } from "react-router-dom";
+import useGetCustomerSingleOrder from "../../../hooks/order/useGetCustomerSingleOrder";
 import Loader from "../../../components/ui/Loader";
 import ReviewForm from "../../../components/reviews/ReviewForm";
 import StarRating from "../../../components/reviews/StarRating";
+import { useJsApiLoader } from "@react-google-maps/api";
+import { useQuery } from "@tanstack/react-query";
 
-const orderSteps = [
-  "Order Placed",
-  "Processing",
-  "Shipped",
-  "Out for Delivery",
-  "Delivered",
-];
+// Dynamic order steps based on order type
+const getOrderSteps = (hasStyleItems) => {
+  if (hasStyleItems) {
+    // Orders with style items: Vendor → Tailor → Customer
+    return [
+      "Order Placed",
+      "Processing",
+      "Shipped to Tailor",
+      "Tailor Processing",
+      "Shipped to Customer",
+      "Delivered",
+    ];
+  } else {
+    // Fabric-only orders: Vendor → Customer
+    return [
+      "Order Placed",
+      "Processing",
+      "Shipped",
+      "Out for Delivery",
+      "Delivered",
+    ];
+  }
+};
 
 const statusMessages = {
   "Order Placed": "Your order has been placed and is awaiting processing.",
   Processing: "Your order is being processed and prepared for shipment.",
   Shipped: "Your order has been shipped and is in transit.",
+  "Shipped to Tailor":
+    "Your order has been shipped to the tailor for processing.",
+  "Tailor Processing": "Your order is being processed by the tailor.",
+  "Shipped to Customer": "Your order has been shipped to you from the tailor.",
   "Out for Delivery": "Your order is out for delivery.",
   Delivered: "Your order has been delivered successfully!",
+};
+
+// Google Maps API configuration
+const GOOGLE_MAPS_API_KEY = "AIzaSyBstumBKZoQNTHm3Y865tWEHkkFnNiHGGE";
+
+// Warehouse coordinates (Lagos, Nigeria - update this to your actual warehouse location)
+const WAREHOUSE_COORDINATES = {
+  latitude: 6.5244,
+  longitude: 3.3792,
 };
 
 const OrderDetails = () => {
@@ -45,26 +66,39 @@ const OrderDetails = () => {
   const [activeTab, setActiveTab] = useState("style");
   const [activeReviewProduct, setActiveReviewProduct] = useState(null);
 
-  const [searchParams] = useSearchParams();
-  const orderId = searchParams.get("id");
+  const { id: orderId } = useParams();
 
-  const { isPending: getUserIsPending, data } = useGetSingleOrder(orderId);
+  const {
+    isPending: getUserIsPending,
+    data,
+    isError,
+    error,
+  } = useGetCustomerSingleOrder(orderId);
 
-  // Console logs for debugging
-  console.log("=== ORDER DETAILS DEBUG ===");
+  // Enhanced debugging
+  console.log("=== CUSTOMER ORDER DETAILS DEBUG ===");
   console.log("orderId from URL:", orderId);
   console.log("isPending:", getUserIsPending);
+  console.log("isError:", isError);
+  console.log("error:", error);
   console.log("Raw API response data:", data);
   console.log("Order details (data?.data):", data?.data);
   console.log("Payment object:", data?.data?.payment);
   console.log("Purchase object:", data?.data?.payment?.purchase);
   console.log("Purchase items:", data?.data?.payment?.purchase?.items);
   console.log("Order status:", data?.data?.status);
-  console.log("==============================");
+  console.log("User coordinates:", data?.data?.user?.profile?.coordinates);
+  console.log("=====================================");
 
   // Always call these hooks to maintain consistent hook order
   const orderDetails = data?.data;
-  const orderPurchase = data?.data?.payment?.purchase?.items;
+  const orderPurchase = data?.data?.order_items;
+  const metaData = data?.data?.payment?.metadata;
+
+  // Check if order has style items to determine progress flow
+  const hasStyleItems =
+    orderPurchase?.some((item) => item.purchase_type === "STYLE") || false;
+  const orderSteps = getOrderSteps(hasStyleItems);
 
   // Check if order is delivered and show review section automatically
   const isDelivered = orderDetails?.status === "DELIVERED";
@@ -80,20 +114,284 @@ const OrderDetails = () => {
     "Fabric items:",
     orderPurchase?.filter((item) => item.purchase_type === "FABRIC"),
   );
+  console.log("hasStyleItems:", hasStyleItems);
+  console.log("orderSteps:", orderSteps);
+  console.log("Order type:", hasStyleItems ? "Fabric + Style" : "Fabric Only");
   console.log("Current step:", currentStep);
   console.log("============================");
 
   // Update currentStep based on order status
   const getStepFromStatus = (status) => {
-    const statusMap = {
-      PROCESSING: 1,
-      SHIPPED: 2,
-      IN_TRANSIT: 2,
-      OUT_FOR_DELIVERY: 3,
-      DELIVERED: 4,
-      CANCELLED: -1, // Special case for cancelled orders
-    };
-    return statusMap[status] || 0;
+    if (hasStyleItems) {
+      // Status mapping for orders with style items (6 steps)
+      const statusMap = {
+        PROCESSING: 1,
+        SHIPPED_TO_TAILOR: 2,
+        TAILOR_PROCESSING: 3,
+        SHIPPED_TO_CUSTOMER: 4,
+        OUT_FOR_DELIVERY: 4,
+        DELIVERED: 5,
+      };
+      return statusMap[status] || 0;
+    } else {
+      // Status mapping for fabric-only orders (5 steps)
+      const statusMap = {
+        PROCESSING: 1,
+        SHIPPED: 2,
+        IN_TRANSIT: 2,
+        OUT_FOR_DELIVERY: 3,
+        DELIVERED: 4,
+        CANCELLED: -1,
+      };
+      return statusMap[status] || 0;
+    }
+  };
+
+  // Custom hook for ETA calculation using Google Maps
+  const useOrderETA = (orderDetails) => {
+    const shouldFetchETA =
+      orderDetails?.status === "SHIPPED" ||
+      orderDetails?.status === "IN_TRANSIT" ||
+      orderDetails?.status === "OUT_FOR_DELIVERY" ||
+      orderDetails?.status === "PAID" ||
+      orderDetails?.status === "DELIVERED";
+
+    const userCoordinates = orderDetails?.user?.profile?.coordinates;
+    const hasCoordinates =
+      userCoordinates?.latitude && userCoordinates?.longitude;
+
+    return useQuery({
+      queryKey: ["order-eta", orderDetails?.id, userCoordinates],
+      queryFn: async () => {
+        if (!hasCoordinates) throw new Error("No user coordinates available");
+
+        const origin = `${WAREHOUSE_COORDINATES.latitude},${WAREHOUSE_COORDINATES.longitude}`;
+        const destination = `${userCoordinates.latitude},${userCoordinates.longitude}`;
+
+        console.log("=== ETA CALCULATION DEBUG ===");
+        console.log("Origin (warehouse):", origin);
+        console.log("Destination (user):", destination);
+        console.log("API Key available:", !!GOOGLE_MAPS_API_KEY);
+        const calculateDistance = (lat1, lon1, lat2, lon2) => {
+          const R = 6371; // Radius of the Earth in kilometers
+          const dLat = ((lat2 - lat1) * Math.PI) / 180;
+          const dLon = ((lon2 - lon1) * Math.PI) / 180;
+          const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos((lat1 * Math.PI) / 180) *
+              Math.cos((lat2 * Math.PI) / 180) *
+              Math.sin(dLon / 2) *
+              Math.sin(dLon / 2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          return R * c; // Distance in kilometers
+        };
+
+        const distanceKm = calculateDistance(
+          WAREHOUSE_COORDINATES.latitude,
+          WAREHOUSE_COORDINATES.longitude,
+          userCoordinates.latitude,
+          userCoordinates.longitude,
+        );
+
+        console.log("Calculated distance (km):", distanceKm);
+
+        // Estimate delivery time based on distance
+        // Assuming average delivery speed of 30 km/h in urban areas
+        const averageDeliverySpeed = 30; // km/h
+        const estimatedHours = distanceKm / averageDeliverySpeed;
+        const estimatedMinutes = Math.ceil(estimatedHours * 60);
+
+        // Add buffer time for processing, loading, etc.
+        const bufferMinutes = 30;
+        const totalMinutes = estimatedMinutes + bufferMinutes;
+
+        console.log("Estimated delivery time (minutes):", totalMinutes);
+
+        return {
+          distance: {
+            text: `${distanceKm.toFixed(1)} km`,
+            value: distanceKm * 1000, // in meters
+          },
+          duration: {
+            text: `${Math.ceil(estimatedHours)} hours`,
+            value: totalMinutes * 60, // in seconds
+          },
+          duration_in_traffic: {
+            text: `${Math.ceil(estimatedHours + 0.5)} hours`, // Add traffic buffer
+            value: (totalMinutes + 30) * 60, // in seconds with traffic
+          },
+          status: "OK",
+        };
+      },
+      // enabled: shouldFetchETA && hasCoordinates,
+      refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+      staleTime: 2 * 60 * 1000, // Consider data stale after 2 minutes
+      retry: 2,
+      onError: (error) => {
+        console.error("ETA calculation error:", error);
+      },
+      onSuccess: (data) => {
+        console.log("ETA calculation successful:", data);
+      },
+    });
+  };
+
+  // ETA Display Component - Enhanced with better debugging
+  const ETADisplay = ({ orderDetails }) => {
+    console.log("=== ETADisplay Component Debug ===");
+    console.log("Order Details passed to ETADisplay:", orderDetails);
+    console.log("Order Status:", orderDetails?.status);
+    console.log("User coordinates:", orderDetails?.user?.profile?.coordinates);
+
+    // Check status first
+    const shouldShowForStatus = [
+      "SHIPPED",
+      "IN_TRANSIT",
+      "OUT_FOR_DELIVERY",
+      "PAID",
+      "DELIVERED",
+    ].includes(orderDetails?.status);
+    console.log("Should show for status:", shouldShowForStatus);
+
+    if (!shouldShowForStatus) {
+      console.log(
+        "❌ ETA not shown - status not eligible:",
+        orderDetails?.status,
+      );
+      return (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
+          <div className="text-sm text-red-700">
+            ETA not available for status:{" "}
+            <strong>{orderDetails?.status}</strong>
+            <br />
+            ETA is only shown for: SHIPPED, IN_TRANSIT, OUT_FOR_DELIVERY
+          </div>
+        </div>
+      );
+    }
+
+    // Check coordinates
+    const userCoordinates = orderDetails?.user?.profile?.coordinates;
+    const hasCoordinates =
+      userCoordinates?.latitude && userCoordinates?.longitude;
+    console.log("Has coordinates:", hasCoordinates);
+
+    if (!hasCoordinates) {
+      console.log("❌ ETA not shown - no coordinates available");
+      return (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4">
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+            <span className="text-sm text-yellow-700">
+              Location not available for ETA calculation
+            </span>
+          </div>
+        </div>
+      );
+    }
+
+    // Use the ETA hook
+    console.log("✅ Calling useOrderETA hook");
+    const {
+      data: etaData,
+      isLoading: etaLoading,
+      error: etaError,
+    } = useOrderETA(orderDetails);
+
+    console.log("ETA Hook Results:", { etaData, etaLoading, etaError });
+
+    if (etaLoading) {
+      console.log("⏳ ETA is loading...");
+      return (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+          <div className="flex items-center space-x-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+            <span className="text-sm text-blue-700">
+              Calculating delivery ETA...
+            </span>
+          </div>
+        </div>
+      );
+    }
+
+    if (etaError) {
+      console.log("❌ ETA Error:", etaError);
+      return (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
+          <div className="text-sm text-red-700">
+            <strong>ETA calculation error:</strong> {etaError.message}
+            <br />
+            <small>Check console for more details</small>
+          </div>
+        </div>
+      );
+    }
+
+    if (etaData && etaData.status === "OK") {
+      console.log("✅ ETA Data available:", etaData);
+
+      const formatETA = (duration) => {
+        const minutes = Math.ceil(duration.value / 60);
+        const hours = Math.floor(minutes / 60);
+        const remainingMinutes = minutes % 60;
+
+        if (hours > 0) {
+          return `${hours}h ${remainingMinutes}m`;
+        }
+        return `${minutes} minutes`;
+      };
+
+      const estimatedArrival = new Date(
+        Date.now() + etaData.duration_in_traffic.value * 1000,
+      );
+
+      return (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-green-800">
+                🚚 Estimated Delivery Time
+              </span>
+              <span className="text-sm text-green-600 bg-green-100 px-2 py-1 rounded">
+                {formatETA(etaData.duration_in_traffic)}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-green-700">Expected Arrival:</span>
+              <span className="font-medium text-green-800">
+                {estimatedArrival.toLocaleDateString("en-US", {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-green-700">Distance:</span>
+              <span className="text-green-800">{etaData.distance.text}</span>
+            </div>
+
+            <div className="text-xs text-green-600 mt-2">
+              * ETA calculated based on distance and traffic conditions, updates
+              every 5 minutes
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    console.log("❌ ETA Data not available or invalid");
+    return (
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-4">
+        <div className="text-sm text-gray-600">
+          ETA calculation in progress... Please wait.
+        </div>
+      </div>
+    );
   };
 
   // Set current step based on order status
@@ -109,11 +407,51 @@ const OrderDetails = () => {
     }
   }, [orderDetails?.status]);
 
-  // Early return after all hooks are called
+  // Enhanced error handling
   if (getUserIsPending) {
     return (
       <div className="m-auto flex h-[80vh] items-center justify-center">
-        <Loader />
+        <div className="text-center">
+          <Loader />
+          <p className="mt-4 text-gray-600">Loading order details...</p>
+          <p className="text-sm text-gray-500">Order ID: {orderId}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    console.error("❌ Error loading order details:", error);
+    return (
+      <div className="m-auto flex h-[80vh] items-center justify-center">
+        <div className="text-center text-red-600">
+          <p className="text-lg font-medium mb-2">Error Loading Order</p>
+          <p className="text-sm mb-4">Order ID: {orderId}</p>
+          <p className="text-sm text-gray-600">
+            {error?.message || "Failed to load order details"}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data?.data) {
+    console.warn("⚠️ No order data found for ID:", orderId);
+    return (
+      <div className="m-auto flex h-[80vh] items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg font-medium mb-2">Order Not Found</p>
+          <p className="text-sm text-gray-600 mb-4">Order ID: {orderId}</p>
+          <p className="text-sm text-gray-500">
+            This order may not exist or you may not have permission to view it.
+          </p>
+        </div>
       </div>
     );
   }
@@ -121,20 +459,39 @@ const OrderDetails = () => {
   const totalAmount =
     orderDetails?.total_amount || orderDetails?.payment?.amount || 0;
 
-  console.log("=== TOTAL AMOUNT DEBUG ===");
+  // --- SUBTOTAL CALCULATION LOGIC ---
+  // Calculate subtotal by summing (price * quantity) for each product
+  let calculatedSubtotal = 0;
+  if (orderPurchase && Array.isArray(orderPurchase)) {
+    calculatedSubtotal = orderPurchase.reduce((acc, item) => {
+      // Defensive: price and quantity may be string, so parseInt
+      const price = parseInt(item.price) || 0;
+      const quantity = parseInt(item.quantity) || 0;
+      return acc + price * quantity;
+    }, 0);
+  }
+
+  console.log("=== CUSTOMER TOTAL AMOUNT DEBUG ===");
   console.log("Calculated totalAmount:", totalAmount);
+  console.log("Order Purchase Array Length:", orderPurchase?.length || 0);
   console.log("Individual item calculations:");
   orderPurchase?.forEach((item, index) => {
     console.log(`Item ${index + 1}:`, {
       name: item?.name,
       quantity: item?.quantity,
       price: item?.price,
-      subtotal: item?.quantity * item?.price,
+      itemTotal: (parseInt(item.price) || 0) * (parseInt(item.quantity) || 0),
+      subtotal: calculatedSubtotal,
+      purchase_type: item?.purchase_type,
     });
   });
-  console.log("=========================");
+  console.log("Calculated Subtotal:", calculatedSubtotal);
+  console.log("====================================");
 
-  // Removed handleStepClick - customers should not be able to manually change order progress
+  // Additional debug info
+  if (!orderPurchase || orderPurchase.length === 0) {
+    console.warn("⚠️ No purchase items found in order data");
+  }
 
   return (
     <div className="">
@@ -246,6 +603,8 @@ const OrderDetails = () => {
         )}
       </div>
 
+      <ETADisplay orderDetails={orderDetails} />
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
         <div className="bg-white p-6 rounded-md md:col-span-2">
           <h5 className="text-lg font-meduim text-dark border-b border-[#D9D9D9] pb-3 mb-3">
@@ -265,7 +624,10 @@ const OrderDetails = () => {
                       <div className="flex justify-between">
                         <span className="text-gray-600">Order ID:</span>
                         <span className="font-medium">
-                          #{orderDetails?.id?.slice(-8).toUpperCase()}
+                          {orderDetails?.payment?.id
+                            ?.replace(/-/g, "")
+                            .slice(0, 12)
+                            .toUpperCase()}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -313,12 +675,6 @@ const OrderDetails = () => {
                           {orderDetails?.payment?.currency || "NGN"}
                         </span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Auto Renew:</span>
-                        <span className="font-medium">
-                          {orderDetails?.payment?.auto_renew ? "Yes" : "No"}
-                        </span>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -329,37 +685,79 @@ const OrderDetails = () => {
                     <h6 className="font-semibold text-gray-800 mb-4">
                       Purchase Items
                     </h6>
-                    <div className="space-y-3">
-                      {orderPurchase.map((item, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center gap-4 p-3 border rounded-lg"
-                        >
-                          <img
-                            src={
-                              item.purchase_type === "STYLE"
-                                ? "https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170600/AoStyle/image_bwjfib.jpg"
-                                : "https://res.cloudinary.com/greenmouse-tech/image/upload/v1742170603/AoStyle/image1_s3s2sd.jpg"
-                            }
-                            alt={item.name || "Product"}
-                            className="w-16 h-16 rounded-md object-cover"
-                          />
-                          <div className="flex-1">
-                            <p className="font-semibold">
-                              {item.name || "Product Item"}
-                            </p>
-                            <p className="text-gray-500">
-                              Quantity: {item.quantity || 1}
-                            </p>
-                            <p className="text-blue-600">
-                              N{" "}
-                              {item.price
-                                ? parseInt(item.price).toLocaleString()
-                                : "0"}
-                            </p>
+                    <div className="space-y-4">
+                      {orderPurchase.map((item, index) => {
+                        const isStyle = item.product.type === "STYLE";
+                        const tagLabel = isStyle ? "Style" : "Fabric";
+                        const tagColor = isStyle
+                          ? "bg-purple-100 text-purple-700"
+                          : "bg-blue-100 text-blue-700";
+                        const imageSrc = isStyle
+                          ? item.product.style?.photos?.[0]
+                          : item.product.fabric?.photos?.[0];
+                        return (
+                          <div
+                            key={index}
+                            className="flex items-center gap-5 p-4 border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition"
+                          >
+                            <img
+                              src={imageSrc}
+                              alt={item.product.name || "Product"}
+                              className="w-20 h-20 rounded-lg object-cover border border-gray-100"
+                            />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="font-semibold text-lg">
+                                  {item.product.name || "Product Item"}
+                                </p>
+                                <span
+                                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${tagColor} border border-gray-200`}
+                                >
+                                  {tagLabel}
+                                </span>
+                              </div>
+                              <p className="text-gray-500 mb-1">
+                                Quantity:{" "}
+                                <span className="font-medium">
+                                  {item.quantity || 1}
+                                </span>
+                              </p>
+                              <div>
+                                <p className="text-gray-600 text-sm">
+                                  Amount:{" "}
+                                  <span className="font-semibold text-gray-700">
+                                    ₦
+                                    {item.price
+                                      ? parseInt(item.price).toLocaleString()
+                                      : "0"}
+                                  </span>
+                                </p>
+                                <div className="bg-gray-50 rounded-lg p-3 mt-2 shadow-sm border border-gray-100">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-medium text-gray-700">
+                                      Total Amount
+                                    </span>
+                                    <span className="flex items-center gap-2">
+                                      <span className="font-semibold text-lg text-blue-700">
+                                        ₦{" "}
+                                        {item.price && item.quantity
+                                          ? (
+                                              parseInt(item.price) *
+                                              parseInt(item.quantity)
+                                            ).toLocaleString()
+                                          : "0"}
+                                      </span>
+                                      <div className="text-xs text-gray-500 mt-1 text-right">
+                                        ({item.price} x {item.quantity})
+                                      </div>
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -369,19 +767,31 @@ const OrderDetails = () => {
                   <div className="flex justify-between items-center pb-2">
                     <span className="text-gray-600 font-medium">Subtotal:</span>
                     <span className="font-semibold">
-                      N {parseInt(totalAmount || 0).toLocaleString()}
+                      ₦ {parseInt(calculatedSubtotal || 0).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center pb-2">
+                    <span className="text-gray-600 font-medium">Tax:</span>
+                    <span className="font-semibold">
+                      ₦{" "}
+                      {orderDetails?.payment?.purchase?.tax_amount?.toLocaleString() ||
+                        "0"}
                     </span>
                   </div>
                   <div className="flex justify-between items-center pb-2 mt-2">
                     <span className="text-gray-600 font-medium">
                       Delivery Fee:
                     </span>
-                    <span className="font-semibold">N 0</span>
+                    <span className="font-semibold">
+                      ₦{" "}
+                      {orderDetails?.payment?.purchase?.delivery_fee?.toLocaleString() ||
+                        "N/A"}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center pb-2 mt-2">
                     <span className="text-gray-600 font-medium">Discount:</span>
                     <span className="font-semibold">
-                      N{" "}
+                      ₦{" "}
                       {parseInt(
                         orderDetails?.payment?.discount_applied || 0,
                       ).toLocaleString()}
@@ -393,7 +803,7 @@ const OrderDetails = () => {
                     </span>
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-lg">
-                        N {parseInt(totalAmount || 0).toLocaleString()}
+                        ₦ {parseInt(totalAmount || 0).toLocaleString()}
                       </span>
                       <span
                         className={`px-3 py-1 rounded-full text-sm ${
@@ -414,61 +824,6 @@ const OrderDetails = () => {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-        <div className="flex flex-col gap-4">
-          <div className="bg-white p-4 rounded-md">
-            <h5 className="text-lg font-medium leading-loose border-b border-[#D9D9D9] pb-3 mb-3">
-              Customer Details
-            </h5>
-            <div className="space-y-3">
-              <div>
-                <p className="font-medium mb-1">Customer ID:</p>
-                <p className="text-gray-600">
-                  #{orderDetails?.user?.id?.slice(-8).toUpperCase()}
-                </p>
-              </div>
-              <div>
-                <p className="font-medium mb-1">Email:</p>
-                <p className="text-gray-600">
-                  {orderDetails?.user?.email || "N/A"}
-                </p>
-              </div>
-              <div>
-                <p className="font-medium mb-1">Phone:</p>
-                <p className="text-gray-600">
-                  {orderDetails?.user?.phone || "N/A"}
-                </p>
-              </div>
-              <div>
-                <p className="font-medium mb-1">Order Date:</p>
-                <p className="text-gray-600">
-                  {orderDetails?.created_at
-                    ? new Date(orderDetails.created_at).toLocaleDateString(
-                        "en-US",
-                        {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        },
-                      )
-                    : "N/A"}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white p-4 rounded-md">
-            <h5 className="text-lg font-medium leading-loose border-b border-[#D9D9D9] pb-3 mb-3">
-              Order Support
-            </h5>
-            <p className="font-medium mb-4">Need help?</p>
-            <div className="flex space-x-6 mt-2">
-              <Phone className="text-purple-500" size={24} />
-              <MessageSquare className="text-purple-500" size={24} />
-              <Mail className="text-purple-500" size={24} />
             </div>
           </div>
         </div>

@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import ReusableTable from "../components/ReusableTable";
 import { FaEllipsisH } from "react-icons/fa";
-import AddMarketModal from "./AddMarketModal";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useGetAllMarketRep from "../../../../hooks/marketRep/useGetMarketRep";
 import useQueryParams from "../../../../hooks/useQueryParams";
 import useGetBusinessDetails from "../../../../hooks/settings/useGetBusinessDetails";
@@ -15,6 +14,10 @@ import useApproveMarketRep from "../../../../hooks/marketRep/useApproveMarketRep
 import ConfirmationModal from "../../../../components/ui/ConfirmationModal";
 import useDeleteUser from "../../../../hooks/user/useDeleteUser";
 import useToast from "../../../../hooks/useToast";
+import AddMarketModal from "./AddMarketModal";
+import * as XLSX from "xlsx";
+import { CSVLink } from "react-csv";
+import CustomTable from "../../../../components/CustomTable";
 
 const NewlyAddedUsers = () => {
   const [currView, setCurrView] = useState("approved");
@@ -38,7 +41,7 @@ const NewlyAddedUsers = () => {
   const [suspendModalOpen, setSuspendModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
-
+  const nav = useNavigate();
   const [newCategory, setNewCategory] = useState();
 
   const { data: businessData } = useGetBusinessDetails();
@@ -90,7 +93,31 @@ const NewlyAddedUsers = () => {
 
   const totalPageCount =
     currView === "invites" ? totalallInvitePages : totalPages;
-
+  const actions = [
+    {
+      key: "view-details",
+      label: "View Details",
+      action: (item) => {
+        return nav(`/admin/sales-rep/view-sales/${item.id}`);
+      },
+    },
+    {
+      key: "suspend-vendor",
+      label: "Suspend Vendor",
+      action: (item) => {
+        setSuspendModalOpen(true);
+        setNewCategory(row);
+        setOpenDropdown(null);
+      },
+    },
+    {
+      key: "delete-vendor",
+      label: "Delete Vendor",
+      action: (item) => {
+        handleDeleteUser(item);
+      },
+    },
+  ];
   const MarketRepData = useMemo(
     () =>
       getAllMarketRepData?.data
@@ -181,74 +208,74 @@ const NewlyAddedUsers = () => {
           </span>
         ),
       },
-      {
-        label: "Action",
-        key: "action",
-        render: (_, row) => (
-          <div className="relative">
-            <button
-              className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
-              onClick={() => {
-                toggleDropdown(row.id);
-              }}
-            >
-              <FaEllipsisH />
-            </button>
-            {openDropdown === row.id && (
-              <div className="dropdown-menu absolute right-0 mt-2 w-50 bg-white rounded-md z-10 border-gray-200">
-                <Link
-                  to={`/admin/sales-rep/view-sales/${row.id}`}
-                  onClick={() => {
-                    clearAllFilters();
-                  }}
-                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
-                >
-                  View Market Rep
-                </Link>
+      // {
+      //   label: "Action",
+      //   key: "action",
+      //   render: (_, row) => (
+      //     <div className="relative">
+      //       <button
+      //         className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
+      //         onClick={() => {
+      //           toggleDropdown(row.id);
+      //         }}
+      //       >
+      //         <FaEllipsisH />
+      //       </button>
+      //       {openDropdown === row.id && (
+      //         <div className="dropdown-menu absolute right-0 mt-2 w-50 bg-white rounded-md z-10 border-gray-200">
+      //           <Link
+      //             to={`/admin/sales-rep/view-sales/${row.id}`}
+      //             onClick={() => {
+      //               clearAllFilters();
+      //             }}
+      //             className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+      //           >
+      //             View Market Rep
+      //           </Link>
 
-                {row.profile?.approved_by_admin !== null ? (
-                  row?.profile?.approved_by_admin ? (
-                    <>
-                      {" "}
-                      <button
-                        onClick={() => {
-                          setSuspendModalOpen(true);
-                          setNewCategory(row);
-                          setOpenDropdown(null);
-                        }}
-                        className="block text-red-500 hover:bg-red-100 cursor-pointer px-4 py-2  w-full text-center"
-                      >
-                        {"Suspend User"}
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => {
-                          setSuspendModalOpen(true);
-                          setNewCategory(row);
-                          setOpenDropdown(null);
-                        }}
-                        className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
-                      >
-                        {"Unsuspend User"}
-                      </button>
-                    </>
-                  )
-                ) : (
-                  <></>
-                )}
-                <button
-                  onClick={() => handleDeleteUser(row)}
-                  className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center"
-                >
-                  Delete Market Rep
-                </button>
-              </div>
-            )}
-          </div>
-        ),
-      },
+      //           {row.profile?.approved_by_admin !== null ? (
+      //             row?.profile?.approved_by_admin ? (
+      //               <>
+      //                 {" "}
+      //                 <button
+      //                   onClick={() => {
+      //                     setSuspendModalOpen(true);
+      //                     setNewCategory(row);
+      //                     setOpenDropdown(null);
+      //                   }}
+      //                   className="block text-red-500 hover:bg-red-100 cursor-pointer px-4 py-2  w-full text-center"
+      //                 >
+      //                   {"Suspend User"}
+      //                 </button>
+      //               </>
+      //             ) : (
+      //               <>
+      //                 <button
+      //                   onClick={() => {
+      //                     setSuspendModalOpen(true);
+      //                     setNewCategory(row);
+      //                     setOpenDropdown(null);
+      //                   }}
+      //                   className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+      //                 >
+      //                   {"Unsuspend User"}
+      //                 </button>
+      //               </>
+      //             )
+      //           ) : (
+      //             <></>
+      //           )}
+      //           <button
+      //             onClick={() => handleDeleteUser(row)}
+      //             className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center"
+      //           >
+      //             Delete Market Rep
+      //           </button>
+      //         </div>
+      //       )}
+      //     </div>
+      //   ),
+      // },
     ],
     [toggleDropdown, openDropdown],
   );
@@ -328,7 +355,28 @@ const NewlyAddedUsers = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
+  const handleExport = (e) => {
+    const value = e.target.value;
+    if (value === "excel") exportToExcel();
+    // if (value === "pdf") exportToPDF();
+    if (value === "csv") document.getElementById("csvDownload").click();
+  };
+  const exportToExcel = () => {
+    // return console.log(MarketRepData);
+    const worksheet = XLSX.utils.json_to_sheet(
+      currView == "invites" ? InviteData : MarketRepData,
+    );
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const blob = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    saveAs(blob, "MyProducts.xlsx");
+  };
   return (
     <div className="bg-white p-6 rounded-xl overflow-x-auto">
       <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
@@ -343,15 +391,23 @@ const NewlyAddedUsers = () => {
             }
             className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
           />
-          <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-            Export As ▾
-          </button>
+          <select
+            onChange={handleExport}
+            className="bg-gray-100 outline-none text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
+          >
+            <option value="" disabled selected>
+              Export As
+            </option>
+            <option value="csv">Export to CSV</option>{" "}
+            <option value="excel">Export to Excel</option>{" "}
+            {/* <option value="pdf">Export to PDF</option>{" "}*/}
+          </select>
 
           <button
             onClick={() => setIsModalOpen(true)}
             className="bg-[#9847FE] text-white px-4 py-2 text-sm cursor-pointer rounded-md"
           >
-            + Add a Market Rep
+            + invite a Market Rep
           </button>
         </div>
       </div>
@@ -402,7 +458,12 @@ const NewlyAddedUsers = () => {
           ))}
         </div>
       </div>
-
+      <CSVLink
+        id="csvDownload"
+        data={currView == "invites" ? InviteData : MarketRepData}
+        filename="MyProducts.csv"
+        className="hidden"
+      />{" "}
       {/* table */}
       <div className="overflow-x-auto">
         <AddMarketModal
@@ -410,11 +471,17 @@ const NewlyAddedUsers = () => {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
         />
-        <ReusableTable
+        <CustomTable
+          actions={actions}
           loading={isPending || allInviteIsPending}
           columns={currView == "invites" ? inviteRepColumn : columns}
           data={currView == "invites" ? InviteData : MarketRepData}
         />
+        {/* <ReusableTable
+          loading={isPending || allInviteIsPending}
+          columns={currView == "invites" ? inviteRepColumn : columns}
+          data={currView == "invites" ? InviteData : MarketRepData}
+        />*/}
         <div className="flex justify-between items-center mt-4">
           <div className="flex items-center">
             <p className="text-sm text-gray-600">Items per page: </p>
@@ -551,7 +618,6 @@ const NewlyAddedUsers = () => {
           </div>
         </div>
       )}
-
       {/* Delete User Confirmation Modal */}
       <ConfirmationModal
         isOpen={deleteModalOpen}

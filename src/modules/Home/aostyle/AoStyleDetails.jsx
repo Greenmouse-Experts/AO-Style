@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ChevronDown, MessageSquare } from "lucide-react";
+import { ChevronDown, MessageSquare, X } from "lucide-react";
 import SavedMeasurementsDisplay from "../components/SavedMeasurementsDisplay";
 import Breadcrumb from "../components/Breadcrumb";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -8,9 +8,10 @@ import { useCartStore } from "../../../store/carybinUserCartStore";
 import { useFormik } from "formik";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import Cookies from "js-cookie";
-import { ProductReviews } from "../../../components/reviews";
+import AuthenticatedProductReviews from "../../../components/reviews/AuthenticatedProductReviews";
 import useAddCart from "../../../hooks/cart/useAddCart";
 import useToast from "../../../hooks/useToast";
+import CustomBackbtn from "../../../components/CustomBackBtn";
 
 export default function AnkaraGownPage() {
   const location = useLocation();
@@ -397,10 +398,18 @@ export default function AnkaraGownPage() {
       customer_name: latestMeasurement.customer_name,
       color: pendingFabric.color || "",
       style_product_id: styleInfo?.id || styleInfo?.product_id,
+      style_price: styleInfo?.price || 0,
       measurement: measurementArr,
     };
 
     console.log("🛒 Adding fabric + style to cart:", cartPayload);
+    console.log("💰 Style pricing details:", {
+      stylePrice: styleInfo?.price,
+      stylePriceInPayload: cartPayload.style_price,
+      styleId: cartPayload.style_product_id,
+      fabricPrice: pendingFabric.price,
+      totalExpectedPrice: (pendingFabric.price || 0) + (styleInfo?.price || 0),
+    });
 
     addCartMutate(cartPayload, {
       onSuccess: () => {
@@ -436,11 +445,27 @@ export default function AnkaraGownPage() {
         backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1743712882/AoStyle/image_lslmok.png"
       />
       <section className="Resizer section px-2 sm:px-4">
+        <div className="mb-4">
+          <CustomBackbtn />
+        </div>
         <div>
           <div className="p-2 sm:p-6">
             {/* Conditionally render the Fabric section */}
             {pendingFabric && (
-              <div className="bg-[#FFF2FF] p-4 rounded-lg mb-6">
+              <div className="bg-[#FFF2FF] p-4 rounded-lg mb-6 relative">
+                {/* Cancel/Remove Fabric Button */}
+                <button
+                  onClick={() => {
+                    setPendingFabric(null);
+                    localStorage.removeItem("pending_fabric");
+                    toastSuccess("Fabric selection removed");
+                  }}
+                  className="absolute top-3 right-3 p-1.5 hover:bg-white/50 rounded-full transition-colors"
+                  aria-label="Remove selected fabric"
+                  title="Remove selected fabric"
+                >
+                  <X className="w-4 h-4 text-gray-500 hover:text-gray-700" />
+                </button>
                 <h2 className="text-sm font-medium text-gray-500 mb-4">
                   Selected Fabric
                 </h2>
@@ -500,11 +525,22 @@ export default function AnkaraGownPage() {
               {/* Image Gallery */}
               <div className="w-full md:w-1/2">
                 <div className="mb-4">
-                  <img
-                    src={styleInfo?.style?.photos[selectedImage]}
-                    alt={styleInfo?.name}
-                    className="w-full h-64 sm:h-80 md:h-96 object-cover rounded"
-                  />
+                  {/* Show selected image or video in the big box */}
+                  {styleInfo?.style?.video_url && selectedImage === "video" ? (
+                    <video
+                      src={styleInfo.style.video_url}
+                      controls
+                      className="w-full h-64 sm:h-80 md:h-96 object-cover rounded"
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : (
+                    <img
+                      src={styleInfo?.style?.photos[selectedImage]}
+                      alt={styleInfo?.name}
+                      className="w-full h-64 sm:h-80 md:h-96 object-cover rounded"
+                    />
+                  )}
                 </div>
                 <div className="flex gap-2 overflow-x-auto">
                   {styleInfo?.style?.photos?.map((image, index) => (
@@ -524,6 +560,37 @@ export default function AnkaraGownPage() {
                       />
                     </div>
                   ))}
+                  {styleInfo?.style?.video_url && (
+                    <div
+                      className={`flex-shrink-0 w-32 h-20 rounded-lg overflow-hidden border-2 transition-all ml-2 flex items-center justify-center bg-black relative cursor-pointer ${
+                        selectedImage === "video"
+                          ? "border-purple-500"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                      // onClick={() => setSelectedImage("video")}
+                    >
+                      <video
+                        src={styleInfo.style.video_url}
+                        // controls
+                        className="w-full h-full object-cover rounded-lg"
+                        onClick={() => setSelectedImage("video")}
+                        // poster={mainImage}
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                      {/* Video tag/icon overlay */}
+                      <div className="absolute top-2 left-2 bg-black/70 rounded-full p-1 flex items-center justify-center">
+                        <svg
+                          className="w-5 h-5 text-white"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle cx="12" cy="12" r="10" opacity="0.5" />
+                          <polygon points="10,8 16,12 10,16" fill="white" />
+                        </svg>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -608,7 +675,53 @@ export default function AnkaraGownPage() {
                     </div>
                   )}
                 </div>
-
+                {/* Location and Gender Display */}
+                <div className="flex flex-wrap gap-4 items-center mb-2">
+                  {/* Gender */}
+                  {styleInfo?.gender && (
+                    <div className="flex items-center gap-2 bg-blue-50 rounded-lg px-3 py-1">
+                      <svg
+                        className="w-5 h-5 text-blue-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M12 14v7m0 0h-3m3 0h3M12 7a5 5 0 100 10 5 5 0 000-10z"
+                        />
+                      </svg>
+                      <span className="text-blue-700 font-medium text-sm">
+                        {styleInfo.gender.charAt(0).toUpperCase() +
+                          styleInfo.gender.slice(1)}
+                      </span>
+                    </div>
+                  )}
+                  {/* Location */}
+                  {styleInfo?.creator?.profile?.address && (
+                    <div className="flex items-center gap-2 bg-green-50 rounded-lg px-3 py-1">
+                      <svg
+                        className="w-5 h-5 text-green-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M12 11c1.657 0 3-1.343 3-3S13.657 5 12 5s-3 1.343-3 3 1.343 3 3 3zm0 0v8m0 0c-4.418 0-8-3.582-8-8a8 8 0 1116 0c0 4.418-3.582 8-8 8z"
+                        />
+                      </svg>
+                      <span className="text-green-700 font-medium text-sm">
+                        {styleInfo.creator.profile.state},{" "}
+                        {styleInfo.creator.profile.country}
+                      </span>
+                    </div>
+                  )}
+                </div>
                 {styleInfo?.tags?.length > 0 && (
                   <div>
                     <p className="font-medium mb-2">Tags:</p>
@@ -1305,7 +1418,7 @@ export default function AnkaraGownPage() {
               )}
 
               {/* Show next steps after measurements are submitted */}
-              {measurementsSubmitted && !showMeasurementForm && (
+              {/* {measurementsSubmitted && !showMeasurementForm && (
                 <div className="bg-white rounded-lg shadow-md p-6 mt-6">
                   <div className="text-center">
                     <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -1366,7 +1479,7 @@ export default function AnkaraGownPage() {
                     )}
                   </div>
                 </div>
-              )}
+              )}*/}
             </div>
           </div>
         </div>
@@ -1379,13 +1492,13 @@ export default function AnkaraGownPage() {
           className="Resizer section px-4 py-8 bg-gray-50"
         >
           <div className="max-w-6xl mx-auto">
-            <ProductReviews
+            <AuthenticatedProductReviews
               productId={correctProductId}
               initiallyExpanded={true}
               className="bg-white rounded-lg p-6 shadow-sm"
             />
             {/* Debug info */}
-            <div className="mt-4 p-4 bg-gray-100 rounded text-sm">
+            {/* <div className="mt-4 p-4 bg-gray-100 rounded text-sm">
               <p>
                 <strong>Debug:</strong> Product ID being passed to reviews:{" "}
                 <code>{correctProductId}</code>
@@ -1395,7 +1508,7 @@ export default function AnkaraGownPage() {
                 <code>{styleInfo?.id}</code>, Product ID:{" "}
                 <code>{styleInfo?.product_id}</code>
               </p>
-            </div>
+            </div>*/}
           </div>
         </section>
       )}
@@ -1428,7 +1541,16 @@ export default function AnkaraGownPage() {
               }
             `}
           </style>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-auto animate-fade-in-up my-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-auto animate-fade-in-up my-4 relative">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowCartModal(false)}
+              className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors z-10"
+              aria-label="Close modal"
+            >
+              <X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
+            </button>
+
             {/* Header */}
             <div className="text-center pt-8 pb-6 px-6">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -1457,7 +1579,21 @@ export default function AnkaraGownPage() {
             {/* Content */}
             <div className="px-6 pb-6">
               {/* Fabric Info */}
-              <div className="bg-purple-50 rounded-xl p-4 mb-4">
+              <div className="bg-purple-50 rounded-xl p-4 mb-4 relative">
+                {/* Remove Fabric Button */}
+                <button
+                  onClick={() => {
+                    setPendingFabric(null);
+                    localStorage.removeItem("pending_fabric");
+                    setShowCartModal(false);
+                    toastSuccess("Fabric selection removed");
+                  }}
+                  className="absolute top-3 right-3 p-1.5 hover:bg-white/50 rounded-full transition-colors"
+                  aria-label="Remove selected fabric"
+                  title="Remove selected fabric"
+                >
+                  <X className="w-4 h-4 text-purple-600 hover:text-purple-800" />
+                </button>
                 <h3 className="font-semibold text-purple-900 mb-2">
                   Selected Fabric
                 </h3>
@@ -1529,7 +1665,7 @@ export default function AnkaraGownPage() {
                 <button
                   onClick={handleConfirmAddToCart}
                   disabled={addCartPending}
-                  className="w-full flex items-center justify-center space-x-2 px-6 py-4 bg-gradient text-white rounded-xl font-semibold hover:bg-purple-700 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full cursor-pointer flex items-center justify-center space-x-2 px-6 py-4 bg-gradient text-white rounded-xl font-semibold hover:bg-purple-700 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <svg
                     className="w-5 h-5"
@@ -1548,14 +1684,21 @@ export default function AnkaraGownPage() {
                     {addCartPending ? "Adding to Cart..." : "Add to Cart"}
                   </span>
                 </button>
-
+                <button
+                  onClick={setShowCartModal(false)}
+                  disabled={addCartPending}
+                  className="w-full flex items-center justify-center space-x-2 px-6 py-4 text-black rounded-xl transition-all duration-200 cursor-pointer shadow-lg disabled:opacity-50 border border-gray-300"
+                >
+                  <span>Select more measurements</span>
+                </button>
+                {/*
                 <button
                   onClick={() => setShowCartModal(false)}
                   disabled={addCartPending}
                   className="w-full px-6 py-4 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Review Details
-                </button>
+                </button>*/}
               </div>
 
               {/* Info Text */}

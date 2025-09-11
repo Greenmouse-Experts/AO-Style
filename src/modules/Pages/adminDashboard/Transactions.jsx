@@ -1,6 +1,5 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import ReusableTable from "./components/ReusableTable";
-import TransactionPayment from "./components/TransactionPayment";
 import RegisterChart from "./components/RegisterChart";
 import SalesSummaryChart from "./components/SalesSummaryChart";
 import { FaEllipsisH } from "react-icons/fa";
@@ -8,9 +7,14 @@ import { AiOutlineSearch } from "react-icons/ai";
 import { BsFilter } from "react-icons/bs";
 import useDebounce from "../../../hooks/useDebounce";
 import useQueryParams from "../../../hooks/useQueryParams";
-import useFetchAllCartTransactions from "../../../hooks/admin/useFetchAllCartTransactions";
+// import useFetchAllCartTransactions from "../../../hooks/admin/useFetchAllCartTransactions";
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 import { formatDateStr } from "../../../lib/helper";
+import useFetchAllWithdrawals from "../../../hooks/withdrawal/useFetchAllWithdrawals";
+import useInitiateTransfer from "../../../hooks/withdrawal/useInitiateTransfer";
+import useFinalizeTransfer from "../../../hooks/withdrawal/useFinalizeTransfer";
+import useVerifyTransfer from "../../../hooks/withdrawal/useVerifyTransfer";
+import AnalyticsCards from "./components/TransactionPayment";
 import { Link, useNavigate } from "react-router-dom";
 import SalesRevenueChart from "./components/RegisterChart";
 import { useQuery } from "@tanstack/react-query";
@@ -20,15 +24,73 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
+import CustomTable from "../../../components/CustomTable";
+import TransferOperationsModal from "./components/TransferOperationsModal";
+import { toast } from "react-toastify";
 const PaymentTransactionTable = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [searchTerm, _setSearchTerm] = useState("");
+  const [_currentPage, setCurrentPage] = useState(1);
+  const [_itemsPerPage, _setItemsPerPage] = useState(10);
   const [activeTab, setActiveTab] = useState("All Transactions");
-  const [selectAll, setSelectAll] = useState(false);
-  const [selectedRows, setSelectedRows] = useState(new Set());
+  const [payoutSubTab, setPayoutSubTab] = useState("All");
+  const [_selectAll, setSelectAll] = useState(false);
+  const [_selectedRows, setSelectedRows] = useState(new Set());
   const dropdownRef = useRef(null);
   const [openDropdown, setOpenDropdown] = useState(null);
+
+  // Transfer modal state
+  const [transferModal, setTransferModal] = useState({
+    isOpen: false,
+    operation: null,
+    withdrawal: null,
+  });
+
+  // Transfer hooks
+  const { initiateTransfer, isPending: isInitiating } = useInitiateTransfer();
+  const { verifyTransfer, isPending: isVerifying } = useVerifyTransfer();
+
+  // Finalize transfer with auto-verify callback
+  const handleAutoVerify = (finalizeResponse) => {
+    console.log(
+      "🔄 Auto-triggering verify with finalize response:",
+      finalizeResponse,
+    );
+
+    // Extract reference from finalize response - try multiple possible locations
+    let reference = null;
+
+    if (finalizeResponse?.reference) {
+      reference = finalizeResponse.reference;
+    } else if (finalizeResponse?.data?.reference) {
+      reference = finalizeResponse.data.reference;
+    } else if (finalizeResponse?.transfer_code) {
+      reference = finalizeResponse.transfer_code;
+    } else if (finalizeResponse?.data?.transfer_code) {
+      reference = finalizeResponse.data.transfer_code;
+    } else if (finalizeResponse?.notes) {
+      // Try to parse notes field if it contains JSON with reference
+      try {
+        const notesData = JSON.parse(finalizeResponse.notes);
+        reference = notesData.reference || notesData.transfer_code;
+      } catch (e) {
+        console.warn("Could not parse notes field:", e);
+      }
+    }
+
+    if (reference) {
+      console.log("🔍 Auto-verifying with reference:", reference);
+      verifyTransfer({ reference });
+    } else {
+      console.error(
+        "❌ No reference found in finalize response for auto-verify",
+        finalizeResponse,
+      );
+      toast.error("Could not auto-verify: missing reference in response");
+    }
+  };
+
+  const { finalizeTransfer, isPending: isFinalizing } =
+    useFinalizeTransfer(handleAutoVerify);
 
   const { queryParams, updateQueryParams } = useQueryParams({
     status: "",
@@ -52,7 +114,8 @@ const PaymentTransactionTable = () => {
   };
 
   const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(getAllTransactionData?.data);
+    const data = activeTab === "Payouts" ? withdrawalData?.data : [];
+    const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
     const excelBuffer = XLSX.write(workbook, {
@@ -68,57 +131,46 @@ const PaymentTransactionTable = () => {
   const exportToPDF = () => {
     const doc = new jsPDF();
 
-    autoTable(doc, {
-      head: [
-        [
-          "Transaction ID",
-          "Payment Method",
-          "Status",
-          "Amount (NGN)",
-          "Product",
-          "Qty",
-          "Unit Price",
-          "User Email",
-          "Phone",
-          "Address",
-          "Date",
+    if (activeTab === "Payouts") {
+      autoTable(doc, {
+        head: [
+          [
+            "Withdrawal ID",
+            "User Name",
+            "Amount",
+            "Status",
+            "Bank Name",
+            "Account Number",
+            "Date",
+          ],
         ],
-      ],
-      body: getAllTransactionData?.data?.flatMap((transaction) => {
-        const user = transaction.user || {};
-        const profile = user.profile || {};
-        const items = transaction.purchase?.items || [];
+        body:
+          withdrawalData?.data?.map((withdrawal) => [
+            `WTH${withdrawal.id}`,
+            withdrawal.user?.name || withdrawal.user?.email,
+            withdrawal.amount,
+            withdrawal.status,
+            withdrawal.bank_name,
+            withdrawal.account_number,
+            formatDateStr(withdrawal.created_at),
+          ]) || [],
+        headStyles: {
+          fillColor: [209, 213, 219],
+          textColor: [0, 0, 0],
+          halign: "center",
+          valign: "middle",
+          fontSize: 8,
+        },
+        styles: {
+          fontSize: 7,
+          cellPadding: 2,
+        },
+        theme: "grid",
+        startY: 10,
+      });
+    }
 
-        return items.map((item) => [
-          transaction.transaction_id,
-          transaction.payment_method,
-          transaction.payment_status,
-          transaction.amount,
-          item.name,
-          item.quantity,
-          item.price,
-          user.email,
-          user.phone,
-          profile.address,
-          new Date(transaction.created_at).toLocaleDateString(),
-        ]);
-      }),
-      headStyles: {
-        fillColor: [209, 213, 219], // Tailwind's gray-300
-        textColor: [0, 0, 0],
-        halign: "center",
-        valign: "middle",
-        fontSize: 8,
-      },
-      styles: {
-        fontSize: 7,
-        cellPadding: 2,
-      },
-      theme: "grid",
-      startY: 10,
-    });
-
-    doc.save("transactions.pdf");
+    doc.save("WithdrawalRequests.pdf");
   };
 
   const { data: getAllTransactionData, isPending: isPending } = useQuery({
@@ -132,6 +184,13 @@ const PaymentTransactionTable = () => {
       return resp.data;
     },
   });
+
+  // Fetch withdrawal data for payouts tab using fetch-all endpoint
+  const { data: withdrawalData, isPending: isWithdrawalPending } =
+    useFetchAllWithdrawals({
+      // Don't filter by status anymore since we're using notes-based filtering
+      q: debouncedSearchTerm,
+    });
   useUpdatedEffect(() => {
     // update search params with undefined if debouncedSearchTerm is an empty string
     updateQueryParams({
@@ -140,12 +199,12 @@ const PaymentTransactionTable = () => {
     });
   }, [debouncedSearchTerm]);
 
-  const totalTransactionPages = Math.ceil(
-    getAllTransactionData?.count / (queryParams["pagination[limit]"] ?? 10),
-  );
-  useEffect(() => {
-    console.log(getAllTransactionData, "data");
-  }, []);
+  // const totalTransactionPages = Math.ceil(
+  //   getAllTransactionData?.count / (queryParams["pagination[limit]"] ?? 10),
+  // );
+  // useEffect(() => {
+  //   console.log(getAllTransactionData, "data");
+  // }, []);
   const data = [
     {
       id: 1,
@@ -200,45 +259,19 @@ const PaymentTransactionTable = () => {
   ];
 
   const tabs = ["All Transactions", "Income", "Payouts"];
-  const navigate = useNavigate();
+  const nav = useNavigate();
+
+  // Handle transfer operations
+  const openTransferModal = useCallback((operation, withdrawal) => {
+    setTransferModal({
+      isOpen: true,
+      operation,
+      withdrawal,
+    });
+  }, []);
+
   const columns = useMemo(
     () => [
-      {
-        label: () => (
-          <input
-            type="checkbox"
-            checked={selectAll}
-            onChange={(e) => {
-              const newSelectAll = e.target.checked;
-              setSelectAll(newSelectAll);
-              const newSelected = new Set(
-                newSelectAll ? data.map((item) => item.id) : [],
-              );
-              setSelectedRows(newSelected);
-            }}
-            className="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-          />
-        ),
-        key: "checkbox",
-        render: (value, row) => (
-          <input
-            type="checkbox"
-            checked={selectedRows.has(row.id)}
-            onChange={(e) => {
-              const newSelected = new Set(selectedRows);
-              if (e.target.checked) {
-                newSelected.add(row.id);
-              } else {
-                newSelected.delete(row.id);
-              }
-              setSelectedRows(newSelected);
-              setSelectAll(newSelected.size === data.length);
-            }}
-            className="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-          />
-        ),
-        className: "text-gray-500 font-medium text-sm py-4 w-10",
-      },
       {
         label: "Transaction ID",
         key: "transactionID",
@@ -263,6 +296,11 @@ const PaymentTransactionTable = () => {
         label: "Amount",
         key: "amount",
         className: "text-gray-500 font-medium text-sm py-4",
+        render: (value, item) => (
+          <span className="font-semibold text-gray-900">
+            ₦{item.rawAmount?.toLocaleString() || value}
+          </span>
+        ),
       },
       {
         label: "Transaction Type",
@@ -276,9 +314,13 @@ const PaymentTransactionTable = () => {
         render: (status) => (
           <span
             className={`px-2 py-1 text-sm rounded-full font-medium ${
-              status === "In-Progress"
+              status === "In-Progress" || status === "PENDING"
                 ? "bg-blue-100 text-blue-500"
-                : "bg-green-100 text-green-500"
+                : status === "ACCEPTED" || status === "Completed"
+                  ? "bg-green-100 text-green-500"
+                  : status === "DECLINED"
+                    ? "bg-red-100 text-red-500"
+                    : "bg-gray-100 text-gray-500"
             }`}
           >
             {status}
@@ -286,50 +328,46 @@ const PaymentTransactionTable = () => {
         ),
       },
       {
-        label: "Action",
         key: "action",
-        render: (_, row) => (
-          <div className="relative" ref={dropdownRef}>
+        label: "Action",
+        render: (value, item) => (
+          <div className="flex space-x-2">
             <button
-              className="p-2 text-gray-600"
-              onClick={() => toggleDropdown(row.id)}
+              onClick={() =>
+                nav("/admin/transactions/" + item.id, { viewTransition: true })
+              }
+              className="cursor-pointer text-blue-600 hover:text-blue-800 text-sm font-medium"
             >
-              <FaEllipsisH />
+              View Details
             </button>
-            {openDropdown === row.id && (
-              <div className="absolute right-0 mt-2 w-40 bg-white rounded-md z-10 shadow-lg">
-                <>
-                  <button
-                    onMouseDown={() => {
-                      navigate("/admin/transactions/" + row.id);
-                    }}
-                    // to={"/admin/transactions/" + row.id}
-                    className="p-2 w-full"
-                  >
-                    View Details
-                  </button>
-                  {/* <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
-                    Edit Transaction
-                  </button>
-                  <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">
-                    Remove Transaction
-                  </button>*/}
-                </>
-              </div>
+            {!item.isInitiated && item.status === "PENDING" && (
+              <button
+                onClick={() => openTransferModal("initiate", item)}
+                className="cursor-pointer text-blue-600 hover:text-blue-800 text-sm font-medium"
+              >
+                Initiate Transfer
+              </button>
+            )}
+            {item.isInitiated && (
+              <button
+                onClick={() => openTransferModal("finalize", item)}
+                className="cursor-pointer text-green-600 hover:text-green-800 text-sm font-medium"
+              >
+                Finalize & Verify
+              </button>
             )}
           </div>
         ),
-        className: "text-gray-500 font-medium text-sm py-4 w-20",
       },
     ],
-    [selectAll, selectedRows, getAllTransactionData?.data, openDropdown],
+    [nav, openTransferModal],
   );
 
-  const toggleDropdown = (rowId) => {
+  const _toggleDropdown = (rowId) => {
     setOpenDropdown(openDropdown === rowId ? null : rowId);
   };
 
-  const filteredData = data.filter((transaction) => {
+  const _filteredData = data.filter((transaction) => {
     const matchesSearch = Object.values(transaction).some(
       (value) =>
         typeof value === "string" &&
@@ -368,33 +406,78 @@ const PaymentTransactionTable = () => {
             };
           })
         : [],
-    [getAllTransactionData?.data, isPending],
+    [getAllTransactionData?.data],
   );
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+  // Format withdrawal data for payouts using fetch-all endpoint structure
+  const WithdrawalData = useMemo(() => {
+    if (!withdrawalData?.data) return [];
+
+    let filteredData = withdrawalData.data;
+
+    // Filter based on sub-tab selection
+    if (payoutSubTab === "Initiated") {
+      // Filter withdrawals that have notes (indicating they've been initiated)
+      filteredData = withdrawalData.data.filter(
+        (withdrawal) => withdrawal.notes && withdrawal.notes.trim() !== "",
+      );
+    }
+
+    return filteredData.map((withdrawal) => {
+      return {
+        ...withdrawal,
+        transactionID: `WTH${withdrawal?.id}`,
+        userName: withdrawal?.user?.name || withdrawal?.user?.email,
+        amount: withdrawal?.amount?.toLocaleString() || withdrawal?.amount,
+        rawAmount: withdrawal?.amount,
+        status: withdrawal?.status || "PENDING",
+        transactionType: "Withdrawal",
+        userType:
+          withdrawal?.user?.role?.name || withdrawal?.user?.role || "Unknown",
+        date: withdrawal?.created_at
+          ? formatDateStr(
+              withdrawal.created_at.split(".").shift(),
+              "DD MMM YYYY",
+            )
+          : "",
+        isInitiated: withdrawal.notes && withdrawal.notes.trim() !== "",
+      };
+    });
+  }, [withdrawalData?.data, payoutSubTab]);
+
+  // Debug withdrawal data
+  useEffect(() => {
+    if (activeTab === "Payouts") {
+      console.log("💸 Withdrawal Data:", withdrawalData);
+      console.log("💰 Formatted Withdrawal Data:", WithdrawalData);
+      console.log("🎯 Payout Sub Tab:", payoutSubTab);
+    }
+  }, [withdrawalData, WithdrawalData, payoutSubTab, activeTab]);
+
+  // const indexOfLastItem = currentPage * itemsPerPage;
+  // const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  // const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
 
   const totalPages = Math.ceil(
     getAllTransactionData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
+  // const handlePreviousPage = () => {
+  //   if (currentPage > 1) {
+  //     setCurrentPage(currentPage - 1);
+  //   }
+  // };
 
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
+  // const handleNextPage = () => {
+  //   if (currentPage < totalPages) {
+  //     setCurrentPage(currentPage + 1);
+  //   }
+  // };
 
-  const handleItemsPerPageChange = (e) => {
-    setItemsPerPage(Number(e.target.value));
-    setCurrentPage(1);
-  };
+  // const handleItemsPerPageChange = (e) => {
+  //   setItemsPerPage(Number(e.target.value));
+  //   setCurrentPage(1);
+  // };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -406,37 +489,104 @@ const PaymentTransactionTable = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
   const csv_data =
-    getAllTransactionData?.data.flatMap((transaction) => {
-      const user = transaction.user || {};
-      const profile = user.profile || {};
-      const items = transaction.purchase?.items || [];
+    activeTab === "Payouts"
+      ? withdrawalData?.data?.map((withdrawal) => ({
+          TransactionID: `WTH${withdrawal.id}`,
+          UserName: withdrawal.user?.name || withdrawal.user?.email,
+          UserType:
+            withdrawal.user?.role?.name || withdrawal.user?.role || "Unknown",
+          Amount: withdrawal.amount,
+          Status: withdrawal.status || "PENDING",
+          IsInitiated:
+            withdrawal.notes && withdrawal.notes.trim() !== "" ? "Yes" : "No",
+          Notes: withdrawal.notes || "",
+          BankName: withdrawal.bank_name,
+          AccountNumber: withdrawal.account_number,
+          AccountName: withdrawal.account_name,
+          CreatedAt: withdrawal.created_at,
+          UpdatedAt: withdrawal.updated_at,
+          UserID: withdrawal.user?.id,
+          UserEmail: withdrawal.user?.email,
+          UserPhone: withdrawal.user?.phone,
+        })) || []
+      : getAllTransactionData?.data.flatMap((transaction) => {
+          const user = transaction.user || {};
+          const profile = user.profile || {};
+          const items = transaction.purchase?.items || [];
 
-      return items.map((item) => ({
-        TransactionID: transaction.transaction_id,
-        PaymentStatus: transaction.payment_status,
-        PaymentMethod: transaction.payment_method,
-        Amount: transaction.amount,
-        Currency: transaction.currency,
-        PurchaseType: transaction.purchase_type,
-        ProductName: item.name,
-        Quantity: item.quantity,
-        ProductPrice: item.price,
-        FabricVendorFee: item.vendor_charge?.fabric_vendor_fee ?? "",
-        FashionDesignerFee: item.vendor_charge?.fashion_designer_fee ?? "",
-        CreatedAt: transaction.created_at,
-        UpdatedAt: transaction.updated_at,
-        UserID: user.id,
-        UserEmail: user.email,
-        UserPhone: user.phone,
-        Address: profile.address,
-        State: profile.state,
-        Country: profile.country,
-      }));
-    }) || [];
+          return items.map((item) => ({
+            TransactionID: transaction.transaction_id,
+            PaymentStatus: transaction.payment_status,
+            PaymentMethod: transaction.payment_method,
+            Amount: transaction.amount,
+            Currency: transaction.currency,
+            PurchaseType: transaction.purchase_type,
+            ProductName: item.name,
+            Quantity: item.quantity,
+            ProductPrice: item.price,
+            FabricVendorFee: item.vendor_charge?.fabric_vendor_fee ?? "",
+            FashionDesignerFee: item.vendor_charge?.fashion_designer_fee ?? "",
+            CreatedAt: transaction.created_at,
+            UpdatedAt: transaction.updated_at,
+            UserID: user.id,
+            UserEmail: user.email,
+            UserPhone: user.phone,
+            Address: profile.address,
+            State: profile.state,
+            Country: profile.country,
+          }));
+        }) || [];
+
+  const closeTransferModal = () => {
+    setTransferModal({
+      isOpen: false,
+      operation: null,
+      withdrawal: null,
+    });
+  };
+
+  const handleTransferConfirm = (payload) => {
+    const { operation } = transferModal;
+
+    if (operation === "initiate") {
+      initiateTransfer(payload, {
+        onSuccess: () => closeTransferModal(),
+      });
+    } else if (operation === "finalize") {
+      // Finalize will auto-trigger verify on success
+      finalizeTransfer(payload, {
+        onSuccess: () => closeTransferModal(),
+      });
+    } else if (operation === "verify") {
+      verifyTransfer(payload, {
+        onSuccess: () => closeTransferModal(),
+      });
+    }
+  };
+
+  const getTransferLoading = () => {
+    const { operation } = transferModal;
+    if (operation === "initiate") return isInitiating;
+    if (operation === "finalize") return isFinalizing;
+    if (operation === "verify") return isVerifying;
+    return false;
+  };
+
+  const actions_col = [
+    {
+      action: (item) => {
+        return nav("/admin/transactions/" + item.id, {
+          viewTransition: true,
+        });
+      },
+      key: "view_details",
+      label: "View Details",
+    },
+  ];
 
   return (
     <>
-      <TransactionPayment />
+      <AnalyticsCards />
       <div className="bg-white p-6 rounded-xl overflow-x-auto">
         <div className="flex justify-between items-center mb-4">
           <div className="flex space-x-6">
@@ -475,7 +625,7 @@ const PaymentTransactionTable = () => {
               <AiOutlineSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
             <button
-              onClick={(e) => {
+              onClick={() => {
                 console.log(getAllTransactionData.data[0]);
               }}
               className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap flex items-center"
@@ -499,42 +649,48 @@ const PaymentTransactionTable = () => {
               <option value="excel">Export to Excel</option>{" "}
               <option value="pdf">Export to PDF</option>{" "}
             </select>
-            <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-              Report ▾
-            </button>
-            <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-              Bulk Action ▾
-            </button>
           </div>
         </div>
-        <div className="flex border-b border-gray-200 mb-4"></div>
-        {activeTab === "All Transactions" && (
-          <div className="flex items-center mb-4">
-            <input
-              type="checkbox"
-              checked={selectAll}
-              onChange={(e) => {
-                const newSelectAll = e.target.checked;
-                setSelectAll(newSelectAll);
-                const newSelected = new Set(
-                  newSelectAll ? data.map((item) => item.id) : [],
-                );
-                setSelectedRows(newSelected);
-              }}
-              className="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded mr-2"
-            />
-            <span className="text-sm text-gray-600">Select All</span>
+
+        {/* Sub-tabs for Payouts */}
+        {activeTab === "Payouts" && (
+          <div className="flex space-x-4 mb-4 border-b border-gray-100">
+            {["All", "Initiated"].map((subTab) => (
+              <button
+                key={subTab}
+                className={`text-sm font-medium pb-2 px-1 ${
+                  payoutSubTab === subTab
+                    ? "text-purple-600 border-b-2 border-purple-600"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+                onClick={() => {
+                  console.log("🎯 Switching to payout sub-tab:", subTab);
+                  setPayoutSubTab(subTab);
+                  setCurrentPage(1);
+                }}
+              >
+                {subTab === "All" ? "All Payouts" : subTab}
+              </button>
+            ))}
           </div>
         )}
-        <ReusableTable
+
+        <div className="flex border-b border-gray-200 mb-4"></div>
+        {/* <ReusableTable
           columns={columns}
           loading={isPending}
           data={TransactionData}
           rowClassName="border-none text-gray-700 text-sm"
           cellClassName="py-4"
+        />*/}
+        <CustomTable
+          columns={columns}
+          data={activeTab === "Payouts" ? WithdrawalData : TransactionData}
+          actions={activeTab === "Payouts" ? [] : actions_col}
+          loading={activeTab === "Payouts" ? isWithdrawalPending : isPending}
         />
-
-        {TransactionData?.length > 0 ? (
+        {(activeTab === "Payouts" ? WithdrawalData : TransactionData)?.length >
+        0 ? (
           <>
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center">
@@ -573,7 +729,14 @@ const PaymentTransactionTable = () => {
                     });
                   }}
                   disabled={
-                    (queryParams["pagination[page]"] ?? 1) == totalPages
+                    (queryParams["pagination[page]"] ?? 1) >=
+                    (activeTab === "Payouts"
+                      ? Math.ceil(
+                          (withdrawalData?.total ||
+                            withdrawalData?.data?.length ||
+                            0) / (queryParams["pagination[limit]"] ?? 10),
+                        )
+                      : totalPages)
                   }
                   className="px-3 py-1 rounded-md bg-gray-200"
                 >
@@ -583,7 +746,17 @@ const PaymentTransactionTable = () => {
             </div>
           </>
         ) : (
-          <></>
+          <div className="text-center py-8">
+            <p className="text-gray-500">
+              {activeTab === "Payouts" && isWithdrawalPending
+                ? "Loading withdrawal data..."
+                : activeTab === "Payouts"
+                  ? "No withdrawal requests found"
+                  : isPending
+                    ? "Loading transactions..."
+                    : "No transactions found"}
+            </p>
+          </div>
         )}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
@@ -593,6 +766,16 @@ const PaymentTransactionTable = () => {
         <div className="lg:col-span-1">
           <SalesSummaryChart />
         </div>
+
+        {/* Transfer Operations Modal */}
+        <TransferOperationsModal
+          isOpen={transferModal.isOpen}
+          operation={transferModal.operation}
+          withdrawal={transferModal.withdrawal}
+          onClose={closeTransferModal}
+          onConfirm={handleTransferConfirm}
+          isLoading={getTransferLoading()}
+        />
       </div>
     </>
   );

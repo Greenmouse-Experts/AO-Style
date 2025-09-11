@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { act, useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import { formatDateStr, formatNumberWithCommas } from "../../../lib/helper";
 import useQueryParams from "../../../hooks/useQueryParams";
@@ -15,73 +15,58 @@ import { CSVLink } from "react-csv";
 import ReusableTable from "../adminDashboard/components/ReusableTable";
 import useGetVendorOrder from "../../../hooks/order/useGetVendorOrder";
 import { useEffect } from "react";
+import { toast, ToastContainer } from "react-toastify";
+import { useMutation } from "@tanstack/react-query";
+import CustomTable from "../../../components/CustomTable";
+import CaryBinApi from "../../../services/CarybinBaseUrl";
 
-const orders = [
-  {
-    id: "01",
-    orderId: "ORD-123RFWJ2",
-    customer: "Funmi Daniels",
-    measurement: "View Measurement",
-    amount: "N 50,000",
-    dueDate: "10 Days Left",
-    status: "Ongoing",
-  },
-  {
-    id: "02",
-    orderId: "ORD-123RFWJ2",
-    customer: "Funmi Daniels",
-    measurement: "View Measurement",
-    amount: "N 50,000",
-    dueDate: "10 Days Left",
-    status: "Ongoing",
-  },
-  {
-    id: "03",
-    orderId: "ORD-123RFWJ2",
-    customer: "Funmi Daniels",
-    measurement: "View Measurement",
-    amount: "N 50,000",
-    dueDate: "10 Days Left",
-    status: "Completed",
-  },
-  {
-    id: "04",
-    orderId: "ORD-123RFWJ2",
-    customer: "Funmi Daniels",
-    measurement: "View Measurement",
-    amount: "N 50,000",
-    dueDate: "10 Days Left",
-    status: "Ongoing",
-  },
-  {
-    id: "05",
-    orderId: "ORD-123RFWJ2",
-    customer: "Funmi Daniels",
-    measurement: "View Measurement",
-    amount: "N 50,000",
-    dueDate: "10 Days Left",
-    status: "Cancelled",
-  },
-  {
-    id: "06",
-    orderId: "ORD-123RFWJ2",
-    customer: "Funmi Daniels",
-    measurement: "View Measurement",
-    amount: "N 50,000",
-    dueDate: "10 Days Left",
-    status: "Ongoing",
-  },
+const SEARCH_FIELDS = [
+  { label: "Order ID", value: "orderId" },
+  { label: "Customer", value: "customer" },
+  { label: "Product", value: "product" },
+  { label: "Amount", value: "amount" },
+  { label: "Status", value: "status" },
 ];
 
 const OrderPage = () => {
   const [filter, setFilter] = useState("all");
+  const [searchField, setSearchField] = useState("orderId");
   const [searchTerm, setSearchTerm] = useState("");
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [currentItem, setCurrentItem] = useState(null);
+  const nav = useNavigate();
+  const dialogRef = useRef(null);
+  const update_status = useMutation({
+    mutationFn: async (status) => {
+      return await CaryBinApi.put(`/orders/${currentItem.id}/status `, {
+        status,
+      });
+    },
+    onError: (err) => {
+      console.error(err);
+      toast.error(err?.data?.message || "error occured");
+    },
+    onSuccess: () => {
+      toast.success("status updated");
+      refetch();
 
-  const filteredOrders = orders.filter(
-    (order) =>
-      (filter === "all" || order.status.toLowerCase() === filter) &&
-      order.orderId.toLowerCase().includes(searchTerm.toLowerCase()),
+      setTimeout((handler) => {
+        toast.dismiss();
+        dialogRef.current.close();
+      }, 800);
+    },
+  });
+  const statusOptions = useMemo(
+    () => [
+      { value: "DELIVERED_TO_TAILOR", label: "Delivered to Tailor" },
+      { value: "PROCESSING", label: "Processing" },
+      { value: "SHIPPED", label: "Shipped" },
+      { value: "IN_TRANSIT", label: "In Transit" },
+      { value: "OUT_FOR_DELIVERY", label: "Out for Delivery" },
+      { value: "DELIVERED", label: "Delivered" },
+      { value: "CANCELLED", label: "Cancelled" },
+    ],
+    [],
   );
 
   const { queryParams, updateQueryParams } = useQueryParams({
@@ -89,29 +74,22 @@ const OrderPage = () => {
     "pagination[page]": 1,
   });
 
+  // Get all orders once, no search params
   const {
     isPending,
     isLoading,
     isError,
     data: orderData,
+    refetch,
   } = useGetVendorOrder({
     ...queryParams,
   });
 
   const columns = useMemo(
     () => [
-      { label: "Transaction ID", key: "transactionId" },
+      { label: "Order ID", key: "transactionId" },
       { label: "Customer", key: "customer" },
       { label: "Product", key: "product" },
-      // {
-      //   label: "Body Measurement",
-      //   key: "measurement",
-      //   render: (text) => (
-      //     <Link to="#" className="text-blue-500 hover:underline">
-      //       {text}
-      //     </Link>
-      //   ),
-      // },
       { label: "Amount", key: "amount" },
       { label: "Order Date", key: "dateAdded" },
       {
@@ -131,40 +109,31 @@ const OrderPage = () => {
           </span>
         ),
       },
-      {
-        label: "Action",
-        key: "action",
-        render: (_, row) => (
-          <div className="relative">
-            <button
-              onClick={() =>
-                setOpenDropdown(openDropdown === row.id ? null : row.id)
-              }
-              className="px-2 py-1 cursor-pointer rounded-md"
-            >
-              •••
-            </button>
-            {openDropdown === row.id && (
-              <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
-                <Link to={`/tailor/orders/orders-details?id=${row.id}`}>
-                  <button className="block cursor-pointer w-full text-left px-4 py-2 hover:bg-gray-100">
-                    View Details
-                  </button>
-                </Link>
-                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
-                  Cancel Order
-                </button>
-                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
-                  Track Order
-                </button>
-              </div>
-            )}
-          </div>
-        ),
-      },
     ],
     [openDropdown],
   );
+  const actions = [
+    // {
+    //   key: "update-status",
+    //   label: "Update Status",
+    //   action: (item) => {
+    //     setCurrentItem(item);
+    //     dialogRef.current.showModal();
+    //   },
+    // },
+    {
+      label: "View Details",
+      key: "view-details",
+      action: (item) => {
+        return nav(`/tailor/orders/orders-details/${item.id}`);
+        // <Link to={}>
+        //   <button className="block cursor-pointer w-full text-left px-4 py-2 hover:bg-gray-100">
+        //     View Details
+        //   </button>
+        // </Link>;
+      },
+    },
+  ];
 
   const fabricOrderData = useMemo(
     () =>
@@ -172,7 +141,7 @@ const OrderPage = () => {
         ? orderData?.data.map((details) => {
             return {
               ...details,
-              transactionId: `${details?.payment?.transaction_id}`,
+              transactionId: `${details?.payment?.id ? details.payment.id.replace(/-/g, "").slice(0, 12).toUpperCase() : ""}`,
               customer:
                 details?.user?.email?.length > 15
                   ? `${details?.user?.email.slice(0, 15)}...`
@@ -185,7 +154,7 @@ const OrderPage = () => {
                     )}...`
                   : details?.payment?.purchase?.items[0]?.name,
               amount: `${formatNumberWithCommas(
-                details?.payment?.amount ?? 0,
+                details?.payment?.purchase?.items[1]?.vendor_amount ?? 0,
               )}`,
 
               status: `${details?.payment?.payment_status}`,
@@ -203,21 +172,45 @@ const OrderPage = () => {
     [orderData?.data],
   );
 
+  // Simple search filtering - works for all fields
+  const filteredOrderData = useMemo(() => {
+    if (!searchTerm.trim()) return fabricOrderData;
+    const term = searchTerm.toLowerCase().trim();
+
+    return fabricOrderData.filter((row) => {
+      switch (searchField) {
+        case "orderId":
+          return row.transactionId?.toLowerCase().includes(term);
+        case "customer":
+          return row.customer?.toLowerCase().includes(term);
+        case "product":
+          return row.product?.toLowerCase().includes(term);
+        case "amount":
+          return row.amount
+            ?.toString()
+            .replace(/[₦,\s]/g, "")
+            .includes(term.replace(/[₦,\s]/g, ""));
+        case "status":
+          return row.status?.toLowerCase().includes(term);
+        default:
+          return false;
+      }
+    });
+  }, [fabricOrderData, searchField, searchTerm]);
+
   const totalPages = Math.ceil(
     orderData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
-  const [queryString, setQueryString] = useState(queryParams.q);
+  // Debounce search term for better UX (optional, but keeps UI snappy)
+  const debouncedSearchTerm = useDebounce(searchTerm ?? "", 200);
 
-  const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
-
+  // Update search params when search field or term changes (only for pagination, not for search)
   useUpdatedEffect(() => {
-    // update search params with undefined if debouncedSearchTerm is an empty string
     updateQueryParams({
-      q: debouncedSearchTerm.trim() || undefined,
       "pagination[page]": 1,
     });
-  }, [debouncedSearchTerm]);
+  }, [searchField, debouncedSearchTerm]);
 
   const handleExport = (e) => {
     const value = e.target.value;
@@ -227,7 +220,7 @@ const OrderPage = () => {
   };
 
   const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(fabricOrderData);
+    const worksheet = XLSX.utils.json_to_sheet(filteredOrderData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
     const excelBuffer = XLSX.write(workbook, {
@@ -246,7 +239,7 @@ const OrderPage = () => {
       head: [
         ["Transaction ID", "Customer", "Product", "Amount", "Date", "Status"],
       ],
-      body: fabricOrderData?.map((row) => [
+      body: filteredOrderData?.map((row) => [
         row.transactionId,
         row.customer,
         row.product,
@@ -324,25 +317,32 @@ const OrderPage = () => {
 
           {/* Search & Actions */}
           <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-            <div className="relative w-full sm:w-auto">
-              <Search
-                className="absolute left-3 top-3 text-gray-400"
-                size={18}
-              />
-              <input
-                type="text"
-                placeholder="Search"
-                className="w-full sm:w-[200px] pl-10 pr-4 py-2 border border-gray-200 rounded-md outline-none"
-                value={queryString}
-                onChange={(evt) =>
-                  setQueryString(
-                    evt.target.value ? evt.target.value : undefined,
-                  )
-                }
-              />
+            <div className="flex gap-2 w-full sm:w-auto">
+              <select
+                value={searchField}
+                onChange={(e) => setSearchField(e.target.value)}
+                className="bg-gray-100 outline-none text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
+              >
+                {SEARCH_FIELDS.map((field) => (
+                  <option key={field.value} value={field.value}>
+                    {field.label}
+                  </option>
+                ))}
+              </select>
+              <div className="relative w-full sm:w-auto">
+                <Search
+                  className="absolute left-3 top-3 text-gray-400"
+                  size={18}
+                />
+                <input
+                  type="text"
+                  placeholder={`Search by ${SEARCH_FIELDS.find((f) => f.value === searchField)?.label || "Keyword"}...`}
+                  className="w-full sm:w-[200px] pl-10 pr-4 py-2 border border-gray-200 rounded-md outline-none"
+                  value={searchTerm}
+                  onChange={(evt) => setSearchTerm(evt.target.value)}
+                />
+              </div>
             </div>
-            {/* <button className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md text-sm">Export As ▼</button>
-                        <button className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md text-sm">Sort: Newest First ▼</button> */}
             <select
               onChange={handleExport}
               className="bg-gray-100 mt-2  md:ml-8 outline-none text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
@@ -350,13 +350,13 @@ const OrderPage = () => {
               <option value="" disabled selected>
                 Export As
               </option>
-              8<option value="csv">Export to CSV</option>{" "}
+              <option value="csv">Export to CSV</option>{" "}
               <option value="excel">Export to Excel</option>{" "}
               <option value="pdf">Export to PDF</option>{" "}
             </select>
             <CSVLink
               id="csvDownload"
-              data={fabricOrderData?.map((row) => ({
+              data={filteredOrderData?.map((row) => ({
                 "Transaction ID": row.transactionId,
                 Customer: row.customer,
                 Product: row.product,
@@ -371,13 +371,27 @@ const OrderPage = () => {
         </div>
 
         {/* Table Section */}
-        <ReusableTable
-          loading={isPending}
-          columns={columns}
-          data={fabricOrderData}
-        />
+        {isPending ? (
+          <div
+            className="flex justify-center items-center h-full"
+            data-theme="nord"
+          >
+            <div className="">
+              <div className="loading loading-ball"></div>
+              loading
+            </div>
+          </div>
+        ) : (
+          <CustomTable
+            columns={columns}
+            data={filteredOrderData}
+            actions={actions}
+          />
+        )}
 
-        {!fabricOrderData?.length && !isPending ? (
+        {/* <CustomTable columns={columns} data={fabricOrderData} />*/}
+
+        {!filteredOrderData?.length && !isPending ? (
           <p className="flex-1 text-center text-sm md:text-sm">
             No Order found.
           </p>
@@ -385,7 +399,7 @@ const OrderPage = () => {
           <></>
         )}
 
-        {fabricOrderData?.length > 0 && (
+        {filteredOrderData?.length > 0 && (
           <div className="flex justify-between items-center mt-4">
             <div className="flex items-center">
               <p className="text-sm text-gray-600">Items per page: </p>
@@ -431,6 +445,164 @@ const OrderPage = () => {
           </div>
         )}
       </div>
+      <dialog
+        ref={dialogRef}
+        data-theme="nord"
+        id="my_modal_1"
+        className="modal"
+      >
+        <ToastContainer />
+        <div className="modal-box  max-w-2xl ">
+          <h3 className="font-bold text-lg mb-4">Update Order Status</h3>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              return console.log(currentItem);
+
+              let form = new FormData(e.target);
+              let status = form.get("status");
+              // return console.log(status);
+              toast.promise(
+                async () =>
+                  // .catch((err) =>
+                  //   toast.error(
+                  //     err?.data?.message.toLowerCase() || "failed",
+                  //   ),
+                  // )
+                  (await update_status.mutateAsync(status)).data,
+                {
+                  pending: "pending",
+                  // success: `status changed ${status}`,
+                },
+              );
+            }}
+            className="space-y-4"
+          >
+            <></>
+            {currentItem && (
+              <>
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Order ID</span>
+                  </label>
+                  <input
+                    disabled
+                    type="text"
+                    value={currentItem.id || ""}
+                    readOnly
+                    className="input input-bordered w-full"
+                  />
+                </div>
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Customer Name</span>
+                  </label>
+                  <input
+                    disabled
+                    type="text"
+                    value={currentItem.customer || ""}
+                    readOnly
+                    className="input input-bordered w-full"
+                  />
+                </div>
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Product</span>
+                  </label>
+                  <input
+                    disabled
+                    type="text"
+                    value={currentItem.product || ""}
+                    readOnly
+                    className="input input-bordered w-full"
+                  />
+                </div>
+
+                {/* Status Progress Bar */}
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Order Status Progress</span>
+                  </label>
+                  <div className="w-full flex flex-col gap-2">
+                    <ul className="steps w-full">
+                      {statusOptions.map((option, idx) => {
+                        // Find the index of the current status in statusOptions
+                        const currentStatusIndex = statusOptions.findIndex(
+                          (opt) => opt.value === currentItem.status,
+                        );
+                        // DaisyUI: step-primary for completed, step for pending
+                        const stepClass =
+                          idx <= currentStatusIndex
+                            ? "step step-primary"
+                            : "step";
+                        return (
+                          <li key={option.value} className={stepClass}>
+                            <span className="text-xs">{option.label}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                </div>
+                {/* Status Select */}
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Order Status</span>
+                  </label>
+                  <select
+                    name="status"
+                    className="select select-bordered w-full"
+                    defaultValue={currentItem.orderStatus || "PROCESSING"}
+                    onChange={(e) => {
+                      // In a real application, you'd likely manage this with useState for actual updates
+                      // For now, we're just displaying the selected value.
+                      // This would be the place to call a function to update the backend.
+                      console.log("Selected new status:", e.target.value);
+                    }}
+                  >
+                    {statusOptions.map((option, idx) => {
+                      // Find the index of the current status in statusOptions
+                      const currentStatusIndex = statusOptions.findIndex(
+                        (opt) => opt.value === currentItem.orderStatus,
+                      );
+                      // Disable options that are before the current status
+                      const isDisabled = idx < currentStatusIndex;
+                      return (
+                        <option
+                          key={option.value}
+                          value={option.value}
+                          disabled={isDisabled}
+                        >
+                          {option.label}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              </>
+            )}
+
+            <div className="modal-action">
+              <button
+                type="submit"
+                className="btn"
+                onClick={() => dialogRef.current.close()}
+              >
+                Close
+              </button>
+              <button
+                disabled={update_status.isPending}
+                type="submit"
+                className="btn btn-primary text-white"
+              >
+                Update Status
+              </button>
+              {/* In a real scenario, you'd have an update button here */}
+              {/* <button type="button" className="btn btn-primary">Update Status</button> */}
+            </div>
+          </form>
+        </div>
+      </dialog>
     </div>
   );
 };

@@ -12,8 +12,44 @@ const ProtectedRoute = ({ children, isAdminRoute = false }) => {
     const checkAuth = async () => {
       try {
         const authData = sessionManager.getAuthData();
+        const currentPath = location.pathname;
+
+        console.log("🔍 ProtectedRoute: Checking authentication", {
+          hasAuthData: !!authData,
+          currentPath,
+          isAdminRoute,
+        });
 
         if (!authData) {
+          console.log("❌ ProtectedRoute: No auth data found");
+          setIsAuthenticated(false);
+          setIsChecking(false);
+          return;
+        }
+
+        // For Google SSO or tokens without refresh capability
+        if (!authData.refreshToken) {
+          if (sessionManager.isTokenExpired()) {
+            console.log(
+              "🚪 ProtectedRoute: Access token expired (no refresh), logging out",
+            );
+            sessionManager.performLogout();
+            setIsAuthenticated(false);
+            setIsChecking(false);
+            return;
+          }
+          setIsAuthenticated(true);
+          setIsChecking(false);
+          return;
+        }
+
+        // Check if both tokens are expired
+        if (
+          sessionManager.isTokenExpired() &&
+          sessionManager.isRefreshTokenExpired()
+        ) {
+          console.log("🚪 ProtectedRoute: Both tokens expired, forcing logout");
+          sessionManager.performLogout();
           setIsAuthenticated(false);
           setIsChecking(false);
           return;
@@ -21,7 +57,9 @@ const ProtectedRoute = ({ children, isAdminRoute = false }) => {
 
         // Check if refresh token is expired
         if (sessionManager.isRefreshTokenExpired()) {
-          console.log("🚪 ProtectedRoute: Refresh token expired, logging out");
+          console.log(
+            "🚪 ProtectedRoute: Refresh token expired, forcing logout",
+          );
           sessionManager.performLogout();
           setIsAuthenticated(false);
           setIsChecking(false);
@@ -30,20 +68,22 @@ const ProtectedRoute = ({ children, isAdminRoute = false }) => {
 
         // If access token is expired but refresh token is valid, try to refresh
         if (sessionManager.isTokenExpired()) {
-          console.log("🔄 ProtectedRoute: Access token expired, refreshing...");
+          console.log(
+            "🔄 ProtectedRoute: Access token expired, attempting refresh...",
+          );
 
           try {
             const refreshSuccess = await sessionManager.refreshAccessToken();
 
             if (!refreshSuccess) {
-              console.log(
-                "❌ ProtectedRoute: Refresh failed, redirecting to login",
-              );
-              sessionManager.handleSessionExpiry();
+              console.log("❌ ProtectedRoute: Refresh failed, forcing logout");
+              sessionManager.performLogout();
               setIsAuthenticated(false);
               setIsChecking(false);
               return;
             }
+
+            console.log("✅ ProtectedRoute: Token refresh successful");
           } catch (refreshError) {
             console.error(
               "❌ ProtectedRoute: Token refresh error:",
@@ -56,6 +96,8 @@ const ProtectedRoute = ({ children, isAdminRoute = false }) => {
           }
         }
 
+        // Update activity on successful auth check
+        sessionManager.updateActivity();
         setIsAuthenticated(true);
       } catch (error) {
         console.error("❌ ProtectedRoute: Auth check failed", error);
@@ -67,22 +109,58 @@ const ProtectedRoute = ({ children, isAdminRoute = false }) => {
     };
 
     checkAuth();
-  }, [location.pathname]);
 
-  // Show loading while checking authentication
+    // Set up periodic auth checks
+    const authCheckInterval = setInterval(() => {
+      const authData = sessionManager.getAuthData();
+      if (!authData || sessionManager.isRefreshTokenExpired()) {
+        console.log("🔍 ProtectedRoute: Periodic check failed, logging out");
+        sessionManager.performLogout();
+        setIsAuthenticated(false);
+      }
+    }, 30000); // Check every 30 seconds
+
+    return () => clearInterval(authCheckInterval);
+  }, [location.pathname, isAdminRoute]);
+
+  // Handle session expiry events
+  useEffect(() => {
+    const handleSessionEvent = (event) => {
+      if (event.type === "logout") {
+        console.log("🚪 ProtectedRoute: Received logout event");
+        setIsAuthenticated(false);
+      }
+    };
+
+    const unsubscribe = sessionManager.onSessionExpiry(handleSessionEvent);
+    return unsubscribe;
+  }, []);
+
   if (isChecking) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Checking authentication...</p>
+        </div>
       </div>
     );
   }
 
-  // Redirect to appropriate login page if not authenticated
   if (!isAuthenticated) {
-    const loginPath = isAdminRoute ? "/admin/login" : "/login";
-    console.log("🔐 ProtectedRoute: Redirecting to login:", loginPath);
-    return <Navigate to={loginPath} replace state={{ from: location }} />;
+    // Determine appropriate login path
+    let loginPath = "/login";
+
+    if (isAdminRoute || location.pathname.includes("/admin")) {
+      loginPath = "/admin/login";
+    }
+
+    console.log("🔄 ProtectedRoute: Redirecting to login", {
+      from: location.pathname,
+      to: loginPath,
+    });
+
+    return <Navigate to={loginPath} state={{ from: location }} replace />;
   }
 
   return children;

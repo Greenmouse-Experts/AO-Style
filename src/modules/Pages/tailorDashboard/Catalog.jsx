@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, MoreVertical } from "lucide-react";
+import { Search, MoreVertical, MenuIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails";
 import useQueryParams from "../../../hooks/useQueryParams";
@@ -22,10 +22,11 @@ import { CSVLink } from "react-csv";
 import useToast from "../../../hooks/useToast";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
 import { toast } from "react-toastify";
+import { usePopper } from "react-popper";
 
 export default function StylesTable() {
   const [newCategory, setNewCategory] = useState();
-
+  const { style, attributes } = usePopper();
   const [currProd, setCurrProd] = useState("all");
 
   const isAdminStyleRoute = location.pathname === "/admin/styles-products";
@@ -311,9 +312,9 @@ export default function StylesTable() {
               filename="StylesCatalog.csv"
               className="hidden"
             />{" "}
-            <button className="px-4 py-2 bg-gray-200 rounded-md text-sm">
+            {/* <button className="px-4 py-2 bg-gray-200 rounded-md text-sm">
               Sort: Newest ▼
-            </button>
+            </button>*/}
           </div>
         </div>
 
@@ -329,15 +330,16 @@ export default function StylesTable() {
           <>
             {" "}
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse mb-12">
                 <thead>
                   <tr className="border-b border-gray-200 text-gray-500 text-sm">
+                    <th className="py-3">SKU</th>
                     <th className="py-3">Style</th>
                     <th className="hidden md:table-cell">Price</th>
                     {/* <th className="hidden md:table-cell">Sold</th> */}
                     <th>Status</th>
-                    <th className="hidden md:table-cell">Rating</th>
-                    <th className="hidden md:table-cell">Income</th>
+                    {/* <th className="hidden md:table-cell">Rating</th>
+                    <th className="hidden md:table-cell">Income</th>*/}
                     <th>Action</th>
                   </tr>
                 </thead>
@@ -348,6 +350,7 @@ export default function StylesTable() {
                       key={style.id}
                       className="border-b border-gray-200 text-sm"
                     >
+                      <td>{style.sku}</td>
                       <td className="flex items-center space-x-3 py-4">
                         {style?.style?.photos[0] ? (
                           <img
@@ -396,8 +399,8 @@ export default function StylesTable() {
                           {style.status}
                         </span>
                       </td>
-                      <td className="hidden md:table-cell">{style.rating}</td>
-                      <td className="hidden md:table-cell">{style.income}</td>
+                      {/* <td className="hidden md:table-cell">{style.rating}</td>
+                      <td className="hidden md:table-cell">{style.income}</td>*/}
                       <td className="relative">
                         <button
                           className="cursor-pointer"
@@ -407,10 +410,10 @@ export default function StylesTable() {
                             )
                           }
                         >
-                          <MoreVertical className="text-gray-500" />
+                          <MenuIcon className="label" />
                         </button>
                         {openDropdown === style.id && (
-                          <div className="absolute cursor-pointer right-0 mt-2 bg-white shadow-md rounded-md py-2 w-32 z-50">
+                          <div className="absolute cursor-pointer right-0 mt-2 bg-white shadow-md rounded-md py-2 w-32 z-[10000]">
                             {!isAdminStyleRoute || isAdminStyleRoute ? (
                               <Link
                                 to={
@@ -421,7 +424,7 @@ export default function StylesTable() {
                                 state={{ info: style }}
                                 className="block  cursor-pointer w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
                               >
-                                {isAdminStyleRoute ? "View" : "Edit"}
+                                {isAdminStyleRoute ? "View" : "View/Edit"}
                               </Link>
                             ) : currProd == "all" ? (
                               <></>
@@ -435,7 +438,7 @@ export default function StylesTable() {
                                 state={{ info: style }}
                                 className="block  cursor-pointer w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
                               >
-                                Edit
+                                View/Edit
                               </Link>
                             )}
 
@@ -444,10 +447,12 @@ export default function StylesTable() {
                                 <button
                                   onClick={async (e) => {
                                     let buisnss_id = businessDetails.data;
+                                    const new_id = style.business_info.id;
+
                                     toast.promise(
                                       async () => {
                                         let resp = await CaryBinApi.patch(
-                                          "/style/" + style.id,
+                                          "/manage-style/" + style.id,
                                           {
                                             product: {
                                               status:
@@ -459,11 +464,11 @@ export default function StylesTable() {
                                           },
                                           {
                                             headers: {
-                                              "Business-Id": buisnss_id.id,
+                                              "Business-Id": new_id,
                                             },
                                           },
                                         );
-                                        refetch();
+
                                         return resp.data;
                                       },
                                       {
@@ -472,6 +477,7 @@ export default function StylesTable() {
                                         error: "error",
                                       },
                                     );
+                                    refetch();
                                   }}
                                   className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
                                 >
@@ -482,7 +488,7 @@ export default function StylesTable() {
                                 {style.status != "ARCHIVED" && (
                                   <>
                                     {" "}
-                                    <button
+                                    {/* <button
                                       onClick={async (e) => {
                                         let buisnss_id = businessDetails.data;
                                         toast.promise(
@@ -514,7 +520,7 @@ export default function StylesTable() {
                                       className="block w-full cursor-pointer text-left px-4 py-2 text-sm hover:bg-gray-100"
                                     >
                                       Archive
-                                    </button>
+                                    </button>*/}
                                   </>
                                 )}
                                 <Link
@@ -526,7 +532,7 @@ export default function StylesTable() {
                                 </Link>
                               </>
                             )}
-                            {style?.status === "DRAFT" ? (
+                            {/* {style?.status === "DRAFT" ? (
                               <button
                                 onClick={() => {
                                   if (isAdminStyleRoute) {
@@ -573,7 +579,7 @@ export default function StylesTable() {
                                   ? "Please wait..."
                                   : "Publish Style"}
                               </button>
-                            ) : null}
+                            ) : null}*/}
 
                             <button
                               onClick={() => {

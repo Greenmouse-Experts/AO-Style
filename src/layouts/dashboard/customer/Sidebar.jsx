@@ -14,7 +14,6 @@ import {
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useToast from "../../../hooks/useToast";
 import useSessionManager from "../../../hooks/useSessionManager";
-import Cookies from "js-cookie";
 import { useState } from "react";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
@@ -43,7 +42,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   };
 
   return (
-    <div className="relative">
+    <div className="relative ">
       {/* Sidebar */}
       <div
         className={`fixed lg:relative top-0 left-0 h-screen bg-gradient p-5 flex flex-col transition-transform duration-300 z-40 overflow-y-auto ${
@@ -81,7 +80,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             text="Select Styles"
             onClick={handleClick}
           />
-
           <SidebarItem
             to="/customer/orders"
             icon={<FaShoppingCart />}
@@ -138,11 +136,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               className="w-12 h-12 rounded-full mr-3"
             />
           ) : (
-            <>
-              <div className="w-12 h-12 mr-3 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white">
-                {carybinUser?.name?.charAt(0).toUpperCase() || "?"}
-              </div>
-            </>
+            <div className="w-12 h-12 mr-3 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white">
+              {carybinUser?.name?.charAt(0).toUpperCase() || "?"}
+            </div>
           )}
           <div>
             <p className="text-sm font-semibold leading-loose text-white">
@@ -173,7 +169,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
       {isAddModalOpen && (
         <div
-          className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
+          className="fixed inset-0 flex justify-center items-center z-[999] backdrop-blur-sm"
           onClick={() => {
             setIsAddModalOpen(false);
           }}
@@ -194,7 +190,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               </button>
             </div>
             <div className="max-h-[80vh] overflow-y-auto px-1">
-              {" "}
               <label className="block text-sm font-medium text-gray-700 mb-4">
                 Are you sure you want to logout
               </label>
@@ -213,7 +208,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                   }}
                   className="w-full cursor-pointer bg-gradient text-white px-4 py-4 rounded-md text-sm font-medium"
                 >
-                  {"Logout"}
+                  Logout
                 </button>
               </div>
             </div>

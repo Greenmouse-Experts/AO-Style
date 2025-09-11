@@ -15,8 +15,15 @@ import CaryBinApi from "../../CarybinBaseUrl";
  */
 const addToCart = async (payload) => {
   try {
-    console.log("🛒 Adding item to cart:", payload);
-    const response = await CaryBinApi.post(`/cart/add`, payload);
+    // Include style pricing if style is present
+    const enhancedPayload = { ...payload };
+    if (payload.style_product_id && payload.style_price) {
+      enhancedPayload.style_price = parseFloat(payload.style_price);
+      console.log("🛒 Style price included:", enhancedPayload.style_price);
+    }
+
+    console.log("🛒 Adding item to cart:", enhancedPayload);
+    const response = await CaryBinApi.post(`/cart/add`, enhancedPayload);
     console.log("✅ Item added to cart successfully:", response.data);
     return response;
   } catch (error) {
@@ -84,6 +91,11 @@ const updateCartItem = async (payload) => {
     // Add style if provided
     if (payload.style_product_id) {
       updateData.style_product_id = payload.style_product_id;
+    }
+
+    // Add style price if provided
+    if (payload.style_price !== undefined) {
+      updateData.style_price = parseFloat(payload.style_price);
     }
 
     // Add measurement if provided
@@ -272,6 +284,38 @@ const removeCoupon = async () => {
 const createPayment = async (payload) => {
   try {
     console.log("💳 Creating payment for cart:", payload);
+
+    // Enhanced logging for payment structure
+    if (payload.purchases) {
+      console.log("🛍️ Payment purchases:", {
+        totalPurchases: payload.purchases.length,
+        fabricCount: payload.purchases.filter(
+          (p) => p.purchase_type === "FABRIC",
+        ).length,
+        styleCount: payload.purchases.filter((p) => p.purchase_type === "STYLE")
+          .length,
+        purchases: payload.purchases.map((p) => ({
+          id: p.purchase_id,
+          type: p.purchase_type,
+          quantity: p.quantity,
+        })),
+      });
+    }
+
+    if (payload.metadata) {
+      console.log("📏 Payment metadata:", {
+        metadataCount: payload.metadata.length,
+        styleItems: payload.metadata.map((m) => ({
+          style_id: m.style_product_id,
+          style_name: m.style_product_name,
+          has_measurements: Array.isArray(m.measurement)
+            ? m.measurement.length > 0
+            : !!m.measurement,
+          customer: m.customer_name,
+        })),
+      });
+    }
+
     const response = await CaryBinApi.post(`/payment/create`, payload);
     console.log("✅ Payment created successfully:", response.data);
     return response;
@@ -280,6 +324,14 @@ const createPayment = async (payload) => {
       "❌ Error creating payment:",
       error.response?.data || error.message,
     );
+    console.error("❌ Failed payload structure:", {
+      hasPurchases: !!payload.purchases,
+      purchaseCount: payload.purchases?.length || 0,
+      hasMetadata: !!payload.metadata,
+      metadataCount: payload.metadata?.length || 0,
+      amount: payload.amount,
+      currency: payload.currency,
+    });
     throw error;
   }
 };
@@ -312,9 +364,10 @@ const verifyPayment = async (payload) => {
  */
 const calculateCartTotals = (cartItems = []) => {
   const subtotal = cartItems.reduce((total, item) => {
-    const price = parseFloat(item.price || item.price_at_time || 0);
+    const fabricPrice = parseFloat(item.price || item.price_at_time || 0);
+    const stylePrice = parseFloat(item.style_product?.price || 0);
     const quantity = parseInt(item.quantity || 1);
-    return total + price * quantity;
+    return total + fabricPrice * quantity + stylePrice;
   }, 0);
 
   const tax = subtotal * 0.1; // 10% tax (adjust as needed)

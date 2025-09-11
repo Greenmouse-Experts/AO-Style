@@ -9,12 +9,14 @@ import NotificationPage from "../modules/Pages/fabricDashboard/NotificationPage"
 import TransactionPage from "../modules/Pages/fabricDashboard/TransactionPage";
 import Settings from "../modules/Pages/fabricDashboard/Settings";
 import InboxPage from "../modules/Pages/fabricDashboard/Inbox";
-import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
+import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPageUpdate";
 import Coupons from "../modules/Pages/Coupons";
 import FabricAnnouncementsPage from "../modules/Pages/fabricDashboard/Announcements";
 import ProtectedRoute from "../components/ProtectedRoute";
 import Subscriptions from "../modules/Pages/tailorDashboard/Subscription";
 import ViewFabricProduct from "../modules/Pages/fabricDashboard/ViewProduct";
+import NotificationsSinglePage from "../components/notifications/NotificationsSingle";
+import ViewTransactionDetail from "../components/ViewTransactionDetails";
 
 export const fabricRoutes = [
   {
@@ -62,12 +64,16 @@ export const fabricRoutes = [
         element: <ShopMaterial />,
       },
       {
-        path: "/fabric/orders/orders-details",
+        path: "/fabric/orders/orders-details/:id",
         element: <OrdersDetails />,
       },
       {
         path: "/fabric/notifications",
         element: <NotificationPageUpdate />,
+      },
+      {
+        path: "/fabric/notification/:id",
+        element: <NotificationsSinglePage />,
       },
       {
         path: "/fabric/inbox",
@@ -80,6 +86,10 @@ export const fabricRoutes = [
       {
         path: "/fabric/transactions",
         element: <TransactionPage />,
+      },
+      {
+        path: "/fabric/transactions/:id",
+        element: <ViewTransactionDetail />,
       },
       {
         path: "/fabric/settings",

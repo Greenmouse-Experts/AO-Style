@@ -6,21 +6,35 @@ const getWithdrawal = (params) => {
   });
 };
 
+const getAllWithdrawals = (params) => {
+  return CaryBinApi.get(`/withdraw/fetch-all`, {
+    params,
+  });
+};
+
 const createWithdrawal = (payload) => {
   return CaryBinApi.post(`/withdraw/request`, payload);
 };
 
-// const editProduct = (payload) => {
-//   return CaryBinApi.patch(`/product-category/${payload.id}`, payload);
-// };
+const initiateTransfer = (payload) => {
+  return CaryBinApi.post(`/withdraw/initiate`, payload);
+};
 
-// const deleteProduct = (payload) => {
-//   return CaryBinApi.delete(`/product-category/${payload.id}`, payload);
-// };
+const finalizeTransfer = (payload) => {
+  return CaryBinApi.post(`/withdraw/finalize-transfer`, payload);
+};
+
+const verifyTransfer = (payload) => {
+  return CaryBinApi.post(`/withdraw/verify-transfer`, payload);
+};
 
 const WithdrawalService = {
   createWithdrawal,
   getWithdrawal,
+  getAllWithdrawals,
+  initiateTransfer,
+  finalizeTransfer,
+  verifyTransfer,
 };
 
 export default WithdrawalService;

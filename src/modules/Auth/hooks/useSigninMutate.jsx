@@ -63,6 +63,10 @@ const useSignIn = (email, resendCodeMutate) => {
           "approvedByAdmin",
           data?.data?.data?.profile?.approved_by_admin,
         );
+        Cookies.set(
+          "userAddress",
+          JSON.stringify(data?.data?.data?.profile?.address),
+        );
         console.log(data);
 
         // Store auth data in session manager

@@ -589,7 +589,7 @@ const AddProduct = () => {
               </div> */}
               <div>
                 <label className="block text-gray-700 mb-4">
-                  Weight per unit
+                  Weight per yard
                 </label>
                 <input
                   type="number"
@@ -598,7 +598,7 @@ const AddProduct = () => {
                   min={0}
                   value={values.weight_per_unit}
                   onChange={handleChange}
-                  placeholder="Enter the weight per unit (minimum 0)"
+                  placeholder="Enter the weight per yard (minimum 0)"
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 />
               </div>
@@ -809,11 +809,11 @@ const AddProduct = () => {
               </div>{" "}
             </div>
 
-            {/* Price per unit */}
+            {/* Price per yard */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-gray-700 mb-4">
-                  Price per unit
+                  Price per yard
                 </label>
                 <div className="flex items-center">
                   <span className="p-5 bg-gray-200 rounded-l-md">₦</span>
@@ -823,7 +823,7 @@ const AddProduct = () => {
                     required
                     value={values.price}
                     onChange={handleChange}
-                    placeholder="Enter amount per unit"
+                    placeholder="Enter amount per yard"
                     className="w-full p-4 border-t border-r border-b outline-none border-gray-300 rounded-r-md"
                   />
                 </div>
@@ -867,7 +867,7 @@ const AddProduct = () => {
                   Product Description
                 </label>
                 <textarea
-                  placeholder="Enter the style description"
+                  placeholder="Enter the fabric description"
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 h-32 outline-none"
                   required
                   type="text"
@@ -1233,6 +1233,11 @@ const AddProduct = () => {
                 {" "}
                 <button
                   type="submit"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleSubmit();
+                    // console.log(businessDetails);
+                  }}
                   disabled={
                     isPending ||
                     uploadVideoIsPending ||

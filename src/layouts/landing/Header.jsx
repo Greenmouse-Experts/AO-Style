@@ -49,6 +49,7 @@ export default function Navbar() {
   const handleSignOut = () => {
     toastSuccess("Logout Successfully");
     logOut();
+    window.location.href = "/login";
     Cookies.remove("token");
     setIsAddModalOpen(false);
     localStorage.setItem("logout", Date.now().toString());
@@ -465,7 +466,7 @@ export default function Navbar() {
       </nav>
       {isAddModalOpen && (
         <div
-          className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
+          className="fixed inset-0 flex justify-center items-center z-[999] backdrop-blur-sm"
           onClick={() => {
             setIsAddModalOpen(false);
           }}

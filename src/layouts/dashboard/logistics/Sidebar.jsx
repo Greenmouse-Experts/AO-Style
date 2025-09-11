@@ -117,7 +117,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <SidebarItem
             to="/logistics/order-requests"
             icon={<FaStore />}
-            text="Order Requests"
+            text="Ongoing Orders"
             toggleSidebar={toggleSidebar}
           />
           <SidebarItem

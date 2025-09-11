@@ -23,7 +23,11 @@ const getUserSubscription = (params, role) => {
     params,
   });
 };
-
+const switchSubscriptionPlan = (payload) => {
+  return CaryBinApi.post(`/subscription/upgrade/${payload.subscription_id}`, {
+    new_plan_price_id: payload.new_plan_price_id,
+  });
+};
 const verifySubPayment = (payload) => {
   return CaryBinApi.post(`/subscription/verify/${payload?.id}`);
 };
@@ -40,6 +44,7 @@ const SubscriptionService = {
   updateSubscription,
   deleteSubscription,
   verifySubPayment,
+  switchSubscriptionPlan,
 };
 
 export default SubscriptionService;

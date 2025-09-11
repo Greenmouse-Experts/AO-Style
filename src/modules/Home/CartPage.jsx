@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Breadcrumb from "./components/Breadcrumb";
 import useGetCart from "../../hooks/cart/useGetCart";
 import LoaderComponent from "../../components/BeatLoader";
@@ -9,6 +9,7 @@ import { useCarybinUserStore } from "../../store/carybinUserStore";
 import useVerifyPayment from "../../hooks/cart/useVerifyPayment";
 import Cookies from "js-cookie";
 import useToast from "../../hooks/useToast";
+import useGetUserProfile from "../Auth/hooks/useGetProfile";
 import { useFormik } from "formik";
 import Select from "react-select";
 import { nigeriaStates } from "../../constant";
@@ -16,7 +17,7 @@ import PhoneInput from "react-phone-input-2";
 import useCreateBilling from "../../hooks/billing/useCreateBilling";
 import useApplyCoupon from "../../hooks/cart/useApplyCoupon";
 import useGetDeliveryFee from "../../hooks/delivery/useGetDeleiveryFee";
-import useUpdateCartItem from "../../hooks/cart/useUpdateCartItem";
+
 import {
   X,
   Download,
@@ -24,8 +25,6 @@ import {
   ZoomOut,
   Maximize2,
   Minimize2,
-  Plus,
-  Minus,
   Trash2,
   User,
   Calendar,
@@ -35,6 +34,8 @@ import {
 import { formatNumberWithCommas } from "../../lib/helper";
 import CartItemStyle from "./components/CartItemStyle";
 import CartItemStyleDesktop from "./components/CartItemStyleDesktop";
+import CartItemWithBreakdown from "./components/CartItemWithBreakdown";
+import CustomBackbtn from "../../components/CustomBackBtn";
 
 const initialValues = {
   address: "",
@@ -53,14 +54,16 @@ const CartPage = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
 
+  // Add duplicate detection state
+  const [duplicateError, setDuplicateError] = useState(null);
+
   // API hooks
   const {
     data: cartResponse,
     isPending: cartLoading,
     refetch: refetchCart,
   } = useGetCart();
-  const { updateCartItemMutate, isPending: updatePending } =
-    useUpdateCartItem();
+
   const { deleteCartMutate, isPending: deleteIsPending } = useDeleteCart();
   const { applyCouponMutate, isPending: applyCouponPending } = useApplyCoupon();
 
@@ -72,6 +75,8 @@ const CartPage = () => {
   // Get cart data from API response
   const cartData = cartResponse?.data;
   const items = cartData?.items || [];
+  console.log("🛒 Cart Items:", items);
+  console.log("🛒 Cart Data:", cartData);
   const cartUser = cartData?.user;
   const cartMeta = {
     id: cartData?.id,
@@ -80,9 +85,9 @@ const CartPage = () => {
     count: cartData?.count,
   };
 
-  console.log("🛒 Cart API Data:", cartData);
-  console.log("🛒 Cart Items:", items);
-  console.log("🛒 Cart User:", cartUser);
+  // console.log("🛒 Cart API Data:", cartData);
+  // console.log("🛒 Cart Items:", items);
+  // console.log("🛒 Cart User:", cartUser);
 
   const {
     data: deliveryData,
@@ -91,11 +96,11 @@ const CartPage = () => {
   } = useGetDeliveryFee();
 
   // Console log delivery data
-  console.log("🚚 Delivery API Response:", deliveryData);
-  console.log("🚚 Delivery Loading State:", deliveryLoading);
-  console.log("🚚 Delivery Error State:", deliveryError);
-  console.log("🚚 Raw Delivery Data:", deliveryData?.data);
-  console.log("🚚 Delivery Fee Value:", deliveryData?.data?.data?.delivery_fee);
+  // console.log("🚚 Delivery API Response:", deliveryData);
+  // console.log("🚚 Delivery Loading State:", deliveryLoading);
+  // console.log("🚚 Delivery Error State:", deliveryError);
+  // console.log("🚚 Raw Delivery Data:", deliveryData?.data);
+  // console.log("🚚 Delivery Fee Value:", deliveryData?.data?.data?.delivery_fee);
 
   // Immediate logging when delivery data changes
   useEffect(() => {
@@ -115,14 +120,195 @@ const CartPage = () => {
       console.log("🚚 CartPage: No delivery data available");
     }
   }, [deliveryData]);
-  const { carybinUser } = useCarybinUserStore();
+
+  const { carybinUser, setCaryBinUser } = useCarybinUserStore();
   const { toastSuccess, toastError } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
+  console.log(carybinUser);
+  // Duplicate Detection Function
+  const checkForDuplicateItems = (items) => {
+    console.log("🔍 Checking for duplicate items...", items);
+
+    // Create a map to track fabric+style combinations
+    const itemCombinations = new Map();
+    const duplicates = [];
+
+    items.forEach((item, index) => {
+      const fabricId = item.product_id || item.product?.id;
+      const styleId = item.style_product?.id || null;
+
+      // Create a unique key for fabric+style combination
+      // If item has style, key includes both fabric and style
+      // If item has no style, key is just fabric
+      const combinationKey = styleId
+        ? `fabric_${fabricId}_style_${styleId}`
+        : `fabric_${fabricId}_no_style`;
+
+      console.log(`🔍 Item ${index + 1}:`, {
+        fabricId,
+        styleId,
+        combinationKey,
+        hasStyle: !!styleId,
+        itemName: item.product?.name,
+        styleName: item.style_product?.name,
+      });
+
+      // Check if this combination already exists
+      if (itemCombinations.has(combinationKey)) {
+        const existingItem = itemCombinations.get(combinationKey);
+        duplicates.push({
+          current: {
+            index,
+            id: item.id,
+            fabricId,
+            styleId,
+            fabricName: item.product?.name,
+            styleName: item.style_product?.name,
+            combinationKey,
+          },
+          existing: existingItem,
+        });
+
+        console.log("❌ Duplicate found!", {
+          currentItem: item.product?.name,
+          currentStyle: item.style_product?.name,
+          existingItem: existingItem.fabricName,
+          existingStyle: existingItem.styleName,
+          combinationKey,
+        });
+      } else {
+        // Store this combination
+        itemCombinations.set(combinationKey, {
+          index,
+          id: item.id,
+          fabricId,
+          styleId,
+          fabricName: item.product?.name,
+          styleName: item.style_product?.name,
+          combinationKey,
+        });
+      }
+    });
+
+    console.log("🔍 Duplicate check results:", {
+      totalItems: items.length,
+      uniqueCombinations: itemCombinations.size,
+      duplicatesFound: duplicates.length,
+      duplicateDetails: duplicates,
+    });
+
+    return {
+      hasDuplicates: duplicates.length > 0,
+      duplicates,
+      uniqueCombinations: Array.from(itemCombinations.values()),
+    };
+  };
+
+  // Check for duplicates when items change
+  useEffect(() => {
+    if (items && items.length > 0) {
+      const duplicateCheck = checkForDuplicateItems(items);
+
+      if (duplicateCheck.hasDuplicates) {
+        const duplicateMessages = duplicateCheck.duplicates.map((dup) => {
+          const fabricName = dup.current.fabricName || "Unknown Fabric";
+          const styleName = dup.current.styleName;
+
+          if (styleName) {
+            return `"${fabricName}" with style "${styleName}"`;
+          } else {
+            return `"${fabricName}" (no style)`;
+          }
+        });
+
+        const errorMessage = `Duplicate items found in cart: ${duplicateMessages.join(", ")}. Please remove duplicates before proceeding.`;
+        setDuplicateError(errorMessage);
+
+        console.log("❌ Duplicate error set:", errorMessage);
+      } else {
+        setDuplicateError(null);
+        console.log("✅ No duplicates found, clearing error");
+      }
+    } else {
+      setDuplicateError(null);
+    }
+  }, [items]);
+
+  // Fetch user profile if not already in store (important for Google login)
+  const {
+    data: userProfile,
+    isPending: userProfileLoading,
+    isSuccess: userProfileSuccess,
+  } = useGetUserProfile();
+
+  // Populate user store when profile data is fetched
+  useEffect(() => {
+    if (userProfile && userProfileSuccess && !carybinUser) {
+      // console.log(
+      //   "🔄 CartPage: Populating user store with profile data",
+      //   userProfile,
+      // );
+      setCaryBinUser(userProfile);
+    }
+  }, [userProfile, userProfileSuccess, carybinUser, setCaryBinUser]);
+
+  // Debug logging for authentication status
+  useEffect(() => {
+    const token = Cookies.get("token");
+    const adminToken = Cookies.get("adminToken");
+    const currUserUrl = Cookies.get("currUserUrl");
+
+    // console.log("🔍 CartPage: Authentication Debug", {
+    //   hasToken: !!token,
+    //   hasAdminToken: !!adminToken,
+    //   currUserUrl: currUserUrl,
+    //   hasCarybinUser: !!carybinUser,
+    //   carybinUserEmail: carybinUser?.email,
+    //   userProfileLoading: userProfileLoading,
+    //   userProfileData: !!userProfile,
+    // });
+  }, [carybinUser, userProfileLoading, userProfile]);
+
+  // Authentication check and redirect
+  useEffect(() => {
+    const token = Cookies.get("token");
+
+    // If no token and not loading, redirect to login with cart redirect
+    if (!token && !userProfileLoading) {
+      console.log(
+        "❌ CartPage: No authentication token found, redirecting to login",
+      );
+      navigate(
+        `/login?redirect=${encodeURIComponent(location.pathname + location.search)}`,
+      );
+      return;
+    }
+
+    // If token exists but no user data after loading is complete, there might be an issue
+    if (token && !userProfileLoading && !carybinUser && !userProfile) {
+      console.log(
+        "⚠️ CartPage: Token exists but no user data - possible authentication issue",
+      );
+      toastError("Authentication issue detected. Please login again.");
+      navigate(
+        `/login?redirect=${encodeURIComponent(location.pathname + location.search)}`,
+      );
+      return;
+    }
+  }, [
+    carybinUser,
+    userProfile,
+    userProfileLoading,
+    navigate,
+    location,
+    toastError,
+  ]);
+
   const currentUrl = Cookies.get("currUserUrl");
   const token = Cookies.get("token");
-
+  // console.log("user", userProfile);
   // Calculate totals from API cart items
   const calculateTotals = () => {
     if (!items || items.length === 0) {
@@ -134,9 +320,25 @@ const CartPage = () => {
     }
     //GOOD
     const subtotal = items.reduce((total, item) => {
-      const price = parseFloat(item.price_at_time || item.product?.price || 0);
+      const fabricPrice = parseFloat(
+        item.price_at_time || item.product?.price || 0,
+      );
+      const stylePrice = parseFloat(item.style_product?.price || 0);
+      const measurementCount = item?.measurement?.length || 0;
       const quantity = parseInt(item.quantity || 1);
-      return total + price * quantity;
+      const itemTotal = fabricPrice * quantity + stylePrice * measurementCount;
+
+      console.log("💰 Cart Item Pricing:", {
+        itemId: item.id,
+        fabricPrice,
+        stylePrice,
+        quantity,
+        itemTotal,
+        hasStyle: !!item.style_product,
+        stylePriceFromAPI: item.style_product?.price,
+      });
+
+      return total + itemTotal;
     }, 0);
 
     const totalQuantity = items.reduce((total, item) => {
@@ -151,6 +353,40 @@ const CartPage = () => {
   };
 
   const totals = calculateTotals();
+
+  // Calculate fabric and style totals separately
+  const fabricTotals = items.reduce(
+    (acc, item) => {
+      const fabricPrice = parseFloat(
+        item.price_at_time || item.product?.price || 0,
+      );
+      const quantity = parseInt(item.quantity || 1);
+      const fabricTotal = fabricPrice * quantity;
+
+      return {
+        totalAmount: acc.totalAmount + fabricTotal,
+        totalYards: acc.totalYards + quantity,
+        itemCount: acc.itemCount + 1,
+      };
+    },
+    { totalAmount: 0, totalYards: 0, itemCount: 0 },
+  );
+
+  const styleTotals = items.reduce(
+    (acc, item) => {
+      const stylePrice = parseFloat(item.style_product?.price || 0);
+
+      if (item.style_product && stylePrice > 0) {
+        return {
+          totalAmount: acc.totalAmount + stylePrice,
+          itemCount: acc.itemCount + 1,
+        };
+      }
+      return acc;
+    },
+    { totalAmount: 0, itemCount: 0 },
+  );
+
   const delivery_fee = deliveryData?.data?.data?.delivery_fee ?? 0;
   const estimatedVat = totals.subtotal * 0.075;
   const charges = totals.subtotal * 0.015;
@@ -161,13 +397,22 @@ const CartPage = () => {
 
   // Console log calculation details
   console.log("💰 Cart Calculations:", {
+    fabricTotals: {
+      totalAmount: fabricTotals.totalAmount,
+      totalYards: fabricTotals.totalYards,
+      itemCount: fabricTotals.itemCount,
+    },
+    styleTotals: {
+      totalAmount: styleTotals.totalAmount,
+      itemCount: styleTotals.itemCount,
+    },
     subtotal: totals.subtotal,
     delivery_fee: delivery_fee,
     estimatedVat: estimatedVat,
     charges: charges,
     discountAmount: discountAmount,
     finalTotal: finalTotal,
-    note: "Service charges excluded from total (only subtotal + VAT + delivery)",
+    note: "Fabric + Style breakdown now clearly separated",
     deliveryDataExists: !!deliveryData,
     deliveryDataPath: deliveryData?.data?.data,
   });
@@ -187,81 +432,6 @@ const CartPage = () => {
     return measurement ? 1 : 0;
   };
 
-  // Handle quantity update with minimum yards and style constraints
-  const handleQuantityUpdate = (itemId, newQuantity, item) => {
-    // If item has a style, don't allow quantity changes (quantity = number of measurements)
-    if (item?.style_product) {
-      toastError(
-        "Cannot change quantity for styled items. Quantity equals number of measurements.",
-      );
-      return;
-    }
-
-    const minimumYards = item?.product?.minimum_yards || 1;
-
-    if (newQuantity < minimumYards) {
-      setItemToDelete(itemId);
-      setIsDeleteModalOpen(true);
-      return;
-    }
-
-    console.log("🛒 Updating quantity:", { itemId, newQuantity, minimumYards });
-    updateCartItemMutate(
-      {
-        id: itemId,
-        quantity: newQuantity,
-      },
-      {
-        onSuccess: () => {
-          refetchCart();
-          // Toast is handled by the hook
-        },
-        onError: (error) => {
-          toastError("Failed to update cart item");
-          console.error("Update error:", error);
-        },
-      },
-    );
-  };
-
-  // Handle quantity increment with minimum yards constraint
-  const handleQuantityIncrement = (item) => {
-    if (item?.style_product) {
-      toastError(
-        "Cannot change quantity for styled items. Quantity equals number of measurements.",
-      );
-      return;
-    }
-
-    const minimumYards = item?.product?.minimum_yards || 1;
-    const currentQuantity = parseInt(item.quantity || 1);
-    const newQuantity = currentQuantity + minimumYards;
-
-    handleQuantityUpdate(item.id, newQuantity, item);
-  };
-
-  // Handle quantity decrement with minimum yards constraint
-  const handleQuantityDecrement = (item) => {
-    if (item?.style_product) {
-      toastError(
-        "Cannot change quantity for styled items. Quantity equals number of measurements.",
-      );
-      return;
-    }
-
-    const minimumYards = item?.product?.minimum_yards || 1;
-    const currentQuantity = parseInt(item.quantity || 1);
-    const newQuantity = currentQuantity - minimumYards;
-
-    if (newQuantity < minimumYards) {
-      setItemToDelete(item.id);
-      setIsDeleteModalOpen(true);
-      return;
-    }
-
-    handleQuantityUpdate(item.id, newQuantity, item);
-  };
-
   // Handle item removal
   const handleRemoveItem = (itemId) => {
     console.log("🛒 Removing item:", itemId);
@@ -271,9 +441,14 @@ const CartPage = () => {
       },
       {
         onSuccess: () => {
+          console.log("🗑️ Item deleted successfully, refetching cart...");
           refetchCart();
           setIsDeleteModalOpen(false);
           setItemToDelete(null);
+          // Clear any stale states
+          setAppliedCoupon(null);
+          setCoupon("");
+          console.log("🧹 Cleared coupon and stale states after item deletion");
         },
         onError: (error) => {
           toastError("Failed to remove item");
@@ -289,7 +464,7 @@ const CartPage = () => {
 
     // Validate user email
     if (!carybinUser?.email) {
-      toastError("Please login to apply coupon");
+      toastError("User data not loaded. Please wait or refresh the page.");
       return;
     }
 
@@ -398,107 +573,328 @@ const CartPage = () => {
     return baseAddress;
   };
 
-  // Handle proceeding to payment
-  const handleProceedToPayment = () => {
+  // Handle proceeding to payment - Updated with duplicate detection
+  const handleProceedToPayment = async () => {
+    // Add duplicate check at the beginning
+    if (duplicateError) {
+      toastError(duplicateError);
+      console.log("❌ Blocking payment due to duplicates:", duplicateError);
+      return;
+    }
+
+    // Double-check for duplicates before payment
+    const duplicateCheck = checkForDuplicateItems(items);
+    if (duplicateCheck.hasDuplicates) {
+      const errorMsg =
+        "Duplicate items detected in cart. Please remove duplicates before proceeding.";
+      toastError(errorMsg);
+      setDuplicateError(errorMsg);
+      return;
+    }
+
     if (!navigator.onLine) {
       toastError("No internet connection. Please check your network.");
       return;
     }
 
-    const addressInfo = getProfileAddress();
+    try {
+      // Refetch cart to ensure we have latest data
+      console.log("🔄 Refetching cart before payment...");
+      const freshCartData = await refetchCart();
 
-    console.log("📊 Payment Data Summary:", {
-      subtotal: totals.subtotal,
-      discountAmount: discountAmount,
-      delivery_fee: delivery_fee,
-      estimatedVat: estimatedVat,
-      finalTotal: finalTotal,
-      itemCount: items.length,
-      addressInfo: addressInfo,
-      coupon: coupon,
-      profile_data_used: {
-        user_id: carybinUser?.id,
-        user_name: carybinUser?.name,
-        user_email: carybinUser?.email,
-        profile_address: carybinUser?.address,
-        profile_state: carybinUser?.state,
-        profile_country: carybinUser?.country,
-        email_verified: carybinUser?.is_email_verified,
-      },
-    });
+      // Wait a moment for state to update
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-    // Prepare billing data with totals
-    const billingData = {
-      ...addressInfo,
-      subtotal: totals.subtotal,
-      discount_amount: discountAmount,
-      delivery_fee: delivery_fee,
-      vat_amount: estimatedVat,
-      total_amount: finalTotal,
-      coupon_code: appliedCoupon?.code || undefined,
-    };
+      console.log("🔄 Fresh cart data:", freshCartData?.data);
 
-    console.log("🧾 Creating billing with enhanced data:", billingData);
+      const addressInfo = getProfileAddress();
 
-    createBillingMutate(billingData, {
-      onSuccess: (billingResponse) => {
-        console.log("✅ Billing created successfully:", billingResponse);
+      console.log("📊 Payment Data Summary:", {
+        subtotal: totals.subtotal,
+        discountAmount: discountAmount,
+        delivery_fee: delivery_fee,
+        estimatedVat: estimatedVat,
+        finalTotal: finalTotal,
+        itemCount: items.length,
+        addressInfo: addressInfo,
+        coupon: coupon,
+        profile_data_used: {
+          user_id: carybinUser?.id,
+          user_name: carybinUser?.name,
+          user_email: carybinUser?.email,
+          profile_address: carybinUser?.address,
+          profile_state: carybinUser?.state,
+          profile_country: carybinUser?.country,
+          email_verified: carybinUser?.is_email_verified,
+        },
+      });
 
-        // Prepare purchases from cart items
-        const purchases = items.map((item) => ({
-          purchase_id: item.product_id,
-          quantity: item.quantity,
-          purchase_type: item.product_type || item.product?.type,
-        }));
+      // Prepare billing data with totals
+      const billingData = {
+        ...addressInfo,
+        subtotal: totals.subtotal,
+        discount_amount: discountAmount,
+        delivery_fee: delivery_fee,
+        vat_amount: estimatedVat,
+        total_amount: finalTotal,
+        coupon_code: appliedCoupon?.code || undefined,
+      };
 
-        const paymentData = {
-          purchases,
-          amount: Math.round(finalTotal),
-          currency: "NGN",
-          coupon_code: appliedCoupon?.code || undefined,
-          email: carybinUser?.email,
-          subtotal: totals.subtotal,
-          delivery_fee: delivery_fee,
-          vat_amount: estimatedVat,
-          country: addressInfo.country,
-          postal_code: addressInfo.postal_code,
-        };
+      console.log("🧾 Creating billing with enhanced data:", billingData);
 
-        console.log("💳 Creating payment with enhanced data:", paymentData);
+      createBillingMutate(billingData, {
+        onSuccess: (billingResponse) => {
+          console.log("✅ Billing created successfully:", billingResponse);
 
-        createPaymentMutate(paymentData, {
-          onSuccess: (paymentResponse) => {
-            console.log("✅ Payment created successfully:", paymentResponse);
-            setShowConfirmationModal(false);
-            setCoupon("");
+          // Ensure we have fresh cart data
+          console.log("🔄 Current cart items before payment:", items);
+          console.log("🔄 Items length:", items.length);
+          console.log(
+            "🔍 Items with styles:",
+            items.filter((item) => item.style_product?.id),
+          );
+          console.log(
+            "🔍 Style items count:",
+            items.filter((item) => item.style_product?.id).length,
+          );
 
-            console.log("🚀 Launching Paystack with:", {
-              amount: finalTotal,
-              payment_id: paymentResponse?.data?.data?.payment_id,
+          // Debug: Check for potential duplicate styles
+          const styleIds = items
+            .filter((item) => item.style_product?.id)
+            .map((item) => item.style_product.id);
+          const uniqueStyleIds = new Set(styleIds);
+          console.log("🎨 Style ID analysis:", {
+            allStyleIds: styleIds,
+            uniqueStyleIds: Array.from(uniqueStyleIds),
+            potentialDuplicates: styleIds.length !== uniqueStyleIds.size,
+            duplicateStyleIds: styleIds.filter(
+              (id, index) => styleIds.indexOf(id) !== index,
+            ),
+          });
+
+          // Prepare purchases from cart items - include both fabric and style purchases
+          const purchases = [];
+          const metadata = [];
+          const addedStyles = new Set(); // Track added styles to prevent duplicates
+
+          items.forEach((item) => {
+            // Add fabric purchase
+            purchases.push({
+              purchase_id: item.product_id,
+              quantity: item.quantity,
+              purchase_type:
+                item.product_type || item.product?.type || "FABRIC",
             });
 
-            payWithPaystack({
-              amount: finalTotal,
-              payment_id: paymentResponse?.data?.data?.payment_id,
+            // Add style purchase if item has a style (avoid duplicates)
+            if (
+              item.style_product?.id &&
+              !addedStyles.has(item.style_product.id)
+            ) {
+              purchases.push({
+                purchase_id: item.style_product.id,
+                quantity: item?.measurement?.length, // Style is always quantity 1 (flat fee)
+                purchase_type: "STYLE",
+              });
+
+              // Mark this style as added to prevent duplicates
+              addedStyles.add(item.style_product.id);
+            }
+
+            // Add metadata for ALL style items (even if style purchase already added)
+            if (item.style_product?.id) {
+              metadata.push({
+                style_product_id: item.style_product.id,
+                style_product_name: item.style_product.name,
+                measurement: item.measurement || [],
+                customer_name: carybinUser?.name || "",
+                customer_email: carybinUser?.email || "",
+                cart_item_id: item.id,
+                fabric_product_id: item.product_id,
+                fabric_product_name: item.product?.name || "",
+                color: item.color || "",
+                quantity: item.quantity,
+                // Add delivery fee to each metadata item
+                delivery_fee: delivery_fee,
+              });
+            }
+          });
+
+          // Add general order metadata with delivery fee (if no style items exist)
+          if (metadata.length === 0) {
+            // If there are no style items, add general order metadata
+            metadata.push({
+              order_type: "fabric_only",
+              customer_name: carybinUser?.name || "",
+              customer_email: carybinUser?.email || "",
+              total_items: items.length,
+              subtotal: totals.subtotal,
+              delivery_fee: delivery_fee,
+              vat_amount: estimatedVat,
+              final_total: finalTotal,
+              coupon_code: appliedCoupon?.code || null,
+              delivery_address: addressInfo.address,
+              delivery_city: addressInfo.city,
+              delivery_state: addressInfo.state,
+              delivery_country: addressInfo.country,
+              postal_code: addressInfo.postal_code,
             });
-          },
-          onError: (error) => {
-            console.error("❌ Payment creation failed:", error);
+          } else {
+            // If there are style items, add delivery fee to general order info
+            metadata.push({
+              order_summary: {
+                delivery_fee: delivery_fee,
+                subtotal: totals.subtotal,
+                vat_amount: estimatedVat,
+                final_total: finalTotal,
+                coupon_code: appliedCoupon?.code || null,
+                total_style_items: items.filter(
+                  (item) => item.style_product?.id,
+                ).length,
+                total_fabric_items: items.length,
+                delivery_address: addressInfo.address,
+                delivery_city: addressInfo.city,
+                delivery_state: addressInfo.state,
+                delivery_country: addressInfo.country,
+                postal_code: addressInfo.postal_code,
+              },
+            });
+          }
+
+          console.log("🔍 Style deduplication results:", {
+            totalItems: items.length,
+            itemsWithStyles: items.filter((item) => item.style_product?.id)
+              .length,
+            uniqueStylesAdded: addedStyles.size,
+            duplicatesAvoided:
+              items.filter((item) => item.style_product?.id).length -
+              addedStyles.size,
+          });
+
+          // Validation: Ensure we don't send empty metadata
+          const hasStyleItems = items.some((item) => item.style_product?.id);
+          console.log("🎨 Style validation:", {
+            hasStyleItems,
+            metadataLength: metadata.length,
+            itemsCount: items.length,
+            styleItemsCount: items.filter((item) => item.style_product?.id)
+              .length,
+            shouldIncludeMetadata: metadata.length > 0,
+          });
+
+          // Always include metadata now (either style items or general order info)
+          const shouldIncludeMetadata = metadata.length > 0;
+
+          // Final validation: Check for duplicate purchase IDs
+          const purchaseIds = purchases.map((p) => p.purchase_id);
+          const uniquePurchaseIds = new Set(purchaseIds);
+
+          if (purchaseIds.length !== uniquePurchaseIds.size) {
+            console.error("❌ Duplicate purchase IDs detected:", {
+              allIds: purchaseIds,
+              duplicates: purchaseIds.filter(
+                (id, index) => purchaseIds.indexOf(id) !== index,
+              ),
+            });
             toastError(
-              "Failed to create payment - " +
-                (error?.data?.message || "Unknown error"),
+              "Error: Duplicate items detected in cart. Please refresh and try again.",
             );
-          },
-        });
-      },
-      onError: (error) => {
-        console.error("❌ Billing creation failed:", error);
-        toastError(
-          "Failed to create billing - " +
-            (error?.data?.message || "Unknown error"),
-        );
-      },
-    });
+            return;
+          }
+
+          const paymentData = {
+            purchases,
+            amount: Math.round(finalTotal),
+            currency: "NGN",
+            coupon_code: appliedCoupon?.code || undefined,
+            email: carybinUser?.email,
+            subtotal: totals.subtotal,
+            delivery_fee: delivery_fee, // Keep in main payment data
+            vat_amount: estimatedVat,
+            country: addressInfo.country,
+            postal_code: addressInfo.postal_code,
+            ...(shouldIncludeMetadata && { metadata }), // Now includes delivery fee in metadata
+          };
+
+          console.log("💳 Creating payment with enhanced data:", paymentData);
+          console.log("🛍️ Payment purchases breakdown:", {
+            totalPurchases: purchases.length,
+            fabricPurchases: purchases.filter(
+              (p) => p.purchase_type === "FABRIC",
+            ).length,
+            stylePurchases: purchases.filter((p) => p.purchase_type === "STYLE")
+              .length,
+            purchases: purchases,
+            duplicateCheck: {
+              allPurchaseIds: purchases.map((p) => p.purchase_id),
+              duplicatePurchaseIds: purchases
+                .map((p) => p.purchase_id)
+                .filter((id, index, arr) => arr.indexOf(id) !== index),
+              hasDuplicates:
+                new Set(purchases.map((p) => p.purchase_id)).size !==
+                purchases.length,
+            },
+          });
+          console.log("📏 Payment metadata breakdown:", {
+            metadataCount: metadata.length,
+            deliveryFeeIncluded: metadata.some(
+              (item) =>
+                item.delivery_fee !== undefined ||
+                (item.order_summary &&
+                  item.order_summary.delivery_fee !== undefined),
+            ),
+            styleItemsWithMeasurements: metadata
+              .filter((m) => m.style_product_id) // Only style items
+              .map((m) => ({
+                style_product_id: m.style_product_id,
+                style_product_name: m.style_product_name,
+                measurementCount: Array.isArray(m.measurement)
+                  ? m.measurement.length
+                  : m.measurement
+                    ? 1
+                    : 0,
+                delivery_fee: m.delivery_fee, // Show delivery fee is included
+              })),
+            orderSummaryMetadata: metadata.find((m) => m.order_summary),
+          });
+
+          createPaymentMutate(paymentData, {
+            onSuccess: (paymentResponse) => {
+              console.log("✅ Payment created successfully:", paymentResponse);
+              setShowConfirmationModal(false);
+              setCoupon("");
+
+              console.log("🚀 Launching Paystack with:", {
+                amount: finalTotal,
+                payment_id: paymentResponse?.data?.data?.payment_id,
+              });
+
+              payWithPaystack({
+                amount: finalTotal,
+                payment_id: paymentResponse?.data?.data?.payment_id,
+              });
+            },
+            onError: (error) => {
+              console.error("❌ Payment creation failed:", error);
+              toastError(
+                "Failed to create payment - " +
+                  (error?.data?.message || "Unknown error"),
+              );
+            },
+          });
+        },
+        onError: (error) => {
+          console.error("❌ Billing creation failed:", error);
+          toastError(
+            "Failed to create billing - " +
+              (error?.data?.message || "Unknown error"),
+          );
+        },
+      });
+    } catch (error) {
+      console.error("❌ Error refetching cart before payment:", error);
+      toastError("Failed to refresh cart data. Please try again.");
+    }
   };
 
   // Format currency
@@ -519,7 +915,7 @@ const CartPage = () => {
     });
   };
 
-  if (cartLoading) {
+  if (cartLoading || userProfileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoaderComponent />
@@ -565,58 +961,64 @@ const CartPage = () => {
           </div>
         </div>
       ) : (
-        <div className="Resizer section px-4 py-8">
+        <div className="Resizer section px-2 sm:px-4 py-4 sm:py-8">
+          {" "}
+          <div className="mb-4">
+            <CustomBackbtn />
+          </div>
           <div className="max-w-7xl mx-auto">
             {/* Cart Header with User Info */}
-            <div className="mb-8">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900">
-                    Shopping Cart
-                  </h1>
-                  <p className="text-gray-600 mt-1">
-                    {totals.itemCount}{" "}
-                    {totals.itemCount === 1 ? "item" : "items"} •{" "}
-                    {totals.totalQuantity} total pieces
-                  </p>
-                </div>
-
-                {/* Cart Metadata */}
-                {cartMeta && (
-                  <div className="bg-gray-50 rounded-lg p-4 text-sm">
-                    <div className="flex items-center gap-2 text-gray-600 mb-2">
-                      <Calendar className="w-4 h-4" />
-                      <span>Created: {formatDate(cartMeta.created_at)}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Tag className="w-4 h-4" />
-                      <span>Cart ID: {cartMeta.id}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* User Information */}
+            <div className="mb-4 sm:mb-6">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+                Shopping Cart
+              </h1>
+              <p className="text-sm sm:text-base text-gray-600">
+                {totals.itemCount} {totals.itemCount === 1 ? "item" : "items"} •{" "}
+                {totals.totalQuantity} total pieces
+              </p>
+            </div>
+            <div className="mb-4 sm:mb-6">
+              {/* User Information Header */}
               {cartUser && (
-                <div className="mt-4 bg-purple-50 border border-purple-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <User className="w-5 h-5 text-purple-600" />
-                    <h3 className="font-semibold text-purple-900">
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-l-4 border-purple-400 rounded-lg p-4 mb-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                      <User className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <h3 className="text-lg font-bold text-purple-900">
                       Cart Owner
                     </h3>
+                    {cartUser.status && (
+                      <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                        ✓ Verified
+                      </span>
+                    )}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium">Name:</span> {cartUser.name}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                    <div className="flex flex-col">
+                      <span className="text-gray-600 text-xs uppercase tracking-wide">
+                        Name
+                      </span>
+                      <span className="font-semibold text-gray-900">
+                        {cartUser.name}
+                      </span>
                     </div>
-                    <div>
-                      <span className="font-medium">Email:</span>{" "}
-                      {cartUser.email}
+                    <div className="flex flex-col">
+                      <span className="text-gray-600 text-xs uppercase tracking-wide">
+                        Email
+                      </span>
+                      <span className="font-semibold text-gray-900">
+                        {cartUser.email}
+                      </span>
                     </div>
                     {cartUser.phone && (
-                      <div>
-                        <span className="font-medium">Phone:</span>{" "}
-                        {cartUser.phone}
+                      <div className="flex flex-col">
+                        <span className="text-gray-600 text-xs uppercase tracking-wide">
+                          Phone
+                        </span>
+                        <span className="font-semibold text-gray-900">
+                          {cartUser.phone}
+                        </span>
                       </div>
                     )}
                     {cartUser.is_email_verified && (
@@ -633,495 +1035,244 @@ const CartPage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Cart Items - Left Side */}
               <div className="lg:col-span-2 space-y-4">
-                {/* Desktop Headers */}
-                <div className="hidden md:grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 rounded-lg text-sm font-medium text-gray-600">
-                  <div className="col-span-5">Product</div>
-                  <div className="col-span-2 text-center">Quantity</div>
-                  <div className="col-span-2 text-right">Unit Price</div>
-                  <div className="col-span-2 text-right">Total</div>
-                  <div className="col-span-1 text-center">Action</div>
+                {/* Table Headers - Desktop Only */}
+                <div className="hidden md:block bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+                  <div className="grid grid-cols-12 gap-4 text-sm font-medium text-gray-700">
+                    <div className="col-span-6 pl-2">PRODUCTS</div>
+                    <div className="col-span-2 text-center">QUANTITY</div>
+                    <div className="col-span-2 text-center">PRICE</div>
+                    <div className="col-span-2 text-center">TOTAL AMOUNT</div>
+                  </div>
                 </div>
 
                 {/* Cart Items */}
-                {items.map((item) => {
-                  const unitPrice = parseFloat(
-                    item.price_at_time || item.product?.price || 0,
-                  );
-                  const quantity = parseInt(item.quantity || 1);
-                  const itemTotal = unitPrice * quantity;
-
-                  // For styled items, display should show measurement count
-                  const measurementCount = getMeasurementCount(
-                    item.measurement,
-                  );
-                  const displayQuantity = item?.style_product
-                    ? measurementCount
-                    : quantity;
-
-                  return (
-                    <div
-                      key={item.id}
-                      className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
-                    >
-                      {/* Mobile Layout */}
-                      <div className="md:hidden space-y-4">
-                        {/* Product Info */}
-                        <div className="flex items-start space-x-4">
-                          {item.product?.image && (
-                            <img
-                              src={item.product.image}
-                              alt={item.product?.name || "Product"}
-                              className="w-16 h-16 object-cover rounded border"
-                            />
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-gray-900 truncate">
-                              {item.product?.name ||
-                                `Product ${item.product_id}`}
-                            </h3>
-                            <p className="text-sm text-gray-500 mt-1">
-                              Type: {item.product_type || item.product?.type}
-                            </p>
-                            <p className="text-sm text-purple-600 font-semibold mt-1">
-                              {formatPrice(unitPrice)} each
-                            </p>
-                            {item.product?.sku && (
-                              <p className="text-xs text-gray-400 mt-1">
-                                SKU: {item.product.sku}
-                              </p>
-                            )}
-
-                            {/* Style Information */}
-                            {item.style_product && (
-                              <CartItemStyle
-                                styleProduct={item.style_product}
-                                measurement={item.measurement}
-                                fabricImage={item.product?.image}
-                                fabricName={item.product?.name}
-                              />
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Quantity Controls */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium">
-                                Quantity:
-                              </span>
-                              {item?.style_product ? (
-                                <span className="text-xs text-blue-600 font-medium">
-                                  = {getMeasurementCount(item.measurement)}{" "}
-                                  measurement
-                                  {getMeasurementCount(item.measurement) !== 1
-                                    ? "s"
-                                    : ""}
-                                </span>
-                              ) : (
-                                <span className="text-xs text-gray-500">
-                                  Min: {item?.product?.minimum_yards || 1} yards
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => handleQuantityDecrement(item)}
-                                disabled={
-                                  updatePending ||
-                                  item?.style_product ||
-                                  quantity <=
-                                    (item?.product?.minimum_yards || 1)
-                                }
-                                className={`w-8 h-8 flex items-center justify-center border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed ${
-                                  item?.style_product
-                                    ? "border-blue-300 bg-blue-50"
-                                    : "border-gray-300"
-                                }`}
-                                title={
-                                  item?.style_product
-                                    ? "Cannot change quantity for styled items"
-                                    : quantity <=
-                                        (item?.product?.minimum_yards || 1)
-                                      ? `Minimum quantity is ${item?.product?.minimum_yards || 1} yards`
-                                      : "Decrease quantity"
-                                }
-                              >
-                                <Minus className="w-4 h-4" />
-                              </button>
-                              <span
-                                className={`w-8 text-center font-medium ${
-                                  item?.style_product ? "text-blue-600" : ""
-                                }`}
-                              >
-                                {displayQuantity}
-                              </span>
-                              <button
-                                onClick={() => handleQuantityIncrement(item)}
-                                disabled={updatePending || item?.style_product}
-                                className={`w-8 h-8 flex items-center justify-center border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed ${
-                                  item?.style_product
-                                    ? "border-blue-300 bg-blue-50"
-                                    : "border-gray-300"
-                                }`}
-                                title={
-                                  item?.style_product
-                                    ? "Cannot change quantity for styled items"
-                                    : `Increase by ${item?.product?.minimum_yards || 1} yards`
-                                }
-                              >
-                                <Plus className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold text-purple-600">
-                              {formatPrice(itemTotal)}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Remove Button */}
-                        <div className="flex justify-end">
-                          <button
-                            onClick={() => {
-                              setItemToDelete(item.id);
-                              setIsDeleteModalOpen(true);
-                            }}
-                            disabled={deleteIsPending}
-                            className="flex items-center gap-2 text-red-600 hover:text-red-800 text-sm"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            Remove
-                          </button>
-                        </div>
-
-                        {/* Item Metadata */}
-                        <div className="bg-gray-50 rounded p-3 text-xs text-gray-600 space-y-1">
-                          <div>Added: {formatDate(item.created_at)}</div>
-                          {item.updated_at !== item.created_at && (
-                            <div>Updated: {formatDate(item.updated_at)}</div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Desktop Layout */}
-                      <div className="hidden md:grid grid-cols-12 gap-4 items-center">
-                        {/* Product Information */}
-                        <div className="col-span-5 flex items-center space-x-3">
-                          {item.product?.image && (
-                            <img
-                              src={item.product.image}
-                              alt={item.product?.name || "Product"}
-                              className="w-16 h-16 object-cover rounded border"
-                            />
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <div>
-                              <h3 className="font-semibold text-gray-900 truncate">
-                                {item.product?.name ||
-                                  `Product ${item.product_id}`}
-                              </h3>
-                              <p className="text-sm text-gray-500">
-                                {item.product_type || item.product?.type}
-                              </p>
-                              {item.product?.sku && (
-                                <p className="text-xs text-gray-400">
-                                  SKU: {item.product.sku}
-                                </p>
-                              )}
-
-                              {/* Style Information */}
-                              {item.style_product && (
-                                <CartItemStyleDesktop
-                                  styleProduct={item.style_product}
-                                  measurement={item.measurement}
-                                  fabricImage={item.product?.image}
-                                  fabricName={item.product?.name}
-                                />
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Quantity Controls */}
-                        <div className="col-span-2 flex flex-col items-center justify-center gap-1">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleQuantityDecrement(item)}
-                              disabled={
-                                updatePending ||
-                                item?.style_product ||
-                                quantity <= (item?.product?.minimum_yards || 1)
-                              }
-                              className={`w-8 h-8 flex items-center justify-center border rounded-md hover:bg-gray-50 disabled:opacity-50 ${
-                                item?.style_product
-                                  ? "border-blue-300 bg-blue-50"
-                                  : "border-gray-300"
-                              }`}
-                              title={
-                                item?.style_product
-                                  ? "Cannot change quantity for styled items"
-                                  : quantity <=
-                                      (item?.product?.minimum_yards || 1)
-                                    ? `Minimum quantity is ${item?.product?.minimum_yards || 1} yards`
-                                    : "Decrease quantity"
-                              }
-                            >
-                              <Minus className="w-4 h-4" />
-                            </button>
-                            <span
-                              className={`w-8 text-center font-medium ${
-                                item?.style_product ? "text-blue-600" : ""
-                              }`}
-                            >
-                              {displayQuantity}
-                            </span>
-                            <button
-                              onClick={() => handleQuantityIncrement(item)}
-                              disabled={updatePending || item?.style_product}
-                              className={`w-8 h-8 flex items-center justify-center border rounded-md hover:bg-gray-50 disabled:opacity-50 ${
-                                item?.style_product
-                                  ? "border-blue-300 bg-blue-50"
-                                  : "border-gray-300"
-                              }`}
-                              title={
-                                item?.style_product
-                                  ? "Cannot change quantity for styled items"
-                                  : `Increase by ${item?.product?.minimum_yards || 1} yards`
-                              }
-                            >
-                              <Plus className="w-4 h-4" />
-                            </button>
-                          </div>
-                          {item?.style_product ? (
-                            <span className="text-xs text-blue-600 font-medium">
-                              = {getMeasurementCount(item.measurement)}{" "}
-                              measurement
-                              {getMeasurementCount(item.measurement) !== 1
-                                ? "s"
-                                : ""}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-gray-500">
-                              Min: {item?.product?.minimum_yards || 1} yards
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Unit Price */}
-                        <div className="col-span-2 text-right">
-                          <p className="font-semibold text-gray-500">
-                            {formatPrice(unitPrice)}
-                          </p>
-                        </div>
-
-                        {/* Total */}
-                        <div className="col-span-2 text-right">
-                          <p className="text-lg font-bold text-purple-600">
-                            {formatPrice(itemTotal)}
-                          </p>
-                        </div>
-
-                        {/* Remove */}
-                        <div className="col-span-1 text-center">
-                          <button
-                            onClick={() => {
-                              setItemToDelete(item.id);
-                              setIsDeleteModalOpen(true);
-                            }}
-                            disabled={deleteIsPending}
-                            className="text-red-600 hover:text-red-800 p-2"
-                            title="Remove item"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                {items.map((item) => (
+                  <CartItemWithBreakdown
+                    key={item.id}
+                    item={item}
+                    onDelete={(itemId) => {
+                      setItemToDelete(itemId);
+                      setIsDeleteModalOpen(true);
+                    }}
+                    deleteIsPending={deleteIsPending}
+                    getMeasurementCount={getMeasurementCount}
+                  />
+                ))}
               </div>
 
               {/* Order Summary - Right Side */}
               <div className="lg:col-span-1">
-                <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-lg sticky top-4">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                    Order Summary
-                  </h2>
-
-                  {/* Coupon Section */}
-                  <div className="mb-6">
-                    {!appliedCoupon ? (
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 mb-2 block">
-                          Have a coupon code?
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            value={coupon}
-                            onChange={(e) => setCoupon(e.target.value)}
-                            placeholder="Enter coupon code"
-                            className="w-full px-3 py-2 pr-20 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          />
-                          <button
-                            onClick={handleApplyCoupon}
-                            disabled={!coupon.trim() || applyCouponPending}
-                            className="absolute right-1 top-1 bottom-1 px-3 bg-purple-600 text-white rounded text-xs font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                          >
-                            {applyCouponPending ? "..." : "Apply"}
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                                <svg
-                                  className="w-3 h-3 text-white"
-                                  fill="currentColor"
-                                  viewBox="0 0 8 8"
-                                >
-                                  <path d="M6.564.75l-3.59 3.612-1.538-1.55L0 4.26 2.974 7.25 8 2.193z" />
-                                </svg>
-                              </div>
-                              <div>
-                                <div className="text-sm font-medium text-green-800">
-                                  Coupon "{appliedCoupon.code}" applied
-                                </div>
-                                <div className="text-sm text-green-600">
-                                  You saved ₦
-                                  {formatNumberWithCommas(
-                                    appliedCoupon.discount,
-                                  )}
-                                </div>
-                              </div>
-                            </div>
+                <div className="bg-white border border-gray-200 rounded-xl shadow-lg sticky top-4 overflow-hidden">
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 border-b border-gray-200">
+                    <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                      <Package className="w-6 h-6 text-purple-600" />
+                      Order Summary
+                    </h2>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Review your order details
+                    </p>
+                  </div>
+                  <div className="p-6">
+                    {/* Coupon Section */}
+                    <div className="mb-6">
+                      {!appliedCoupon ? (
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-gray-700 mb-2 block">
+                            Have a coupon code?
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              value={coupon}
+                              onChange={(e) => setCoupon(e.target.value)}
+                              placeholder="Enter coupon code"
+                              className="w-full px-3 py-2 pr-20 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            />
                             <button
-                              onClick={handleRemoveCoupon}
-                              className="text-sm text-red-600 hover:text-red-800 font-medium px-2 py-1 hover:bg-red-50 rounded transition-colors"
+                              onClick={handleApplyCoupon}
+                              disabled={!coupon.trim() || applyCouponPending}
+                              className="absolute right-1 top-1 bottom-1 px-3 bg-purple-600 text-white rounded text-xs font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
-                              Remove
+                              {applyCouponPending ? "..." : "Apply"}
                             </button>
                           </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                  <svg
+                                    className="w-3 h-3 text-white"
+                                    fill="currentColor"
+                                    viewBox="0 0 8 8"
+                                  >
+                                    <path d="M6.564.75l-3.59 3.612-1.538-1.55L0 4.26 2.974 7.25 8 2.193z" />
+                                  </svg>
+                                </div>
+                                <div>
+                                  <div className="text-sm font-medium text-green-800">
+                                    Coupon "{appliedCoupon.code}" applied
+                                  </div>
+                                  <div className="text-sm text-green-600">
+                                    You saved ₦
+                                    {formatNumberWithCommas(
+                                      appliedCoupon.discount,
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <button
+                                onClick={handleRemoveCoupon}
+                                className="text-sm text-red-600 hover:text-red-800 font-medium px-2 py-1 hover:bg-red-50 rounded transition-colors"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
-                  {/* Summary Details */}
-                  <div className="space-y-4 mb-6">
-                    <div className="flex justify-between text-sm text-gray-600">
-                      <span>Subtotal ({totals.itemCount} items)</span>
-                      <span className="text-green-600 font-semibold">
-                        {formatPrice(totals.subtotal)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm text-gray-600">
-                      <span>Delivery Fee</span>
-                      <span className="text-green-600 font-semibold">
-                        {deliveryLoading ? (
-                          <span className="text-gray-400">Loading...</span>
-                        ) : deliveryError ? (
-                          <span className="text-red-500">
-                            Error loading fee
-                          </span>
-                        ) : (
-                          formatPrice(delivery_fee)
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm text-gray-600">
-                      <span>VAT (7.5%)</span>
-                      <span className="text-green-600 font-semibold">
-                        {formatPrice(estimatedVat)}
-                      </span>
-                    </div>
-
-                    {discountAmount > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Discount</span>
+                    {/* Summary Details */}
+                    <div className="space-y-4 mb-6">
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>Subtotal ({totals.itemCount} items)</span>
                         <span className="text-green-600 font-semibold">
-                          -{formatPrice(discountAmount)}
+                          {formatPrice(totals.subtotal)}
                         </span>
                       </div>
-                    )}
-                    <hr className="border-gray-200 my-4" />
-                    <div className="flex justify-between text-xl font-bold">
-                      <span className="text-gray-900">Total</span>
-                      <span className="text-green-600">
-                        {formatPrice(finalTotal)}
-                      </span>
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>Delivery Fee</span>
+                        <span className="text-green-600 font-semibold">
+                          {deliveryLoading ? (
+                            <span className="text-gray-400">Loading...</span>
+                          ) : deliveryError ? (
+                            <span className="text-red-500">UPDATE ADDRESS</span>
+                          ) : (
+                            formatPrice(delivery_fee)
+                          )}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>VAT (7.5%)</span>
+                        <span className="text-green-600 font-semibold">
+                          {formatPrice(estimatedVat)}
+                        </span>
+                      </div>
+
+                      {discountAmount > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Discount</span>
+                          <span className="text-green-600 font-semibold">
+                            -{formatPrice(discountAmount)}
+                          </span>
+                        </div>
+                      )}
+                      <hr className="border-gray-200 my-4" />
+                      <div className="flex justify-between text-xl font-bold">
+                        <span className="text-gray-900">Total</span>
+                        <span className="text-green-600">
+                          {formatPrice(finalTotal)}
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Policy Checkbox */}
-                  <div className="flex items-start gap-3 mb-4 p-3 bg-gray-50 rounded-lg">
-                    <input
-                      type="checkbox"
-                      id="main-agree-policy"
-                      checked={agreedToPolicy}
-                      onChange={(e) => setAgreedToPolicy(e.target.checked)}
-                      className="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-                    />
-                    <label
-                      htmlFor="main-agree-policy"
-                      className="text-sm text-gray-700 leading-relaxed"
-                    >
-                      I agree to the{" "}
-                      <button
-                        type="button"
-                        onClick={handleAgreementClick}
-                        className="text-purple-600 hover:text-purple-800 underline font-medium"
+                    {/* Policy Checkbox */}
+                    <div className="flex items-start gap-3 mb-4 p-3 bg-gray-50 rounded-lg">
+                      <input
+                        type="checkbox"
+                        id="main-agree-policy"
+                        checked={agreedToPolicy}
+                        onChange={(e) => setAgreedToPolicy(e.target.checked)}
+                        className="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                      />
+                      <label
+                        htmlFor="main-agree-policy"
+                        className="text-sm text-gray-700 leading-relaxed"
                       >
-                        Carybin Checkout Policy
+                        I agree to the{" "}
+                        <button
+                          type="button"
+                          onClick={handleAgreementClick}
+                          className="text-purple-600 hover:text-purple-800 underline font-medium"
+                        >
+                          Carybin Checkout Policy
+                        </button>
+                      </label>
+                    </div>
+
+                    {/* Checkout Button */}
+                    {deliveryError ? (
+                      <button
+                        onClick={() => {
+                          // Redirect to address update page
+                          window.open(`/${currentUrl}/settings`, "_blank");
+                        }}
+                        className="w-full cursor-pointer py-4 px-2 bg-purple-500 text-white hover:bg-purple-600 transition rounded-xl font-bold text-md shadow-lg flex items-center justify-center gap-2"
+                      >
+                        {/* Info/Warning/Alert Icon */}
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="w-5 h-5 text-yellow-300"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 9v2m0 4h.01M12 5a7 7 0 100 14 7 7 0 000-14z"
+                          />
+                        </svg>
+                        Update Address to Proceed
                       </button>
-                    </label>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          console.log("🛒 User initiated checkout process");
+                          console.log("📊 Checkout initiation data:", {
+                            total_items: items.length,
+                            subtotal: totals.subtotal,
+                            delivery_fee: delivery_fee,
+                            vat_amount: estimatedVat,
+                            final_total: finalTotal,
+                            has_coupon: !!appliedCoupon,
+                            coupon_code: appliedCoupon?.code,
+                            discount_amount: discountAmount,
+                            user_email: carybinUser?.email,
+                            policy_agreed: agreedToPolicy,
+                            user_profile_address: getProfileAddress(),
+                            timestamp: new Date().toISOString(),
+                          });
+                          console.log(
+                            "🚀 Opening review modal with profile address",
+                          );
+                          setShowConfirmationModal(true);
+                        }}
+                        disabled={
+                          !agreedToPolicy ||
+                          createPaymentPending ||
+                          billingPending
+                        }
+                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-xl font-bold text-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-105"
+                      >
+                        {createPaymentPending || billingPending
+                          ? "Processing..."
+                          : "Proceed to Checkout"}
+                      </button>
+                    )}
+
+                    {/* Continue Shopping */}
+                    <Link
+                      to="/marketplace"
+                      className="inline-flex items-center justify-center w-full mt-4 px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      Continue Shopping
+                    </Link>
                   </div>
-
-                  {/* Checkout Button */}
-                  <button
-                    onClick={() => {
-                      console.log("🛒 User initiated checkout process");
-                      console.log("📊 Checkout initiation data:", {
-                        total_items: items.length,
-                        subtotal: totals.subtotal,
-                        delivery_fee: delivery_fee,
-                        vat_amount: estimatedVat,
-                        final_total: finalTotal,
-                        has_coupon: !!appliedCoupon,
-                        coupon_code: appliedCoupon?.code,
-                        discount_amount: discountAmount,
-                        user_email: carybinUser?.email,
-                        policy_agreed: agreedToPolicy,
-                        user_profile_address: getProfileAddress(),
-                        timestamp: new Date().toISOString(),
-                      });
-                      console.log(
-                        "🚀 Opening review modal with profile address",
-                      );
-                      setShowConfirmationModal(true);
-                    }}
-                    disabled={
-                      !agreedToPolicy || createPaymentPending || billingPending
-                    }
-                    className="w-full bg-gradient text-white py-4 rounded-lg font-bold text-lg hover:bg-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                  >
-                    {createPaymentPending || billingPending
-                      ? "Processing..."
-                      : "Proceed to Checkout"}
-                  </button>
-
-                  {/* Continue Shopping */}
-                  <Link
-                    to="/marketplace"
-                    className="block text-center text-purple-600 hover:text-purple-800 mt-4 text-sm font-medium"
-                  >
-                    Continue Shopping
-                  </Link>
                 </div>
               </div>
             </div>
@@ -1131,8 +1282,19 @@ const CartPage = () => {
 
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 relative">
+            {/* Close Button */}
+            <button
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setItemToDelete(null);
+              }}
+              className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
+              aria-label="Close modal"
+            >
+              <X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
+            </button>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Remove Item
             </h3>
@@ -1214,7 +1376,7 @@ const CartPage = () => {
                         carybinUser?.alternative_phone ||
                         "Not provided"}
                     </p>
-                    <p>
+                    {/* <p>
                       <span className="font-medium">Email Verified:</span>{" "}
                       <span
                         className={
@@ -1225,7 +1387,7 @@ const CartPage = () => {
                       >
                         {carybinUser?.is_email_verified ? "✅ Yes" : "❌ No"}
                       </span>
-                    </p>
+                    </p>*/}
                   </div>
                 </div>
 
@@ -1236,15 +1398,29 @@ const CartPage = () => {
                     Delivery Address
                   </h3>
                   <div className="space-y-2 text-sm">
-                    <p>
-                      <span className="font-medium">Full Address:</span>{" "}
-                      {carybinUser?.address ||
-                        "2 Metalbox Rd, Ogba, Lagos 101233, Lagos, Nigeria"}
-                    </p>
-                    <p>
-                      <span className="font-medium">State:</span>{" "}
-                      {carybinUser?.state || "Lagos State"}
-                    </p>
+                    {carybinUser?.profile?.address ? (
+                      <p>
+                        <span className="font-medium">Full Address:</span>{" "}
+                        {carybinUser.profile.address}
+                      </p>
+                    ) : (
+                      <div className="p-3 bg-yellow-100 border border-yellow-300 rounded text-yellow-800 flex flex-col gap-2">
+                        <span className="font-medium">Full Address:</span>{" "}
+                        <span>
+                          <strong>
+                            Address required to complete checkout.
+                          </strong>
+                        </span>
+                        <a
+                          href={`/${currentUrl}/settings`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-700 underline font-medium hover:text-blue-900"
+                        >
+                          Update your address
+                        </a>
+                      </div>
+                    )}
                     <p>
                       <span className="font-medium">Country:</span>{" "}
                       {carybinUser?.country || "NG"}
@@ -1259,22 +1435,24 @@ const CartPage = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="mt-3 text-xs text-blue-600 bg-blue-100 p-2 rounded">
-                    <p>
-                      💡 Address from your profile -{" "}
-                      <button
-                        onClick={() => {
-                          console.log(
-                            "📝 User wants to update profile address",
-                          );
-                          window.open("/profile", "_blank");
-                        }}
-                        className="underline hover:text-blue-800"
-                      >
-                        Update if needed
-                      </button>
-                    </p>
-                  </div>
+                  {carybinUser?.profile?.address && (
+                    <div className="mt-3 text-xs text-blue-600 bg-blue-100 p-2 rounded">
+                      <p>
+                        💡 Address from your profile -{" "}
+                        <button
+                          onClick={() => {
+                            console.log(
+                              "📝 User wants to update profile address",
+                            );
+                            window.open(`${currentUrl}/settings`);
+                          }}
+                          className="underline hover:text-blue-800"
+                        >
+                          Update if needed
+                        </button>
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Order Items */}
@@ -1291,17 +1469,43 @@ const CartPage = () => {
                       >
                         <div className="flex-1">
                           <p className="font-medium text-sm">
+                            {/* Show fabric name */}
                             {item.product?.name || item.name}
-                          </p>
-                          <p className="text-xs text-gray-600">
-                            Qty: {item.quantity} × ₦
-                            {formatNumberWithCommas(
-                              item.price || item.price_at_time,
+                            {/* Show style name if it exists */}
+                            {item.style_product?.name && (
+                              <>
+                                {" "}
+                                <span className="text-purple-700 font-semibold">
+                                  + Style: {item.style_product.name}
+                                </span>
+                              </>
                             )}
                           </p>
-                          {item.product_type && (
+                          <p className="text-xs text-gray-600">
+                            {/* Show fabric price and quantity */}
+                            Fabric: {item.quantity} × ₦
+                            {formatNumberWithCommas(
+                              item.price_at_time ||
+                                item.product?.price ||
+                                item.price ||
+                                0,
+                            )}
+                            {/* Show style price if style exists */}
+                            {item.style_product?.price && (
+                              <span>
+                                {" "}
+                                + Style: ₦
+                                {formatNumberWithCommas(
+                                  item.style_product.price *
+                                    item.measurement.length,
+                                )}
+                              </span>
+                            )}
+                          </p>
+                          {/* Show product type if exists */}
+                          {(item.product_type || item.product?.type) && (
                             <span className="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded mt-1">
-                              {item.product_type}
+                              {item.product_type || item.product?.type}
                             </span>
                           )}
                         </div>
@@ -1309,8 +1513,14 @@ const CartPage = () => {
                           <p className="font-medium">
                             ₦
                             {formatNumberWithCommas(
-                              (item.price || item.price_at_time) *
-                                item.quantity,
+                              parseFloat(
+                                item.price_at_time ||
+                                  item.product?.price ||
+                                  item.price ||
+                                  0,
+                              ) *
+                                parseInt(item.quantity || 1) +
+                                parseFloat(item.style_product?.price || 0),
                             )}
                           </p>
                         </div>
@@ -1376,15 +1586,27 @@ const CartPage = () => {
                 </div>
 
                 {/* Payment Button */}
-                <button
-                  disabled={billingPending || createPaymentPending}
-                  onClick={handleProceedToPayment}
-                  className="w-full cursor-pointer py-4 bg-gradient text-white hover:from-purple-600 hover:to-pink-600 transition rounded-lg font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                >
-                  {billingPending || createPaymentPending
-                    ? "Processing..."
-                    : `Proceed to Payment - ${formatPrice(finalTotal)}`}
-                </button>
+                {!carybinUser?.profile?.address ? (
+                  <button
+                    onClick={() => {
+                      // Redirect to address update page
+                      window.open(`/${currentUrl}/settings`, "_blank");
+                    }}
+                    className="w-full cursor-pointer py-4 bg-yellow-500 text-white hover:bg-yellow-600 transition rounded-lg font-bold text-lg shadow-lg"
+                  >
+                    Update Address to Complete Checkout
+                  </button>
+                ) : (
+                  <button
+                    disabled={billingPending || createPaymentPending}
+                    onClick={handleProceedToPayment}
+                    className="w-full cursor-pointer py-4 bg-gradient text-white hover:from-purple-600 hover:to-pink-600 transition rounded-lg font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                  >
+                    {billingPending || createPaymentPending
+                      ? "Processing..."
+                      : `Proceed to Payment - ${formatPrice(finalTotal)}`}
+                  </button>
+                )}
 
                 <div className="text-xs text-gray-500 text-center space-y-1">
                   <p>By proceeding, you agree to our terms and conditions</p>

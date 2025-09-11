@@ -7,7 +7,7 @@ import OrdersDetails from "../modules/Pages/tailorDashboard/OrdersDetails";
 import NotificationPage from "../modules/Pages/tailorDashboard/NotificationPage";
 import Settings from "../modules/Pages/tailorDashboard/Settings";
 import InboxPage from "../modules/Pages/tailorDashboard/Inbox";
-import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
+import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPageUpdate";
 import Coupons from "../modules/Pages/Coupons";
 import Subscriptions from "../modules/Pages/tailorDashboard/Subscription";
 import TailorAnnouncementsPage from "../modules/Pages/tailorDashboard/Announcements";
@@ -15,6 +15,7 @@ import TransactionPage from "../modules/Pages/tailorDashboard/TransactionPage";
 
 // import TransactionPage from "../modules/Pages/fabricDashboard/TransactionPage";
 import ViewTailorStyle from "../modules/Pages/tailorDashboard/ViewStyle";
+import ViewTransactionDetail from "../components/ViewTransactionDetails";
 
 export const tailorRoute = [
   {
@@ -56,7 +57,7 @@ export const tailorRoute = [
         element: <OrdersTable />,
       },
       {
-        path: "/tailor/orders/orders-details",
+        path: "/tailor/orders/orders-details/:id",
         element: <OrdersDetails />,
       },
       {
@@ -74,6 +75,10 @@ export const tailorRoute = [
       {
         path: "/tailor/transactions",
         element: <TransactionPage />,
+      },
+      {
+        path: "/tailor/transactions/:id",
+        element: <ViewTransactionDetail />,
       },
       {
         path: "/tailor/settings",

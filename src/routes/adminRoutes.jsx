@@ -17,7 +17,7 @@ import AnalyticsPage from "../modules/Pages/adminDashboard/reports/Analytics";
 import InboxPage from "../modules/Pages/adminDashboard/messages/Inbox";
 import SalesRep from "../modules/Pages/adminDashboard/Sales";
 import ViewSales from "../modules/Pages/adminDashboard/sales-rep/ViewSales";
-
+// s
 import Logistics from "../modules/Pages/adminDashboard/Logistics";
 import SubAdmin from "../modules/Pages/adminDashboard/SubAdmin";
 import AdminRole from "../modules/Pages/adminDashboard/AdminRole";
@@ -31,12 +31,10 @@ import OrderDetailsPage from "../modules/Pages/adminDashboard/order/OrderDetails
 import Subscriptionpage from "../modules/Pages/adminDashboard/subscription/Subscriptions";
 import PaymentTransaction from "../modules/Pages/adminDashboard/Transactions";
 import Announcements from "../modules/Pages/adminDashboard/Announcements";
-import NotificationPage from "../modules/Pages/adminDashboard/NotificationPage";
 import Settings from "../modules/Pages/adminDashboard/Settings";
 import ViewTailorDetails from "../modules/Pages/adminDashboard/tailor/ViewTailorDetails";
 import ViewMarketDetails from "../modules/Pages/adminDashboard/sales-rep/ViewMarketRep";
 import ViewFabricDetails from "../modules/Pages/adminDashboard/fabric/ViewFabricDetails";
-import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
 import MyProducts from "../modules/Pages/fabricDashboard/MyProducts";
 import AddNewProduct from "../modules/Pages/fabricDashboard/AddNewProduct";
 import Cataloging from "../modules/Pages/tailorDashboard/Catalog";
@@ -52,6 +50,15 @@ import OrdersDetails from "../modules/Pages/tailorDashboard/OrdersDetails";
 import OrdersFabricDetails from "../modules/Pages/fabricDashboard/OrdersDetails";
 import ViewVendorOrders from "../modules/Pages/adminDashboard/order/ViewVendorOrders";
 import ViewTransaction from "../modules/Pages/adminDashboard/ViewTransaction";
+// import NotificationPage from "../modules/Pages/adminDashboard/NotificationPage";
+import AdminNotificationDetail from "../modules/Pages/adminDashboard/AdminNotificationDetail";
+import AdminViewProductRep from "../modules/Pages/adminDashboard/sales-rep/AdminViewProductRep";
+import InvitesPage from "../modules/Pages/invtes/invites";
+import AdminCharges from "../modules/Pages/adminDashboard/charge/AdminCharges";
+import SalesRepUser from "../modules/Pages/adminDashboard/sales-rep/SalesRepUser";
+import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPageUpdate";
+import SalesRepAddedUser from "../modules/Pages/adminDashboard/sales-rep/sales-rep-added-user";
+import ViewOrderLogistics from "../modules/Pages/logisticsDashboard/view-order";
 
 export const adminRoutes = [
   {
@@ -91,7 +98,7 @@ export const adminRoutes = [
       },
 
       {
-        path: "/admin/tailors/orders-details",
+        path: "/admin/tailors/orders-details/:id",
         element: <OrdersDetails />,
       },
 
@@ -107,7 +114,7 @@ export const adminRoutes = [
       },
 
       {
-        path: "/admin/fabric/orders/orders-details",
+        path: "/admin/fabric/orders/orders-details/:id",
         element: <OrdersFabricDetails />,
       },
 
@@ -142,8 +149,20 @@ export const adminRoutes = [
         element: <SalesRep />,
       },
       {
+        path: "/admin/sales-rep/view-user/:id",
+        element: <SalesRepUser />,
+      },
+      {
         path: "/admin/sales-rep/view-sales/:salesId",
         element: <ViewSales />,
+      },
+      {
+        path: "/admin/sales-rep/view-sales/user/:userId",
+        element: <SalesRepAddedUser />,
+      },
+      {
+        path: "/admin/sales-rep/product/:id",
+        element: <AdminViewProductRep />,
       },
 
       {
@@ -160,8 +179,12 @@ export const adminRoutes = [
       },
 
       {
-        path: "/admin/logistics/view/:tailorId",
+        path: "/admin/logistics/view/:id",
         element: <ViewLogistics />,
+      },
+      {
+        path: "/admin/logistics/orders-details/:id",
+        element: <ViewOrderLogistics />,
       },
 
       {
@@ -179,6 +202,14 @@ export const adminRoutes = [
       {
         path: "/admin/fabrics-products",
         element: <MyProducts />,
+      },
+      {
+        path: "/admin/invites",
+        element: <InvitesPage />,
+      },
+      {
+        path: "/admin/charges",
+        element: <AdminCharges />,
       },
       {
         path: "/admin/fabric/add-product",
@@ -217,7 +248,7 @@ export const adminRoutes = [
         element: <ViewVendorOrders />,
       },
       {
-        path: "/admin/orders/order-details",
+        path: "/admin/orders/order-details/:id",
         element: <OrderDetailsPage />,
       },
       // {
@@ -245,6 +276,10 @@ export const adminRoutes = [
       {
         path: "/admin/notifications",
         element: <NotificationPageUpdate />,
+      },
+      {
+        path: "/admin/notification/:id",
+        element: <AdminNotificationDetail />,
       },
       {
         path: "/admin/announcements",

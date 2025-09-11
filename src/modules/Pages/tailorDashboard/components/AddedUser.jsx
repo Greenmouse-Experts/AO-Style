@@ -17,52 +17,12 @@ const NewOrders = () => {
     data: vendorRecentOrder,
   } = useGetVendorRecentOrder();
 
-  // Order Data
-  const data = [
-    {
-      id: "01",
-      orderId: "AD2343SDIFJ43FMD",
-      description: "Red Agbada and Cap",
-      price: "N 200,000",
-    },
-    {
-      id: "02",
-      orderId: "AD2343SDIFJ43FMD",
-      description: "Red Agbada and Cap",
-      price: "N 200,000",
-    },
-    {
-      id: "03",
-      orderId: "AD2343SDIFJ43FMD",
-      description: "Red Agbada and Cap",
-      price: "N 200,000",
-    },
-    {
-      id: "04",
-      orderId: "AD2343SDIFJ43FMD",
-      description: "Red Agbada and Cap",
-      price: "N 200,000",
-    },
-    {
-      id: "05",
-      orderId: "AD2343SDIFJ43FMD",
-      description: "Red Agbada and Cap",
-      price: "N 200,000",
-    },
-    {
-      id: "06",
-      orderId: "AD2343SDIFJ43FMD",
-      description: "Red Agbada and Cap",
-      price: "N 200,000",
-    },
-  ];
-
   // Table Columns
   const columns = useMemo(
     () => [
-      //   { label: "Order ID", key: "orderId" },
+      { label: "Order ID", key: "orderId" },
       { label: "Product", key: "product" },
-      { label: "Order Description", key: "description" },
+      // { label: "Order Description", key: "description" },
 
       { label: "Price", key: "price" },
       { label: "Order Date", key: "dateAdded" },
@@ -81,7 +41,7 @@ const NewOrders = () => {
 
             {openDropdown === row.id && (
               <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
-                <Link to={`/fabric/orders/orders-details?id=${row.order_id}`}>
+                <Link to={`/tailor/orders/orders-details/${row.order_id}`}>
                   <button className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
                     View Details
                   </button>
@@ -99,14 +59,7 @@ const NewOrders = () => {
         ),
       },
     ],
-    [openDropdown]
-  );
-  const filteredData = data.filter((order) =>
-    Object.values(order).some(
-      (value) =>
-        typeof value === "string" &&
-        value.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    [openDropdown],
   );
 
   // Toggle dropdown function
@@ -128,12 +81,12 @@ const NewOrders = () => {
   const recentOrderData = useMemo(
     () =>
       vendorRecentOrder?.data
-        ? vendorRecentOrder?.data.map((details) => {
+        ? vendorRecentOrder?.data.slice(0, 3).map((details) => {
             return {
               ...details,
-              orderId: `${details?.order?.id}`,
+              orderId: `#${details?.order?.id?.replace(/-/g, "").slice(0, 12).toUpperCase()}`,
               price: `${formatNumberWithCommas(
-                details?.order?.total_amount ?? 0
+                details?.order?.total_amount ?? 0,
               )}`,
               description:
                 details?.product?.description?.length > 20
@@ -144,7 +97,7 @@ const NewOrders = () => {
                   ? `${details?.product?.name.slice(0, 15)}...`
                   : details?.product?.name,
               amount: `${formatNumberWithCommas(
-                details?.payment?.amount ?? 0
+                details?.payment?.amount ?? 0,
               )}`,
 
               status: `${details?.payment?.payment_status}`,
@@ -152,14 +105,14 @@ const NewOrders = () => {
                 details?.created_at
                   ? formatDateStr(
                       details?.created_at.split(".").shift(),
-                      "D/M/YYYY h:mm A"
+                      "D/M/YYYY h:mm A",
                     )
                   : ""
               }`,
             };
           })
         : [],
-    [vendorRecentOrder?.data]
+    [vendorRecentOrder?.data],
   );
 
   console.log(vendorRecentOrder?.data);
@@ -167,7 +120,12 @@ const NewOrders = () => {
   return (
     <div className="bg-white p-6 rounded-xl overflow-x-auto">
       <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
-        <h2 className="text-lg font-semibold">Recent Orders</h2>
+        <div className="flex w-full items-center" data-theme="nord">
+          <h2 className="text-lg font-semibold">Recent Orders</h2>
+          <Link to="/tailor/orders" className="btn btn-primary ml-auto btn-sm">
+            See More
+          </Link>
+        </div>
         <div className="flex flex-wrap gap-3 w-full sm:w-auto">
           {/* <input
             type="text"

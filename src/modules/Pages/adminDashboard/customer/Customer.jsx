@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import ReusableTable from "../components/ReusableTable";
-import AddCustomerModal from "../components/AddCustomerModal";
 import { FaEllipsisH, FaBars, FaTh } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useQueryParams from "../../../../hooks/useQueryParams";
 import useGetAllUsersByRole from "../../../../hooks/admin/useGetAllUserByRole";
 import useDebounce from "../../../../hooks/useDebounce";
@@ -19,6 +18,10 @@ import { CSVLink } from "react-csv";
 import useApproveMarketRep from "../../../../hooks/marketRep/useApproveMarketRep";
 import useDeleteUser from "../../../../hooks/user/useDeleteUser";
 import useToast from "../../../../hooks/useToast";
+import CustomTable from "../../../../components/CustomTable";
+import AddNewCustomer from "../components/AddCustomerModal";
+import AddNewCustomerModal from "../components/AddCustomerModal";
+import CustomTabs from "../../../../components/CustomTabs";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -32,7 +35,7 @@ const CustomersTable = () => {
   const [suspendModalOpen, setSuspendModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
-
+  const navigate = useNavigate();
   const toggleDropdown = (rowId) => {
     setOpenDropdown(openDropdown === rowId ? null : rowId);
   };
@@ -40,6 +43,7 @@ const CustomersTable = () => {
   const handleDropdownToggle = (id) => {
     setOpenDropdown(openDropdown === id ? null : id);
   };
+  const [currTab, setCurrTab] = useState("All");
 
   const { queryParams, updateQueryParams } = useQueryParams({
     status: "",
@@ -47,9 +51,25 @@ const CustomersTable = () => {
     "pagination[page]": 1,
   });
 
-  const { data: getAllCustomerRepData, isPending } = useGetAllUsersByRole({
+  const {
+    data: getAllCustomerRepData,
+    isFetching,
+    isPending,
+  } = useGetAllUsersByRole({
     ...queryParams,
     role: "user",
+    approved: (() => {
+      switch (currTab) {
+        case "All":
+          return undefined;
+        case "Pending":
+          return false;
+        case "Approved":
+          return true;
+        default:
+          return undefined;
+      }
+    })(),
   });
 
   const [queryString, setQueryString] = useState(queryParams.q);
@@ -64,26 +84,29 @@ const CustomersTable = () => {
     });
   }, [debouncedSearchTerm]);
 
-  const UserData = useMemo(
-    () =>
-      getAllCustomerRepData?.data
-        ? getAllCustomerRepData?.data.map((details) => {
-            return {
-              ...details,
-              name: `${details?.name}`,
-              phone: `${details?.phone ?? ""}`,
-              email: `${details?.email ?? ""}`,
-              location: `${details?.profile?.address ?? ""}`,
-              dateJoined: `${
-                details?.created_at
-                  ? formatDateStr(details?.created_at.split(".").shift())
-                  : ""
-              }`,
-            };
-          })
-        : [],
-    [getAllCustomerRepData?.data],
-  );
+  const CustomerData = useMemo(() => {
+    if (!getAllCustomerRepData?.data) return [];
+
+    // Remove duplicates based on unique customer ID
+    const uniqueCustomers = getAllCustomerRepData.data.filter(
+      (item, index, self) => index === self.findIndex((t) => t.id === item.id),
+    );
+
+    return uniqueCustomers.map((details) => {
+      return {
+        ...details,
+        name: `${details?.name}`,
+        phone: `${details?.phone ?? ""}`,
+        email: `${details?.email ?? ""}`,
+        location: `${details?.profile?.address ?? ""}`,
+        dateJoined: `${
+          details?.created_at
+            ? formatDateStr(details?.created_at.split(".").shift())
+            : ""
+        }`,
+      };
+    });
+  }, [getAllCustomerRepData?.data]);
 
   const columns = useMemo(
     () => [
@@ -110,85 +133,19 @@ const CustomersTable = () => {
       { label: "Name", key: "name" },
       { label: "Phone Number", key: "phone" },
       { label: "Email Address", key: "email" },
-      { label: "Location", key: "location" },
-      { label: "Date Joined", key: "dateJoined" },
       {
-        label: "Action",
-        key: "action",
-        render: (_, row) => (
-          <div className="relative">
-            <button
-              className="bg-gray-10 cursor-pointer alert text-gray-500 px-3 py-1 rounded-md"
-              onClick={() => {
-                toggleDropdown(row.id);
-              }}
-            >
-              <FaEllipsisH />
-            </button>
-            {openDropdown === row.id && (
-              <div className="dropdown-menu absolute right-0 mt-2 w-50 bg-white rounded-md z-10 border-gray-200">
-                <Link
-                  to={`/admin/view-customers/${row.id}`}
-                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
-                >
-                  View User
-                </Link>
-                <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
-                  Edit User
-                </button>
-                {row?.profile?.approved_by_admin ? (
-                  <>
-                    <button
-                      onClick={() => {
-                        setSuspendModalOpen(true);
-                        setNewCategory(row);
-                        setOpenDropdown(null);
-                      }}
-                      className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center"
-                    >
-                      {"Suspend user"}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    {" "}
-                    <button
-                      onClick={() => {
-                        setSuspendModalOpen(true);
-                        setNewCategory(row);
-                        setOpenDropdown(null);
-                      }}
-                      className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
-                    >
-                      {"Unsuspend user"}
-                    </button>
-                  </>
-                )}
-                <button
-                  onClick={() => handleDeleteUser(row)}
-                  className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center"
-                >
-                  Delete User
-                </button>
-              </div>
-            )}
-          </div>
-        ),
+        label: "Location",
+        key: "location",
+        render: (_, row) => {
+          return <span className="max-w-md line-clamp-1">{row.location}</span>;
+        },
       },
+      { label: "Date Joined", key: "dateJoined" },
     ],
-    [openDropdown],
+    [],
   );
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.target.closest(".dropdown-menu")) {
-        setOpenDropdown(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
+  console.log(CustomerData);
   const totalPages = Math.ceil(
     getAllCustomerRepData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
@@ -201,7 +158,7 @@ const CustomersTable = () => {
   };
 
   const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(UserData);
+    const worksheet = XLSX.utils.json_to_sheet(CustomerData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
     const excelBuffer = XLSX.write(workbook, {
@@ -220,7 +177,7 @@ const CustomersTable = () => {
       head: [
         ["Name", "Phone Number", "Email Address", "Location", "Date Joined"],
       ],
-      body: UserData?.map((row) => [
+      body: CustomerData?.map((row) => [
         row.name,
         row.phone,
         row.email,
@@ -267,12 +224,30 @@ const CustomersTable = () => {
     }
   };
 
+  const row_actions = [
+    {
+      key: "view_detail",
+      label: "View Details",
+      action: async (item) => {
+        return navigate(`/admin/view-customers/${item.id}`);
+      },
+    },
+    {
+      key: "delete_customer",
+      label: "Delete Customer",
+      action: async (item) => {
+        handleDeleteUser(item);
+        // return navigate(`/admin/view-customers/${item.id}`);
+      },
+    },
+  ];
   return (
     <div className="bg-white p-6 rounded-xl overflow-x-auto">
       <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <h2 className="text-lg font-semibold">Customers</h2>
         </div>
+        <CustomTabs defaultValue={currTab} onChange={setCurrTab} />
         <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end items-center">
           <div className="flex items-center space-x-2 border border-gray-200 rounded-md p-1">
             <button
@@ -317,7 +292,7 @@ const CustomersTable = () => {
           </select>
           <CSVLink
             id="csvDownload"
-            data={UserData?.map((row) => ({
+            data={CustomerData?.map((row) => ({
               Name: row.name,
               "Phone Number": row.phone,
               "Email Address": row.email,
@@ -327,30 +302,43 @@ const CustomersTable = () => {
             filename="Customers.csv"
             className="hidden"
           />{" "}
-          <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
+          {/* <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
             Sort: Newest First ▾
-          </button>
+          </button>*/}
           <button
             onClick={() => setIsModalOpen(true)}
             className="bg-[#9847FE] text-white px-4 py-2 text-sm rounded-md"
           >
-            + Add New Customer
+            + Invite New Customer
           </button>
         </div>
       </div>
 
-      <AddCustomerModal
+      {/* <AddCustomerModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />*/}
+      <AddNewCustomerModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
 
       {activeTab === "table" ? (
         <>
-          <ReusableTable
+          {isFetching ? (
+            <div className="p-2">loading</div>
+          ) : (
+            <CustomTable
+              columns={columns}
+              data={CustomerData}
+              actions={row_actions}
+            />
+          )}
+          {/* <ReusableTable
             columns={columns}
             loading={isPending}
-            data={UserData}
-          />
+            data={CustomerData}
+          />*/}
         </>
       ) : isPending ? (
         <div className=" flex !w-full items-center justify-center">
@@ -358,7 +346,7 @@ const CustomersTable = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-          {UserData?.map((item) => (
+          {CustomerData?.map((item) => (
             <div
               key={item.id}
               className="relative bg-white rounded-lg p-4 border border-gray-100 flex justify-between"
@@ -379,12 +367,12 @@ const CustomersTable = () => {
                     >
                       View Details
                     </Link>
-                    <button
+                    {/* <button
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
                       onClick={() => console.log("Edit user", item.id)}
                     >
                       Edit User
-                    </button>
+                    </button>*/}
                     <button
                       className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full text-left"
                       onClick={() => handleDeleteUser(item)}
@@ -439,7 +427,7 @@ const CustomersTable = () => {
         </div>
       )}
 
-      {UserData?.length > 0 && (
+      {CustomerData?.length > 0 && (
         <div className="flex justify-between items-center mt-4">
           <div className="flex items-center">
             <p className="text-sm text-gray-600">Items per page: </p>

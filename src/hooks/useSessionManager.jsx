@@ -6,15 +6,26 @@ const useSessionManager = () => {
   const [timeUntilExpiry, setTimeUntilExpiry] = useState(0);
   const [showExpiryModal, setShowExpiryModal] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [sessionModalType, setSessionModalType] = useState(null);
 
   // Update authentication status
   const updateAuthStatus = useCallback(() => {
     const authenticated = sessionManager.isAuthenticated();
-    const timeLeft = sessionManager.getTimeUntilRefreshExpiry();
+    const accessTokenTime = sessionManager.getTimeUntilAccessTokenExpiry();
+    const refreshTokenTime = sessionManager.getTimeUntilRefreshExpiry();
+
+    // Use the shorter of the two times
+    const timeLeft = Math.min(accessTokenTime, refreshTokenTime);
 
     setIsAuthenticated(authenticated);
     setTimeUntilExpiry(timeLeft);
-  }, []);
+
+    // If not authenticated and modal is open, close it
+    if (!authenticated && showExpiryModal) {
+      setShowExpiryModal(false);
+      setSessionModalType(null);
+    }
+  }, [showExpiryModal]);
 
   // Set authentication data
   const setAuthData = useCallback(
@@ -75,14 +86,30 @@ const useSessionManager = () => {
   // Handle session expiry events
   useEffect(() => {
     const handleSessionEvent = (event) => {
-      if (event.type === "warning") {
-        // This now means refresh token has expired and user is active
+      console.log("🔔 useSessionManager: Received session event", event);
+
+      if (event.type === "access_token_warning") {
+        // Access token expiring soon (no refresh available)
+        setSessionModalType("access_token_warning");
         setShowExpiryModal(true);
-        setTimeUntilExpiry(0); // No time remaining since token is expired
+        setTimeUntilExpiry(event.timeRemaining || 0);
+      } else if (event.type === "refresh_token_warning") {
+        // Refresh token expiring soon
+        setSessionModalType("refresh_token_warning");
+        setShowExpiryModal(true);
+        setTimeUntilExpiry(event.timeRemaining || 0);
+      } else if (event.type === "refresh_token_expired") {
+        // Refresh token has expired
+        setSessionModalType("refresh_token_expired");
+        setShowExpiryModal(true);
+        setTimeUntilExpiry(0);
       } else if (event.type === "logout") {
+        // Forced logout
+        console.log("🚪 useSessionManager: Logout event received");
         setIsAuthenticated(false);
         setTimeUntilExpiry(0);
         setShowExpiryModal(false);
+        setSessionModalType(null);
       }
     };
 
@@ -96,16 +123,25 @@ const useSessionManager = () => {
 
     const interval = setInterval(() => {
       updateAuthStatus();
-    }, 30000); // Update every 30 seconds
+    }, 15000); // Update every 15 seconds for better responsiveness
 
     return () => clearInterval(interval);
   }, [updateAuthStatus]);
+
+  // Auto-close modal after successful authentication
+  useEffect(() => {
+    if (isAuthenticated && showExpiryModal) {
+      setShowExpiryModal(false);
+      setSessionModalType(null);
+    }
+  }, [isAuthenticated, showExpiryModal]);
 
   return {
     isAuthenticated,
     timeUntilExpiry,
     showExpiryModal,
     isRefreshing,
+    sessionModalType,
     setAuthData,
     getAuthData,
     refreshAccessToken,

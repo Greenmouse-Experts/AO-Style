@@ -8,9 +8,10 @@ import TransactionPages from "../modules/Pages/salesDashboard/TransactionPage";
 import NotificationPages from "../modules/Pages/salesDashboard/NotificationPage";
 import SettingPages from "../modules/Pages/salesDashboard/Settings";
 import InboxPage from "../modules/Pages/salesDashboard/Inbox";
-import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPage";
+import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPageUpdate";
 import ViewVendorDetails from "../modules/Pages/salesDashboard/ViewVendorDetails";
-
+import ViewTransactionDetail from "../components/ViewTransactionDetails";
+import MarketRepAnnouncements from "../modules/Pages/salesDashboard/Announcements";
 export const salesRoutes = [
   {
     path: "/sales",
@@ -49,6 +50,10 @@ export const salesRoutes = [
         element: <TransactionPages />,
       },
       {
+        path: "/sales/transactions/:id",
+        element: <ViewTransactionDetail />,
+      },
+      {
         path: "/sales/notifications",
         element: <NotificationPageUpdate />,
       },
@@ -56,7 +61,10 @@ export const salesRoutes = [
         path: "/sales/settings",
         element: <SettingPages />,
       },
-      // Add other sales dashboard routes here
+      {
+        path: "/sales/announcements",
+        element: <MarketRepAnnouncements />,
+      },
     ],
   },
 ];

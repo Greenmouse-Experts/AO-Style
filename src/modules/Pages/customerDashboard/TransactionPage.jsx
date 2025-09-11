@@ -15,63 +15,6 @@ import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
 import ReusableTable from "../adminDashboard/components/ReusableTable";
 
-const transactions = [
-  {
-    id: 1,
-    transactionId: "TXNRIO1234FNK",
-    date: "19-02-25",
-    time: "12:30pm",
-    category: "Fabric & Tailor",
-    amount: "N 200,000",
-    status: "Completed",
-  },
-  {
-    id: 2,
-    transactionId: "TXNRIO1234FNK",
-    date: "19-02-25",
-    time: "12:30pm",
-    category: "Fabric & Tailor",
-    amount: "N 200,000",
-    status: "Completed",
-  },
-  {
-    id: 3,
-    transactionId: "TXNRIO1234FNK",
-    date: "19-02-25",
-    time: "12:30pm",
-    category: "Fabric",
-    amount: "N 200,000",
-    status: "Ongoing",
-  },
-  {
-    id: 4,
-    transactionId: "TXNRIO1234FNK",
-    date: "19-02-25",
-    time: "12:30pm",
-    category: "Fabric & Tailor",
-    amount: "N 200,000",
-    status: "Failed",
-  },
-  {
-    id: 5,
-    transactionId: "TXNRIO1234FNK",
-    date: "19-02-25",
-    time: "12:30pm",
-    category: "Fabric",
-    amount: "N 200,000",
-    status: "Completed",
-  },
-  {
-    id: 6,
-    transactionId: "TXNRIO1234FNK",
-    date: "19-02-25",
-    time: "12:30pm",
-    category: "Fabric & Tailor",
-    amount: "N 200,000",
-    status: "Completed",
-  },
-];
-
 export default function TransactionPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
@@ -98,7 +41,7 @@ export default function TransactionPage() {
   }, [debouncedSearchTerm]);
 
   const totalPages = Math.ceil(
-    getMyProductData?.count / (queryParams["pagination[limit]"] ?? 10)
+    getMyProductData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
   console.log(getMyProductData);
 
@@ -115,14 +58,14 @@ export default function TransactionPage() {
                 details?.created_at
                   ? formatDateStr(
                       details?.created_at.split(".").shift(),
-                      "D/M/YYYY h:mm A"
+                      "D/M/YYYY h:mm A",
                     )
                   : ""
               }`,
             };
           })
         : [],
-    [getMyProductData?.data]
+    [getMyProductData?.data],
   );
 
   const columns = useMemo(
@@ -145,8 +88,8 @@ export default function TransactionPage() {
               value === "PENDING"
                 ? "bg-yellow-100 text-yellow-600"
                 : value === "Cancelled"
-                ? "bg-red-100 text-red-600"
-                : "bg-green-100 text-green-600"
+                  ? "bg-red-100 text-red-600"
+                  : "bg-green-100 text-green-600"
             }`}
           >
             {value}
@@ -154,18 +97,8 @@ export default function TransactionPage() {
         ),
       },
     ],
-    []
+    [],
   );
-
-  const filteredTransactions = transactions.filter((transaction) => {
-    if (filter === "completed" && transaction.status !== "Completed")
-      return false;
-    if (filter === "pending" && transaction.status !== "Ongoing") return false;
-    if (filter === "failed" && transaction.status !== "Failed") return false;
-    return transaction.transactionId
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-  });
 
   const handleExport = (e) => {
     const value = e.target.value;
@@ -302,7 +235,7 @@ export default function TransactionPage() {
                 value={queryString}
                 onChange={(evt) =>
                   setQueryString(
-                    evt.target.value ? evt.target.value : undefined
+                    evt.target.value ? evt.target.value : undefined,
                   )
                 }
               />
@@ -398,14 +331,14 @@ export default function TransactionPage() {
           </div>
         )}
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 mb-6">
+      {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 mb-6">
         <div className="lg:col-span-2">
           <BarChartComponent />
         </div>
         <div className="lg:col-span-1">
           <ExpensesChart />
         </div>
-      </div>
+      </div>*/}
     </div>
   );
 }

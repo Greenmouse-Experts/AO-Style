@@ -88,6 +88,7 @@ const AppWrapper = () => {
     showExpiryModal,
     timeUntilExpiry,
     isRefreshing,
+    sessionModalType,
     extendSession,
     closeExpiryModal,
   } = useSessionManager();
@@ -324,10 +325,11 @@ const AppWrapper = () => {
         onLogout={closeExpiryModal}
         timeRemaining={timeUntilExpiry}
         isRefreshing={isRefreshing}
+        sessionModalType={sessionModalType}
       />
       <SessionTestComponent />
 
-      {/* Chat Head Widget - Available on all pages */}
+      {/* Chat Head Widget - Only shown for authenticated users */}
       <ChatHead />
     </>
   );

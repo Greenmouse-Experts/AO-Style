@@ -212,7 +212,7 @@ const ViewCustomer = () => {
           {openDropdown === row.id && (
             <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md z-10 border border-gray-200">
               <Link
-                to={`/admin/orders/order-details?id=${row.id}`}
+                to={`/admin/orders/order-details/${row.id}`}
                 className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
               >
                 View Details

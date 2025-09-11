@@ -177,6 +177,12 @@ export default function MarketplaceSection() {
 
   const isShowMoreBtn = styleData?.length == getStyleProductGeneralData?.count;
 
+  // Format price with commas
+  const formatPrice = (price) => {
+    const numPrice = parseFloat(price || 0);
+    return `₦${numPrice.toLocaleString()}`;
+  };
+
   const location = useLocation();
 
   const id = location?.state?.info;
@@ -220,7 +226,7 @@ export default function MarketplaceSection() {
         <div className="flex flex-col md:flex-row md:justify-between md:items-center text-left mb-6">
           <div>
             <h2 className="text-2xl font-medium max-w-md leading-relaxed">
-              Pick a style to sew your fabric
+              Pick a style to sew your fabri
             </h2>
           </div>
           <div className="relative w-full max-w-md">
@@ -343,8 +349,8 @@ export default function MarketplaceSection() {
                     : product?.name}
                 </h3>
                 <p className="text-[#2B21E5]  text-left font-bold">
-                  ₦{product?.price}{" "}
-                  <span className="text-[#8A8A8A] font-medium">per unit</span>
+                  {formatPrice(product?.price)}{" "}
+                  <span className="text-[#8A8A8A] font-medium">per yard</span>
                 </p>
               </Link>
             ))}

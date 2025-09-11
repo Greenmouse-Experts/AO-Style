@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import ReusableTable from "../components/ReusableTable";
 import { FaEllipsisH, FaBars, FaTh, FaPhone, FaEnvelope } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { BsFilter } from "react-icons/bs";
 import useQueryParams from "../../../../hooks/useQueryParams";
 import useGetAllUsersByRole from "../../../../hooks/admin/useGetAllUserByRole";
@@ -10,10 +10,13 @@ import useDebounce from "../../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../../hooks/useUpdatedEffect";
 import Loader from "../../../../components/ui/Loader";
 import useApproveMarketRep from "../../../../hooks/marketRep/useApproveMarketRep";
-import AddTailorModal from "../components/AddTailorModal";
 import ConfirmationModal from "../../../../components/ui/ConfirmationModal";
 import useDeleteUser from "../../../../hooks/user/useDeleteUser";
 import useToast from "../../../../hooks/useToast";
+import AddNewTailorModal from "./AddNewTailorModal";
+import CustomTable from "../../../../components/CustomTable";
+import { useQuery } from "@tanstack/react-query";
+import CaryBinApi from "../../../../services/CarybinBaseUrl";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -37,47 +40,63 @@ const CustomersTable = () => {
 
   const { queryParams, updateQueryParams } = useQueryParams({
     status: "",
+    // approved: false,
     "pagination[limit]": 10,
     "pagination[page]": 1,
   });
-
-  const { data: getAllTailorRepData, isPending } = useGetAllUsersByRole({
-    ...queryParams,
-    role: "fashion-designer",
-  });
-
+  const filterTabs = ["All", "Pending", "Invites", "Approved"];
+  const [currTab, setCurrTab] = useState("All");
   const [queryString, setQueryString] = useState(queryParams.q);
-
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
+  const query = useQuery({
+    queryKey: [queryParams, "tailors", debouncedSearchTerm, currTab],
+    queryFn: async () => {
+      let resp = await CaryBinApi.get("/auth/users/fashion-designer", {
+        params: {
+          ...queryParams,
+          q: debouncedSearchTerm,
+          approved: (() => {
+            switch (currTab) {
+              case "All":
+                return undefined;
+              case "Pending":
+                return false;
+              case "Approved":
+                return true;
+              default:
+                return undefined;
+            }
+          })(),
+        },
+      });
+      return resp.data;
+    },
+  });
+  const getAllTailorRepData = query.data;
+  const isPending = query.isFetching;
+  const TailorData = useMemo(() => {
+    if (!getAllTailorRepData?.data) return [];
 
-  useUpdatedEffect(() => {
-    // update search params with undefined if debouncedSearchTerm is an empty string
-    updateQueryParams({
-      q: debouncedSearchTerm.trim() || undefined,
-      "pagination[page]": 1,
+    // Remove duplicates based on unique tailor ID
+    const uniqueTailors = getAllTailorRepData.data.filter(
+      (item, index, self) => index === self.findIndex((t) => t.id === item.id),
+    );
+
+    return uniqueTailors.map((details) => {
+      return {
+        ...details,
+        name: `${details?.name}`,
+        phone: `${details?.phone ?? ""}`,
+        email: `${details?.email ?? ""}`,
+        location: `${details?.profile?.address ?? ""}`,
+        dateJoined: `${
+          details?.created_at
+            ? formatDateStr(details?.created_at.split(".").shift())
+            : ""
+        }`,
+      };
     });
-  }, [debouncedSearchTerm]);
-
-  const TailorData = useMemo(
-    () =>
-      getAllTailorRepData?.data
-        ? getAllTailorRepData?.data.map((details) => {
-            return {
-              ...details,
-              name: `${details?.name}`,
-              phone: `${details?.phone ?? ""}`,
-              email: `${details?.email ?? ""}`,
-              location: `${details?.profile?.address ?? ""}`,
-              dateJoined: `${
-                details?.created_at
-                  ? formatDateStr(details?.created_at.split(".").shift())
-                  : ""
-              }`,
-            };
-          })
-        : [],
-    [getAllTailorRepData?.data],
-  );
+  }, [getAllTailorRepData?.data]);
 
   const handleDropdownToggle = (id) => {
     setOpenDropdown(openDropdown === id ? null : id);
@@ -104,7 +123,7 @@ const CustomersTable = () => {
   };
 
   const dropdownRef = useRef(null);
-
+  const nav = useNavigate();
   const columns = useMemo(
     () => [
       {
@@ -132,73 +151,99 @@ const CustomersTable = () => {
       { label: "Email Address", key: "email" },
       { label: "Location", key: "location" },
       { label: "Date Joined", key: "dateJoined" },
-      {
-        label: "Action",
-        key: "action",
-        render: (_, row) => (
-          <div className="relative">
-            <button
-              className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
-              onClick={() => {
-                toggleDropdown(row.id);
-              }}
-            >
-              <FaEllipsisH />
-            </button>
-            {openDropdown === row.id && (
-              <div className="dropdown-menu absolute z-[99999] right-2 rounded mt-2 w-50 bg-white rounded-md border-gray-200">
-                <Link
-                  to={`/admin/tailors/view-tailor/${row.id}`}
-                  className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
-                >
-                  View Tailors Details
-                </Link>
-                {/* <button className="block cursor-pointer px-4 cursor-pointer py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
-                  Edit User
-                </button> */}
-                {row?.profile?.approved_by_admin ? (
-                  <>
-                    {" "}
-                    <button
-                      onClick={() => {
-                        setSuspendModalOpen(true);
-                        setNewCategory(row);
-                        setOpenDropdown(null);
-                      }}
-                      className="block text-red-500 hover:bg-red-100 cursor-pointer px-4 py-2  w-full text-center"
-                    >
-                      {"Suspend Tailor"}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    {" "}
-                    <button
-                      onClick={() => {
-                        setSuspendModalOpen(true);
-                        setNewCategory(row);
-                        setOpenDropdown(null);
-                      }}
-                      className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
-                    >
-                      {"Unsuspend Tailor"}
-                    </button>
-                  </>
-                )}
-                <button
-                  onClick={() => handleDeleteUser(row)}
-                  className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center"
-                >
-                  Delete Tailor
-                </button>
-              </div>
-            )}
-          </div>
-        ),
-      },
+      // {
+      //   label: "Action",
+      //   key: "action",
+      //   render: (_, row) => (
+      //     <div className="relative">
+      //       <button
+      //         className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
+      //         onClick={() => {
+      //           toggleDropdown(row.id);
+      //         }}
+      //       >
+      //         <FaEllipsisH />
+      //       </button>
+      //       {openDropdown === row.id && (
+      //         <div className="dropdown-menu absolute z-[99999] right-2 rounded mt-2 w-50 bg-white rounded-md border-gray-200">
+      //           <Link
+      //             to={`/admin/tailors/view-tailor/${row.id}`}
+      //             className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+      //           >
+      //             View Tailors Details
+      //           </Link>
+      //           {/* <button className="block cursor-pointer px-4 cursor-pointer py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
+      //             Edit User
+      //           </button> */}
+      //           {row?.profile?.approved_by_admin ? (
+      //             <>
+      //               {" "}
+      //               <button
+      //                 onClick={() => {
+      //                   setSuspendModalOpen(true);
+      //                   setNewCategory(row);
+      //                   setOpenDropdown(null);
+      //                 }}
+      //                 className="block text-red-500 hover:bg-red-100 cursor-pointer px-4 py-2  w-full text-center"
+      //               >
+      //                 {"Suspend Tailor"}
+      //               </button>
+      //             </>
+      //           ) : (
+      //             <>
+      //               {" "}
+      //               <button
+      //                 onClick={() => {
+      //                   setSuspendModalOpen(true);
+      //                   setNewCategory(row);
+      //                   setOpenDropdown(null);
+      //                 }}
+      //                 className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+      //               >
+      //                 {"Unsuspend Tailor"}
+      //               </button>
+      //             </>
+      //           )}
+      //           <button
+      //             onClick={() => handleDeleteUser(row)}
+      //             className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center"
+      //           >
+      //             Delete Tailor
+      //           </button>
+      //         </div>
+      //       )}
+      //     </div>
+      //   ),
+      // },
     ],
     [openDropdown],
   );
+
+  const actions = [
+    {
+      key: "view-details",
+      label: "View Details",
+      action: (item) => {
+        return nav(`/admin/tailors/view-tailor/${item.id}`);
+      },
+    },
+    {
+      key: "suspend-tailor",
+      label: "Suspend Tailor",
+      action: (item) => {
+        setSuspendModalOpen(true);
+        setNewCategory(row);
+        setOpenDropdown(null);
+      },
+    },
+    {
+      key: "delete-tailor",
+      label: "Delete Tailor",
+      action: (item) => {
+        handleDeleteUser(item);
+      },
+    },
+  ];
 
   const toggleDropdown = (rowId) => {
     setOpenDropdown(openDropdown === rowId ? null : rowId);
@@ -223,6 +268,24 @@ const CustomersTable = () => {
       <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <h2 className="text-lg font-semibold">Tailors/Designers</h2>
+        </div>
+        <div id="cus-app" data-theme="nord" className="w-fit overflow-x-scroll">
+          <div className="tabs tabs-lift  min-w-max py-2 *:[--tab-border-color:#9847FE]">
+            {filterTabs.map((item) => {
+              if (item == currTab) {
+                return (
+                  <div className="tab tab-primary tab-lift tab-active">
+                    {item}
+                  </div>
+                );
+              }
+              return (
+                <div className="tab tab-lift" onClick={() => setCurrTab(item)}>
+                  {item}
+                </div>
+              );
+            })}
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end">
           <div className="flex items-center space-x-2 border border-gray-200 rounded-md p-1">
@@ -255,32 +318,35 @@ const CustomersTable = () => {
           <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
             Filter <BsFilter size={14} className="inline ml-1" />
           </button>
-          <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-            Bulk Action
-          </button>
+
           {/* <Link to="/admin/tailors/add-tailor"> */}
           <button
             onClick={() => setIsModalOpen(true)}
             className="bg-purple-600 cursor-pointer text-white px-4 py-2 text-sm rounded-md"
           >
-            + Add a New Tailor/Designer
+            + Invite New Tailor/Designer
           </button>
           {/* </Link> */}
         </div>
       </div>
 
-      <AddTailorModal
+      <AddNewTailorModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
 
       {activeTab === "table" ? (
         <>
-          <ReusableTable
+          <CustomTable
+            columns={columns}
+            data={TailorData || []}
+            actions={actions}
+          />
+          {/* <ReusableTable
             columns={columns}
             data={TailorData}
             loading={isPending}
-          />
+          />*/}
           {TailorData?.length > 0 && (
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center">
@@ -356,7 +422,7 @@ const CustomersTable = () => {
                     >
                       View Details
                     </Link>
-                    <button
+                    {/* <button
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
                       onClick={() => console.log("Edit user", item.id)}
                     >
@@ -367,7 +433,7 @@ const CustomersTable = () => {
                       onClick={() => console.log("Remove user", item.id)}
                     >
                       Remove User
-                    </button>
+                    </button>*/}
                   </div>
                 )}
               </div>

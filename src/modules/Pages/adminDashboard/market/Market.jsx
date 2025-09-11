@@ -409,9 +409,9 @@ const MarketsTable = () => {
             filename="Market.csv"
             className="hidden"
           />{" "}
-          <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
+          {/* <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
             Sort: Newest First ▾
-          </button>
+          </button>*/}
           <button
             onClick={() => setIsAddModalOpen(true)}
             className="bg-gradient text-white px-6 py-3 text-sm rounded-md whitespace-nowrap cursor-pointer"

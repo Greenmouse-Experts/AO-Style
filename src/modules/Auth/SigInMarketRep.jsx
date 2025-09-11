@@ -228,8 +228,8 @@ export default function SignInAsCustomer() {
               name={"location"}
               ref={ref}
               value={values.location}
-              onChange={handleChange}
               onChange={(e) => {
+                handleChange(e);
                 setFieldValue("location", e.currentTarget.value);
                 setFieldValue("latitude", "");
                 setFieldValue("longitude", "");

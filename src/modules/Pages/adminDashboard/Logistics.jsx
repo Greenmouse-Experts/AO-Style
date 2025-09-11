@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import ReusableTable from "./components/ReusableTable";
 import LogisticsModal from "./components/LogisticsModal";
 import { FaEllipsisH, FaBars, FaTh, FaPhone, FaEnvelope } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useQueryParams from "../../../hooks/useQueryParams";
 import useGetAllUsersByRole from "../../../hooks/admin/useGetAllUserByRole";
 import useDebounce from "../../../hooks/useDebounce";
@@ -19,6 +19,9 @@ import useApproveMarketRep from "../../../hooks/marketRep/useApproveMarketRep";
 import ConfirmationModal from "../../../components/ui/ConfirmationModal";
 import useDeleteUser from "../../../hooks/user/useDeleteUser";
 import useToast from "../../../hooks/useToast";
+import AddNewUser from "./components/AddNewUserModal";
+import CustomTabs from "../../../components/CustomTabs";
+import CustomTable from "../../../components/CustomTable";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -31,7 +34,7 @@ const CustomersTable = () => {
   const [suspendModalOpen, setSuspendModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
-
+  const nav = useNavigate();
   const [reason, setReason] = useState("");
 
   const [newCategory, setNewCategory] = useState();
@@ -40,6 +43,7 @@ const CustomersTable = () => {
     useApproveMarketRep();
 
   const { isPending: deleteIsPending, deleteUserMutate } = useDeleteUser();
+  const [currTab, setCurrTab] = useState("All");
 
   const { queryParams, updateQueryParams } = useQueryParams({
     status: "",
@@ -50,6 +54,18 @@ const CustomersTable = () => {
   const { data: getAllLogisticsRepData, isPending } = useGetAllUsersByRole({
     ...queryParams,
     role: "logistics-agent",
+    approved: (() => {
+      switch (currTab) {
+        case "All":
+          return undefined;
+        case "Pending":
+          return false;
+        case "Approved":
+          return true;
+        default:
+          return undefined;
+      }
+    })(),
   });
 
   const [queryString, setQueryString] = useState(queryParams.q);
@@ -64,26 +80,29 @@ const CustomersTable = () => {
     });
   }, [debouncedSearchTerm]);
 
-  const LogisticsData = useMemo(
-    () =>
-      getAllLogisticsRepData?.data
-        ? getAllLogisticsRepData?.data.map((details) => {
-            return {
-              ...details,
-              name: `${details?.name}`,
-              phone: `${details?.phone ?? ""}`,
-              email: `${details?.email ?? ""}`,
-              location: `${details?.profile?.address ?? ""}`,
-              dateJoined: `${
-                details?.created_at
-                  ? formatDateStr(details?.created_at.split(".").shift())
-                  : ""
-              }`,
-            };
-          })
-        : [],
-    [getAllLogisticsRepData?.data],
-  );
+  const LogisticsData = useMemo(() => {
+    if (!getAllLogisticsRepData?.data) return [];
+
+    // Remove duplicates based on unique user ID
+    const uniqueLogistics = getAllLogisticsRepData.data.filter(
+      (item, index, self) => index === self.findIndex((t) => t.id === item.id),
+    );
+
+    return uniqueLogistics.map((details) => {
+      return {
+        ...details,
+        name: `${details?.name}`,
+        phone: `${details?.phone ?? ""}`,
+        email: `${details?.email ?? ""}`,
+        location: `${details?.profile?.address ?? ""}`,
+        dateJoined: `${
+          details?.created_at
+            ? formatDateStr(details?.created_at.split(".").shift())
+            : ""
+        }`,
+      };
+    });
+  }, [getAllLogisticsRepData?.data]);
 
   const handleDropdownToggle = (id) => {
     setOpenDropdown(openDropdown === id ? null : id);
@@ -117,76 +136,100 @@ const CustomersTable = () => {
       { label: "Email Address", key: "email" },
       { label: "Location", key: "location" },
       { label: "Date Joined", key: "dateJoined" },
-      {
-        label: "Action",
-        key: "action",
-        render: (_, row) => (
-          <div className="relative">
-            <button
-              className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
-              onClick={() => toggleDropdown(row.id)}
-            >
-              <FaEllipsisH />
-            </button>
+      // {
+      //   label: "Action",
+      //   key: "action",
+      //   render: (_, row) => (
+      //     <div className="relative">
+      //       <button
+      //         className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
+      //         onClick={() => toggleDropdown(row.id)}
+      //       >
+      //         <FaEllipsisH />
+      //       </button>
 
-            {openDropdown === row.id && (
-              <div className="dropdown-menu absolute right-0 mt-2 w-50 bg-white rounded-md z-10 border-gray-200">
-                <Link
-                  to={`/admin/logistics/view/${row.id}`}
-                  state={{ info: row.id }}
-                  className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
-                >
-                  <button className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
-                    View Details
-                  </button>
-                </Link>
-                {/* <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
-                  Edit User
-                </button> */}
-                {row?.profile?.approved_by_admin ? (
-                  <>
-                    {" "}
-                    <button
-                      onClick={() => {
-                        setSuspendModalOpen(true);
-                        setNewCategory(row);
-                        setOpenDropdown(null);
-                      }}
-                      className="block text-red-500 hover:bg-red-100 cursor-pointer px-4 py-2  w-full text-center"
-                    >
-                      {"Suspend User"}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    {" "}
-                    <button
-                      onClick={() => {
-                        setSuspendModalOpen(true);
-                        setNewCategory(row);
-                        setOpenDropdown(null);
-                      }}
-                      className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
-                    >
-                      {"Unsuspend User"}
-                    </button>
-                  </>
-                )}
-                <button
-                  onClick={() => handleDeleteUser(row)}
-                  className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center"
-                >
-                  Delete Agent
-                </button>
-              </div>
-            )}
-          </div>
-        ),
-      },
+      //       {openDropdown === row.id && (
+      //         <div className="dropdown-menu absolute right-0 mt-2 w-50 bg-white rounded-md z-10 border-gray-200">
+      //           <Link
+      //             to={`/admin/logistics/view/${row.id}`}
+      //             state={{ info: row.id }}
+      //             className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
+      //           >
+      //             <button className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
+      //               View Details
+      //             </button>
+      //           </Link>
+      //           {/* <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center">
+      //             Edit User
+      //           </button> */}
+      //           {row?.profile?.approved_by_admin ? (
+      //             <>
+      //               {" "}
+      //               <button
+      //                 onClick={() => {
+      //                   setSuspendModalOpen(true);
+      //                   setNewCategory(row);
+      //                   setOpenDropdown(null);
+      //                 }}
+      //                 className="block text-red-500 hover:bg-red-100 cursor-pointer px-4 py-2  w-full text-center"
+      //               >
+      //                 {"Suspend User"}
+      //               </button>
+      //             </>
+      //           ) : (
+      //             <>
+      //               {" "}
+      //               <button
+      //                 onClick={() => {
+      //                   setSuspendModalOpen(true);
+      //                   setNewCategory(row);
+      //                   setOpenDropdown(null);
+      //                 }}
+      //                 className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+      //               >
+      //                 {"Unsuspend User"}
+      //               </button>
+      //             </>
+      //           )}
+      //           <button
+      //             onClick={() => handleDeleteUser(row)}
+      //             className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center"
+      //           >
+      //             Delete Agent
+      //           </button>
+      //         </div>
+      //       )}
+      //     </div>
+      //   ),
+      // },
     ],
     [openDropdown],
   );
-
+  const actions = [
+    {
+      key: "view-details",
+      label: "View Details",
+      action: (item) => {
+        return nav(`/admin/logistics/view/${item.id}`);
+      },
+    },
+    {
+      key: "suspend-vendor",
+      label: "Suspend",
+      action: (item) => {
+        setSuspendModalOpen(true);
+        setNewCategory(row);
+        setOpenDropdown(null);
+      },
+    },
+    {
+      key: "delete-vendor",
+      label: "Delete",
+      action: (item) => {
+        handleDeleteUser(item);
+      },
+    },
+  ];
   const handleDeleteUser = (user) => {
     setUserToDelete(user);
     setDeleteModalOpen(true);
@@ -277,6 +320,7 @@ const CustomersTable = () => {
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <h2 className="text-lg font-semibold">Logistics</h2>
         </div>
+        <CustomTabs defaultValue={currTab} onChange={setCurrTab} />
         <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
           <div className="flex items-center space-x-2 border border-gray-200 rounded-md p-1">
             <button
@@ -338,23 +382,25 @@ const CustomersTable = () => {
             onClick={() => setIsModalOpen(true)}
             className="bg-[#9847FE] text-white px-4 py-2 text-sm rounded-md"
           >
-            + Add New Logistics
+            + Invite New Logistics
           </button>
         </div>
       </div>
 
-      <LogisticsModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
+      <AddNewUser isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
       {activeTab === "table" ? (
         <>
-          <ReusableTable
+          <CustomTable
+            columns={columns}
+            data={LogisticsData || []}
+            actions={actions}
+          />
+          {/* <ReusableTable
             loading={isPending}
             columns={columns}
             data={LogisticsData}
-          />
+          />*/}
           {LogisticsData?.length > 0 && (
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center">

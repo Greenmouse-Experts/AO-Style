@@ -151,7 +151,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             to="/tailor/announcements"
             icon={<FaBullhorn />}
             text="Announcements"
-            onClick={handleClick}
+            onClick={toggleSidebar}
           />
           <SidebarItem
             to="/tailor/notifications"

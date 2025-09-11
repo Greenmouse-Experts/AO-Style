@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import Details from "../components/Details";
 import Breadcrumb from "../components/Breadcrumb";
+import CustomBackbtn from "../../../components/CustomBackBtn";
 export default class PickaStyle extends Component {
   render() {
     return (
@@ -12,6 +13,9 @@ export default class PickaStyle extends Component {
           backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1744156885/AoStyle/image_1_v4nyzx.jpg"
         />
         <div className="Resizer px-4">
+          {/* <div className="mb-4">
+            <CustomBackbtn />
+          </div>*/}
           {/* <div className="bg-[#FFF2FF] Push p-4 rounded-lg mb-6">
             <h2 className="text-sm font-medium text-gray-500 mb-4">FABRIC</h2>
             <div className="flex">

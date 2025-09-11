@@ -23,6 +23,7 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
 import useToast from "../../../hooks/useToast";
+import CustomTable from "../../../components/CustomTable";
 
 const FabricCategoryTable = () => {
   const dropdownRef = useRef(null);
@@ -128,23 +129,26 @@ const FabricCategoryTable = () => {
 
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
 
-  const fabricData = useMemo(
-    () =>
-      data?.data
-        ? data?.data.map((details) => {
-            return {
-              ...details,
-              name: `${details?.name}`,
-              dateAdded: `${
-                details?.created_at
-                  ? formatDateStr(details?.created_at.split(".").shift())
-                  : ""
-              }`,
-            };
-          })
-        : [],
-    [data?.data],
-  );
+  const fabricData = useMemo(() => {
+    if (!data?.data) return [];
+
+    // Remove duplicates based on unique category ID
+    const uniqueCategories = data.data.filter(
+      (item, index, self) => index === self.findIndex((t) => t.id === item.id),
+    );
+
+    return uniqueCategories.map((details) => {
+      return {
+        ...details,
+        name: `${details?.name}`,
+        dateAdded: `${
+          details?.created_at
+            ? formatDateStr(details?.created_at.split(".").shift())
+            : ""
+        }`,
+      };
+    });
+  }, [data?.data]);
 
   useUpdatedEffect(() => {
     // update search params with undefined if debouncedSearchTerm is an empty string
@@ -170,53 +174,84 @@ const FabricCategoryTable = () => {
       { label: "Category Name", key: "name" },
       //   { label: "Total Fabrics", key: "totalFabrics" },
       { label: "Date Added", key: "dateAdded" },
-      {
-        label: "Action",
-        key: "action",
-        render: (_, row) => (
-          <div className="relative">
-            <button
-              className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
-              onClick={() => toggleDropdown(row.id)}
-            >
-              <FaEllipsisH />
-            </button>
-            {openDropdown === row.id && (
-              <div className="absolute right-0  mt-2 w-40 bg-white rounded-md z-50 shadow-lg">
-                <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
-                  View Details
-                </button>
-                <button
-                  onClick={() => {
-                    setIsAddModalOpen(true);
-                    handleDropdownToggle(null);
-                    setNewCategory(row);
-                    setType("Edit");
-                  }}
-                  className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
-                >
-                  Edit Fabric
-                </button>
-                <button
-                  onClick={() => {
-                    setIsAddModalOpen(true);
-                    handleDropdownToggle(null);
-                    setNewCategory(row);
-                    setType("Remove");
-                  }}
-                  className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full"
-                >
-                  Remove Fabric
-                </button>
-              </div>
-            )}
-          </div>
-        ),
-      },
+      // {
+      //   label: "Action",
+      //   key: "action",
+      //   render: (_, row) => (
+      //     <div className="relative">
+      //       <button
+      //         className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
+      //         onClick={() => toggleDropdown(row.id)}
+      //       >
+      //         <FaEllipsisH />
+      //       </button>
+      //       {openDropdown === row.id && (
+      //         <div className="absolute right-0  mt-2 w-40 bg-white rounded-md z-50 shadow-lg">
+      //           <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
+      //             View Details
+      //           </button>
+      //           <button
+      //             onClick={() => {
+      //               setIsAddModalOpen(true);
+      //               handleDropdownToggle(null);
+      //               setNewCategory(row);
+      //               setType("Edit");
+      //             }}
+      //             className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
+      //           >
+      //             Edit Fabric
+      //           </button>
+      //           <button
+      //             onClick={() => {
+      //               setIsAddModalOpen(true);
+      //               handleDropdownToggle(null);
+      //               setNewCategory(row);
+      //               setType("Remove");
+      //             }}
+      //             className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full"
+      //           >
+      //             Remove Fabric
+      //           </button>
+      //         </div>
+      //       )}
+      //     </div>
+      //   ),
+      // },
     ],
     [openDropdown],
   );
-
+  const actions = [
+    {
+      key: "view-details",
+      label: "View Details",
+      action: (item) => {
+        setIsAddModalOpen(true);
+        handleDropdownToggle(null);
+        setNewCategory(item);
+        setType("Edit");
+      },
+    },
+    {
+      key: "edit-fabric",
+      label: "Edit Fabric",
+      action: (item) => {
+        setIsAddModalOpen(true);
+        handleDropdownToggle(null);
+        setNewCategory(item);
+        setType("Remove");
+      },
+    },
+    {
+      key: "remove-fabric",
+      label: "Remove Fabric",
+      action: (item) => {
+        setIsAddModalOpen(true);
+        handleDropdownToggle(null);
+        setNewCategory(item);
+        setType("Remove");
+      },
+    },
+  ];
   const totalPages = Math.ceil(
     data?.count / (queryParams["pagination[limit]"] ?? 10),
   );
@@ -327,9 +362,9 @@ const FabricCategoryTable = () => {
             filename="Fabricategory.csv"
             className="hidden"
           />{" "}
-          <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
+          {/* <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
             Sort: Newest First ▾
-          </button>
+          </button>*/}
           <button
             onClick={() => setIsAddModalOpen(true)}
             className="bg-gradient cursor-pointer text-white px-4 py-2 text-sm rounded-md"
@@ -340,13 +375,14 @@ const FabricCategoryTable = () => {
       </div>
 
       {activeTab === "table" ? (
-        <>
-          <ReusableTable
+        <div key="fabric-table">
+          <CustomTable data={fabricData} columns={columns} actions={actions} />
+          {/* <ReusableTable
             loading={isPending}
             columns={columns}
             data={fabricData}
-          />
-        </>
+          />*/}
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {fabricData?.map((item) => (

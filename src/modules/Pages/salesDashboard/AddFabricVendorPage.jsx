@@ -13,6 +13,8 @@ import useToast from "../../../hooks/useToast";
 import PhoneInput from "react-phone-input-2";
 
 import useAddFabricVendor from "../../../hooks/marketRep/useAddFabricVendor";
+import { usePlacesWidget } from "react-google-autocomplete";
+import CustomLocationInput from "../../../components/customLocationInput";
 
 const initialValues = {
   name: "",
@@ -83,7 +85,62 @@ export default function AddFabricVendorPage() {
   const { isPending, addMarketRepFabricVendorMutate } = useAddFabricVendor();
 
   const isExact = currentPath === "/sales/add-fashion-designers";
+  function getAddressComponent(components, type) {
+    const component = components.find((c) => c.types.includes(type));
+    return component?.long_name || "";
+  }
+  const { ref } = usePlacesWidget({
+    apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
+    onPlaceSelected: (place) => {
+      console.log(place);
+      const components = place.address_components;
+      const country = getAddressComponent(components, "country");
+      const state = getAddressComponent(
+        components,
+        "administrative_area_level_1",
+      );
+      const city = getAddressComponent(components, "locality");
 
+      setFieldValue("address", place.formatted_address);
+      // setFieldValue("location", place.formatted_address);
+    },
+    options: {
+      componentRestrictions: { country: "ng" },
+      types: [],
+    },
+  });
+  const { ref: busiRef } = usePlacesWidget({
+    apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
+    onPlaceSelected: (place) => {
+      console.log("Business Address:", place);
+      const components = place.address_components;
+      const country = getAddressComponent(components, "country");
+      const state = getAddressComponent(
+        components,
+        "administrative_area_level_1",
+      );
+      const city = getAddressComponent(components, "locality");
+
+      setFieldValue("location", place.formatted_address); // Business location
+      setFieldValue("business_country", country); // Separate business country field
+      setFieldValue("business_state", state); // Separate business state field
+      setFieldValue("business_city", city); // Separate business city field
+
+      // Optional: If you want business coordinates too
+      setFieldValue(
+        "business_latitude",
+        place.geometry?.location?.lat().toString(),
+      );
+      setFieldValue(
+        "business_longitude",
+        place.geometry?.location?.lng().toString(),
+      );
+    },
+    options: {
+      componentRestrictions: { country: "ng" },
+      types: [],
+    },
+  });
   const {
     handleSubmit,
     touched,
@@ -98,11 +155,12 @@ export default function AddFabricVendorPage() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
+      // return console.log(val);
       if (!navigator.onLine) {
         toastError("No internet connection. Please check your network.");
         return;
       }
-      const phoneno = `${val.phoneCode + val.phone}`;
+      const phoneno = `${val.phone}`;
 
       if (step == 1) {
         if (values.confirmPassword !== values.password) {
@@ -126,6 +184,7 @@ export default function AddFabricVendorPage() {
               bio: "",
               date_of_birth: "",
               gender: val?.gender,
+              address: val.address,
             },
             business: {
               business_name: val?.business_name,
@@ -149,7 +208,7 @@ export default function AddFabricVendorPage() {
             onSuccess: () => {
               navigate(-1);
             },
-          }
+          },
         );
       }
     },
@@ -228,7 +287,7 @@ export default function AddFabricVendorPage() {
                         onSuccess: (data) => {
                           setFieldValue(
                             "profile_picture",
-                            data?.data?.data?.url
+                            data?.data?.data?.url,
                           );
                         },
                       });
@@ -337,7 +396,21 @@ export default function AddFabricVendorPage() {
                   </button>
                 </div>
               </div>
-
+              <div className="w-full  relative mt-4">
+                <label className="block text-gray-600 font-medium mb-4">
+                  Address
+                </label>
+                <input
+                  ref={ref}
+                  placeholder="address here"
+                  name="address"
+                  type="text"
+                  onChange={(e) => {
+                    setFieldValue("address", e.currentTarget.value);
+                  }}
+                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                />
+              </div>
               <button
                 disabled={uploadPictureIsPending}
                 type="submit"
@@ -444,19 +517,23 @@ export default function AddFabricVendorPage() {
                     <option value="franchise">Franchise</option>
                   </select>
                 </div>
-                <div className="mt-4 w-full">
-                  <label className="block text-gray-600 font-medium mb-4">
+                <div className="mt-3 w-full">
+                  <CustomLocationInput setFieldValue={setFieldValue} />
+                  {/* <label className="block text-gray-600 font-medium mb-4">
                     Business Address
                   </label>
                   <input
+                    ref={busiRef}
                     type="text"
                     name={"location"}
-                    value={values.location}
-                    onChange={handleChange}
-                    required
+                    onChange={(e) => {
+                      setFieldValue("location", e.currentTarget.value);
+                    }}
+                    // onChange={handleChange}
                     placeholder="Enter your business address"
                     className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                   />
+                </div>*/}
                 </div>
               </div>
 
@@ -468,7 +545,7 @@ export default function AddFabricVendorPage() {
                     options={[{ value: "Nigeria", label: "Nigeria" }]}
                     name="country"
                     value={[{ value: "Nigeria", label: "Nigeria" }]?.find(
-                      (opt) => opt.value === values.country
+                      (opt) => opt.value === values.country,
                     )}
                     onChange={(selectedOption) =>
                       setFieldValue("country", selectedOption.value)
@@ -502,7 +579,7 @@ export default function AddFabricVendorPage() {
                     options={nigeriaStates}
                     name="state"
                     value={nigeriaStates?.find(
-                      (opt) => opt.value === values.state
+                      (opt) => opt.value === values.state,
                     )}
                     onChange={(selectedOption) =>
                       setFieldValue("state", selectedOption.value)

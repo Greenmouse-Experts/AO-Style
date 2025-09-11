@@ -29,7 +29,7 @@ export default function StatsCard(vendorSummaryStat) {
         label: "Total Income",
       },
     ],
-    [cardValue]
+    [cardValue],
   );
   return (
     <div className="flex flex-wrap gap-4 my-8">

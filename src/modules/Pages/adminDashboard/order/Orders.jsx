@@ -1,13 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import ReusableTable from "../components/ReusableTable";
 import OrdersSummary from "../components/OrdersSummary";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useGetOrder from "../../../../hooks/order/useGetOrder";
 import Loader from "../../../../components/ui/Loader";
 import { formatDateStr } from "../../../../lib/helper";
 import ReviewList from "../../../../components/reviews/ReviewList";
 import { useQuery } from "@tanstack/react-query";
 import CaryBinApi from "../../../../services/CarybinBaseUrl";
+import CustomTable from "../../../../components/CustomTable";
+import { MenuIcon } from "lucide-react";
 
 const OrdersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -16,7 +18,7 @@ const OrdersTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [activeReviewModal, setActiveReviewModal] = useState(null);
-
+  const nav = useNavigate();
   const { isPending: ordersLoading, data: ordersResponse } = useGetOrder();
   const columns = [
     {
@@ -24,7 +26,6 @@ const OrdersTable = () => {
       key: "customer",
       render: (_, row) => (
         <div className="flex items-center">
-          <input type="checkbox" className="mr-2" />
           <span className="text-sm">
             {row.payment?.user?.email?.split("@")[0] ||
               `User ${row.user_id?.slice(-8)}`}
@@ -78,48 +79,49 @@ const OrdersTable = () => {
         </span>
       ),
     },
-    {
-      label: "Action",
-      key: "action",
-      render: (_, row) => (
-        <div className="relative">
-          <button
-            onClick={() => toggleDropdown(row.id)}
-            className="text-gray-500 hover:text-gray-700 p-1"
-          >
-            ⋮
-          </button>
-          {openDropdown === row.id && (
-            <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md z-10 border border-gray-200">
-              <Link
-                onClick={(e) => {
-                  console.log(row);
-                }}
-                to={`/admin/orders/order-details?id=${row.id}`}
-                // to={`/admin/orders/order-details?id=${row.id}`}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-              >
-                View Details
-              </Link>
-              {row.payment?.purchase?.items &&
-                row.payment.purchase.items.length > 0 && (
-                  <button
-                    onClick={() => {
-                      setActiveReviewModal(
-                        row.payment.purchase.items[0].product_id,
-                      );
-                      setOpenDropdown(null);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-                  >
-                    View Reviews
-                  </button>
-                )}
-            </div>
-          )}
-        </div>
-      ),
-    },
+    // {
+    //   label: "Action",
+    //   key: "action",
+    //   render: (_, row) => (
+    //     <div className="relative">
+    //       <button
+    //         data-theme="nord"
+    //         onClick={() => toggleDropdown(row.id)}
+    //         className="btn btn-circle btn-ghost"
+    //       >
+    //         <MenuIcon className="label" />
+    //       </button>
+    //       {openDropdown === row.id && (
+    //         <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md z-10 border border-gray-200">
+    //           <Link
+    //             onClick={(e) => {
+    //               console.log(row);
+    //             }}
+    //             to={`/admin/orders/order-details/${row.id}`}
+    //             // to={`/admin/orders/order-details/${row.id}`}
+    //             className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+    //           >
+    //             View Details
+    //           </Link>
+    //           {row.payment?.purchase?.items &&
+    //             row.payment.purchase.items.length > 0 && (
+    //               <button
+    //                 onClick={() => {
+    //                   setActiveReviewModal(
+    //                     row.payment.purchase.items[0].product_id,
+    //                   );
+    //                   setOpenDropdown(null);
+    //                 }}
+    //                 className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+    //               >
+    //                 View Reviews
+    //               </button>
+    //             )}
+    //         </div>
+    //       )}
+    //     </div>
+    //   ),
+    // },
     {
       label: "Status",
       key: "status",
@@ -231,11 +233,34 @@ const OrdersTable = () => {
       </div>
     );
   }
-
+  const actions = [
+    {
+      key: "view-details",
+      label: "View Details",
+      action: (item) => {
+        return nav(`/admin/orders/order-details/${item.id}`);
+      },
+    },
+    {
+      key: "review",
+      label: "See Reviews",
+      action: (item) => {
+        setActiveReviewModal(item.payment.purchase.items[0].product_id);
+        setOpenDropdown(null);
+      },
+    },
+    // {
+    //   key: "delete-vendor",
+    //   label: "Delete",
+    //   action: (item) => {
+    //     handleDeleteUser(item);
+    //   },
+    // },
+  ];
   return (
     <>
-      <OrdersSummary />
-      <div className="bg-white p-6 rounded-xl overflow-x-auto">
+      {/* <OrdersSummary />*/}
+      <div className="bg-white p-2 rounded-xl overflow-x-auto">
         <div className="flex flex-wrap justify-between items-center pb-3 gap-4">
           <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
             <h2 className="text-lg font-semibold">Customer Orders</h2>
@@ -251,20 +276,26 @@ const OrdersTable = () => {
             <select className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-auto">
               <option>Filter</option>
             </select>
-            <select className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-auto">
-              <option>Bulk Action</option>
-            </select>
           </div>
         </div>
         {order_query.isFetching ? (
           <div className="p-2 text-lg ">loading orders...</div>
         ) : (
           <>
-            <ReusableTable
+            {
+              <CustomTable
+                columns={columns}
+                data={currentItems || []}
+                actions={actions}
+              />
+            }
+            {/* <ReusableTable
               columns={columns}
               data={currentItems}
               loading={order_query.isPending}
-            />
+            />*/}
+
+            {/* <CustomTable columns={columns} data={currentItems} />*/}
           </>
         )}
         <div className="flex justify-between items-center mt-4">

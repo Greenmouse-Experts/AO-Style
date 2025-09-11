@@ -130,7 +130,7 @@ export default function ViewVendorOrders() {
                 onClick={(e) => {
                   console.log(row);
                 }}
-                to={`/admin/orders/order-details?id=${row.id}`}
+                to={`/admin/orders/order-details/${row.id}`}
                 className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
               >
                 View Details

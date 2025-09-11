@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from "react";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, X } from "lucide-react";
 import {
   Facebook,
   Twitter,
@@ -20,7 +20,8 @@ import useProductGeneral from "../../../hooks/dashboard/useGetProductGeneral";
 import SubmitProductModal from "../components/SubmitProduct";
 import { generateUniqueId } from "../../../lib/helper";
 import { Tooltip } from "antd";
-import { ProductReviews } from "../../../components/reviews";
+import AuthenticatedProductReviews from "../../../components/reviews/AuthenticatedProductReviews";
+import CustomBackbtn from "../../../components/CustomBackBtn";
 
 const product = {
   name: "Luxury Embellished Lace Fabrics",
@@ -104,7 +105,25 @@ export default function ShopDetails() {
     location?.state?.measurementData ||
     JSON.parse(localStorage.getItem("measurement_data") || "[]");
   const fromStyleFirst = location?.state?.fromStyleFirst || !!styleData;
+  const handleRemoveStyle = () => {
+    // Clear localStorage
+    localStorage.removeItem("selected_style");
+    localStorage.removeItem("measurement_data");
 
+    // Option 1: Navigate back to the same route to trigger a refresh
+    navigate(location.pathname, { replace: true });
+
+    // Option 2: Alternative - reload the page (less elegant but works)
+    // window.location.reload();
+
+    // Option 3: If you want to use state management instead of navigation
+    // You would need to add state variables at the component level:
+    // const [localStyleData, setLocalStyleData] = useState(styleData);
+    // const [localFromStyleFirst, setLocalFromStyleFirst] = useState(fromStyleFirst);
+    // Then update them here:
+    // setLocalStyleData(null);
+    // setLocalFromStyleFirst(false);
+  };
   // Debug logging for received data
   console.log("🎨 ShopDetails Data Debug:", {
     fromStyleFirst: fromStyleFirst,
@@ -237,7 +256,12 @@ export default function ShopDetails() {
 
   const handleDirectAddToCart = () => {
     console.log("🛒 Adding fabric directly to cart:", fabricData);
-
+    // Check if user is logged in (token exists)
+    if (!token) {
+      // Redirect to login page
+      navigate("/login");
+      return;
+    }
     addCartMutate(fabricData, {
       onSuccess: (data) => {
         setIsCartSelectionModalOpen(false);
@@ -264,10 +288,18 @@ export default function ShopDetails() {
       measurementCount: measurementData?.length,
     });
 
+    // Check if user is logged in (token exists)
+    if (!token) {
+      // Redirect to login page
+      navigate("/login");
+      return;
+    }
+
     // Create combined payload with fabric, style, and measurements
     const combinedPayload = {
       ...fabricInfo,
       style_product_id: styleData?.id || styleData?.product_id,
+      style_price: styleData?.price || 0,
       measurement: measurementData,
     };
 
@@ -275,6 +307,14 @@ export default function ShopDetails() {
       combinedPayload: combinedPayload,
       hasStyleProductId: !!combinedPayload.style_product_id,
       hasMeasurement: !!combinedPayload.measurement,
+    });
+
+    console.log("💰 Style pricing details in ShopDetails:", {
+      stylePrice: styleData?.price,
+      stylePriceInPayload: combinedPayload.style_price,
+      styleId: combinedPayload.style_product_id,
+      fabricPrice: fabricInfo.price,
+      totalExpectedPrice: (fabricInfo.price || 0) + (styleData?.price || 0),
     });
 
     // Validate required fields
@@ -374,7 +414,6 @@ export default function ShopDetails() {
         just="Enjoy a wide selection of Materials & Designs"
         backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1741604351/AoStyle/image_ugfmjr.jpg"
       />
-
       {productIsPending ? (
         <div className="h-screen flex items-center">
           {" "}
@@ -382,20 +421,34 @@ export default function ShopDetails() {
         </div>
       ) : (
         <section className="Resizer section px-4">
+          <div className="mb-4">
+            <CustomBackbtn />
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-            {/* Image Section - Enhanced layout */}
-            <div className="space-y-4">
-              {/* Main Image */}
+            {/* Image Section - Enhanced layout with sticky positioning */}
+            <div className="lg:sticky lg:top-4 lg:self-start space-y-4 lg:max-h-screen lg:overflow-y-auto">
+              {/* Main Image or Video */}
               <div className="relative bg-gray-50 rounded-xl overflow-hidden">
-                <img
-                  src={mainImage}
-                  alt={productVal?.product?.name}
-                  className="w-full h-96 lg:h-[500px] object-cover"
-                />
+                {mainImage === productVal?.video_url ? (
+                  <video
+                    src={productVal.video_url}
+                    controls
+                    className="w-full h-96 lg:h-[500px] object-cover rounded-xl"
+                    poster={productVal?.photos?.[0]}
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                ) : (
+                  <img
+                    src={mainImage}
+                    alt={productVal?.product?.name}
+                    className="w-full h-96 lg:h-[500px] object-cover"
+                  />
+                )}
                 {/* Heart icon removed as requested */}
               </div>
 
-              {/* Thumbnail Images */}
+              {/* Thumbnail Images & Video */}
               <div className="flex gap-2 overflow-x-auto pb-2">
                 {productVal?.photos?.map((img, index) => (
                   <button
@@ -414,6 +467,34 @@ export default function ShopDetails() {
                     />
                   </button>
                 ))}
+                {productVal?.video_url && (
+                  <button
+                    type="button"
+                    onClick={() => setMainImage(productVal.video_url)}
+                    className={`flex-shrink-0 w-32 h-20 rounded-lg overflow-hidden border-2 transition-all ml-2 flex items-center justify-center bg-black relative ${
+                      mainImage === productVal.video_url
+                        ? "border-purple-500 ring-2 ring-purple-200"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <video
+                      src={productVal.video_url}
+                      className="w-full h-full object-cover rounded-lg pointer-events-none"
+                      poster={productVal?.photos?.[0]}
+                    />
+                    {/* Video tag/icon overlay */}
+                    <div className="absolute top-2 left-2 bg-black/70 rounded-full p-1 flex items-center justify-center">
+                      <svg
+                        className="w-5 h-5 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle cx="12" cy="12" r="10" opacity="0.5" />
+                        <polygon points="10,8 16,12 10,16" fill="white" />
+                      </svg>
+                    </div>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -421,7 +502,27 @@ export default function ShopDetails() {
             <div className="space-y-6">
               {/* Style Information - Show when coming from style-first workflow */}
               {fromStyleFirst && styleData && (
-                <div className="bg-[#FFF2FF] p-4 rounded-lg border border-purple-200">
+                <div className="bg-[#FFF2FF] p-4 rounded-lg border border-purple-200 relative">
+                  {/* X button at top right */}
+                  <button
+                    className="absolute top-3 right-3 p-1 rounded-full hover:bg-purple-100 transition-colors"
+                    aria-label="Remove selected style"
+                    onClick={handleRemoveStyle}
+                  >
+                    <svg
+                      className="w-5 h-5 text-purple-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
                   <h2 className="text-sm font-medium text-gray-500 mb-4 uppercase tracking-wide">
                     Selected Style
                   </h2>
@@ -460,10 +561,145 @@ export default function ShopDetails() {
                     ₦{productVal?.product?.price?.toLocaleString()}
                   </span>
                   <span className="text-sm text-gray-500 font-medium">
-                    per unit
+                    per yard
                   </span>
                 </div>
+                {/* SKU Section */}
+                {productVal?.product?.sku && (
+                  <div className="space-y-1 bg-gray-50 rounded-lg p-4">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      SKU
+                    </span>
+                    <p className="text-sm font-medium text-gray-900">
+                      {productVal.product.sku}
+                    </p>
+                  </div>
+                )}
+                {/* Product Status Badge */}
+                {productVal?.approval_status && (
+                  <div className="inline-flex items-center">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        productVal.approval_status === "PUBLISHED"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {productVal.approval_status}
+                    </span>
+                  </div>
+                )}
               </div>
+
+              {/* Product Details Grid */}
+              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                {/* Material Type */}
+                {productVal?.material_type && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Material
+                    </span>
+                    <p className="text-sm font-medium text-gray-900 capitalize">
+                      {productVal.material_type}
+                    </p>
+                  </div>
+                )}
+
+                {/* Business Type */}
+                {productVal?.business_id && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Business ID
+                    </span>
+                    <p className="text-sm font-medium text-gray-900">
+                      {productVal.business_id}
+                    </p>
+                  </div>
+                )}
+
+                {/* Minimum Yards */}
+                {productVal?.minimum_yards && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Minimum Order
+                    </span>
+                    <p className="text-sm font-medium text-gray-900">
+                      {productVal.minimum_yards} yards
+                    </p>
+                  </div>
+                )}
+
+                {/* Currency */}
+                {productVal?.currency && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Currency
+                    </span>
+                    <p className="text-sm font-medium text-gray-900">
+                      {productVal.currency}
+                    </p>
+                  </div>
+                )}
+
+                {/* Category */}
+                {productVal?.category?.name && (
+                  <div className="space-y-1 col-span-2">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Category
+                    </span>
+                    <p className="text-sm font-medium text-gray-900">
+                      {productVal.category.name}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Product Description */}
+              {productVal?.description && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                    Description
+                  </h3>
+                  <div className="text-sm text-gray-600 leading-relaxed bg-white p-4 rounded-lg border border-gray-200">
+                    {productVal.description
+                      .split("\n")
+                      .map((paragraph, index) => (
+                        <p key={index} className={index > 0 ? "mt-3" : ""}>
+                          {paragraph}
+                        </p>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Creator Information */}
+              {productVal?.creator && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                    Created By
+                  </h3>
+                  <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                      <svg
+                        className="w-5 h-5 text-purple-600"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        {productVal.creator.name ||
+                          `Creator ${productVal.creator.id?.slice(-8)}`}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {productVal.creator.role || "Creator"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Tags Section */}
               {productVal?.product?.tags?.length > 0 && (
@@ -530,15 +766,56 @@ export default function ShopDetails() {
                     to add this item to your cart.
                   </p>
                 )}
+
+                {fromStyleFirst && styleData && (
+                  <div className="space-y-2">
+                    {Array.isArray(measurementData) &&
+                    measurementData.length === 1 ? (
+                      <p className="text-sm text-purple-600 bg-purple-50 p-3 rounded-lg border border-purple-200">
+                        <span className="font-medium">
+                          Minimum yards required for style -
+                        </span>{" "}
+                        {styleData?.style?.minimum_fabric_qty || 0}
+                      </p>
+                    ) : Array.isArray(measurementData) &&
+                      measurementData.length > 1 ? (
+                      <div className="text-sm bg-purple-50 p-3 rounded-lg border border-purple-200 flex flex-col gap-1">
+                        <span className="font-medium text-purple-700">
+                          Multiple measurements detected:
+                        </span>
+                        <span>
+                          <span className="font-medium text-purple-700">
+                            Minimum yards required ={" "}
+                          </span>
+                          {styleData?.style?.minimum_fabric_qty || 0} yards
+                          {" × "}
+                          {measurementData.length} measurements
+                          {" = "}
+                          <span className="font-bold text-purple-900">
+                            {(styleData?.style?.minimum_fabric_qty || 0) *
+                              measurementData.length}{" "}
+                            yards
+                          </span>
+                        </span>
+                        <span className="text-xs text-purple-500">
+                          Please ensure your quantity is at least this amount to
+                          proceed.
+                        </span>
+                      </div>
+                    ) : null}
+                  </div>
+                )}
               </div>
 
               {/* Quantity Selector */}
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                   Quantity (Yards)
-                  <span className="ml-2 text-xs text-gray-500 font-normal normal-case">
-                    (Min: {productVal?.minimum_yards})
-                  </span>
+                  {
+                    <span className="ml-2 text-xs text-gray-500 font-normal normal-case">
+                      (Min: {productVal?.minimum_yards})
+                    </span>
+                  }
                 </h3>
                 <div className="flex items-center">
                   <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
@@ -607,13 +884,144 @@ export default function ShopDetails() {
                   </div>
                 </div>
               </div>
+
+              {/* Timestamps */}
+              {(productVal?.created_at || productVal?.updated_at) && (
+                <div className="grid grid-cols-2 gap-4 text-xs text-gray-500 pt-4 border-t border-gray-200">
+                  {productVal?.created_at && (
+                    <div>
+                      <span className="font-semibold">Created:</span>
+                      <br />
+                      {new Date(productVal.created_at).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        },
+                      )}
+                    </div>
+                  )}
+                  {productVal?.updated_at && (
+                    <div>
+                      <span className="font-semibold">Updated:</span>
+                      <br />
+                      {new Date(productVal.updated_at).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        },
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+              {/* Additional Product Details */}
+              <div className="grid grid-cols-2 gap-4 p-4 bg-white rounded-lg border border-gray-200 mt-4">
+                {/* Gender Suitability */}
+                {productVal?.gender_suitability && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Gender Suitability
+                    </span>
+                    <p className="text-sm font-medium text-gray-900 capitalize">
+                      {productVal.gender_suitability}
+                    </p>
+                  </div>
+                )}
+
+                {/* Weight per yard */}
+                {productVal?.weight_per_unit && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Weight per Yard
+                    </span>
+                    <p className="text-sm font-medium text-gray-900">
+                      {productVal.weight_per_unit} g
+                    </p>
+                  </div>
+                )}
+
+                {/* Local Name */}
+                {productVal?.local_name && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Local Name
+                    </span>
+                    <p className="text-sm font-medium text-gray-900 capitalize">
+                      {productVal.local_name}
+                    </p>
+                  </div>
+                )}
+                {productVal?.product?.gender && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Gender Suitability
+                    </span>
+                    <p className="text-sm font-medium text-gray-900 capitalize">
+                      {productVal?.product?.gender}
+                    </p>
+                  </div>
+                )}
+                {/* Manufacturer's Name */}
+                {productVal?.manufacturer_name && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Manufacturer
+                    </span>
+                    <p className="text-sm font-medium text-gray-900">
+                      {productVal.manufacturer_name}
+                    </p>
+                  </div>
+                )}
+
+                {/* Fabric Texture */}
+                {productVal?.fabric_texture && (
+                  <div className="space-y-1 col-span-2">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Fabric Texture
+                    </span>
+                    <p className="text-sm font-medium text-gray-900">
+                      {productVal.fabric_texture}
+                    </p>
+                  </div>
+                )}
+
+                {/* Quantity */}
+                {typeof productVal?.quantity !== "undefined" && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      Quantity Available
+                    </span>
+                    <p className="text-sm font-medium text-gray-900">
+                      {productVal.quantity}
+                    </p>
+                  </div>
+                )}
+              </div>
               {/* Add to Cart Button */}
               <div className="pt-6 border-t border-gray-200">
                 <button
-                  disabled={!selectedColor || addCartPending}
+                  disabled={
+                    !selectedColor ||
+                    addCartPending ||
+                    quantity <
+                      styleData?.style?.minimum_fabric_qty *
+                        measurementData.length
+                  }
                   onClick={handleShowCartSelection}
                   className={
-                    !selectedColor || addCartPending
+                    !selectedColor ||
+                    addCartPending ||
+                    quantity <
+                      styleData?.style?.minimum_fabric_qty *
+                        measurementData.length
                       ? "w-full flex items-center justify-center space-x-3 py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 bg-gray-200 text-gray-500 cursor-not-allowed"
                       : "w-full flex items-center justify-center space-x-3 py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 bg-gradient text-white hover:bg-purple-700 hover:shadow-lg transform hover:-translate-y-0.5"
                   }
@@ -661,7 +1069,15 @@ export default function ShopDetails() {
               {/* Success Modal */}
               {isSuccessModalOpen && (
                 <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm">
-                  <div className="bg-white rounded-2xl shadow-2xl p-8 w-[90%] max-w-md animate-fade-in-up">
+                  <div className="bg-white rounded-2xl shadow-2xl p-8 w-[90%] max-w-md animate-fade-in-up relative">
+                    {/* Close Button */}
+                    <button
+                      onClick={() => setIsSuccessModalOpen(false)}
+                      className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                      aria-label="Close modal"
+                    >
+                      <X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
+                    </button>
                     <div className="text-center">
                       <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg
@@ -1073,7 +1489,7 @@ export default function ShopDetails() {
                         <span className="text-lg font-bold text-purple-600">
                           {product.price}
                         </span>
-                        <span className="text-sm text-gray-500">per unit</span>
+                        <span className="text-sm text-gray-500">per yard</span>
                       </div>
                     </div>
                   </Link>
@@ -1091,7 +1507,7 @@ export default function ShopDetails() {
           className="Resizer section px-4 py-8 bg-gray-50"
         >
           <div className="max-w-6xl mx-auto">
-            <ProductReviews
+            <AuthenticatedProductReviews
               productId={productVal.product_id}
               initiallyExpanded={true}
               className="bg-white rounded-lg p-6 shadow-sm border border-gray-200"

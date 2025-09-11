@@ -28,15 +28,13 @@ import CustomBackbtn from "../../../components/CustomBackBtn";
 import useToast from "../../../hooks/useToast";
 
 const OrderDetails = () => {
-  const [showUploadPopup, setShowUploadPopup] = useState(false);
-  const [markReceivedChecked, setMarkReceivedChecked] = useState(false);
-  const [markCompletedChecked, setMarkCompletedChecked] = useState(false);
-  const [markSentChecked, setMarkSentChecked] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("");
   const [currentActionType, setCurrentActionType] = useState(null);
+  const [pendingStatus, setPendingStatus] = useState(null);
   const [showMeasurementModal, setShowMeasurementModal] = useState(false);
   const [expandedVideo, setExpandedVideo] = useState(null);
 
@@ -137,9 +135,9 @@ const OrderDetails = () => {
   };
 
   // Update order status with image
-  const updateOrderStatus = async (imageUrl, actionType) => {
+  const updateOrderStatus = async (imageUrl, newStatus) => {
     const statusData = {
-      status: actionType === "received" ? "PROCESSING" : "OUT_FOR_DELIVERY",
+      status: newStatus,
       metadata: {
         image: imageUrl,
       },
@@ -250,7 +248,7 @@ const OrderDetails = () => {
 
       // Step 2: Update order status with image URL
       console.log("📊 Step 2: Updating order status...");
-      await updateOrderStatus(imageUrl, currentActionType);
+      await updateOrderStatus(imageUrl, pendingStatus);
 
       console.log("✅ Order status updated successfully");
       setUploadStatus("Complete!");
@@ -262,19 +260,12 @@ const OrderDetails = () => {
           : currentActionType === "completed"
             ? "marked as completed"
             : "marked as sent";
-      toastSuccess(`Success! Garment image uploaded and order ${actionText}.`);
+      toastSuccess(
+        `Success! Image uploaded and order status updated to ${pendingStatus}.`,
+      );
 
-      // Update checkbox state
-      if (currentActionType === "received") {
-        setMarkReceivedChecked(true);
-      } else if (currentActionType === "completed") {
-        setMarkCompletedChecked(true);
-      } else if (currentActionType === "sent") {
-        setMarkSentChecked(true);
-      }
-
-      // Close popup and reset state
-      handleClosePopup();
+      // Close modal and reset state
+      handleCloseUploadModal();
 
       // Refetch order data to get updated status
       refetch();
@@ -287,27 +278,22 @@ const OrderDetails = () => {
     }
   };
 
-  const handleCheckboxChange = (type) => {
-    if (type === "received" && !markReceivedChecked) {
-      setCurrentActionType("received");
-      setShowUploadPopup(true);
-    } else if (type === "completed" && !markCompletedChecked) {
-      setCurrentActionType("completed");
-      setShowUploadPopup(true);
-    } else if (type === "sent" && !markSentChecked) {
-      setCurrentActionType("sent");
-      setShowUploadPopup(true);
-    }
+  const handleCloseUploadModal = () => {
+    setShowUploadModal(false);
+    setSelectedFile(null);
+    setImagePreview(null);
+    setCurrentActionType(null);
+    setPendingStatus(null);
   };
 
-  // Handle status update directly (for buttons)
-  const handleStatusUpdate = async (newStatus) => {
-    try {
-      console.log("🔄 Updating order status to:", newStatus);
-      await updateStatusOnly(newStatus);
-    } catch (error) {
-      console.error("❌ Status update failed:", error);
-    }
+  // Handle status update - open modal for image upload
+  const handleStatusUpdate = (newStatus) => {
+    console.log("🔄 Opening upload modal for status:", newStatus);
+    setPendingStatus(newStatus);
+    setCurrentActionType(
+      newStatus === "PROCESSING" ? "processing" : "out_for_delivery",
+    );
+    setShowUploadModal(true);
   };
 
   // Check if status can be updated
@@ -360,10 +346,12 @@ const OrderDetails = () => {
   };
 
   const getActionTitle = () => {
-    if (currentActionType === "received") return "Mark as Received";
-    if (currentActionType === "completed") return "Mark as Completed";
-    if (currentActionType === "sent") return "Mark as Sent";
-    return "Upload Image";
+    if (currentActionType === "processing") return "Mark as Processing";
+    if (currentActionType === "out_for_delivery")
+      return "Mark as Out for Delivery";
+    if (pendingStatus === "PROCESSING") return "Mark as Processing";
+    if (pendingStatus === "OUT_FOR_DELIVERY") return "Mark as Out for Delivery";
+    return "Upload Image & Update Status";
   };
 
   // Measurement Modal
@@ -542,6 +530,15 @@ const OrderDetails = () => {
                               className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                               style={{ minWidth: "100%", minHeight: "100%" }}
                             />
+                          ) : orderPurchase[2]?.product?.style?.photos?.[0] ? (
+                            <img
+                              src={
+                                orderPurchase[2]?.product?.style?.photos?.[0]
+                              }
+                              alt="Style"
+                              className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                              style={{ minWidth: "100%", minHeight: "100%" }}
+                            />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
                               <Image className="w-12 h-12 text-gray-400" />
@@ -686,12 +683,13 @@ const OrderDetails = () => {
                       {canUpdateToProcessing() ? (
                         <button
                           onClick={() => handleStatusUpdate("PROCESSING")}
-                          disabled={isStatusUpdating}
-                          className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          disabled={isStatusUpdating || isUploading}
+                          className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                         >
-                          {isStatusUpdating
+                          <Upload className="w-4 h-4" />
+                          {isStatusUpdating || isUploading
                             ? "Updating..."
-                            : "Mark as Processing"}
+                            : "Mark as Processing (with image)"}
                         </button>
                       ) : isStatusReached("PROCESSING") ? (
                         <div className="w-full px-4 py-2 bg-green-100 text-green-700 rounded-lg text-center">
@@ -719,12 +717,13 @@ const OrderDetails = () => {
                       {canUpdateToOutForDelivery() ? (
                         <button
                           onClick={() => handleStatusUpdate("OUT_FOR_DELIVERY")}
-                          disabled={isStatusUpdating}
-                          className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          disabled={isStatusUpdating || isUploading}
+                          className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                         >
-                          {isStatusUpdating
+                          <Upload className="w-4 h-4" />
+                          {isStatusUpdating || isUploading
                             ? "Updating..."
-                            : "Mark as Out for Delivery"}
+                            : "Mark as Out for Delivery (with image)"}
                         </button>
                       ) : isStatusReached("OUT_FOR_DELIVERY") ? (
                         <div className="w-full px-4 py-2 bg-green-100 text-green-700 rounded-lg text-center">
@@ -748,55 +747,15 @@ const OrderDetails = () => {
                         <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
                         <span>
                           1. Mark as Processing when you start working on the
-                          order
+                          order (image required)
                         </span>
                       </div>
                       <div className="flex items-center">
                         <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
                         <span>
-                          2. Mark as Out for Delivery when ready to ship
+                          2. Mark as Out for Delivery when ready to ship (image
+                          required)
                         </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Legacy Upload Options (if needed) */}
-                  <div className="border-t pt-4">
-                    <h4 className="font-medium text-gray-900 mb-3">
-                      Upload Progress Images (Optional)
-                    </h4>
-                    <div className="space-y-3">
-                      <div>
-                        <label className="flex items-center justify-between">
-                          <span className="text-gray-700">
-                            Mark as Received (with image)
-                          </span>
-                          <input
-                            type="checkbox"
-                            className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                            checked={
-                              orderInfo.status === "PROCESSING" ||
-                              orderInfo.status === "OUT_FOR_DELIVERY"
-                            }
-                            onChange={() => handleCheckboxChange("received")}
-                            disabled={isUploading}
-                          />
-                        </label>
-                      </div>
-
-                      <div>
-                        <label className="flex items-center justify-between">
-                          <span className="text-gray-700">
-                            Mark as Sent (with image)
-                          </span>
-                          <input
-                            type="checkbox"
-                            className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                            checked={orderInfo?.status === "OUT_FOR_DELIVERY"}
-                            onChange={() => handleCheckboxChange("sent")}
-                            disabled={isUploading}
-                          />
-                        </label>
                       </div>
                     </div>
                   </div>
@@ -938,8 +897,8 @@ const OrderDetails = () => {
         </div>
       </div>
 
-      {/* Upload Popup */}
-      {showUploadPopup && (
+      {/* Upload Modal */}
+      {showUploadModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="p-6">
@@ -948,7 +907,7 @@ const OrderDetails = () => {
                   {getActionTitle()}
                 </h3>
                 <button
-                  onClick={handleClosePopup}
+                  onClick={handleCloseUploadModal}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                   disabled={isUploading}
                 >
@@ -957,8 +916,12 @@ const OrderDetails = () => {
               </div>
 
               <p className="text-gray-600 mb-6 leading-relaxed">
-                Upload a clear picture of the garment to update the order
-                status.
+                Upload a clear picture of the garment to update the order status
+                to{" "}
+                <span className="font-semibold text-purple-600">
+                  {pendingStatus?.replace("_", " ")}
+                </span>
+                . Image upload is required to proceed.
               </p>
 
               {/* File Upload Area */}
@@ -1054,7 +1017,7 @@ const OrderDetails = () => {
               {/* Action Buttons */}
               <div className="flex gap-3">
                 <button
-                  onClick={handleClosePopup}
+                  onClick={handleCloseUploadModal}
                   className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                   disabled={isUploading}
                 >
@@ -1077,7 +1040,7 @@ const OrderDetails = () => {
                   ) : (
                     <>
                       <Upload className="w-4 h-4" />
-                      Upload & Update
+                      Upload & Update Status
                     </>
                   )}
                 </button>

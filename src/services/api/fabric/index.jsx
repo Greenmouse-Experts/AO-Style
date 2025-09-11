@@ -39,14 +39,25 @@ const getManageFabricProduct = (params) => {
   console.log("🔧 FABRIC SERVICE: Original Params:", params);
 
   const businessId = params?.id;
+  const queryParams = {
+    business_id: businessId,
+    type: "FABRIC",
+    ...params,
+  };
+
+  // Remove id from query params since we're using business_id
+  delete queryParams.id;
 
   console.log("🔧 FABRIC SERVICE: Business ID:", businessId);
-  console.log("🔧 FABRIC SERVICE: URL: /product-general/fetch/" + businessId);
+  console.log("🔧 FABRIC SERVICE: Query Params:", queryParams);
+  console.log("🔧 FABRIC SERVICE: URL: /product-general/fetch");
   console.log(
-    "🔧 FABRIC SERVICE: No headers, using businessId as URL parameter",
+    "🔧 FABRIC SERVICE: Using business_id and type as query parameters",
   );
 
-  return CaryBinApi.get(`/product-general/fetch/${businessId}`)
+  return CaryBinApi.get(`/product-general/fetch`, {
+    params: queryParams,
+  })
     .then((response) => {
       console.log("🔧 FABRIC SERVICE: API Response received:", response);
       console.log("🔧 FABRIC SERVICE: Response status:", response.status);

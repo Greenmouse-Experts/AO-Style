@@ -27,7 +27,11 @@ function useGetAdminManageFabricProduct(params) {
         console.log("🔧 Manage Fabric Product Data:", data?.data);
         console.log("🔧 Manage Fabric Product Params:", params);
         console.log("🔧 Manage Fabric Product Count:", data?.data?.length || 0);
-        console.log("🔧 Endpoint Called: /product-general/fetch/" + params?.id);
+        console.log(
+          "🔧 Endpoint Called: /product-general/fetch with business_id=" +
+            params?.id +
+            " and type=FABRIC",
+        );
         console.log("🔧 Business ID Used:", params?.id);
         console.log("🔧 Response Status:", data?.status);
         console.log("🔧 Response Headers:", data?.headers);
@@ -42,7 +46,9 @@ function useGetAdminManageFabricProduct(params) {
         console.error("❌ Full Error Response:", error?.response);
         console.error("❌ Error Data:", error?.response?.data);
         console.error(
-          "❌ Failed Endpoint: /product-general/fetch/" + params?.id,
+          "❌ Failed Endpoint: /product-general/fetch with business_id=" +
+            params?.id +
+            " and type=FABRIC",
         );
         console.error("❌ Network Error:", error?.code);
         console.error("🔧 ===== END FABRIC ERROR =====");
@@ -63,6 +69,7 @@ function useGetAdminManageFabricProduct(params) {
 
   // Also log the final processed data
   if (data?.data) {
+    console.log(data);
     console.log("🔧 PROCESSED MANAGE FABRIC DATA:", data.data);
     console.log("🔧 FABRIC DATA TYPE:", typeof data.data);
     console.log("🔧 FABRIC DATA IS ARRAY:", Array.isArray(data.data));

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, X, Upload, Image, Loader2 } from "lucide-react";
 
 import useQueryParams from "../../../hooks/useQueryParams";
 import { formatDateStr, formatNumberWithCommas } from "../../../lib/helper";
@@ -19,6 +19,8 @@ import { toast, ToastContainer } from "react-toastify";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
 import { useMutation } from "@tanstack/react-query";
 import CustomTable from "../../../components/CustomTable";
+import useUploadImage from "../../../hooks/multimedia/useUploadImage";
+import useToast from "../../../hooks/useToast";
 
 const SEARCH_FIELDS = [
   { label: "Order ID", value: "orderId" },
@@ -35,6 +37,14 @@ const OrderPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const dialogRef = useRef(null);
   const [currentItem, setCurrentItem] = useState(null);
+
+  // Image upload modal states
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState("");
+  const [pendingStatus, setPendingStatus] = useState(null);
   // Removed static filteredOrders - now using API data
   const { queryParams, updateQueryParams } = useQueryParams({
     "pagination[limit]": 10,
@@ -54,23 +64,28 @@ const OrderPage = () => {
     }
   }, [debouncedSearchTerm]);
 
+  const { uploadImageMutate } = useUploadImage();
+  const { toastSuccess, toastError } = useToast();
+
   const update_status = useMutation({
-    mutationFn: async (status) => {
+    mutationFn: async ({ status, imageUrl }) => {
       return await CaryBinApi.put(`/orders/${currentItem.id}/status `, {
         status,
+        image: imageUrl,
         q: debouncedSearchTerm,
       });
     },
     onError: (err) => {
       toast.error(err?.data?.message || "error occured");
+      setIsUploading(false);
     },
     onSuccess: () => {
       toast.success("status updated");
       refetch();
+      handleCloseUploadModal();
 
       setTimeout(() => {
         toast.dismiss();
-        dialogRef.current.close();
       }, 800);
     },
   });
@@ -231,6 +246,119 @@ const OrderPage = () => {
     return data;
   }, [currentItem, orderData, checkOrderHasStyles]);
 
+  // File upload handlers
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toastError("File size must be less than 5MB");
+        return;
+      }
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => setImagePreview(e.target.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
+  // Upload image to multimedia endpoint
+  const uploadImageToMultimedia = async (file) => {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    return new Promise((resolve, reject) => {
+      uploadImageMutate(formData, {
+        onSuccess: (result) => {
+          console.log(result);
+          const imageUrl =
+            result?.data?.data?.url ||
+            result?.url ||
+            result?.data?.image_url ||
+            result?.imageUrl;
+          resolve(imageUrl);
+        },
+        onError: (error) => {
+          console.error("Upload failed:", error);
+          reject(error);
+        },
+      });
+    });
+  };
+
+  const handleCompleteUpload = async () => {
+    if (!selectedFile) {
+      toastError("Please select an image first.");
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadStatus("Uploading image...");
+
+    try {
+      // Step 1: Upload image to multimedia endpoint
+      console.log("📤 Step 1: Uploading to multimedia endpoint...");
+      const imageUrl = await uploadImageToMultimedia(selectedFile);
+
+      if (!imageUrl) {
+        throw new Error("No image URL received from multimedia upload");
+      }
+
+      console.log("✅ Image uploaded successfully, URL:", imageUrl);
+      setUploadStatus("Updating order status...");
+
+      // Step 2: Update order status with image URL
+      console.log("🔄 Step 2: Updating order status with image...");
+      await update_status.mutateAsync({
+        status: pendingStatus,
+        imageUrl: imageUrl,
+      });
+
+      console.log("✅ Order status updated successfully");
+      toastSuccess("Order status updated successfully with image!");
+    } catch (error) {
+      console.error("❌ Error in upload process:", error);
+      toastError(
+        error?.message ||
+          error?.data?.message ||
+          "Failed to upload image and update status",
+      );
+      setIsUploading(false);
+      setUploadStatus("");
+    }
+  };
+
+  const handleCloseUploadModal = () => {
+    setShowUploadModal(false);
+    setSelectedFile(null);
+    setImagePreview(null);
+    setPendingStatus(null);
+    setIsUploading(false);
+    setUploadStatus("");
+  };
+
+  // Handle status update - open modal for image upload
+  const handleStatusUpdate = (newStatus) => {
+    console.log("🔄 Opening upload modal for status:", newStatus);
+    setPendingStatus(newStatus);
+    setShowUploadModal(true);
+    dialogRef.current.close();
+  };
+
+  const getActionTitle = () => {
+    if (pendingStatus === "DISPATCHED_TO_AGENT")
+      return "Mark as Dispatched to Agent";
+    if (pendingStatus === "OUT_FOR_DELIVERY") return "Mark as Out for Delivery";
+    return "Upload Image & Update Status";
+  };
+
   console.log("=== VENDOR ORDERS DATA DEBUG ===");
   console.log("Vendor Orders Data:", orderData);
   console.log("Raw vendor orders array:", orderData?.data);
@@ -390,14 +518,14 @@ const OrderPage = () => {
           return nav(`/fabric/orders/orders-details/${item.id}`);
         },
       },
-      // {
-      //   key: "update status",
-      //   label: "Update Status",
-      //   action: (item) => {
-      //     setCurrentItem(item);
-      //     return dialogRef.current.showModal();
-      //   },
-      // },
+      {
+        key: "update status",
+        label: "Update Status",
+        action: (item) => {
+          setCurrentItem(item);
+          return dialogRef.current.showModal();
+        },
+      },
     ];
   }, [nav]);
   // {
@@ -432,7 +560,7 @@ const OrderPage = () => {
                 "Unknown",
               product: firstItem?.name || "Product Item",
               quantity: firstItem?.quantity || 1,
-              amount: `₦${formatNumberWithCommas(details?.payment?.purchase?.items?.[0]?.price ?? 0)}`,
+              amount: `₦${formatNumberWithCommas(details?.payment?.purchase?.items?.[0]?.vendor_amount ?? 0)}`,
               productStatus: details?.payment?.payment_status || "PENDING",
               orderStatus: details?.status || "PENDING",
               dateAdded: details?.created_at
@@ -724,20 +852,9 @@ const OrderPage = () => {
                 e.preventDefault();
                 let form = new FormData(e.target);
                 let status = form.get("status");
-                // return console.log(status);
-                toast.promise(
-                  async () =>
-                    // .catch((err) =>
-                    //   toast.error(
-                    //     err?.data?.message.toLowerCase() || "failed",
-                    //   ),
-                    // )
-                    (await update_status.mutateAsync(status)).data,
-                  {
-                    pending: "pending",
-                    // success: `status changed ${status}`,
-                  },
-                );
+
+                // Instead of direct update, open image upload modal
+                handleStatusUpdate(status);
               }}
               className="space-y-4"
             >
@@ -906,15 +1023,171 @@ const OrderPage = () => {
                     type="submit"
                     className="btn btn-primary text-white"
                   >
-                    {update_status.isPending ? "Updating..." : "Update Status"}
+                    {update_status.isPending
+                      ? "Updating..."
+                      : "Continue with Image"}
                   </button>
                 )}
-                {/* In a real scenario, you'd have an update button here */}
-                {/* <button type="button" className="btn btn-primary">Update Status</button> */}
               </div>
             </form>
           </div>
         </dialog>
+
+        {/* Upload Modal */}
+        {showUploadModal && (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    {getActionTitle()}
+                  </h3>
+                  <button
+                    onClick={handleCloseUploadModal}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                    disabled={isUploading}
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  Upload a clear picture of the{" "}
+                  {checkOrderHasStyles(currentItem, orderData)
+                    ? "dispatched fabric package"
+                    : "prepared fabric order"}{" "}
+                  to update the order status to{" "}
+                  <span className="font-semibold text-purple-600">
+                    {pendingStatus?.replace("_", " ")}
+                  </span>
+                  . Image upload is required to proceed.
+                </p>
+
+                {/* File Upload Area */}
+                <div className="mb-6">
+                  {!selectedFile ? (
+                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-purple-400 transition-colors">
+                      <div className="flex justify-center mb-4">
+                        <Upload className="w-12 h-12 text-gray-400" />
+                      </div>
+                      <p className="text-gray-600 font-medium mb-2">
+                        Click to upload photo
+                      </p>
+                      <p className="text-gray-400 text-sm mb-4">
+                        Max file size: 5MB • JPG, PNG, GIF
+                      </p>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        id="fabric-upload"
+                        onChange={handleFileSelect}
+                        disabled={isUploading}
+                      />
+                      <label
+                        htmlFor="fabric-upload"
+                        className={`inline-block px-6 py-2 rounded-lg cursor-pointer font-medium transition-colors ${
+                          isUploading
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            : "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                        }`}
+                      >
+                        Browse Files
+                      </label>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {/* Image Preview */}
+                      <div className="border border-gray-200 rounded-xl overflow-hidden">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="w-full h-48 object-cover"
+                        />
+                      </div>
+
+                      {/* File Details */}
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Image className="w-5 h-5 text-purple-600" />
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">
+                                {selectedFile.name}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {formatFileSize(selectedFile.size)}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setSelectedFile(null);
+                              setImagePreview(null);
+                              const fileInput =
+                                document.getElementById("fabric-upload");
+                              if (fileInput) fileInput.value = "";
+                            }}
+                            className="text-gray-400 hover:text-red-500 transition-colors"
+                            disabled={isUploading}
+                          >
+                            <X size={18} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Upload Status */}
+                  {uploadStatus && (
+                    <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        {isUploading && (
+                          <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+                        )}
+                        <p className="text-sm font-medium text-blue-800">
+                          {uploadStatus}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleCloseUploadModal}
+                    className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                    disabled={isUploading}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCompleteUpload}
+                    className={`flex-1 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+                      selectedFile && !isUploading
+                        ? "bg-purple-600 text-white hover:bg-purple-700"
+                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    }`}
+                    disabled={!selectedFile || isUploading}
+                  >
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4" />
+                        Upload & Update Status
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

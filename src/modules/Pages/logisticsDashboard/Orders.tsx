@@ -300,7 +300,7 @@ export default function OrderRequests() {
       action: (item: Order) => {
         console.log(item, "view");
         // dialogRef.current?.showModal();
-        navigate(`/logistics/orders/${item.payment?.id || item.id}`);
+        navigate(`/logistics/orders/${item.id}`);
       },
     },
     {

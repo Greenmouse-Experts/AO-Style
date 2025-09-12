@@ -695,87 +695,118 @@ export default function ViewOrderLogistics() {
                 </h3>
 
                 <div className="space-y-4">
-                  {/* First Leg */}
-                  <div className="flex items-center space-x-3">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        [
-                          "DELIVERED_TO_TAILOR",
-                          "OUT_FOR_DELIVERY",
-                          "SHIPPED",
-                          "IN_TRANSIT",
-                          "DELIVERED",
-                        ].includes(currentStatus || "")
-                          ? "bg-green-100 text-green-600"
-                          : currentStatus === "DISPATCHED_TO_AGENT"
-                            ? "bg-blue-100 text-blue-600"
-                            : "bg-gray-100 text-gray-400"
-                      }`}
-                    >
-                      {[
-                        "DISPATCHED_TO_AGENT",
-                        "DELIVERED_TO_TAILOR",
-                        "PROCESSING",
-                        "OUT_FOR_DELIVERY",
-                        "SHIPPED",
-                        "IN_TRANSIT",
-                        "DELIVERED",
-                      ].includes(currentStatus || "") ? (
-                        <CheckCircle className="w-4 h-4" />
-                      ) : (
-                        <span className="text-xs font-bold">1</span>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900">First Leg</p>
-                      <p className="text-sm text-gray-600">Vendor → Tailor</p>
-                    </div>
-                  </div>
-
-                  {/* Connection Line */}
-                  {/*<div className="ml-4">
-                    <div
-                      className={`w-px h-6 ${
-                        [
-                          "DISPATCHED_TO_AGENT",
-                          "OUT_FOR_DELIVERY",
-                          "SHIPPED",
-                          "IN_TRANSIT",
-                          "DELIVERED",
-                        ].includes(currentStatus || "")
-                          ? "bg-green-300"
-                          : "bg-gray-300"
-                      }`}
-                    ></div>
-                  </div>*/}
-
-                  {/* Second Leg */}
-                  {/*<div className="flex items-center space-x-3">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        currentStatus === "DELIVERED"
-                          ? "bg-green-100 text-green-600"
-                          : [
-                                "DISPATCHED_TO_AGENT",
-                                "OUT_FOR_DELIVERY",
-                                "SHIPPED",
-                                "IN_TRANSIT",
-                              ].includes(currentStatus || "")
-                            ? "bg-purple-100 text-purple-600"
-                            : "bg-gray-100 text-gray-400"
-                      }`}
-                    >
-                      {currentStatus === "DELIVERED" ? (
-                        <CheckCircle className="w-4 h-4" />
-                      ) : (
-                        <span className="text-xs font-bold">2</span>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900">Second Leg</p>
-                      <p className="text-sm text-gray-600">Tailor → Customer</p>
-                    </div>
-                  </div>*/}
+                  {/* Delivery Progress Logic */}
+                  {hasStyleItems() ? (
+                    <>
+                      {/* First Leg: Vendor → Tailor */}
+                      <div className="flex items-center space-x-3">
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            [
+                              "DELIVERED_TO_TAILOR",
+                              "OUT_FOR_DELIVERY",
+                              "SHIPPED",
+                              "IN_TRANSIT",
+                              "DELIVERED",
+                            ].includes(currentStatus || "")
+                              ? "bg-green-100 text-green-600"
+                              : currentStatus === "DISPATCHED_TO_AGENT"
+                                ? "bg-blue-100 text-blue-600"
+                                : "bg-gray-100 text-gray-400"
+                          }`}
+                        >
+                          {[
+                            "DISPATCHED_TO_AGENT",
+                            "DELIVERED_TO_TAILOR",
+                            "PROCESSING",
+                            "OUT_FOR_DELIVERY",
+                            "SHIPPED",
+                            "IN_TRANSIT",
+                            "DELIVERED",
+                          ].includes(currentStatus || "") ? (
+                            <CheckCircle className="w-4 h-4" />
+                          ) : (
+                            <span className="text-xs font-bold">1</span>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">First Leg</p>
+                          <p className="text-sm text-gray-600">
+                            Vendor → Tailor
+                          </p>
+                        </div>
+                      </div>
+                      {/* Second Leg: Tailor → Customer */}
+                      {/*<div className="flex items-center space-x-3">
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            currentStatus === "DELIVERED"
+                              ? "bg-green-100 text-green-600"
+                              : [
+                                    "DELIVERED_TO_TAILOR",
+                                    "OUT_FOR_DELIVERY",
+                                    "SHIPPED",
+                                    "IN_TRANSIT",
+                                  ].includes(currentStatus || "")
+                                ? "bg-purple-100 text-purple-600"
+                                : "bg-gray-100 text-gray-400"
+                          }`}
+                        >
+                          {currentStatus === "DELIVERED" ? (
+                            <CheckCircle className="w-4 h-4" />
+                          ) : (
+                            <span className="text-xs font-bold">2</span>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">
+                            Second Leg
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            Tailor → Customer
+                          </p>
+                        </div>
+                      </div>*/}
+                    </>
+                  ) : (
+                    <>
+                      {/* Only Leg: Vendor → Customer */}
+                      <div className="flex items-center space-x-3">
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            [
+                              "OUT_FOR_DELIVERY",
+                              "SHIPPED",
+                              "IN_TRANSIT",
+                              "DELIVERED",
+                            ].includes(currentStatus || "")
+                              ? "bg-green-100 text-green-600"
+                              : currentStatus === "DISPATCHED_TO_AGENT"
+                                ? "bg-blue-100 text-blue-600"
+                                : "bg-gray-100 text-gray-400"
+                          }`}
+                        >
+                          {[
+                            "DISPATCHED_TO_AGENT",
+                            "OUT_FOR_DELIVERY",
+                            "SHIPPED",
+                            "IN_TRANSIT",
+                            "DELIVERED",
+                          ].includes(currentStatus || "") ? (
+                            <CheckCircle className="w-4 h-4" />
+                          ) : (
+                            <span className="text-xs font-bold">1</span>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">Delivery</p>
+                          <p className="text-sm text-gray-600">
+                            Vendor → Customer
+                          </p>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 

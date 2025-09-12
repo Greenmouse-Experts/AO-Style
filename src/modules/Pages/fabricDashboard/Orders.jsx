@@ -518,14 +518,14 @@ const OrderPage = () => {
           return nav(`/fabric/orders/orders-details/${item.id}`);
         },
       },
-      {
-        key: "update status",
-        label: "Update Status",
-        action: (item) => {
-          setCurrentItem(item);
-          return dialogRef.current.showModal();
-        },
-      },
+      // {
+      //   key: "update status",
+      //   label: "Update Status",
+      //   action: (item) => {
+      //     setCurrentItem(item);
+      //     return dialogRef.current.showModal();
+      //   },
+      // },
     ];
   }, [nav]);
   // {

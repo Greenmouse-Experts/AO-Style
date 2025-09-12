@@ -27,23 +27,23 @@ export default function CustomTable(props: CustomTableProps) {
   const [selectedItem, setSelectedItem] = useState<number | null>(null);
   return (
     <div data-theme="nord" className="" id="cus-app">
-      <div className=" relative overflow-x-auto">
+      <div className="relative overflow-x-auto shadow-sm rounded-lg">
         <div className="overflow-visible">
-          <table className="table   w-full text-xs">
+          <table className="table w-full text-xs min-w-full">
             <thead className="">
               <tr className=" rounded-2xl bg-base-200/50">
                 {props.columns &&
                   props.columns.map((column, idx) => (
                     <th
                       key={idx}
-                      className="capitalize text-left   text-xs font-semibold text-base-content/70 "
+                      className="capitalize text-left px-4 py-3 text-xs font-semibold text-base-content/70 whitespace-nowrap"
                     >
                       {column.label}
                     </th>
                   ))}
                 {!props.columns?.find((item) => item.key == "action") && (
                   <>
-                    <th className="font-semibold text-xs text-base-content/70 ">
+                    <th className="font-semibold text-xs text-base-content/70 px-4 py-3 whitespace-nowrap">
                       Action
                     </th>
                   </>
@@ -65,9 +65,19 @@ export default function CustomTable(props: CustomTableProps) {
                           className={`py-3 px-4 text-base-content ${
                             col.key === "action"
                               ? "relative overflow-visible"
-                              : "text-ellipsis overflow-hidden max-w-xs"
-                          }`}
+                              : col.key === "id"
+                                ? "text-ellipsis overflow-hidden min-w-[120px] max-w-[150px] font-mono"
+                                : col.key === "location" ||
+                                    col.key === "address"
+                                  ? "text-ellipsis overflow-hidden max-w-[200px]"
+                                  : "text-ellipsis overflow-hidden max-w-sm"
+                          } ${col.key === "id" ? "select-all" : ""}`}
                           key={colIdx}
+                          title={
+                            col.key === "id" && col.render
+                              ? undefined
+                              : String(item[col.key] || "")
+                          }
                         >
                           {col.render
                             ? col.render(item[col.key], item)
@@ -78,7 +88,7 @@ export default function CustomTable(props: CustomTableProps) {
                         (item, index) => item.key == "action",
                       ) && (
                         <>
-                          <td className="relative overflow-visible">
+                          <td className="relative overflow-visible py-3 px-4">
                             <PopUp
                               itemIndex={rowIdx}
                               setIndex={setSelectedItem}

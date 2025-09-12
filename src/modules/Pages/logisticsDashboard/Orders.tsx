@@ -1,3 +1,4 @@
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, CheckCircle, Eye, Loader2 } from "lucide-react"; // Import Lucide Icons
 import CaryBinApi from "../../../services/CarybinBaseUrl";
@@ -195,18 +196,21 @@ export default function OrderRequests() {
   const columns: {
     key: string;
     label: string;
-    render?: (_, item: Order) => JSX.Element;
+    render?: (value: any, item: Order) => React.JSX.Element;
   }[] = [
     {
       key: "id",
       label: "Order ID",
-      render: (_, item) => {
+      render: (value: any, item: Order) => {
+        const fullId = item.payment?.id || item.id;
+        const displayId = formatOrderId(fullId);
         return (
           <span
-            className="bg-transparent w-[80px] line-clamp-1 overflow-ellipsis"
+            className="bg-transparent w-[120px] line-clamp-1 overflow-ellipsis cursor-pointer font-mono"
             data-theme="nord"
+            title={`Full ID: ${fullId}`}
           >
-            {formatOrderId(item.payment?.id || item.id)}
+            {displayId}
           </span>
         );
       },
@@ -214,7 +218,7 @@ export default function OrderRequests() {
     {
       key: "status",
       label: "Status",
-      render: (_, item) => {
+      render: (value: any, item: Order) => {
         if (item.status.toLocaleLowerCase() == "paid") {
           return (
             <div className="badge badge-success badge-soft">
@@ -239,21 +243,28 @@ export default function OrderRequests() {
     {
       key: "location",
       label: "location",
-      render: (_, item) => {
-        return <>{item.user.profile.address}</>;
+      render: (value: any, item: Order) => {
+        return (
+          <div
+            className="max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap"
+            title={item.user.profile.address}
+          >
+            {item.user.profile.address}
+          </div>
+        );
       },
     },
     {
       key: "items",
       label: "items",
-      render: (_, item) => {
+      render: (value: any, item: Order) => {
         return <>{item.order_items.length}</>;
       },
     },
     {
       key: "created_at",
       label: "Date Created",
-      render: (_, item) => {
+      render: (value: any, item: Order) => {
         const date = new Date(item.created_at);
         return (
           <span className="text-sm">
@@ -288,7 +299,7 @@ export default function OrderRequests() {
   interface ActionConfig {
     key: string;
     label: string;
-    icon: JSX.Element; // Assuming icons are JSX elements
+    icon: React.JSX.Element; // Assuming icons are JSX elements
     action: (item: Order) => void;
   }
 
@@ -364,7 +375,7 @@ export default function OrderRequests() {
             </p>
             <p>
               <span className="font-semibold">Customer Name:</span>{" "}
-              {selectedItem?.user?.profile?.name || "N/A"}
+              {selectedItem?.user?.email || "N/A"}
             </p>
             <p>
               <span className="font-semibold">Status:</span>{" "}

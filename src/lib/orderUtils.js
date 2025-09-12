@@ -9,8 +9,32 @@
  * @returns {string} - Formatted order ID (e.g., "A1B2C3D4E5F6")
  */
 export const formatOrderId = (id) => {
-  if (!id || typeof id !== 'string') return "N/A";
+  if (!id || typeof id !== "string") return "N/A";
   return id.replace(/-/g, "").substring(0, 12).toUpperCase();
+};
+
+/**
+ * Formats an order ID with enhanced display options
+ * @param {string} id - The order ID to format
+ * @param {Object} options - Formatting options
+ * @param {number} options.maxLength - Maximum length (default: 12)
+ * @param {boolean} options.includePrefix - Include # prefix (default: false)
+ * @param {boolean} options.preserveHyphens - Keep hyphens (default: false)
+ * @returns {string} - Enhanced formatted order ID
+ */
+export const formatOrderIdEnhanced = (id, options = {}) => {
+  const {
+    maxLength = 12,
+    includePrefix = false,
+    preserveHyphens = false,
+  } = options;
+
+  if (!id || typeof id !== "string") return "N/A";
+
+  let formatted = preserveHyphens ? id : id.replace(/-/g, "");
+  formatted = formatted.substring(0, maxLength).toUpperCase();
+
+  return includePrefix ? `#${formatted}` : formatted;
 };
 
 /**
@@ -19,7 +43,7 @@ export const formatOrderId = (id) => {
  * @returns {string} - Formatted transaction ID
  */
 export const formatTransactionId = (id) => {
-  if (!id || typeof id !== 'string') return "N/A";
+  if (!id || typeof id !== "string") return "N/A";
   return id.replace(/-/g, "").substring(0, 12).toUpperCase();
 };
 
@@ -29,7 +53,7 @@ export const formatTransactionId = (id) => {
  * @returns {string} - Formatted user ID
  */
 export const formatUserId = (id) => {
-  if (!id || typeof id !== 'string') return "N/A";
+  if (!id || typeof id !== "string") return "N/A";
   return id.replace(/-/g, "").substring(0, 12).toUpperCase();
 };
 
@@ -66,8 +90,9 @@ export const getDisplayUserId = (id) => {
  * @returns {boolean} - True if valid UUID format
  */
 export const isValidUUID = (id) => {
-  if (!id || typeof id !== 'string') return false;
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (!id || typeof id !== "string") return false;
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(id);
 };
 
@@ -78,7 +103,7 @@ export const isValidUUID = (id) => {
  * @returns {string} - Truncated text with ellipsis if needed
  */
 export const truncateOrderText = (text, maxLength = 20) => {
-  if (!text || typeof text !== 'string') return "N/A";
+  if (!text || typeof text !== "string") return "N/A";
   if (text.length <= maxLength) return text;
   return `${text.substring(0, maxLength)}...`;
 };
@@ -89,8 +114,11 @@ export const truncateOrderText = (text, maxLength = 20) => {
  * @returns {string} - Formatted status
  */
 export const formatOrderStatus = (status) => {
-  if (!status || typeof status !== 'string') return "Unknown";
-  return status.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+  if (!status || typeof status !== "string") return "Unknown";
+  return status
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
 /**
@@ -142,8 +170,6 @@ export const hasStyleMetadata = (metadata) => {
 
   return metadata.some(
     (meta) =>
-      meta?.style_product_id ||
-      meta?.measurement ||
-      meta?.style_product_name
+      meta?.style_product_id || meta?.measurement || meta?.style_product_name,
   );
 };

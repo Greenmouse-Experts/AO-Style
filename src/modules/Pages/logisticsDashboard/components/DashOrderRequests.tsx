@@ -1,3 +1,4 @@
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, Eye, Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -370,15 +371,21 @@ export default function DashOrderRequests() {
   const columns: {
     key: string;
     label: string;
-    render?: (_, item: Order) => JSX.Element;
+    render?: (value: any, item: Order) => React.JSX.Element;
   }[] = [
     {
       key: "id",
-      label: "id",
-      render: (_, item) => {
+      label: "Order ID",
+      render: (value: any, item: Order) => {
+        const fullId = item.payment?.id || item.id;
+        const displayId = formatOrderId(fullId);
         return (
-          <div className=" w-[80px] overflow-ellipsis" data-theme="nord">
-            {formatOrderId(item.id)}
+          <div
+            className="w-[120px] overflow-ellipsis cursor-pointer font-mono"
+            data-theme="nord"
+            title={`Full ID: ${fullId}`}
+          >
+            {displayId}
           </div>
         );
       },
@@ -386,7 +393,7 @@ export default function DashOrderRequests() {
     {
       key: "status",
       label: "Status",
-      render: (_, item) => {
+      render: (value: any, item: Order) => {
         if (item.status.toLocaleLowerCase() == "paid") {
           return (
             <div className="badge badge-success badge-soft">
@@ -404,21 +411,28 @@ export default function DashOrderRequests() {
     {
       key: "amount",
       label: "Amount",
-      render: (_, item) => {
+      render: (value: any, item: Order) => {
         return <>{item.total_amount}</>;
       },
     },
     {
       key: "location",
       label: "location",
-      render: (_, item) => {
-        return <>{item.user.profile.address}</>;
+      render: (value: any, item: Order) => {
+        return (
+          <div
+            className="max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap"
+            title={item.user.profile.address}
+          >
+            {item.user.profile.address}
+          </div>
+        );
       },
     },
     {
       key: "items",
       label: "items",
-      render: (_, item) => {
+      render: (value: any, item: Order) => {
         return <>{item.order_items.length}</>;
       },
     },
@@ -453,16 +467,16 @@ export default function DashOrderRequests() {
       label: "All",
       value: "",
     },
-    {
-      key: "DELIVERED",
-      label: "Delivered",
-      value: "DELIVERED",
-    },
-    {
-      key: "ongoing",
-      label: "Ongoing",
-      value: "OUT_FOR_DELIVERY",
-    },
+    // {
+    //   key: "DELIVERED",
+    //   label: "Delivered",
+    //   value: "DELIVERED",
+    // },
+    // {
+    //   key: "ongoing",
+    //   label: "Ongoing",
+    //   value: "OUT_FOR_DELIVERY",
+    // },
   ];
   return (
     <div data-theme="nord">

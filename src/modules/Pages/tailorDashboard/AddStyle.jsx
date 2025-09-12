@@ -169,7 +169,9 @@ export default function StyleForm() {
             {
               onSuccess: () => {
                 resetForm();
-                navigate(-1);
+                navigate(
+                  "/tailor/catalog?pagination[page]=1&pagination[limit]=10",
+                );
               },
             },
           );

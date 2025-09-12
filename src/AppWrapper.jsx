@@ -15,7 +15,7 @@ import sessionManager from "./services/SessionManager.js";
 import AuthService from "./services/api/auth/index.jsx";
 import { Cookie } from "lucide-react";
 import Cookies from "js-cookie";
-import { ChatHead } from "./components/chat";
+import LiveChatManager from "./components/LiveChatManager";
 
 // Verification Banner Component
 const VerificationBanner = ({ onLogout, onGoToKYC }) => {
@@ -105,6 +105,11 @@ const AppWrapper = () => {
   // Get auth data to determine if user is logged in
   const authData = sessionManager.getAuthData();
   const isLoggedIn = !!authData;
+
+  // Also check cookies for immediate auth status
+  const adminToken = Cookies.get("adminToken");
+  const userToken = Cookies.get("token");
+  const isAuthenticated = !!(authData || adminToken || userToken);
 
   // Query to fetch KYC status from API
   const {
@@ -329,8 +334,8 @@ const AppWrapper = () => {
       />
       <SessionTestComponent />
 
-      {/* Chat Head Widget - Only shown for authenticated users */}
-      <ChatHead />
+      {/* Live Chat Manager - Handles both internal chat and Tawk.to */}
+      <LiveChatManager />
     </>
   );
 };

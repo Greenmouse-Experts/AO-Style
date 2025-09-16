@@ -933,8 +933,6 @@ const AddFabric = () => {
                 <FaSpinner className="animate-spin mr-2" />
                 Creating...
               </>
-            ) : productInfo ? (
-              "Update Fabric"
             ) : (
               "Create Fabric"
             )}

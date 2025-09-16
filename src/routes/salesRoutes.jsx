@@ -12,6 +12,9 @@ import NotificationPageUpdate from "../modules/Pages/adminDashboard/Notification
 import ViewVendorDetails from "../modules/Pages/salesDashboard/ViewVendorDetails";
 import ViewTransactionDetail from "../components/ViewTransactionDetails";
 import MarketRepAnnouncements from "../modules/Pages/salesDashboard/Announcements";
+import MyProducts from "../modules/Pages/salesDashboard/MyProducts";
+import AddFabric from "../modules/Pages/salesDashboard/AddFabric";
+import AddStyle from "../modules/Pages/salesDashboard/AddStyle";
 export const salesRoutes = [
   {
     path: "/sales",
@@ -64,6 +67,18 @@ export const salesRoutes = [
       {
         path: "/sales/announcements",
         element: <MarketRepAnnouncements />,
+      },
+      {
+        path: "/sales/my-products",
+        element: <MyProducts />,
+      },
+      {
+        path: "/sales/add-fabric",
+        element: <AddFabric />,
+      },
+      {
+        path: "/sales/add-style",
+        element: <AddStyle />,
       },
     ],
   },

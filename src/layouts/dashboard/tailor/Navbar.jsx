@@ -53,7 +53,7 @@ export default function Navbar({ toggleSidebar }) {
         <div className="flex flex-col justify-end items-end gap-1">
           <div className="flex items-center justify-center space-x-6">
             <Link
-              to="/fabric/notifications"
+              to="/tailor/notifications"
               className="relative bg-purple-100 p-2 rounded-full"
             >
               <Bell size={20} className="text-purple-600" />
@@ -97,7 +97,7 @@ export default function Navbar({ toggleSidebar }) {
                 </li> */}
                     <Link
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      to="/fabric/settings"
+                      to="/tailor/settings"
                     >
                       <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
                         Settings

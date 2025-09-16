@@ -8,6 +8,7 @@ import {
   FaCreditCard,
   FaCog,
   FaBullhorn,
+  FaBoxOpen,
 } from "react-icons/fa";
 import { GiScissors } from "react-icons/gi";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
@@ -22,7 +23,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { carybinUser, logOut } = useCarybinUserStore();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const navigate = useNavigate();
   const { toastSuccess } = useToast();
 
   // Get auth data to determine if user is logged in
@@ -56,12 +56,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     staleTime: 10000,
   });
 
-  const handleClick = () => {
-    window.scrollTo(0, 0);
-    if (window.innerWidth < 768) {
-      toggleSidebar(); // Close sidebar only on mobile
-    }
-  };
   const handleSignOut = () => {
     toastSuccess("Logout Successfully");
     logOut();
@@ -111,6 +105,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             to="/sales"
             icon={<FaHome />}
             text="Dashboard"
+            toggleSidebar={toggleSidebar}
+          />
+          <SidebarItem
+            to="/sales/my-products"
+            icon={<FaBoxOpen />}
+            text="View/Add Products"
             toggleSidebar={toggleSidebar}
           />
           <SidebarItem

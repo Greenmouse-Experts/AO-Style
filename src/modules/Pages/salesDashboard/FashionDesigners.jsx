@@ -74,56 +74,6 @@ export default function FabricVendorPage() {
     // { key: "marketplace", label: "Marketplace" },
     { key: "date", label: "Date Added" },
     { key: "email", label: "Email" },
-    // {
-    //   key: "status",
-    //   label: "Status",
-    //   render: (value) => (
-    //     <span
-    //       className={`px-3 py-1 text-sm font-light rounded-md ${
-    //         value === "Pending"
-    //           ? "bg-yellow-100 text-yellow-600"
-    //           : value === "Declined"
-    //           ? "bg-red-100 text-red-600"
-    //           : "bg-green-100 text-green-600"
-    //       }`}
-    //     >
-    //       {value}
-    //     </span>
-    //   ),
-    // },
-    // {
-    //   label: "Action",
-    //   key: "action",
-    //   render: (_, row) => (
-    //     <div className="" ref={dropdownRef}>
-    //       <button
-    //         className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
-    //         onClick={() => {
-    //           toggleDropdown(row.id);
-    //         }}
-    //       >
-    //         <FaEllipsisH />
-    //       </button>
-
-    //       {openDropdown === row.id && (
-    //         <div className="absolute cursor-pointer right-0 mt-2 w-40 bg-white rounded-md z-10">
-    //           <Link
-    //             to={`/sales/view-vendor/${row.id}`}
-    //             className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
-    //           >
-    //             View Fabric Vendor
-    //           </Link>
-    //           {/* <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
-    //             Edit Fabric Vendor
-    //           </button>
-    //           <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">
-    //             Remove Fabric Vendor
-    //           </button> */}
-    //         </div>
-    //       )}
-    //     </div>
-    //   ),
-    // },
   ];
   const action = [
     {

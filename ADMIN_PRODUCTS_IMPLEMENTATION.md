@@ -64,7 +64,7 @@ const updatedData = isAdminRoute
   element: <MyProducts />,  // Handles fabric products
 },
 {
-  path: "/admin/styles-products", 
+  path: "/admin/styles-products",
   element: <Cataloging />,  // Now properly handles style products
 }
 ```
@@ -80,7 +80,7 @@ const productType = isAdminStyleRoute ? "STYLE" : "FABRIC";
 
 ### 1. Dynamic Labeling
 - Page titles adjust based on product type: "All Fabrics" vs "All Styles"
-- Button labels: "Add New Fabric" vs "Add New Style"
+- Button labels: "+" vs "Add New Style"
 - Tab labels: "My Fabrics" vs "My Styles"
 
 ### 2. Smart Routing
@@ -168,7 +168,7 @@ const admin_data = FabricData.filter((item) => {
 console.log("🔧 MANAGE FABRIC PRODUCT API RESPONSE:", data);
 console.log("🎨 MANAGE STYLE PRODUCT API RESPONSE:", data);
 
-// Data Processing Logging  
+// Data Processing Logging
 console.log("🔍 FINAL FABRIC DATA FOR TABLE:", FabricData);
 console.log("🎯 PROCESSED MANAGE FABRIC DATA:", data.data);
 ```

@@ -30,18 +30,18 @@ const ProductViewModal = ({ product, isOpen, onClose, onEdit, onDelete }) => {
       return {
         type: "Fabric",
         icon: <FaBox className="w-5 h-5" />,
-        color: "bg-blue-100 text-blue-800",
+        color: "bg-purple-100 text-purple-800",
       };
     if (product.style)
       return {
         type: "Style",
         icon: <FaTag className="w-5 h-5" />,
-        color: "bg-purple-100 text-purple-800",
+        color: "bg-purple-200 text-purple-900",
       };
     return {
       type: "Product",
       icon: <FaBox className="w-5 h-5" />,
-      color: "bg-gray-100 text-gray-800",
+      color: "bg-purple-50 text-purple-700",
     };
   };
 
@@ -54,40 +54,154 @@ const ProductViewModal = ({ product, isOpen, onClose, onEdit, onDelete }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-3">
           <div className="flex items-center">
-            <FaBox className="w-4 h-4 text-gray-400 mr-2" />
-            <span className="text-sm text-gray-600">Material:</span>
+            <FaBox className="w-4 h-4 text-purple-400 mr-2" />
+            <span className="text-sm text-purple-700">Material:</span>
             <span className="ml-2 text-sm font-medium">
               {product.fabric.material_type || "N/A"}
             </span>
           </div>
           <div className="flex items-center">
-            <FaRuler className="w-4 h-4 text-gray-400 mr-2" />
-            <span className="text-sm text-gray-600">Quantity:</span>
+            <FaRuler className="w-4 h-4 text-purple-400 mr-2" />
+            <span className="text-sm text-purple-700">Quantity:</span>
             <span className="ml-2 text-sm font-medium">
-              {product.quantity || "N/A"} yards
+              {product.fabric.quantity || "N/A"} yard(s)
             </span>
           </div>
           <div className="flex items-center">
-            <FaWeight className="w-4 h-4 text-gray-400 mr-2" />
-            <span className="text-sm text-gray-600">Weight per unit:</span>
+            <FaWeight className="w-4 h-4 text-purple-400 mr-2" />
+            <span className="text-sm text-purple-700">Weight per unit:</span>
             <span className="ml-2 text-sm font-medium">
               {product.fabric.weight_per_unit || "N/A"}
+            </span>
+          </div>
+          <div className="flex items-center">
+            <FaTag className="w-4 h-4 text-purple-400 mr-2" />
+            <span className="text-sm text-purple-700">Local Name:</span>
+            <span className="ml-2 text-sm font-medium">
+              {product.fabric.local_name || "N/A"}
+            </span>
+          </div>
+          <div className="flex items-center">
+            <FaTag className="w-4 h-4 text-purple-400 mr-2" />
+            <span className="text-sm text-purple-700">Manufacturer:</span>
+            <span className="ml-2 text-sm font-medium">
+              {product.fabric.manufacturer_name ||
+                product.fabric.manufacturer ||
+                "N/A"}
             </span>
           </div>
         </div>
         <div className="space-y-3">
           <div className="flex items-center">
-            <FaRuler className="w-4 h-4 text-gray-400 mr-2" />
-            <span className="text-sm text-gray-600">Min Yards:</span>
+            <FaRuler className="w-4 h-4 text-purple-400 mr-2" />
+            <span className="text-sm text-purple-700">Min Yards:</span>
             <span className="ml-2 text-sm font-medium">
               {product.fabric.minimum_yards || "N/A"}
             </span>
           </div>
+          {product.fabric.feel_a_like &&
+            product.fabric.feel_a_like.trim() !== "" && (
+              <div className="flex items-center">
+                <FaTag className="w-4 h-4 text-purple-400 mr-2" />
+                <span className="text-sm text-purple-700">Feel:</span>
+                <span className="ml-2 text-sm font-medium">
+                  {product.fabric.feel_a_like}
+                </span>
+              </div>
+            )}
           <div className="flex items-center">
-            <FaTag className="w-4 h-4 text-gray-400 mr-2" />
-            <span className="text-sm text-gray-600">Feel:</span>
+            <FaTag className="w-4 h-4 text-purple-400 mr-2" />
+            <span className="text-sm text-purple-700">Texture:</span>
             <span className="ml-2 text-sm font-medium">
-              {product.fabric.feel_a_like || "N/A"}
+              {product.fabric.fabric_texture || "N/A"}
+            </span>
+          </div>
+          <div className="flex items-start">
+            <FaTag className="w-4 h-4 text-purple-400 mr-2 mt-1" />
+            <span className="text-sm text-purple-700 mt-1">
+              Available Colors:
+            </span>
+            <span className="ml-2 text-sm font-medium flex flex-wrap gap-2">
+              {Array.isArray(product.fabric.available_colors) &&
+              product.fabric.available_colors.length > 0
+                ? product.fabric.available_colors.map((color, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center px-2 py-0.5 rounded-full border border-purple-200 bg-purple-50 text-purple-800 text-xs"
+                    >
+                      <span
+                        className="inline-block w-4 h-4 rounded-full mr-1 border border-gray-200"
+                        style={{
+                          backgroundColor: color,
+                        }}
+                        title={color}
+                      ></span>
+                      {color}
+                    </span>
+                  ))
+                : typeof product.fabric.available_colors === "string" &&
+                    product.fabric.available_colors.trim() !== ""
+                  ? product.fabric.available_colors
+                      .split(",")
+                      .map((color, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-flex items-center px-2 py-0.5 rounded-full border border-purple-200 bg-purple-50 text-purple-800 text-xs"
+                        >
+                          <span
+                            className="inline-block w-4 h-4 rounded-full mr-1 border border-gray-200"
+                            style={{
+                              backgroundColor: color.trim(),
+                            }}
+                            title={color.trim()}
+                          ></span>
+                          {color.trim()}
+                        </span>
+                      ))
+                  : "N/A"}
+            </span>
+          </div>
+          <div className="flex items-start">
+            <FaTag className="w-4 h-4 text-purple-400 mr-2 mt-1" />
+            <span className="text-sm text-purple-700 mt-1">Fabric Colors:</span>
+            <span className="ml-2 text-sm font-medium flex flex-wrap gap-2">
+              {Array.isArray(product.fabric.fabric_colors) &&
+              product.fabric.fabric_colors.length > 0
+                ? product.fabric.fabric_colors.map((color, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center px-2 py-0.5 rounded-full border border-purple-200 bg-purple-50 text-purple-800 text-xs"
+                    >
+                      <span
+                        className="inline-block w-4 h-4 rounded-full mr-1 border border-gray-200"
+                        style={{
+                          backgroundColor: color,
+                        }}
+                        title={color}
+                      ></span>
+                      {color}
+                    </span>
+                  ))
+                : typeof product.fabric.fabric_colors === "string" &&
+                    product.fabric.fabric_colors.trim() !== ""
+                  ? product.fabric.fabric_colors
+                      .split(",")
+                      .map((color, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-flex items-center px-2 py-0.5 rounded-full border border-purple-200 bg-purple-50 text-purple-800 text-xs"
+                        >
+                          <span
+                            className="inline-block w-4 h-4 rounded-full mr-1 border border-gray-200"
+                            style={{
+                              backgroundColor: color.trim(),
+                            }}
+                            title={color.trim()}
+                          ></span>
+                          {color.trim()}
+                        </span>
+                      ))
+                  : "N/A"}
             </span>
           </div>
         </div>
@@ -102,15 +216,15 @@ const ProductViewModal = ({ product, isOpen, onClose, onEdit, onDelete }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-3">
           <div className="flex items-center">
-            <FaClock className="w-4 h-4 text-gray-400 mr-2" />
-            <span className="text-sm text-gray-600">Sewing Time:</span>
+            <FaClock className="w-4 h-4 text-purple-400 mr-2" />
+            <span className="text-sm text-purple-700">Sewing Time:</span>
             <span className="ml-2 text-sm font-medium">
               {product.style.estimated_sewing_time || "N/A"}h
             </span>
           </div>
           <div className="flex items-center">
-            <FaRuler className="w-4 h-4 text-gray-400 mr-2" />
-            <span className="text-sm text-gray-600">Min Fabric Qty:</span>
+            <FaRuler className="w-4 h-4 text-purple-400 mr-2" />
+            <span className="text-sm text-purple-700">Min Fabric Qty:</span>
             <span className="ml-2 text-sm font-medium">
               {product.style.minimum_fabric_qty || "N/A"} yards
             </span>
@@ -118,15 +232,15 @@ const ProductViewModal = ({ product, isOpen, onClose, onEdit, onDelete }) => {
         </div>
         <div className="space-y-3">
           <div className="flex items-center">
-            <FaTag className="w-4 h-4 text-gray-400 mr-2" />
-            <span className="text-sm text-gray-600">Difficulty:</span>
+            <FaTag className="w-4 h-4 text-purple-400 mr-2" />
+            <span className="text-sm text-purple-700">Difficulty:</span>
             <span className="ml-2 text-sm font-medium">
               {product.style.difficulty_level || "N/A"}
             </span>
           </div>
           <div className="flex items-center">
-            <FaBox className="w-4 h-4 text-gray-400 mr-2" />
-            <span className="text-sm text-gray-600">Fit Type:</span>
+            <FaBox className="w-4 h-4 text-purple-400 mr-2" />
+            <span className="text-sm text-purple-700">Fit Type:</span>
             <span className="ml-2 text-sm font-medium">
               {product.style.fit_type || "N/A"}
             </span>
@@ -141,35 +255,67 @@ const ProductViewModal = ({ product, isOpen, onClose, onEdit, onDelete }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-3">
           <div className="flex items-center">
-            <FaTag className="w-4 h-4 text-gray-400 mr-2" />
-            <span className="text-sm text-gray-600">SKU:</span>
+            <FaTag className="w-4 h-4 text-purple-400 mr-2" />
+            <span className="text-sm text-purple-700">SKU:</span>
             <span className="ml-2 text-sm font-medium">
               {product.sku || "N/A"}
             </span>
           </div>
           <div className="flex items-center">
-            <FaBox className="w-4 h-4 text-gray-400 mr-2" />
-            <span className="text-sm text-gray-600">Category:</span>
+            <FaBox className="w-4 h-4 text-purple-400 mr-2" />
+            <span className="text-sm text-purple-700">Category:</span>
             <span className="ml-2 text-sm font-medium">
               {product.category?.name || "N/A"}
+            </span>
+          </div>
+          <div className="flex items-center">
+            <FaTag className="w-4 h-4 text-purple-400 mr-2" />
+            <span className="text-sm text-purple-700">Type:</span>
+            <span className="ml-2 text-sm font-medium">
+              {product.type || "N/A"}
+            </span>
+          </div>
+          <div className="flex items-center">
+            <FaTag className="w-4 h-4 text-purple-400 mr-2" />
+            <span className="text-sm text-purple-700">Tags:</span>
+            <span className="ml-2 text-sm font-medium">
+              {Array.isArray(product.tags) && product.tags.length > 0
+                ? product.tags.join(", ")
+                : "N/A"}
             </span>
           </div>
         </div>
         <div className="space-y-3">
           <div className="flex items-center">
-            <FaBox className="w-4 h-4 text-gray-400 mr-2" />
-            <span className="text-sm text-gray-600">Market:</span>
+            <FaBox className="w-4 h-4 text-purple-400 mr-2" />
+            <span className="text-sm text-purple-700">Market:</span>
             <span className="ml-2 text-sm font-medium">
-              {product.market_place?.name || "N/A"}
+              {product.market_place?.name ||
+                product.fabric?.market_place?.name ||
+                "N/A"}
             </span>
           </div>
           <div className="flex items-center">
-            <FaClock className="w-4 h-4 text-gray-400 mr-2" />
-            <span className="text-sm text-gray-600">Created:</span>
+            <FaClock className="w-4 h-4 text-purple-400 mr-2" />
+            <span className="text-sm text-purple-700">Created:</span>
             <span className="ml-2 text-sm font-medium">
               {product.created_at
                 ? formatDateStr(product.created_at.split("T")[0])
                 : "N/A"}
+            </span>
+          </div>
+          <div className="flex items-center">
+            <FaTag className="w-4 h-4 text-purple-400 mr-2" />
+            <span className="text-sm text-purple-700">Currency:</span>
+            <span className="ml-2 text-sm font-medium">
+              {product.currency || "N/A"}
+            </span>
+          </div>
+          <div className="flex items-center">
+            <FaTag className="w-4 h-4 text-purple-400 mr-2" />
+            <span className="text-sm text-purple-700">Approval Status:</span>
+            <span className="ml-2 text-sm font-medium">
+              {product.approval_status || "N/A"}
             </span>
           </div>
         </div>
@@ -177,45 +323,87 @@ const ProductViewModal = ({ product, isOpen, onClose, onEdit, onDelete }) => {
     );
   };
 
+  const renderLocationDetails = () => {
+    const location =
+      product.fabric?.location ||
+      product.style?.location ||
+      product.location ||
+      null;
+    if (!location) return null;
+    return (
+      <div className="mt-2">
+        <h4 className="text-lg font-medium text-purple-900 mb-2">Location</h4>
+        <div className="p-3 bg-purple-50 rounded-lg">
+          <div className="text-sm">
+            <strong>Latitude:</strong> {location.latitude || "N/A"}
+          </div>
+          <div className="text-sm">
+            <strong>Longitude:</strong> {location.longitude || "N/A"}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderBusinessInfo = () => {
+    if (!product.business_info) return null;
+    return (
+      <div className="mt-2">
+        {/* <h4 className="text-lg font-medium text-purple-900 mb-2">
+          Business Info
+        </h4>
+        <div className="p-3 bg-purple-50 rounded-lg">
+          <div className="text-sm">
+            <strong>Business Name:</strong>{" "}
+            {product.business_info.business_name || "N/A"}
+          </div>
+          <div className="text-sm">
+            <strong>Email:</strong> {product.business_info.email || "N/A"}
+          </div>
+        </div>*/}
+      </div>
+    );
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-6">
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+        className="fixed inset-0 bg-black bg-opacity-60 transition-opacity"
         onClick={onClose}
       ></div>
 
-      <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-xl">
-        <div className="p-6">
+      <div className="relative w-full max-w-6xl max-h-[95vh] overflow-y-auto bg-white rounded-3xl shadow-2xl border border-purple-200">
+        <div className="p-4 md:p-8">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+            <div className="flex flex-col md:flex-row md:items-center md:space-x-4 space-y-2 md:space-y-0">
               <div
-                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${productType.color}`}
+                className={`inline-flex items-center px-4 py-1 rounded-full text-base font-semibold ${productType.color} border border-purple-200`}
               >
                 {productType.icon}
                 <span className="ml-2">{productType.type}</span>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900">
+              <h3 className="text-2xl font-bold text-purple-900">
                 {product.name || "Unnamed Product"}
               </h3>
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 text-purple-400 hover:text-purple-700 hover:bg-purple-100 rounded-full transition-colors"
             >
-              <FaTimes className="w-5 h-5" />
+              <FaTimes className="w-6 h-6" />
             </button>
           </div>
 
           {/* Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             {/* Image Section */}
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div className="aspect-w-16 aspect-h-12">
                 <img
                   src={getProductImage()}
                   alt={product.name || "Product"}
-                  className="w-full h-64 object-cover rounded-lg shadow-sm"
+                  className="w-full h-72 object-cover rounded-xl shadow-md border border-purple-100"
                   onError={(e) => {
                     e.target.src =
                       "https://via.placeholder.com/400x300?text=No+Image";
@@ -224,11 +412,11 @@ const ProductViewModal = ({ product, isOpen, onClose, onEdit, onDelete }) => {
               </div>
 
               {/* Price and Status */}
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <FaDollarSign className="w-5 h-5 text-green-600" />
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 bg-purple-50 rounded-xl border border-purple-100">
+                <div className="flex items-center space-x-3">
+                  <FaDollarSign className="w-6 h-6 text-purple-700" />
                   <div>
-                    <div className="text-2xl font-bold text-gray-900">
+                    <div className="text-3xl font-extrabold text-purple-900">
                       ₦
                       {formatNumberWithCommas(
                         product.price || product.original_price || 0,
@@ -236,18 +424,18 @@ const ProductViewModal = ({ product, isOpen, onClose, onEdit, onDelete }) => {
                     </div>
                     {product.original_price &&
                       product.price !== product.original_price && (
-                        <div className="text-sm text-gray-500 line-through">
+                        <div className="text-base text-purple-400 line-through">
                           ₦{formatNumberWithCommas(product.original_price)}
                         </div>
                       )}
                   </div>
                 </div>
-                <div>
+                <div className="mt-3 sm:mt-0">
                   <span
-                    className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
+                    className={`inline-flex px-4 py-1 text-base font-semibold rounded-full border ${
                       product.status === "PUBLISHED"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-yellow-100 text-yellow-800"
+                        ? "bg-purple-100 text-purple-800 border-purple-200"
+                        : "bg-yellow-100 text-yellow-800 border-yellow-200"
                     }`}
                   >
                     {product.status || "Draft"}
@@ -257,14 +445,14 @@ const ProductViewModal = ({ product, isOpen, onClose, onEdit, onDelete }) => {
             </div>
 
             {/* Details Section */}
-            <div className="space-y-6">
+            <div className="space-y-8">
               {/* Description */}
               {product.description && (
                 <div>
-                  <h4 className="text-lg font-medium text-gray-900 mb-2">
+                  <h4 className="text-xl font-semibold text-purple-900 mb-2">
                     Description
                   </h4>
-                  <p className="text-gray-600 leading-relaxed">
+                  <p className="text-purple-700 leading-relaxed">
                     {product.description}
                   </p>
                 </div>
@@ -272,7 +460,7 @@ const ProductViewModal = ({ product, isOpen, onClose, onEdit, onDelete }) => {
 
               {/* Basic Info */}
               <div>
-                <h4 className="text-lg font-medium text-gray-900 mb-3">
+                <h4 className="text-xl font-semibold text-purple-900 mb-3">
                   Basic Information
                 </h4>
                 {renderGeneralDetails()}
@@ -281,7 +469,7 @@ const ProductViewModal = ({ product, isOpen, onClose, onEdit, onDelete }) => {
               {/* Specific Details */}
               {product.fabric && (
                 <div>
-                  <h4 className="text-lg font-medium text-gray-900 mb-3">
+                  <h4 className="text-xl font-semibold text-purple-900 mb-3">
                     Fabric Details
                   </h4>
                   {renderFabricDetails()}
@@ -290,25 +478,31 @@ const ProductViewModal = ({ product, isOpen, onClose, onEdit, onDelete }) => {
 
               {product.style && (
                 <div>
-                  <h4 className="text-lg font-medium text-gray-900 mb-3">
+                  <h4 className="text-xl font-semibold text-purple-900 mb-3">
                     Style Details
                   </h4>
                   {renderStyleDetails()}
                 </div>
               )}
 
+              {/* Location Info */}
+              {renderLocationDetails()}
+
+              {/* Business Info */}
+              {renderBusinessInfo()}
+
               {/* Creator Info */}
               {product.creator && (
                 <div>
-                  <h4 className="text-lg font-medium text-gray-900 mb-3">
+                  <h4 className="text-xl font-semibold text-purple-900 mb-3">
                     Creator Information
                   </h4>
-                  <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="p-3 bg-purple-50 rounded-lg border border-purple-100">
                     <div className="text-sm">
                       <strong>Name:</strong> {product.creator.name || "N/A"}
                     </div>
                     {product.creator.email && (
-                      <div className="text-sm text-gray-600 mt-1">
+                      <div className="text-sm text-purple-700 mt-1">
                         <strong>Email:</strong> {product.creator.email}
                       </div>
                     )}
@@ -319,25 +513,25 @@ const ProductViewModal = ({ product, isOpen, onClose, onEdit, onDelete }) => {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end space-x-3 mt-8 pt-6 border-t border-gray-200">
+          <div className="flex flex-col md:flex-row items-center justify-end space-y-3 md:space-y-0 md:space-x-4 mt-10 pt-8 border-t border-purple-200">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+              className="px-5 py-2 text-base font-medium text-purple-700 bg-purple-100 rounded-lg hover:bg-purple-200 transition-colors"
             >
               Close
             </button>
             <button
               onClick={() => onEdit(product)}
-              className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center px-5 py-2 text-base font-medium text-white bg-purple-700 rounded-lg hover:bg-purple-800 transition-colors"
             >
-              <FaEdit className="w-4 h-4 mr-2" />
+              <FaEdit className="w-5 h-5 mr-2" />
               Edit Product
             </button>
             <button
               onClick={() => onDelete(product)}
-              className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors"
+              className="inline-flex items-center px-5 py-2 text-base font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
             >
-              <FaTrash className="w-4 h-4 mr-2" />
+              <FaTrash className="w-5 h-5 mr-2" />
               Delete Product
             </button>
           </div>

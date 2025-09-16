@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { FaUpload, FaTrash, FaSpinner, FaArrowLeft } from "react-icons/fa";
@@ -17,12 +17,18 @@ const AddFabric = () => {
   const navigate = useNavigate();
   const { toastSuccess, toastError } = useToast();
 
-  const [_photoFiles, setPhotoFiles] = useState([]);
+  // Changed: Remove underscore from photoFiles and make it stateful for previews
+  const [photoFiles, setPhotoFiles] = useState([]);
   const [photoUrls, setPhotoUrls] = useState([]);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
   const [_videoFile, setVideoFile] = useState(null);
   const [videoUrl, setVideoUrl] = useState("");
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+
+  useEffect(() => {
+    // Fetch fabric vendors
+    console.log(photoUrls);
+  }, [photoUrls]);
 
   // Create fabric mutation
   const { createMarketRepFabricMutate, isPending: isCreating } =
@@ -272,6 +278,7 @@ const AddFabric = () => {
     formik.setFieldValue("video_url", "");
   };
 
+  // --- REWRITE: handleImageUpload to show previews immediately ---
   const handleImageUpload = async (event) => {
     const files = Array.from(event.target.files);
     if (files.length === 0) return;
@@ -287,7 +294,12 @@ const AddFabric = () => {
       return;
     }
 
+    // Show previews immediately
+    const previewUrls = files.map((file) => URL.createObjectURL(file));
+    setPhotoFiles((prev) => [...prev, ...files]);
+    setPhotoUrls((prev) => [...prev, ...previewUrls]);
     setIsUploadingImages(true);
+
     try {
       const result = await imageUpload.uploadImagesWithProgress(
         files,
@@ -299,9 +311,20 @@ const AddFabric = () => {
       );
 
       if (result.success && result.results.length > 0) {
-        const urls = result.results.filter((r) => r.url).map((r) => r.url);
-        setPhotoUrls((prev) => [...prev, ...urls]);
-        setPhotoFiles((prev) => [...prev, ...files]);
+        // Replace preview URLs with real URLs after upload
+        const uploadedUrls = result.results
+          .filter((r) => r.url)
+          .map((r) => r.url);
+        setPhotoUrls((prev) => {
+          // Remove the preview URLs we just added, and append the uploaded URLs
+          // prev = [...old, ...previewUrls]
+          // Remove the last previewUrls.length items, then add uploadedUrls
+          const prevWithoutPreviews = prev.slice(
+            0,
+            prev.length - previewUrls.length,
+          );
+          return [...prevWithoutPreviews, ...uploadedUrls];
+        });
 
         if (result.failed > 0) {
           toastError(
@@ -312,11 +335,20 @@ const AddFabric = () => {
         }
       } else {
         toastError("Failed to upload images. Please try again.");
+        // Remove previews if upload failed
+        setPhotoUrls((prev) => prev.slice(0, prev.length - previewUrls.length));
+        setPhotoFiles((prev) =>
+          prev.slice(0, prev.length - previewUrls.length),
+        );
       }
     } catch {
       toastError("Failed to upload images. Please try again.");
+      setPhotoUrls((prev) => prev.slice(0, prev.length - previewUrls.length));
+      setPhotoFiles((prev) => prev.slice(0, prev.length - previewUrls.length));
     } finally {
       setIsUploadingImages(false);
+      // Clean up object URLs after upload (optional, but recommended)
+      previewUrls.forEach((url) => URL.revokeObjectURL(url));
     }
   };
 
@@ -822,12 +854,97 @@ const AddFabric = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Available Colors *
               </label>
+              <div className="flex items-center space-x-2 mb-2">
+                <input
+                  type="color"
+                  id="color-picker"
+                  className="w-10 h-10 border border-gray-300 rounded"
+                  value={(() => {
+                    // Show last color or default to #000000
+                    const colors = formik.values.available_colors
+                      .split(",")
+                      .map((c) => c.trim())
+                      .filter(Boolean);
+                    if (colors.length === 0) return "#000000";
+                    // If last is a hex, use it, else default
+                    const last = colors[colors.length - 1];
+                    // If it's a valid hex color, use it
+                    if (/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(last)) {
+                      return last;
+                    }
+                    return "#000000";
+                  })()}
+                  onChange={(e) => {
+                    const color = e.target.value;
+                    let current = formik.values.available_colors
+                      .split(",")
+                      .map((c) => c.trim())
+                      .filter(Boolean);
+                    // Prevent duplicate colors
+                    if (!current.includes(color)) {
+                      current.push(color);
+                      formik.setFieldValue(
+                        "available_colors",
+                        current.join(", "),
+                      );
+                    }
+                  }}
+                  title="Pick a color to add"
+                />
+                <span className="text-xs text-gray-500">
+                  Pick a color, it will be added to the list below
+                </span>
+              </div>
               <input
                 type="text"
                 {...formik.getFieldProps("available_colors")}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="Red, Blue, Green"
+                placeholder="Red, Blue, #ff0000"
+                onChange={(e) => {
+                  // Allow manual editing as well
+                  formik.setFieldValue("available_colors", e.target.value);
+                }}
               />
+              {/* Show color chips for selected colors */}
+              <div className="flex flex-wrap mt-2 gap-2">
+                {formik.values.available_colors
+                  .split(",")
+                  .map((c) => c.trim())
+                  .filter(Boolean)
+                  .map((color, idx) => (
+                    <span
+                      key={idx}
+                      className="flex items-center space-x-1 bg-gray-100 px-2 py-1 rounded text-xs"
+                    >
+                      {/* Show color swatch if hex, else just text */}
+                      {/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(color) ? (
+                        <span
+                          className="inline-block w-4 h-4 rounded-full border border-gray-300 mr-1"
+                          style={{ backgroundColor: color }}
+                        ></span>
+                      ) : null}
+                      <span>{color}</span>
+                      <button
+                        type="button"
+                        className="ml-1 text-red-500 hover:text-red-700"
+                        onClick={() => {
+                          const colors = formik.values.available_colors
+                            .split(",")
+                            .map((c) => c.trim())
+                            .filter(Boolean)
+                            .filter((_, i) => i !== idx);
+                          formik.setFieldValue(
+                            "available_colors",
+                            colors.join(", "),
+                          );
+                        }}
+                        title="Remove color"
+                      >
+                        &times;
+                      </button>
+                    </span>
+                  ))}
+              </div>
               {formik.touched.available_colors &&
                 formik.errors.available_colors && (
                   <p className="text-red-500 text-sm mt-1">
@@ -840,12 +957,94 @@ const AddFabric = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Fabric Colors *
               </label>
+              <div className="flex items-center space-x-2 mb-2">
+                <input
+                  type="color"
+                  id="fabric-color-picker"
+                  className="w-10 h-10 border border-gray-300 rounded"
+                  value={(() => {
+                    // Show last color or default to #000000
+                    const colors = formik.values.fabric_colors
+                      .split(",")
+                      .map((c) => c.trim())
+                      .filter(Boolean);
+                    if (colors.length === 0) return "#000000";
+                    // If last is a hex, use it, else default
+                    const last = colors[colors.length - 1];
+                    // If it's a valid hex color, use it
+                    if (/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(last)) {
+                      return last;
+                    }
+                    return "#000000";
+                  })()}
+                  onChange={(e) => {
+                    const color = e.target.value;
+                    let current = formik.values.fabric_colors
+                      .split(",")
+                      .map((c) => c.trim())
+                      .filter(Boolean);
+                    // Prevent duplicate colors
+                    if (!current.includes(color)) {
+                      current.push(color);
+                      formik.setFieldValue("fabric_colors", current.join(", "));
+                    }
+                  }}
+                  title="Pick a color to add"
+                />
+                <span className="text-xs text-gray-500">
+                  Pick a color, it will be added to the list below
+                </span>
+              </div>
               <input
                 type="text"
                 {...formik.getFieldProps("fabric_colors")}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="Primary fabric colors"
+                onChange={(e) => {
+                  // Allow manual editing as well
+                  formik.setFieldValue("fabric_colors", e.target.value);
+                }}
               />
+              {/* Show color chips for selected colors */}
+              <div className="flex flex-wrap mt-2 gap-2">
+                {formik.values.fabric_colors
+                  .split(",")
+                  .map((c) => c.trim())
+                  .filter(Boolean)
+                  .map((color, idx) => (
+                    <span
+                      key={idx}
+                      className="flex items-center space-x-1 bg-gray-100 px-2 py-1 rounded text-xs"
+                    >
+                      {/* Show color swatch if hex, else just text */}
+                      {/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(color) ? (
+                        <span
+                          className="inline-block w-4 h-4 rounded-full border border-gray-300 mr-1"
+                          style={{ backgroundColor: color }}
+                        ></span>
+                      ) : null}
+                      <span>{color}</span>
+                      <button
+                        type="button"
+                        className="ml-1 text-red-500 hover:text-red-700"
+                        onClick={() => {
+                          const colors = formik.values.fabric_colors
+                            .split(",")
+                            .map((c) => c.trim())
+                            .filter(Boolean)
+                            .filter((_, i) => i !== idx);
+                          formik.setFieldValue(
+                            "fabric_colors",
+                            colors.join(", "),
+                          );
+                        }}
+                        title="Remove color"
+                      >
+                        &times;
+                      </button>
+                    </span>
+                  ))}
+              </div>
               {formik.touched.fabric_colors && formik.errors.fabric_colors && (
                 <p className="text-red-500 text-sm mt-1">
                   {formik.errors.fabric_colors}
@@ -933,6 +1132,8 @@ const AddFabric = () => {
                 <FaSpinner className="animate-spin mr-2" />
                 Creating...
               </>
+            ) : isEditMode ? (
+              "Update Fabric"
             ) : (
               "Create Fabric"
             )}

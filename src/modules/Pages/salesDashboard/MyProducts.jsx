@@ -394,7 +394,11 @@ const MyProducts = () => {
       render: (value, item) => (
         <div className="flex items-center space-x-3">
           <img
-            src={getProductImage(item)}
+            src={
+              typeof item.fabric.photos[0] === "string"
+                ? item.fabric.photos[0].split(" from ")[0]
+                : ""
+            }
             alt={item.name || "Product"}
             className="w-12 h-12 rounded-lg object-cover"
           />

@@ -2,7 +2,6 @@ import FabricLayout from "../layouts/dashboard/fabric";
 import FabricDashboard from "../modules/Pages/fabricDashboard";
 import MyProducts from "../modules/Pages/fabricDashboard/MyProducts";
 import AddNewProduct from "../modules/Pages/fabricDashboard/AddNewProduct";
-import AddNewStyle from "../modules/Pages/fabricDashboard/AddNewStyle";
 import Orders from "../modules/Pages/fabricDashboard/Orders";
 import ShopMaterial from "../modules/Pages/fabricDashboard/ShopMaterial";
 import OrdersDetails from "../modules/Pages/fabricDashboard/OrdersDetails";
@@ -49,20 +48,12 @@ export const fabricRoutes = [
         element: <Subscriptions />,
       },
       {
-        path: "/fabric/add-fabric",
+        path: "/fabric/product/add-product",
         element: <AddNewProduct />,
       },
       {
-        path: "/fabric/edit-fabric",
+        path: "/fabric/product/edit-product",
         element: <AddNewProduct />,
-      },
-      {
-        path: "/fabric/add-style",
-        element: <AddNewStyle />,
-      },
-      {
-        path: "/fabric/edit-style",
-        element: <AddNewStyle />,
       },
       {
         path: "/fabric/orders",

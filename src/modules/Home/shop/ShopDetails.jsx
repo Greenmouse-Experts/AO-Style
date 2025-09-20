@@ -1005,6 +1005,31 @@ export default function ShopDetails() {
                   </div>
                 )}
               </div>
+              <div>
+                {productVal?.product?.creator?.profile?.state &&
+                  productVal?.product?.creator?.profile?.country && (
+                    <div className="flex items-center gap-2 bg-green-50 rounded-lg px-3 py-2 mb-2">
+                      {/* Location Icon */}
+                      <svg
+                        className="w-5 h-5 text-green-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4z"
+                        />
+                      </svg>
+                      <span className="text-sm text-green-800 font-medium">
+                        {productVal.product.creator.profile.state},{" "}
+                        {productVal.product.creator.profile.country}
+                      </span>
+                    </div>
+                  )}
+              </div>
               {/* Add to Cart Button */}
               <div className="pt-6 border-t border-gray-200">
                 <button

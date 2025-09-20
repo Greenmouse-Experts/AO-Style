@@ -263,7 +263,7 @@ const OrderPage = () => {
       <div className="bg-white px-6 py-4 mb-6">
         <h1 className="text-2xl font-medium mb-3">Orders</h1>
         <p className="text-gray-500">
-          <Link to="/admin" className="text-blue-500 hover:underline">
+          <Link to="/tailor" className="text-blue-500 hover:underline">
             Dashboard
           </Link>{" "}
           &gt; Orders

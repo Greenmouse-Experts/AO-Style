@@ -9,30 +9,34 @@ const useGetMarkets = (options = {}) => {
     ...queryOptions
   } = options;
 
-  const { isLoading, isFetching, data, isError, refetch, isPending, error } = useQuery({
-    queryKey: ["markets"],
-    queryFn: () => {
-      console.log("🔧 MARKETS: Fetching markets from API");
-      return MarketService.getAllMarket()
-        .then((response) => {
-          console.log("🔧 MARKETS: API Response received");
-          console.log("🔧 MARKETS: Response status:", response.status);
-          console.log("🔧 MARKETS: Response data:", JSON.stringify(response.data, null, 2));
-          return response;
-        })
-        .catch((error) => {
-          console.error("🔧 MARKETS: API Error:", error);
-          console.error("🔧 MARKETS: Error response:", error.response);
-          throw error;
-        });
-    },
-    enabled,
-    refetchInterval,
-    staleTime,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    ...queryOptions,
-  });
+  const { isLoading, isFetching, data, isError, refetch, isPending, error } =
+    useQuery({
+      queryKey: ["markets"],
+      queryFn: () => {
+        console.log("🔧 MARKETS: Fetching markets from API");
+        return MarketService.getAllMarket()
+          .then((response) => {
+            console.log("🔧 MARKETS: API Response received");
+            console.log("🔧 MARKETS: Response status:", response.status);
+            console.log(
+              "🔧 MARKETS: Response data:",
+              JSON.stringify(response.data, null, 2),
+            );
+            return response;
+          })
+          .catch((error) => {
+            console.error("🔧 MARKETS: API Error:", error);
+            console.error("🔧 MARKETS: Error response:", error.response);
+            throw error;
+          });
+      },
+      enabled,
+      refetchInterval,
+      staleTime,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      ...queryOptions,
+    });
 
   const markets = data?.data?.data || [];
   const hasMarkets = markets.length > 0;

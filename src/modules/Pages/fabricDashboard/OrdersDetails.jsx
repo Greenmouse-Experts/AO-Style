@@ -1088,7 +1088,7 @@ const OrderDetails = () => {
               <div className="flex gap-3">
                 <button
                   onClick={handleCloseUploadModal}
-                  className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  className="cursor-pointer flex-1 py-3 border border-purple-100 text-purple-700 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors font-medium"
                   disabled={isUploading}
                 >
                   Cancel
@@ -1110,7 +1110,7 @@ const OrderDetails = () => {
                   ) : (
                     <>
                       <Upload className="w-4 h-4" />
-                      Update Status (with image)
+                      Update Status
                     </>
                   )}
                 </button>

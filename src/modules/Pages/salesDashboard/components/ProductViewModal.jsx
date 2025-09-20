@@ -332,7 +332,7 @@ const ProductViewModal = ({ product, isOpen, onClose, onEdit, onDelete }) => {
     if (!location) return null;
     return (
       <div className="mt-2">
-        <h4 className="text-lg font-medium text-purple-900 mb-2">Location</h4>
+        {/* <h4 className="text-lg font-medium text-purple-900 mb-2">Location</h4>
         <div className="p-3 bg-purple-50 rounded-lg">
           <div className="text-sm">
             <strong>Latitude:</strong> {location.latitude || "N/A"}
@@ -340,7 +340,7 @@ const ProductViewModal = ({ product, isOpen, onClose, onEdit, onDelete }) => {
           <div className="text-sm">
             <strong>Longitude:</strong> {location.longitude || "N/A"}
           </div>
-        </div>
+        </div>*/}
       </div>
     );
   };
@@ -368,7 +368,7 @@ const ProductViewModal = ({ product, isOpen, onClose, onEdit, onDelete }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-6">
       <div
-        className="fixed inset-0 bg-black bg-opacity-60 transition-opacity"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       ></div>
 
@@ -516,20 +516,20 @@ const ProductViewModal = ({ product, isOpen, onClose, onEdit, onDelete }) => {
           <div className="flex flex-col md:flex-row items-center justify-end space-y-3 md:space-y-0 md:space-x-4 mt-10 pt-8 border-t border-purple-200">
             <button
               onClick={onClose}
-              className="px-5 py-2 text-base font-medium text-purple-700 bg-purple-100 rounded-lg hover:bg-purple-200 transition-colors"
+              className=" cursor-pointer px-5 py-2 text-base font-medium text-purple-700 bg-purple-100 rounded-lg hover:bg-purple-200 transition-colors"
             >
               Close
             </button>
             <button
               onClick={() => onEdit(product)}
-              className="inline-flex items-center px-5 py-2 text-base font-medium text-white bg-purple-700 rounded-lg hover:bg-purple-800 transition-colors"
+              className="cursor-pointer inline-flex items-center px-5 py-2 text-base font-medium text-white bg-purple-700 rounded-lg hover:bg-purple-800 transition-colors"
             >
               <FaEdit className="w-5 h-5 mr-2" />
               Edit Product
             </button>
             <button
               onClick={() => onDelete(product)}
-              className="inline-flex items-center px-5 py-2 text-base font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+              className="cursor-pointer inline-flex items-center px-5 py-2 text-base font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
             >
               <FaTrash className="w-5 h-5 mr-2" />
               Delete Product

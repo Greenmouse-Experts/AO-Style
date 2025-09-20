@@ -174,7 +174,7 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                   );
                   setStatusFilter("all");
                 }}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 ${
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out transform  active:scale-95 ${
                   statusFilter === "all"
                     ? "bg-purple-600 text-white shadow-lg"
                     : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 hover:shadow-md"
@@ -189,7 +189,7 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                   );
                   setStatusFilter("pending");
                 }}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 ${
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out transform  active:scale-95 ${
                   statusFilter === "pending"
                     ? "bg-purple-600 text-white shadow-lg"
                     : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 hover:shadow-md"
@@ -204,7 +204,7 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                   );
                   setStatusFilter("completed");
                 }}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 ${
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out transform  active:scale-95 ${
                   statusFilter === "completed"
                     ? "bg-purple-600 text-white shadow-lg"
                     : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 hover:shadow-md"
@@ -219,7 +219,7 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                   );
                   setStatusFilter("failed");
                 }}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95 ${
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out transform  active:scale-95 ${
                   statusFilter === "failed"
                     ? "bg-purple-600 text-white shadow-lg"
                     : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 hover:shadow-md"
@@ -289,7 +289,7 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                 {filteredWithdrawals.map((withdrawal, index) => (
                   <div
                     key={withdrawal.id || index}
-                    className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg hover:scale-105 transition-all duration-200 ease-in-out lg:grid lg:grid-cols-6 lg:gap-4 lg:items-center"
+                    className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg  transition-all duration-200 ease-in-out lg:grid lg:grid-cols-6 lg:gap-4 lg:items-center"
                   >
                     {/* Mobile Layout */}
                     <div className="lg:hidden space-y-3">
@@ -389,7 +389,7 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                       setCurrentPage(newPage);
                     }}
                     disabled={currentPage === 1}
-                    className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:scale-105 transition-all duration-200 ease-in-out active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50  transition-all duration-200 ease-in-out active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     Previous
                   </button>
@@ -429,7 +429,7 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                       setCurrentPage(newPage);
                     }}
                     disabled={currentPage === totalPages}
-                    className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:scale-105 transition-all duration-200 ease-in-out active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50  transition-all duration-200 ease-in-out active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     Next
                   </button>
@@ -455,7 +455,7 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
               refetch();
             }}
             disabled={isLoading}
-            className="px-4 py-2 text-sm font-medium text-purple-600 bg-white border border-purple-600 rounded-lg hover:bg-purple-50 hover:scale-105 transition-all duration-200 ease-in-out active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="px-4 py-2 text-sm font-medium text-purple-600 bg-white border border-purple-600 rounded-lg hover:bg-purple-50  transition-all duration-200 ease-in-out active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             {isLoading ? (
               <div className="flex items-center">

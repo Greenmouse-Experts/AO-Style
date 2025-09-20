@@ -111,25 +111,6 @@ export default function FabricVendorPage() {
       {/* Filter & Search Section */}
       <div className="bg-white p-4 rounded-lg overflow-x-auto">
         <div className="flex flex-wrap justify-end items-center pb-3 mb-4 gap-4">
-          {/* Filter Tabs */}
-          {/* <div className="flex flex-wrap gap-4 sm:gap-6 text-gray-600 text-sm font-medium w-full sm:w-auto">
-            {["All Fabric Vendors", "Approved", "Pending", "Declined"].map(
-              (tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setFilter(tab)}
-                  className={`font-medium ${
-                    filter === tab
-                      ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
-                      : "text-gray-500"
-                  }`}
-                >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                </button>
-              )
-            )}
-          </div> */}
-
           {/* Search & Sorting */}
           <div className="flex flex-wrap justify-end gap-2 w-full sm:w-auto">
             <div className="relative w-full sm:w-auto">

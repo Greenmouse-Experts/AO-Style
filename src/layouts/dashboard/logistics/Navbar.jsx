@@ -45,8 +45,8 @@ export default function Navbar({ toggleSidebar }) {
         </button>
 
         {/* Page Title */}
-        <h1 className="text-base font-normal text-[#7A7979] lg:ml-4">
-          Logistics Dashboard
+        <h1 className="text-base font-bold text-gray-700 lg:ml-4">
+          Logistics Dashboard - Manage Your Orders & Deliveries
         </h1>
 
         {/* Right: Notification & Profile */}

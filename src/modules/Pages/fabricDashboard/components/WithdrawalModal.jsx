@@ -196,7 +196,7 @@ const WithdrawalModal = ({ isOpen, onClose, businessWallet }) => {
               </p>
             )}
             <div className="flex justify-between items-center mt-2 text-sm">
-              <span className="text-gray-500">Minimum: ₦100</span>
+              <span className="text-gray-500">Minimum: ₦20,000</span>
               <button
                 type="button"
                 onClick={() =>

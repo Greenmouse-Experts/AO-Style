@@ -677,7 +677,7 @@ export default function InboxPage() {
             <h1 className="text-2xl font-bold text-gray-800">Inbox</h1>
             <p className="text-sm text-gray-500 mt-1">
               <Link
-                to="/tailor"
+                to="/fabric"
                 className="text-purple-600 hover:text-purple-700 transition-colors"
               >
                 Dashboard

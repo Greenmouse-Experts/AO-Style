@@ -14,7 +14,7 @@ import {
   FaList,
 } from "react-icons/fa";
 import { GiScissors } from "react-icons/gi";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useGetAllMarketRepVendor from "../../../hooks/marketRep/useGetAllReps";
 import { useProductActions } from "../../../hooks/marketRep/useProductActions";
 
@@ -31,6 +31,7 @@ import ProductViewModal from "./components/ProductViewModal";
 import ProductEditModal from "./components/ProductEditModal";
 
 const MyProducts = () => {
+  const navigate = useNavigate();
   const { deleteProduct, updateProduct, isDeleting, isUpdating } =
     useProductActions();
 
@@ -56,6 +57,8 @@ const MyProducts = () => {
     product: null,
   });
 
+  // Track vendorType change to trigger refetch
+  const [vendorTypeChanged, setVendorTypeChanged] = useState(false);
   // Fetch vendors based on selected type
   const {
     data: vendorsData,
@@ -70,6 +73,23 @@ const MyProducts = () => {
     vendorType === "fabric-vendor" ? "fabric-vendor" : "fashion-designer",
   );
 
+  // Refetch vendors when vendorType changes
+  useEffect(() => {
+    // When vendorType changes, refetch vendors and reset selection/search
+    setVendorSearchTerm("");
+    setSelectedVendor(null);
+    setVendorTypeChanged(true);
+    refetchVendors();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vendorType]);
+
+  // Reset the vendorTypeChanged flag after data loads
+  useEffect(() => {
+    if (!vendorsLoading && vendorTypeChanged) {
+      setVendorTypeChanged(false);
+    }
+  }, [vendorsLoading, vendorTypeChanged]);
+
   // Fetch products for selected vendor
   const {
     products: vendorProducts,
@@ -80,18 +100,16 @@ const MyProducts = () => {
 
   // Process vendors data
   const allVendors = useMemo(() => {
-    console.log("🔧 VENDORS DATA PROCESSING:");
-    console.log("  - vendorsData:", vendorsData);
-    console.log("  - vendorsData?.data:", vendorsData?.data);
+    // Only update UI after vendorTypeChanged is false (i.e., after fetch)
+    if (vendorTypeChanged) {
+      return [];
+    }
 
     if (!vendorsData?.data) {
-      console.log("  - No vendors data, returning empty array");
       return [];
     }
 
     const processedVendors = vendorsData.data.map((vendor, index) => {
-      console.log(`  - Processing vendor ${index}:`, vendor);
-
       const processed = {
         ...vendor,
         displayName: vendor?.name || vendor?.email || "Unknown Vendor",
@@ -100,29 +118,20 @@ const MyProducts = () => {
           ? formatDateStr(vendor.created_at.split(".")[0])
           : "N/A",
       };
-
-      console.log(`  - Processed vendor ${index}:`, processed);
       return processed;
     });
 
-    console.log("  - Final processed vendors:", processedVendors);
     return processedVendors;
-  }, [vendorsData]);
+  }, [vendorsData, vendorTypeChanged]);
 
   // Filter and search vendors
   const vendors = useMemo(() => {
-    console.log("🔧 VENDOR FILTERING:");
-    console.log("  - allVendors:", allVendors);
-    console.log("  - vendorSearchTerm:", vendorSearchTerm);
-
     let filtered = allVendors || [];
 
     // Search filter for vendors
     if (vendorSearchTerm) {
-      console.log("  - Applying search filter...");
       filtered = filtered.filter((vendor) => {
         if (!vendor) {
-          console.log("  - Skipping undefined vendor");
           return false;
         }
 
@@ -137,60 +146,26 @@ const MyProducts = () => {
           .includes(vendorSearchTerm.toLowerCase());
 
         const matches = matchesName || matchesBusiness || matchesEmail;
-        console.log(`  - Vendor ${vendor.displayName}: matches = ${matches}`);
-
         return matches;
       });
     }
-
-    console.log("  - Filtered vendors:", filtered);
     return filtered;
   }, [allVendors, vendorSearchTerm]);
 
   // Process products data - just use the data directly
   const products = useMemo(() => {
-    console.log("🔧 PRODUCTS DATA PROCESSING:");
-    console.log("  - vendorProducts:", vendorProducts);
-    console.log("  - selectedVendor:", selectedVendor);
-
     if (!vendorProducts || vendorProducts.length === 0) {
-      console.log("  - No vendor products, returning empty array");
       return [];
     }
-
-    // Log the first product's structure for debugging
-    if (vendorProducts.length > 0) {
-      console.log("  - First product structure:", {
-        id: vendorProducts[0].id,
-        name: vendorProducts[0].name,
-        sku: vendorProducts[0].sku,
-        price: vendorProducts[0].price,
-        original_price: vendorProducts[0].original_price,
-        status: vendorProducts[0].status,
-        created_at: vendorProducts[0].created_at,
-        hasFabric: !!vendorProducts[0].fabric,
-        hasStyle: !!vendorProducts[0].style,
-        hasPhotos: !!vendorProducts[0].photos,
-        allKeys: Object.keys(vendorProducts[0]),
-      });
-    }
-
-    // Just return the products as they are - the API data is already perfect
     return vendorProducts;
   }, [vendorProducts, selectedVendor]);
 
   // Filter and search products
   const filteredProducts = useMemo(() => {
-    console.log("🔧 PRODUCT FILTERING:");
-    console.log("  - products:", products);
-    console.log("  - filterType:", filterType);
-    console.log("  - searchTerm:", searchTerm);
-
     let filtered = products || [];
 
     // Filter by type
     if (filterType !== "all") {
-      console.log("  - Applying type filter...");
       filtered = filtered.filter((product) => {
         // Check if it's a fabric or style product
         const productType = product.fabric
@@ -199,16 +174,12 @@ const MyProducts = () => {
             ? "style"
             : product.product?.type?.toLowerCase();
         const matches = productType === filterType.toLowerCase();
-        console.log(
-          `  - Product ${product.name || product.product?.name}: type ${productType} matches filter ${filterType} = ${matches}`,
-        );
         return matches;
       });
     }
 
     // Search filter
     if (searchTerm) {
-      console.log("  - Applying search filter...");
       filtered = filtered.filter((product) => {
         const productName = product.name || product.product?.name || "";
         const productDescription =
@@ -226,32 +197,19 @@ const MyProducts = () => {
           .includes(searchTerm.toLowerCase());
 
         const matches = matchesName || matchesDescription || matchesSku;
-        console.log(`  - Product ${productName}: search matches = ${matches}`);
-
         return matches;
       });
     }
-
-    console.log("  - Filtered products:", filtered);
     return filtered;
   }, [products, filterType, searchTerm]);
 
   // Pagination
   const paginatedProducts = useMemo(() => {
-    console.log("🔧 PRODUCT PAGINATION:");
-    console.log("  - currentPage:", currentPage);
-    console.log("  - itemsPerPage:", itemsPerPage);
-    console.log("  - filteredProducts.length:", filteredProducts.length);
-
     const startIndex = (currentPage - 1) * itemsPerPage;
     const paginated = filteredProducts.slice(
       startIndex,
       startIndex + itemsPerPage,
     );
-
-    console.log("  - startIndex:", startIndex);
-    console.log("  - paginated products:", paginated);
-
     return paginated;
   }, [filteredProducts, currentPage, itemsPerPage]);
 
@@ -264,10 +222,6 @@ const MyProducts = () => {
     setFilterType("all");
   }, [selectedVendor]);
 
-  // Reset vendor search when vendor type changes
-  useEffect(() => {
-    setVendorSearchTerm("");
-  }, [vendorType]);
 
   const handleDelete = (product) => {
     setDeleteModal({ isOpen: true, product });
@@ -286,22 +240,9 @@ const MyProducts = () => {
   };
 
   const handleVendorSelect = (vendor) => {
-    console.log("🔧 VENDOR SELECTION:");
-    console.log("  - Selected vendor:", vendor);
-
     if (!vendor) {
-      console.error("  - ERROR: Vendor is null or undefined!");
       return;
     }
-
-    console.log("  - Vendor properties:", {
-      id: vendor?.id,
-      name: vendor?.name,
-      email: vendor?.email,
-      displayName: vendor?.displayName,
-      businessName: vendor?.businessName,
-    });
-
     setSelectedVendor(vendor);
   };
 
@@ -314,8 +255,20 @@ const MyProducts = () => {
   };
 
   const handleEditProduct = (product) => {
-    setEditModal({ isOpen: true, product });
-  };
+    console.log("Edit product:", product);
+    // Navigate to edit route with product data
+    if (product.fabric) {
+      navigate(`/sales/edit-fabric/${product?.id}`, {
+        state: { product, selectedVendor },
+      });
+    } else if (product.style) {
+      navigate(`/sales/edit-style/${product?.id}`, {
+        state: { product, selectedVendor },
+      });
+    } else {
+      // Fallback to modal for unknown product types
+      setEditModal({ isOpen: true, product });
+    }
 
   const handleUpdateProduct = async (updatedData) => {
     if (editModal.product) {
@@ -482,7 +435,7 @@ const MyProducts = () => {
   ];
 
   // Loading state
-  if (vendorsLoading && !selectedVendor) {
+  if ((vendorsLoading || vendorTypeChanged) && !selectedVendor) {
     return (
       <div className="space-y-6">
         {/* Header */}
@@ -566,20 +519,25 @@ const MyProducts = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-              <Link
-                to="/sales/add-fabric"
-                className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-              >
-                <FaPlus className="mr-2" />
-                Add Fabric
-              </Link>
-              <Link
-                to="/sales/add-style"
-                className="inline-flex items-center px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors"
-              >
-                <FaPlus className="mr-2" />
-                Add Style
-              </Link>
+              {vendorType === "fabric-vendor" && (
+                <Link
+                  to="/sales/add-fabric"
+                  className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                >
+                  <FaPlus className="mr-2" />
+                  Add Fabric
+                </Link>
+              )}
+              {vendorType === "fashion-designer" && (
+                <Link
+                  to="/sales/add-style"
+                  className="inline-flex items-center px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors"
+                >
+                  <FaPlus className="mr-2" />
+                  Add Style
+                </Link>
+              )}
+
             </div>
           </div>
         </div>
@@ -641,7 +599,7 @@ const MyProducts = () => {
 
         {/* Vendors Grid */}
         <div className="bg-white rounded-xl">
-          {vendorsLoading ? (
+          {vendorsLoading || vendorTypeChanged ? (
             <div className="p-6">
               <div className="h-6 bg-gray-200 rounded w-1/4 mb-6 animate-pulse"></div>
               <VendorSkeleton count={6} />
@@ -766,7 +724,7 @@ const MyProducts = () => {
           totalProducts={products.length}
           onRefresh={refetchProducts}
           isLoading={productsLoading}
-        />
+          vendorType={vendorType}
       )}
 
       {/* Filters and Search */}
@@ -883,22 +841,26 @@ const MyProducts = () => {
             )}
             {!searchTerm && filterType === "all" && (
               <div className="flex justify-center space-x-4">
-                <Link
-                  to="/sales/add-fabric"
-                  state={{ selectedVendor }}
-                  className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-                >
-                  <FaPlus className="mr-2" />
-                  Add Fabric
-                </Link>
-                <Link
-                  to="/sales/add-style"
-                  state={{ selectedVendor }}
-                  className="inline-flex items-center px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors"
-                >
-                  <FaPlus className="mr-2" />
-                  Add Style
-                </Link>
+                {vendorType === "fabric-vendor" && (
+                  <Link
+                    to="/sales/add-fabric"
+                    state={{ selectedVendor }}
+                    className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                  >
+                    <FaPlus className="mr-2" />
+                    Add Fabric
+                  </Link>
+                )}
+                {vendorType === "fashion-designer" && (
+                  <Link
+                    to="/sales/add-style"
+                    state={{ selectedVendor }}
+                    className="inline-flex items-center px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors"
+                  >
+                    <FaPlus className="mr-2" />
+                    Add Style
+                  </Link>
+                )}
               </div>
             )}
           </div>

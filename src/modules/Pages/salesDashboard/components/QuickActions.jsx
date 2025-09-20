@@ -7,6 +7,7 @@ const QuickActions = ({
   onRefresh,
   totalProducts = 0,
   isLoading = false,
+  vendorType = "fabric-vendor",
 }) => {
   const handleRefresh = () => {
     if (onRefresh) {
@@ -42,25 +43,29 @@ const QuickActions = ({
 
         {/* Right side - Action buttons */}
         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-          {/* Add Fabric button */}
-          <Link
-            to="/sales/add-fabric"
-            state={{ selectedVendor }}
-            className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-          >
-            <FaPlus className="mr-2 w-4 h-4" />
-            Add Fabric
-          </Link>
+          {/* Add Fabric button - only show for fabric vendors */}
+          {vendorType === "fabric-vendor" && (
+            <Link
+              to="/sales/add-fabric"
+              state={{ selectedVendor }}
+              className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+            >
+              <FaPlus className="mr-2 w-4 h-4" />
+              Add Fabric
+            </Link>
+          )}
 
-          {/* Add Style button */}
-          <Link
-            to="/sales/add-style"
-            state={{ selectedVendor }}
-            className="inline-flex items-center px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors"
-          >
-            <FaPlus className="mr-2 w-4 h-4" />
-            Add Style
-          </Link>
+          {/* Add Style button - only show for fashion designers */}
+          {vendorType === "fashion-designer" && (
+            <Link
+              to="/sales/add-style"
+              state={{ selectedVendor }}
+              className="inline-flex items-center px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors"
+            >
+              <FaPlus className="mr-2 w-4 h-4" />
+              Add Style
+            </Link>
+          )}
         </div>
       </div>
     </div>

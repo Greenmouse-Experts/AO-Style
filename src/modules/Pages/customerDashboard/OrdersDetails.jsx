@@ -507,7 +507,6 @@ const OrderDetails = () => {
           &gt; Orders
         </p>
       </div>
-
       <h5 className="text-lg font-meduim text-[#A14DF6] mb-4">
         ORDER PROGRESS
       </h5>
@@ -517,7 +516,23 @@ const OrderDetails = () => {
             key={index}
             className="flex flex-col items-center w-full relative"
           >
-            {index > 0 && (
+            {/* Only render the connecting line if NOT the last step */}
+            {index > 0 &&
+              index !== orderSteps.length &&
+              index !== orderSteps.length - 0 &&
+              index !== orderSteps.length - 1 && (
+                <div
+                  className={`absolute top-3 left-0 right-0 h-1 ${
+                    orderDetails?.status === "CANCELLED"
+                      ? "bg-red-300"
+                      : index <= currentStep
+                        ? "bg-[#EC8B20]"
+                        : "bg-gray-300"
+                  }`}
+                ></div>
+              )}
+            {/* Render the connecting line for all except the last step */}
+            {index > 0 && index !== orderSteps.length - 1 && (
               <div
                 className={`absolute top-3 left-0 right-0 h-1 ${
                   orderDetails?.status === "CANCELLED"
@@ -602,9 +617,7 @@ const OrderDetails = () => {
           </div>
         )}
       </div>
-
       <ETADisplay orderDetails={orderDetails} />
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
         <div className="bg-white p-6 rounded-md md:col-span-2">
           <h5 className="text-lg font-meduim text-dark border-b border-[#D9D9D9] pb-3 mb-3">
@@ -828,7 +841,6 @@ const OrderDetails = () => {
           </div>
         </div>
       </div>
-
       {/* Rate & Review Section - Show for Delivered Orders */}
       {orderDetails?.status === "DELIVERED" && (
         <div className="mt-6 bg-white rounded-lg p-6 w-full mx-auto">
@@ -956,7 +968,6 @@ const OrderDetails = () => {
           </div>
         </div>
       )}
-
       {/* Review Form Modal */}
       <ReviewForm
         productId={activeReviewProduct}

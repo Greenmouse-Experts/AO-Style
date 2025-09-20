@@ -69,17 +69,8 @@ const AddFabric = () => {
     price: Yup.number()
       .required("Price is required")
       .min(1, "Price must be greater than 0"),
-    original_price: Yup.number()
-      .required("Original price is required")
-      .min(1, "Price must be greater than 0"),
     market_id: Yup.string().required("Market ID is required"),
     weight_per_unit: Yup.string().required("Weight per unit is required"),
-    latitude: Yup.string().required(
-      "Address is required - latitude will be auto-filled",
-    ),
-    longitude: Yup.string().required(
-      "Address is required - longitude will be auto-filled",
-    ),
     local_name: Yup.string().required("Local name is required"),
     manufacturer_name: Yup.string().required("Manufacturer name is required"),
     material_type: Yup.string().required("Material type is required"),
@@ -99,12 +90,12 @@ const AddFabric = () => {
       description: "",
       gender: "",
       price: "",
-      original_price: "",
+      // original_price: "",
       quantity: 1,
       market_id: "",
       weight_per_unit: "",
-      latitude: "",
-      longitude: "",
+      // latitude: "",
+      // longitude: "",
       local_name: "",
       manufacturer_name: "",
       material_type: "",
@@ -136,15 +127,15 @@ const AddFabric = () => {
             ? values.tags.split(",").map((tag) => tag.trim())
             : [],
           price: values.price.toString(),
-          original_price: values.original_price.toString(),
+          // original_price: values.original_price.toString(),
         },
         fabric: {
           market_id: values.market_id,
           weight_per_unit: values.weight_per_unit.toString(),
-          location: {
-            latitude: values.latitude.toString(),
-            longitude: values.longitude.toString(),
-          },
+          // location: {
+          //   latitude: values.latitude.toString(),
+          //   longitude: values.longitude.toString(),
+          // },
           local_name: values.local_name,
           manufacturer_name: values.manufacturer_name,
           material_type: values.material_type,
@@ -432,11 +423,13 @@ const AddFabric = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
                 <option value="">Select a category</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
+                {categories
+                  .filter((category) => category.type === "fabric")
+                  .map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
               </select>
             )}
             {formik.touched.category_id && formik.errors.category_id && (
@@ -492,23 +485,6 @@ const AddFabric = () => {
             />
             {formik.touched.price && formik.errors.price && (
               <p className="text-red-500 text-sm mt-1">{formik.errors.price}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Original Price *
-            </label>
-            <input
-              type="number"
-              {...formik.getFieldProps("original_price")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Enter original price"
-            />
-            {formik.touched.original_price && formik.errors.original_price && (
-              <p className="text-red-500 text-sm mt-1">
-                {formik.errors.original_price}
-              </p>
             )}
           </div>
         </div>
@@ -580,7 +556,7 @@ const AddFabric = () => {
             </div>
           </div>
 
-          <div className="mt-4">
+          {/* <div className="mt-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Address *
             </label>
@@ -654,7 +630,7 @@ const AddFabric = () => {
                 </p>
               )}
             </div>
-          </div>
+          </div>*/}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
             <div>
@@ -1132,8 +1108,6 @@ const AddFabric = () => {
                 <FaSpinner className="animate-spin mr-2" />
                 Creating...
               </>
-            ) : isEditMode ? (
-              "Update Fabric"
             ) : (
               "Create Fabric"
             )}

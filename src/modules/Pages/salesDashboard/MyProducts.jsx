@@ -222,7 +222,6 @@ const MyProducts = () => {
     setFilterType("all");
   }, [selectedVendor]);
 
-
   const handleDelete = (product) => {
     setDeleteModal({ isOpen: true, product });
   };
@@ -269,6 +268,7 @@ const MyProducts = () => {
       // Fallback to modal for unknown product types
       setEditModal({ isOpen: true, product });
     }
+  };
 
   const handleUpdateProduct = async (updatedData) => {
     if (editModal.product) {
@@ -537,7 +537,6 @@ const MyProducts = () => {
                   Add Style
                 </Link>
               )}
-
             </div>
           </div>
         </div>
@@ -725,7 +724,7 @@ const MyProducts = () => {
           onRefresh={refetchProducts}
           isLoading={productsLoading}
           vendorType={vendorType}
-          />
+        />
       )}
 
       {/* Filters and Search */}

@@ -125,12 +125,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             text="Fashion Designers"
             toggleSidebar={toggleSidebar}
           />
-          <SidebarItem
+          {/* <SidebarItem
             to="/sales/my-products"
             icon={<FaBoxOpen />}
             text="View/Add Products"
             toggleSidebar={toggleSidebar}
-          />
+          />*/}
           <SidebarItem
             to="/sales/inbox"
             icon={<FaCommentDots />}

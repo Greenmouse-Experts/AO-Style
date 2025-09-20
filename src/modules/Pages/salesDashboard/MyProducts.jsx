@@ -725,6 +725,7 @@ const MyProducts = () => {
           onRefresh={refetchProducts}
           isLoading={productsLoading}
           vendorType={vendorType}
+          />
       )}
 
       {/* Filters and Search */}

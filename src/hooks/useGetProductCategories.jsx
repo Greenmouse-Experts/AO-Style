@@ -38,6 +38,7 @@ const useGetProductCategories = (options = {}) => {
       ...queryOptions,
     });
 
+
   const categories = data?.data?.data || [];
   const hasCategories = categories.length > 0;
 

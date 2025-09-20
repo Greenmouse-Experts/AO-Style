@@ -82,6 +82,18 @@ export const salesRoutes = [
         path: "/sales/announcements",
         element: <MarketRepAnnouncements />,
       },
+      {
+        path: "/sales/my-products",
+        element: <MyProducts />,
+      },
+      {
+        path: "/sales/add-fabric",
+        element: <AddFabric />,
+      },
+      {
+        path: "/sales/add-style",
+        element: <AddStyle />,
+      },
     ],
   },
 ];

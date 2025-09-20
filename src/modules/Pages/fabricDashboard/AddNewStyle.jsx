@@ -39,7 +39,7 @@ const AddStyle = () => {
   const { uploadVideoMutate } = useUploadVideo();
 
   const validationSchema = Yup.object({
-    vendor_id: Yup.string().required("Please select a tailor"),
+    tailor_id: Yup.string().required("Please select a tailor"),
     name: Yup.string().required("Style name is required"),
     category_id: Yup.string().required("Category is required"),
     description: Yup.string().required("Description is required"),
@@ -47,9 +47,9 @@ const AddStyle = () => {
     price: Yup.number()
       .required("Price is required")
       .min(1, "Price must be greater than 0"),
-    // original_price: Yup.number()
-    //   .required("Original price is required")
-    //   .min(1, "Price must be greater than 0"),
+    original_price: Yup.number()
+      .required("Original price is required")
+      .min(1, "Price must be greater than 0"),
     estimated_sewing_time: Yup.number()
       .required("Estimated sewing time is required")
       .min(1, "Estimated sewing time must be at least 1 hour"),
@@ -60,21 +60,21 @@ const AddStyle = () => {
 
   const formik = useFormik({
     initialValues: {
-      vendor_id: "",
+      tailor_id: "",
       name: "",
       category_id: "",
-      // sku: "",
+      sku: "",
       description: "",
       gender: "female",
       tags: "",
       price: "",
-      // original_price: "",
+      original_price: "",
       estimated_sewing_time: 1,
       minimum_fabric_qty: 0,
       video_url: "",
-      // address: "",
-      // latitude: "",
-      // longitude: "",
+      address: "",
+      latitude: "",
+      longitude: "",
     },
     validationSchema,
     onSubmit: (values) => {
@@ -84,19 +84,19 @@ const AddStyle = () => {
       }
 
       const payload = {
-        vendor_id: values.vendor_id,
+        vendor_id: values.tailor_id,
         product: {
           type: "STYLE",
           name: values.name,
           category_id: values.category_id,
-          // sku: values.sku,
+          sku: values.sku,
           description: values.description,
           gender: values.gender,
           tags: values.tags
             ? values.tags.split(",").map((tag) => tag.trim())
             : [],
           price: values.price.toString(),
-          // original_price: values.original_price.toString(),
+          original_price: values.original_price.toString(),
         },
         style: {
           estimated_sewing_time: Number(values.estimated_sewing_time),
@@ -119,10 +119,34 @@ const AddStyle = () => {
 
       createMarketRepStyleMutate(payload, {
         onSuccess: (response) => {
-          toastSuccess(response.message || "Style created successfully!");
+          console.log("🔧 STYLE SUCCESS: Full response object:", response);
+          console.log("🔧 STYLE SUCCESS: Response status:", response?.status);
+          console.log("🔧 STYLE SUCCESS: Response data:", response?.data);
+          console.log(
+            "🔧 STYLE SUCCESS: Response message:",
+            response?.data?.message,
+          );
+          console.log("🔧 STYLE SUCCESS: Response data structure:", {
+            dataType: typeof response?.data,
+            isArray: Array.isArray(response?.data),
+            keys: response?.data ? Object.keys(response?.data) : null,
+          });
+
+          toastSuccess("Style created successfully!");
           navigate("/sales/my-products");
         },
         onError: (error) => {
+          console.log("🔧 STYLE ERROR: Full error object:", error);
+          console.log("🔧 STYLE ERROR: error.response:", error?.response);
+          console.log(
+            "🔧 STYLE ERROR: error.response.data:",
+            error?.response?.data,
+          );
+          console.log(
+            "🔧 STYLE ERROR: error.response.data.message:",
+            error?.response?.data?.message,
+          );
+          console.log("🔧 STYLE ERROR: error.message:", error?.message);
 
           const errorMessage =
             error?.response?.data?.data?.message ||
@@ -130,6 +154,7 @@ const AddStyle = () => {
             error?.message ||
             "Failed to create style. Please try again.";
 
+          console.log("🔧 STYLE ERROR: Final message shown:", errorMessage);
           toastError(errorMessage);
         },
       });
@@ -268,7 +293,7 @@ const AddStyle = () => {
             </div>
           ) : (
             <select
-              {...formik.getFieldProps("vendor_id")}
+              {...formik.getFieldProps("tailor_id")}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
               <option value="">Select a tailor</option>
@@ -279,9 +304,9 @@ const AddStyle = () => {
               ))}
             </select>
           )}
-          {formik.touched.vendor_id && formik.errors.vendor_id && (
+          {formik.touched.tailor_id && formik.errors.tailor_id && (
             <p className="text-red-500 text-sm mt-1">
-              {formik.errors.vendor_id}
+              {formik.errors.tailor_id}
             </p>
           )}
         </div>
@@ -318,13 +343,11 @@ const AddStyle = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
                 <option value="">Select a category</option>
-                {categories
-                  .filter((category) => category.type === "style")
-                  .map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
               </select>
             )}
             {formik.touched.category_id && formik.errors.category_id && (
@@ -336,6 +359,18 @@ const AddStyle = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              SKU
+            </label>
+            <input
+              type="text"
+              {...formik.getFieldProps("sku")}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="Enter SKU (optional)"
+            />
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Gender *
@@ -382,6 +417,23 @@ const AddStyle = () => {
             />
             {formik.touched.price && formik.errors.price && (
               <p className="text-red-500 text-sm mt-1">{formik.errors.price}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Original Price *
+            </label>
+            <input
+              type="number"
+              {...formik.getFieldProps("original_price")}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="Enter original price"
+            />
+            {formik.touched.original_price && formik.errors.original_price && (
+              <p className="text-red-500 text-sm mt-1">
+                {formik.errors.original_price}
+              </p>
             )}
           </div>
         </div>
@@ -503,6 +555,42 @@ const AddStyle = () => {
                 </div>
               </div>
             )}
+          </div>
+
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Location (Optional)
+            </label>
+            <Autocomplete
+              apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="Enter style location address (optional)"
+              name="address"
+              value={formik.values.address}
+              onChange={(e) => {
+                console.log("📝 Style Address input changed:", e.target.value);
+                formik.setFieldValue("address", e.target.value);
+                formik.setFieldValue("latitude", "");
+                formik.setFieldValue("longitude", "");
+              }}
+              onPlaceSelected={(place) => {
+                console.log("🗺️ Style Google Place Selected:", place);
+                const lat = place.geometry?.location?.lat();
+                const lng = place.geometry?.location?.lng();
+                console.log("📍 Style Setting coordinates:", { lat, lng });
+
+                formik.setFieldValue("address", place.formatted_address);
+                formik.setFieldValue("latitude", lat ? lat.toString() : "");
+                formik.setFieldValue("longitude", lng ? lng.toString() : "");
+              }}
+              options={{
+                componentRestrictions: { country: "ng" },
+                types: ["address"],
+              }}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              You can optionally add a location for your style
+            </p>
           </div>
         </div>
 

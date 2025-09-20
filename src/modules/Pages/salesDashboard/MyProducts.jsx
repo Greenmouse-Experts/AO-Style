@@ -59,7 +59,6 @@ const MyProducts = () => {
 
   // Track vendorType change to trigger refetch
   const [vendorTypeChanged, setVendorTypeChanged] = useState(false);
-
   // Fetch vendors based on selected type
   const {
     data: vendorsData,
@@ -150,7 +149,6 @@ const MyProducts = () => {
         return matches;
       });
     }
-
     return filtered;
   }, [allVendors, vendorSearchTerm]);
 
@@ -202,7 +200,6 @@ const MyProducts = () => {
         return matches;
       });
     }
-
     return filtered;
   }, [products, filterType, searchTerm]);
 
@@ -225,8 +222,6 @@ const MyProducts = () => {
     setFilterType("all");
   }, [selectedVendor]);
 
-  // Reset vendor search when vendor type changes
-  // (handled above in vendorType effect)
 
   const handleDelete = (product) => {
     setDeleteModal({ isOpen: true, product });
@@ -274,7 +269,6 @@ const MyProducts = () => {
       // Fallback to modal for unknown product types
       setEditModal({ isOpen: true, product });
     }
-  };
 
   const handleUpdateProduct = async (updatedData) => {
     if (editModal.product) {
@@ -543,6 +537,7 @@ const MyProducts = () => {
                   Add Style
                 </Link>
               )}
+
             </div>
           </div>
         </div>
@@ -730,7 +725,6 @@ const MyProducts = () => {
           onRefresh={refetchProducts}
           isLoading={productsLoading}
           vendorType={vendorType}
-        />
       )}
 
       {/* Filters and Search */}

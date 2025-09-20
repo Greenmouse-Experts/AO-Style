@@ -1,948 +1,1276 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
-import * as Yup from "yup";
-import { FaUpload, FaTrash, FaSpinner, FaArrowLeft } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
-import useToast from "../../../hooks/useToast";
-import useCreateMarketRepFabric from "../../../hooks/marketRep/useCreateMarketRepFabric";
-
-import imageUpload from "../../../utils/imageUpload";
-import useGetProductCategories from "../../../hooks/useGetProductCategories";
-import useGetMarkets from "../../../hooks/useGetMarkets";
+import useCreateFabricProduct from "../../../hooks/fabric/useCreateFabricProduct";
+import useGetMarket from "../../../hooks/market/useGetMarket";
+import Select from "react-select";
+import { usePlacesWidget } from "react-google-autocomplete";
 import useUploadVideo from "../../../hooks/multimedia/useUploadVideo";
-import useGetAllMarketRepVendor from "../../../hooks/marketRep/useGetAllReps";
-import Autocomplete from "react-google-autocomplete";
+import useUploadImages from "../../../hooks/multimedia/useUploadImages";
+import useGetProducts from "../../../hooks/product/useGetProduct";
 
-const AddFabric = () => {
-  const navigate = useNavigate();
-  const { toastSuccess, toastError } = useToast();
+import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails";
+import useUploadImage from "../../../hooks/multimedia/useUploadImage";
+import useUpdateFabric from "../../../hooks/fabric/useUpdateFabric";
+import useCreateAdminFabricProduct from "../../../hooks/fabric/useCreateAdminFabricProduct";
+import useUpdateAdminFabric from "../../../hooks/fabric/useUpdateAdminFabric";
+import useToast from "../../../hooks/useToast";
+import useGetAdminBusinessDetails from "../../../hooks/settings/useGetAdmnBusinessInfo";
 
-  const [_photoFiles, setPhotoFiles] = useState([]);
-  const [photoUrls, setPhotoUrls] = useState([]);
-  const [isUploadingImages, setIsUploadingImages] = useState(false);
-  const [_videoFile, setVideoFile] = useState(null);
-  const [videoUrl, setVideoUrl] = useState("");
-  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+const AddProduct = () => {
+  const location = useLocation();
 
-  // Create fabric mutation
-  const { createMarketRepFabricMutate, isPending: isCreating } =
-    useCreateMarketRepFabric();
+  const isAdminAddFabricRoute =
+    location.pathname === "/admin/fabric/add-product";
 
-  // Fetch product categories
-  const { categories, isLoading: categoriesLoading } =
-    useGetProductCategories();
+  const isAdminEditFabricRoute =
+    location.pathname === "/admin/fabric/edit-product";
 
-  // Fetch markets
-  const { markets, isLoading: marketsLoading } = useGetMarkets();
+  const productInfo = location?.state?.info;
 
-  // Fetch fabric vendors
-  const { data: getAllFabVendorData, isLoading: vendorsLoading } =
-    useGetAllMarketRepVendor({}, "fabric-vendor");
+  const initialValues = {
+    type: "FABRIC",
+    name: productInfo?.name ?? "",
+    category_id: productInfo?.category_id ?? "",
+    description: productInfo?.description ?? "",
+    gender: productInfo?.gender ?? "",
+    tags: productInfo?.tags ?? [],
+    price: productInfo?.price ?? "",
+    weight_per_unit: productInfo?.fabric?.weight_per_unit ?? "",
+    local_name: productInfo?.fabric?.local_name ?? "",
+    manufacturer_name: productInfo?.fabric?.manufacturer_name ?? "",
+    material_type: productInfo?.fabric?.material_type ?? "",
+    alternative_names: productInfo?.fabric?.material_type ?? "",
+    fabric_texture: productInfo?.fabric?.fabric_texture ?? "",
+    feel_a_like: productInfo?.fabric?.feel_a_like ?? "",
+    quantity: productInfo?.fabric?.quantity ?? "",
+    minimum_yards: productInfo?.fabric?.minimum_yards ?? "",
+    available_colors: productInfo?.fabric?.available_colors ?? "",
+    fabric_colors: productInfo?.fabric?.fabric_colors
+      ?.split(",")
+      ?.map((color) => color.trim()) ?? [""],
+    video_url: productInfo?.fabric?.video_url ?? "",
+    original_price: "",
+    sku: productInfo?.sku ?? "",
+    market_id: productInfo?.fabric?.market_id ?? "",
+    multimedia_url: "",
+    closeup_url: productInfo?.fabric?.photos[0] ?? undefined,
+    spreadout_url: productInfo?.fabric?.photos[1] ?? "",
+    manufacturers_url: productInfo?.fabric?.photos[2] ?? "",
+    fabric_url: productInfo?.fabric?.photos[3] ?? "",
+  };
 
-  // Debug logging
-  console.log("🔧 ADDFABRIC: getAllFabVendorData:", getAllFabVendorData);
-  console.log(
-    "🔧 ADDFABRIC: getAllFabVendorData?.data:",
-    getAllFabVendorData?.data,
+  const [colorCount, setColorCount] = useState(1);
+  const [tags, setTags] = useState([]);
+  const [tagInput, setTagInput] = useState("");
+
+  const { data: businessAdminDetails } = useGetAdminBusinessDetails();
+  const { data: businessDetails } = useGetBusinessDetails();
+
+  const increaseColorCount = () => {
+    setColorCount(colorCount + 1);
+    setFieldValue("available_colors", colorCount + 1);
+  };
+  const decreaseColorCount = () => {
+    if (colorCount > 1) setColorCount(colorCount - 1);
+    setFieldValue("available_colors", colorCount - 1);
+  };
+
+  const { isPending, createFabricProductMutate } = useCreateFabricProduct(
+    businessDetails?.data?.id,
   );
-  console.log("🔧 ADDFABRIC: vendorsLoading:", vendorsLoading);
-  console.log(
-    "🔧 ADDFABRIC: Is data an array?",
-    Array.isArray(getAllFabVendorData?.data),
-  );
 
-  // Video upload hook
-  const { uploadVideoMutate } = useUploadVideo();
+  const { isPending: createAdminIsPending, createAdminFabricProductMutate } =
+    useCreateAdminFabricProduct(businessAdminDetails?.data?.id);
 
-  const validationSchema = Yup.object({
-    vendor_id: Yup.string().required("Please select a fabric vendor"),
-    name: Yup.string().required("Fabric name is required"),
-    category_id: Yup.string().required("Category is required"),
-    description: Yup.string().required("Description is required"),
-    gender: Yup.string().required("Gender is required"),
-    price: Yup.number()
-      .required("Price is required")
-      .min(1, "Price must be greater than 0"),
-    original_price: Yup.number()
-      .required("Original price is required")
-      .min(1, "Price must be greater than 0"),
-    market_id: Yup.string().required("Market ID is required"),
-    weight_per_unit: Yup.string().required("Weight per unit is required"),
-    latitude: Yup.string().required(
-      "Address is required - latitude will be auto-filled",
-    ),
-    longitude: Yup.string().required(
-      "Address is required - longitude will be auto-filled",
-    ),
-    local_name: Yup.string().required("Local name is required"),
-    manufacturer_name: Yup.string().required("Manufacturer name is required"),
-    material_type: Yup.string().required("Material type is required"),
-    quantity: Yup.number()
-      .required("Quantity is required")
-      .min(1, "Quantity must be greater than 0"),
-    minimum_yards: Yup.string().required("Minimum yards is required"),
-    available_colors: Yup.string().required("Available colors is required"),
-    fabric_colors: Yup.string().required("Fabric colors is required"),
+  const { data } = useGetMarket({
+    "pagination[limit]": 10000,
   });
 
-  const formik = useFormik({
-    initialValues: {
-      vendor_id: "",
-      name: "",
-      category_id: "",
-      description: "",
-      gender: "",
-      price: "",
-      original_price: "",
-      quantity: 1,
-      market_id: "",
-      weight_per_unit: "",
-      latitude: "",
-      longitude: "",
-      local_name: "",
-      manufacturer_name: "",
-      material_type: "",
-      alternative_names: "",
-      fabric_texture: "",
-      feel_a_like: "",
-      minimum_yards: "1",
-      available_colors: "",
-      fabric_colors: "",
-      tags: "",
-      video_url: "",
-    },
-    validationSchema,
-    onSubmit: (values) => {
-      if (photoUrls.length === 0) {
-        toastError("Please upload at least one photo");
+  const { data: fabCategory } = useGetProducts({
+    "pagination[limit]": 10000,
+    type: "fabric",
+  });
+
+  const marketList = data?.data
+    ? data?.data?.map((c) => ({
+        label: c.name,
+        value: c.id,
+      }))
+    : [];
+
+  const categoryList = fabCategory?.data
+    ? fabCategory?.data?.map((c) => ({
+        label: c.name,
+        value: c.id,
+      }))
+    : [];
+
+  const handleTagInput = (e) => {
+    setTagInput(e.target.value);
+  };
+
+  const { isPending: updateIsPending, updateFabricMutate } = useUpdateFabric();
+
+  const { isPending: updateAdminIsPending, updateAdminFabricMutate } =
+    useUpdateAdminFabric();
+
+  const handleTagAdd = (e) => {
+    if (e.key === "Enter" && tagInput.trim() && tags.length < 5) {
+      e.preventDefault();
+      setTags([...tags, tagInput.trim()]);
+      setFieldValue("tags", [...tags, tagInput.trim()]);
+      setTagInput("");
+    }
+  };
+
+  const handleTagRemove = (tagToRemove) => {
+    setTags(tags.filter((tag) => tag !== tagToRemove));
+    setFieldValue(
+      "tags",
+      tags.filter((tag) => tag !== tagToRemove),
+    );
+  };
+
+  const [photoFiles, setPhotoFiles] = useState({});
+
+  const navigate = useNavigate();
+
+  const { toastError } = useToast();
+
+  const {
+    handleSubmit,
+    touched,
+    errors,
+    values,
+    handleChange,
+    resetForm,
+    setFieldValue,
+    // setFieldError,
+  } = useFormik({
+    initialValues: initialValues,
+    validateOnChange: false,
+    validateOnBlur: false,
+    enableReinitialize: true,
+    onSubmit: (val) => {
+      if (!navigator.onLine) {
+        toastError("No internet connection. Please check your network.");
         return;
       }
-      console.log("Selected vendor ID:", values.vendor_id);
-      const payload = {
-        vendor_id: values.vendor_id,
-        product: {
-          type: "FABRIC",
-          name: values.name,
-          category_id: values.category_id,
-          description: values.description,
-          gender: values.gender,
-          tags: values.tags
-            ? values.tags.split(",").map((tag) => tag.trim())
-            : [],
-          price: values.price.toString(),
-          original_price: values.original_price.toString(),
-        },
-        fabric: {
-          market_id: values.market_id,
-          weight_per_unit: values.weight_per_unit.toString(),
-          location: {
-            latitude: values.latitude.toString(),
-            longitude: values.longitude.toString(),
-          },
-          local_name: values.local_name,
-          manufacturer_name: values.manufacturer_name,
-          material_type: values.material_type,
-          alternative_names: values.alternative_names,
-          fabric_texture: values.fabric_texture,
-          feel_a_like: values.feel_a_like,
-          quantity: parseInt(values.quantity),
-          minimum_yards: values.minimum_yards.toString(),
-          available_colors: values.available_colors,
-          fabric_colors: values.fabric_colors,
-          photos: photoUrls,
-          video_url: values.video_url,
-        },
-      };
+      if (
+        !values.closeup_url ||
+        !values.spreadout_url ||
+        !values.manufacturers_url ||
+        !values.fabric_url
+      ) {
+        toastError("Please upload all required images.");
+        return;
+      }
+      if (productInfo) {
+        if (isAdminEditFabricRoute) {
+          updateAdminFabricMutate(
+            {
+              id: productInfo?.id,
+              product: {
+                type: val.type,
+                name: val.name,
+                category_id: val.category_id,
+                sku: val.sku,
+                description: val.description,
+                gender: val.gender,
+                tags: val.tags,
+                price: val.price?.toString(),
+                original_price: val.price?.toString(),
+                status: productInfo?.status,
+              },
+              fabric: {
+                market_id: val.market_id,
+                weight_per_unit: val?.weight_per_unit?.toString(),
 
-      console.log("🔧 FABRIC PAYLOAD: Sending payload to API:", payload);
-      console.log("🔧 FABRIC PAYLOAD: Payload structure:", {
-        vendor_id: payload.vendor_id,
-        product: payload.product,
-        fabric: payload.fabric,
-      });
-      console.log(
-        "🔧 FABRIC PAYLOAD: Photos count:",
-        payload.fabric.photos.length,
-      );
+                local_name: val.local_name,
+                manufacturer_name: val.manufacturer_name,
+                material_type: val.material_type,
+                alternative_names: val.alternative_names,
+                fabric_texture: val.fabric_texture,
+                feel_a_like: val.feel_a_like,
+                quantity: val.quantity,
+                minimum_yards: val.minimum_yards?.toString(),
+                available_colors: val.available_colors?.toString(),
+                fabric_colors: val?.fabric_colors?.join(","),
+                photos: [
+                  val.closeup_url,
+                  val.spreadout_url,
+                  val.manufacturers_url,
+                  val.fabric_url,
+                ],
+                video_url: val.video_url,
+              },
+            },
+            {
+              onSuccess: () => {
+                navigate(-1);
+              },
+            },
+          );
+        } else {
+          updateFabricMutate(
+            {
+              id: productInfo?.id,
+              business_id: businessDetails?.data?.id,
+              product: {
+                type: val.type,
+                name: val.name,
+                category_id: val.category_id,
+                sku: val.sku,
+                description: val.description,
+                gender: val.gender,
+                tags: val.tags,
+                price: val.price?.toString(),
+                original_price: val.price?.toString(),
+                status: productInfo?.status,
+              },
+              fabric: {
+                market_id: val.market_id,
+                weight_per_unit: val?.weight_per_unit?.toString(),
 
-      createMarketRepFabricMutate(payload, {
-        onSuccess: (response) => {
-          console.log("🔧 FABRIC SUCCESS: Full response object:", response);
-          console.log("🔧 FABRIC SUCCESS: Response status:", response?.status);
-          console.log("🔧 FABRIC SUCCESS: Response data:", response?.data);
-          console.log(
-            "🔧 FABRIC SUCCESS: Response message:",
-            response?.data?.message,
+                local_name: val.local_name,
+                manufacturer_name: val.manufacturer_name,
+                material_type: val.material_type,
+                alternative_names: val.alternative_names,
+                fabric_texture: val.fabric_texture,
+                feel_a_like: val.feel_a_like,
+                quantity: val.quantity,
+                minimum_yards: val.minimum_yards?.toString(),
+                available_colors: val.available_colors?.toString(),
+                fabric_colors: val?.fabric_colors?.join(","),
+                photos: [
+                  val.closeup_url,
+                  val.spreadout_url,
+                  val.manufacturers_url,
+                  val.fabric_url,
+                ],
+                video_url: val.video_url,
+              },
+            },
+            {
+              onSuccess: () => {
+                navigate(-1);
+              },
+            },
           );
-          console.log("🔧 FABRIC SUCCESS: Response data structure:", {
-            dataType: typeof response?.data,
-            isArray: Array.isArray(response?.data),
-            keys: response?.data ? Object.keys(response?.data) : null,
-          });
+        }
+      } else {
+        if (isAdminAddFabricRoute) {
+          createAdminFabricProductMutate(
+            {
+              product: {
+                type: val.type,
+                name: val.name,
+                category_id: val.category_id,
+                sku: val.sku,
+                description: val.description,
+                gender: val.gender,
+                tags: val.tags,
+                price: val.price?.toString(),
+                original_price: val.price?.toString(),
+              },
+              fabric: {
+                market_id: val.market_id,
+                weight_per_unit: val?.weight_per_unit?.toString(),
 
-          toastSuccess("Fabric created successfully!");
-          navigate("/sales/my-products");
-        },
-        onError: (error) => {
-          // toastError(error?.data?.message || error?.message);
-          console.log("🔧 FABRIC ERROR: Full error object:", error);
-          console.log("🔧 FABRIC ERROR: error.response:", error?.response);
-          console.log(
-            "🔧 FABRIC ERROR: error.response.data:",
-            error?.response?.data,
+                local_name: val.local_name,
+                manufacturer_name: val.manufacturer_name,
+                material_type: val.material_type,
+                alternative_names: val.alternative_names,
+                fabric_texture: val.fabric_texture,
+                feel_a_like: val.feel_a_like,
+                quantity: val.quantity,
+                minimum_yards: val.minimum_yards?.toString(),
+                available_colors: val.available_colors?.toString(),
+                fabric_colors: val?.fabric_colors?.join(","),
+                photos: [
+                  val.closeup_url,
+                  val.spreadout_url,
+                  val.manufacturers_url,
+                  val.fabric_url,
+                ],
+                video_url: val.video_url,
+              },
+            },
+            {
+              onSuccess: () => {
+                resetForm();
+                navigate(-1);
+              },
+            },
           );
-          console.log(
-            "🔧 FABRIC ERROR: error.response.data.message:",
-            error?.response?.data?.message,
-          );
-          console.log(
-            "🔧 FABRIC ERROR: error.response.data.data:",
-            error?.response?.data?.data,
-          );
-          console.log(
-            "🔧 FABRIC ERROR: error.response.data.data.message:",
-            error?.response?.data?.data?.message,
-          );
-          console.log("🔧 FABRIC ERROR: error.message:", error?.message);
+        } else {
+          createFabricProductMutate(
+            {
+              product: {
+                type: val.type,
+                name: val.name,
+                category_id: val.category_id,
+                sku: val.sku,
+                description: val.description,
+                gender: val.gender,
+                tags: val.tags,
+                price: val.price?.toString(),
+                original_price: val.price?.toString(),
+              },
+              fabric: {
+                market_id: val.market_id,
+                weight_per_unit: val?.weight_per_unit?.toString(),
 
-          // const errorMessage =
-          //   error?.response?.data?.data?.message ||
-          //   error?.response?.data?.message ||
-          //   error?.message ||
-          //   "Failed to create fabric. Please try again.";
-
-          // console.log("🔧 FABRIC ERROR: Final message shown:", errorMessage);
-          // toastError(errorMessage);
-        },
-      });
+                local_name: val.local_name,
+                manufacturer_name: val.manufacturer_name,
+                material_type: val.material_type,
+                alternative_names: val.alternative_names,
+                fabric_texture: val.fabric_texture,
+                feel_a_like: val.feel_a_like,
+                quantity: val.quantity,
+                minimum_yards: val.minimum_yards?.toString(),
+                available_colors: val.available_colors?.toString(),
+                fabric_colors: val?.fabric_colors?.join(","),
+                photos: [
+                  val.closeup_url,
+                  val.spreadout_url,
+                  val.manufacturers_url,
+                  val.fabric_url,
+                ],
+                video_url: val.video_url,
+              },
+            },
+            {
+              onSuccess: () => {
+                resetForm();
+                navigate(-1);
+              },
+            },
+          );
+        }
+      }
     },
   });
 
-  const handleVideoUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    // Validate file type
-    const validTypes = ["video/mp4", "video/avi", "video/mov", "video/wmv"];
-    if (!validTypes.includes(file.type)) {
-      toastError("Please upload a valid video file (MP4, AVI, MOV, WMV)");
-      return;
+  useEffect(() => {
+    const current = values.fabric_colors;
+    if (values.available_colors > current.length) {
+      const updated = [
+        ...current,
+        ...Array(values.available_colors - current.length).fill("#000000"),
+      ];
+      setFieldValue("fabric_colors", updated);
+    } else if (values.available_colors < current.length) {
+      const trimmed = current.slice(0, values.available_colors);
+      setFieldValue("fabric_colors", trimmed);
     }
+  }, [values.available_colors]);
 
-    // Validate file size (max 50MB)
-    const maxSize = 50 * 1024 * 1024;
-    if (file.size > maxSize) {
-      toastError("Video file must be less than 50MB");
-      return;
-    }
+  const {
+    isPending: closeUpViewIsPending,
+    uploadImageMutate: closeUpViewMutate,
+  } = useUploadImage();
 
-    setVideoFile(file);
-    setIsUploadingVideo(true);
+  const {
+    isPending: spreadOutViewIsPending,
+    uploadImageMutate: spreadOutViewMutate,
+  } = useUploadImage();
 
-    const formData = new FormData();
-    formData.append("video", file);
+  const {
+    isPending: manufacturersIsPending,
+    uploadImageMutate: manufacturersViewMutate,
+  } = useUploadImage();
 
-    uploadVideoMutate(formData, {
-      onSuccess: (response) => {
-        console.log("🎥 Video upload response:", response);
-        const videoUrl =
-          response?.data?.data?.url ||
-          response?.data?.url ||
-          response?.data?.video_url;
-        if (videoUrl) {
-          setVideoUrl(videoUrl);
-          formik.setFieldValue("video_url", videoUrl);
-          toastSuccess("Video uploaded successfully!");
-        } else {
-          toastError("Video uploaded but URL not received");
-        }
-        setIsUploadingVideo(false);
-      },
-      onError: (error) => {
-        console.error("🎥 Video upload error:", error);
-        toastError("Failed to upload video. Please try again.");
-        setIsUploadingVideo(false);
-      },
-    });
+  const { isPending: fabricIsPending, uploadImageMutate: fabricViewMutate } =
+    useUploadImage();
+
+  const handleFileChange = (label, file) => {
+    const updated = {
+      ...photoFiles,
+      [label]: file,
+    };
+
+    setPhotoFiles(updated);
+    onChange?.(updated);
   };
 
-  const removeVideo = () => {
-    setVideoFile(null);
-    setVideoUrl("");
-    formik.setFieldValue("video_url", "");
-  };
+  const { ref } = usePlacesWidget({
+    apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
+    onPlaceSelected: (place) => {
+      setFieldValue("location", place.formatted_address);
+      setFieldValue("latitude", place.geometry?.location?.lat().toString());
+      setFieldValue("longitude", place.geometry?.location?.lng().toString());
+    },
+    options: {
+      componentRestrictions: { country: "ng" },
+      types: [],
+    },
+  });
 
-  const handleImageUpload = async (event) => {
-    const files = Array.from(event.target.files);
-    if (files.length === 0) return;
+  const { isPending: uploadVideoIsPending, uploadVideoMutate } =
+    useUploadVideo();
 
-    // Validate files before upload
-    const invalidFiles = files.filter(
-      (file) => !imageUpload.isValidImageFile(file),
-    );
-    if (invalidFiles.length > 0) {
-      toastError(
-        `Invalid files: ${invalidFiles.map((f) => f.name).join(", ")}. Please use PNG, JPG, or JPEG files under 5MB.`,
-      );
-      return;
-    }
-
-    setIsUploadingImages(true);
-    try {
-      const result = await imageUpload.uploadImagesWithProgress(
-        files,
-        (progress) => {
-          console.log(
-            `Upload progress: ${progress.percentage}% (${progress.currentFile})`,
-          );
-        },
-      );
-
-      if (result.success && result.results.length > 0) {
-        const urls = result.results.filter((r) => r.url).map((r) => r.url);
-        setPhotoUrls((prev) => [...prev, ...urls]);
-        setPhotoFiles((prev) => [...prev, ...files]);
-
-        if (result.failed > 0) {
-          toastError(
-            `${result.uploaded} images uploaded successfully, ${result.failed} failed.`,
-          );
-        } else {
-          toastSuccess(`${result.uploaded} images uploaded successfully!`);
-        }
-      } else {
-        toastError("Failed to upload images. Please try again.");
-      }
-    } catch {
-      toastError("Failed to upload images. Please try again.");
-    } finally {
-      setIsUploadingImages(false);
-    }
-  };
-
-  const removeImage = (index) => {
-    setPhotoUrls((prev) => prev.filter((_, i) => i !== index));
-    setPhotoFiles((prev) => prev.filter((_, i) => i !== index));
-  };
+  const { isPending: uploadImagesIsPending, uploadImagesMutate } =
+    useUploadImages();
 
   return (
-    <div className="bg-white p-6 rounded-xl">
-      <div className="flex items-center mb-6">
-        <button
-          onClick={() => navigate(-1)}
-          className="mr-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
-        >
-          <FaArrowLeft className="text-gray-600" />
-        </button>
-        <h1 className="text-2xl font-bold text-gray-800">Add New Fabric</h1>
+    <>
+      <div className="bg-white px-6 py-4 mb-6 relative">
+        <h1 className="text-2xl font-medium mb-3">
+          {productInfo && !isAdminEditFabricRoute
+            ? "Edit"
+            : isAdminEditFabricRoute
+              ? "View"
+              : "Add"}{" "}
+          Product
+        </h1>
+        <p className="text-gray-500">
+          <Link to="/fabric" className="text-blue-500 hover:underline">
+            Dashboard
+          </Link>{" "}
+          &gt; My Product &gt;{" "}
+          {productInfo && !isAdminEditFabricRoute
+            ? "Edit"
+            : isAdminEditFabricRoute
+              ? "View"
+              : "Add"}{" "}
+          Product
+        </p>
       </div>
+      <div className="bg-white p-6 rounded-xl overflow-x-auto">
+        <h2 className="text-lg font-semibold mb-6">
+          {productInfo && !isAdminEditFabricRoute
+            ? "Edit"
+            : isAdminEditFabricRoute
+              ? "View"
+              : "Add"}{" "}
+          Product
+        </h2>
 
-      <form onSubmit={formik.handleSubmit} className="space-y-6">
-        {/* Vendor Selection */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Select Fabric Vendor *
-          </label>
-          {vendorsLoading ? (
-            <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 flex items-center">
-              <FaSpinner className="animate-spin mr-2" />
-              Loading fabric vendors...
-            </div>
-          ) : (
-            <select
-              {...formik.getFieldProps("vendor_id")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-            >
-              <option value="">Select a fabric vendor</option>
-              {getAllFabVendorData?.data?.map((vendor) => (
-                <option key={vendor.id} value={vendor.id}>
-                  {vendor.name} ({vendor.business_name || vendor.email})
-                </option>
-              ))}
-            </select>
-          )}
-          {formik.touched.vendor_id && formik.errors.vendor_id && (
-            <p className="text-red-500 text-sm mt-1">
-              {formik.errors.vendor_id}
-            </p>
-          )}
-        </div>
-
-        {/* Basic Product Information */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Fabric Name *
-            </label>
-            <input
-              type="text"
-              {...formik.getFieldProps("name")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Enter fabric name"
-            />
-            {formik.touched.name && formik.errors.name && (
-              <p className="text-red-500 text-sm mt-1">{formik.errors.name}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Product Category *
-            </label>
-            {categoriesLoading ? (
-              <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 flex items-center">
-                <FaSpinner className="animate-spin mr-2" />
-                Loading categories...
+        <form className="" onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 gap-6">
+              {/* md:grid-cols-2 */}
+              {/* Fabric Name */}
+              <div className="w-full">
+                <label className="block text-gray-700 mb-4">Fabric Name</label>
+                <input
+                  type="text"
+                  name={"name"}
+                  required
+                  value={values.name}
+                  onChange={handleChange}
+                  placeholder="Enter the fabric name"
+                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                />
               </div>
-            ) : (
-              <select
-                {...formik.getFieldProps("category_id")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="">Select a category</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            )}
-            {formik.touched.category_id && formik.errors.category_id && (
-              <p className="text-red-500 text-sm mt-1">
-                {formik.errors.category_id}
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Description *
-          </label>
-          <textarea
-            {...formik.getFieldProps("description")}
-            rows={4}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-            placeholder="Enter fabric description"
-          />
-          {formik.touched.description && formik.errors.description && (
-            <p className="text-red-500 text-sm mt-1">
-              {formik.errors.description}
-            </p>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Gender *
-            </label>
-            <select
-              {...formik.getFieldProps("gender")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-            >
-              <option value="">Select gender</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="unisex">Unisex</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Price *
-            </label>
-            <input
-              type="number"
-              {...formik.getFieldProps("price")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Enter price"
-            />
-            {formik.touched.price && formik.errors.price && (
-              <p className="text-red-500 text-sm mt-1">{formik.errors.price}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Original Price *
-            </label>
-            <input
-              type="number"
-              {...formik.getFieldProps("original_price")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Enter original price"
-            />
-            {formik.touched.original_price && formik.errors.original_price && (
-              <p className="text-red-500 text-sm mt-1">
-                {formik.errors.original_price}
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Tags (comma separated)
-          </label>
-          <input
-            type="text"
-            {...formik.getFieldProps("tags")}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-            placeholder="vintage, modern, classic"
-          />
-        </div>
-
-        {/* Fabric Specific Information */}
-        <div className="border-t pt-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Fabric Details
-          </h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Market Place *
-              </label>
-              {marketsLoading ? (
-                <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 flex items-center">
-                  <FaSpinner className="animate-spin mr-2" />
-                  Loading markets...
-                </div>
-              ) : (
-                <select
-                  {...formik.getFieldProps("market_id")}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="">Select a market</option>
-                  {markets.map((market) => (
-                    <option key={market.id} value={market.id}>
-                      {market.name}
-                    </option>
-                  ))}
-                </select>
-              )}
-              {formik.touched.market_id && formik.errors.market_id && (
-                <p className="text-red-500 text-sm mt-1">
-                  {formik.errors.market_id}
-                </p>
-              )}
+              {/* SKU */}
+              {/* <div>
+                <label className="block text-gray-700 mb-4">SKU</label>
+                <input
+                  type="text"
+                  required
+                  name="sku"
+                  value={values.sku}
+                  onChange={handleChange}
+                  placeholder="Enter the unique identifier"
+                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                />
+              </div> */}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Weight per Unit *
-              </label>
-              <input
-                type="text"
-                {...formik.getFieldProps("weight_per_unit")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="e.g., 10kg"
-              />
-              {formik.touched.weight_per_unit &&
-                formik.errors.weight_per_unit && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {formik.errors.weight_per_unit}
-                  </p>
-                )}
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Address *
-            </label>
-            <Autocomplete
-              apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Enter fabric location address"
-              name="address"
-              value={formik.values.address}
-              onChange={(e) => {
-                console.log("📝 Address input changed:", e.target.value);
-                formik.setFieldValue("address", e.target.value);
-                formik.setFieldValue("latitude", "");
-                formik.setFieldValue("longitude", "");
-              }}
-              onPlaceSelected={(place) => {
-                console.log("🗺️ Google Place Selected:", place);
-                const lat = place.geometry?.location?.lat();
-                const lng = place.geometry?.location?.lng();
-                console.log("📍 Setting coordinates:", { lat, lng });
-
-                formik.setFieldValue("address", place.formatted_address);
-                formik.setFieldValue("latitude", lat ? lat.toString() : "");
-                formik.setFieldValue("longitude", lng ? lng.toString() : "");
-              }}
-              options={{
-                componentRestrictions: { country: "ng" },
-                types: ["address"],
-              }}
-            />
-            {formik.touched.latitude && formik.errors.latitude && (
-              <p className="text-red-500 text-sm mt-1">
-                Please select an address to auto-fill coordinates
-              </p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Latitude *
-              </label>
-              <input
-                type="text"
-                {...formik.getFieldProps("latitude")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-50"
-                placeholder="Auto-filled from address"
-                readOnly
-              />
-              {formik.touched.latitude && formik.errors.latitude && (
-                <p className="text-red-500 text-sm mt-1">
-                  {formik.errors.latitude}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Longitude *
-              </label>
-              <input
-                type="text"
-                {...formik.getFieldProps("longitude")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-50"
-                placeholder="Auto-filled from address"
-                readOnly
-              />
-              {formik.touched.longitude && formik.errors.longitude && (
-                <p className="text-red-500 text-sm mt-1">
-                  {formik.errors.longitude}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Local Name *
-              </label>
-              <input
-                type="text"
-                {...formik.getFieldProps("local_name")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="Enter local name"
-              />
-              {formik.touched.local_name && formik.errors.local_name && (
-                <p className="text-red-500 text-sm mt-1">
-                  {formik.errors.local_name}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Manufacturer Name *
-              </label>
-              <input
-                type="text"
-                {...formik.getFieldProps("manufacturer_name")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="Enter manufacturer name"
-              />
-              {formik.touched.manufacturer_name &&
-                formik.errors.manufacturer_name && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {formik.errors.manufacturer_name}
-                  </p>
-                )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Material Type *
-              </label>
-              <input
-                type="text"
-                {...formik.getFieldProps("material_type")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="e.g., Cotton, Silk"
-              />
-              {formik.touched.material_type && formik.errors.material_type && (
-                <p className="text-red-500 text-sm mt-1">
-                  {formik.errors.material_type}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Fabric Texture
-              </label>
-              <input
-                type="text"
-                {...formik.getFieldProps("fabric_texture")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="Enter fabric texture"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Alternative Names
-              </label>
-              <input
-                type="text"
-                {...formik.getFieldProps("alternative_names")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="Enter alternative names"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Feel A Like
-              </label>
-              <input
-                type="text"
-                {...formik.getFieldProps("feel_a_like")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="What does it feel like?"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Quantity *
-              </label>
-              <input
-                type="number"
-                {...formik.getFieldProps("quantity")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="Enter quantity"
-              />
-              {formik.touched.quantity && formik.errors.quantity && (
-                <p className="text-red-500 text-sm mt-1">
-                  {formik.errors.quantity}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Minimum Yards *
-              </label>
-              <input
-                type="text"
-                {...formik.getFieldProps("minimum_yards")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="e.g., 50"
-              />
-              {formik.touched.minimum_yards && formik.errors.minimum_yards && (
-                <p className="text-red-500 text-sm mt-1">
-                  {formik.errors.minimum_yards}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Video Upload
-              </label>
-
-              {!videoUrl ? (
-                <div>
-                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      {isUploadingVideo ? (
-                        <>
-                          <FaSpinner className="w-8 h-8 mb-2 text-gray-500 animate-spin" />
-                          <p className="text-sm text-gray-500">
-                            Uploading video...
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <FaUpload className="w-8 h-8 mb-2 text-gray-500" />
-                          <p className="mb-2 text-sm text-gray-500">
-                            <span className="font-semibold">
-                              Click to upload
-                            </span>{" "}
-                            fabric video
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            MP4, AVI, MOV, WMV (MAX. 50MB)
-                          </p>
-                        </>
-                      )}
-                    </div>
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept="video/*"
-                      onChange={handleVideoUpload}
-                      disabled={isUploadingVideo}
-                    />
-                  </label>
-                </div>
-              ) : (
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        Video uploaded successfully
-                      </p>
-                      <p className="text-xs text-gray-500 break-all">
-                        {videoUrl}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={removeVideo}
-                      className="ml-2 p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors"
-                    >
-                      <FaTrash className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Available Colors *
-              </label>
-              <input
-                type="text"
-                {...formik.getFieldProps("available_colors")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="Red, Blue, Green"
-              />
-              {formik.touched.available_colors &&
-                formik.errors.available_colors && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {formik.errors.available_colors}
-                  </p>
-                )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Fabric Colors *
-              </label>
-              <input
-                type="text"
-                {...formik.getFieldProps("fabric_colors")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="Primary fabric colors"
-              />
-              {formik.touched.fabric_colors && formik.errors.fabric_colors && (
-                <p className="text-red-500 text-sm mt-1">
-                  {formik.errors.fabric_colors}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Image Upload Section */}
-        <div className="border-t pt-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Product Images
-          </h3>
-
-          <div className="mb-4">
-            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-              <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                <FaUpload className="w-8 h-8 mb-2 text-gray-500" />
-                <p className="mb-2 text-sm text-gray-500">
-                  <span className="font-semibold">Click to upload</span> fabric
-                  images
-                </p>
-                <p className="text-xs text-gray-500">
-                  PNG, JPG or JPEG (MAX. 5MB each)
-                </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Market */}
+              <div>
+                <label className="block text-gray-700 mb-4">Market</label>
+                {/* <select className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg">
+                  <option>Choose market</option>
+                  <option>Local Market</option>
+                  <option>Online Market</option>
+                </select> */}
+                <Select
+                  options={marketList}
+                  name="market_id"
+                  value={marketList?.find(
+                    (opt) => opt.value === values.market_id,
+                  )}
+                  onChange={(selectedOption) => {
+                    setFieldValue("market_id", selectedOption.value);
+                  }}
+                  required
+                  placeholder="Choose market"
+                  className="w-full p-2 border border-[#CCCCCC] outline-none rounded-lg"
+                  styles={{
+                    control: (base, state) => ({
+                      ...base,
+                      border: "none",
+                      boxShadow: "none",
+                      outline: "none",
+                      backgroundColor: "#fff",
+                      "&:hover": {
+                        border: "none",
+                      },
+                    }),
+                    indicatorSeparator: () => ({
+                      display: "none",
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      zIndex: 9999,
+                    }),
+                  }}
+                />{" "}
               </div>
-              <input
-                type="file"
-                className="hidden"
-                multiple
-                accept="image/*"
-                onChange={handleImageUpload}
-                disabled={isUploadingImages}
-              />
-            </label>
-          </div>
 
-          {/* Display uploaded images */}
-          {photoUrls.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {photoUrls.map((url, index) => (
-                <div key={index} className="relative">
-                  <img
-                    src={url}
-                    alt={`Fabric ${index + 1}`}
-                    className="w-full h-32 object-cover rounded-lg border border-gray-200"
+              {/* Gender Suitability */}
+              <div>
+                <label className="block text-gray-700 mb-4">
+                  Gender Suitability
+                </label>
+                {/* <select className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg">
+                  <option>Choose suitability gender</option>
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Unisex</option>
+                </select> */}
+                <Select
+                  options={[
+                    { label: "Male", value: "male" },
+                    { label: "Female", value: "female" },
+                    { label: "Unisex", value: "unisex" },
+                  ]}
+                  name="gender"
+                  isSearchable={false}
+                  value={[
+                    { label: "Male", value: "male" },
+                    { label: "Female", value: "female" },
+                    { label: "Unisex", value: "unisex" },
+                  ]?.find((opt) => opt.value === values.gender)}
+                  onChange={(selectedOption) => {
+                    setFieldValue("gender", selectedOption.value);
+                  }}
+                  required
+                  placeholder="Choose suitability gender"
+                  className="w-full p-2 border border-[#CCCCCC] outline-none rounded-lg"
+                  styles={{
+                    control: (base, state) => ({
+                      ...base,
+                      border: "none",
+                      boxShadow: "none",
+                      outline: "none",
+                      backgroundColor: "#fff",
+                      "&:hover": {
+                        border: "none",
+                      },
+                    }),
+                    indicatorSeparator: () => ({
+                      display: "none",
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      zIndex: 9999,
+                    }),
+                  }}
+                />{" "}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Fabric Vendor */}
+              {/* <div>
+                <label className="block text-gray-700 mb-4">
+                  Fabric Vendor
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter the name of the fabric vendor"
+                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                />
+              </div> */}
+              <div>
+                <label className="block text-gray-700 mb-4">
+                  Weight per yard
+                </label>
+                <input
+                  type="number"
+                  name={"weight_per_unit"}
+                  required
+                  min={0}
+                  value={values.weight_per_unit}
+                  onChange={handleChange}
+                  placeholder="Enter the weight per yard (minimum 0)"
+                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                />
+              </div>
+              {/* <div>
+                <label className="block text-gray-700 mb-4">
+                  Location Coordinate
+                </label>
+                <input
+                  type="text"
+                  ref={(c) => {
+                    if (c) ref.current = c.input;
+                  }}
+                  value={values.location}
+                  name="location"
+                  onChange={(val) => {
+                    setFieldValue("location", val.currentTarget.value);
+                    setFieldValue("latitude", "");
+                    setFieldValue("longitude", "");
+                  }}
+                  placeholder="Enter the coordinates of the shop"
+                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                />
+              </div> */}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Location Coordinate */}
+
+              {/* Local Name */}
+              <div>
+                <label className="block text-gray-700 mb-4">Local Name</label>
+                <input
+                  type="text"
+                  name={"local_name"}
+                  required
+                  value={values.local_name}
+                  onChange={handleChange}
+                  placeholder="Enter the name the fabric is known as locally"
+                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-700 mb-4">
+                  Manufacturer's Name
+                </label>
+                <input
+                  type="text"
+                  name={"manufacturer_name"}
+                  required
+                  value={values.manufacturer_name}
+                  onChange={handleChange}
+                  placeholder="Enter the name called by the manufacturer"
+                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Manufacturer's Name */}
+
+              {/* Material Type */}
+              <div>
+                <label className="block text-gray-700 mb-4">
+                  Material Type
+                </label>
+                <input
+                  type="text"
+                  name={"material_type"}
+                  required
+                  value={values.material_type}
+                  onChange={handleChange}
+                  placeholder="e.g. cotton, polyester, etc"
+                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-700 mb-4">
+                  Alternative Names
+                </label>
+                <input
+                  type="text"
+                  name={"alternative_names"}
+                  required
+                  value={values.alternative_names}
+                  onChange={handleChange}
+                  placeholder="Enter the name it is called in other locations"
+                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Alternative Names */}
+
+              {/* Fabric Texture */}
+              <div>
+                <label className="block text-gray-700 mb-4">
+                  Fabric Texture
+                </label>
+                <input
+                  type="text"
+                  name={"fabric_texture"}
+                  required
+                  value={values.fabric_texture}
+                  onChange={handleChange}
+                  placeholder="Enter the fabric texture"
+                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-700 mb-4">Feel-a-like</label>
+                <input
+                  type="text"
+                  name={"feel_a_like"}
+                  value={values.feel_a_like}
+                  onChange={handleChange}
+                  placeholder="Describe what it feels like"
+                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                />
+              </div>
+            </div>
+
+            {/* Feel-a-like */}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Quantity */}
+              <div>
+                <label className="block text-gray-700 mb-4">
+                  Quantity (Must be more than 10 yards)
+                </label>
+                <input
+                  type="number"
+                  name={"quantity"}
+                  value={values.quantity}
+                  required
+                  onChange={handleChange}
+                  placeholder="Enter the quantity available"
+                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                />
+              </div>
+
+              {/* Minimum yards to purchase */}
+              <div>
+                <label className="block text-gray-700 mb-4">
+                  Minimum yards to purchase
+                </label>
+                <input
+                  type="number"
+                  name={"minimum_yards"}
+                  required
+                  value={values.minimum_yards}
+                  onChange={handleChange}
+                  placeholder="Enter the minimum yards for purchase"
+                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                />
+              </div>
+            </div>
+
+            {/* Colors and Color Picker */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* How many colors available */}
+              <div>
+                <label className="block text-gray-700 mb-4">
+                  How many colours available?
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    name={"available_colors"}
+                    value={values.available_colors}
+                    onChange={handleChange}
+                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                   />
                   <button
                     type="button"
-                    onClick={() => removeImage(index)}
-                    className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                    onClick={increaseColorCount}
+                    className="p-2 bg-gray-200 rounded-md hover:bg-gray-300"
                   >
-                    <FaTrash className="w-3 h-3" />
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    onClick={decreaseColorCount}
+                    className="p-2 bg-gray-200 rounded-md hover:bg-gray-300"
+                  >
+                    -
                   </button>
                 </div>
-              ))}
+              </div>
+              {/* Color Pickers */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8">
+                {values?.fabric_colors?.map((color, index) => (
+                  <input
+                    key={index}
+                    type="color"
+                    value={color}
+                    onChange={(e) => {
+                      const updated = [...values.fabric_colors];
+                      updated[index] = e.target.value;
+                      setFieldValue("fabric_colors", updated);
+                    }}
+                    className="w-full h-14 border border-gray-300 rounded-lg cursor-pointer"
+                  />
+                ))}
+              </div>{" "}
             </div>
-          )}
 
-          {isUploadingImages && (
-            <div className="flex items-center justify-center py-4">
-              <FaSpinner className="animate-spin mr-2" />
-              <span>Uploading images...</span>
+            {/* Price per yard */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-gray-700 mb-4">
+                  Price per yard
+                </label>
+                <div className="flex items-center">
+                  <span className="p-5 bg-gray-200 rounded-l-md">₦</span>
+                  <input
+                    type="number"
+                    name={"price"}
+                    required
+                    value={values.price}
+                    onChange={handleChange}
+                    placeholder="Enter amount per yard"
+                    className="w-full p-4 border-t border-r border-b outline-none border-gray-300 rounded-r-md"
+                  />
+                </div>
+              </div>
+
+              {/* Tags */}
+              <div>
+                <label className="block text-gray-700 mb-3">Tags (max 5)</label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {tags.map((tag, index) => (
+                    <div
+                      key={index}
+                      className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center"
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => handleTagRemove(tag)}
+                        className="ml-2 text-blue-800 hover:text-blue-900"
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                {tags.length < 5 && (
+                  <input
+                    type="text"
+                    placeholder="Add a tag and press Enter (max 5)"
+                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                    value={tagInput}
+                    onChange={handleTagInput}
+                    onKeyDown={handleTagAdd}
+                  />
+                )}
+              </div>
             </div>
-          )}
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-gray-700 mb-4">
+                  Product Description
+                </label>
+                <textarea
+                  placeholder="Enter the fabric description"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 h-32 outline-none"
+                  required
+                  type="text"
+                  name={"description"}
+                  value={values.description}
+                  onChange={handleChange}
+                />
+              </div>
 
-        {/* Submit Buttons */}
-        <div className="flex justify-end space-x-4 pt-6 border-t">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={isCreating || isUploadingImages || isUploadingVideo}
-            className="px-6 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-md hover:from-purple-600 hover:to-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-          >
-            {isCreating ? (
-              <>
-                <FaSpinner className="animate-spin mr-2" />
-                Creating...
-              </>
-            ) : productInfo ? (
-              "Update Fabric"
+              {/* Market */}
+              <div>
+                <label className="block text-gray-700 mb-4">Category</label>
+                {/* <select className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg">
+                  <option>Choose market</option>
+                  <option>Local Market</option>
+                  <option>Online Market</option>
+                </select> */}
+                <Select
+                  options={categoryList}
+                  name="category_id"
+                  value={categoryList?.find(
+                    (opt) => opt.value === values.category_id,
+                  )}
+                  onChange={(selectedOption) => {
+                    setFieldValue("category_id", selectedOption.value);
+                  }}
+                  required
+                  placeholder="Choose fabric"
+                  className="w-full p-2 border border-[#CCCCCC] outline-none rounded-lg"
+                  styles={{
+                    control: (base, state) => ({
+                      ...base,
+                      border: "none",
+                      boxShadow: "none",
+                      outline: "none",
+                      backgroundColor: "#fff",
+                      "&:hover": {
+                        border: "none",
+                      },
+                    }),
+                    indicatorSeparator: () => ({
+                      display: "none",
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      zIndex: 9999,
+                    }),
+                  }}
+                />{" "}
+              </div>
+            </div>
+
+            {/* Upload Photos */}
+            <div>
+              <label className="block text-gray-700 mb-4">Upload Photos</label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div
+                  onClick={() => document.getElementById("closeup_url").click()}
+                  className="w-full flex flex-col gap-2 h-40 border border-gray-300 rounded-md flex items-center justify-center cursor-pointer"
+                >
+                  <label className="text-gray-400 cursor-pointer text-center text-sm">
+                    {`Close Up View (click to upload)`}
+                  </label>
+                  <input
+                    type="file"
+                    id="closeup_url"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        if (e.target.files[0].size > 5 * 1024 * 1024) {
+                          alert("File size exceeds 5MB limit");
+                          return;
+                        }
+                        const file = e.target.files[0];
+                        const formData = new FormData();
+                        formData.append("image", file);
+                        closeUpViewMutate(formData, {
+                          onSuccess: (data) => {
+                            setFieldValue("closeup_url", data?.data?.data?.url);
+                          },
+                        });
+                        e.target.value = "";
+                      }
+                    }}
+                  />
+
+                  {closeUpViewIsPending ? (
+                    <p className="cursor-pointer text-gray-400">
+                      please wait...{" "}
+                    </p>
+                  ) : values.closeup_url ? (
+                    <>
+                      <img src={values.closeup_url} className="w-1/3 h-16" />
+                      <a
+                        onClick={(e) => e.stopPropagation()}
+                        href={values.closeup_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-purple-600 flex justify-center cursor-pointer hover:underline"
+                      >
+                        View file upload
+                      </a>
+                    </>
+                  ) : (
+                    <></>
+                  )}
+                </div>
+
+                <div
+                  onClick={() =>
+                    document.getElementById("spreadout_url").click()
+                  }
+                  className="w-full flex flex-col gap-2 h-40 border border-gray-300 rounded-md flex items-center justify-center cursor-pointer"
+                >
+                  <label className="text-gray-400 cursor-pointer text-center text-sm">
+                    {`Spread Out View (click to upload)`}
+                  </label>
+                  <input
+                    type="file"
+                    id="spreadout_url"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        if (e.target.files[0].size > 5 * 1024 * 1024) {
+                          alert("File size exceeds 5MB limit");
+                          return;
+                        }
+                        const file = e.target.files[0];
+                        const formData = new FormData();
+                        formData.append("image", file);
+                        spreadOutViewMutate(formData, {
+                          onSuccess: (data) => {
+                            setFieldValue(
+                              "spreadout_url",
+                              data?.data?.data?.url,
+                            );
+                          },
+                        });
+                        e.target.value = "";
+                      }
+                    }}
+                  />
+
+                  {spreadOutViewIsPending ? (
+                    <p className="cursor-pointer text-gray-400">
+                      please wait...{" "}
+                    </p>
+                  ) : values.spreadout_url ? (
+                    <>
+                      <img src={values.spreadout_url} className="w-1/3" />
+                      <a
+                        onClick={(e) => e.stopPropagation()}
+                        href={values.spreadout_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-purple-600 flex justify-center cursor-pointer hover:underline"
+                      >
+                        View file upload
+                      </a>
+                    </>
+                  ) : (
+                    <></>
+                  )}
+                </div>
+
+                <div
+                  onClick={() =>
+                    document.getElementById("manufacturers_url").click()
+                  }
+                  className="w-full flex flex-col gap-2 h-40 border border-gray-300 rounded-md flex items-center justify-center cursor-pointer"
+                >
+                  <label className="text-gray-400 cursor-pointer text-center text-sm">
+                    {`Manufacturer's Label (click to upload)`}
+                  </label>
+                  <input
+                    type="file"
+                    id="manufacturers_url"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        if (e.target.files[0].size > 5 * 1024 * 1024) {
+                          alert("File size exceeds 5MB limit");
+                          return;
+                        }
+                        const file = e.target.files[0];
+                        const formData = new FormData();
+                        formData.append("image", file);
+                        manufacturersViewMutate(formData, {
+                          onSuccess: (data) => {
+                            setFieldValue(
+                              "manufacturers_url",
+                              data?.data?.data?.url,
+                            );
+                          },
+                        });
+                        e.target.value = "";
+                      }
+                    }}
+                  />
+
+                  {manufacturersIsPending ? (
+                    <p className="cursor-pointer text-gray-400">
+                      please wait...{" "}
+                    </p>
+                  ) : values.manufacturers_url ? (
+                    <>
+                      <img
+                        src={values.manufacturers_url}
+                        className="w-1/3 h-16"
+                      />
+                      <a
+                        onClick={(e) => e.stopPropagation()}
+                        href={values.manufacturers_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-purple-600 flex justify-center cursor-pointer hover:underline"
+                      >
+                        View file upload
+                      </a>
+                    </>
+                  ) : (
+                    <></>
+                  )}
+                </div>
+
+                <div
+                  onClick={() => document.getElementById("fabric_url").click()}
+                  className="w-full flex flex-col gap-2 h-40 border border-gray-300 rounded-md flex items-center justify-center cursor-pointer"
+                >
+                  <label className="text-gray-400 cursor-pointer text-center text-sm">
+                    {`Fabric's Name (click to upload)`}
+                  </label>
+                  <input
+                    type="file"
+                    id="fabric_url"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        if (e.target.files[0].size > 5 * 1024 * 1024) {
+                          alert("File size exceeds 5MB limit");
+                          return;
+                        }
+                        const file = e.target.files[0];
+                        const formData = new FormData();
+                        formData.append("image", file);
+                        fabricViewMutate(formData, {
+                          onSuccess: (data) => {
+                            setFieldValue("fabric_url", data?.data?.data?.url);
+                          },
+                        });
+                        e.target.value = "";
+                      }
+                    }}
+                  />
+
+                  {fabricIsPending ? (
+                    <p className="cursor-pointer text-gray-400">
+                      please wait...{" "}
+                    </p>
+                  ) : values.fabric_url ? (
+                    <>
+                      <img src={values.fabric_url} className="w-1/3 h-16" />
+                      <a
+                        onClick={(e) => e.stopPropagation()}
+                        href={values.fabric_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-purple-600 flex justify-center cursor-pointer hover:underline"
+                      >
+                        View file upload
+                      </a>
+                    </>
+                  ) : (
+                    <></>
+                  )}
+                </div>
+              </div>{" "}
+            </div>
+
+            {/* Upload Video */}
+            <div>
+              <label className="block text-gray-700 mb-4">Upload Video</label>
+              <div className="w-full h-40 cursor-pointer border border-gray-300 rounded-md flex items-center justify-center">
+                <input
+                  accept="video/*"
+                  type="file"
+                  className="hidden"
+                  id="uploadVideo"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    console.log(file);
+                    if (file) {
+                      if (file.size > 10 * 1024 * 1024) {
+                        alert("File size exceeds 10MB limit");
+                        return;
+                      }
+
+                      const formData = new FormData();
+                      formData.append("video", file);
+                      uploadVideoMutate(formData, {
+                        onSuccess: (data) => {
+                          setFieldValue("video_url", data?.data?.data?.url);
+                          e.target.value = "";
+                        },
+                      });
+                      // Handle upload here
+                    }
+                  }}
+                />
+                <div className="flex flex-col items-center">
+                  {" "}
+                  {uploadVideoIsPending ? (
+                    <label className="cursor-pointer text-gray-400">
+                      please wait...{" "}
+                    </label>
+                  ) : (
+                    <></>
+                  )}
+                  {values.video_url ? (
+                    <a
+                      href={values.video_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-purple-600 flex justify-end cursor-pointer hover:underline"
+                    >
+                      View file upload
+                    </a>
+                  ) : (
+                    <></>
+                  )}
+                  <label
+                    htmlFor="uploadVideo"
+                    className="cursor-pointer text-gray-400"
+                  >
+                    Upload 5-second video (showing the cloth angles)
+                  </label>
+                </div>
+              </div>
+              {
+                <div>
+                  <></>
+                  {values.video_url && (
+                    <video
+                      controls
+                      className="w-[200px] mt-2 rounded-md mx-auto"
+                    >
+                      <source src={values.video_url}></source>
+                    </video>
+                  )}
+                </div>
+              }
+            </div>
+
+            {/* Submit Button */}
+            {isAdminEditFabricRoute ? (
+              <></>
             ) : (
-              "Create Fabric"
+              <>
+                {" "}
+                <button
+                  type="submit"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleSubmit();
+                    // console.log(businessDetails);
+                  }}
+                  disabled={
+                    isPending ||
+                    uploadVideoIsPending ||
+                    updateIsPending ||
+                    closeUpViewIsPending ||
+                    spreadOutViewIsPending ||
+                    manufacturersIsPending ||
+                    fabricIsPending ||
+                    createAdminIsPending ||
+                    updateAdminIsPending
+                  }
+                  className="mt-6 w-full cursor-pointer py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-md hover:opacity-90"
+                >
+                  {isPending ||
+                  updateIsPending ||
+                  closeUpViewIsPending ||
+                  spreadOutViewIsPending ||
+                  manufacturersIsPending ||
+                  fabricIsPending ||
+                  createAdminIsPending ||
+                  updateAdminIsPending
+                    ? "Please wait..."
+                    : productInfo
+                      ? "Update Fabric"
+                      : "Upload Fabric"}
+                </button>
+              </>
             )}
-          </button>
-        </div>
-      </form>
-    </div>
+          </div>
+        </form>
+      </div>
+    </>
   );
 };
 
-export default AddFabric;
+export default AddProduct;

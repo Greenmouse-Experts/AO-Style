@@ -232,7 +232,23 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
         <div className="bg-white px-6 py-4 mb-6">
           <h1 className="text-2xl font-medium mb-3">Transactions</h1>
           <p className="text-gray-500">
-            <Link to="/tailor" className="text-blue-500 hover:underline">
+            <Link
+              to={
+                // Redirect to dashboard based on current route
+                window.location.pathname.includes("tailor")
+                  ? "/tailor"
+                  : window.location.pathname.includes("fabric")
+                    ? "/fabric"
+                    : window.location.pathname.includes("customer")
+                      ? "/customer"
+                      : window.location.pathname.includes("logistics")
+                        ? "/logistics"
+                        : window.location.pathname.includes("admin")
+                          ? "/admin"
+                          : "/"
+              }
+              className="text-blue-500 hover:underline"
+            >
               Dashboard
             </Link>{" "}
             &gt; Transactions

@@ -861,12 +861,6 @@ const OrderDetails = () => {
           <h3 className="text-lg font-semibold mb-6">Delivery Details</h3>
           <div className="grid grid-cols-3 gap-8">
             <div>
-              <p className="text-sm text-gray-500 mb-2">SHIPPING ADDRESS</p>
-              <p className="text-gray-900">
-                {orderInfo?.user?.profile?.address}
-              </p>
-            </div>
-            <div>
               <p className="text-sm text-gray-500 mb-2">DELIVERY METHOD</p>
               <p className="text-gray-900">
                 {orderInfo?.payment?.payment_method || "Logistics"}

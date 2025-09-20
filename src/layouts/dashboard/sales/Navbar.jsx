@@ -45,8 +45,9 @@ export default function Navbar({ toggleSidebar }) {
         </button>
 
         {/* Page Title */}
-        <h1 className="text-base font-normal text-[#7A7979] lg:ml-4">
-          Market Rep Dashboard
+        <h1 className="text-base font-bold text-gray-700 lg:ml-4">
+          Market Representative Dashboard – Manage Sales, Notifications &
+          Account
         </h1>
 
         {/* Right: Notification & Profile */}

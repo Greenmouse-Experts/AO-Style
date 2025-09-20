@@ -238,9 +238,6 @@ const OrderDetails = () => {
                   <Package className="w-7 h-7 text-purple-600" />
                   Order Details
                 </h1>
-                <p className="text-gray-600 mt-1">
-                  Order #{formatOrderId(orderDetails?.id)}
-                </p>
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -386,7 +383,7 @@ const OrderDetails = () => {
                       <div className="flex justify-between">
                         <span className="text-gray-600">Order ID:</span>
                         <span className="font-medium">
-                          #{formatOrderId(orderDetails?.payment?.id)}
+                          {formatOrderId(orderDetails?.payment?.id)}
                         </span>
                       </div>
                       <div className="flex justify-between">

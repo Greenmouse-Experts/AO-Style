@@ -51,8 +51,9 @@ export default function Navbar({ toggleSidebar }) {
         </button>
 
         {/* Page Title */}
-        <h1 className="text-base font-normal text-[#7A7979] lg:ml-4">
-          Customer Dashboard
+        <h1 className="text-base font-bold text-gray-700 lg:ml-4">
+          Welcome to Your Customer Dashboard – Manage Orders, Track Deliveries,
+          and View Notifications
         </h1>
 
         {/* Right: Notification & Profile */}

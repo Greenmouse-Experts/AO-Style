@@ -36,11 +36,16 @@ const OrdersTable = () => {
     {
       label: "Order ID",
       key: "id",
-      render: (value) => (
-        <span className="font-mono text-xs text-gray-600">
-          {value.slice(-8)}
-        </span>
-      ),
+      render: (_, row) => {
+        // Use the first twelve digits of order?.payment?.id, remove hyphens, and uppercase
+        const paymentId = row.payment?.id || "";
+        const cleaned = paymentId.replace(/-/g, "").toUpperCase().slice(0, 12);
+        return (
+          <span className="font-mono text-xs text-gray-600">
+            {cleaned || "N/A"}
+          </span>
+        );
+      },
     },
     {
       label: "Order Date",
@@ -79,49 +84,6 @@ const OrdersTable = () => {
         </span>
       ),
     },
-    // {
-    //   label: "Action",
-    //   key: "action",
-    //   render: (_, row) => (
-    //     <div className="relative">
-    //       <button
-    //         data-theme="nord"
-    //         onClick={() => toggleDropdown(row.id)}
-    //         className="btn btn-circle btn-ghost"
-    //       >
-    //         <MenuIcon className="label" />
-    //       </button>
-    //       {openDropdown === row.id && (
-    //         <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md z-10 border border-gray-200">
-    //           <Link
-    //             onClick={(e) => {
-    //               console.log(row);
-    //             }}
-    //             to={`/admin/orders/order-details/${row.id}`}
-    //             // to={`/admin/orders/order-details/${row.id}`}
-    //             className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-    //           >
-    //             View Details
-    //           </Link>
-    //           {row.payment?.purchase?.items &&
-    //             row.payment.purchase.items.length > 0 && (
-    //               <button
-    //                 onClick={() => {
-    //                   setActiveReviewModal(
-    //                     row.payment.purchase.items[0].product_id,
-    //                   );
-    //                   setOpenDropdown(null);
-    //                 }}
-    //                 className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-    //               >
-    //                 View Reviews
-    //               </button>
-    //             )}
-    //         </div>
-    //       )}
-    //     </div>
-    //   ),
-    // },
     {
       label: "Status",
       key: "status",

@@ -57,11 +57,12 @@ const OrderPage = () => {
 
   // Update query params when search term changes
   useUpdatedEffect(() => {
-    if (debouncedSearchTerm) {
-      updateQueryParams({ q: debouncedSearchTerm });
-    } else {
-      updateQueryParams({ q: undefined });
-    }
+    // Remove API-side search, always show all and filter client-side
+    // if (debouncedSearchTerm) {
+    //   updateQueryParams({ q: debouncedSearchTerm });
+    // } else {
+    //   updateQueryParams({ q: undefined });
+    // }
   }, [debouncedSearchTerm]);
 
   const { uploadImageMutate } = useUploadImage();
@@ -600,7 +601,15 @@ const OrderPage = () => {
         case "orderStatus":
           return row.orderStatus?.toLowerCase().includes(term);
         default:
-          return false;
+          // If no field matches, search all fields
+          return (
+            row.orderId?.toLowerCase().includes(term) ||
+            row.customer?.toLowerCase().includes(term) ||
+            row.product?.toLowerCase().includes(term) ||
+            row.amount?.toString().toLowerCase().includes(term) ||
+            row.productStatus?.toLowerCase().includes(term) ||
+            row.orderStatus?.toLowerCase().includes(term)
+          );
       }
     });
   }, [fabricOrderData, searchField, searchTerm]);
@@ -780,7 +789,7 @@ const OrderPage = () => {
           {
             <CustomTable
               columns={updatedColumn}
-              data={fabricOrderData || []}
+              data={filteredFabricOrderData || []}
               actions={actions}
             />
           }

@@ -8,6 +8,7 @@ import {
   FaCreditCard,
   FaCog,
   FaBullhorn,
+  FaBoxOpen,
 } from "react-icons/fa";
 import { GiScissors } from "react-icons/gi";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
@@ -123,6 +124,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             to="/sales/fashion-designers"
             icon={<GiScissors />}
             text="Fashion Designers"
+            toggleSidebar={toggleSidebar}
+          />
+          <SidebarItem
+            to="/sales/my-products"
+            icon={<FaBoxOpen />}
+            text="View/Add Products"
             toggleSidebar={toggleSidebar}
           />
           <SidebarItem

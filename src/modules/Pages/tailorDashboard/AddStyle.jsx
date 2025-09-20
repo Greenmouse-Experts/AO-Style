@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { UploadCloud } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import ModalThanks from "./components/ModalThanks";
@@ -7,31 +7,105 @@ import Select from "react-select";
 import { usePlacesWidget } from "react-google-autocomplete";
 
 import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails";
-
 import useCreateStyleProduct from "../../../hooks/style/useCreateStyle";
 import useUploadVideo from "../../../hooks/multimedia/useUploadVideo";
-
 import useGetProducts from "../../../hooks/product/useGetProduct";
-
 import useUploadImage from "../../../hooks/multimedia/useUploadImage";
-
 import useToast from "../../../hooks/useToast";
 import useUpdateStyle from "../../../hooks/style/useUpdateStyle";
 import useUpdateAdminStyle from "../../../hooks/style/useUpdateAdminStyle";
 import useCreateAdminStyle from "../../../hooks/style/useCreateAdminStyle";
 import CustomBackbtn from "../../../components/CustomBackBtn";
 
+// Custom hook for form auto-save functionality
+const useFormAutoSave = (formId, initialValues, isEditMode = false) => {
+  const [savedData, setSavedData] = useState({});
+  const storageKey = `form_autosave_${formId}`;
+
+  // Load saved data on component mount
+  useEffect(() => {
+    if (!isEditMode) {
+      try {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          const parsedData = JSON.parse(saved);
+          setSavedData(parsedData);
+        }
+      } catch (error) {
+        console.error("Error loading saved form data:", error);
+        // Clear corrupted data
+        localStorage.removeItem(storageKey);
+      }
+    }
+  }, [storageKey, isEditMode]);
+
+  // Save data function
+  const saveFormData = (data) => {
+    if (!isEditMode) {
+      try {
+        // Only save non-empty, meaningful data
+        const filteredData = Object.entries(data).reduce(
+          (acc, [key, value]) => {
+            if (value !== "" && value !== null && value !== undefined) {
+              if (Array.isArray(value) && value.length > 0) {
+                acc[key] = value;
+              } else if (!Array.isArray(value)) {
+                acc[key] = value;
+              }
+            }
+            return acc;
+          },
+          {},
+        );
+
+        if (Object.keys(filteredData).length > 0) {
+          localStorage.setItem(storageKey, JSON.stringify(filteredData));
+          setSavedData(filteredData);
+        }
+      } catch (error) {
+        console.error("Error saving form data:", error);
+      }
+    }
+  };
+
+  // Clear saved data
+  const clearSavedData = () => {
+    try {
+      localStorage.removeItem(storageKey);
+      setSavedData({});
+    } catch (error) {
+      console.error("Error clearing saved data:", error);
+    }
+  };
+
+  // Get initial values (merge saved data with initial values)
+  const getInitialValues = () => {
+    if (isEditMode || Object.keys(savedData).length === 0) {
+      return initialValues;
+    }
+    return { ...initialValues, ...savedData };
+  };
+
+  return {
+    savedData,
+    saveFormData,
+    clearSavedData,
+    getInitialValues,
+    hasSavedData: Object.keys(savedData).length > 0,
+  };
+};
+
 export default function StyleForm() {
   const { toastError } = useToast();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const isAdminAddRoute = location.pathname === "/admin/style/add-product";
-
   const isAdminEditRoute = location.pathname === "/admin/style/edit-product";
-
   const styleInfo = location?.state?.info;
+  const isEditMode = !!styleInfo;
 
-  const initialValues = {
+  const baseInitialValues = {
     type: "STYLE",
     name: styleInfo?.name ?? "",
     category_id: styleInfo?.category?.id ?? "",
@@ -63,11 +137,19 @@ export default function StyleForm() {
     left_url: styleInfo?.style?.photos[3] ?? "",
   };
 
+  // Auto-save functionality
+  const { saveFormData, clearSavedData, getInitialValues, hasSavedData } =
+    useFormAutoSave("style_form", baseInitialValues, isEditMode);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [sewingTime, setSewingTime] = useState("");
+  const [showSavedDataNotice, setShowSavedDataNotice] = useState(false);
+
+  // Auto-save timer ref
+  const autoSaveTimer = useRef(null);
 
   const { data: businessDetails } = useGetBusinessDetails();
 
@@ -77,8 +159,6 @@ export default function StyleForm() {
 
   const { isPending: createIsPending, createAdminStyleProductMutate } =
     useCreateAdminStyle();
-
-  const navigate = useNavigate();
 
   const { isPending: uploadVideoIsPending, uploadVideoMutate } =
     useUploadVideo();
@@ -108,6 +188,26 @@ export default function StyleForm() {
   const { isPending: updateAdminIsPending, updateAdminStyleMutate } =
     useUpdateAdminStyle();
 
+  // Auto-save function with debouncing
+  const autoSave = (formValues) => {
+    if (autoSaveTimer.current) {
+      clearTimeout(autoSaveTimer.current);
+    }
+
+    autoSaveTimer.current = setTimeout(() => {
+      saveFormData(formValues);
+    }, 1000); // Save after 1 second of no changes
+  };
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimer.current) {
+        clearTimeout(autoSaveTimer.current);
+      }
+    };
+  }, []);
+
   const {
     handleSubmit,
     touched,
@@ -116,9 +216,9 @@ export default function StyleForm() {
     handleChange,
     resetForm,
     setFieldValue,
-    // setFieldError,
+    setValues,
   } = useFormik({
-    initialValues: initialValues,
+    initialValues: getInitialValues(),
     validateOnChange: false,
     validateOnBlur: false,
     enableReinitialize: true,
@@ -136,156 +236,94 @@ export default function StyleForm() {
         toastError("Please upload all required images.");
         return;
       }
+
+      const submitData = {
+        product: {
+          type: val.type,
+          name: val.name,
+          category_id: val.category_id,
+          sku: val.sku,
+          description: val.description,
+          gender: val.gender,
+          tags: val.tags,
+          price: val.price?.toString(),
+          original_price: val.price?.toString(),
+          status: styleInfo?.status,
+        },
+        style: {
+          estimated_sewing_time: val.estimated_sewing_time,
+          minimum_fabric_qty: val.minimum_fabric_qty,
+          photos: [val.front_url, val.back_url, val.right_url, val.left_url],
+          video_url: val.video_url,
+        },
+      };
+
+      const onSuccessCallback = () => {
+        clearSavedData(); // Clear saved data on successful submission
+        resetForm();
+        navigate(
+          isAdminEditRoute
+            ? "/tailor/catalog?pagination[page]=1&pagination[limit]=10"
+            : -1,
+        );
+      };
+
       if (styleInfo) {
         if (isAdminEditRoute) {
           updateAdminStyleMutate(
-            {
-              id: styleInfo?.id,
-              product: {
-                type: val.type,
-                name: val.name,
-                category_id: val.category_id,
-                sku: val.sku,
-                description: val.description,
-                gender: val.gender,
-                tags: val.tags,
-                price: val.price?.toString(),
-                original_price: val.price?.toString(),
-                status: styleInfo?.status,
-              },
-              style: {
-                estimated_sewing_time: val.estimated_sewing_time,
-                minimum_fabric_qty: val.minimum_fabric_qty,
-                photos: [
-                  val.front_url,
-                  val.back_url,
-                  val.right_url,
-                  val.left_url,
-                ],
-
-                video_url: val.video_url,
-              },
-            },
-            {
-              onSuccess: () => {
-                resetForm();
-                navigate(
-                  "/tailor/catalog?pagination[page]=1&pagination[limit]=10",
-                );
-              },
-            },
+            { id: styleInfo?.id, ...submitData },
+            { onSuccess: onSuccessCallback },
           );
         } else {
           updateStyleMutate(
             {
               id: styleInfo?.id,
               business_id: businessDetails?.data?.id,
-              product: {
-                type: val.type,
-                name: val.name,
-                category_id: val.category_id,
-                sku: val.sku,
-                description: val.description,
-                gender: val.gender,
-                tags: val.tags,
-                price: val.price?.toString(),
-                original_price: val.price?.toString(),
-                status: styleInfo?.status,
-              },
-              style: {
-                estimated_sewing_time: val.estimated_sewing_time,
-                minimum_fabric_qty: val.minimum_fabric_qty,
-                photos: [
-                  val.front_url,
-                  val.back_url,
-                  val.right_url,
-                  val.left_url,
-                ],
-
-                video_url: val.video_url,
-              },
+              ...submitData,
             },
-            {
-              onSuccess: () => {
-                resetForm();
-                navigate(-1);
-              },
-            },
+            { onSuccess: onSuccessCallback },
           );
         }
       } else {
         if (isAdminAddRoute) {
-          createAdminStyleProductMutate(
-            {
-              product: {
-                type: val.type,
-                name: val.name,
-                category_id: val.category_id,
-                sku: val.sku,
-                description: val.description,
-                gender: val.gender,
-                tags: val.tags,
-                price: val.price?.toString(),
-                original_price: val.price?.toString(),
-              },
-              style: {
-                estimated_sewing_time: val.estimated_sewing_time,
-                minimum_fabric_qty: val.minimum_fabric_qty,
-                photos: [
-                  val.front_url,
-                  val.back_url,
-                  val.right_url,
-                  val.left_url,
-                ],
-
-                video_url: val.video_url,
-              },
-            },
-            {
-              onSuccess: () => {
-                resetForm();
-                navigate(-1);
-              },
-            },
-          );
+          createAdminStyleProductMutate(submitData, {
+            onSuccess: onSuccessCallback,
+          });
         } else {
-          createStyleProductMutate(
-            {
-              product: {
-                type: val.type,
-                name: val.name,
-                category_id: val.category_id,
-                sku: val.sku,
-                description: val.description,
-                gender: val.gender,
-                tags: val.tags,
-                price: val.price?.toString(),
-                original_price: val.price?.toString(),
-              },
-              style: {
-                estimated_sewing_time: val.estimated_sewing_time,
-                minimum_fabric_qty: val.minimum_fabric_qty,
-                photos: [
-                  val.front_url,
-                  val.back_url,
-                  val.right_url,
-                  val.left_url,
-                ],
-
-                video_url: val.video_url,
-              },
-            },
-            {
-              onSuccess: () => {
-                resetForm();
-                navigate(-1);
-              },
-            },
-          );
+          createStyleProductMutate(submitData, {
+            onSuccess: onSuccessCallback,
+          });
         }
       }
     },
   });
+
+  // Enhanced handleChange with auto-save
+  const handleChangeWithAutoSave = (e) => {
+    handleChange(e);
+    const updatedValues = { ...values, [e.target.name]: e.target.value };
+    autoSave(updatedValues);
+  };
+
+  // Enhanced setFieldValue with auto-save
+  const setFieldValueWithAutoSave = (field, value) => {
+    setFieldValue(field, value);
+    const updatedValues = { ...values, [field]: value };
+    autoSave(updatedValues);
+  };
+
+  // Show saved data notice on component mount
+  useEffect(() => {
+    if (hasSavedData && !isEditMode) {
+      setShowSavedDataNotice(true);
+      setTimeout(() => setShowSavedDataNotice(false), 5000);
+    }
+  }, [hasSavedData, isEditMode]);
+
+  // Update tags state when values change
+  useEffect(() => {
+    setTags(values.tags || []);
+  }, [values.tags]);
 
   // Mock function to fetch sewing time based on category
   useEffect(() => {
@@ -304,19 +342,17 @@ export default function StyleForm() {
   const handleTagAdd = (e) => {
     if (e.key === "Enter" && tagInput.trim() && tags.length < 5) {
       e.preventDefault();
-      setTags([...tags, tagInput.trim()]);
-      setFieldValue("tags", [...tags, tagInput.trim()]);
-
+      const newTags = [...tags, tagInput.trim()];
+      setTags(newTags);
+      setFieldValueWithAutoSave("tags", newTags);
       setTagInput("");
     }
   };
 
   const handleTagRemove = (tagToRemove) => {
-    setTags(tags.filter((tag) => tag !== tagToRemove));
-    setFieldValue(
-      "tags",
-      tags.filter((tag) => tag !== tagToRemove),
-    );
+    const newTags = tags.filter((tag) => tag !== tagToRemove);
+    setTags(newTags);
+    setFieldValueWithAutoSave("tags", newTags);
   };
 
   const { data: styleCategory } = useGetProducts({
@@ -334,9 +370,15 @@ export default function StyleForm() {
   const { ref } = usePlacesWidget({
     apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
     onPlaceSelected: (place) => {
-      setFieldValue("location", place.formatted_address);
-      setFieldValue("latitude", place.geometry?.location?.lat().toString());
-      setFieldValue("longitude", place.geometry?.location?.lng().toString());
+      setFieldValueWithAutoSave("location", place.formatted_address);
+      setFieldValueWithAutoSave(
+        "latitude",
+        place.geometry?.location?.lat().toString(),
+      );
+      setFieldValueWithAutoSave(
+        "longitude",
+        place.geometry?.location?.lng().toString(),
+      );
     },
     options: {
       componentRestrictions: { country: "ng" },
@@ -344,11 +386,38 @@ export default function StyleForm() {
     },
   });
 
+  // Clear saved data function for manual clearing
+  const handleClearSavedData = () => {
+    clearSavedData();
+    setValues(baseInitialValues);
+    setTags([]);
+  };
+
   return (
     <>
       <div className="mb-2">
         <CustomBackbtn />
       </div>
+
+      {/* Saved Data Notice */}
+      {showSavedDataNotice && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 flex justify-between items-center">
+          <div className="flex items-center">
+            <div className="text-blue-800 mr-2">ℹ️</div>
+            <span className="text-blue-800 text-sm">
+              We've restored your previously saved form data. You can continue
+              where you left off.
+            </span>
+          </div>
+          <button
+            onClick={handleClearSavedData}
+            className="text-blue-600 hover:text-blue-800 text-sm underline"
+          >
+            Start Fresh
+          </button>
+        </div>
+      )}
+
       <div className="bg-white p-6 mb-6 rounded-lg">
         <h1 className="text-xl md:text-2xl font-medium mb-3">
           {styleInfo && !isAdminEditRoute
@@ -371,15 +440,24 @@ export default function StyleForm() {
           Style
         </p>
       </div>
+
       <div className="bg-white p-6 rounded-lg max-w-2xl">
-        <h1 className="text-lg font-semibold text-black mb-4">
-          {styleInfo && !isAdminEditRoute
-            ? "Edit"
-            : isAdminEditRoute
-              ? "View"
-              : "Submit New"}{" "}
-          Style
-        </h1>
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-lg font-semibold text-black">
+            {styleInfo && !isAdminEditRoute
+              ? "Edit"
+              : isAdminEditRoute
+                ? "View"
+                : "Submit New"}{" "}
+            Style
+          </h1>
+          {hasSavedData && !isEditMode && (
+            <div className="text-sm text-green-600 flex items-center">
+              <span className="mr-1">💾</span>
+              Auto-saved
+            </div>
+          )}
+        </div>
 
         <div className="space-y-4">
           <form onSubmit={handleSubmit}>
@@ -388,29 +466,15 @@ export default function StyleForm() {
               <label className="block text-gray-700 mb-4">Style Name</label>
               <input
                 type="text"
-                name={"name"}
+                name="name"
                 value={values.name}
-                onChange={handleChange}
+                onChange={handleChangeWithAutoSave}
                 placeholder="Enter the name of style"
                 className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 required
               />
             </div>
-            {/* SKU (Disabled) */}
-            {/* <div>
-              <label className="block text-gray-700 mb-4 mt-4">SKU</label>
-              <input
-                type="text"
-                required
 
-
-                name="sku"
-                value={values.sku}
-                onChange={handleChange}
-                placeholder="Enter the unique identifier"
-                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-              />
-            </div> */}
             {/* Style Description */}
             <div>
               <label className="block text-gray-700 mb-4 mt-4">
@@ -421,11 +485,12 @@ export default function StyleForm() {
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 h-32 outline-none"
                 type="text"
                 required
-                name={"description"}
+                name="description"
                 value={values.description}
-                onChange={handleChange}
+                onChange={handleChangeWithAutoSave}
               />
             </div>
+
             {/* Style Category and Estimated Sewing Time */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -439,7 +504,10 @@ export default function StyleForm() {
                     (opt) => opt.value == values.category_id,
                   )}
                   onChange={(selectedOption) => {
-                    setFieldValue("category_id", selectedOption.value);
+                    setFieldValueWithAutoSave(
+                      "category_id",
+                      selectedOption.value,
+                    );
                   }}
                   required
                   placeholder="Choose style"
@@ -463,7 +531,7 @@ export default function StyleForm() {
                       zIndex: 9999,
                     }),
                   }}
-                />{" "}
+                />
               </div>
 
               <div>
@@ -472,16 +540,23 @@ export default function StyleForm() {
                 </label>
                 <input
                   type="number"
-                  name={"estimated_sewing_time"}
+                  name="estimated_sewing_time"
                   required
                   min={0}
                   value={values.estimated_sewing_time}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    const value =
+                      e.target.value === ""
+                        ? ""
+                        : parseInt(e.target.value) || 0;
+                    setFieldValueWithAutoSave("estimated_sewing_time", value);
+                  }}
                   placeholder="Estimated sewing time"
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 />
               </div>
             </div>
+
             {/* Gender */}
             <div>
               <label className="block text-gray-700 mb-4 mt-4">Gender</label>
@@ -499,7 +574,7 @@ export default function StyleForm() {
                   { label: "Unisex", value: "unisex" },
                 ]?.find((opt) => opt.value === values.gender)}
                 onChange={(selectedOption) => {
-                  setFieldValue("gender", selectedOption.value);
+                  setFieldValueWithAutoSave("gender", selectedOption.value);
                 }}
                 required
                 placeholder="Choose suitability gender"
@@ -523,8 +598,9 @@ export default function StyleForm() {
                     zIndex: 9999,
                   }),
                 }}
-              />{" "}
+              />
             </div>
+
             {/* Photo Uploads */}
             <div>
               <label className="block text-gray-700 mb-4 mt-4">
@@ -532,7 +608,6 @@ export default function StyleForm() {
               </label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="relative">
-                  {/* ⓘ Icon with tooltip */}
                   <div className="absolute top-2 right-2 group">
                     <div className="text-gray-500 text-sm cursor-pointer">
                       ⓘ
@@ -542,7 +617,6 @@ export default function StyleForm() {
                     </div>
                   </div>
 
-                  {/* Upload Box */}
                   <div
                     onClick={() => document.getElementById("front").click()}
                     className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer"
@@ -573,7 +647,10 @@ export default function StyleForm() {
                           formData.append("image", file);
                           uploadFrontMutate(formData, {
                             onSuccess: (data) => {
-                              setFieldValue("front_url", data?.data?.data?.url);
+                              setFieldValueWithAutoSave(
+                                "front_url",
+                                data?.data?.data?.url,
+                              );
                             },
                           });
                           e.target.value = "";
@@ -597,16 +674,15 @@ export default function StyleForm() {
                     ) : null}
 
                     {values?.front_url && (
-                      <>
-                        <img
-                          src={values.front_url}
-                          className="mx-auto h-40"
-                          alt=""
-                        />
-                      </>
+                      <img
+                        src={values.front_url}
+                        className="mx-auto h-40"
+                        alt=""
+                      />
                     )}
                   </div>
                 </div>
+
                 <div
                   onClick={() => document.getElementById("back").click()}
                   className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer"
@@ -636,7 +712,10 @@ export default function StyleForm() {
                         formData.append("image", file);
                         uploadBackMutate(formData, {
                           onSuccess: (data) => {
-                            setFieldValue("back_url", data?.data?.data?.url);
+                            setFieldValueWithAutoSave(
+                              "back_url",
+                              data?.data?.data?.url,
+                            );
                           },
                         });
                         e.target.value = "";
@@ -656,19 +735,16 @@ export default function StyleForm() {
                     >
                       View file upload
                     </a>
-                  ) : (
-                    <></>
-                  )}
+                  ) : null}
                   {values?.back_url && (
-                    <>
-                      <img
-                        src={values.back_url}
-                        className="mx-auto h-40"
-                        alt=""
-                      />
-                    </>
+                    <img
+                      src={values.back_url}
+                      className="mx-auto h-40"
+                      alt=""
+                    />
                   )}
                 </div>
+
                 <div
                   onClick={() => document.getElementById("right").click()}
                   className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer"
@@ -698,7 +774,10 @@ export default function StyleForm() {
                         formData.append("image", file);
                         uploadRightMutate(formData, {
                           onSuccess: (data) => {
-                            setFieldValue("right_url", data?.data?.data?.url);
+                            setFieldValueWithAutoSave(
+                              "right_url",
+                              data?.data?.data?.url,
+                            );
                           },
                         });
                         e.target.value = "";
@@ -718,19 +797,16 @@ export default function StyleForm() {
                     >
                       View file upload
                     </a>
-                  ) : (
-                    <></>
-                  )}
+                  ) : null}
                   {values?.right_url && (
-                    <>
-                      <img
-                        src={values.front_url}
-                        className="mx-auto h-40"
-                        alt=""
-                      />
-                    </>
+                    <img
+                      src={values.right_url}
+                      className="mx-auto h-40"
+                      alt=""
+                    />
                   )}
                 </div>
+
                 <div
                   onClick={() => document.getElementById("left").click()}
                   className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer"
@@ -760,7 +836,10 @@ export default function StyleForm() {
                         formData.append("image", file);
                         uploadLeftMutate(formData, {
                           onSuccess: (data) => {
-                            setFieldValue("left_url", data?.data?.data?.url);
+                            setFieldValueWithAutoSave(
+                              "left_url",
+                              data?.data?.data?.url,
+                            );
                           },
                         });
                         e.target.value = "";
@@ -780,32 +859,26 @@ export default function StyleForm() {
                     >
                       View file upload
                     </a>
-                  ) : (
-                    <></>
-                  )}
+                  ) : null}
                   {values?.left_url && (
-                    <>
-                      <img
-                        src={values.left_url}
-                        className="mx-auto h-40"
-                        alt=""
-                      />
-                    </>
+                    <img
+                      src={values.left_url}
+                      className="mx-auto h-40"
+                      alt=""
+                    />
                   )}
                 </div>
               </div>
             </div>
+
+            {/* Video Upload */}
             <div>
               <label className="block text-gray-700 mb-4 mt-4">
                 Upload a video of the style (max length of 10secs)
               </label>
 
               <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer">
-                {/* Only this triggers file upload */}
-                <div
-                  //   onClick={() => document.getElementById("uploadVideo").click()}
-                  className="flex flex-col items-center"
-                >
+                <div className="flex flex-col items-center">
                   <UploadCloud
                     className="mx-auto text-gray-400 mb-4"
                     size={32}
@@ -834,7 +907,10 @@ export default function StyleForm() {
                       formData.append("video", file);
                       uploadVideoMutate(formData, {
                         onSuccess: (data) => {
-                          setFieldValue("video_url", data?.data?.data?.url);
+                          setFieldValueWithAutoSave(
+                            "video_url",
+                            data?.data?.data?.url,
+                          );
                           e.target.value = "";
                         },
                       });
@@ -855,31 +931,36 @@ export default function StyleForm() {
                   </a>
                 ) : null}
                 {values?.video_url && (
-                  <>
-                    <video
-                      controls
-                      src={values.video_url}
-                      className="mt-4 mx-auto  h-40"
-                      alt=""
-                    />
-                  </>
+                  <video
+                    controls
+                    src={values.video_url}
+                    className="mt-4 mx-auto h-40"
+                    alt=""
+                  />
                 )}
               </div>
             </div>
+
+            {/* Minimum Fabric Quantity */}
             <div>
               <label className="block text-gray-700 mb-4 mt-4">
                 Minimum Fabric Quantity Required (Yards)
               </label>
               <input
                 type="number"
-                name={"minimum_fabric_qty"}
+                name="minimum_fabric_qty"
                 value={values.minimum_fabric_qty}
-                onChange={handleChange}
+                onChange={(e) => {
+                  const value =
+                    e.target.value === "" ? "" : parseInt(e.target.value) || 0;
+                  setFieldValueWithAutoSave("minimum_fabric_qty", value);
+                }}
                 placeholder="Enter the minimum fabric required for this style"
                 className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 required
               />
             </div>
+
             {/* Tags */}
             <div>
               <label className="block text-gray-700 mb-4 mt-4">
@@ -913,6 +994,7 @@ export default function StyleForm() {
                 />
               )}
             </div>
+
             {/* Price */}
             <div>
               <label className="block text-gray-700 mb-4 mt-4">Price</label>
@@ -922,46 +1004,45 @@ export default function StyleForm() {
                 </span>
                 <input
                   type="number"
-                  name={"price"}
+                  name="price"
                   min={0}
+                  step="0.01"
                   value={values.price}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    const value =
+                      e.target.value === ""
+                        ? ""
+                        : parseFloat(e.target.value) || 0;
+                    setFieldValueWithAutoSave("price", value);
+                  }}
                   placeholder="Enter amount per yard"
                   className="flex-1 p-4 border border-[#CCCCCC] rounded-lg px-4 py-2 outline-none"
                   required
                 />
               </div>
             </div>
-            {/* Location */}
-            {/* <div>
-              <label className="block text-gray-700 mb-4 mt-4">Location</label>
+
+            {/* SKU */}
+            <div>
+              <label className="block text-gray-700 mb-4 mt-4">SKU</label>
               <input
                 type="text"
-                ref={(c) => {
-                  if (c) ref.current = c.input;
-                }}
-                value={values.location}
-                name="location"
-                onChange={(val) => {
-                  setFieldValue("location", val.currentTarget.value);
-                  setFieldValue("latitude", "");
-                  setFieldValue("longitude", "");
-                }}
-                placeholder="Enter the coordinates of the shop"
+                name="sku"
+                value={values.sku}
+                onChange={handleChangeWithAutoSave}
+                placeholder="Enter SKU"
                 className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
               />
-            </div> */}
+            </div>
+
             {/* Modal and Submit Button */}
             <ModalThanks
               isOpen={isModalOpen}
               onClose={() => setIsModalOpen(false)}
             />
 
-            {isAdminEditRoute ? (
-              <></>
-            ) : (
-              <>
-                {" "}
+            {isAdminEditRoute ? null : (
+              <div className="flex gap-4 mt-6">
                 <button
                   disabled={
                     isPending ||
@@ -975,7 +1056,7 @@ export default function StyleForm() {
                     createIsPending
                   }
                   type="submit"
-                  className="bg-gradient text-white px-6 py-2 rounded w-full md:w-fit mt-4 cursor-pointer"
+                  className="bg-gradient text-white px-6 py-2 rounded w-full md:w-fit cursor-pointer disabled:opacity-50"
                 >
                   {isPending ||
                   updateIsPending ||
@@ -986,10 +1067,28 @@ export default function StyleForm() {
                       ? "Edit Style"
                       : "Submit Style"}
                 </button>
-              </>
+
+                {hasSavedData && !isEditMode && (
+                  <button
+                    type="button"
+                    onClick={handleClearSavedData}
+                    className="border border-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-50"
+                  >
+                    Clear Saved Data
+                  </button>
+                )}
+              </div>
             )}
           </form>
         </div>
+
+        {/* Auto-save indicator */}
+        {!isEditMode && (
+          <div className="mt-4 text-xs text-gray-500 flex items-center">
+            <span className="mr-1">💾</span>
+            Your progress is automatically saved as you type
+          </div>
+        )}
       </div>
     </>
   );

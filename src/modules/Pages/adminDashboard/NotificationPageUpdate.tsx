@@ -57,7 +57,20 @@ export default function NotificationPageUpdate() {
           </h1>
           <nav className="text-sm text-gray-500">
             <Link
-              to="/admin"
+              to={
+                // Redirect to dashboard based on current route
+                window.location.pathname.includes("tailor")
+                  ? "/tailor"
+                  : window.location.pathname.includes("fabric")
+                    ? "/fabric"
+                    : window.location.pathname.includes("customer")
+                      ? "/customer"
+                      : window.location.pathname.includes("logistics")
+                        ? "/logistics"
+                        : window.location.pathname.includes("admin")
+                          ? "/admin"
+                          : "/"
+              }
               className="text-purple-600 hover:text-purple-800 transition-colors duration-200"
             >
               Dashboard

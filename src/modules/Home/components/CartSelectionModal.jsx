@@ -60,7 +60,7 @@ const CartSelectionModal = ({
             <button
               onClick={onAddToCart}
               disabled={isPending}
-              className="w-full flex items-center justify-center space-x-2 px-6 py-4 bg-gradient text-white rounded-xl font-semibold hover:bg-purple-700 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer w-full flex items-center justify-center space-x-2 px-6 py-4 bg-gradient text-white rounded-xl font-semibold hover:bg-purple-700 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ShoppingCart className="w-5 h-5" />
               <span>{isPending ? "Adding to Cart..." : "Add to Cart Now"}</span>
@@ -69,7 +69,7 @@ const CartSelectionModal = ({
             <button
               onClick={onSelectStyles}
               disabled={isPending}
-              className="w-full flex items-center justify-center space-x-2 px-6 py-4 border-2 border-purple-300 text-purple-700 rounded-xl font-medium hover:bg-purple-50 hover:border-purple-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer w-full flex items-center justify-center space-x-2 px-6 py-4 border-2 border-purple-300 text-purple-700 rounded-xl font-medium hover:bg-purple-50 hover:border-purple-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Sparkles className="w-5 h-5" />
               <span>Select Styles First</span>

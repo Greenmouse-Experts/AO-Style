@@ -9,11 +9,11 @@ const CartItemWithBreakdown = ({
   getMeasurementCount,
 }) => {
   const navigate = useNavigate();
-
+  console.log("Cart items TO USE", item);
   if (!item) return null;
 
   const fabricPrice = parseFloat(
-    item.price_at_time || item.product?.price || 0,
+    item.price_at_time || item.product?.price || item?.price || 0,
   );
 
   const measurementCount = getMeasurementCount
@@ -31,9 +31,8 @@ const CartItemWithBreakdown = ({
 
   // Get the first image from photos array or fallback to product.image
   const productImage =
-    item.photos?.[0] ||
-    item.product?.fabric?.photos?.[0] ||
-    "/default-product.png";
+    item.photos?.[0] || item.product?.fabric?.photos?.[0] || item.image;
+  ("/default-product.png");
 
   // Get style image
   const styleImage = item.style_product?.style?.photos?.[0] || null;
@@ -63,7 +62,7 @@ const CartItemWithBreakdown = ({
                 onClick={() => navigate(`/shop-details/${item.product_id}`)}
                 className="font-semibold text-base text-gray-900 hover:text-purple-600 transition-colors text-left"
               >
-                {item.product?.name || `Product ${item.product_id}`}
+                {item.product?.name || item.name}
               </button>
               <p className="text-sm text-gray-600">
                 Color: {item.color || "Red"}
@@ -170,7 +169,7 @@ const CartItemWithBreakdown = ({
                 onClick={() => navigate(`/shop-details/${item.product_id}`)}
                 className="font-semibold text-base text-gray-900 hover:text-purple-600 transition-colors text-left block mb-1"
               >
-                {item.product?.name || `Product ${item.product_id}`}
+                {item.product?.name || item?.name}
               </button>
               <p className="text-sm text-gray-600">
                 Color: {item.color || "Red"}

@@ -88,7 +88,7 @@ export default function ShopDetails() {
   const [mainImage, setMainImage] = useState("");
   const [tab, setTab] = useState("details");
   const [quantity, setQuantity] = useState(1);
-
+  const [existingModal, setExistingModal] = useState(false);
   const [selectedColor, setSelectedColor] = useState(null);
 
   const ratingStats = [2, 3, 0, 0, 0];
@@ -110,19 +110,7 @@ export default function ShopDetails() {
     localStorage.removeItem("selected_style");
     localStorage.removeItem("measurement_data");
 
-    // Option 1: Navigate back to the same route to trigger a refresh
     navigate(location.pathname, { replace: true });
-
-    // Option 2: Alternative - reload the page (less elegant but works)
-    // window.location.reload();
-
-    // Option 3: If you want to use state management instead of navigation
-    // You would need to add state variables at the component level:
-    // const [localStyleData, setLocalStyleData] = useState(styleData);
-    // const [localFromStyleFirst, setLocalFromStyleFirst] = useState(fromStyleFirst);
-    // Then update them here:
-    // setLocalStyleData(null);
-    // setLocalFromStyleFirst(false);
   };
   // Debug logging for received data
   console.log("🎨 ShopDetails Data Debug:", {
@@ -154,7 +142,8 @@ export default function ShopDetails() {
     useSingleProductGeneral("FABRIC", productInfo);
 
   const productVal = getSingleProductData?.data;
-
+  console.log("productVal", productVal);
+  console.log("getSingleProduct Data", getSingleProductData);
   // Console log the fetched product details
   console.log(
     "📦 ShopDetails: Raw product data from API:",
@@ -240,8 +229,8 @@ export default function ShopDetails() {
       // Add customer_name from measurements if available
       customer_name: measurementData?.[0]?.customer_name || "Customer",
       // Add display info for style selection page
-      name: productVal?.name || "Selected Fabric",
-      price: productVal?.price || 0,
+      name: productVal?.product?.name || "Selected Fabric",
+      price: productVal?.product?.price || 0,
       image: productVal?.photos?.[0] || productVal?.image,
     };
     setFabricData(fabricInfo);
@@ -258,8 +247,40 @@ export default function ShopDetails() {
     console.log("🛒 Adding fabric directly to cart:", fabricData);
     // Check if user is logged in (token exists)
     if (!token) {
-      // Redirect to login page
-      navigate("/login");
+      // Check if there is already data in pending_fabric_data
+      const existing = localStorage.getItem("pending_fabric_data");
+      let items = [];
+      if (existing) {
+        try {
+          const parsed = JSON.parse(existing);
+          if (Array.isArray(parsed.items)) {
+            items = [...parsed.items];
+          } else if (Object.keys(parsed).length > 0) {
+            // If old format (single object), wrap it
+            items = [parsed];
+          }
+        } catch (e) {
+          // fallback: treat as single object
+          items = [];
+        }
+      }
+      // Check if item with same product_id already exists
+      const alreadyExists = items.some(
+        (item) => item.product_id === fabricData.product_id,
+      );
+      if (alreadyExists) {
+        setIsCartSelectionModalOpen(false);
+        setExistingModal(true);
+        return;
+      }
+      items.push(fabricData);
+      localStorage.setItem("pending_fabric_data", JSON.stringify({ items }));
+      setIsCartSelectionModalOpen(false);
+      setIsSuccessModalOpen(true);
+      console.log(
+        "pending fabric data",
+        localStorage.getItem("pending_fabric_data"),
+      );
       return;
     }
     addCartMutate(fabricData, {
@@ -1008,7 +1029,7 @@ export default function ShopDetails() {
               <div>
                 {productVal?.product?.creator?.profile?.state &&
                   productVal?.product?.creator?.profile?.country && (
-                    <div className="flex items-center gap-2 bg-green-50 rounded-lg px-3 py-2 mb-2">
+                    <div className="inline-flex items-center gap-2 bg-green-50 rounded-lg px-3 py-2 mb-2 w-auto max-w-full">
                       {/* Location Icon */}
                       <svg
                         className="w-5 h-5 text-green-500"
@@ -1023,7 +1044,7 @@ export default function ShopDetails() {
                           d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4z"
                         />
                       </svg>
-                      <span className="text-sm text-green-800 font-medium">
+                      <span className="text-sm text-green-800 font-medium whitespace-nowrap overflow-hidden text-ellipsis">
                         {productVal.product.creator.profile.state},{" "}
                         {productVal.product.creator.profile.country}
                       </span>
@@ -1047,8 +1068,8 @@ export default function ShopDetails() {
                     quantity <
                       styleData?.style?.minimum_fabric_qty *
                         measurementData.length
-                      ? "w-full flex items-center justify-center space-x-3 py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 bg-gray-200 text-gray-500 cursor-not-allowed"
-                      : "w-full flex items-center justify-center space-x-3 py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 bg-gradient text-white hover:bg-purple-700 hover:shadow-lg transform hover:-translate-y-0.5"
+                      ? "w-full flex items-center justify-center space-x-3 py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 bg-gray-200 text-gray-500 cursor-not-allowed cursor-pointer"
+                      : "w-full flex items-center justify-center space-x-3 py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 bg-gradient text-white hover:bg-purple-700 hover:shadow-lg cursor-pointer transform hover:-translate-y-0.5"
                   }
                 >
                   <span>
@@ -1128,12 +1149,61 @@ export default function ShopDetails() {
                       <div className="flex gap-3">
                         <button
                           onClick={() => setIsSuccessModalOpen(false)}
-                          className="flex-1 py-3 px-6 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200"
+                          className="cursor-pointer flex-1 py-3 px-6 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200"
                         >
                           Continue Shopping
                         </button>
                         <Link to="/view-cart" className="flex-1">
-                          <button className="w-full py-3 px-6 bg-gradient text-white rounded-xl font-semibold hover:bg-purple-700 transition-all duration-200">
+                          <button className="cursor-pointer w-full py-3 px-6 bg-gradient text-white rounded-xl font-semibold hover:bg-purple-700 transition-all duration-200">
+                            View Cart
+                          </button>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {existingModal && (
+                <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm">
+                  <div className="bg-white rounded-2xl shadow-2xl p-8 w-[90%] max-w-md animate-fade-in-up relative">
+                    {/* Close Button */}
+                    <button
+                      onClick={() => false}
+                      className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                      aria-label="Close modal"
+                    >
+                      <X className="w-5 h-5 text-gray-500 hover:text-gray-700" />
+                    </button>
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg
+                          className="w-8 h-8 text-yellow-500"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-9V7a1 1 0 112 0v2a1 1 0 01-2 0zm1 6a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                      <h2 className="text-xl font-bold text-gray-900 mb-2">
+                        Item already in cart
+                      </h2>
+                      <p className="text-gray-600 mb-6">
+                        Fabric already exists in your cart.
+                      </p>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => setExistingModal(false)}
+                          className="cursor-pointer flex-1 py-3 px-6 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200"
+                        >
+                          Continue Shopping
+                        </button>
+                        <Link to="/view-cart" className="flex-1">
+                          <button className="cursor-pointer w-full py-3 px-6 bg-gradient text-white rounded-xl font-semibold hover:bg-purple-700 transition-all duration-200">
                             View Cart
                           </button>
                         </Link>

@@ -56,7 +56,7 @@ const CartPage = () => {
 
   // Add duplicate detection state
   const [duplicateError, setDuplicateError] = useState(null);
-
+  const token = Cookies.get("token");
   // API hooks
   const {
     data: cartResponse,
@@ -64,6 +64,7 @@ const CartPage = () => {
     refetch: refetchCart,
   } = useGetCart();
 
+  console.log("cartResponse", cartResponse);
   const { deleteCartMutate, isPending: deleteIsPending } = useDeleteCart();
   const { applyCouponMutate, isPending: applyCouponPending } = useApplyCoupon();
 
@@ -73,8 +74,30 @@ const CartPage = () => {
   const { verifyPaymentMutate, isPending: verifyPending } = useVerifyPayment();
 
   // Get cart data from API response
-  const cartData = cartResponse?.data;
+  let cartData;
+
+  if (token) {
+    cartData = cartResponse?.data;
+  } else {
+    // Try to get pending_fabric_data from localStorage
+    const pendingFabricData = localStorage.getItem("pending_fabric_data");
+    if (pendingFabricData) {
+      try {
+        cartData = JSON.parse(pendingFabricData);
+        console.log("This is the cart Data", cartData);
+      } catch (e) {
+        cartData = null;
+        console.error(
+          "Failed to parse pending_fabric_data from localStorage:",
+          e,
+        );
+      }
+    } else {
+      cartData = null;
+    }
+  }
   const items = cartData?.items || [];
+  console.log("🛒 Cart Data fetched:", items);
   console.log("🛒 Cart Items:", items);
   console.log("🛒 Cart Data:", cartData);
   const cartUser = cartData?.user;
@@ -85,41 +108,11 @@ const CartPage = () => {
     count: cartData?.count,
   };
 
-  // console.log("🛒 Cart API Data:", cartData);
-  // console.log("🛒 Cart Items:", items);
-  // console.log("🛒 Cart User:", cartUser);
-
   const {
     data: deliveryData,
     isLoading: deliveryLoading,
     isError: deliveryError,
   } = useGetDeliveryFee();
-
-  // Console log delivery data
-  // console.log("🚚 Delivery API Response:", deliveryData);
-  // console.log("🚚 Delivery Loading State:", deliveryLoading);
-  // console.log("🚚 Delivery Error State:", deliveryError);
-  // console.log("🚚 Raw Delivery Data:", deliveryData?.data);
-  // console.log("🚚 Delivery Fee Value:", deliveryData?.data?.data?.delivery_fee);
-
-  // Immediate logging when delivery data changes
-  useEffect(() => {
-    if (deliveryData) {
-      console.log("🚚 CartPage: Delivery data received!");
-      console.log("🚚 CartPage: Full deliveryData object:", deliveryData);
-      console.log("🚚 CartPage: deliveryData.data:", deliveryData.data);
-      console.log(
-        "🚚 CartPage: deliveryData.data.data:",
-        deliveryData.data?.data,
-      );
-      console.log(
-        "🚚 CartPage: Final delivery_fee extracted:",
-        deliveryData?.data?.data?.delivery_fee,
-      );
-    } else {
-      console.log("🚚 CartPage: No delivery data available");
-    }
-  }, [deliveryData]);
 
   const { carybinUser, setCaryBinUser } = useCarybinUserStore();
   const { toastSuccess, toastError } = useToast();
@@ -259,16 +252,6 @@ const CartPage = () => {
     const token = Cookies.get("token");
     const adminToken = Cookies.get("adminToken");
     const currUserUrl = Cookies.get("currUserUrl");
-
-    // console.log("🔍 CartPage: Authentication Debug", {
-    //   hasToken: !!token,
-    //   hasAdminToken: !!adminToken,
-    //   currUserUrl: currUserUrl,
-    //   hasCarybinUser: !!carybinUser,
-    //   carybinUserEmail: carybinUser?.email,
-    //   userProfileLoading: userProfileLoading,
-    //   userProfileData: !!userProfile,
-    // });
   }, [carybinUser, userProfileLoading, userProfile]);
 
   // Authentication check and redirect
@@ -307,7 +290,6 @@ const CartPage = () => {
   ]);
 
   const currentUrl = Cookies.get("currUserUrl");
-  const token = Cookies.get("token");
   // console.log("user", userProfile);
   // Calculate totals from API cart items
   const calculateTotals = () => {
@@ -321,7 +303,7 @@ const CartPage = () => {
     //GOOD
     const subtotal = items.reduce((total, item) => {
       const fabricPrice = parseFloat(
-        item.price_at_time || item.product?.price || 0,
+        item.price_at_time || item.product?.price || item?.price || 0,
       );
       const stylePrice = parseFloat(item.style_product?.price || 0);
       const measurementCount = item?.measurement?.length || 0;
@@ -394,28 +376,6 @@ const CartPage = () => {
 
   const finalTotal =
     totals.subtotal + delivery_fee + estimatedVat - discountAmount;
-
-  // Console log calculation details
-  console.log("💰 Cart Calculations:", {
-    fabricTotals: {
-      totalAmount: fabricTotals.totalAmount,
-      totalYards: fabricTotals.totalYards,
-      itemCount: fabricTotals.itemCount,
-    },
-    styleTotals: {
-      totalAmount: styleTotals.totalAmount,
-      itemCount: styleTotals.itemCount,
-    },
-    subtotal: totals.subtotal,
-    delivery_fee: delivery_fee,
-    estimatedVat: estimatedVat,
-    charges: charges,
-    discountAmount: discountAmount,
-    finalTotal: finalTotal,
-    note: "Fabric + Style breakdown now clearly separated",
-    deliveryDataExists: !!deliveryData,
-    deliveryDataPath: deliveryData?.data?.data,
-  });
 
   // Handle agreement click
   const handleAgreementClick = (e) => {
@@ -608,27 +568,6 @@ const CartPage = () => {
       console.log("🔄 Fresh cart data:", freshCartData?.data);
 
       const addressInfo = getProfileAddress();
-
-      console.log("📊 Payment Data Summary:", {
-        subtotal: totals.subtotal,
-        discountAmount: discountAmount,
-        delivery_fee: delivery_fee,
-        estimatedVat: estimatedVat,
-        finalTotal: finalTotal,
-        itemCount: items.length,
-        addressInfo: addressInfo,
-        coupon: coupon,
-        profile_data_used: {
-          user_id: carybinUser?.id,
-          user_name: carybinUser?.name,
-          user_email: carybinUser?.email,
-          profile_address: carybinUser?.address,
-          profile_state: carybinUser?.state,
-          profile_country: carybinUser?.country,
-          email_verified: carybinUser?.is_email_verified,
-        },
-      });
-
       // Prepare billing data with totals
       const billingData = {
         ...addressInfo,
@@ -915,7 +854,7 @@ const CartPage = () => {
     });
   };
 
-  if (cartLoading || userProfileLoading) {
+  if ((cartLoading || userProfileLoading) && token) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoaderComponent />
@@ -1074,66 +1013,99 @@ const CartPage = () => {
                   </div>
                   <div className="p-6">
                     {/* Coupon Section */}
-                    <div className="mb-6">
-                      {!appliedCoupon ? (
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700 mb-2 block">
-                            Have a coupon code?
-                          </label>
-                          <div className="relative">
-                            <input
-                              type="text"
-                              value={coupon}
-                              onChange={(e) => setCoupon(e.target.value)}
-                              placeholder="Enter coupon code"
-                              className="w-full px-3 py-2 pr-20 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                            />
-                            <button
-                              onClick={handleApplyCoupon}
-                              disabled={!coupon.trim() || applyCouponPending}
-                              className="absolute right-1 top-1 bottom-1 px-3 bg-purple-600 text-white rounded text-xs font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            >
-                              {applyCouponPending ? "..." : "Apply"}
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-3">
-                                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                                  <svg
-                                    className="w-3 h-3 text-white"
-                                    fill="currentColor"
-                                    viewBox="0 0 8 8"
-                                  >
-                                    <path d="M6.564.75l-3.59 3.612-1.538-1.55L0 4.26 2.974 7.25 8 2.193z" />
-                                  </svg>
-                                </div>
-                                <div>
-                                  <div className="text-sm font-medium text-green-800">
-                                    Coupon "{appliedCoupon.code}" applied
-                                  </div>
-                                  <div className="text-sm text-green-600">
-                                    You saved ₦
-                                    {formatNumberWithCommas(
-                                      appliedCoupon.discount,
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
+                    {token ? (
+                      <div className="mb-6">
+                        {!appliedCoupon ? (
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700 mb-2 block">
+                              Have a coupon code?
+                            </label>
+                            <div className="relative">
+                              <input
+                                type="text"
+                                value={coupon}
+                                onChange={(e) => setCoupon(e.target.value)}
+                                placeholder="Enter coupon code"
+                                className="w-full px-3 py-2 pr-20 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              />
                               <button
-                                onClick={handleRemoveCoupon}
-                                className="text-sm text-red-600 hover:text-red-800 font-medium px-2 py-1 hover:bg-red-50 rounded transition-colors"
+                                onClick={handleApplyCoupon}
+                                disabled={!coupon.trim() || applyCouponPending}
+                                className="absolute right-1 top-1 bottom-1 px-3 bg-purple-600 text-white rounded text-xs font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                               >
-                                Remove
+                                {applyCouponPending ? "..." : "Apply"}
                               </button>
                             </div>
                           </div>
+                        ) : (
+                          <div className="space-y-3">
+                            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                    <svg
+                                      className="w-3 h-3 text-white"
+                                      fill="currentColor"
+                                      viewBox="0 0 8 8"
+                                    >
+                                      <path d="M6.564.75l-3.59 3.612-1.538-1.55L0 4.26 2.974 7.25 8 2.193z" />
+                                    </svg>
+                                  </div>
+                                  <div>
+                                    <div className="text-sm font-medium text-green-800">
+                                      Coupon "{appliedCoupon.code}" applied
+                                    </div>
+                                    <div className="text-sm text-green-600">
+                                      You saved ₦
+                                      {formatNumberWithCommas(
+                                        appliedCoupon.discount,
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={handleRemoveCoupon}
+                                  className="text-sm text-red-600 hover:text-red-800 font-medium px-2 py-1 hover:bg-red-50 rounded transition-colors"
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="mb-6">
+                        <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg shadow-sm">
+                          <svg
+                            className="w-6 h-6 text-yellow-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z"
+                            />
+                          </svg>
+                          <div>
+                            <div className="font-semibold text-yellow-800 text-base">
+                              Login Required to Use Coupons
+                            </div>
+                          </div>
                         </div>
-                      )}
-                    </div>
+                        <div className="mt-4 flex justify-center">
+                          <Link
+                            to={`/login`}
+                            className="inline-block bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-lg font-semibold shadow hover:from-purple-700 hover:to-pink-700 transition-all duration-200"
+                          >
+                            Login to Use Coupon
+                          </Link>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Summary Details */}
                     <div className="space-y-4 mb-6">
@@ -1143,18 +1115,22 @@ const CartPage = () => {
                           {formatPrice(totals.subtotal)}
                         </span>
                       </div>
-                      <div className="flex justify-between text-sm text-gray-600">
-                        <span>Delivery Fee</span>
-                        <span className="text-green-600 font-semibold">
-                          {deliveryLoading ? (
-                            <span className="text-gray-400">Loading...</span>
-                          ) : deliveryError ? (
-                            <span className="text-red-500">UPDATE ADDRESS</span>
-                          ) : (
-                            formatPrice(delivery_fee)
-                          )}
-                        </span>
-                      </div>
+                      {token && (
+                        <div className="flex justify-between text-sm text-gray-600">
+                          <span>Delivery Fee</span>
+                          <span className="text-green-600 font-semibold">
+                            {deliveryLoading ? (
+                              <span className="text-gray-400">Loading...</span>
+                            ) : deliveryError ? (
+                              <span className="text-red-500">
+                                UPDATE ADDRESS
+                              </span>
+                            ) : (
+                              formatPrice(delivery_fee)
+                            )}
+                          </span>
+                        </div>
+                      )}
                       <div className="flex justify-between text-sm text-gray-600">
                         <span>VAT (7.5%)</span>
                         <span className="text-green-600 font-semibold">
@@ -1204,65 +1180,56 @@ const CartPage = () => {
                     </div>
 
                     {/* Checkout Button */}
-                    {deliveryError ? (
-                      <button
-                        onClick={() => {
-                          // Redirect to address update page
-                          window.open(`/${currentUrl}/settings`, "_blank");
-                        }}
-                        className="w-full cursor-pointer py-4 px-2 bg-purple-500 text-white hover:bg-purple-600 transition rounded-xl font-bold text-md shadow-lg flex items-center justify-center gap-2"
-                      >
-                        {/* Info/Warning/Alert Icon */}
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="w-5 h-5 text-yellow-300"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
+                    {token ? (
+                      deliveryError ? (
+                        <button
+                          onClick={() => {
+                            // Redirect to address update page
+                            window.open(`/${currentUrl}/settings`, "_blank");
+                          }}
+                          className="w-full cursor-pointer py-4 px-2 bg-purple-500 text-white hover:bg-purple-600 transition rounded-xl font-bold text-md shadow-lg flex items-center justify-center gap-2"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 9v2m0 4h.01M12 5a7 7 0 100 14 7 7 0 000-14z"
-                          />
-                        </svg>
-                        Update Address to Proceed
-                      </button>
+                          {/* Info/Warning/Alert Icon */}
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="w-5 h-5 text-yellow-300"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 9v2m0 4h.01M12 5a7 7 0 100 14 7 7 0 000-14z"
+                            />
+                          </svg>
+                          Update Address to Proceed
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setShowConfirmationModal(true);
+                          }}
+                          disabled={
+                            !agreedToPolicy ||
+                            createPaymentPending ||
+                            billingPending
+                          }
+                          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-xl font-bold text-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-105"
+                        >
+                          {createPaymentPending || billingPending
+                            ? "Processing..."
+                            : "Proceed to Checkout"}
+                        </button>
+                      )
                     ) : (
-                      <button
-                        onClick={() => {
-                          console.log("🛒 User initiated checkout process");
-                          console.log("📊 Checkout initiation data:", {
-                            total_items: items.length,
-                            subtotal: totals.subtotal,
-                            delivery_fee: delivery_fee,
-                            vat_amount: estimatedVat,
-                            final_total: finalTotal,
-                            has_coupon: !!appliedCoupon,
-                            coupon_code: appliedCoupon?.code,
-                            discount_amount: discountAmount,
-                            user_email: carybinUser?.email,
-                            policy_agreed: agreedToPolicy,
-                            user_profile_address: getProfileAddress(),
-                            timestamp: new Date().toISOString(),
-                          });
-                          console.log(
-                            "🚀 Opening review modal with profile address",
-                          );
-                          setShowConfirmationModal(true);
-                        }}
-                        disabled={
-                          !agreedToPolicy ||
-                          createPaymentPending ||
-                          billingPending
-                        }
-                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-xl font-bold text-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-105"
+                      <Link
+                        to="/login"
+                        className="w-full block bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-xl font-bold text-lg text-center hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg"
                       >
-                        {createPaymentPending || billingPending
-                          ? "Processing..."
-                          : "Proceed to Checkout"}
-                      </button>
+                        Login to Checkout
+                      </Link>
                     )}
 
                     {/* Continue Shopping */}

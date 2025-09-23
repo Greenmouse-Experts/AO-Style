@@ -2,13 +2,14 @@ import { useQuery } from "@tanstack/react-query";
 import AnnouncementService from "../../services/api/announcement/index";
 import AuthService from "../../services/api/auth";
 
-const useGetAnnouncementsWithProfile = (role) => {
+const useGetAnnouncementsWithProfile = (role, status) => {
   // First, fetch the user profile
   const {
     data: profileData,
     isLoading: profileLoading,
     error: profileError,
     isSuccess: profileSuccess,
+    refetch: refetchProfile,
   } = useQuery({
     queryKey: ["user-profile"],
     queryFn: async () => {
@@ -22,23 +23,31 @@ const useGetAnnouncementsWithProfile = (role) => {
       }
     },
     refetchOnWindowFocus: false,
-    staleTime: 10 * 60 * 1000, // 10 minutes - profile data doesn't change often
+    staleTime: 10 * 60 * 1000, // 10 minutes
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
-  // Then, fetch announcements with created_at as query parameter
+  // Then, fetch announcements with created_at and status as query parameters
   const announcementsQuery = useQuery({
-    queryKey: ["announcements-with-profile", role, profileData?.created_at],
+    queryKey: [
+      "announcements-with-profile",
+      role,
+      status, // Include status in query key
+      profileData?.created_at,
+    ],
     queryFn: async () => {
       console.log("Fetching announcements for role:", role);
       console.log("Using created_at:", profileData?.created_at);
+      console.log("Using status:", status);
 
       try {
+        // Pass parameters in correct order: role, createdAt, status
         const response =
           await AnnouncementService.getAnnouncementsWithTimestamp(
             role,
             profileData?.created_at,
+            status, // Pass status parameter
           );
         console.log("Announcements API Response:", response);
         return response;
@@ -75,10 +84,10 @@ const useGetAnnouncementsWithProfile = (role) => {
     isAnnouncementsLoading: announcementsQuery.isLoading,
 
     // Refetch functions
-    refetchProfile: profileData?.refetch,
+    refetchProfile,
     refetchAnnouncements: announcementsQuery.refetch,
     refetchAll: () => {
-      profileData?.refetch?.();
+      refetchProfile();
       announcementsQuery.refetch();
     },
   };

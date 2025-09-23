@@ -5,7 +5,7 @@ const sendAnnouncement = (payload) => {
   return CaryBinApi.post(`/announcements/send`, payload);
 };
 
-const getAnnouncements = (role) => {
+const getAnnouncements = (role, status = null) => {
   // Use the correct endpoint for announcements by role
   let endpoint = "/announcements/user/fetch";
   if (role === "fabric-vendor") endpoint = "/announcements/fabric-vendor/fetch";
@@ -16,8 +16,11 @@ const getAnnouncements = (role) => {
   else if (role === "market-representative")
     endpoint = "/announcements/market-representative/fetch";
 
-  console.log("AnnouncementService.getAnnouncements - Role:", role);
-  console.log("AnnouncementService.getAnnouncements - Endpoint:", endpoint);
+  // Add status query parameter if provided
+  if (status) {
+    endpoint += `?status=${status}`;
+  }
+
   return CaryBinApi.get(endpoint)
     .then((response) => {
       console.log("AnnouncementService.getAnnouncements - Response:", response);
@@ -58,7 +61,13 @@ const getAnnouncementById = (id) => {
   return CaryBinApi.get(`/announcements/${id}`);
 };
 
-const getAnnouncementsWithTimestamp = (role, createdAt) => {
+const markAnnouncementAsRead = (id) => {
+  console.log("AnnouncementService.getAnnouncementById - ID:", id);
+  return CaryBinApi.patch(`/announcements/mark-as-read/${id}`);
+};
+
+// Fixed service function - corrected parameter order and status handling
+const getAnnouncementsWithTimestamp = (role, createdAt, status) => {
   // Use the correct endpoint for announcements by role
   let endpoint = "/announcements/user/fetch";
   if (role === "fabric-vendor") endpoint = "/announcements/user/fetch";
@@ -67,24 +76,13 @@ const getAnnouncementsWithTimestamp = (role, createdAt) => {
   else if (role === "market-representative")
     endpoint = "/announcements/user/fetch";
 
-  // Add created_at as query parameter if provided
-  const queryParam = createdAt
-    ? `?startDate=${encodeURIComponent(createdAt)}`
-    : "";
-  const fullEndpoint = `${endpoint}${queryParam}`;
+  // Build query parameters for createdAt and status
+  const params = [];
+  if (createdAt) params.push(`startDate=${encodeURIComponent(createdAt)}`);
+  if (status) params.push(`status=${encodeURIComponent(status)}`);
 
-  console.log(
-    "AnnouncementService.getAnnouncementsWithTimestamp - Role:",
-    role,
-  );
-  console.log(
-    "AnnouncementService.getAnnouncementsWithTimestamp - Created At:",
-    createdAt,
-  );
-  console.log(
-    "AnnouncementService.getAnnouncementsWithTimestamp - Endpoint:",
-    fullEndpoint,
-  );
+  const queryString = params.length > 0 ? `?${params.join("&")}` : "";
+  const fullEndpoint = `${endpoint}${queryString}`;
 
   return CaryBinApi.get(fullEndpoint)
     .then((response) => {
@@ -109,6 +107,7 @@ const AnnouncementService = {
   getAdminAnnouncements,
   getAnnouncementById,
   getAnnouncementsWithTimestamp,
+  markAnnouncementAsRead,
 };
 
 export default AnnouncementService;

@@ -5,72 +5,78 @@ import {
   FaClock,
   FaEye,
   FaArrowLeft,
-  FaStore,
+  FaCheckCircle,
 } from "react-icons/fa";
 import dayjs from "dayjs";
 import useGetAnnouncementsWithProfile from "../../../hooks/announcement/useGetAnnouncementsWithProfile";
 import useToast from "../../../hooks/useToast";
+import useMarkAnnouncementAsRead from "../../../hooks/announcement/useMarkAnnouncementAsRead";
+import { ref } from "yup";
 
 const MarketRepAnnouncements = () => {
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
-  const { toastError } = useToast();
+  const { toastSuccess, toastError } = useToast();
 
-  // Fetch announcements for fabric vendor role with user profile integration
+  // Fetch announcements for customer role with user profile integration
   const {
     data: announcementsData,
     isLoading,
     error,
-    refetch: refetchAll,
+    refetchAll: refetchAll,
     profileData,
     isProfileLoading,
     isAnnouncementsLoading,
-  } = useGetAnnouncementsWithProfile("market-representative");
+  } = useGetAnnouncementsWithProfile("user", "all");
 
-  // Console log the full response to understand the structure
-  console.log(
-    "Fabric Vendor Announcements - Full Response:",
-    announcementsData,
-  );
-  console.log("Fabric Vendor Announcements - Is Loading:", isLoading);
-  console.log("Fabric Vendor Announcements - Error:", error);
-  console.log("Fabric Vendor Announcements - Profile Data:", profileData);
-  console.log(
-    "Fabric Vendor Announcements - Profile Created At:",
-    profileData?.created_at,
-  );
-  console.log("Fabric Vendor Announcements - Data:", announcementsData?.data);
-  console.log(
-    "Fabric Vendor Announcements - Nested Data:",
-    announcementsData?.data?.data,
-  );
+  // Mark as read mutation
+  const markAsReadMutation = useMarkAnnouncementAsRead();
 
-  // Try different possible data structures
+  // Extract announcements from different possible data structures
   let announcements = [];
   if (announcementsData) {
     if (Array.isArray(announcementsData)) {
       announcements = announcementsData;
-      console.log("Using direct array:", announcementsData);
     } else if (
       announcementsData.data &&
       Array.isArray(announcementsData.data)
     ) {
       announcements = announcementsData.data;
-      console.log("Using data array:", announcementsData.data);
     } else if (
       announcementsData.data?.data &&
       Array.isArray(announcementsData.data.data)
     ) {
       announcements = announcementsData.data.data;
-      console.log("Using nested data array:", announcementsData.data.data);
-    } else {
-      console.log("No valid array found in response");
     }
   }
 
-  console.log("Final announcements array:", announcements);
+  // Helper: check if announcement is read
+  const isAnnouncementRead = (announcement) => {
+    return announcement.read === true || announcement.is_read === true;
+  };
 
+  // Mark as read handler
+  const handleMarkAsRead = async (announcement) => {
+    if (isAnnouncementRead(announcement)) return;
+
+    try {
+      await markAsReadMutation.mutateAsync(announcement.id);
+      toastSuccess("Announcement marked as read!");
+      refetchAll();
+    } catch (error) {
+      console.error("Failed to mark announcement as read:", error);
+      toastError(
+        error?.response?.data?.message ||
+          "Failed to mark announcement as read. Please try again.",
+      );
+    }
+  };
+
+  // When opening an announcement, mark as read if not already
   const handleAnnouncementClick = (announcement) => {
     setSelectedAnnouncement(announcement);
+    if (!isAnnouncementRead(announcement)) {
+      handleMarkAsRead(announcement);
+    }
   };
 
   const handleBackToList = () => {
@@ -91,6 +97,14 @@ const MarketRepAnnouncements = () => {
     } catch {
       return "Invalid Time";
     }
+  };
+
+  // Check if a specific announcement is being marked as read
+  const isMarkingAsRead = (announcementId) => {
+    return (
+      markAsReadMutation.isPending &&
+      markAsReadMutation.variables === announcementId
+    );
   };
 
   if (error) {
@@ -122,6 +136,9 @@ const MarketRepAnnouncements = () => {
 
   // Single Announcement View
   if (selectedAnnouncement) {
+    const read = isAnnouncementRead(selectedAnnouncement);
+    const isMarking = isMarkingAsRead(selectedAnnouncement.id);
+
     return (
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-4xl mx-auto">
@@ -138,14 +155,41 @@ const MarketRepAnnouncements = () => {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             {/* Header */}
             <div className="bg-gradient-to-r from-purple-600 to-pink-400 p-6 text-white">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="p-2 bg-white/20 rounded-lg">
-                  <FaStore className="h-6 w-6" />
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <FaBullhorn className="h-6 w-6" />
+                  </div>
+                  <span className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full">
+                    Customer Announcement
+                  </span>
                 </div>
-                <span className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full">
-                  Market Rep Announcement
-                </span>
+
+                {read ? (
+                  <span className="flex items-center text-green-200 text-sm font-semibold">
+                    <FaCheckCircle className="mr-2" /> Read
+                  </span>
+                ) : (
+                  <button
+                    className="cursor-pointer px-4 py-2 bg-white/20 rounded-lg text-sm font-semibold text-white hover:bg-white/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isMarking}
+                    onClick={() => handleMarkAsRead(selectedAnnouncement)}
+                  >
+                    {isMarking ? (
+                      <span className="flex items-center">
+                        <span className="animate-spin mr-2 h-4 w-4 border-b-2 border-white rounded-full"></span>
+                        Marking as Read...
+                      </span>
+                    ) : (
+                      <span className="flex items-center">
+                        <FaCheckCircle className="mr-2" />
+                        Mark as Read
+                      </span>
+                    )}
+                  </button>
+                )}
               </div>
+
               <h1 className="text-2xl font-bold mb-2">
                 {selectedAnnouncement.subject}
               </h1>
@@ -164,7 +208,7 @@ const MarketRepAnnouncements = () => {
             {/* Content */}
             <div className="p-6">
               <div className="prose max-w-none">
-                <p className="text-gray-700 leading-relaxed text-lg">
+                <p className="text-gray-700 leading-relaxed text-lg whitespace-pre-wrap">
                   {selectedAnnouncement.message}
                 </p>
               </div>
@@ -188,7 +232,7 @@ const MarketRepAnnouncements = () => {
             <h1 className="text-3xl font-bold text-gray-900">Announcements</h1>
           </div>
           <p className="text-gray-600">
-            Quick updates and news for market reps.
+            Stay updated with the latest news and important information.
           </p>
         </div>
 
@@ -242,7 +286,7 @@ const MarketRepAnnouncements = () => {
         {!isLoading && announcements.length === 0 && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
             <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-              <FaStore className="h-8 w-8 text-gray-400" />
+              <FaBullhorn className="h-8 w-8 text-gray-400" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               No Announcements Yet
@@ -257,53 +301,101 @@ const MarketRepAnnouncements = () => {
         {/* Announcements Grid */}
         {!isLoading && announcements.length > 0 && (
           <div className="space-y-4">
-            {announcements.map((announcement) => (
-              <div
-                key={announcement.id}
-                className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer group"
-                onClick={() => handleAnnouncementClick(announcement)}
-              >
-                <div className="flex items-start space-x-4">
-                  {/* Icon */}
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                      <FaStore className="h-6 w-6 text-white" />
+            {announcements.map((announcement) => {
+              const read = isAnnouncementRead(announcement);
+              const isMarking = isMarkingAsRead(announcement.id);
+
+              return (
+                <div
+                  key={announcement.id}
+                  className={`bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-all cursor-pointer group relative ${
+                    read ? "opacity-75" : ""
+                  }`}
+                  onClick={() => handleAnnouncementClick(announcement)}
+                >
+                  <div className="flex items-start space-x-4">
+                    {/* Icon */}
+                    <div className="flex-shrink-0">
+                      <div
+                        className={`w-12 h-12 ${
+                          read
+                            ? "bg-gray-400"
+                            : "bg-gradient-to-br from-purple-500 to-pink-500"
+                        } rounded-lg flex items-center justify-center`}
+                      >
+                        <FaBullhorn className="h-6 w-6 text-white" />
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3
+                            className={`text-lg font-semibold ${
+                              read ? "text-gray-600" : "text-gray-900"
+                            } group-hover:text-purple-600 transition-colors`}
+                          >
+                            {announcement.subject}
+                          </h3>
+                          <div className="flex items-center space-x-4 mt-1 mb-3">
+                            <div className="flex items-center space-x-1 text-sm text-gray-500">
+                              <FaCalendarAlt className="h-3 w-3" />
+                              <span>{formatDate(announcement.created_at)}</span>
+                            </div>
+                            <div className="flex items-center space-x-1 text-sm text-gray-500">
+                              <FaClock className="h-3 w-3" />
+                              <span>{formatTime(announcement.created_at)}</span>
+                            </div>
+                          </div>
+                          <p className="text-gray-600 line-clamp-2">
+                            {announcement.message}
+                          </p>
+                        </div>
+
+                        {/* Read Status and Actions */}
+                        <div className="flex-shrink-0 ml-4 flex flex-col items-end">
+                          {!read && (
+                            <button
+                              className="cursor-pointer flex items-center px-3 py-1 bg-purple-50 text-purple-600 rounded-lg text-sm font-semibold hover:bg-purple-100 transition-colors mb-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                              disabled={isMarking}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMarkAsRead(announcement);
+                              }}
+                            >
+                              {isMarking ? (
+                                <span className="flex items-center">
+                                  <span className="animate-spin mr-1 h-3 w-3 border-b-2 border-purple-600 rounded-full"></span>
+                                  Marking...
+                                </span>
+                              ) : (
+                                <>
+                                  <FaCheckCircle className="mr-1" />
+                                  Mark as Read
+                                </>
+                              )}
+                            </button>
+                          )}
+
+                          <div className="p-2 text-gray-400 group-hover:text-purple-600 group-hover:bg-purple-50 rounded-lg transition-colors">
+                            <FaEye className="h-4 w-4" />
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
-                          {announcement.subject}
-                        </h3>
-                        <div className="flex items-center space-x-4 mt-1 mb-3">
-                          <div className="flex items-center space-x-1 text-sm text-gray-500">
-                            <FaCalendarAlt className="h-3 w-3" />
-                            <span>{formatDate(announcement.created_at)}</span>
-                          </div>
-                          <div className="flex items-center space-x-1 text-sm text-gray-500">
-                            <FaClock className="h-3 w-3" />
-                            <span>{formatTime(announcement.created_at)}</span>
-                          </div>
-                        </div>
-                        <p className="text-gray-600 line-clamp-2">
-                          {announcement.message}
-                        </p>
-                      </div>
-
-                      {/* Read More Button */}
-                      <div className="flex-shrink-0 ml-4">
-                        <div className="p-2 text-gray-400 group-hover:text-purple-600 group-hover:bg-purple-50 rounded-lg transition-colors">
-                          <FaEye className="h-4 w-4" />
-                        </div>
-                      </div>
+                  {/* Single Read Badge - Only show when read */}
+                  {read && (
+                    <div className="absolute top-3 right-3 bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs font-semibold flex items-center">
+                      <FaCheckCircle className="mr-1 h-3 w-3" />
+                      Read
                     </div>
-                  </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

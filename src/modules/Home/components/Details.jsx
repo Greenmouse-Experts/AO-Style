@@ -226,7 +226,7 @@ export default function MarketplaceSection() {
         <div className="flex flex-col md:flex-row md:justify-between md:items-center text-left mb-6">
           <div>
             <h2 className="text-2xl font-medium max-w-md leading-relaxed">
-              Pick a style to sew your fabri
+              Pick a style to sew your Fabric
             </h2>
           </div>
           <div className="relative w-full max-w-md">

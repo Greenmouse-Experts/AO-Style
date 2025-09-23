@@ -139,15 +139,6 @@ const CartPage = () => {
         ? `fabric_${fabricId}_style_${styleId}`
         : `fabric_${fabricId}_no_style`;
 
-      console.log(`🔍 Item ${index + 1}:`, {
-        fabricId,
-        styleId,
-        combinationKey,
-        hasStyle: !!styleId,
-        itemName: item.product?.name,
-        styleName: item.style_product?.name,
-      });
-
       // Check if this combination already exists
       if (itemCombinations.has(combinationKey)) {
         const existingItem = itemCombinations.get(combinationKey);
@@ -183,13 +174,6 @@ const CartPage = () => {
           combinationKey,
         });
       }
-    });
-
-    console.log("🔍 Duplicate check results:", {
-      totalItems: items.length,
-      uniqueCombinations: itemCombinations.size,
-      duplicatesFound: duplicates.length,
-      duplicateDetails: duplicates,
     });
 
     return {
@@ -305,7 +289,9 @@ const CartPage = () => {
       const fabricPrice = parseFloat(
         item.price_at_time || item.product?.price || item?.price || 0,
       );
-      const stylePrice = parseFloat(item.style_product?.price || 0);
+      const stylePrice = parseFloat(
+        item.style_product?.price || item?.style_price || 0,
+      );
       const measurementCount = item?.measurement?.length || 0;
       const quantity = parseInt(item.quantity || 1);
       const itemTotal = fabricPrice * quantity + stylePrice * measurementCount;
@@ -395,27 +381,72 @@ const CartPage = () => {
   // Handle item removal
   const handleRemoveItem = (itemId) => {
     console.log("🛒 Removing item:", itemId);
-    deleteCartMutate(
-      {
-        id: itemId,
-      },
-      {
-        onSuccess: () => {
-          console.log("🗑️ Item deleted successfully, refetching cart...");
-          refetchCart();
-          setIsDeleteModalOpen(false);
-          setItemToDelete(null);
-          // Clear any stale states
-          setAppliedCoupon(null);
-          setCoupon("");
-          console.log("🧹 Cleared coupon and stale states after item deletion");
+    // If token exists, use API to delete
+    if (token) {
+      deleteCartMutate(
+        {
+          id: itemId,
         },
-        onError: (error) => {
-          toastError("Failed to remove item");
-          console.error("Delete error:", error);
+        {
+          onSuccess: () => {
+            console.log("🗑️ Item deleted successfully, refetching cart...");
+            refetchCart();
+            setIsDeleteModalOpen(false);
+            setItemToDelete(null);
+            // Clear any stale states
+            setAppliedCoupon(null);
+            setCoupon("");
+            console.log(
+              "🧹 Cleared coupon and stale states after item deletion",
+            );
+          },
+          onError: (error) => {
+            toastError("Failed to remove item");
+            console.error("Delete error:", error);
+          },
         },
-      },
-    );
+      );
+    } else {
+      // No token: Remove from localStorage "pending_fabric_data"
+      const pendingFabricData = localStorage.getItem("pending_fabric_data");
+      if (pendingFabricData) {
+        try {
+          const cartObj = JSON.parse(pendingFabricData);
+          if (Array.isArray(cartObj.items)) {
+            // Find index of item with matching id
+            const index = cartObj.items.findIndex((item) => item.id === itemId);
+            if (index !== -1) {
+              cartObj.items.splice(index, 1);
+              // Save updated cart back to localStorage
+              localStorage.setItem(
+                "pending_fabric_data",
+                JSON.stringify(cartObj),
+              );
+              setIsDeleteModalOpen(false);
+              setItemToDelete(null);
+              setAppliedCoupon(null);
+              setCoupon("");
+              // Optionally, force a re-render by triggering a state update
+              // refetchCart && refetchCart();
+              // toastSuccess && toastSuccess("Item removed from cart.");
+              console.log("🗑️ Item removed from localStorage cart:", itemId);
+            } else {
+              toastError("Item not found in cart.");
+              console.error("Item not found in localStorage cart:", itemId);
+            }
+          } else {
+            toastError("Cart data is invalid.");
+            console.error("Cart items is not an array in localStorage.");
+          }
+        } catch (e) {
+          toastError("Failed to update cart in localStorage.");
+          console.error("Failed to parse or update pending_fabric_data:", e);
+        }
+      } else {
+        toastError("No cart data found.");
+        console.error("No pending_fabric_data found in localStorage.");
+      }
+    }
   };
 
   // Handle coupon application

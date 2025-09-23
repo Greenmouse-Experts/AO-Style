@@ -7,23 +7,36 @@ import UpcomingDelivery from "./components/UpcomingDelivery";
 import ExpensesChart from "./components/ExpensesChart";
 import useGetCustomerRecentOrdersStat from "../../../hooks/analytics/useGetCustomerRecentOrders";
 import useGetCustomerSingleOrder from "../../../hooks/order/useGetCustomerSingleOrder";
-export default function CustomerDashboard() {
-  const {
-    isPending,
-    isLoading,
-    isError,
-    data: customerRecentOrderStat,
-  } = useGetCustomerRecentOrdersStat();
-  console.log("gotten it alredy", customerRecentOrderStat);
-  const {
-    isPending: getUserIsPending,
-    data,
-    isErrororderId: getUserIsError,
-    error,
-    data: orderData,
-  } = useGetCustomerSingleOrder(customerRecentOrderStat?.data[0]?.id);
+import useAddMultipleCart from "../../../hooks/cart/useAddMultipleCart";
+import { useState, useEffect } from "react";
 
-  if (isPending) return;
+export default function CustomerDashboard() {
+  const { addMultipleCartMutate } = useAddMultipleCart();
+  const [pendingFabricCartData] = useState(
+    localStorage.getItem("pending_fabric_data")
+      ? JSON.parse(localStorage.getItem("pending_fabric_data"))
+      : [],
+  );
+
+  const { isPending, data: customerRecentOrderStat } =
+    useGetCustomerRecentOrdersStat();
+
+  // Only fetch order data if customerRecentOrderStat is available
+  const orderId = customerRecentOrderStat?.data?.[0]?.id;
+  useGetCustomerSingleOrder(orderId);
+
+  useEffect(() => {
+    if (localStorage.getItem("pending_fabric_data")) {
+      addMultipleCartMutate(localStorage.getItem("pending_fabric_data"), {
+        onSuccess: (data) => {
+          console.log("Added to cart successfully:", data);
+          localStorage.removeItem("pending_fabric_data");
+        },
+      });
+    }
+  }, [pendingFabricCartData, addMultipleCartMutate]);
+
+  if (isPending) return null;
   return (
     <div className="max-w-full overflow-hidden">
       {/* Main Header and Stats Section */}

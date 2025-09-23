@@ -12,7 +12,7 @@ const useAddMultipleCart = () => {
     mutationFn: (payload) => CartService.addMultipleCartProduct(payload),
     mutationKey: ["addmultiple-cart"],
     onSuccess(data) {
-      //   toastSuccess(data?.data?.message);
+      // toastSuccess(data?.data?.message);
       queryClient.invalidateQueries({
         queryKey: ["get-cart"],
       });
@@ -24,9 +24,9 @@ const useAddMultipleCart = () => {
       }
 
       if (Array.isArray(error?.data?.message)) {
-        toastError(error?.data?.message[0]);
+        // toastError(error?.data?.message[0]);
       } else {
-        toastError(error?.data?.message);
+        // toastError(error?.data?.message);
       }
     },
   });

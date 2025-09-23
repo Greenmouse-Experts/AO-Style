@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Bell, Menu, ShoppingCart } from "lucide-react";
+import { FaBullhorn } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import useToast from "../../../hooks/useToast";
 import Cookies from "js-cookie";
@@ -7,11 +8,11 @@ import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useSessionManager from "../../../hooks/useSessionManager";
 import useGetNotification from "../../../hooks/notification/useGetNotification";
 import useGetCart from "../../../hooks/cart/useGetCart";
+import useGetAnnouncementsWithProfile from "../../../hooks/announcement/useGetAnnouncementsWithProfile";
 
 export default function Navbar({ toggleSidebar }) {
   const { toastSuccess } = useToast();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const navigate = useNavigate();
@@ -24,6 +25,39 @@ export default function Navbar({ toggleSidebar }) {
   const cartData = cartResponse?.data;
   const items = cartData?.items || [];
   const cartCount = items.length;
+
+  const { data: unreadAnnouncementsData } = useGetAnnouncementsWithProfile(
+    "user",
+    "unread",
+  );
+
+  console.log("Unread Announcements Data:", unreadAnnouncementsData);
+  // Extract unread announcements count
+  let unreadAnnouncementsCount = 0;
+  if (unreadAnnouncementsData) {
+    let announcementsArray = [];
+    if (Array.isArray(unreadAnnouncementsData)) {
+      announcementsArray = unreadAnnouncementsData;
+    } else if (
+      unreadAnnouncementsData.data &&
+      Array.isArray(unreadAnnouncementsData.data)
+    ) {
+      announcementsArray = unreadAnnouncementsData.data;
+    } else if (
+      unreadAnnouncementsData.data?.data &&
+      Array.isArray(unreadAnnouncementsData.data.data)
+    ) {
+      announcementsArray = unreadAnnouncementsData.data.data;
+    }
+    if (announcementsArray.length > 0) {
+      unreadAnnouncementsCount = announcementsArray.filter(
+        (announcement) => !announcement.read,
+      ).length;
+    } else if (unreadAnnouncementsData.count) {
+      unreadAnnouncementsCount = unreadAnnouncementsData.count;
+    }
+  }
+
   const handleSignOut = () => {
     toastSuccess("Logout Successfully");
     logOut();
@@ -40,7 +74,6 @@ export default function Navbar({ toggleSidebar }) {
 
   return (
     <div>
-      {" "}
       <nav className="bg-white shadow-md p-6 flex items-center justify-between">
         {/* Sidebar Toggle Button (Only on Mobile) */}
         <button
@@ -56,32 +89,44 @@ export default function Navbar({ toggleSidebar }) {
           and View Notifications
         </h1>
 
-        {/* Right: Notification & Profile */}
+        {/* Right: Cart, Announcements, Notifications & Profile */}
         <div className="flex items-center space-x-6">
+          {/* Cart */}
           <Link
             to="/view-cart"
             className="relative bg-purple-100 p-2 rounded-full"
           >
             <ShoppingCart size={20} className="text-purple-600" />
-            {cartCount > 0 ? (
+            {cartCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
                 {cartCount}
               </span>
-            ) : (
-              <></>
             )}
           </Link>
+
+          {/* Announcements */}
+          <Link
+            to="/customer/announcements"
+            className="relative bg-purple-100 p-2 rounded-full"
+          >
+            <FaBullhorn size={20} className="text-purple-600" />
+            {unreadAnnouncementsCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                {unreadAnnouncementsCount}
+              </span>
+            )}
+          </Link>
+
+          {/* Notifications */}
           <Link
             to="/customer/notifications"
             className="relative bg-purple-100 p-2 rounded-full"
           >
             <Bell size={20} className="text-purple-600" />
-            {unreadNotificationsCount > 0 ? (
+            {unreadNotificationsCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
                 {unreadNotificationsCount}
               </span>
-            ) : (
-              <></>
             )}
           </Link>
 
@@ -95,25 +140,19 @@ export default function Navbar({ toggleSidebar }) {
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               />
             ) : (
-              <>
-                {" "}
-                <div
-                  role="button"
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="w-8 h-8 cursor-pointer rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white"
-                >
-                  {carybinUser?.name?.charAt(0).toUpperCase() || "?"}
-                </div>
-              </>
+              <div
+                role="button"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="w-8 h-8 cursor-pointer rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white"
+              >
+                {carybinUser?.name?.charAt(0).toUpperCase() || "?"}
+              </div>
             )}
 
             {/* Dropdown */}
             {isDropdownOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg z-50">
                 <ul className="py-2">
-                  {/* <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                  Profile
-                </li> */}
                   <Link
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     to="/customer/settings"
@@ -127,7 +166,7 @@ export default function Navbar({ toggleSidebar }) {
                       setIsAddModalOpen(true);
                       setIsDropdownOpen(!isDropdownOpen);
                     }}
-                    className="px-4 py-2 hover:bg-gray-100 text-red-500 cursor-pointer"
+                    className="px-4 py-2 hover:bg-gray-100 text-red-500 cursor-pointer w-full text-left"
                   >
                     Logout
                   </button>
@@ -137,6 +176,8 @@ export default function Navbar({ toggleSidebar }) {
           </div>
         </div>
       </nav>
+
+      {/* Logout Modal */}
       {isAddModalOpen && (
         <div
           className="fixed inset-0 flex justify-center items-center z-[9999] backdrop-blur-sm"
@@ -160,7 +201,6 @@ export default function Navbar({ toggleSidebar }) {
               </button>
             </div>
             <div className="max-h-[80vh] overflow-y-auto px-1">
-              {" "}
               <label className="block text-sm font-medium text-gray-700 mb-4">
                 Are you sure you want to logout
               </label>

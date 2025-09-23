@@ -17,14 +17,16 @@ const CartItemWithBreakdown = ({
   );
 
   const measurementCount = getMeasurementCount
-    ? getMeasurementCount(item.measurement)
+    ? getMeasurementCount(item.measurement || item?.measurements)
     : Array.isArray(item.measurement)
       ? item.measurement.length
       : item.measurement
         ? 1
         : 0;
 
-  const stylePrice = parseFloat(item.style_product?.price || 0);
+  const stylePrice = parseFloat(
+    item.style_product?.price || item?.style_price || 0,
+  );
   const quantity = parseInt(item.quantity || 1);
   const fabricTotal = fabricPrice * quantity;
   const itemTotal = fabricTotal + stylePrice * measurementCount;
@@ -35,7 +37,15 @@ const CartItemWithBreakdown = ({
   ("/default-product.png");
 
   // Get style image
-  const styleImage = item.style_product?.style?.photos?.[0] || null;
+  // FIX: Show style image if available on style_product or style_product.style
+  const styleImage =
+    item.style_product?.photos?.[0] ||
+    item.style_product?.style?.photos?.[0] ||
+    null;
+
+  // DEBUG: Show all style data for troubleshooting
+  // (Remove after debugging if not needed)
+  // console.log("Style Product Data:", item.style_product);
 
   return (
     <>
@@ -90,9 +100,14 @@ const CartItemWithBreakdown = ({
               </button>
             </div>
           </div>
-
-          {/* Style Section */}
+          {/* Show style product data for debugging */}
           {item.style_product && (
+            <div className="text-xs text-gray-400 break-all mb-2">
+              <strong>Style Data:</strong> {JSON.stringify(item.style_product)}
+            </div>
+          )}
+          {/* Style Section */}
+          {(item.style_product || item.style_product_id) && (
             <>
               <div className="border-t border-gray-200 pt-3">
                 <div className="flex items-start gap-3">
@@ -113,7 +128,10 @@ const CartItemWithBreakdown = ({
                       </span>
                     </div>
                     <div className="font-semibold text-base text-gray-900">
-                      {item.style_product?.name || "Custom Style"}
+                      {/* Show more style info if available */}
+                      {item.style_product?.name ||
+                        item.style_product?.style?.name ||
+                        "Custom Style"}
                     </div>
                     <div className="text-sm text-gray-600 mt-1">
                       Measurements:{" "}
@@ -200,7 +218,7 @@ const CartItemWithBreakdown = ({
           </div>
 
           {/* Style Section */}
-          {item.style_product && (
+          {(item.style_product || item.style_product_id) && (
             <div className="border-t border-gray-200 mt-4 pt-4">
               <div className="grid grid-cols-12 gap-4">
                 {/* Style Image Column */}
@@ -225,8 +243,17 @@ const CartItemWithBreakdown = ({
                     </span>
                   </div>
                   <div className="font-semibold text-base text-gray-900 mb-1">
-                    {item.style_product?.name || "Custom Style"}
+                    {item.style_product?.name ||
+                      item.style_product?.style?.name ||
+                      "Custom Style"}
                   </div>
+                  {/* Show style product data for debugging */}
+                  {/* {item.style_product && (
+                    <div className="text-xs text-gray-400 break-all">
+                      <strong>Style Data:</strong>{" "}
+                      {JSON.stringify(item.style_product)}
+                    </div>
+                  )}*/}
                 </div>
 
                 {/* Measurements Column */}

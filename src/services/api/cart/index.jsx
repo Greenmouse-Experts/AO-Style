@@ -34,7 +34,6 @@ const addToCart = async (payload) => {
     throw error;
   }
 };
-
 /**
  * Get cart details with all items
  * @returns {Promise} API response with cart data

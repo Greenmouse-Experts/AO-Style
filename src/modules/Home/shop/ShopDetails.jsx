@@ -23,67 +23,6 @@ import { Tooltip } from "antd";
 import AuthenticatedProductReviews from "../../../components/reviews/AuthenticatedProductReviews";
 import CustomBackbtn from "../../../components/CustomBackBtn";
 
-const product = {
-  name: "Luxury Embellished Lace Fabrics",
-  price: "₦12,000",
-  image:
-    "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214549/AoStyle/image_exywgk.png",
-  images: [
-    "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214549/AoStyle/image_exywgk.png",
-    "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214605/AoStyle/image4_p4lpek.png",
-    "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214577/AoStyle/image2_dqzhpz.png",
-    "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214604/AoStyle/image3_ebun7q.png",
-  ],
-  tags: ["Red", "Silk", "New"],
-  colors: ["#c11c28", "#3b82f6", "#22c55e", "#facc15", "#a855f7"],
-  reviews: 5,
-};
-
-const relatedProducts = [
-  {
-    id: 1,
-    name: "Plaid Colourful Fabric",
-    price: "₦12,000",
-    image:
-      "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214605/AoStyle/image4_p4lpek.png",
-  },
-  {
-    id: 2,
-    name: "Yellow Cashmere",
-    price: "₦12,000",
-    image:
-      "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214577/AoStyle/image2_dqzhpz.png",
-  },
-  {
-    id: 3,
-    name: "100% Cotton Material",
-    price: "₦12,000",
-    image:
-      "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214577/AoStyle/image2_dqzhpz.png",
-  },
-  {
-    id: 4,
-    name: "Red Ankara Fabric",
-    price: "₦12,000",
-    image:
-      "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214549/AoStyle/image_exywgk.png",
-  },
-  {
-    id: 5,
-    name: "Red Ankara Fabric",
-    price: "₦12,000",
-    image:
-      "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214549/AoStyle/image_exywgk.png",
-  },
-  {
-    id: 6,
-    name: "Red Ankara Fabric",
-    price: "₦12,000",
-    image:
-      "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741214549/AoStyle/image_exywgk.png",
-  },
-];
-
 export default function ShopDetails() {
   const [mainImage, setMainImage] = useState("");
   const [tab, setTab] = useState("details");
@@ -113,23 +52,23 @@ export default function ShopDetails() {
     navigate(location.pathname, { replace: true });
   };
   // Debug logging for received data
-  console.log("🎨 ShopDetails Data Debug:", {
-    fromStyleFirst: fromStyleFirst,
-    hasStyleData: !!styleData,
-    hasMeasurementData: !!measurementData,
-    locationState: location?.state,
-    styleData: styleData,
-    styleDataId: styleData?.id,
-    styleDataStructure: styleData ? Object.keys(styleData) : null,
-    measurementData: measurementData,
-    measurementCount: Array.isArray(measurementData)
-      ? measurementData.length
-      : 0,
-    localStorage: {
-      selectedStyle: localStorage.getItem("selected_style"),
-      measurementData: localStorage.getItem("measurement_data"),
-    },
-  });
+  // console.log("🎨 ShopDetails Data Debug:", {
+  //   fromStyleFirst: fromStyleFirst,
+  //   hasStyleData: !!styleData,
+  //   hasMeasurementData: !!measurementData,
+  //   locationState: location?.state,
+  //   styleData: styleData,
+  //   styleDataId: styleData?.id,
+  //   styleDataStructure: styleData ? Object.keys(styleData) : null,
+  //   measurementData: measurementData,
+  //   measurementCount: Array.isArray(measurementData)
+  //     ? measurementData.length
+  //     : 0,
+  //   localStorage: {
+  //     selectedStyle: localStorage.getItem("selected_style"),
+  //     measurementData: localStorage.getItem("measurement_data"),
+  //   },
+  // });
 
   const productInfo = params.id;
 
@@ -142,58 +81,14 @@ export default function ShopDetails() {
     useSingleProductGeneral("FABRIC", productInfo);
 
   const productVal = getSingleProductData?.data;
-  console.log("productVal", productVal);
-  console.log("getSingleProduct Data", getSingleProductData);
-  // Console log the fetched product details
-  console.log(
-    "📦 ShopDetails: Raw product data from API:",
-    getSingleProductData,
-  );
-  console.log("📦 ShopDetails: Processed productVal:", productVal);
-  console.log("📦 ShopDetails: Product structure:", {
-    hasData: !!productVal,
-    productKeys: productVal ? Object.keys(productVal) : null,
-    fabricId: productVal?.fabric?.id,
-    productId: productVal?.product_id,
-    productData: productVal?.product,
-    fabricData: productVal?.fabric,
-  });
 
   // Log product data changes
   useEffect(() => {
     if (getSingleProductData) {
-      console.log("🔄 ShopDetails: Product data updated:", {
-        loading: productIsPending,
-        hasData: !!getSingleProductData,
-        dataStructure: getSingleProductData
-          ? Object.keys(getSingleProductData)
-          : null,
-        productVal: productVal,
-        productValKeys: productVal ? Object.keys(productVal) : null,
-      });
-
       // Specific logging for review product ID
       const correctProductId = productVal?.product_id;
-      console.log("⭐ ShopDetails: Review product ID analysis:", {
-        urlProductId: productInfo,
-        fabricId: productVal?.fabric?.id,
-        productId: productVal?.product_id,
-        productMainId: productVal?.id,
-        productProductId: productVal?.product?.id,
-        correctIdToUse: correctProductId,
-        reviewProductIdBeingPassed: correctProductId,
-        usingProductIdField: "productVal.product_id",
-      });
-      console.log(
-        "🎯 ShopDetails: USING CORRECT PRODUCT ID FOR REVIEWS:",
-        correctProductId,
-      );
     }
   }, [getSingleProductData, productVal, productIsPending]);
-
-  // useEffect(() => {
-  //   setQuantity(productVal?.minimum_yards);
-  // }, [productVal?.minimum_yards]);
 
   const incrementQty = () => {
     setQuantity((prev) => +prev + +productVal?.minimum_yards);
@@ -309,43 +204,62 @@ export default function ShopDetails() {
       measurementCount: measurementData?.length,
     });
 
-    // Check if user is logged in (token exists)
-    if (!token) {
-      // Redirect to login page
-      navigate("/login");
-      return;
-    }
-
     // Create combined payload with fabric, style, and measurements
     const combinedPayload = {
       ...fabricInfo,
       style_product_id: styleData?.id || styleData?.product_id,
       style_price: styleData?.price || 0,
-      measurement: measurementData,
+      measurements: measurementData,
     };
-
-    console.log("🔄 Adding fabric + style + measurements in single request:", {
-      combinedPayload: combinedPayload,
-      hasStyleProductId: !!combinedPayload.style_product_id,
-      hasMeasurement: !!combinedPayload.measurement,
-    });
-
-    console.log("💰 Style pricing details in ShopDetails:", {
-      stylePrice: styleData?.price,
-      stylePriceInPayload: combinedPayload.style_price,
-      styleId: combinedPayload.style_product_id,
-      fabricPrice: fabricInfo.price,
-      totalExpectedPrice: (fabricInfo.price || 0) + (styleData?.price || 0),
-    });
 
     // Validate required fields
     if (!combinedPayload.style_product_id) {
-      console.error("❌ Missing style_product_id:", {
-        styleData: styleData,
-        styleDataId: styleData?.id,
-        styleDataProductId: styleData?.product_id,
-      });
       setIsSuccessModalOpen(true);
+      setTimeout(() => {
+        setIsSuccessModalOpen(false);
+      }, 3000);
+      return;
+    }
+
+    // Check if user is logged in (token exists)
+    if (!token) {
+      // localStorage.clear("pending_fabric_data");
+      // Store in localStorage as pending_fabric_data (array of items)
+      const existing = localStorage.getItem("pending_fabric_data");
+      let items = [];
+      if (existing) {
+        try {
+          const parsed = JSON.parse(existing);
+          if (Array.isArray(parsed.items)) {
+            items = [...parsed.items];
+          } else if (Object.keys(parsed).length > 0) {
+            // If old format (single object), wrap it
+            items = [parsed];
+          }
+        } catch (e) {
+          // fallback: treat as single object
+          items = [];
+        }
+      }
+      // Check if item with same product_id and style_product_id already exists
+      const alreadyExists = items.some(
+        (item) =>
+          item.product_id === combinedPayload.product_id &&
+          item.style_product_id === combinedPayload.style_product_id,
+      );
+      if (alreadyExists) {
+        setIsCartSelectionModalOpen(false);
+        setExistingModal(true);
+        return;
+      }
+      items.push(combinedPayload);
+      localStorage.setItem("pending_fabric_data", JSON.stringify({ items }));
+      setIsCartSelectionModalOpen(false);
+      setIsSuccessModalOpen(true);
+      // Clear localStorage for selected_style and measurement_data after successful cart addition
+      localStorage.removeItem("selected_style");
+      localStorage.removeItem("measurement_data");
+      console.log(localStorage.getItem("pending_fabric_data"));
       setTimeout(() => {
         setIsSuccessModalOpen(false);
       }, 3000);

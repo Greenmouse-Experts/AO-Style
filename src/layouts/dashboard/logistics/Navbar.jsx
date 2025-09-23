@@ -6,6 +6,8 @@ import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import Cookies from "js-cookie";
 import useGetNotification from "../../../hooks/notification/useGetNotification";
 import useGetKyc from "../../../hooks/settings/useGetKyc";
+import useGetAnnouncementsWithProfile from "../../../hooks/announcement/useGetAnnouncementsWithProfile";
+import { FaBullhorn } from "react-icons/fa";
 
 export default function Navbar({ toggleSidebar }) {
   const { toastSuccess } = useToast();
@@ -19,7 +21,35 @@ export default function Navbar({ toggleSidebar }) {
   const navigate = useNavigate();
 
   const { carybinUser, logOut } = useCarybinUserStore();
+  const { data: unreadAnnouncementsData } = useGetAnnouncementsWithProfile(
+    "user",
+    "unread",
+  );
 
+  let unreadAnnouncementsCount = 0;
+  if (unreadAnnouncementsData) {
+    let announcementsArray = [];
+    if (Array.isArray(unreadAnnouncementsData)) {
+      announcementsArray = unreadAnnouncementsData;
+    } else if (
+      unreadAnnouncementsData.data &&
+      Array.isArray(unreadAnnouncementsData.data)
+    ) {
+      announcementsArray = unreadAnnouncementsData.data;
+    } else if (
+      unreadAnnouncementsData.data?.data &&
+      Array.isArray(unreadAnnouncementsData.data.data)
+    ) {
+      announcementsArray = unreadAnnouncementsData.data.data;
+    }
+    if (announcementsArray.length > 0) {
+      unreadAnnouncementsCount = announcementsArray.filter(
+        (announcement) => !announcement.read,
+      ).length;
+    } else if (unreadAnnouncementsData.count) {
+      unreadAnnouncementsCount = unreadAnnouncementsData.count;
+    }
+  }
   const handleSignOut = () => {
     toastSuccess("Logout Successfully");
     logOut();
@@ -65,7 +95,17 @@ export default function Navbar({ toggleSidebar }) {
                 <></>
               )}
             </Link>
-
+            <Link
+              to="/logistics/announcements"
+              className="relative bg-purple-100 p-2 rounded-full"
+            >
+              <FaBullhorn size={20} className="text-purple-600" />
+              {unreadAnnouncementsCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                  {unreadAnnouncementsCount}
+                </span>
+              )}
+            </Link>
             {/* Profile Section */}
             <div className="relative">
               {carybinUser?.profile?.profile_picture ? (

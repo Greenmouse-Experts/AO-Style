@@ -356,6 +356,7 @@ export default function AnkaraGownPage() {
             dress_length_unit: val?.bust_circumference_unit,
           },
         };
+
         setMeasurementArr((prev) => {
           if (currMeasurement?.id) {
             return prev.map((item) =>
@@ -372,9 +373,12 @@ export default function AnkaraGownPage() {
         resetForm();
         setSelectedTab("Upper Body");
 
-        // Handle fabric-first flow: if pending fabric exists, show modal
+        // ALWAYS show modal when measurements are complete AND fabric exists
         if (pendingFabric) {
-          setShowCartModal(true);
+          // Use setTimeout to ensure state updates are processed first
+          setTimeout(() => {
+            setShowCartModal(true);
+          }, 100);
         }
       } else {
         handleProceed();
@@ -402,14 +406,21 @@ export default function AnkaraGownPage() {
       measurement: measurementArr,
     };
 
-    console.log("🛒 Adding fabric + style to cart:", cartPayload);
-    console.log("💰 Style pricing details:", {
-      stylePrice: styleInfo?.price,
-      stylePriceInPayload: cartPayload.style_price,
-      styleId: cartPayload.style_product_id,
-      fabricPrice: pendingFabric.price,
-      totalExpectedPrice: (pendingFabric.price || 0) + (styleInfo?.price || 0),
-    });
+    if (!token) {
+      // Save both pendingFabric and measurementArr to localStorage
+      localStorage.setItem(
+        "pending_fabric",
+        JSON.stringify({
+          ...pendingFabric,
+          measurement: measurementArr,
+        }),
+      );
+      toastSuccess(
+        "Fabric and measurement saved! Please log in or sign up to continue.",
+      );
+      navigate("/login");
+      return;
+    }
 
     addCartMutate(cartPayload, {
       onSuccess: () => {
@@ -1399,7 +1410,7 @@ export default function AnkaraGownPage() {
                             : selectedTab === "Lower Body"
                               ? "Proceed to Full Body"
                               : pendingFabric
-                                ? "Add to Cart"
+                                ? "Complete & Review Order" // Changed text to be clearer
                                 : "Submit Measurements"}
                         </button>
                         {measurementsSubmitted && (
@@ -1522,7 +1533,7 @@ export default function AnkaraGownPage() {
         shouldShowModal:
           showCartModal && pendingFabric && measurementArr.length > 0,
       })}
-      {showCartModal && pendingFabric && measurementArr.length > 0 && (
+      {showCartModal && pendingFabric && (
         <div className="fixed inset-0 flex justify-center items-start z-[9999] bg-black/50 backdrop-blur-sm p-4 pt-20 overflow-y-auto">
           <style>
             {`
@@ -1685,7 +1696,7 @@ export default function AnkaraGownPage() {
                   </span>
                 </button>
                 <button
-                  onClick={setShowCartModal(false)}
+                  onClick={() => setShowCartModal(false)} // Fixed syntax
                   disabled={addCartPending}
                   className="w-full flex items-center justify-center space-x-2 px-6 py-4 text-black rounded-xl transition-all duration-200 cursor-pointer shadow-lg disabled:opacity-50 border border-gray-300"
                 >

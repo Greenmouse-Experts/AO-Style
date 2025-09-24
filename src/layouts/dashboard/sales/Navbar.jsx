@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bell, Menu } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import useToast from "../../../hooks/useToast";
@@ -20,10 +20,18 @@ export default function Navbar({ toggleSidebar }) {
   const navigate = useNavigate();
 
   const { carybinUser, logOut } = useCarybinUserStore();
-  const { data: unreadAnnouncementsData } = useGetAnnouncementsWithProfile(
-    "user",
-    "unread",
-  );
+  const { data: unreadAnnouncementsData, refetchAll } =
+    useGetAnnouncementsWithProfile("user", "unread");
+
+  // Refetch unread announcements every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (typeof refetchAll === "function") {
+        refetchAll();
+      }
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [refetchAll]);
 
   let unreadAnnouncementsCount = 0;
   if (unreadAnnouncementsData) {

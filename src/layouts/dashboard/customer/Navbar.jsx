@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bell, Menu, ShoppingCart } from "lucide-react";
 import { FaBullhorn } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
@@ -26,10 +26,18 @@ export default function Navbar({ toggleSidebar }) {
   const items = cartData?.items || [];
   const cartCount = items.length;
 
-  const { data: unreadAnnouncementsData } = useGetAnnouncementsWithProfile(
-    "user",
-    "unread",
-  );
+  const { data: unreadAnnouncementsData, refetchAll } =
+    useGetAnnouncementsWithProfile("user", "unread");
+
+  // Refetch unread announcements every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (typeof refetchAll === "function") {
+        refetchAll();
+      }
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [refetchAll]);
 
   console.log("Unread Announcements Data:", unreadAnnouncementsData);
   // Extract unread announcements count

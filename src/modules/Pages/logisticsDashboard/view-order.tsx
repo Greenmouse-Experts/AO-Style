@@ -310,19 +310,21 @@ export default function ViewOrderLogistics() {
     },
   });
 
+  // Accept mutation for both first and second leg
   const accept_mutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async ({ leg }: { leg: "first" | "second" }) => {
       const currentStatus = query.data?.data?.status;
-      const route =
-        currentStatus == "DISPATCHED_TO_AGENT"
-          ? `/orders/${id}/accept-order-first-leg`
-          : `/orders/${id}/accept-order`;
-
+      let route = "";
+      if (leg === "first") {
+        route = `/orders/${id}/accept-order-first-leg`;
+      } else {
+        route = `/orders/${id}/accept-order`;
+      }
       console.log("🚛 Accepting order:", {
         orderId: id,
         currentStatus,
         route,
-        isFirstLeg: currentStatus == "DISPATCHED_TO_AGENT",
+        leg,
       });
 
       let resp = await CaryBinApi.patch(route);
@@ -408,23 +410,7 @@ export default function ViewOrderLogistics() {
   }
 
   const order_data = query.data?.data;
-  const isAssigned =
-    order_data?.logistics_agent_id === userProfile?.id ||
-    order_data?.first_leg_logistics_agent_id === userProfile?.id;
   const currentStatus = order_data?.status;
-
-  // Debug logging
-  console.log("🔍 Order data debug:", {
-    order_data,
-    currentStatus,
-    logistics_agent_id: order_data?.logistics_agent_id,
-    first_leg_logistics_agent_id: order_data?.first_leg_logistics_agent_id,
-    userProfile_id: userProfile?.id,
-    isAssigned,
-    user_profile: order_data?.user?.profile,
-    order_items: order_data?.order_items,
-    payment: order_data?.payment,
-  });
 
   // Helper function to check if order has style items
   const hasStyleItems = () => {
@@ -444,6 +430,35 @@ export default function ViewOrderLogistics() {
   const isSecondLeg = secondLegStatuses.includes(currentStatus || "");
   const isInTransit = transitStatuses.includes(currentStatus || "");
   const isDelivered = currentStatus === "DELIVERED";
+
+  // Assignment logic
+  const isAssigned =
+    order_data?.logistics_agent_id === userProfile?.id ||
+    order_data?.first_leg_logistics_agent_id === userProfile?.id;
+
+  // Second leg assignment eligibility:
+  // If there is a first_leg_logistics_agent_id (someone did first leg), and
+  // there is NO logistics_agent_id (nobody has accepted second leg yet), and
+  // status is OUT_FOR_DELIVERY, and current user is NOT the first_leg_logistics_agent
+  const canAcceptSecondLeg =
+    !!order_data?.first_leg_logistics_agent_id &&
+    !order_data?.logistics_agent_id &&
+    currentStatus === "OUT_FOR_DELIVERY" &&
+    userProfile?.id !== order_data?.first_leg_logistics_agent_id;
+
+  // Debug logging
+  console.log("🔍 Order data debug:", {
+    order_data,
+    currentStatus,
+    logistics_agent_id: order_data?.logistics_agent_id,
+    first_leg_logistics_agent_id: order_data?.first_leg_logistics_agent_id,
+    userProfile_id: userProfile?.id,
+    isAssigned,
+    canAcceptSecondLeg,
+    user_profile: order_data?.user?.profile,
+    order_items: order_data?.order_items,
+    payment: order_data?.payment,
+  });
 
   // Status flow based on order type
   const getStatusInfo = () => {
@@ -592,8 +607,10 @@ export default function ViewOrderLogistics() {
                   Assignment Status
                 </h3>
 
+                {/* First leg assignment */}
                 {!order_data?.logistics_agent_id &&
-                !order_data?.first_leg_logistics_agent_id ? (
+                !order_data?.first_leg_logistics_agent_id &&
+                !canAcceptSecondLeg ? (
                   <div className="space-y-4">
                     <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
                       <p className="text-amber-800 text-sm font-medium">
@@ -601,9 +618,43 @@ export default function ViewOrderLogistics() {
                       </p>
                     </div>
                     <button
-                      onClick={() => accept_mutation.mutate()}
+                      onClick={() =>
+                        accept_mutation.mutate({
+                          leg:
+                            order_data?.status === "OUT_FOR_DELIVERY"
+                              ? "second"
+                              : "first",
+                        })
+                      }
                       disabled={accept_mutation.isPending}
-                      className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                      className="cursor-pointer w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                    >
+                      {accept_mutation.isPending ? (
+                        <div className="flex items-center justify-center">
+                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                          Accepting...
+                        </div>
+                      ) : order_data?.status === "OUT_FOR_DELIVERY" ? (
+                        "Accept Order"
+                      ) : (
+                        "Accept Order"
+                      )}
+                    </button>
+                  </div>
+                ) : null}
+
+                {/* Second leg assignment */}
+                {canAcceptSecondLeg && (
+                  <div className="space-y-4">
+                    <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+                      <p className="text-indigo-800 text-sm font-medium">
+                        🚚 Second leg available for assignment
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => accept_mutation.mutate({ leg: "second" })}
+                      disabled={accept_mutation.isPending}
+                      className="w-full px-4 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-lg font-medium hover:from-orange-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                     >
                       {accept_mutation.isPending ? (
                         <div className="flex items-center justify-center">
@@ -611,11 +662,14 @@ export default function ViewOrderLogistics() {
                           Accepting...
                         </div>
                       ) : (
-                        "Accept Order"
+                        "Accept Order (Second Leg)"
                       )}
                     </button>
                   </div>
-                ) : isAssigned ? (
+                )}
+
+                {/* Already assigned to me */}
+                {isAssigned && !canAcceptSecondLeg && (
                   <div className="space-y-4">
                     <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                       <p className="text-green-800 text-sm font-medium">
@@ -677,138 +731,155 @@ export default function ViewOrderLogistics() {
                       </div>
                     )}
                   </div>
-                ) : (
-                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                    <p className="text-gray-600 text-sm">
-                      👤 Assigned to:{" "}
-                      {order_data?.logistics_agent?.name || "Another agent"}
-                    </p>
-                  </div>
                 )}
+
+                {/* Assigned to someone else */}
+                {!isAssigned &&
+                  !canAcceptSecondLeg &&
+                  (order_data?.logistics_agent_id ||
+                    order_data?.first_leg_logistics_agent_id) && (
+                    <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                      <p className="text-gray-600 text-sm">
+                        👤 Assigned to:{" "}
+                        {order_data?.logistics_agent?.name || "Another agent"}
+                      </p>
+                    </div>
+                  )}
               </div>
 
               {/* Delivery Progress */}
-              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-                <h3 className="text-lg font-semibold mb-4 flex items-center">
-                  <Route className="w-5 h-5 mr-2 text-purple-600" />
-                  Delivery Progress
-                </h3>
+              {!isInTransit && (
+                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center">
+                    <Route className="w-5 h-5 mr-2 text-purple-600" />
+                    Delivery Progress
+                  </h3>
 
-                <div className="space-y-4">
-                  {/* Delivery Progress Logic */}
-                  {hasStyleItems() ? (
-                    <>
-                      {/* First Leg: Vendor → Tailor */}
-                      <div className="flex items-center space-x-3">
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            [
+                  <div className="space-y-4">
+                    {/* Delivery Progress Logic */}
+                    {hasStyleItems() ? (
+                      <>
+                        {/* First Leg: Vendor → Tailor */}
+                        <div className="flex items-center space-x-3">
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                              [
+                                "DELIVERED_TO_TAILOR",
+                                "OUT_FOR_DELIVERY",
+                                "SHIPPED",
+                                "IN_TRANSIT",
+                                "DELIVERED",
+                              ].includes(currentStatus || "")
+                                ? "bg-green-100 text-green-600"
+                                : currentStatus === "DISPATCHED_TO_AGENT"
+                                  ? "bg-blue-100 text-blue-600"
+                                  : "bg-gray-100 text-gray-400"
+                            }`}
+                          >
+                            {[
+                              "DISPATCHED_TO_AGENT",
                               "DELIVERED_TO_TAILOR",
+                              "PROCESSING",
                               "OUT_FOR_DELIVERY",
                               "SHIPPED",
                               "IN_TRANSIT",
                               "DELIVERED",
-                            ].includes(currentStatus || "")
-                              ? "bg-green-100 text-green-600"
-                              : currentStatus === "DISPATCHED_TO_AGENT"
-                                ? "bg-blue-100 text-blue-600"
-                                : "bg-gray-100 text-gray-400"
-                          }`}
-                        >
-                          {[
-                            "DISPATCHED_TO_AGENT",
-                            "DELIVERED_TO_TAILOR",
-                            "PROCESSING",
-                            "OUT_FOR_DELIVERY",
-                            "SHIPPED",
-                            "IN_TRANSIT",
-                            "DELIVERED",
-                          ].includes(currentStatus || "") ? (
-                            <CheckCircle className="w-4 h-4" />
-                          ) : (
-                            <span className="text-xs font-bold">1</span>
-                          )}
+                            ].includes(currentStatus || "") ? (
+                              <CheckCircle className="w-4 h-4" />
+                            ) : (
+                              <span className="text-xs font-bold">1</span>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900">
+                              First Leg
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              Vendor → Tailor
+                            </p>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-900">First Leg</p>
-                          <p className="text-sm text-gray-600">
-                            Vendor → Tailor
-                          </p>
-                        </div>
-                      </div>
-                      {/* Second Leg: Tailor → Customer */}
-                      {/*<div className="flex items-center space-x-3">
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            currentStatus === "DELIVERED"
-                              ? "bg-green-100 text-green-600"
-                              : [
-                                    "DELIVERED_TO_TAILOR",
-                                    "OUT_FOR_DELIVERY",
-                                    "SHIPPED",
-                                    "IN_TRANSIT",
-                                  ].includes(currentStatus || "")
-                                ? "bg-purple-100 text-purple-600"
-                                : "bg-gray-100 text-gray-400"
-                          }`}
-                        >
-                          {currentStatus === "DELIVERED" ? (
-                            <CheckCircle className="w-4 h-4" />
-                          ) : (
-                            <span className="text-xs font-bold">2</span>
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-900">
-                            Second Leg
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Tailor → Customer
-                          </p>
-                        </div>
-                      </div>*/}
-                    </>
-                  ) : (
-                    <>
-                      {/* Only Leg: Vendor → Customer */}
-                      <div className="flex items-center space-x-3">
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            [
+                        {/* Second Leg: Tailor → Customer */}
+                        {canAcceptSecondLeg &&
+                          (currentStatus === "OUT_FOR_DELIVERY" ||
+                          currentStatus === "SHIPPED" ||
+                          currentStatus === "IN_TRANSIT" ||
+                          currentStatus === "DELIVERED" ? (
+                            <div className="flex items-center space-x-3">
+                              <div
+                                className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                  currentStatus === "DELIVERED"
+                                    ? "bg-green-100 text-green-600"
+                                    : [
+                                          "OUT_FOR_DELIVERY",
+                                          "SHIPPED",
+                                          "IN_TRANSIT",
+                                        ].includes(currentStatus || "")
+                                      ? "bg-purple-100 text-purple-600"
+                                      : "bg-gray-100 text-gray-400"
+                                }`}
+                              >
+                                {currentStatus === "DELIVERED" ? (
+                                  <CheckCircle className="w-4 h-4" />
+                                ) : (
+                                  <span className="text-xs font-bold">2</span>
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-medium text-gray-900">
+                                  Second Leg
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  Tailor → Customer
+                                </p>
+                              </div>
+                            </div>
+                          ) : null)}
+                      </>
+                    ) : (
+                      <>
+                        {/* Only Leg: Vendor → Customer */}
+                        <div className="flex items-center space-x-3">
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                              [
+                                "OUT_FOR_DELIVERY",
+                                "SHIPPED",
+                                "IN_TRANSIT",
+                                "DELIVERED",
+                              ].includes(currentStatus || "")
+                                ? "bg-green-100 text-green-600"
+                                : currentStatus === "DISPATCHED_TO_AGENT"
+                                  ? "bg-blue-100 text-blue-600"
+                                  : "bg-gray-100 text-gray-400"
+                            }`}
+                          >
+                            {[
+                              "DISPATCHED_TO_AGENT",
                               "OUT_FOR_DELIVERY",
                               "SHIPPED",
                               "IN_TRANSIT",
                               "DELIVERED",
-                            ].includes(currentStatus || "")
-                              ? "bg-green-100 text-green-600"
-                              : currentStatus === "DISPATCHED_TO_AGENT"
-                                ? "bg-blue-100 text-blue-600"
-                                : "bg-gray-100 text-gray-400"
-                          }`}
-                        >
-                          {[
-                            "DISPATCHED_TO_AGENT",
-                            "OUT_FOR_DELIVERY",
-                            "SHIPPED",
-                            "IN_TRANSIT",
-                            "DELIVERED",
-                          ].includes(currentStatus || "") ? (
-                            <CheckCircle className="w-4 h-4" />
-                          ) : (
-                            <span className="text-xs font-bold">1</span>
-                          )}
+                            ].includes(currentStatus || "") ? (
+                              <CheckCircle className="w-4 h-4" />
+                            ) : (
+                              <span className="text-xs font-bold">1</span>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900">
+                              Delivery
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              Vendor → Customer
+                            </p>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-900">Delivery</p>
-                          <p className="text-sm text-gray-600">
-                            Vendor → Customer
-                          </p>
-                        </div>
-                      </div>
-                    </>
-                  )}
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Quick Actions */}
               <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">

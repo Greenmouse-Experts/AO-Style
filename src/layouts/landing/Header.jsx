@@ -1,5 +1,5 @@
 import Inject from "./Inject";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Cookies from "js-cookie";
 import { Link } from "react-router-dom";
 import {
@@ -28,6 +28,7 @@ export default function Navbar() {
   const menuRef = useRef(null);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [localStorageCartCount, setLocalStorageCartCount] = useState(0);
 
   const { carybinUser, logOut } = useCarybinUserStore();
 
@@ -39,12 +40,79 @@ export default function Navbar() {
 
   const { data: cartResponse, isPending } = useGetCart();
 
-  // Get cart data from API response
+  // Get cart data from API response (when user is logged in)
   const cartData = cartResponse?.data;
   const items = cartData?.items || [];
-  const cartCount = items.length;
+  const apiCartCount = items.length;
 
-  console.log("🛒 Header Cart Count:", cartCount, "Items:", items);
+  // Function to get localStorage cart count
+  const getLocalStorageCartCount = () => {
+    try {
+      const pendingFabricData = localStorage.getItem("pending_fabric_data");
+      if (pendingFabricData) {
+        const parsedData = JSON.parse(pendingFabricData);
+        return parsedData.items ? parsedData.items.length : 0;
+      }
+      return 0;
+    } catch (error) {
+      console.error("Error parsing localStorage cart data:", error);
+      return 0;
+    }
+  };
+
+  // Update localStorage cart count when component mounts or when localStorage changes
+  useEffect(() => {
+    if (!token) {
+      const count = getLocalStorageCartCount();
+      setLocalStorageCartCount(count);
+    }
+  }, [token]);
+
+  // Listen for localStorage changes and poll for updates
+  useEffect(() => {
+    if (!token) {
+      const handleStorageChange = () => {
+        const count = getLocalStorageCartCount();
+        setLocalStorageCartCount(count);
+      };
+
+      // Listen for storage events (cross-tab)
+      window.addEventListener("storage", handleStorageChange);
+
+      // Custom event for same-tab localStorage updates
+      window.addEventListener("localStorageCartUpdate", handleStorageChange);
+
+      // Poll for localStorage changes every 500ms when no token (for immediate updates)
+      const pollInterval = setInterval(() => {
+        const currentCount = getLocalStorageCartCount();
+        setLocalStorageCartCount((prevCount) => {
+          if (prevCount !== currentCount) {
+            return currentCount;
+          }
+          return prevCount;
+        });
+      }, 500);
+
+      return () => {
+        window.removeEventListener("storage", handleStorageChange);
+        window.removeEventListener(
+          "localStorageCartUpdate",
+          handleStorageChange,
+        );
+        clearInterval(pollInterval);
+      };
+    }
+  }, [token]);
+
+  // Determine which cart count to use
+  const cartCount = token ? apiCartCount : localStorageCartCount;
+
+  console.log(
+    "🛒 Header Cart Count:",
+    cartCount,
+    token ? "API Items:" : "LocalStorage Items:",
+    token ? items : "localStorage",
+  );
 
   const handleSignOut = () => {
     toastSuccess("Logout Successfully");
@@ -200,7 +268,7 @@ export default function Navbar() {
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
                                   strokeWidth={2}
-                                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013-3v1"
+                                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                                 />
                               </svg>
                             </div>

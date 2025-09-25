@@ -19,22 +19,61 @@ export default function Navbar({ toggleSidebar }) {
 
   const { carybinUser, logOut } = useCarybinUserStore();
   const { clearAuthData } = useSessionManager();
+
+  // Check if user is authenticated (has token)
+  const token = Cookies.get("token");
+
   const {
     data: cartResponse,
     isPending: isCartPending,
     refetch: refetchCart,
   } = useGetCart();
 
-  // Get cart data from API response
-  const cartData = cartResponse?.data;
-  const items = cartData?.items || [];
-  const cartCount = items.length;
+  // Calculate cart count based on authentication status
+  const getCartCount = () => {
+    if (token) {
+      // User is logged in - use API cart data
+      const cartData = cartResponse?.data;
+      const items = cartData?.items || [];
+      return items.length;
+    } else {
+      // User is not logged in - use localStorage pending fabric data
+      try {
+        const pendingFabricData = localStorage.getItem("pending_fabric_data");
+        console.log(
+          "Pending Fabric Data from localStorage:",
+          pendingFabricData,
+        );
+        if (pendingFabricData) {
+          const parsedData = JSON.parse(pendingFabricData);
+          // Check if it has an items array
+          if (parsedData && Array.isArray(parsedData.items)) {
+            return parsedData.items.length;
+          }
+          // If it's directly an array
+          if (Array.isArray(parsedData)) {
+            return parsedData.length;
+          }
+        }
+      } catch (error) {
+        console.error(
+          "Error parsing pending_fabric_data from localStorage:",
+          error,
+        );
+      }
+      return 0;
+    }
+  };
+
+  const cartCount = getCartCount();
 
   const { data: unreadAnnouncementsData, refetchAll } =
     useGetAnnouncementsWithProfile("user", "unread");
 
-  // Refetch unread announcements every 30 seconds
+  // Refetch unread announcements every 30 seconds (only if authenticated)
   useEffect(() => {
+    if (!token) return;
+
     const interval = setInterval(() => {
       if (
         typeof refetchAll === "function" &&
@@ -45,12 +84,42 @@ export default function Navbar({ toggleSidebar }) {
       }
     }, 10000);
     return () => clearInterval(interval);
-  }, [refetchAll]);
+  }, [refetchAll, refetchCart, token]);
+
+  // Listen for localStorage changes to update cart count in real-time
+  useEffect(() => {
+    if (!token) {
+      const handleStorageChange = (e) => {
+        if (e.key === "pending_fabric_data") {
+          // Force re-render by updating a state or triggering component update
+          // This will cause getCartCount to be called again
+          setIsDropdownOpen((prev) => prev); // Trigger re-render without changing state
+        }
+      };
+
+      window.addEventListener("storage", handleStorageChange);
+
+      // Also listen for custom events in case localStorage is updated in the same tab
+      const handleCustomStorageChange = () => {
+        setIsDropdownOpen((prev) => prev); // Trigger re-render
+      };
+
+      window.addEventListener("localStorageUpdated", handleCustomStorageChange);
+
+      return () => {
+        window.removeEventListener("storage", handleStorageChange);
+        window.removeEventListener(
+          "localStorageUpdated",
+          handleCustomStorageChange,
+        );
+      };
+    }
+  }, [token]);
 
   console.log("Unread Announcements Data:", unreadAnnouncementsData);
-  // Extract unread announcements count
+  // Extract unread announcements count (only if authenticated)
   let unreadAnnouncementsCount = 0;
-  if (unreadAnnouncementsData) {
+  if (token && unreadAnnouncementsData) {
     let announcementsArray = [];
     if (Array.isArray(unreadAnnouncementsData)) {
       announcementsArray = unreadAnnouncementsData;
@@ -86,7 +155,7 @@ export default function Navbar({ toggleSidebar }) {
     read: false,
   });
 
-  const unreadNotificationsCount = data?.count || 0;
+  const unreadNotificationsCount = token ? data?.count || 0 : 0;
 
   return (
     <div>
@@ -101,13 +170,14 @@ export default function Navbar({ toggleSidebar }) {
 
         {/* Page Title */}
         <h1 className="text-base font-bold text-gray-700 lg:ml-4">
-          Welcome to Your Customer Dashboard – Manage Orders, Track Deliveries,
-          and View Notifications
+          {token
+            ? "Welcome to Your Customer Dashboard – Manage Orders, Track Deliveries, and View Notifications"
+            : "Welcome to Carybin – Browse Products and Add to Cart"}
         </h1>
 
         {/* Right: Cart, Announcements, Notifications & Profile */}
         <div className="flex items-center space-x-6">
-          {/* Cart */}
+          {/* Cart - Always visible */}
           <Link
             to="/view-cart"
             className="relative bg-purple-100 p-2 rounded-full"
@@ -120,81 +190,103 @@ export default function Navbar({ toggleSidebar }) {
             )}
           </Link>
 
-          {/* Announcements */}
-          <Link
-            to="/customer/announcements"
-            className="relative bg-purple-100 p-2 rounded-full"
-          >
-            <FaBullhorn size={20} className="text-purple-600" />
-            {unreadAnnouncementsCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                {unreadAnnouncementsCount}
-              </span>
-            )}
-          </Link>
+          {/* Announcements - Only show if authenticated */}
+          {token && (
+            <Link
+              to="/customer/announcements"
+              className="relative bg-purple-100 p-2 rounded-full"
+            >
+              <FaBullhorn size={20} className="text-purple-600" />
+              {unreadAnnouncementsCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                  {unreadAnnouncementsCount}
+                </span>
+              )}
+            </Link>
+          )}
 
-          {/* Notifications */}
-          <Link
-            to="/customer/notifications"
-            className="relative bg-purple-100 p-2 rounded-full"
-          >
-            <Bell size={20} className="text-purple-600" />
-            {unreadNotificationsCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                {unreadNotificationsCount}
-              </span>
-            )}
-          </Link>
+          {/* Notifications - Only show if authenticated */}
+          {token && (
+            <Link
+              to="/customer/notifications"
+              className="relative bg-purple-100 p-2 rounded-full"
+            >
+              <Bell size={20} className="text-purple-600" />
+              {unreadNotificationsCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                  {unreadNotificationsCount}
+                </span>
+              )}
+            </Link>
+          )}
 
-          {/* Profile Section */}
-          <div className="relative">
-            {carybinUser?.profile?.profile_picture ? (
-              <img
-                src={carybinUser?.profile?.profile_picture}
-                alt="User"
-                className="w-8 h-8 rounded-full cursor-pointer"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              />
-            ) : (
-              <div
-                role="button"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="w-8 h-8 cursor-pointer rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white"
+          {/* Profile Section - Show different content based on auth status */}
+          {token ? (
+            <div className="relative">
+              {carybinUser?.profile?.profile_picture ? (
+                <img
+                  src={carybinUser?.profile?.profile_picture}
+                  alt="User"
+                  className="w-8 h-8 rounded-full cursor-pointer"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                />
+              ) : (
+                <div
+                  role="button"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="w-8 h-8 cursor-pointer rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white"
+                >
+                  {carybinUser?.name?.charAt(0).toUpperCase() || "?"}
+                </div>
+              )}
+
+              {/* Dropdown */}
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg z-50">
+                  <ul className="py-2">
+                    <Link
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      to="/customer/settings"
+                    >
+                      <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                        Settings
+                      </li>
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setIsAddModalOpen(true);
+                        setIsDropdownOpen(!isDropdownOpen);
+                      }}
+                      className="px-4 py-2 hover:bg-gray-100 text-red-500 cursor-pointer w-full text-left"
+                    >
+                      Logout
+                    </button>
+                  </ul>
+                </div>
+              )}
+            </div>
+          ) : (
+            // Show login button for non-authenticated users
+            <div className="flex items-center space-x-3">
+              <Link
+                to="/login"
+                className="px-4 py-2 text-purple-600 hover:text-purple-700 font-medium transition-colors"
               >
-                {carybinUser?.name?.charAt(0).toUpperCase() || "?"}
-              </div>
-            )}
-
-            {/* Dropdown */}
-            {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg z-50">
-                <ul className="py-2">
-                  <Link
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    to="/customer/settings"
-                  >
-                    <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                      Settings
-                    </li>
-                  </Link>
-                  <button
-                    onClick={() => {
-                      setIsAddModalOpen(true);
-                      setIsDropdownOpen(!isDropdownOpen);
-                    }}
-                    className="px-4 py-2 hover:bg-gray-100 text-red-500 cursor-pointer w-full text-left"
-                  >
-                    Logout
-                  </button>
-                </ul>
-              </div>
-            )}
-          </div>
+                Login
+              </Link>
+              <Link
+                to="/register"
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors"
+              >
+                Sign Up
+              </Link>
+            </div>
+          )}
         </div>
       </nav>
 
-      {/* Logout Modal */}
-      {isAddModalOpen && (
+      {/* Logout Modal - Only show if authenticated */}
+      {token && isAddModalOpen && (
         <div
           className="fixed inset-0 flex justify-center items-center z-[9999] backdrop-blur-sm"
           onClick={() => {

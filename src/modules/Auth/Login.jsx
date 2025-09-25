@@ -239,7 +239,7 @@ export default function SignInCustomer() {
         </div>
         <h2 className="text-2xl font-medium text-black mb-4">Login</h2>
         <p className="text-gray-500 text-sm mb-6">
-          Enter your credentials to access your account
+          Enter your credentials to access your account.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">

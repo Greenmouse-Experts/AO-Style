@@ -36,7 +36,7 @@ import CartItemStyle from "./components/CartItemStyle";
 import CartItemStyleDesktop from "./components/CartItemStyleDesktop";
 import CartItemWithBreakdown from "./components/CartItemWithBreakdown";
 import CustomBackbtn from "../../components/CustomBackBtn";
-
+import useAddMultipleCart from "../../hooks/cart/useAddMultipleCart";
 const initialValues = {
   address: "",
   city: "",
@@ -63,6 +63,47 @@ const CartPage = () => {
     isPending: cartLoading,
     refetch: refetchCart,
   } = useGetCart();
+
+  const { addMultipleCartMutate } = useAddMultipleCart();
+
+  // --- REWRITE: Only send pending_fabric_data if token exists and cart is not yet loaded ---
+  // We'll use a flag to ensure we only send once, and only if cart is empty (to avoid double add)
+  const [pendingFabricSent, setPendingFabricSent] = useState(false);
+
+  useEffect(() => {
+    // Only run if user is logged in, cart is loaded, and we haven't sent yet
+    if (
+      token &&
+      !pendingFabricSent &&
+      !cartLoading &&
+      cartResponse &&
+      Array.isArray(cartResponse.data.items)
+    ) {
+      const pendingData = localStorage.getItem("pending_fabric_data");
+      if (pendingData) {
+        addMultipleCartMutate(pendingData, {
+          onSuccess: (data) => {
+            toastSuccess("Added to cart successfully");
+            console.log("Added to cart successfully:", data);
+            localStorage.removeItem("pending_fabric_data");
+            setPendingFabricSent(true);
+            refetchCart();
+          },
+        });
+      }
+    }
+  }, [
+    token,
+    pendingFabricSent,
+    cartLoading,
+    cartResponse,
+    addMultipleCartMutate,
+    refetchCart,
+    // toastSuccess is a stable callback from useToast
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  ]);
+
+  // --- END REWRITE ---
 
   console.log("cartResponse", cartResponse);
   const { deleteCartMutate, isPending: deleteIsPending } = useDeleteCart();

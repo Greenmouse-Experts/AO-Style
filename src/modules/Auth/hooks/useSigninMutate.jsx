@@ -100,21 +100,31 @@ const useSignIn = (email, resendCodeMutate) => {
           Cookies.set("currUserUrl", "logistics");
         }
         if (data?.data?.data?.role === "user") {
-          navigate(redirectPath ?? "/customer", {
-            state: { info: parsedProduct },
-            replace: true,
-          });
-          Cookies.set("currUserUrl", "customer");
-        }
-        if (data?.data?.data?.role === "market-representative") {
+          const pendingFabricStorage = localStorage.getItem(
+            "pending_fabric_data",
+          );
+          if (pendingFabricStorage) {
+            navigate("/view-cart", {
+              state: { info: parsedProduct },
+              replace: true,
+            });
+            Cookies.set("currUserUrl", "customer");
+          } else {
+            navigate(redirectPath ?? "/customer", {
+              state: { info: parsedProduct },
+              replace: true,
+            });
+            Cookies.set("currUserUrl", "customer");
+          }
+        } else if (data?.data?.data?.role === "market-representative") {
           navigate(redirectPath ?? "/sales", {
             state: { info: parsedProduct },
             replace: true,
           });
           Cookies.set("currUserUrl", "sales");
+        } else {
+          navigate("/admin/login");
         }
-      } else {
-        navigate("/admin/login");
       }
     },
     onError: (error) => {

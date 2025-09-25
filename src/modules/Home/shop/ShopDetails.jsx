@@ -120,7 +120,7 @@ export default function ShopDetails() {
       product_id: productVal?.product_id,
       product_type: "FABRIC",
       quantity: +quantity,
-      color: selectedColor,
+      metadata: selectedColor,
       // Add customer_name from measurements if available
       customer_name: measurementData?.[0]?.customer_name || "Customer",
       // Add display info for style selection page

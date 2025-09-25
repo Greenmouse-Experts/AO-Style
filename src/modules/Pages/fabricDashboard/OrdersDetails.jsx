@@ -751,11 +751,37 @@ const OrderDetails = () => {
                           <span className="text-gray-500 font-medium">
                             Color:
                           </span>
-                          <p className="text-gray-900">
-                            {item?.product?.fabric_colors ||
-                              item?.color ||
-                              "Default"}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            {/* Show color swatch if color code is present */}
+                            {(() => {
+                              const colorCode =
+                                orderInfo?.payment?.metadata[0]?.color ||
+                                item?.color ||
+                                "";
+                              // Check if it's a valid hex color (e.g. #1f262a)
+                              const isHex =
+                                typeof colorCode === "string" &&
+                                /^#([0-9A-Fa-f]{3}){1,2}$/.test(colorCode);
+                              return isHex ? (
+                                <>
+                                  <span
+                                    className="inline-block w-7 h-5 rounded-md border border-gray-200"
+                                    style={{
+                                      backgroundColor: colorCode,
+                                    }}
+                                    title={colorCode}
+                                  ></span>
+                                  {/* <span className="text-gray-900">
+                                    {colorCode}
+                                  </span>*/}
+                                </>
+                              ) : (
+                                <span className="text-gray-900">
+                                  {colorCode || "Default"}
+                                </span>
+                              );
+                            })()}
+                          </div>
                         </div>
                         <div>
                           <span className="text-gray-500 font-medium">

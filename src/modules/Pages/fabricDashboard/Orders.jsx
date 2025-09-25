@@ -553,7 +553,7 @@ const OrderPage = () => {
             return {
               ...details,
               id: details?.id,
-              orderId: `${details?.id ? details.id.replace(/-/g, "").slice(0, 12).toUpperCase() : ""}`,
+              orderId: `${details?.payment?.id ? details?.payment?.id.replace(/-/g, "").slice(0, 12).toUpperCase() : ""}`,
               productId: firstItem?.product_id || firstItem?.id,
               customer:
                 details?.user?.email?.split("@")[0] ||

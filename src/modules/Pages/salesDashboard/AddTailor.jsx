@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Eye, EyeOff, Upload } from "lucide-react";
 import { Link } from "react-router-dom";
-
+import CustomBackbtn from "../../../components/CustomBackBtn";
 export default function AddFabricVendorPage() {
   const [step, setStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
@@ -27,6 +27,8 @@ export default function AddFabricVendorPage() {
 
   return (
     <div className="">
+      {/* Header Section */}
+      <CustomBackbtn />
       <div className="bg-white px-6 py-4 mb-6 relative">
         <h1 className="text-2xl font-medium mb-3">
           Add Tailor/Fashion Designers

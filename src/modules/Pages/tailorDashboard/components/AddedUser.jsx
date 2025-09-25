@@ -16,7 +16,7 @@ const NewOrders = () => {
     isError,
     data: vendorRecentOrder,
   } = useGetVendorRecentOrder();
-
+  console.log("vendorRecentOrder", vendorRecentOrder);
   // Table Columns
   const columns = useMemo(
     () => [
@@ -86,7 +86,7 @@ const NewOrders = () => {
               ...details,
               orderId: `#${details?.order?.id?.replace(/-/g, "").slice(0, 12).toUpperCase()}`,
               price: `${formatNumberWithCommas(
-                details?.order?.total_amount ?? 0,
+                details?.product?.original_price ?? 0,
               )}`,
               description:
                 details?.product?.description?.length > 20
@@ -97,18 +97,13 @@ const NewOrders = () => {
                   ? `${details?.product?.name.slice(0, 15)}...`
                   : details?.product?.name,
               amount: `${formatNumberWithCommas(
-                details?.payment?.amount ?? 0,
+                details?.product?.original_price ?? 0,
               )}`,
 
               status: `${details?.payment?.payment_status}`,
-              dateAdded: `${
-                details?.created_at
-                  ? formatDateStr(
-                      details?.created_at.split(".").shift(),
-                      "D/M/YYYY h:mm A",
-                    )
-                  : ""
-              }`,
+              dateAdded: details?.created_at
+                ? formatDateStr(details.created_at)
+                : "",
             };
           })
         : [],

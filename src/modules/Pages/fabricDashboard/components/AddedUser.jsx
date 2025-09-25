@@ -17,6 +17,7 @@ const NewOrders = () => {
     data: vendorRecentOrder,
   } = useGetVendorRecentOrder();
 
+  console.log("vendor recent order", vendorRecentOrder);
   // Table Columns
   const columns = useMemo(
     () => [
@@ -86,7 +87,7 @@ const NewOrders = () => {
               ...details,
               orderId: `${details?.order?.payment_id.replace(/-/g, "").slice(0, 12).toUpperCase()}`,
               price: `${formatNumberWithCommas(
-                details?.order?.total_amount ?? 0,
+                details?.product?.original_price ?? 0,
               )}`,
               description:
                 details?.product?.description?.length > 20
@@ -102,12 +103,7 @@ const NewOrders = () => {
 
               status: `${details?.payment?.payment_status}`,
               dateAdded: `${
-                details?.created_at
-                  ? formatDateStr(
-                      details?.created_at.split(".").shift(),
-                      "D/M/YYYY h:mm A",
-                    )
-                  : ""
+                details?.created_at ? formatDateStr(details?.created_at) : ""
               }`,
             };
           })

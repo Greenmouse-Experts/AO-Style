@@ -377,7 +377,7 @@ export default function DashOrderRequests() {
       key: "id",
       label: "Order ID",
       render: (value: any, item: Order) => {
-        const fullId = item.payment?.id || item.id;
+        const fullId = item.payment?.id;
         const displayId = formatOrderId(fullId);
         return (
           <div

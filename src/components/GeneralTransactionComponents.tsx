@@ -8,23 +8,20 @@ import CustomTable from "./CustomTable";
 import GeneralTransactionAnalysis from "./GeneralTransactionAnalysis";
 import WalletPage from "../modules/Pages/salesDashboard/components/WalletPage";
 import BarChartComponent from "../modules/Pages/salesDashboard/components/BarChartComponent";
+
 interface ApiResponse {
   statusCode: number;
   data: Withdraw[];
   count: number;
 }
 
+// Update the status options to match your payment statuses
 const withdrawStatusOptions = [
+  { key: "SUCCESS", label: "Success" },
   { key: "PENDING", label: "Pending" },
   { key: "FAILED", label: "Failed" },
   { key: "CANCELLED", label: "Cancelled" },
-  { key: "PAID", label: "Paid" },
-  { key: "PROCESSING", label: "Processing" },
-  { key: "SHIPPED", label: "Shipped" },
-  { key: "IN_TRANSIT", label: "In Transit" },
-  { key: "OUT_FOR_DELIVERY", label: "Out for Delivery" },
-  { key: "DELIVERED", label: "Delivered" },
-  { key: "RETURNED", label: "Returned" },
+  // { key: "COMPLETED", label: "Completed" },
 ] as const;
 
 type WithdrawStatus = (typeof withdrawStatusOptions)[number]["key"];
@@ -42,6 +39,7 @@ interface Withdraw {
   updated_at: string;
   deleted_at: null | string;
   user: User;
+  payment_status: string;
 }
 
 interface User {
@@ -60,38 +58,6 @@ interface Role {
   role_id: string;
 }
 
-const dummy_transactions: ApiResponse = {
-  statusCode: 200,
-  data: [
-    {
-      id: "596e5a0d-42a5-4bb2-b880-320529dc37ec",
-      user_id: "7750e65e-33c7-435d-b1ea-e37306cb02c3",
-      amount: "4000",
-      currency: "NGN",
-      status: "PENDING",
-      notes: null,
-      processed_by: null,
-      processed_at: null,
-      created_at: "2025-07-28 13:23:21.914",
-      updated_at: "2025-07-28 14:23:21.914",
-      deleted_at: null,
-      user: {
-        id: "7750e65e-33c7-435d-b1ea-e37306cb02c3",
-        name: "green market fabric vendor 07",
-        email: "greenmousedev+fv007@gmail.com",
-        phone: "+2348134656597",
-        is_email_verified: true,
-        created_at: "2025-06-26T21:05:23.979Z",
-        role: {
-          id: "147f6092-5727-43bd-8f2d-dd6ab70020b9",
-          name: "Fashion Designer",
-          role_id: "fashion-designer",
-        },
-      },
-    },
-  ],
-  count: 1,
-};
 interface Filters {
   page: number;
   status?: WithdrawStatus;
@@ -99,6 +65,7 @@ interface Filters {
   endDate?: Date | string;
   startDate?: Date | string;
 }
+
 const default_filters: Filters = {
   page: 1,
   limit: 10,
@@ -106,75 +73,104 @@ const default_filters: Filters = {
   endDate: undefined,
   startDate: undefined,
 };
+
 export function GeneralTransactionComponent({ hideWallet = false }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<Filters>(default_filters);
+
+  // Main query to fetch data
   const query = useQuery<ApiResponse>({
-    queryKey: ["transactions", "general", filters],
+    queryKey: ["payments", "general", filters],
     queryFn: async () => {
-      const response = await CaryBinApi.get("/withdraw/fetch", {
+      const response = await CaryBinApi.get("/payment/my-payments", {
         params: {
           ...filters,
+          // Include search term if your API supports it
+          search: searchTerm || undefined,
         },
       });
+      console.log(response.data);
       return response.data;
     },
   });
+
   const { queryParams, updateQueryParams } = useQueryParams({
     ...filters,
     "pagination[limit]": 10,
     "pagination[page]": 1,
   });
-  const totalPages = 1;
-  const modalRef = useRef<HTMLInputElement>(null);
 
+  const modalRef = useRef<HTMLInputElement>(null);
   const nav = useNavigate();
 
-  const TransactionData = useMemo(
-    () =>
-      query.data?.data
-        ? query.data.data.map((details) => {
-            return {
-              ...details,
-              transactionID: details.id,
-              userName: details.user?.email ?? "",
-              amount: details.amount,
-              date: details.created_at
-                ? formatDateStr(
-                    details.created_at.split(".").shift(),
-                    "DD MMM YYYY - hh:mm a",
-                  )
-                : "",
-              transactionType: "Withdraw",
-              status: details.status,
-            };
-          })
-        : [],
-    [query.data?.data],
-  );
+  // Process and filter the transaction data
+  const TransactionData = useMemo(() => {
+    let data = query.data?.data || [];
+
+    // Apply client-side filtering if needed
+    if (filters.status) {
+      data = data.filter((item) => item.payment_status === filters.status);
+    }
+
+    // Apply search filtering
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
+      data = data.filter(
+        (item) =>
+          item.user?.email?.toLowerCase().includes(searchLower) ||
+          item.user?.name?.toLowerCase().includes(searchLower) ||
+          item.amount?.toString().includes(searchLower) ||
+          item.currency?.toLowerCase().includes(searchLower) ||
+          item.payment_status?.toLowerCase().includes(searchLower),
+      );
+    }
+
+    // Apply date filtering
+    if (filters.startDate) {
+      const startDate = new Date(filters.startDate);
+      data = data.filter((item) => new Date(item.created_at) >= startDate);
+    }
+
+    if (filters.endDate) {
+      const endDate = new Date(filters.endDate);
+      endDate.setHours(23, 59, 59, 999); // Include the entire end date
+      data = data.filter((item) => new Date(item.created_at) <= endDate);
+    }
+
+    return data.map((details) => ({
+      ...details,
+      transactionID: details.id,
+      userName: details.user?.email ?? "",
+      amount: details.amount,
+      date: details.created_at
+        ? formatDateStr(
+            details.created_at.split(".").shift(),
+            "DD MMM YYYY - hh:mm a",
+          )
+        : "",
+      transactionType: "Payment",
+      status: details.payment_status,
+    }));
+  }, [query.data?.data, filters, searchTerm]);
 
   interface COLUMN_TYPE {
     label: string;
     key: string;
     render?: (value: any, item: Withdraw) => React.ReactNode;
   }
+
   const columns = useMemo<COLUMN_TYPE[]>(
     () => [
       {
-        label: "User",
-        key: "user",
-        render: (_, item: Withdraw) => {
-          return item.user.name;
-        },
-      },
-      {
-        label: "email",
+        label: "User Email",
         key: "email",
         render: (_, item) => item.user.email,
       },
       {
         label: "Amount",
         key: "amount",
+        render: (_, item) =>
+          `${item.currency} ${Number(item.amount).toLocaleString()}`,
       },
       {
         label: "Currency",
@@ -185,47 +181,59 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
         key: "date",
         render: (_, item) => formatDateStr(item.created_at),
       },
-      // {
-      //   label: "Transaction Type",
-      //   key: "transactionType",
-      // },
       {
         label: "Status",
         key: "status",
-        render: (status) => (
+        render: (_, item) => (
           <span
             className={`px-2 py-1 text-sm rounded-full font-medium ${
-              status === "PENDING"
+              item?.payment_status === "PENDING"
                 ? "bg-yellow-100 text-yellow-500"
-                : status === "COMPLETED"
+                : item?.payment_status === "COMPLETED" ||
+                    item?.payment_status === "SUCCESS"
                   ? "bg-green-100 text-green-500"
-                  : "bg-red-100 text-red-500"
+                  : item?.payment_status === "FAILED" ||
+                      item?.payment_status === "CANCELLED"
+                    ? "bg-red-100 text-red-500"
+                    : "bg-gray-100 text-gray-500"
             }`}
           >
-            {status}
+            {item?.payment_status}
           </span>
         ),
       },
     ],
-    [TransactionData],
+    [],
   );
+
   const actions = [
     {
       key: "view Detail",
       label: "View Detail",
       action: (item: Withdraw) => {
-        // setData(item);
-        // modalRef.current?.click();
         let url = window.location.pathname;
-        console.log();
         const nav_url = url + "/" + item.id;
         nav(nav_url);
       },
     },
   ];
 
-  const next_page_disabled = (query.data?.data?.length ?? 0) == filters.limit;
-  const pagination_arry = [1, 2, 3, 4];
+  // Handle search with debouncing effect
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    // Reset to first page when searching
+    setFilters((prev) => ({ ...prev, page: 1 }));
+  };
+
+  // Clear all filters
+  const clearFilters = () => {
+    setFilters(default_filters);
+    setSearchTerm("");
+  };
+
+  const totalPages = Math.ceil((query.data?.count || 0) / filters.limit);
+  const next_page_disabled = filters.page >= totalPages;
+
   return (
     <>
       <div className="flex items-center justify-between bg-white p-4 mb-4 rounded-md shadow">
@@ -234,7 +242,6 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
           <p className="text-gray-500">
             <Link
               to={
-                // Redirect to dashboard based on current route
                 window.location.pathname.includes("tailor")
                   ? "/tailor"
                   : window.location.pathname.includes("fabric")
@@ -255,6 +262,7 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
           </p>
         </div>
       </div>
+
       {!hideWallet && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 mb-6">
           <div className="lg:col-span-2">
@@ -265,12 +273,34 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
           </div>
         </div>
       )}
-      {/*<GeneralTransactionAnalysis />*/}
+
       {/* Filters */}
       <div className="bg-white p-4 rounded-lg shadow mb-4" data-theme="nord">
         <div className="flex flex-col md:flex-row md:items-end gap-4">
           {/* Search */}
-          {/*<div className="form-control w-full md:w-80"></div>*/}
+          <div className="form-control w-full md:w-80">
+            <label className="label">
+              <span className="label-text font-medium">Search</span>
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search by email, amount, currency..."
+                className="input input-bordered input-sm w-full pr-10"
+                value={searchTerm}
+                onChange={handleSearch}
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
 
           {/* Status */}
           <div className="form-control w-full md:w-56">
@@ -284,10 +314,11 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
                 setFilters((prev) => ({
                   ...prev,
                   status: (e.target.value as WithdrawStatus) || undefined,
+                  page: 1, // Reset to first page when filtering
                 }))
               }
             >
-              <option value="">All</option>
+              <option value="">All Status</option>
               {withdrawStatusOptions.map((item) => (
                 <option key={item.key} value={item.key}>
                   {item.label}
@@ -304,8 +335,13 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
             <input
               type="date"
               className="input input-bordered input-sm"
+              value={(filters.startDate as string) || ""}
               onChange={(e) =>
-                setFilters((prev) => ({ ...prev, startDate: e.target.value }))
+                setFilters((prev) => ({
+                  ...prev,
+                  startDate: e.target.value || undefined,
+                  page: 1,
+                }))
               }
             />
           </div>
@@ -318,12 +354,87 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
             <input
               type="date"
               className="input input-bordered input-sm"
+              value={(filters.endDate as string) || ""}
               onChange={(e) =>
-                setFilters((prev) => ({ ...prev, endDate: e.target.value }))
+                setFilters((prev) => ({
+                  ...prev,
+                  endDate: e.target.value || undefined,
+                  page: 1,
+                }))
               }
             />
           </div>
+
+          {/* Clear Filters Button */}
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text opacity-0">Clear</span>
+            </label>
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="btn btn-outline btn-sm"
+              disabled={
+                !searchTerm &&
+                !filters.status &&
+                !filters.startDate &&
+                !filters.endDate
+              }
+            >
+              Clear Filters
+            </button>
+          </div>
         </div>
+
+        {/* Active filters display */}
+        {(searchTerm ||
+          filters.status ||
+          filters.startDate ||
+          filters.endDate) && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            <span className="text-sm font-medium text-gray-600">
+              Active filters:
+            </span>
+            {searchTerm && (
+              <span className="badge badge-primary badge-sm">
+                Search: "{searchTerm}"
+              </span>
+            )}
+            {filters.status && (
+              <span className="badge badge-secondary badge-sm">
+                Status:{" "}
+                {
+                  withdrawStatusOptions.find(
+                    (opt) => opt.key === filters.status,
+                  )?.label
+                }
+              </span>
+            )}
+            {filters.startDate && (
+              <span className="badge badge-accent badge-sm">
+                From: {filters.startDate}
+              </span>
+            )}
+            {filters.endDate && (
+              <span className="badge badge-accent badge-sm">
+                To: {filters.endDate}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Results summary */}
+      <div className="bg-white p-2 mb-4 rounded-md shadow">
+        <p className="text-sm text-gray-600">
+          Showing {TransactionData.length} of {query.data?.count || 0}{" "}
+          transactions
+          {(searchTerm ||
+            filters.status ||
+            filters.startDate ||
+            filters.endDate) &&
+            " (filtered)"}
+        </p>
       </div>
 
       {query.isFetching ? (
@@ -333,16 +444,40 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
             <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-purple-500"></div>
           </div>
         </div>
+      ) : TransactionData.length === 0 ? (
+        <div data-theme="nord" className="px-4 py-12 bg-white shadow">
+          <div className="flex flex-col items-center justify-center h-full">
+            <p className="text-gray-500 text-lg mb-2">No transactions found</p>
+            {(searchTerm ||
+              filters.status ||
+              filters.startDate ||
+              filters.endDate) && (
+              <p className="text-gray-400 text-sm mb-4">
+                Try adjusting your search criteria or filters
+              </p>
+            )}
+            {(searchTerm ||
+              filters.status ||
+              filters.startDate ||
+              filters.endDate) && (
+              <button onClick={clearFilters} className="btn btn-primary btn-sm">
+                Clear All Filters
+              </button>
+            )}
+          </div>
+        </div>
       ) : (
         <CustomTable
-          data={query?.data?.data || []}
+          data={TransactionData}
           columns={columns}
           actions={actions}
         />
       )}
+
+      {/* Pagination */}
       <div
         data-theme="nord"
-        className="mx-auto  mt-4 w-full py-2 flex justify-center bg-white shadow"
+        className="mx-auto mt-4 w-full py-2 flex justify-center bg-white shadow"
       >
         <div className="join">
           <button
@@ -357,28 +492,27 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
           >
             «
           </button>
-          {pagination_arry.map((pageNumber) => {
-            const displayPage =
-              filters.page > 1 ? pageNumber + (filters.page - 1) : pageNumber;
+
+          {[...Array(Math.min(4, totalPages))].map((_, index) => {
+            const pageNumber =
+              filters.page > 2 ? filters.page - 1 + index : index + 1;
+            if (pageNumber > totalPages) return null;
+
             return (
               <button
                 key={pageNumber}
                 className={`join-item btn ${
-                  filters.page === displayPage ? "btn-active" : ""
+                  filters.page === pageNumber ? "btn-active" : ""
                 }`}
                 onClick={() => {
                   setFilters((prevFilters) => ({
                     ...prevFilters,
-                    page: displayPage,
+                    page: pageNumber,
                   }));
                 }}
-                disabled={
-                  (query.data?.data?.length ?? 0) < filters.limit
-                    ? true
-                    : query.isFetching
-                }
+                disabled={query.isFetching}
               >
-                {displayPage}
+                {pageNumber}
               </button>
             );
           })}
@@ -394,35 +528,34 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
             disabled={
               next_page_disabled ||
               query.isFetching ||
-              (query.data?.data?.length ?? 0) === 0
+              TransactionData.length === 0
             }
           >
             »
           </button>
+
           <form
             className=""
             onSubmit={(e) => {
               e.preventDefault();
               let form = new FormData(e.target as unknown as HTMLFormElement);
               let page = parseInt(form.get("page") as string);
-              let new_filter: Filters = { ...filters, page: page };
-              setFilters(new_filter);
+              if (page && page > 0 && page <= totalPages) {
+                setFilters({ ...filters, page });
+              }
             }}
           >
             <input
               type="number"
               name="page"
               className="input w-14 join-item"
-              placeholder={" " + filters.page}
+              placeholder={filters.page.toString()}
               min={1}
-              //@ts-ignore
-              max={query.data?.data.length < filters.limit && filters.page}
+              max={totalPages}
             />
           </form>
         </div>
       </div>
-
-      {/* Put this part before </body> tag */}
     </>
   );
 }

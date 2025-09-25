@@ -15,7 +15,7 @@ import PhoneInput from "react-phone-input-2";
 import useAddFabricVendor from "../../../hooks/marketRep/useAddFabricVendor";
 import { usePlacesWidget } from "react-google-autocomplete";
 import CustomLocationInput from "../../../components/customLocationInput";
-
+import CustomBackbtn from "../../../components/CustomBackBtn";
 const initialValues = {
   name: "",
   email: "",
@@ -216,6 +216,7 @@ export default function AddFabricVendorPage() {
 
   return (
     <div className="">
+      <CustomBackbtn />
       <div className="bg-white px-6 py-4 mb-6 relative">
         <h1 className="text-2xl font-medium mb-3">
           Add {isExact ? "Add Tailor/Fashion Designers" : "Fabric Vendor"}

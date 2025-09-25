@@ -24,7 +24,7 @@ import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 import Loader from "../../../components/ui/Loader";
 import { formatOrderId } from "../../../lib/orderUtils";
 import FabricUploadDebug from "../../../components/debug/FabricUploadDebug";
-
+import CustomBackbtn from "../../../components/CustomBackBtn";
 import useToast from "../../../hooks/useToast";
 
 const OrderDetails = () => {
@@ -573,6 +573,8 @@ const OrderDetails = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+      <CustomBackbtn />
+
       {/* Header */}
       <div className="bg-white rounded-xl shadow-sm px-6 py-5 mb-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

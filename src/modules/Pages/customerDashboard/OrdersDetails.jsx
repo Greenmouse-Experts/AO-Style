@@ -15,7 +15,7 @@ import ReviewForm from "../../../components/reviews/ReviewForm";
 import StarRating from "../../../components/reviews/StarRating";
 import { useJsApiLoader } from "@react-google-maps/api";
 import { useQuery } from "@tanstack/react-query";
-
+import CustomBackbtn from "../../../components/CustomBackBtn";
 // Dynamic order steps based on order type
 const getOrderSteps = (hasStyleItems) => {
   if (hasStyleItems) {
@@ -495,10 +495,17 @@ const OrderDetails = () => {
 
   return (
     <div className="">
+      <CustomBackbtn />
+
       <div className="bg-white px-6 py-4 mb-6">
         <h1 className="text-lg font-medium mb-3">
           Orders Details :{" "}
-          <span className="text-gray-600">{orderDetails?.id}</span>
+          <span className="text-gray-600">
+            {orderDetails?.payment?.id
+              .replace(/-/g, "")
+              .slice(0, 12)
+              .toUpperCase()}
+          </span>
         </h1>
         <p className="text-gray-500">
           <Link to="/customer" className="text-blue-500 hover:underline">

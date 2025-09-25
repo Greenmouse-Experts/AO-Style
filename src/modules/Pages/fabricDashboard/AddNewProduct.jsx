@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import useCreateFabricProduct from "../../../hooks/fabric/useCreateFabricProduct";
@@ -16,6 +16,86 @@ import useCreateAdminFabricProduct from "../../../hooks/fabric/useCreateAdminFab
 import useUpdateAdminFabric from "../../../hooks/fabric/useUpdateAdminFabric";
 import useToast from "../../../hooks/useToast";
 import useGetAdminBusinessDetails from "../../../hooks/settings/useGetAdmnBusinessInfo";
+import CustomBackbtn from "../../../components/CustomBackBtn";
+
+// Custom hook for form auto-save functionality
+const useFormAutoSave = (formId, initialValues, isEditMode = false) => {
+  const [savedData, setSavedData] = useState(() => {
+    if (!isEditMode) {
+      try {
+        const saved = localStorage.getItem(`form_autosave_${formId}`);
+        if (saved) {
+          return JSON.parse(saved);
+        }
+      } catch (error) {
+        console.error("Error loading saved form data:", error);
+        localStorage.removeItem(`form_autosave_${formId}`);
+      }
+    }
+    return {};
+  });
+  const storageKey = `form_autosave_${formId}`;
+
+  // Load saved data on component mount (no-op, handled in useState initializer)
+  useEffect(() => {
+    // No-op: handled in useState initializer for sync value on first render
+  }, [storageKey, isEditMode]);
+
+  // Save data function
+  const saveFormData = (data) => {
+    if (!isEditMode) {
+      try {
+        // Only save non-empty, meaningful data
+        const filteredData = Object.entries(data).reduce(
+          (acc, [key, value]) => {
+            if (value !== "" && value !== null && value !== undefined) {
+              if (Array.isArray(value) && value.length > 0) {
+                acc[key] = value;
+              } else if (!Array.isArray(value)) {
+                acc[key] = value;
+              }
+            }
+            return acc;
+          },
+          {},
+        );
+
+        if (Object.keys(filteredData).length > 0) {
+          localStorage.setItem(storageKey, JSON.stringify(filteredData));
+          setSavedData(filteredData);
+        }
+      } catch (error) {
+        console.error("Error saving form data:", error);
+      }
+    }
+  };
+
+  // Clear saved data
+  const clearSavedData = () => {
+    try {
+      localStorage.removeItem(storageKey);
+      setSavedData({});
+    } catch (error) {
+      console.error("Error clearing saved data:", error);
+    }
+  };
+
+  // Get initial values (merge saved data with initial values)
+  const getInitialValues = () => {
+    if (isEditMode || Object.keys(savedData).length === 0) {
+      return initialValues;
+    }
+    return { ...initialValues, ...savedData };
+  };
+
+  return {
+    savedData,
+    saveFormData,
+    clearSavedData,
+    getInitialValues,
+    hasSavedData: Object.keys(savedData).length > 0,
+  };
+};
 
 const AddProduct = () => {
   const location = useLocation();
@@ -27,6 +107,7 @@ const AddProduct = () => {
     location.pathname === "/admin/fabric/edit-product";
 
   const productInfo = location?.state?.info;
+  const isEditMode = !!productInfo;
 
   const initialValues = {
     type: "FABRIC",
@@ -40,40 +121,52 @@ const AddProduct = () => {
     local_name: productInfo?.fabric?.local_name ?? "",
     manufacturer_name: productInfo?.fabric?.manufacturer_name ?? "",
     material_type: productInfo?.fabric?.material_type ?? "",
-    alternative_names: productInfo?.fabric?.material_type ?? "",
+    alternative_names: productInfo?.fabric?.alternative_names ?? "",
     fabric_texture: productInfo?.fabric?.fabric_texture ?? "",
     feel_a_like: productInfo?.fabric?.feel_a_like ?? "",
     quantity: productInfo?.fabric?.quantity ?? "",
     minimum_yards: productInfo?.fabric?.minimum_yards ?? "",
     available_colors: productInfo?.fabric?.available_colors ?? "",
     fabric_colors: productInfo?.fabric?.fabric_colors
-      ?.split(",")
-      ?.map((color) => color.trim()) ?? [""],
+      ? productInfo?.fabric?.fabric_colors
+          ?.split(",")
+          ?.map((color) => color.trim())
+      : [""],
     video_url: productInfo?.fabric?.video_url ?? "",
     original_price: "",
     sku: productInfo?.sku ?? "",
     market_id: productInfo?.fabric?.market_id ?? "",
     multimedia_url: "",
-    closeup_url: productInfo?.fabric?.photos[0] ?? undefined,
-    spreadout_url: productInfo?.fabric?.photos[1] ?? "",
-    manufacturers_url: productInfo?.fabric?.photos[2] ?? "",
-    fabric_url: productInfo?.fabric?.photos[3] ?? "",
+    closeup_url: productInfo?.fabric?.photos?.[0] ?? undefined,
+    spreadout_url: productInfo?.fabric?.photos?.[1] ?? "",
+    manufacturers_url: productInfo?.fabric?.photos?.[2] ?? "",
+    fabric_url: productInfo?.fabric?.photos?.[3] ?? "",
   };
+
+  // Auto-save functionality
+  const { saveFormData, clearSavedData, getInitialValues, hasSavedData } =
+    useFormAutoSave("fabric_form", initialValues, isEditMode);
 
   const [colorCount, setColorCount] = useState(1);
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState("");
+  const [showSavedDataNotice, setShowSavedDataNotice] = useState(false);
+
+  // Auto-save timer ref
+  const autoSaveTimer = useRef(null);
 
   const { data: businessAdminDetails } = useGetAdminBusinessDetails();
   const { data: businessDetails } = useGetBusinessDetails();
 
   const increaseColorCount = () => {
-    setColorCount(colorCount + 1);
-    setFieldValue("available_colors", colorCount + 1);
+    setColorCount((prev) => prev + 1);
+    setFieldValueWithAutoSave("available_colors", colorCount + 1);
   };
   const decreaseColorCount = () => {
-    if (colorCount > 1) setColorCount(colorCount - 1);
-    setFieldValue("available_colors", colorCount - 1);
+    if (colorCount > 1) {
+      setColorCount((prev) => prev - 1);
+      setFieldValueWithAutoSave("available_colors", colorCount - 1);
+    }
   };
 
   const { isPending, createFabricProductMutate } = useCreateFabricProduct(
@@ -106,37 +199,40 @@ const AddProduct = () => {
       }))
     : [];
 
-  const handleTagInput = (e) => {
-    setTagInput(e.target.value);
-  };
-
   const { isPending: updateIsPending, updateFabricMutate } = useUpdateFabric();
 
   const { isPending: updateAdminIsPending, updateAdminFabricMutate } =
     useUpdateAdminFabric();
 
-  const handleTagAdd = (e) => {
-    if (e.key === "Enter" && tagInput.trim() && tags.length < 5) {
-      e.preventDefault();
-      setTags([...tags, tagInput.trim()]);
-      setFieldValue("tags", [...tags, tagInput.trim()]);
-      setTagInput("");
-    }
-  };
-
-  const handleTagRemove = (tagToRemove) => {
-    setTags(tags.filter((tag) => tag !== tagToRemove));
-    setFieldValue(
-      "tags",
-      tags.filter((tag) => tag !== tagToRemove),
-    );
-  };
-
-  const [photoFiles, setPhotoFiles] = useState({});
+  // const [photoFiles, setPhotoFiles] = useState({}); // unused
 
   const navigate = useNavigate();
 
   const { toastError } = useToast();
+
+  // Auto-save function with debouncing
+  const autoSave = (formValues) => {
+    if (autoSaveTimer.current) {
+      clearTimeout(autoSaveTimer.current);
+    }
+    autoSaveTimer.current = setTimeout(() => {
+      saveFormData(formValues);
+    }, 1000); // Save after 1 second of no changes
+  };
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimer.current) {
+        clearTimeout(autoSaveTimer.current);
+      }
+    };
+  }, []);
+
+  // --- PATCH: Only set initialValues ONCE, and only after savedData is loaded ---
+  // This prevents the "flicker" where saved values appear then disappear.
+  // We'll use a flag to ensure we only setValues once, after mount.
+  const [didSetInitial, setDidSetInitial] = useState(false);
 
   const {
     handleSubmit,
@@ -146,12 +242,12 @@ const AddProduct = () => {
     handleChange,
     resetForm,
     setFieldValue,
-    // setFieldError,
+    setValues,
   } = useFormik({
-    initialValues: initialValues,
+    initialValues: initialValues, // always use initialValues here
     validateOnChange: false,
     validateOnBlur: false,
-    enableReinitialize: true,
+    enableReinitialize: false, // don't reinitialize on prop change
     onSubmit: (val) => {
       if (!navigator.onLine) {
         toastError("No internet connection. Please check your network.");
@@ -166,6 +262,11 @@ const AddProduct = () => {
         toastError("Please upload all required images.");
         return;
       }
+      const onSuccessCallback = () => {
+        clearSavedData();
+        resetForm();
+        navigate(-1);
+      };
       if (productInfo) {
         if (isAdminEditFabricRoute) {
           updateAdminFabricMutate(
@@ -186,7 +287,6 @@ const AddProduct = () => {
               fabric: {
                 market_id: val.market_id,
                 weight_per_unit: val?.weight_per_unit?.toString(),
-
                 local_name: val.local_name,
                 manufacturer_name: val.manufacturer_name,
                 material_type: val.material_type,
@@ -207,9 +307,7 @@ const AddProduct = () => {
               },
             },
             {
-              onSuccess: () => {
-                navigate(-1);
-              },
+              onSuccess: onSuccessCallback,
             },
           );
         } else {
@@ -232,7 +330,6 @@ const AddProduct = () => {
               fabric: {
                 market_id: val.market_id,
                 weight_per_unit: val?.weight_per_unit?.toString(),
-
                 local_name: val.local_name,
                 manufacturer_name: val.manufacturer_name,
                 material_type: val.material_type,
@@ -253,9 +350,7 @@ const AddProduct = () => {
               },
             },
             {
-              onSuccess: () => {
-                navigate(-1);
-              },
+              onSuccess: onSuccessCallback,
             },
           );
         }
@@ -277,7 +372,6 @@ const AddProduct = () => {
               fabric: {
                 market_id: val.market_id,
                 weight_per_unit: val?.weight_per_unit?.toString(),
-
                 local_name: val.local_name,
                 manufacturer_name: val.manufacturer_name,
                 material_type: val.material_type,
@@ -298,10 +392,7 @@ const AddProduct = () => {
               },
             },
             {
-              onSuccess: () => {
-                resetForm();
-                navigate(-1);
-              },
+              onSuccess: onSuccessCallback,
             },
           );
         } else {
@@ -321,7 +412,6 @@ const AddProduct = () => {
               fabric: {
                 market_id: val.market_id,
                 weight_per_unit: val?.weight_per_unit?.toString(),
-
                 local_name: val.local_name,
                 manufacturer_name: val.manufacturer_name,
                 material_type: val.material_type,
@@ -342,10 +432,7 @@ const AddProduct = () => {
               },
             },
             {
-              onSuccess: () => {
-                resetForm();
-                navigate(-1);
-              },
+              onSuccess: onSuccessCallback,
             },
           );
         }
@@ -353,18 +440,72 @@ const AddProduct = () => {
     },
   });
 
+  // Set initial values from savedData (if any) only once after mount
   useEffect(() => {
-    const current = values.fabric_colors;
-    if (values.available_colors > current.length) {
+    if (!isEditMode && !didSetInitial) {
+      const merged = getInitialValues();
+      setValues(merged);
+      setDidSetInitial(true);
+    }
+    // eslint-disable-next-line
+  }, [isEditMode, getInitialValues, setValues, didSetInitial]);
+
+  // Enhanced handleChange with auto-save
+  const handleChangeWithAutoSave = (e) => {
+    handleChange(e);
+    const updatedValues = { ...values, [e.target.name]: e.target.value };
+    autoSave(updatedValues);
+  };
+
+  // Enhanced setFieldValue with auto-save
+  const setFieldValueWithAutoSave = (field, value) => {
+    setFieldValue(field, value);
+    const updatedValues = { ...values, [field]: value };
+    autoSave(updatedValues);
+  };
+
+  // Show saved data notice on component mount
+  useEffect(() => {
+    if (hasSavedData && !isEditMode) {
+      setShowSavedDataNotice(true);
+      setTimeout(() => setShowSavedDataNotice(false), 5000);
+    }
+  }, [hasSavedData, isEditMode]);
+
+  // Update tags state when values change
+  useEffect(() => {
+    setTags(values.tags || []);
+  }, [values.tags]);
+
+  // Keep colorCount in sync with available_colors
+  useEffect(() => {
+    if (
+      typeof values.available_colors === "number" ||
+      (typeof values.available_colors === "string" &&
+        values.available_colors !== "")
+    ) {
+      setColorCount(Number(values.available_colors) || 1);
+    }
+  }, [values.available_colors]);
+
+  // Sync fabric_colors array with available_colors
+  useEffect(() => {
+    const current = values.fabric_colors || [];
+    const availableColors =
+      typeof values.available_colors === "number"
+        ? values.available_colors
+        : parseInt(values.available_colors) || 0;
+    if (availableColors > current.length) {
       const updated = [
         ...current,
-        ...Array(values.available_colors - current.length).fill("#000000"),
+        ...Array(availableColors - current.length).fill("#000000"),
       ];
-      setFieldValue("fabric_colors", updated);
-    } else if (values.available_colors < current.length) {
-      const trimmed = current.slice(0, values.available_colors);
-      setFieldValue("fabric_colors", trimmed);
+      setFieldValueWithAutoSave("fabric_colors", updated);
+    } else if (availableColors < current.length) {
+      const trimmed = current.slice(0, availableColors);
+      setFieldValueWithAutoSave("fabric_colors", trimmed);
     }
+    // eslint-disable-next-line
   }, [values.available_colors]);
 
   const {
@@ -385,22 +526,18 @@ const AddProduct = () => {
   const { isPending: fabricIsPending, uploadImageMutate: fabricViewMutate } =
     useUploadImage();
 
-  const handleFileChange = (label, file) => {
-    const updated = {
-      ...photoFiles,
-      [label]: file,
-    };
-
-    setPhotoFiles(updated);
-    onChange?.(updated);
-  };
-
   const { ref } = usePlacesWidget({
     apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
     onPlaceSelected: (place) => {
-      setFieldValue("location", place.formatted_address);
-      setFieldValue("latitude", place.geometry?.location?.lat().toString());
-      setFieldValue("longitude", place.geometry?.location?.lng().toString());
+      setFieldValueWithAutoSave("location", place.formatted_address);
+      setFieldValueWithAutoSave(
+        "latitude",
+        place.geometry?.location?.lat().toString(),
+      );
+      setFieldValueWithAutoSave(
+        "longitude",
+        place.geometry?.location?.lng().toString(),
+      );
     },
     options: {
       componentRestrictions: { country: "ng" },
@@ -411,11 +548,60 @@ const AddProduct = () => {
   const { isPending: uploadVideoIsPending, uploadVideoMutate } =
     useUploadVideo();
 
-  const { isPending: uploadImagesIsPending, uploadImagesMutate } =
-    useUploadImages();
+  // const { isPending: uploadImagesIsPending, uploadImagesMutate } =
+  //   useUploadImages(); // unused
+
+  // Tag input handlers
+  const handleTagInput = (e) => {
+    setTagInput(e.target.value);
+  };
+
+  const handleTagAdd = (e) => {
+    if (e.key === "Enter" && tagInput.trim() && tags.length < 5) {
+      e.preventDefault();
+      const newTags = [...tags, tagInput.trim()];
+      setTags(newTags);
+      setFieldValueWithAutoSave("tags", newTags);
+      setTagInput("");
+    }
+  };
+
+  const handleTagRemove = (tagToRemove) => {
+    const newTags = tags.filter((tag) => tag !== tagToRemove);
+    setTags(newTags);
+    setFieldValueWithAutoSave("tags", newTags);
+  };
+
+  // Clear saved data function for manual clearing
+  const handleClearSavedData = () => {
+    clearSavedData();
+    setValues(initialValues);
+    setTags([]);
+    setColorCount(1);
+    setDidSetInitial(false);
+  };
 
   return (
     <>
+      <CustomBackbtn />
+      {/* Saved Data Notice */}
+      {showSavedDataNotice && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 flex justify-between items-center">
+          <div className="flex items-center">
+            <div className="text-blue-800 mr-2">ℹ️</div>
+            <span className="text-blue-800 text-sm">
+              We've restored your previously saved form data. You can continue
+              where you left off.
+            </span>
+          </div>
+          <button
+            onClick={handleClearSavedData}
+            className="text-blue-600 hover:text-blue-800 text-sm underline"
+          >
+            Start Fresh
+          </button>
+        </div>
+      )}
       <div className="bg-white px-6 py-4 mb-6 relative">
         <h1 className="text-2xl font-medium mb-3">
           {productInfo && !isAdminEditFabricRoute
@@ -439,19 +625,25 @@ const AddProduct = () => {
         </p>
       </div>
       <div className="bg-white p-6 rounded-xl overflow-x-auto">
-        <h2 className="text-lg font-semibold mb-6">
-          {productInfo && !isAdminEditFabricRoute
-            ? "Edit"
-            : isAdminEditFabricRoute
-              ? "View"
-              : "Add"}{" "}
-          Product
-        </h2>
-
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold">
+            {productInfo && !isAdminEditFabricRoute
+              ? "Edit"
+              : isAdminEditFabricRoute
+                ? "View"
+                : "Add"}{" "}
+            Product
+          </h2>
+          {hasSavedData && !isEditMode && (
+            <div className="text-sm text-green-600 flex items-center">
+              <span className="mr-1">💾</span>
+              Auto-saved
+            </div>
+          )}
+        </div>
         <form className="" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 gap-6">
             <div className="grid grid-cols-1 gap-6">
-              {/* md:grid-cols-2 */}
               {/* Fabric Name */}
               <div className="w-full">
                 <label className="block text-gray-700 mb-4">Fabric Name</label>
@@ -460,35 +652,17 @@ const AddProduct = () => {
                   name={"name"}
                   required
                   value={values.name}
-                  onChange={handleChange}
+                  onChange={handleChangeWithAutoSave}
                   placeholder="Enter the fabric name"
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 />
               </div>
-              {/* SKU */}
-              {/* <div>
-                <label className="block text-gray-700 mb-4">SKU</label>
-                <input
-                  type="text"
-                  required
-                  name="sku"
-                  value={values.sku}
-                  onChange={handleChange}
-                  placeholder="Enter the unique identifier"
-                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                />
-              </div> */}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Market */}
               <div>
                 <label className="block text-gray-700 mb-4">Market</label>
-                {/* <select className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg">
-                  <option>Choose market</option>
-                  <option>Local Market</option>
-                  <option>Online Market</option>
-                </select> */}
                 <Select
                   options={marketList}
                   name="market_id"
@@ -496,7 +670,10 @@ const AddProduct = () => {
                     (opt) => opt.value === values.market_id,
                   )}
                   onChange={(selectedOption) => {
-                    setFieldValue("market_id", selectedOption.value);
+                    setFieldValueWithAutoSave(
+                      "market_id",
+                      selectedOption.value,
+                    );
                   }}
                   required
                   placeholder="Choose market"
@@ -528,12 +705,6 @@ const AddProduct = () => {
                 <label className="block text-gray-700 mb-4">
                   Gender Suitability
                 </label>
-                {/* <select className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg">
-                  <option>Choose suitability gender</option>
-                  <option>Male</option>
-                  <option>Female</option>
-                  <option>Unisex</option>
-                </select> */}
                 <Select
                   options={[
                     { label: "Male", value: "male" },
@@ -548,7 +719,7 @@ const AddProduct = () => {
                     { label: "Unisex", value: "unisex" },
                   ]?.find((opt) => opt.value === values.gender)}
                   onChange={(selectedOption) => {
-                    setFieldValue("gender", selectedOption.value);
+                    setFieldValueWithAutoSave("gender", selectedOption.value);
                   }}
                   required
                   placeholder="Choose suitability gender"
@@ -576,17 +747,6 @@ const AddProduct = () => {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Fabric Vendor */}
-              {/* <div>
-                <label className="block text-gray-700 mb-4">
-                  Fabric Vendor
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter the name of the fabric vendor"
-                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                />
-              </div> */}
               <div>
                 <label className="block text-gray-700 mb-4">
                   Weight per yard
@@ -597,36 +757,14 @@ const AddProduct = () => {
                   required
                   min={0}
                   value={values.weight_per_unit}
-                  onChange={handleChange}
+                  onChange={handleChangeWithAutoSave}
                   placeholder="Enter the weight per yard (minimum 0)"
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 />
               </div>
-              {/* <div>
-                <label className="block text-gray-700 mb-4">
-                  Location Coordinate
-                </label>
-                <input
-                  type="text"
-                  ref={(c) => {
-                    if (c) ref.current = c.input;
-                  }}
-                  value={values.location}
-                  name="location"
-                  onChange={(val) => {
-                    setFieldValue("location", val.currentTarget.value);
-                    setFieldValue("latitude", "");
-                    setFieldValue("longitude", "");
-                  }}
-                  placeholder="Enter the coordinates of the shop"
-                  className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                />
-              </div> */}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Location Coordinate */}
-
               {/* Local Name */}
               <div>
                 <label className="block text-gray-700 mb-4">Local Name</label>
@@ -635,7 +773,7 @@ const AddProduct = () => {
                   name={"local_name"}
                   required
                   value={values.local_name}
-                  onChange={handleChange}
+                  onChange={handleChangeWithAutoSave}
                   placeholder="Enter the name the fabric is known as locally"
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 />
@@ -650,7 +788,7 @@ const AddProduct = () => {
                   name={"manufacturer_name"}
                   required
                   value={values.manufacturer_name}
-                  onChange={handleChange}
+                  onChange={handleChangeWithAutoSave}
                   placeholder="Enter the name called by the manufacturer"
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 />
@@ -658,8 +796,6 @@ const AddProduct = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Manufacturer's Name */}
-
               {/* Material Type */}
               <div>
                 <label className="block text-gray-700 mb-4">
@@ -670,7 +806,7 @@ const AddProduct = () => {
                   name={"material_type"}
                   required
                   value={values.material_type}
-                  onChange={handleChange}
+                  onChange={handleChangeWithAutoSave}
                   placeholder="e.g. cotton, polyester, etc"
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 />
@@ -685,7 +821,7 @@ const AddProduct = () => {
                   name={"alternative_names"}
                   required
                   value={values.alternative_names}
-                  onChange={handleChange}
+                  onChange={handleChangeWithAutoSave}
                   placeholder="Enter the name it is called in other locations"
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 />
@@ -693,8 +829,6 @@ const AddProduct = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Alternative Names */}
-
               {/* Fabric Texture */}
               <div>
                 <label className="block text-gray-700 mb-4">
@@ -705,7 +839,7 @@ const AddProduct = () => {
                   name={"fabric_texture"}
                   required
                   value={values.fabric_texture}
-                  onChange={handleChange}
+                  onChange={handleChangeWithAutoSave}
                   placeholder="Enter the fabric texture"
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 />
@@ -717,14 +851,12 @@ const AddProduct = () => {
                   type="text"
                   name={"feel_a_like"}
                   value={values.feel_a_like}
-                  onChange={handleChange}
+                  onChange={handleChangeWithAutoSave}
                   placeholder="Describe what it feels like"
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 />
               </div>
             </div>
-
-            {/* Feel-a-like */}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Quantity */}
@@ -737,7 +869,7 @@ const AddProduct = () => {
                   name={"quantity"}
                   value={values.quantity}
                   required
-                  onChange={handleChange}
+                  onChange={handleChangeWithAutoSave}
                   placeholder="Enter the quantity available"
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 />
@@ -753,7 +885,7 @@ const AddProduct = () => {
                   name={"minimum_yards"}
                   required
                   value={values.minimum_yards}
-                  onChange={handleChange}
+                  onChange={handleChangeWithAutoSave}
                   placeholder="Enter the minimum yards for purchase"
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 />
@@ -772,7 +904,7 @@ const AddProduct = () => {
                     type="number"
                     name={"available_colors"}
                     value={values.available_colors}
-                    onChange={handleChange}
+                    onChange={handleChangeWithAutoSave}
                     className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                   />
                   <button
@@ -801,7 +933,7 @@ const AddProduct = () => {
                     onChange={(e) => {
                       const updated = [...values.fabric_colors];
                       updated[index] = e.target.value;
-                      setFieldValue("fabric_colors", updated);
+                      setFieldValueWithAutoSave("fabric_colors", updated);
                     }}
                     className="w-full h-14 border border-gray-300 rounded-lg cursor-pointer"
                   />
@@ -822,7 +954,7 @@ const AddProduct = () => {
                     name={"price"}
                     required
                     value={values.price}
-                    onChange={handleChange}
+                    onChange={handleChangeWithAutoSave}
                     placeholder="Enter amount per yard"
                     className="w-full p-4 border-t border-r border-b outline-none border-gray-300 rounded-r-md"
                   />
@@ -873,18 +1005,13 @@ const AddProduct = () => {
                   type="text"
                   name={"description"}
                   value={values.description}
-                  onChange={handleChange}
+                  onChange={handleChangeWithAutoSave}
                 />
               </div>
 
               {/* Market */}
               <div>
                 <label className="block text-gray-700 mb-4">Category</label>
-                {/* <select className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg">
-                  <option>Choose market</option>
-                  <option>Local Market</option>
-                  <option>Online Market</option>
-                </select> */}
                 <Select
                   options={categoryList}
                   name="category_id"
@@ -892,7 +1019,10 @@ const AddProduct = () => {
                     (opt) => opt.value === values.category_id,
                   )}
                   onChange={(selectedOption) => {
-                    setFieldValue("category_id", selectedOption.value);
+                    setFieldValueWithAutoSave(
+                      "category_id",
+                      selectedOption.value,
+                    );
                   }}
                   required
                   placeholder="Choose fabric"
@@ -947,7 +1077,10 @@ const AddProduct = () => {
                         formData.append("image", file);
                         closeUpViewMutate(formData, {
                           onSuccess: (data) => {
-                            setFieldValue("closeup_url", data?.data?.data?.url);
+                            setFieldValueWithAutoSave(
+                              "closeup_url",
+                              data?.data?.data?.url,
+                            );
                           },
                         });
                         e.target.value = "";
@@ -1002,7 +1135,7 @@ const AddProduct = () => {
                         formData.append("image", file);
                         spreadOutViewMutate(formData, {
                           onSuccess: (data) => {
-                            setFieldValue(
+                            setFieldValueWithAutoSave(
                               "spreadout_url",
                               data?.data?.data?.url,
                             );
@@ -1060,7 +1193,7 @@ const AddProduct = () => {
                         formData.append("image", file);
                         manufacturersViewMutate(formData, {
                           onSuccess: (data) => {
-                            setFieldValue(
+                            setFieldValueWithAutoSave(
                               "manufacturers_url",
                               data?.data?.data?.url,
                             );
@@ -1119,7 +1252,10 @@ const AddProduct = () => {
                         formData.append("image", file);
                         fabricViewMutate(formData, {
                           onSuccess: (data) => {
-                            setFieldValue("fabric_url", data?.data?.data?.url);
+                            setFieldValueWithAutoSave(
+                              "fabric_url",
+                              data?.data?.data?.url,
+                            );
                           },
                         });
                         e.target.value = "";
@@ -1162,7 +1298,6 @@ const AddProduct = () => {
                   id="uploadVideo"
                   onChange={(e) => {
                     const file = e.target.files[0];
-                    console.log(file);
                     if (file) {
                       if (file.size > 10 * 1024 * 1024) {
                         alert("File size exceeds 10MB limit");
@@ -1173,11 +1308,13 @@ const AddProduct = () => {
                       formData.append("video", file);
                       uploadVideoMutate(formData, {
                         onSuccess: (data) => {
-                          setFieldValue("video_url", data?.data?.data?.url);
+                          setFieldValueWithAutoSave(
+                            "video_url",
+                            data?.data?.data?.url,
+                          );
                           e.target.value = "";
                         },
                       });
-                      // Handle upload here
                     }
                   }}
                 />
@@ -1231,16 +1368,27 @@ const AddProduct = () => {
             ) : (
               <>
                 {" "}
-                <button
-                  type="submit"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleSubmit();
-                    // console.log(businessDetails);
-                  }}
-                  disabled={
-                    isPending ||
-                    uploadVideoIsPending ||
+                <div className="flex gap-4 mt-6">
+                  <button
+                    type="submit"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleSubmit();
+                    }}
+                    disabled={
+                      isPending ||
+                      uploadVideoIsPending ||
+                      updateIsPending ||
+                      closeUpViewIsPending ||
+                      spreadOutViewIsPending ||
+                      manufacturersIsPending ||
+                      fabricIsPending ||
+                      createAdminIsPending ||
+                      updateAdminIsPending
+                    }
+                    className="w-full cursor-pointer py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-md hover:opacity-90"
+                  >
+                    {isPending ||
                     updateIsPending ||
                     closeUpViewIsPending ||
                     spreadOutViewIsPending ||
@@ -1248,23 +1396,28 @@ const AddProduct = () => {
                     fabricIsPending ||
                     createAdminIsPending ||
                     updateAdminIsPending
-                  }
-                  className="mt-6 w-full cursor-pointer py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-md hover:opacity-90"
-                >
-                  {isPending ||
-                  updateIsPending ||
-                  closeUpViewIsPending ||
-                  spreadOutViewIsPending ||
-                  manufacturersIsPending ||
-                  fabricIsPending ||
-                  createAdminIsPending ||
-                  updateAdminIsPending
-                    ? "Please wait..."
-                    : productInfo
-                      ? "Update Fabric"
-                      : "Upload Fabric"}
-                </button>
+                      ? "Please wait..."
+                      : productInfo
+                        ? "Update Fabric"
+                        : "Upload Fabric"}
+                  </button>
+                  {hasSavedData && !isEditMode && (
+                    <button
+                      type="button"
+                      onClick={handleClearSavedData}
+                      className="border border-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-50"
+                    >
+                      Clear Saved Data
+                    </button>
+                  )}
+                </div>
               </>
+            )}
+            {!isEditMode && (
+              <div className="mt-4 text-xs text-gray-500 flex items-center">
+                <span className="mr-1">💾</span>
+                Your progress is automatically saved as you type
+              </div>
             )}
           </div>
         </form>

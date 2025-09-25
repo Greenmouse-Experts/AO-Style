@@ -277,7 +277,7 @@ import useDebounce from "../../../hooks/useDebounce";
 import { useMemo } from "react";
 import { formatDateStr } from "../../../lib/helper";
 import CustomTable from "../../../components/CustomTable";
-
+import CustomBackbtn from "../../../components/CustomBackBtn";
 export default function FabricVendorPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("All Fabric Vendors");
@@ -407,6 +407,8 @@ export default function FabricVendorPage() {
 
   return (
     <div>
+      <CustomBackbtn />
+
       <div className="bg-white px-4 sm:px-6 py-4 mb-6 relative">
         <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center space-y-3 sm:space-y-0">
           <h1 className="text-xl sm:text-2xl font-medium">Fabric Vendors</h1>

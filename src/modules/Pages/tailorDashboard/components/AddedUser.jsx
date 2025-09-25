@@ -24,7 +24,7 @@ const NewOrders = () => {
       { label: "Product", key: "product" },
       // { label: "Order Description", key: "description" },
 
-      { label: "Price", key: "price" },
+      { label: "Units", key: "price" },
       { label: "Order Date", key: "dateAdded" },
 
       {
@@ -77,14 +77,14 @@ const NewOrders = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
+  console.log("vendorRecentOrder", vendorRecentOrder);
   const recentOrderData = useMemo(
     () =>
       vendorRecentOrder?.data
         ? vendorRecentOrder?.data.slice(0, 3).map((details) => {
             return {
               ...details,
-              orderId: `#${details?.order?.id?.replace(/-/g, "").slice(0, 12).toUpperCase()}`,
+              orderId: `${details?.order?.payment_id.replace(/-/g, "").slice(0, 12).toUpperCase()}`,
               price: `${formatNumberWithCommas(
                 details?.product?.original_price ?? 0,
               )}`,

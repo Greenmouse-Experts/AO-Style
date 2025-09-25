@@ -53,7 +53,7 @@ const SubscriptionModal = ({
 
   // Determine if user is trying to downgrade
   const isDowngrade =
-    isUpgrade && hasActiveSubscription && currentPlanPrice > targetPlanPrice;
+    isUpgrade && hasActiveSubscription && currentPlanPrice < targetPlanPrice;
 
   // Debug logging
   console.log("SubscribeModal Debug:", {

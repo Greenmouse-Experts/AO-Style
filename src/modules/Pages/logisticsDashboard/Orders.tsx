@@ -170,7 +170,7 @@ export default function OrderRequests() {
       return resp.data;
     },
   });
-
+  console.log("Available orders data (outside):", availableOrdersData);
   // Query for ongoing orders
   const {
     data: ongoingOrdersData,
@@ -195,12 +195,22 @@ export default function OrderRequests() {
     },
     enabled: !!user?.id,
   });
-
+  console.log("Ongoing orders data (outside):", ongoingOrdersData);
   const hasOngoingOrders =
     ongoingOrdersData?.data && ongoingOrdersData.data.length > 0;
   const isLoading = isAvailableLoading || isOngoingLoading;
   const isError = isAvailableError || isOngoingError;
   const error = availableError || ongoingError;
+
+  const hasStyleItems = () => {
+    return (
+      availableOrdersData?.data?.some((order: Order) =>
+        order?.order_items?.some((item: OrderItem) =>
+          item?.product?.type?.toLowerCase().includes("style"),
+        ),
+      ) || false
+    );
+  };
 
   // Loading State
   if (isLoading) {
@@ -303,8 +313,8 @@ export default function OrderRequests() {
           badgeClass = "badge-error";
           icon = <AlertCircle className="w-3 h-3" />;
         } else if (
-          status === "out_for_delivery" ||
-          status === "out for delivery"
+          (status === "out_for_delivery" || status === "out for delivery") &&
+          hasStyleItems()
         ) {
           badgeClass = "badge-info";
           icon = <Package className="w-3 h-3" />;
@@ -370,7 +380,7 @@ export default function OrderRequests() {
         return (
           <div className="flex flex-col items-end">
             <span className="font-bold text-success">
-              ₦{parseFloat(item.total_amount).toLocaleString()}
+              ₦{parseFloat(item.payment.purchase.delivery_fee).toLocaleString()}
             </span>
             <span className="text-xs text-base-content/60">Total</span>
           </div>
@@ -450,7 +460,9 @@ export default function OrderRequests() {
                         <div className="text-xs text-gray-500">
                           {order.order_items.length} item
                           {order.order_items.length !== 1 ? "s" : ""} • ₦
-                          {parseFloat(order.total_amount).toLocaleString()}
+                          {parseFloat(
+                            order.payment.purchase.delivery_fee,
+                          ).toLocaleString()}
                         </div>
                       </div>
                     </div>
@@ -474,13 +486,6 @@ export default function OrderRequests() {
             </div>
 
             <div className="flex items-center gap-3 mt-4">
-              {/*<button
-                className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
-                onClick={() => navigate("/logistics/orders/ongoing")}
-              >
-                <Clock className="w-4 h-4" />
-                Manage Ongoing Orders
-              </button>*/}
               <button
                 className="px-4 py-2 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
                 onClick={() => {

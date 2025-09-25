@@ -201,16 +201,15 @@ export default function OrderRequests() {
   const isLoading = isAvailableLoading || isOngoingLoading;
   const isError = isAvailableError || isOngoingError;
   const error = availableError || ongoingError;
+  const order_data = availableOrdersData?.data;
 
-  const hasStyleItems = () => {
-    return (
-      availableOrdersData?.data?.some((order: Order) =>
-        order?.order_items?.some((item: OrderItem) =>
-          item?.product?.type?.toLowerCase().includes("style"),
-        ),
-      ) || false
-    );
-  };
+  // const hasStyleItems = () => {
+  //   return (
+  //     order_data?.order_items?.some((item) =>
+  //       item?.product?.type?.toLowerCase().includes("style"),
+  //     ) || false
+  //   );
+  // };
 
   // Loading State
   if (isLoading) {
@@ -314,7 +313,9 @@ export default function OrderRequests() {
           icon = <AlertCircle className="w-3 h-3" />;
         } else if (
           (status === "out_for_delivery" || status === "out for delivery") &&
-          hasStyleItems()
+          item.order_items.some((orderItem) =>
+            orderItem.product?.type?.toLowerCase().includes("style"),
+          )
         ) {
           badgeClass = "badge-info";
           icon = <Package className="w-3 h-3" />;
@@ -323,7 +324,7 @@ export default function OrderRequests() {
 
         return (
           <div className="flex flex-col items-start gap-1">
-            <div className={`badge ${badgeClass} gap-1 px-3 py-2`}>
+            <div className={`badge ${badgeClass} gap-1 px-3 py-4`}>
               {icon}
               <span className="text-xs font-medium">
                 {item.status.replaceAll("_", " ").toUpperCase()}

@@ -24,7 +24,7 @@ const SubscriptionModal = ({
 
   const queryClient = useQueryClient();
   const [verifyPayment, setVerifyPayment] = useState("");
-
+  // const [currentSubscription, setCurrentSubscription] = useState(null);
   // Get current user subscription status
   const { data: userProfile, isLoading: userProfileLoading } = useQuery({
     queryKey: ["user-profile"],
@@ -43,6 +43,18 @@ const SubscriptionModal = ({
   const isUpgrade =
     !hasActiveSubscription || currentView?.id !== currentSubscription?.id;
 
+  // Get price values for comparison
+  const currentPlanPrice =
+    currentSubscription?.subscription_plan_prices?.[0]?.price ||
+    currentSubscription?.plan_price_at_subscription ||
+    0;
+  const targetPlanPrice =
+    currentView?.subscription_plan_prices?.[0]?.price || 0;
+
+  // Determine if user is trying to downgrade
+  const isDowngrade =
+    isUpgrade && hasActiveSubscription && currentPlanPrice > targetPlanPrice;
+
   // Debug logging
   console.log("SubscribeModal Debug:", {
     userProfile: userProfile?.data,
@@ -52,6 +64,9 @@ const SubscriptionModal = ({
     isUpgrade,
     subscriptionId: currentSubscription?.id,
     newPlanPriceId: currentView?.subscription_plan_prices?.[0]?.id,
+    currentPlanPrice,
+    targetPlanPrice,
+    isDowngrade,
   });
 
   const payWithPaystack = ({ amount, payment_id }) => {
@@ -201,62 +216,108 @@ const SubscriptionModal = ({
 
               <div className="p-6 space-y-6">
                 <div className="space-y-4">
-                  <p className="text-sm text-gray-500">
-                    {isUpgrade
-                      ? `Are you sure you want to upgrade from ${currentSubscription?.name || "your current plan"} to ${currentView?.name}?`
-                      : "Are you sure you want to subscribe?"}
-                  </p>
-
-                  {isUpgrade && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <div className="space-y-2">
+                  {/* Show downgrade warning if applicable */}
+                  {isDowngrade ? (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <span className="text-xl text-red-500">
+                          <FaBriefcase />
+                        </span>
+                        <span className="text-lg font-semibold text-red-700">
+                          Cannot Switch to Lower Plan
+                        </span>
+                      </div>
+                      <p className="text-sm text-red-700">
+                        You cannot switch from your current plan (
+                        <span className="font-semibold">
+                          {currentSubscription?.name || "Current Plan"}
+                        </span>
+                        ) to a lower plan (
+                        <span className="font-semibold">
+                          {currentView?.name}
+                        </span>
+                        ). Please select a plan with a higher price than your
+                        current plan.
+                      </p>
+                      <div className="mt-4 space-y-1">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium text-blue-900">
-                            Current Plan:
+                          <span className="text-sm font-medium text-red-900">
+                            Current Plan Price:
                           </span>
-                          <span className="text-sm text-blue-800 font-semibold">
-                            {currentSubscription?.name || "Free Plan"}
+                          <span className="text-sm font-bold text-red-900">
+                            ₦{new Intl.NumberFormat().format(currentPlanPrice)}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium text-blue-900">
-                            Upgrading to:
+                          <span className="text-sm font-medium text-red-900">
+                            Selected Plan Price:
                           </span>
-                          <span className="text-sm text-blue-800 font-semibold">
-                            {currentView?.name}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center pt-2 border-t border-blue-200">
-                          <span className="text-sm font-medium text-blue-900">
-                            Price:
-                          </span>
-                          <span className="text-lg font-bold text-blue-900">
-                            ₦
-                            {new Intl.NumberFormat().format(
-                              currentView?.subscription_plan_prices?.[0]
-                                ?.price || 0,
-                            )}
+                          <span className="text-sm font-bold text-red-900">
+                            ₦{new Intl.NumberFormat().format(targetPlanPrice)}
                           </span>
                         </div>
                       </div>
                     </div>
-                  )}
+                  ) : (
+                    <>
+                      <p className="text-sm text-gray-500">
+                        {isUpgrade
+                          ? `Are you sure you want to upgrade from ${currentSubscription?.name || "your current plan"} to ${currentView?.name}?`
+                          : "Are you sure you want to subscribe?"}
+                      </p>
 
-                  {!isUpgrade && (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-green-900">
-                          Plan Price:
-                        </span>
-                        <span className="text-lg font-bold text-green-900">
-                          ₦
-                          {new Intl.NumberFormat().format(
-                            currentView?.subscription_plan_prices?.[0]?.price ||
-                              0,
-                          )}
-                        </span>
-                      </div>
-                    </div>
+                      {isUpgrade && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-medium text-blue-900">
+                                Current Plan:
+                              </span>
+                              <span className="text-sm text-blue-800 font-semibold">
+                                {currentSubscription?.name || "Free Plan"}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-medium text-blue-900">
+                                Upgrading to:
+                              </span>
+                              <span className="text-sm text-blue-800 font-semibold">
+                                {currentView?.name}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center pt-2 border-t border-blue-200">
+                              <span className="text-sm font-medium text-blue-900">
+                                Price:
+                              </span>
+                              <span className="text-lg font-bold text-blue-900">
+                                ₦
+                                {new Intl.NumberFormat().format(
+                                  currentView?.subscription_plan_prices?.[0]
+                                    ?.price || 0,
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {!isUpgrade && (
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-medium text-green-900">
+                              Plan Price:
+                            </span>
+                            <span className="text-lg font-bold text-green-900">
+                              ₦
+                              {new Intl.NumberFormat().format(
+                                currentView?.subscription_plan_prices?.[0]
+                                  ?.price || 0,
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
 
@@ -271,6 +332,10 @@ const SubscriptionModal = ({
                   </button>
                   <button
                     onClick={() => {
+                      if (isDowngrade) {
+                        // Do nothing, button should be disabled
+                        return;
+                      }
                       if (isUpgrade) {
                         const upgradePayload = {
                           subscription_id: currentSubscription?.id,
@@ -368,10 +433,17 @@ const SubscriptionModal = ({
                         );
                       }
                     }}
-                    disabled={createPending || upgradePending || verifyPending}
+                    disabled={
+                      createPending ||
+                      upgradePending ||
+                      verifyPending ||
+                      isDowngrade
+                    }
                     className={`px-6 py-2 rounded-lg hover:shadow-lg cursor-pointer duration-200 transition-all flex items-center space-x-2 bg-gradient-to-r hover:from-[#8036D3] from-[#9847FE] to-[#8036D3] text-white hover:to-[#6B2BB5] disabled:opacity-50 disabled:cursor-not-allowed font-medium min-w-[140px] justify-center`}
                   >
-                    {verifyPending ? (
+                    {isDowngrade ? (
+                      "Cannot Downgrade"
+                    ) : verifyPending ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
                         Verifying...

@@ -129,6 +129,22 @@ const SubscriptionModal = ({
     refetch();
   };
 
+  // Loading Spinner Component
+  const LoadingSpinner = () => (
+    <div className="flex flex-col items-center justify-center py-12">
+      <div className="relative">
+        <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+        <div className="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-purple-400 rounded-full animate-spin animate-reverse"></div>
+      </div>
+      <div className="mt-4 text-center">
+        <p className="text-lg font-medium text-gray-700">
+          Loading subscription details...
+        </p>
+        <p className="text-sm text-gray-500 mt-1">Please wait a moment</p>
+      </div>
+    </div>
+  );
+
   return (
     <AnimatePresence>
       <motion.div
@@ -146,45 +162,32 @@ const SubscriptionModal = ({
           className="bg-white/95 backdrop-blur-md rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20"
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Show loading state while fetching user profile */}
           {userProfileLoading ? (
-            <div className="flex flex-col items-center justify-center py-16">
-              <svg
-                className="animate-spin h-8 w-8 text-purple-600 mb-4"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                ></path>
-              </svg>
-              <span className="text-gray-600 text-sm">Loading...</span>
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-gray-900">
+                  {currentView?.name}
+                </h2>
+                <button
+                  onClick={onClose}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <FaTimes className="text-gray-500" />
+                </button>
+              </div>
+              <LoadingSpinner />
             </div>
           ) : (
+            /* Main content - only show when data is loaded */
             <>
               <div className="p-6 border-b border-gray-200">
-                {" "}
                 <div className="flex justify-between items-center">
                   <div className="flex items-center space-x-3">
-                    {/* <div className="p-2 bg-purple-100 rounded-lg">
-                      <FaBriefcase className="text-purple-600" />
-                    </div> */}
                     <div>
                       <h2 className="text-xl font-bold text-gray-900">
-                        {/* {selectedJob.title} */}
                         {currentView?.name}
                       </h2>
-                      {/* <p className="text-sm text-gray-500">Subscription Details</p> */}
                     </div>
                   </div>
                   <button
@@ -200,25 +203,59 @@ const SubscriptionModal = ({
                 <div className="space-y-4">
                   <p className="text-sm text-gray-500">
                     {isUpgrade
-                      ? `Are you sure you want to upgrade from ${currentSubscription?.name} to ${currentView?.name}?`
+                      ? `Are you sure you want to upgrade from ${currentSubscription?.name || "your current plan"} to ${currentView?.name}?`
                       : "Are you sure you want to subscribe?"}
                   </p>
 
                   {isUpgrade && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                      <p className="text-sm text-blue-800">
-                        <strong>Current Plan:</strong>{" "}
-                        {currentSubscription?.name}
-                      </p>
-                      <p className="text-sm text-blue-800">
-                        <strong>New Plan:</strong> {currentView?.name}
-                      </p>
-                      <p className="tsext-sm text-blue-800">
-                        <strong>Price:</strong> ₦
-                        {new Intl.NumberFormat().format(
-                          currentView?.subscription_plan_prices?.[0]?.price,
-                        )}
-                      </p>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-blue-900">
+                            Current Plan:
+                          </span>
+                          <span className="text-sm text-blue-800 font-semibold">
+                            {currentSubscription?.name || "Free Plan"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-blue-900">
+                            Upgrading to:
+                          </span>
+                          <span className="text-sm text-blue-800 font-semibold">
+                            {currentView?.name}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center pt-2 border-t border-blue-200">
+                          <span className="text-sm font-medium text-blue-900">
+                            Price:
+                          </span>
+                          <span className="text-lg font-bold text-blue-900">
+                            ₦
+                            {new Intl.NumberFormat().format(
+                              currentView?.subscription_plan_prices?.[0]
+                                ?.price || 0,
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {!isUpgrade && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-green-900">
+                          Plan Price:
+                        </span>
+                        <span className="text-lg font-bold text-green-900">
+                          ₦
+                          {new Intl.NumberFormat().format(
+                            currentView?.subscription_plan_prices?.[0]?.price ||
+                              0,
+                          )}
+                        </span>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -228,7 +265,7 @@ const SubscriptionModal = ({
                     type="button"
                     onClick={onClose}
                     disabled={createPending || upgradePending || verifyPending}
-                    className="px-4 py-2 cursor-pointer text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-2 cursor-pointer text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                   >
                     Cancel
                   </button>
@@ -332,15 +369,23 @@ const SubscriptionModal = ({
                       }
                     }}
                     disabled={createPending || upgradePending || verifyPending}
-                    className={`px-4 py-2 rounded-lg hover:shadow-lg cursor-pointer duration-200 transition-colors flex items-center space-x-2 bg-gradient-to-r hover:from-[#8036D3] from-[#9847FE] to-[#8036D3] text-white hover:to-[#6B2BB5] disabled:opacity-50 disabled:cursor-not-allowed`}
+                    className={`px-6 py-2 rounded-lg hover:shadow-lg cursor-pointer duration-200 transition-all flex items-center space-x-2 bg-gradient-to-r hover:from-[#8036D3] from-[#9847FE] to-[#8036D3] text-white hover:to-[#6B2BB5] disabled:opacity-50 disabled:cursor-not-allowed font-medium min-w-[140px] justify-center`}
                   >
-                    {verifyPending
-                      ? "Verifying payment..."
-                      : createPending || upgradePending
-                        ? "Please wait..."
-                        : isUpgrade
-                          ? "Upgrade Plan"
-                          : "Subscribe"}
+                    {verifyPending ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
+                        Verifying...
+                      </>
+                    ) : createPending || upgradePending ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
+                        Please wait...
+                      </>
+                    ) : isUpgrade ? (
+                      "Upgrade Plan"
+                    ) : (
+                      "Subscribe"
+                    )}
                   </button>
                 </div>
               </div>

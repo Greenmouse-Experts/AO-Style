@@ -19,7 +19,11 @@ export default function Navbar({ toggleSidebar }) {
 
   const { carybinUser, logOut } = useCarybinUserStore();
   const { clearAuthData } = useSessionManager();
-  const { data: cartResponse, isPending: isCartPending } = useGetCart();
+  const {
+    data: cartResponse,
+    isPending: isCartPending,
+    refetch: refetchCart,
+  } = useGetCart();
 
   // Get cart data from API response
   const cartData = cartResponse?.data;
@@ -32,8 +36,12 @@ export default function Navbar({ toggleSidebar }) {
   // Refetch unread announcements every 30 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      if (typeof refetchAll === "function") {
+      if (
+        typeof refetchAll === "function" &&
+        typeof refetchCart === "function"
+      ) {
         refetchAll();
+        refetchCart();
       }
     }, 10000);
     return () => clearInterval(interval);

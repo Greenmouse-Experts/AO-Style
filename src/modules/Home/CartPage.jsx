@@ -1044,7 +1044,8 @@ const CartPage = () => {
                   </div>
                   <div className="p-6">
                     {/* Coupon Section */}
-                    {token ? (
+                    {/* add the token condition here*/}
+                    {token && (
                       <div className="mb-6">
                         {!appliedCoupon ? (
                           <div className="space-y-2">
@@ -1105,7 +1106,8 @@ const CartPage = () => {
                           </div>
                         )}
                       </div>
-                    ) : (
+                    )}
+                    {/* ) : (
                       <div className="mb-6">
                         <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg shadow-sm">
                           <svg
@@ -1136,7 +1138,7 @@ const CartPage = () => {
                           </Link>
                         </div>
                       </div>
-                    )}
+                    )}*/}
 
                     {/* Summary Details */}
                     <div className="space-y-4 mb-6">
@@ -1211,56 +1213,48 @@ const CartPage = () => {
                     </div>
 
                     {/* Checkout Button */}
-                    {token ? (
-                      deliveryError ? (
-                        <button
-                          onClick={() => {
-                            // Redirect to address update page
-                            window.open(`/${currentUrl}/settings`, "_blank");
-                          }}
-                          className="w-full cursor-pointer py-4 px-2 bg-purple-500 text-white hover:bg-purple-600 transition rounded-xl font-bold text-md shadow-lg flex items-center justify-center gap-2"
-                        >
-                          {/* Info/Warning/Alert Icon */}
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="w-5 h-5 text-yellow-300"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M12 9v2m0 4h.01M12 5a7 7 0 100 14 7 7 0 000-14z"
-                            />
-                          </svg>
-                          Update Address to Proceed
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setShowConfirmationModal(true);
-                          }}
-                          disabled={
-                            !agreedToPolicy ||
-                            createPaymentPending ||
-                            billingPending
-                          }
-                          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-xl font-bold text-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-105"
-                        >
-                          {createPaymentPending || billingPending
-                            ? "Processing..."
-                            : "Proceed to Checkout"}
-                        </button>
-                      )
-                    ) : (
-                      <Link
-                        to="/login"
-                        className="w-full block bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-xl font-bold text-lg text-center hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg"
+                    {/* add token condition here*/}
+                    {token && deliveryError ? (
+                      <button
+                        onClick={() => {
+                          // Redirect to address update page
+                          window.open(`/${currentUrl}/settings`, "_blank");
+                        }}
+                        className="w-full cursor-pointer py-4 px-2 bg-purple-500 text-white hover:bg-purple-600 transition rounded-xl font-bold text-md shadow-lg flex items-center justify-center gap-2"
                       >
-                        Login to Checkout
-                      </Link>
+                        {/* Info/Warning/Alert Icon */}
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="w-5 h-5 text-yellow-300"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 9v2m0 4h.01M12 5a7 7 0 100 14 7 7 0 000-14z"
+                          />
+                        </svg>
+                        Update Address to Proceed
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setShowConfirmationModal(true);
+                        }}
+                        disabled={
+                          !agreedToPolicy ||
+                          createPaymentPending ||
+                          billingPending
+                        }
+                        className="cursor-pointer w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-xl font-bold text-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transform hover:scale-105"
+                      >
+                        {createPaymentPending || billingPending
+                          ? "Processing..."
+                          : "Proceed to Checkout"}
+                      </button>
                     )}
 
                     {/* Continue Shopping */}
@@ -1354,27 +1348,28 @@ const CartPage = () => {
               {/* Left Column - Order Details */}
               <div className="space-y-6">
                 {/* Customer Info */}
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <h3 className="font-semibold text-lg mb-3 flex items-center">
-                    <User className="w-5 h-5 mr-2 text-blue-600" />
-                    Customer Information
-                  </h3>
-                  <div className="space-y-2 text-sm">
-                    <p>
-                      <span className="font-medium">Name:</span>{" "}
-                      {carybinUser?.name || "Not provided"}
-                    </p>
-                    <p>
-                      <span className="font-medium">Email:</span>{" "}
-                      {carybinUser?.email}
-                    </p>
-                    <p>
-                      <span className="font-medium">Phone:</span>{" "}
-                      {carybinUser?.phone ||
-                        carybinUser?.alternative_phone ||
-                        "Not provided"}
-                    </p>
-                    {/* <p>
+                {token && (
+                  <div className="bg-blue-50 rounded-lg p-4">
+                    <h3 className="font-semibold text-lg mb-3 flex items-center">
+                      <User className="w-5 h-5 mr-2 text-blue-600" />
+                      Customer Information
+                    </h3>
+                    <div className="space-y-2 text-sm">
+                      <p>
+                        <span className="font-medium">Name:</span>{" "}
+                        {carybinUser?.name || "Not provided"}
+                      </p>
+                      <p>
+                        <span className="font-medium">Email:</span>{" "}
+                        {carybinUser?.email}
+                      </p>
+                      <p>
+                        <span className="font-medium">Phone:</span>{" "}
+                        {carybinUser?.phone ||
+                          carybinUser?.alternative_phone ||
+                          "Not provided"}
+                      </p>
+                      {/* <p>
                       <span className="font-medium">Email Verified:</span>{" "}
                       <span
                         className={
@@ -1386,72 +1381,77 @@ const CartPage = () => {
                         {carybinUser?.is_email_verified ? "✅ Yes" : "❌ No"}
                       </span>
                     </p>*/}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Delivery Address */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="font-semibold text-lg mb-3 flex items-center">
-                    <Package className="w-5 h-5 mr-2 text-purple-600" />
-                    Delivery Address
-                  </h3>
-                  <div className="space-y-2 text-sm">
-                    {carybinUser?.profile?.address ? (
+                {token && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="font-semibold text-lg mb-3 flex items-center">
+                      <Package className="w-5 h-5 mr-2 text-purple-600" />
+                      Delivery Address
+                    </h3>
+                    <div className="space-y-2 text-sm">
+                      {carybinUser?.profile?.address ? (
+                        <p>
+                          <span className="font-medium">Full Address:</span>{" "}
+                          {carybinUser.profile.address}
+                        </p>
+                      ) : (
+                        <div className="p-3 bg-yellow-100 border border-yellow-300 rounded text-yellow-800 flex flex-col gap-2">
+                          <span className="font-medium">Full Address:</span>{" "}
+                          <span>
+                            <strong>
+                              Address required to complete checkout.
+                            </strong>
+                          </span>
+                          <a
+                            href={`/${currentUrl}/settings`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-700 underline font-medium hover:text-blue-900"
+                          >
+                            Update your address
+                          </a>
+                        </div>
+                      )}
                       <p>
-                        <span className="font-medium">Full Address:</span>{" "}
-                        {carybinUser.profile.address}
+                        <span className="font-medium">Country:</span>{" "}
+                        {carybinUser?.country || "NG"}
                       </p>
-                    ) : (
-                      <div className="p-3 bg-yellow-100 border border-yellow-300 rounded text-yellow-800 flex flex-col gap-2">
-                        <span className="font-medium">Full Address:</span>{" "}
-                        <span>
-                          <strong>
-                            Address required to complete checkout.
-                          </strong>
-                        </span>
-                        <a
-                          href={`/${currentUrl}/settings`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-700 underline font-medium hover:text-blue-900"
-                        >
-                          Update your address
-                        </a>
+                      <div className="mt-2 p-2 bg-gray-100 rounded text-xs">
+                        <p>
+                          <strong>Profile ID:</strong> {carybinUser?.id}
+                        </p>
+                        <p>
+                          <strong>Member Since:</strong>{" "}
+                          {new Date(
+                            carybinUser?.created_at,
+                          ).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    {carybinUser?.profile?.address && (
+                      <div className="mt-3 text-xs text-blue-600 bg-blue-100 p-2 rounded">
+                        <p>
+                          💡 Address from your profile -{" "}
+                          <button
+                            onClick={() => {
+                              console.log(
+                                "📝 User wants to update profile address",
+                              );
+                              window.open(`${currentUrl}/settings`);
+                            }}
+                            className="underline hover:text-blue-800"
+                          >
+                            Update if needed
+                          </button>
+                        </p>
                       </div>
                     )}
-                    <p>
-                      <span className="font-medium">Country:</span>{" "}
-                      {carybinUser?.country || "NG"}
-                    </p>
-                    <div className="mt-2 p-2 bg-gray-100 rounded text-xs">
-                      <p>
-                        <strong>Profile ID:</strong> {carybinUser?.id}
-                      </p>
-                      <p>
-                        <strong>Member Since:</strong>{" "}
-                        {new Date(carybinUser?.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
                   </div>
-                  {carybinUser?.profile?.address && (
-                    <div className="mt-3 text-xs text-blue-600 bg-blue-100 p-2 rounded">
-                      <p>
-                        💡 Address from your profile -{" "}
-                        <button
-                          onClick={() => {
-                            console.log(
-                              "📝 User wants to update profile address",
-                            );
-                            window.open(`${currentUrl}/settings`);
-                          }}
-                          className="underline hover:text-blue-800"
-                        >
-                          Update if needed
-                        </button>
-                      </p>
-                    </div>
-                  )}
-                </div>
+                )}
 
                 {/* Order Items */}
                 <div className="bg-gray-50 rounded-lg p-4">
@@ -1549,18 +1549,20 @@ const CartPage = () => {
                       </div>
                     )}
 
-                    <div className="flex justify-between text-sm">
-                      <span>Delivery Fee</span>
-                      <span>
-                        {deliveryLoading ? (
-                          <span className="text-gray-400">Loading...</span>
-                        ) : deliveryError ? (
-                          <span className="text-red-500">Error</span>
-                        ) : (
-                          formatPrice(delivery_fee)
-                        )}
-                      </span>
-                    </div>
+                    {token && (
+                      <div className="flex justify-between text-sm">
+                        <span>Delivery Fee</span>
+                        <span>
+                          {deliveryLoading ? (
+                            <span className="text-gray-400">Loading...</span>
+                          ) : deliveryError ? (
+                            <span className="text-red-500">Error</span>
+                          ) : (
+                            formatPrice(delivery_fee)
+                          )}
+                        </span>
+                      </div>
+                    )}
 
                     <div className="flex justify-between text-sm">
                       <span>VAT (7.5%)</span>
@@ -1584,7 +1586,17 @@ const CartPage = () => {
                 </div>
 
                 {/* Payment Button */}
-                {!carybinUser?.profile?.address ? (
+                {!token ? (
+                  <button
+                    onClick={() => {
+                      // Redirect to login page
+                      window.location.href = "/login";
+                    }}
+                    className="w-full cursor-pointer py-4 bg-purple-600 text-white hover:bg-purple-700 transition rounded-lg font-bold text-lg shadow-lg"
+                  >
+                    Login to Checkout
+                  </button>
+                ) : !carybinUser?.profile?.address ? (
                   <button
                     onClick={() => {
                       // Redirect to address update page

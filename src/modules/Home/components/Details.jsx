@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Filter, SortDesc, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import useProductGeneral from "../../../hooks/dashboard/useGetProductGeneral";
@@ -84,7 +84,7 @@ export default function MarketplaceSection() {
   const [sortBy, setSortBy] = useState("Default");
   const [showFilter, setShowFilter] = useState(false);
   const [priceRange, setPriceRange] = useState([5000, 20000]);
-
+  const [pendingFabric, setPendingFabric] = useState(null);
   const toggleFilter = () => setShowFilter(!showFilter);
 
   const handleLoadMore = () => {
@@ -172,7 +172,7 @@ export default function MarketplaceSection() {
       },
       "STYLE",
     );
-
+  console.log("this is the style rodust data", getStyleProductData);
   const styleData = getStyleProductGeneralData?.data;
 
   const isShowMoreBtn = styleData?.length == getStyleProductGeneralData?.count;
@@ -193,35 +193,111 @@ export default function MarketplaceSection() {
 
   console.log(item);
 
+  useEffect(() => {
+    const pendingFabricData = localStorage.getItem("pending_fabric");
+    if (pendingFabricData) {
+      try {
+        const fabricData = JSON.parse(pendingFabricData);
+        console.log("🧵 Found pending fabric raw data:", fabricData);
+
+        // Ensure fabric data has the right structure
+        const processedFabricData = {
+          product_id: fabricData.product_id,
+          name: fabricData.name || "Selected Fabric",
+          price: fabricData.price || 0,
+          quantity: fabricData.quantity || 1,
+          image: fabricData.image || fabricData.photos?.[0],
+          photos:
+            fabricData.photos || (fabricData.image ? [fabricData.image] : []),
+          color: fabricData.color,
+          customer_name: fabricData.customer_name,
+        };
+
+        setPendingFabric(processedFabricData);
+        console.log("🧵 Processed pending fabric:", processedFabricData);
+        console.log("🧵 Fabric display data:", {
+          name: processedFabricData.name,
+          price: processedFabricData.price,
+          quantity: processedFabricData.quantity,
+          hasImage: !!processedFabricData.image,
+          hasPhotos: !!processedFabricData.photos?.length,
+        });
+      } catch (error) {
+        console.error("Error parsing pending fabric:", error);
+        localStorage.removeItem("pending_fabric");
+      }
+    } else {
+      console.log("🧵 No pending fabric found in localStorage");
+    }
+  }, []);
+
   return (
     <>
       <section className="Resizer section px-4">
-        {/* Conditionally render the Fabric section */}
-        {/* {item ? (
-          <div className="bg-[#FFF2FF] p-4 rounded-lg mb-6">
-            <h2 className="text-sm font-medium text-gray-500 mb-4">FABRIC</h2>
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <img
-                  src={item?.product?.image}
-                  alt="product"
-                  className="w-20 h-20 rounded object-cover"
-                />
+        {pendingFabric && (
+          <div className="bg-[#FFF2FF] p-4 rounded-lg mb-6 relative">
+            {/* Cancel/Remove Fabric Button */}
+            <button
+              onClick={() => {
+                setPendingFabric(null);
+                localStorage.removeItem("pending_fabric");
+                toastSuccess("Fabric selection removed");
+              }}
+              className="absolute top-3 right-3 p-1.5 hover:bg-white/50 rounded-full transition-colors"
+              aria-label="Remove selected fabric"
+              title="Remove selected fabric"
+            >
+              <X className="w-4 h-4 text-gray-500 hover:text-gray-700" />
+            </button>
+            <h2 className="text-sm font-medium text-gray-500 mb-4">
+              Selected Fabric
+            </h2>
+            {pendingFabric && (
+              <div className="bg-purple-100 border-l-4 border-purple-500 text-purple-800 p-3 mb-3 rounded flex items-center space-x-2">
+                <svg
+                  className="w-5 h-5 text-purple-500 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <span>
+                  <strong>Note:</strong> You cannot proceed to cart if the
+                  selected style requires a higher numner of yards than selected
+                  fabric
+                </span>
               </div>
-              <div className="ml-4 flex-1">
-                <h3 className="font-medium">{item?.product?.name}</h3>
-                <p className="mt-1 text-sm">
-                  X {item?.product?.quantity} Yards
-                </p>
-                <p className="mt-1 text-[#2B21E5] text-sm">
-                  N {item?.product?.price_at_time?.toLocaleString()}
+            )}
+            <div className="flex items-center space-x-4">
+              {(pendingFabric.photos && pendingFabric.photos[0]) ||
+              pendingFabric.image ? (
+                <img
+                  src={pendingFabric.photos?.[0] || pendingFabric.image}
+                  alt={pendingFabric.name || "Selected Fabric"}
+                  className="w-16 h-16 object-cover rounded-lg border"
+                />
+              ) : (
+                <div className="w-16 h-16 bg-gray-200 rounded-lg border flex items-center justify-center">
+                  <span className="text-gray-400 text-xs">No Image</span>
+                </div>
+              )}
+              <div>
+                <h3 className="font-semibold text-gray-900">
+                  {pendingFabric.name || "Selected Fabric"}
+                </h3>
+                <p className="text-sm text-gray-800 font-bold">
+                  Quantity: {pendingFabric.quantity || 1} yards
                 </p>
               </div>
             </div>
           </div>
-        ) : (
-          <></>
-        )}*/}
+        )}
 
         <div className="flex flex-col md:flex-row md:justify-between md:items-center text-left mb-6">
           <div>
@@ -352,6 +428,15 @@ export default function MarketplaceSection() {
                   {formatPrice(product?.price)}{" "}
                   <span className="text-[#8A8A8A] font-medium">per yard</span>
                 </p>
+                {/* Minimum fabric required */}
+                {product?.style?.minimum_fabric_qty && (
+                  <p className="text-xs text-gray-600 mt-1">
+                    Min. Fabric required:{" "}
+                    <span className="font-semibold text-purple-600">
+                      {product.style.minimum_fabric_qty} yards
+                    </span>
+                  </p>
+                )}
               </Link>
             ))}
           </div>

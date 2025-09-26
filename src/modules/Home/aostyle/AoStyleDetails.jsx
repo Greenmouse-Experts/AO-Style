@@ -28,7 +28,7 @@ export default function AnkaraGownPage() {
 
   const { addCartMutate, isPending: addCartPending } = useAddCart();
   const { toastSuccess, toastError } = useToast();
-
+  console.log(pendingFabric, "this is the peding fabric");
   const styleInfo = location?.state?.info;
 
   console.log("🔍 AoStyleDetails: styleInfo:", styleInfo);
@@ -686,6 +686,111 @@ export default function AnkaraGownPage() {
                     </div>
                   )}
                 </div>
+                {pendingFabric && styleInfo?.style?.minimum_fabric_qty && (
+                  <div className="mb-4">
+                    {pendingFabric.quantity >=
+                    styleInfo.style.minimum_fabric_qty ? (
+                      <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg p-4">
+                        <svg
+                          className="w-6 h-6 text-green-500"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            fill="green"
+                            opacity="0.15"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M5 13l4 4L19 7"
+                            stroke="currentColor"
+                          />
+                        </svg>
+                        <div>
+                          <p className="text-green-800 font-semibold">
+                            You have enough fabric for this style!
+                          </p>
+                          <p className="text-green-700 text-sm">
+                            Selected:{" "}
+                            <span className="font-bold">
+                              {pendingFabric.quantity}
+                            </span>{" "}
+                            yards &nbsp;|&nbsp; Required:{" "}
+                            <span className="font-bold">
+                              {styleInfo.style.minimum_fabric_qty}
+                            </span>{" "}
+                            yards
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-3 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div className="flex items-center gap-2">
+                          <svg
+                            className="w-6 h-6 text-yellow-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              fill="yellow"
+                              opacity="0.15"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M12 8v4m0 4h.01"
+                              stroke="currentColor"
+                            />
+                          </svg>
+                          <span className="text-yellow-700 font-semibold">
+                            Not enough fabric selected!
+                          </span>
+                        </div>
+                        <p className="text-yellow-700 text-sm">
+                          Selected:{" "}
+                          <span className="font-bold">
+                            {pendingFabric.quantity}
+                          </span>{" "}
+                          yards &nbsp;|&nbsp; Required:{" "}
+                          <span className="font-bold">
+                            {styleInfo.style.minimum_fabric_qty}
+                          </span>{" "}
+                          yards
+                        </p>
+                        <button
+                          className="cursor-pointer mt-2 w-fit border border-yellow-400 text-gray-900 font-semibold px-5 py-2 rounded-lg shadow transition-opacity"
+                          onClick={() => {
+                            if (pendingFabric) {
+                              localStorage.removeItem("pending_fabric");
+                              setPendingFabric(null);
+                            }
+                            // navigate(
+                            //   `/shop-details/${pendingFabric?.product_id}`,
+                            // );
+                            navigate("/marketplace");
+                          }}
+                        >
+                          Increase Fabric Yards
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
                 {/* Location and Gender Display */}
                 <div className="flex flex-wrap gap-4 items-center mb-2">
                   {/* Gender */}
@@ -1673,35 +1778,69 @@ export default function AnkaraGownPage() {
 
               {/* Action Buttons */}
               <div className="flex flex-col gap-3">
-                <button
-                  onClick={handleConfirmAddToCart}
-                  disabled={addCartPending}
-                  className="w-full cursor-pointer flex items-center justify-center space-x-2 px-6 py-4 bg-gradient text-white rounded-xl font-semibold hover:bg-purple-700 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6H19"
-                    ></path>
-                  </svg>
-                  <span>
-                    {addCartPending ? "Adding to Cart..." : "Add to Cart"}
-                  </span>
-                </button>
-                <button
-                  onClick={() => setShowCartModal(false)} // Fixed syntax
-                  disabled={addCartPending}
-                  className="w-full flex items-center justify-center space-x-2 px-6 py-4 text-black rounded-xl transition-all duration-200 cursor-pointer shadow-lg disabled:opacity-50 border border-gray-300"
-                >
-                  <span>Select more measurements</span>
-                </button>
+                {/* If pendingFabric and minimum_fabric_qty is set and yards is too low, show warning and action buttons */}
+                {pendingFabric &&
+                styleInfo?.style?.minimum_fabric_qty &&
+                Number(pendingFabric.quantity) <
+                  Number(styleInfo.style.minimum_fabric_qty) ? (
+                  <>
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-2 text-center">
+                      <p className="text-red-700 font-semibold mb-1">
+                        Not enough fabric selected!
+                      </p>
+                      <p className="text-red-600 text-sm">
+                        This style requires at least{" "}
+                        {styleInfo.style.minimum_fabric_qty} yards of fabric.
+                        <br />
+                        You have selected {pendingFabric.quantity} yard
+                        {pendingFabric.quantity !== 1 ? "s" : ""}.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setShowCartModal(false);
+                        localStorage.removeItem("pending_fabric");
+                        setPendingFabric(null);
+                        navigate("/marketplace");
+                      }}
+                      className="w-full flex items-center justify-center space-x-2 px-6 py-4 text-black rounded-xl transition-all duration-200 cursor-pointer shadow-lg border border-gray-300 bg-purple-100 hover:bg-purple-200"
+                    >
+                      <span>Select more yards</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleConfirmAddToCart}
+                      disabled={addCartPending}
+                      className="w-full cursor-pointer flex items-center justify-center space-x-2 px-6 py-4 bg-gradient text-white rounded-xl font-semibold hover:bg-purple-700 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6H19"
+                        ></path>
+                      </svg>
+                      <span>
+                        {addCartPending ? "Adding to Cart..." : "Add to Cart"}
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => setShowCartModal(false)}
+                      disabled={addCartPending}
+                      className="w-full flex items-center justify-center space-x-2 px-6 py-4 text-black rounded-xl transition-all duration-200 cursor-pointer shadow-lg disabled:opacity-50 border border-gray-300"
+                    >
+                      <span>Select more measurements</span>
+                    </button>
+                  </>
+                )}
                 {/*
                 <button
                   onClick={() => setShowCartModal(false)}

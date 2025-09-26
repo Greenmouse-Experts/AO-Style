@@ -475,18 +475,18 @@ const OrderDetails = () => {
                             ?.available_colors && (
                             <div className="mb-2">
                               <span className="text-xs font-medium text-gray-500 mr-2">
-                                Colors:
+                                Color:
                               </span>
-                              {orderPurchase[0]?.product?.fabric?.fabric_colors
-                                ?.split(",") // Split the comma-separated string into an array
-                                ?.map((color, idx) => (
-                                  <span
-                                    key={color + idx}
-                                    className="inline-block w-5 h-5 rounded-full border border-gray-200 mr-1 align-middle"
-                                    style={{ backgroundColor: color.trim() }} // Use trim() to remove any whitespace
-                                    title={color.trim()}
-                                  ></span>
-                                ))}
+                              {orderInfo?.payment?.metadata?.[0]?.color && (
+                                <span
+                                  className="inline-block w-5 h-5 rounded-full border border-gray-200 mr-1 align-middle"
+                                  style={{
+                                    backgroundColor:
+                                      orderInfo?.payment?.metadata?.[0]?.color.trim(),
+                                  }}
+                                  title={orderInfo?.payment?.metadata?.[0]?.color.trim()}
+                                ></span>
+                              )}
                               <span className="text-xs text-gray-400 ml-2">
                                 (
                                 {

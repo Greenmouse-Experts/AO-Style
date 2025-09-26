@@ -696,7 +696,14 @@ const CartPage = () => {
               purchase_type:
                 item.product_type || item.product?.type || "FABRIC",
             });
-
+            metadata.push({
+              ...item.metadata,
+              fabric_product_id: item.product_id,
+              fabric_product_name: item.product?.name || "",
+              color: item.color || "",
+              quantity: item.quantity,
+              price_at_time: item.price_at_time || item.product?.price || 0,
+            });
             // Add style purchase if item has a style (avoid duplicates)
             if (
               item.style_product?.id &&
@@ -704,10 +711,17 @@ const CartPage = () => {
             ) {
               purchases.push({
                 purchase_id: item.style_product.id,
-                quantity: item?.measurement?.length, // Style is always quantity 1 (flat fee)
+                quantity: item?.measurement?.length,
                 purchase_type: "STYLE",
               });
-
+              metadata.push({
+                ...item.metadata,
+                fabric_product_id: item.product_id,
+                fabric_product_name: item.product?.name || "",
+                color: item.color || "",
+                quantity: item.quantity,
+                price_at_time: item.price_at_time || item.product?.price || 0,
+              });
               // Mark this style as added to prevent duplicates
               addedStyles.add(item.style_product.id);
             }
@@ -735,6 +749,7 @@ const CartPage = () => {
           if (metadata.length === 0) {
             // If there are no style items, add general order metadata
             metadata.push({
+              ...metadata,
               order_type: "fabric_only",
               customer_name: carybinUser?.name || "",
               customer_email: carybinUser?.email || "",
@@ -815,6 +830,7 @@ const CartPage = () => {
 
           const paymentData = {
             purchases,
+            metadata: metadata,
             amount: Math.round(finalTotal),
             currency: "NGN",
             coupon_code: appliedCoupon?.code || undefined,
@@ -824,7 +840,7 @@ const CartPage = () => {
             vat_amount: estimatedVat,
             country: addressInfo.country,
             postal_code: addressInfo.postal_code,
-            ...(shouldIncludeMetadata && { metadata }), // Now includes delivery fee in metadata
+            ...{ metadata }, // Now includes delivery fee in metadata
           };
 
           console.log("💳 Creating payment with enhanced data:", paymentData);
@@ -845,28 +861,6 @@ const CartPage = () => {
                 new Set(purchases.map((p) => p.purchase_id)).size !==
                 purchases.length,
             },
-          });
-          console.log("📏 Payment metadata breakdown:", {
-            metadataCount: metadata.length,
-            deliveryFeeIncluded: metadata.some(
-              (item) =>
-                item.delivery_fee !== undefined ||
-                (item.order_summary &&
-                  item.order_summary.delivery_fee !== undefined),
-            ),
-            styleItemsWithMeasurements: metadata
-              .filter((m) => m.style_product_id) // Only style items
-              .map((m) => ({
-                style_product_id: m.style_product_id,
-                style_product_name: m.style_product_name,
-                measurementCount: Array.isArray(m.measurement)
-                  ? m.measurement.length
-                  : m.measurement
-                    ? 1
-                    : 0,
-                delivery_fee: m.delivery_fee, // Show delivery fee is included
-              })),
-            orderSummaryMetadata: metadata.find((m) => m.order_summary),
           });
 
           createPaymentMutate(paymentData, {
@@ -1410,18 +1404,6 @@ const CartPage = () => {
                           carybinUser?.alternative_phone ||
                           "Not provided"}
                       </p>
-                      {/* <p>
-                      <span className="font-medium">Email Verified:</span>{" "}
-                      <span
-                        className={
-                          carybinUser?.is_email_verified
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }
-                      >
-                        {carybinUser?.is_email_verified ? "✅ Yes" : "❌ No"}
-                      </span>
-                    </p>*/}
                     </div>
                   </div>
                 )}

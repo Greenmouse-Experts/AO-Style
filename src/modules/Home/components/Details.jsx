@@ -7,6 +7,7 @@ import useDebounce from "../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 import LoaderComponent from "../../../components/BeatLoader";
 import { useCartStore } from "../../../store/carybinUserCartStore";
+import CustomBackbtn from "../../../components/CustomBackBtn";
 
 const categories = ["All Styles", "Male Styles", "Female Styles", "Bubu"];
 
@@ -234,6 +235,7 @@ export default function MarketplaceSection() {
   return (
     <>
       <section className="Resizer section px-4">
+        <CustomBackbtn />
         {pendingFabric && (
           <div className="bg-[#FFF2FF] p-4 rounded-lg mb-6 relative">
             {/* Cancel/Remove Fabric Button */}
@@ -269,7 +271,7 @@ export default function MarketplaceSection() {
                 </svg>
                 <span>
                   <strong>Note:</strong> You cannot proceed to cart if the
-                  selected style requires a higher numner of yards than selected
+                  selected style requires a higher number of yards than selected
                   fabric
                 </span>
               </div>

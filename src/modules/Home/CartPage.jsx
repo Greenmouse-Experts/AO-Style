@@ -81,6 +81,7 @@ const CartPage = () => {
     ) {
       const pendingData = localStorage.getItem("pending_fabric_data");
       if (pendingData) {
+        console.log("this is the pending cart data ", JSON.parse(pendingData));
         addMultipleCartMutate(pendingData, {
           onSuccess: (data) => {
             toastSuccess("Added to cart successfully");
@@ -328,7 +329,11 @@ const CartPage = () => {
     //GOOD
     const subtotal = items.reduce((total, item) => {
       const fabricPrice = parseFloat(
-        item.price_at_time || item.product?.price || item?.price || 0,
+        item.price_at_time ||
+          item.product?.price ||
+          item?.price ||
+          item.pendingFabricData?.pendingFabric?.price ||
+          0,
       );
       const stylePrice = parseFloat(
         item.style_product?.price || item?.style_price || 0,
@@ -430,7 +435,6 @@ const CartPage = () => {
         },
         {
           onSuccess: () => {
-            console.log("🗑️ Item deleted successfully, refetching cart...");
             refetchCart();
             setIsDeleteModalOpen(false);
             setItemToDelete(null);
@@ -453,39 +457,43 @@ const CartPage = () => {
       if (pendingFabricData) {
         try {
           const cartObj = JSON.parse(pendingFabricData);
+
           if (Array.isArray(cartObj.items)) {
-            // Find index of item with matching id
-            const index = cartObj.items.findIndex((item) => item.id === itemId);
-            if (index !== -1) {
-              cartObj.items.splice(index, 1);
-              // Save updated cart back to localStorage
+            // Step 1: Find the item with matching ID
+            const itemIndex = cartObj.items.findIndex(
+              (item) => String(item.id) === String(itemId),
+            );
+
+            if (itemIndex !== -1) {
+              // Step 2: Delete the object with that ID
+              cartObj.items.splice(itemIndex, 1);
+
+              // Step 3: Store the new data in localStorage
               localStorage.setItem(
                 "pending_fabric_data",
                 JSON.stringify(cartObj),
               );
+
+              // Clean up UI state
               setIsDeleteModalOpen(false);
               setItemToDelete(null);
               setAppliedCoupon(null);
               setCoupon("");
-              // Optionally, force a re-render by triggering a state update
-              // refetchCart && refetchCart();
-              // toastSuccess && toastSuccess("Item removed from cart.");
-              console.log("🗑️ Item removed from localStorage cart:", itemId);
+
+              console.log("✅ Item deleted successfully:", itemId);
             } else {
               toastError("Item not found in cart.");
-              console.error("Item not found in localStorage cart:", itemId);
+              console.log("❌ Item not found:", itemId);
             }
           } else {
             toastError("Cart data is invalid.");
-            console.error("Cart items is not an array in localStorage.");
           }
         } catch (e) {
-          toastError("Failed to update cart in localStorage.");
-          console.error("Failed to parse or update pending_fabric_data:", e);
+          toastError("Failed to update cart.");
+          console.error("Error:", e);
         }
       } else {
         toastError("No cart data found.");
-        console.error("No pending_fabric_data found in localStorage.");
       }
     }
   };
@@ -692,7 +700,7 @@ const CartPage = () => {
             // Add fabric purchase
             purchases.push({
               purchase_id: item.product_id,
-              quantity: item.quantity,
+              quantity: Number(item.quantity),
               purchase_type:
                 item.product_type || item.product?.type || "FABRIC",
             });
@@ -1334,14 +1342,14 @@ const CartPage = () => {
                   setIsDeleteModalOpen(false);
                   setItemToDelete(null);
                 }}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                className="cursor-pointer px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleRemoveItem(itemToDelete)}
                 disabled={deleteIsPending}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+                className="cursor-pointer px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
               >
                 {deleteIsPending ? "Removing..." : "Remove"}
               </button>
@@ -1491,16 +1499,22 @@ const CartPage = () => {
                         <div className="flex-1">
                           <p className="font-medium text-sm">
                             {/* Show fabric name */}
-                            {item.product?.name || item.name}
+                            {item.product?.name ||
+                              item.name ||
+                              item?.pendingFabricData?.pendingFabric?.name ||
+                              "Unnamed Fabric"}
                             {/* Show style name if it exists */}
-                            {item.style_product?.name && (
-                              <>
-                                {" "}
-                                <span className="text-purple-700 font-semibold">
-                                  + Style: {item.style_product.name}
-                                </span>
-                              </>
-                            )}
+                            {item?.style_product?.name ||
+                              (item?.style_price && (
+                                <>
+                                  {" "}
+                                  <span className="text-purple-700 font-semibold">
+                                    + Style:{" "}
+                                    {item?.style_product?.name ||
+                                      item?.pendingFabricData?.styleInfo?.name}
+                                  </span>
+                                </>
+                              ))}
                           </p>
                           <p className="text-xs text-gray-600">
                             {/* Show fabric price and quantity */}
@@ -1509,19 +1523,22 @@ const CartPage = () => {
                               item.price_at_time ||
                                 item.product?.price ||
                                 item.price ||
+                                item.pendingFabricData?.pendingFabric?.price ||
                                 0,
                             )}
                             {/* Show style price if style exists */}
-                            {item.style_product?.price && (
-                              <span>
-                                {" "}
-                                + Style: ₦
-                                {formatNumberWithCommas(
-                                  item.style_product.price *
-                                    item.measurement.length,
-                                )}
-                              </span>
-                            )}
+                            {item?.style_product?.price ||
+                              (item.style_price && (
+                                <span>
+                                  {" "}
+                                  + Style: ₦
+                                  {formatNumberWithCommas(
+                                    item?.style_product?.price ||
+                                      item?.style_price *
+                                        item.measurement.length,
+                                  )}
+                                </span>
+                              ))}
                           </p>
                           {/* Show product type if exists */}
                           {(item.product_type || item.product?.type) && (
@@ -1538,10 +1555,16 @@ const CartPage = () => {
                                 item.price_at_time ||
                                   item.product?.price ||
                                   item.price ||
+                                  item.pendingFabricData?.pendingFabric
+                                    ?.price ||
                                   0,
                               ) *
                                 parseInt(item.quantity || 1) +
-                                parseFloat(item.style_product?.price || 0),
+                                parseFloat(
+                                  item.style_product?.price ||
+                                    item?.style_price ||
+                                    0,
+                                ),
                             )}
                           </p>
                         </div>

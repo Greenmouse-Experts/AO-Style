@@ -209,6 +209,15 @@ export default function ShopDetails() {
     // Create combined payload with fabric, style, and measurements
     const combinedPayload = {
       ...fabricInfo,
+      pendingFabricData: { pendingFabric: fabricInfo, styleInfo: styleData },
+      style_product_id: styleData?.id || styleData?.product_id,
+      style_price: styleData?.price || 0,
+      measurement: measurementData,
+    };
+
+    const combinedPayloadForNoLogin = {
+      ...fabricInfo,
+      pendingFabricData: { pendingFabric: fabricInfo, styleInfo: styleData },
       style_product_id: styleData?.id || styleData?.product_id,
       style_price: styleData?.price || 0,
       measurements: measurementData,
@@ -246,15 +255,15 @@ export default function ShopDetails() {
       // Check if item with same product_id and style_product_id already exists
       const alreadyExists = items.some(
         (item) =>
-          item.product_id === combinedPayload.product_id &&
-          item.style_product_id === combinedPayload.style_product_id,
+          item.product_id === combinedPayloadForNoLogin.product_id &&
+          item.style_product_id === combinedPayloadForNoLogin.style_product_id,
       );
       if (alreadyExists) {
         setIsCartSelectionModalOpen(false);
         setExistingModal(true);
         return;
       }
-      items.push(combinedPayload);
+      items.push(combinedPayloadForNoLogin);
       localStorage.setItem("pending_fabric_data", JSON.stringify({ items }));
       setIsCartSelectionModalOpen(false);
       setIsSuccessModalOpen(true);
@@ -1085,7 +1094,7 @@ export default function ShopDetails() {
                   <div className="bg-white rounded-2xl shadow-2xl p-8 w-[90%] max-w-md animate-fade-in-up relative">
                     {/* Close Button */}
                     <button
-                      onClick={() => false}
+                      onClick={() => setExistingModal(false)}
                       className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
                       aria-label="Close modal"
                     >

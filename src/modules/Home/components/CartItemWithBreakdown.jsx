@@ -13,7 +13,11 @@ const CartItemWithBreakdown = ({
   if (!item) return null;
 
   const fabricPrice = parseFloat(
-    item.price_at_time || item.product?.price || item?.price || 0,
+    item.price_at_time ||
+      item.product?.price ||
+      item?.price ||
+      item.pendingFabricData?.pendingFabric?.price ||
+      0,
   );
 
   const measurementCount = getMeasurementCount
@@ -33,7 +37,10 @@ const CartItemWithBreakdown = ({
 
   // Get the first image from photos array or fallback to product.image
   const productImage =
-    item.photos?.[0] || item.product?.fabric?.photos?.[0] || item.image;
+    item.photos?.[0] ||
+    item.product?.fabric?.photos?.[0] ||
+    item.image ||
+    item?.pendingFabricData?.pendingFabric?.image;
   ("/default-product.png");
 
   // Get style image
@@ -41,6 +48,7 @@ const CartItemWithBreakdown = ({
   const styleImage =
     item.style_product?.photos?.[0] ||
     item.style_product?.style?.photos?.[0] ||
+    item.pendingFabricData?.styleInfo?.style?.photos?.[0] ||
     null;
 
   // DEBUG: Show all style data for troubleshooting
@@ -72,7 +80,10 @@ const CartItemWithBreakdown = ({
                 onClick={() => navigate(`/shop-details/${item.product_id}`)}
                 className="font-semibold text-base text-gray-900 hover:text-purple-600 transition-colors text-left"
               >
-                {item.product?.name || item.name}
+                {item.product?.name ||
+                  item.name ||
+                  item?.pendingFabricData?.pendingFabric?.name ||
+                  "Fabric"}
               </button>
               <p className="text-sm text-gray-600">
                 Color: {item.color || "Red"}
@@ -131,6 +142,7 @@ const CartItemWithBreakdown = ({
                       {/* Show more style info if available */}
                       {item.style_product?.name ||
                         item.style_product?.style?.name ||
+                        item.pendingFabricData?.styleInfo?.name ||
                         "Custom Style"}
                     </div>
                     <div className="text-sm text-gray-600 mt-1">
@@ -187,7 +199,10 @@ const CartItemWithBreakdown = ({
                 onClick={() => navigate(`/shop-details/${item.product_id}`)}
                 className="font-semibold text-base text-gray-900 hover:text-purple-600 transition-colors text-left block mb-1"
               >
-                {item.product?.name || item?.name}
+                {item.product?.name ||
+                  item?.name ||
+                  item?.pendingFabricData?.pendingFabric?.name ||
+                  "Fabric"}
               </button>
               <p className="text-sm text-gray-600">
                 Color: {item.color || "Red"}
@@ -245,6 +260,7 @@ const CartItemWithBreakdown = ({
                   <div className="font-semibold text-base text-gray-900 mb-1">
                     {item.style_product?.name ||
                       item.style_product?.style?.name ||
+                      item.pendingFabricData?.styleInfo?.name ||
                       "Custom Style"}
                   </div>
                   {/* Show style product data for debugging */}

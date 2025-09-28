@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { FaUpload, FaTrash, FaSpinner, FaArrowLeft } from "react-icons/fa";
@@ -24,6 +24,13 @@ const AddFabric = () => {
   const [_videoFile, setVideoFile] = useState(null);
   const [videoUrl, setVideoUrl] = useState("");
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [isDraftSaved, setIsDraftSaved] = useState(false);
+  const [lastSavedTime, setLastSavedTime] = useState(null);
+  const [showAutosaveIndicator, setShowAutosaveIndicator] = useState(false);
+  const [isLoadingDraft, setIsLoadingDraft] = useState(true);
+
+  const DRAFT_KEY = "fabric_form_draft";
+  const AUTOSAVE_DELAY = 2000; // 2 seconds
 
   useEffect(() => {
     // Fetch fabric vendors
@@ -60,6 +67,51 @@ const AddFabric = () => {
   // Video upload hook
   const { uploadVideoMutate } = useUploadVideo();
 
+  const saveDraft = useCallback((values, photoUrls, videoUrl) => {
+    try {
+      const draft = {
+        formValues: values,
+        photoUrls: photoUrls,
+        videoUrl: videoUrl,
+        timestamp: new Date().toISOString(),
+      };
+
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      setIsDraftSaved(true);
+      setLastSavedTime(new Date());
+      setShowAutosaveIndicator(true);
+
+      setTimeout(() => setShowAutosaveIndicator(false), 2000);
+      console.log("📝 Draft saved to localStorage");
+    } catch (error) {
+      console.error("Failed to save draft:", error);
+    }
+  }, []);
+
+  const loadDraft = useCallback(() => {
+    try {
+      const savedDraft = localStorage.getItem(DRAFT_KEY);
+      if (savedDraft) {
+        return JSON.parse(savedDraft);
+      }
+      return null;
+    } catch (error) {
+      console.error("Failed to load draft:", error);
+      return null;
+    }
+  }, []);
+
+  const clearDraft = useCallback(() => {
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+      setIsDraftSaved(false);
+      setLastSavedTime(null);
+      console.log("🗑️ Draft cleared from localStorage");
+    } catch (error) {
+      console.error("Failed to clear draft:", error);
+    }
+  }, []);
+
   const validationSchema = Yup.object({
     vendor_id: Yup.string().required("Please select a fabric vendor"),
     name: Yup.string().required("Fabric name is required"),
@@ -90,12 +142,9 @@ const AddFabric = () => {
       description: "",
       gender: "",
       price: "",
-      // original_price: "",
       quantity: 1,
       market_id: "",
       weight_per_unit: "",
-      // latitude: "",
-      // longitude: "",
       local_name: "",
       manufacturer_name: "",
       material_type: "",
@@ -164,56 +213,63 @@ const AddFabric = () => {
 
       createMarketRepFabricMutate(payload, {
         onSuccess: (response) => {
-          console.log("🔧 FABRIC SUCCESS: Full response object:", response);
-          console.log("🔧 FABRIC SUCCESS: Response status:", response?.status);
-          console.log("🔧 FABRIC SUCCESS: Response data:", response?.data);
-          console.log(
-            "🔧 FABRIC SUCCESS: Response message:",
-            response?.data?.message,
-          );
-          console.log("🔧 FABRIC SUCCESS: Response data structure:", {
-            dataType: typeof response?.data,
-            isArray: Array.isArray(response?.data),
-            keys: response?.data ? Object.keys(response?.data) : null,
-          });
-
+          console.log("🎉 Fabric creation response:", response);
+          clearDraft();
           toastSuccess("Fabric created successfully!");
           navigate("/sales/my-products");
         },
         onError: (error) => {
-          // toastError(error?.data?.message || error?.message);
-          console.log("🔧 FABRIC ERROR: Full error object:", error);
-          console.log("🔧 FABRIC ERROR: error.response:", error?.response);
-          console.log(
-            "🔧 FABRIC ERROR: error.response.data:",
-            error?.response?.data,
-          );
-          console.log(
-            "🔧 FABRIC ERROR: error.response.data.message:",
-            error?.response?.data?.message,
-          );
-          console.log(
-            "🔧 FABRIC ERROR: error.response.data.data:",
-            error?.response?.data?.data,
-          );
-          console.log(
-            "🔧 FABRIC ERROR: error.response.data.data.message:",
-            error?.response?.data?.data?.message,
-          );
-          console.log("🔧 FABRIC ERROR: error.message:", error?.message);
-
-          // const errorMessage =
-          //   error?.response?.data?.data?.message ||
-          //   error?.response?.data?.message ||
-          //   error?.message ||
-          //   "Failed to create fabric. Please try again.";
-
-          // console.log("🔧 FABRIC ERROR: Final message shown:", errorMessage);
-          // toastError(errorMessage);
+          toastError(error?.data?.message || error?.message);
         },
       });
     },
   });
+
+  useEffect(() => {
+    const savedDraft = loadDraft();
+    if (savedDraft) {
+      // Load form values
+      Object.keys(savedDraft.formValues).forEach((key) => {
+        if (savedDraft.formValues[key] !== formik.initialValues[key]) {
+          formik.setFieldValue(key, savedDraft.formValues[key]);
+        }
+      });
+
+      // Load media files
+      if (savedDraft.photoUrls?.length > 0) {
+        setPhotoUrls(savedDraft.photoUrls);
+      }
+      if (savedDraft.videoUrl) {
+        setVideoUrl(savedDraft.videoUrl);
+        formik.setFieldValue("video_url", savedDraft.videoUrl);
+      }
+
+      setLastSavedTime(new Date(savedDraft.timestamp));
+      setIsDraftSaved(true);
+
+      console.log("📄 Draft loaded from localStorage");
+    }
+    setIsLoadingDraft(false);
+  }, []);
+
+  useEffect(() => {
+    if (isLoadingDraft) return; // Don't save while loading
+
+    const timeoutId = setTimeout(() => {
+      // Only autosave if form has meaningful content
+      const hasContent =
+        formik.values.name ||
+        formik.values.description ||
+        formik.values.vendor_id ||
+        photoUrls.length > 0;
+
+      if (hasContent) {
+        saveDraft(formik.values, photoUrls, videoUrl);
+      }
+    }, AUTOSAVE_DELAY);
+
+    return () => clearTimeout(timeoutId);
+  }, [formik.values, photoUrls, videoUrl, isLoadingDraft, saveDraft]);
 
   const handleVideoUpload = async (event) => {
     const file = event.target.files[0];
@@ -348,8 +404,60 @@ const AddFabric = () => {
     setPhotoFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const AutosaveIndicator = () => (
+    <div className="fixed top-4 right-4 z-50">
+      {showAutosaveIndicator && (
+        <div className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg animate-pulse">
+          ✓ Draft saved
+        </div>
+      )}
+      {isDraftSaved && lastSavedTime && !showAutosaveIndicator && (
+        <div className="bg-gray-100 text-gray-700 px-3 py-1 rounded text-sm">
+          Last saved: {lastSavedTime.toLocaleTimeString()}
+        </div>
+      )}
+    </div>
+  );
+
+  const DraftNotification = () => {
+    if (!isDraftSaved || !lastSavedTime) return null;
+
+    return (
+      <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <svg
+              className="h-5 w-5 text-blue-400"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <p className="text-sm text-blue-700">
+              <strong>Draft restored!</strong> Your previous work from{" "}
+              {lastSavedTime.toLocaleString()} has been restored.
+              <button
+                onClick={clearDraft}
+                className="ml-2 underline hover:no-underline"
+              >
+                Start fresh
+              </button>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="bg-white p-6 rounded-xl">
+      <AutosaveIndicator />
       <div className="flex items-center mb-6">
         <button
           onClick={() => navigate(-1)}
@@ -359,6 +467,7 @@ const AddFabric = () => {
         </button>
         <h1 className="text-2xl font-bold text-gray-800">Add New Fabric</h1>
       </div>
+      <DraftNotification />
 
       <form onSubmit={formik.handleSubmit} className="space-y-6">
         {/* Vendor Selection */}

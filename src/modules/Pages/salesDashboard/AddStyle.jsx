@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { FaUpload, FaTrash, FaSpinner, FaArrowLeft } from "react-icons/fa";
@@ -22,7 +22,13 @@ const AddStyle = () => {
   const [_videoFile, setVideoFile] = useState(null);
   const [videoUrl, setVideoUrl] = useState("");
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [isDraftSaved, setIsDraftSaved] = useState(false);
+  const [lastSavedTime, setLastSavedTime] = useState(null);
+  const [showAutosaveIndicator, setShowAutosaveIndicator] = useState(false);
+  const [isLoadingDraft, setIsLoadingDraft] = useState(true);
 
+  const DRAFT_KEY = "style_form_draft";
+  const AUTOSAVE_DELAY = 2000; // 2 seconds
   // Create style mutation
   const { createMarketRepStyleMutate, isPending: isCreating } =
     useCreateMarketRepStyle();
@@ -37,6 +43,51 @@ const AddStyle = () => {
 
   // Video upload hook
   const { uploadVideoMutate } = useUploadVideo();
+
+  const saveDraft = useCallback((values, photoUrls, videoUrl) => {
+    try {
+      const draft = {
+        formValues: values,
+        photoUrls: photoUrls,
+        videoUrl: videoUrl,
+        timestamp: new Date().toISOString(),
+      };
+
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      setIsDraftSaved(true);
+      setLastSavedTime(new Date());
+      setShowAutosaveIndicator(true);
+
+      setTimeout(() => setShowAutosaveIndicator(false), 2000);
+      console.log("📝 Style draft saved to localStorage");
+    } catch (error) {
+      console.error("Failed to save style draft:", error);
+    }
+  }, []);
+
+  const loadDraft = useCallback(() => {
+    try {
+      const savedDraft = localStorage.getItem(DRAFT_KEY);
+      if (savedDraft) {
+        return JSON.parse(savedDraft);
+      }
+      return null;
+    } catch (error) {
+      console.error("Failed to load style draft:", error);
+      return null;
+    }
+  }, []);
+
+  const clearDraft = useCallback(() => {
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+      setIsDraftSaved(false);
+      setLastSavedTime(null);
+      console.log("🗑️ Style draft cleared from localStorage");
+    } catch (error) {
+      console.error("Failed to clear style draft:", error);
+    }
+  }, []);
 
   const validationSchema = Yup.object({
     vendor_id: Yup.string().required("Please select a tailor"),
@@ -63,18 +114,13 @@ const AddStyle = () => {
       vendor_id: "",
       name: "",
       category_id: "",
-      // sku: "",
       description: "",
       gender: "female",
       tags: "",
       price: "",
-      // original_price: "",
       estimated_sewing_time: 1,
       minimum_fabric_qty: 0,
       video_url: "",
-      // address: "",
-      // latitude: "",
-      // longitude: "",
     },
     validationSchema,
     onSubmit: (values) => {
@@ -89,14 +135,12 @@ const AddStyle = () => {
           type: "STYLE",
           name: values.name,
           category_id: values.category_id,
-          // sku: values.sku,
           description: values.description,
           gender: values.gender,
           tags: values.tags
             ? values.tags.split(",").map((tag) => tag.trim())
             : [],
           price: values.price.toString(),
-          // original_price: values.original_price.toString(),
         },
         style: {
           estimated_sewing_time: Number(values.estimated_sewing_time),
@@ -106,24 +150,13 @@ const AddStyle = () => {
         },
       };
 
-      console.log("🔧 STYLE PAYLOAD: Sending payload to API:", payload);
-      console.log("🔧 STYLE PAYLOAD: Payload structure:", {
-        vendor_id: payload.vendor_id,
-        product: payload.product,
-        style: payload.style,
-      });
-      console.log(
-        "🔧 STYLE PAYLOAD: Photos count:",
-        payload.style.photos.length,
-      );
-
       createMarketRepStyleMutate(payload, {
         onSuccess: (response) => {
+          clearDraft(); // Clear draft on successful submission
           toastSuccess(response.message || "Style created successfully!");
           navigate("/sales/my-products");
         },
         onError: (error) => {
-
           const errorMessage =
             error?.response?.data?.data?.message ||
             error?.response?.data?.message ||
@@ -135,6 +168,53 @@ const AddStyle = () => {
       });
     },
   });
+
+  useEffect(() => {
+    const savedDraft = loadDraft();
+    if (savedDraft) {
+      // Load form values
+      Object.keys(savedDraft.formValues).forEach((key) => {
+        if (savedDraft.formValues[key] !== formik.initialValues[key]) {
+          formik.setFieldValue(key, savedDraft.formValues[key]);
+        }
+      });
+
+      // Load media files
+      if (savedDraft.photoUrls?.length > 0) {
+        setPhotoUrls(savedDraft.photoUrls);
+      }
+      if (savedDraft.videoUrl) {
+        setVideoUrl(savedDraft.videoUrl);
+        formik.setFieldValue("video_url", savedDraft.videoUrl);
+      }
+
+      setLastSavedTime(new Date(savedDraft.timestamp));
+      setIsDraftSaved(true);
+
+      console.log("📄 Style draft loaded from localStorage");
+    }
+    setIsLoadingDraft(false);
+  }, []);
+
+  // 7. Add debounced autosave effect
+  useEffect(() => {
+    if (isLoadingDraft) return; // Don't save while loading
+
+    const timeoutId = setTimeout(() => {
+      // Only autosave if form has meaningful content
+      const hasContent =
+        formik.values.name ||
+        formik.values.description ||
+        formik.values.vendor_id ||
+        photoUrls.length > 0;
+
+      if (hasContent) {
+        saveDraft(formik.values, photoUrls, videoUrl);
+      }
+    }, AUTOSAVE_DELAY);
+
+    return () => clearTimeout(timeoutId);
+  }, [formik.values, photoUrls, videoUrl, isLoadingDraft, saveDraft]);
 
   const handleVideoUpload = async (event) => {
     const file = event.target.files[0];
@@ -243,8 +323,60 @@ const AddStyle = () => {
     setPhotoFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const AutosaveIndicator = () => (
+    <div className="fixed top-4 right-4 z-50">
+      {showAutosaveIndicator && (
+        <div className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg animate-pulse">
+          ✓ Draft saved
+        </div>
+      )}
+      {isDraftSaved && lastSavedTime && !showAutosaveIndicator && (
+        <div className="bg-gray-100 text-gray-700 px-3 py-1 rounded text-sm">
+          Last saved: {lastSavedTime.toLocaleTimeString()}
+        </div>
+      )}
+    </div>
+  );
+
+  const DraftNotification = () => {
+    if (!isDraftSaved || !lastSavedTime) return null;
+
+    return (
+      <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <svg
+              className="h-5 w-5 text-blue-400"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <p className="text-sm text-blue-700">
+              <strong>Draft restored!</strong> Your previous work from{" "}
+              {lastSavedTime.toLocaleString()} has been restored.
+              <button
+                onClick={clearDraft}
+                className="ml-2 underline hover:no-underline"
+              >
+                Start fresh
+              </button>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="bg-white p-6 rounded-xl">
+      <AutosaveIndicator />
       <div className="flex items-center mb-6">
         <button
           onClick={() => navigate(-1)}
@@ -254,7 +386,7 @@ const AddStyle = () => {
         </button>
         <h1 className="text-2xl font-bold text-gray-800">Add New Style</h1>
       </div>
-
+      <DraftNotification />
       <form onSubmit={formik.handleSubmit} className="space-y-6">
         {/* Tailor Selection */}
         <div>

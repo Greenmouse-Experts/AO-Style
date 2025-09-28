@@ -77,19 +77,28 @@ const default_filters: Filters = {
 export function GeneralTransactionComponent({ hideWallet = false }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<Filters>(default_filters);
+  const [transactions, setTransactions] = useState([]);
+  // Detect if current route is logistics/transactions
+  const isLogisticsTransactions = window.location.pathname.includes(
+    "/customer/transactions",
+  );
 
   // Main query to fetch data
   const query = useQuery<ApiResponse>({
     queryKey: ["payments", "general", filters],
     queryFn: async () => {
-      const response = await CaryBinApi.get("/payment/my-payments", {
+      const endpoint = isLogisticsTransactions
+        ? "/payment/my-payments"
+        : "/withdraw/fetch";
+      const response = await CaryBinApi.get(endpoint, {
         params: {
           ...filters,
           // Include search term if your API supports it
           search: searchTerm || undefined,
         },
       });
-      console.log(response.data);
+      setTransactions(response.data.data);
+      console.log(transactions);
       return response.data;
     },
   });
@@ -109,7 +118,9 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
 
     // Apply client-side filtering if needed
     if (filters.status) {
-      data = data.filter((item) => item.payment_status === filters.status);
+      data = data.filter(
+        (item) => item.payment_status || item.status === filters.status,
+      );
     }
 
     // Apply search filtering
@@ -149,7 +160,7 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
           )
         : "",
       transactionType: "Payment",
-      status: details.payment_status,
+      status: details.payment_status || details?.status || "N/A",
     }));
   }, [query.data?.data, filters, searchTerm]);
 
@@ -187,18 +198,22 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
         render: (_, item) => (
           <span
             className={`px-2 py-1 text-sm rounded-full font-medium ${
-              item?.payment_status === "PENDING"
+              item?.payment_status === "PENDING" || item?.status === "PENDING"
                 ? "bg-yellow-100 text-yellow-500"
                 : item?.payment_status === "COMPLETED" ||
-                    item?.payment_status === "SUCCESS"
+                    item?.payment_status === "SUCCESS" ||
+                    item?.status === "SUCCESS" ||
+                    item?.status === "COMPLETED"
                   ? "bg-green-100 text-green-500"
                   : item?.payment_status === "FAILED" ||
-                      item?.payment_status === "CANCELLED"
+                      item?.payment_status === "CANCELLED" ||
+                      item?.status === "FAILED" ||
+                      item?.status === "CANCELLED"
                     ? "bg-red-100 text-red-500"
                     : "bg-gray-100 text-gray-500"
             }`}
           >
-            {item?.payment_status}
+            {item?.payment_status || item?.status || "N/A"}
           </span>
         ),
       },

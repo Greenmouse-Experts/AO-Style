@@ -293,37 +293,51 @@ const OrderDetails = () => {
           )}
 
           {/* Order Progress */}
+          {/* Order Progress */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h5 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
               <Truck className="w-5 h-5 text-purple-600" />
               Order Progress
             </h5>
-            <div className="relative">
-              <div className="flex items-center justify-between">
+            <div className="relative px-8">
+              {/* Background line */}
+              <div
+                className="absolute top-5 h-1 bg-gray-200"
+                style={{
+                  left: `calc(${100 / (orderSteps.length - 1) / 2}%)`,
+                  right: `calc(${100 / (orderSteps.length - 1) / 2}%)`,
+                }}
+              />
+              {/* Progress line */}
+              <div
+                className={`absolute top-5 h-1 transition-all duration-500 ${
+                  orderDetails?.status === "CANCELLED"
+                    ? "bg-red-500"
+                    : "bg-gradient-to-r from-purple-500 to-purple-600"
+                }`}
+                style={{
+                  left: `calc(${100 / (orderSteps.length - 1) / 2}%)`,
+                  width:
+                    currentStep >= 0
+                      ? `calc(${(currentStep / (orderSteps.length - 1)) * 100}% - ${100 / (orderSteps.length - 1)}%)`
+                      : "0%",
+                }}
+              />
+
+              {/* Steps */}
+              <div className="relative flex items-start justify-between">
                 {orderSteps.map((step, index) => (
                   <div
                     key={index}
-                    className="flex flex-col items-center relative"
+                    className="flex flex-col items-center flex-1"
                   >
-                    {index > 0 && (
-                      <div
-                        className={`absolute top-4 -left-1/2 right-1/2 h-1 ${
-                          orderDetails?.status === "CANCELLED"
-                            ? "bg-red-300"
-                            : index <= currentStep
-                              ? "bg-gradient-to-r from-purple-500 to-purple-600"
-                              : "bg-gray-200"
-                        }`}
-                        style={{ width: "100%", transform: "translateX(-50%)" }}
-                      />
-                    )}
                     <div
-                      className={`z-10 w-10 h-10 flex items-center justify-center rounded-full border-3 transition-all duration-300 ${
+                      className={`z-10 w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 ${
                         orderDetails?.status === "CANCELLED"
-                          ? "bg-red-500 border-red-500 text-white shadow-lg"
+                          ? "bg-red-500 text-white shadow-lg ring-4 ring-red-100"
                           : index <= currentStep
-                            ? "bg-gradient-to-r from-purple-500 to-purple-600 border-purple-500 text-white shadow-lg"
-                            : "bg-white border-gray-300 text-gray-400"
+                            ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg ring-4 ring-purple-100"
+                            : "bg-white border-2 border-gray-300 text-gray-400"
                       }`}
                     >
                       {orderDetails?.status === "CANCELLED" ? (
@@ -335,7 +349,7 @@ const OrderDetails = () => {
                       )}
                     </div>
                     <span
-                      className={`mt-3 text-sm font-medium text-center max-w-24 ${
+                      className={`mt-3 text-sm font-medium text-center ${
                         orderDetails?.status === "CANCELLED"
                           ? "text-red-600"
                           : index <= currentStep

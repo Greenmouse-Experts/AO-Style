@@ -121,13 +121,13 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
       {/* Withdraw Button */}
       <div className="mt-6 text-center space-y-3">
         <button
-          className="border border-purple-600 w-full text-purple-600 px-6 py-4 rounded-lg font-light cursor-pointer hover:bg-purple-600 hover:text-white transform hover:scale-105 transition-all duration-300 ease-in-out active:scale-95"
+          className="border border-purple-600 w-full text-purple-600 px-6 py-4 rounded-lg font-light cursor-pointer hover:bg-purple-600 hover:text-white transform transition-all duration-300 ease-in-out active:scale-95"
           onClick={onWithdrawClick}
         >
           Withdraw
         </button>
         <button
-          className="bg-purple-600 w-full text-white px-6 py-3 rounded-lg font-light cursor-pointer hover:bg-purple-700 hover:shadow-lg transform hover:scale-105 transition-all duration-300 ease-in-out active:scale-95"
+          className="bg-purple-600 w-full text-white px-6 py-3 rounded-lg font-light cursor-pointer hover:bg-purple-700 hover:shadow-lg transform transition-all duration-300 ease-in-out active:scale-95"
           onClick={onViewAllClick}
         >
           View All Withdrawals

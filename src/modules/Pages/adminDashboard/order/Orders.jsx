@@ -27,8 +27,7 @@ const OrdersTable = () => {
       render: (_, row) => (
         <div className="flex items-center">
           <span className="text-sm">
-            {row.payment?.user?.email?.split("@")[0] ||
-              `User ${row.user_id?.slice(-8)}`}
+            {row?.user?.email || `User ${row.user_id?.slice(-8)}`}
           </span>
         </div>
       ),

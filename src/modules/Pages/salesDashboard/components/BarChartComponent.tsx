@@ -43,12 +43,13 @@ export default function BarChartComponent() {
     queryKey: ["data"],
     queryFn: async () => {
       let resp = await CaryBinApi.get("/vendor-analytics/monthly-revenue");
+      console.log("this is for the bar chat", resp);
       return resp.data;
     },
   });
 
   const { data: analyticsData } = query;
-
+  console.log("this is the analytics data", analyticsData);
   // Transform the fetched analytics data into a format suitable for Recharts
   // Map month number to month name and use 'fabric' as the value for 'income'
   const chartData =

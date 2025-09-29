@@ -1,4 +1,11 @@
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 const BarChartComponent = () => {
   const data = [
@@ -33,7 +40,12 @@ const BarChartComponent = () => {
           <XAxis dataKey="name" />
           <YAxis />
           <Tooltip />
-          <Bar dataKey="income" fill="#A14DF6" radius={[5, 5, 0, 0]} barSize={10} />
+          <Bar
+            dataKey="income"
+            fill="#A14DF6"
+            radius={[5, 5, 0, 0]}
+            barSize={10}
+          />
         </BarChart>
       </ResponsiveContainer>
     </div>

@@ -417,9 +417,10 @@ const SubscriptionModal = ({ isOpen, onClose, subscription, onUpdate }) => {
 const SubscriptionsPlansTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  // REMOVE itemsPerPage and related logic
+  // const [itemsPerPage, setItemsPerPage] = useState(10);
   const dropdownRef = useRef(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  // const [currentPage, setCurrentPage] = useState(1);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedSubscription, setSelectedSubscription] = useState(null);
@@ -447,16 +448,6 @@ const SubscriptionsPlansTable = () => {
     },
     businessDetails?.data?.id,
   );
-  // const { data: subscriptionData, isFetching: isPending } = useQuery({
-  //   queryKey: [tab],
-  //   queryFn: async () => {
-  //     let resp = await CaryBinApi.get(
-  //       "/subscription-plan/fetch?role=fashion-designer",
-  //     );
-  //     return resp.data;
-  //   },
-  // });
-  //
 
   const [data, setData] = useState([
     {
@@ -648,17 +639,8 @@ const SubscriptionsPlansTable = () => {
     [openDropdown],
   );
 
-  const filteredData = data.filter((subscription) =>
-    Object.values(subscription).some(
-      (value) =>
-        typeof value === "string" &&
-        value.toLowerCase().includes(searchTerm.toLowerCase()),
-    ),
-  );
-
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+  // Remove filteredData, indexOfLastItem, indexOfFirstItem, currentItems, itemsPerPage, setItemsPerPage, handleItemsPerPageChange, currentPage, setCurrentPage
+  // Instead, pagination is handled via queryParams["pagination[page]"] and queryParams["pagination[limit]"]
 
   const [queryString, setQueryString] = useState(queryParams.q);
 
@@ -672,22 +654,7 @@ const SubscriptionsPlansTable = () => {
     });
   }, [debouncedSearchTerm]);
 
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const handleItemsPerPageChange = (e) => {
-    setItemsPerPage(Number(e.target.value));
-    setCurrentPage(1);
-  };
+  // Remove handlePreviousPage, handleNextPage, handleItemsPerPageChange
 
   const totalPages = Math.ceil(
     subscriptionData?.count / (queryParams["pagination[limit]"] ?? 10),
@@ -751,23 +718,7 @@ const SubscriptionsPlansTable = () => {
       <ReusableTable loading={isPending} columns={columns} data={new_data} />
       {subscriptionRes?.length > 0 && (
         <div className="flex justify-between items-center mt-4">
-          <div className="flex items-center">
-            <p className="text-sm text-gray-600">Items per page: </p>
-            <select
-              value={queryParams["pagination[limit]"] || 10}
-              onChange={(e) =>
-                updateQueryParams({
-                  "pagination[limit]": +e.target.value,
-                })
-              }
-              className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={15}>15</option>
-              <option value={20}>20</option>
-            </select>
-          </div>
+          {/* REMOVE Items per page UI */}
           <div className="flex gap-1">
             <button
               onClick={() => {

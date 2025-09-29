@@ -383,6 +383,63 @@ const OrderPage = () => {
   }
   console.log("================================");
 
+  // --- DATE RENDERING LOGIC REWRITE STARTS HERE ---
+  // Helper to format ISO date string to "D/M/YYYY HH:mm (GMT+1)" in 24hr format
+  // function formatDateToGMTPlus1(dateStr) {
+  //   if (!dateStr) return "";
+
+  //   try {
+  //     // Remove milliseconds if present
+  //     const cleanDateStr = dateStr.split(".")[0];
+
+  //     // Parse as UTC (the 'Z' suffix ensures UTC interpretation)
+  //     const date = new Date(cleanDateStr + "Z");
+
+  //     if (isNaN(date.getTime())) return dateStr;
+
+  //     // Add 1 hour for GMT+1
+  //     date.setUTCHours(date.getUTCHours() + 1);
+
+  //     // Get date parts with proper padding
+  //     const day = date.getUTCDate().toString().padStart(2, "0");
+  //     const month = (date.getUTCMonth() + 1).toString().padStart(2, "0");
+  //     const year = date.getUTCFullYear();
+  //     const hour = date.getUTCHours().toString().padStart(2, "0");
+  //     const minute = date.getUTCMinutes().toString().padStart(2, "0");
+
+  //     return `${day}/${month}/${year} ${hour}:${minute} (GMT+1)`;
+  //   } catch (err) {
+  //     console.error("Date formatting error:", err);
+  //     return dateStr;
+  //   }
+  // }
+  //
+  function formatDateToLocalTime(dateStr) {
+    if (!dateStr) return "";
+
+    try {
+      // Extract date and time parts directly from the string
+      const datePart = dateStr.substring(0, 10); // "2025-09-26"
+      const timePart = dateStr.substring(11, 16); // "18:15"
+
+      // Split date
+      const [year, month, day] = datePart.split("-");
+
+      // Split time
+      const [hour24, minute] = timePart.split(":");
+      const hourNum = parseInt(hour24, 10);
+
+      // Convert to 12-hour format
+      const period = hourNum >= 12 ? "PM" : "AM";
+      const hour12 = hourNum === 0 ? 12 : hourNum > 12 ? hourNum - 12 : hourNum;
+
+      return `${day}/${month}/${year} ${hour12}:${minute} ${period}`;
+    } catch (err) {
+      return dateStr;
+    }
+  }
+  // --- END DATE RENDERING LOGIC ---
+
   const updatedColumn = useMemo(
     () => [
       {
@@ -427,7 +484,9 @@ const OrderPage = () => {
         key: "dateAdded",
         width: "w-32",
         render: (value) => (
-          <span className="text-xs text-gray-600">{value}</span>
+          <span className="text-xs text-gray-600">
+            {formatDateToLocalTime(value)}
+          </span>
         ),
       },
       {
@@ -564,12 +623,7 @@ const OrderPage = () => {
               amount: `₦${formatNumberWithCommas(details?.payment?.purchase?.items?.[0]?.vendor_amount ?? 0)}`,
               productStatus: details?.payment?.payment_status || "PENDING",
               orderStatus: details?.status || "PENDING",
-              dateAdded: details?.created_at
-                ? formatDateStr(
-                    details?.created_at.split(".").shift(),
-                    "D/M/YYYY h:mm A",
-                  )
-                : "N/A",
+              dateAdded: details?.created_at ? details?.created_at : "N/A",
             };
           })
         : [],
@@ -656,7 +710,7 @@ const OrderPage = () => {
         row.product,
         row.quantity,
         row.amount,
-        row.dateAdded,
+        formatDateToLocalTime(row.dateAdded),
         row.productStatus,
         row.orderStatus,
       ]),
@@ -775,7 +829,7 @@ const OrderPage = () => {
                   Product: row.product,
                   Quantity: row.quantity,
                   Amount: row.amount,
-                  Date: row?.dateAdded,
+                  Date: formatDateToLocalTime(row?.dateAdded),
                   "Product Status": row.productStatus,
                   "Order Status": row.orderStatus,
                 }))}
@@ -1188,7 +1242,7 @@ const OrderPage = () => {
                     ) : (
                       <>
                         <Upload className="w-4 h-4" />
-                        Upload & Update Status
+                        Update Status
                       </>
                     )}
                   </button>

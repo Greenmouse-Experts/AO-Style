@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { FaUpload, FaTrash, FaSpinner, FaArrowLeft } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import useToast from "../../../hooks/useToast";
 import useCreateMarketRepFabric from "../../../hooks/marketRep/useCreateMarketRepFabric";
 
@@ -28,6 +28,8 @@ const AddFabric = () => {
   const [lastSavedTime, setLastSavedTime] = useState(null);
   const [showAutosaveIndicator, setShowAutosaveIndicator] = useState(false);
   const [isLoadingDraft, setIsLoadingDraft] = useState(true);
+  const [searchParams] = useSearchParams();
+  const vendorIdFromUrl = searchParams.get("vendor_id");
 
   const DRAFT_KEY = "fabric_form_draft";
   const AUTOSAVE_DELAY = 2000; // 2 seconds
@@ -227,28 +229,58 @@ const AddFabric = () => {
 
   useEffect(() => {
     const savedDraft = loadDraft();
-    if (savedDraft) {
-      // Load form values
-      Object.keys(savedDraft.formValues).forEach((key) => {
-        if (savedDraft.formValues[key] !== formik.initialValues[key]) {
-          formik.setFieldValue(key, savedDraft.formValues[key]);
+
+    // Check if we have a vendor_id from URL
+    if (vendorIdFromUrl) {
+      // If vendor_id in URL exists, check if saved draft has matching vendor_id
+      if (savedDraft && savedDraft.formValues.vendor_id === vendorIdFromUrl) {
+        // Load the draft since vendor matches
+        Object.keys(savedDraft.formValues).forEach((key) => {
+          if (savedDraft.formValues[key] !== formik.initialValues[key]) {
+            formik.setFieldValue(key, savedDraft.formValues[key]);
+          }
+        });
+
+        if (savedDraft.photoUrls?.length > 0) {
+          setPhotoUrls(savedDraft.photoUrls);
         }
-      });
+        if (savedDraft.videoUrl) {
+          setVideoUrl(savedDraft.videoUrl);
+          formik.setFieldValue("video_url", savedDraft.videoUrl);
+        }
 
-      // Load media files
-      if (savedDraft.photoUrls?.length > 0) {
-        setPhotoUrls(savedDraft.photoUrls);
+        setLastSavedTime(new Date(savedDraft.timestamp));
+        setIsDraftSaved(true);
+        console.log("📄 Draft loaded - vendor matches URL param");
+      } else {
+        // Start fresh - set vendor_id from URL and clear any old draft
+        formik.setFieldValue("vendor_id", vendorIdFromUrl);
+        clearDraft();
+        console.log("🆕 Starting fresh with vendor from URL");
       }
-      if (savedDraft.videoUrl) {
-        setVideoUrl(savedDraft.videoUrl);
-        formik.setFieldValue("video_url", savedDraft.videoUrl);
+    } else {
+      // No vendor_id in URL, load draft normally if it exists
+      if (savedDraft) {
+        Object.keys(savedDraft.formValues).forEach((key) => {
+          if (savedDraft.formValues[key] !== formik.initialValues[key]) {
+            formik.setFieldValue(key, savedDraft.formValues[key]);
+          }
+        });
+
+        if (savedDraft.photoUrls?.length > 0) {
+          setPhotoUrls(savedDraft.photoUrls);
+        }
+        if (savedDraft.videoUrl) {
+          setVideoUrl(savedDraft.videoUrl);
+          formik.setFieldValue("video_url", savedDraft.videoUrl);
+        }
+
+        setLastSavedTime(new Date(savedDraft.timestamp));
+        setIsDraftSaved(true);
+        console.log("📄 Draft loaded from localStorage");
       }
-
-      setLastSavedTime(new Date(savedDraft.timestamp));
-      setIsDraftSaved(true);
-
-      console.log("📄 Draft loaded from localStorage");
     }
+
     setIsLoadingDraft(false);
   }, []);
 

@@ -377,6 +377,7 @@ export default function ViewOrderLogistics() {
       const errorMessage =
         error?.response?.data?.message ||
         error?.message ||
+        error?.data?.message ||
         "Failed to update status";
       toastError(errorMessage);
     },

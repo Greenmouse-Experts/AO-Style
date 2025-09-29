@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FaEye, FaEyeSlash, FaArrowUp, FaArrowDown } from "react-icons/fa";
-
+import { useQuery } from "@tanstack/react-query";
+import CaryBinApi from "../../../../services/CarybinBaseUrl";
 import useGetBusinessDetails from "../../../../hooks/settings/useGetBusinessDetails";
 import useVendorSummaryStat from "../../../../hooks/analytics/useGetVendorSummmary";
 import useFetchWithdrawal from "../../../../hooks/withdrawal/useFetchWithdrawal";
@@ -9,15 +10,33 @@ import { formatNumberWithCommas } from "../../../../lib/helper";
 const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
   const [showBalance, setShowBalance] = useState(true);
 
-  const { data: businessData } = useGetBusinessDetails();
+  const { data: userProfile, isLoading: userProfileLoading } = useQuery({
+    queryKey: ["user-profile"],
+    queryFn: async () => {
+      let resp = await CaryBinApi.get("/auth/view-profile");
+      console.log("THIS IS FROM THE SECOND ENDPOINT.", resp.data);
+      return resp.data;
+    },
+    // enabled: !!businessError, // Only run if businessError is truthy
+  });
+
+  const { data: businessData, error: businessError } = useGetBusinessDetails();
   const { data: vendorSummary } = useVendorSummaryStat();
   const { data: withdrawalData } = useFetchWithdrawal({ limit: 10 });
+
+  // If useGetBusinessDetails runs into error, run user profile query
 
   console.log("🏦 WalletPage - Business Data:", businessData);
   console.log("📊 WalletPage - Vendor Summary:", vendorSummary);
   console.log("💸 WalletPage - Withdrawal Data:", withdrawalData);
 
-  const businessWallet = businessData?.data?.business_wallet?.balance;
+  // Use businessWallet from businessData if no error, else fallback to userProfile
+  let businessWallet;
+  if (!businessError) {
+    businessWallet = businessData?.data?.business_wallet?.balance;
+  } else {
+    businessWallet = userProfile?.wallet_balance ?? 0;
+  }
   console.log("💰 WalletPage - Business Wallet Balance:", businessWallet);
 
   // Calculate total income from vendor summary

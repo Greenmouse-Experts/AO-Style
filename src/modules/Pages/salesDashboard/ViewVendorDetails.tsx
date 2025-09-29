@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
 import {
   ChevronLeft,
@@ -103,17 +103,36 @@ export default function ViewVendorDetails() {
     );
 
   let vendor_details = query.data?.data;
-
+  const location = useLocation();
+  const prevRoute = location.state?.from;
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12">
       <div className="max-w-4xl mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
           <BackButton />
           <button
-            onClick={() => navigate(`/dashboard/vendors/${id}/add-fabric`)}
-            className="inline-flex items-center gap-3 px-6 py-3 rounded-xl bg-purple-500 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+            onClick={() => {
+              // const prevRoute =
+              //   window.history.state?.usr?.pathname || document.referrer;
+              // Check if previous route is "/sales/fashin designers"
+              if (
+                prevRoute === "/sales/fashion-designers" ||
+                (typeof prevRoute === "string" &&
+                  prevRoute.includes("/sales/fashion-designers"))
+              ) {
+                navigate(`/sales/add-style?style_id=${id}`);
+              } else {
+                navigate(`/sales/add-fabric?vendor_id=${id}`);
+              }
+            }}
+            className="cursor-pointer inline-flex items-center gap-3 px-6 py-3 rounded-xl bg-purple-500 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
           >
-            <Plus size={20} /> Add Fabric
+            <Plus size={20} />{" "}
+            {prevRoute === "/sales/fashion-designers" ||
+            (typeof prevRoute === "string" &&
+              prevRoute.includes("/sales/fashion-designers"))
+              ? "Add Style"
+              : "Add Fabric"}
           </button>
         </div>
         <div className="bg-white rounded-3xl shadow-2xl p-10 border border-gray-200 overflow-hidden">

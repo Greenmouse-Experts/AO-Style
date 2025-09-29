@@ -411,7 +411,17 @@ const OrderDetails = () => {
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-4">
             <CustomBackbtn />
-            <h1 className="text-2xl font-bold text-gray-900 ">Order Details</h1>
+            <h1 className="text-2xl font-bold text-gray-900 ">Order ID: </h1>
+            <span className="ml-2 px-2 py-1 bg-gray-100 text-gray-700 rounded text-base font-mono font-semibold tracking-wide">
+              {orderInfo?.payment?.id
+                ? orderInfo.payment.id
+                    .replace(/-/g, "")
+                    .substring(0, 12)
+                    .toUpperCase()
+                : id
+                  ? id.replace(/-/g, "").substring(0, 12).toUpperCase()
+                  : "N/A"}
+            </span>
           </div>
           <div className="flex justify-between items-start">
             <div className="flex-1">
@@ -880,8 +890,16 @@ const OrderDetails = () => {
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-500 mb-2">FABRIC VENDOR NAME</p>
-              <p className="text-gray-900">Vendor Name</p>
+              <p className="text-sm text-gray-500 mb-2">
+                FABRIC VENDOR BUSINESS ID
+              </p>
+              <p className="text-gray-900">
+                {orderInfo?.order_items?.[0]?.product?.business_id
+                  ? orderInfo.order_items[0].product.business_id
+                      .substring(0, 8)
+                      .toUpperCase()
+                  : ""}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-500 mb-2">DELIVERY METHOD</p>
@@ -1034,7 +1052,7 @@ const OrderDetails = () => {
                   ) : (
                     <>
                       <Upload className="w-4 h-4" />
-                      Upload & Update Status
+                      Update Status
                     </>
                   )}
                 </button>

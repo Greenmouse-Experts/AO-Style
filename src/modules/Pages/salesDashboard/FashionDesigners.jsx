@@ -80,7 +80,9 @@ export default function FabricVendorPage() {
       key: "view",
       label: "view",
       action: (row) => {
-        nav(`/sales/view-vendor/${row.id}`);
+        nav(`/sales/view-vendor/${row.id}`, {
+          state: { from: location.pathname },
+        });
       },
     },
   ];

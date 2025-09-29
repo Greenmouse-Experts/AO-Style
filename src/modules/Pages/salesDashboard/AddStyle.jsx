@@ -15,10 +15,14 @@ import Autocomplete from "react-google-autocomplete";
 const AddStyle = () => {
   const navigate = useNavigate();
   const { toastSuccess, toastError } = useToast();
-
   const [_photoFiles, setPhotoFiles] = useState([]);
-  const [photoUrls, setPhotoUrls] = useState([]);
-  const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const [photoUrls, setPhotoUrls] = useState(["", "", "", ""]);
+  const [isUploadingImages, setIsUploadingImages] = useState([
+    false,
+    false,
+    false,
+    false,
+  ]);
   const [_videoFile, setVideoFile] = useState(null);
   const [videoUrl, setVideoUrl] = useState("");
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
@@ -125,7 +129,10 @@ const AddStyle = () => {
     },
     validationSchema,
     onSubmit: (values) => {
-      if (photoUrls.length === 0) {
+      // Filter out empty strings to get only uploaded images
+      const uploadedPhotos = photoUrls.filter((url) => url !== "");
+
+      if (uploadedPhotos.length === 0) {
         toastError("Please upload at least one photo");
         return;
       }
@@ -146,11 +153,10 @@ const AddStyle = () => {
         style: {
           estimated_sewing_time: Number(values.estimated_sewing_time),
           minimum_fabric_qty: Number(values.minimum_fabric_qty),
-          photos: photoUrls,
+          photos: uploadedPhotos, // Send only non-empty URLs
           video_url: values.video_url,
         },
       };
-
       createMarketRepStyleMutate(payload, {
         onSuccess: (response) => {
           clearDraft(); // Clear draft on successful submission
@@ -301,25 +307,28 @@ const AddStyle = () => {
     formik.setFieldValue("video_url", "");
   };
 
-  const handleImageUpload = async (event) => {
-    const files = Array.from(event.target.files);
-    if (files.length === 0) return;
+  const handleImageUpload = async (event, index) => {
+    const file = event.target.files[0];
+    if (!file) return;
 
-    // Validate files before upload
-    const invalidFiles = files.filter(
-      (file) => !imageUpload.isValidImageFile(file),
-    );
-    if (invalidFiles.length > 0) {
+    // Validate file before upload
+    if (!imageUpload.isValidImageFile(file)) {
       toastError(
-        `Invalid files: ${invalidFiles.map((f) => f.name).join(", ")}. Please use PNG, JPG, or JPEG files under 5MB.`,
+        `Invalid file: ${file.name}. Please use PNG, JPG, or JPEG files under 5MB.`,
       );
       return;
     }
 
-    setIsUploadingImages(true);
+    // Set loading state for this specific box
+    setIsUploadingImages((prev) => {
+      const newState = [...prev];
+      newState[index] = true;
+      return newState;
+    });
+
     try {
       const result = await imageUpload.uploadImagesWithProgress(
-        files,
+        [file],
         (progress) => {
           console.log(
             `Upload progress: ${progress.percentage}% (${progress.currentFile})`,
@@ -328,30 +337,43 @@ const AddStyle = () => {
       );
 
       if (result.success && result.results.length > 0) {
-        const urls = result.results.filter((r) => r.url).map((r) => r.url);
-        setPhotoUrls((prev) => [...prev, ...urls]);
-        setPhotoFiles((prev) => [...prev, ...files]);
-
-        if (result.failed > 0) {
-          toastError(
-            `${result.uploaded} images uploaded successfully, ${result.failed} failed.`,
-          );
-        } else {
-          toastSuccess(`${result.uploaded} images uploaded successfully!`);
-        }
+        const url = result.results[0].url;
+        setPhotoUrls((prev) => {
+          const newUrls = [...prev];
+          newUrls[index] = url;
+          return newUrls;
+        });
+        toastSuccess(`Image ${index + 1} uploaded successfully!`);
       } else {
-        toastError("Failed to upload images. Please try again.");
+        toastError("Failed to upload image. Please try again.");
       }
     } catch {
-      toastError("Failed to upload images. Please try again.");
+      toastError("Failed to upload image. Please try again.");
     } finally {
-      setIsUploadingImages(false);
+      setIsUploadingImages((prev) => {
+        const newState = [...prev];
+        newState[index] = false;
+        return newState;
+      });
     }
   };
 
   const removeImage = (index) => {
-    setPhotoUrls((prev) => prev.filter((_, i) => i !== index));
-    setPhotoFiles((prev) => prev.filter((_, i) => i !== index));
+    setPhotoUrls((prev) => {
+      const newUrls = [...prev];
+      newUrls[index] = "";
+      return newUrls;
+    });
+  };
+
+  const isFormValid = () => {
+    const uploadedPhotos = photoUrls.filter((url) => url !== "");
+    return (
+      formik.isValid &&
+      uploadedPhotos.length > 0 &&
+      !isUploadingImages.some((uploading) => uploading) &&
+      !isUploadingVideo
+    );
   };
 
   const AutosaveIndicator = () => (
@@ -675,57 +697,71 @@ const AddStyle = () => {
             Style Images
           </h3>
 
-          <div className="mb-4">
-            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-              <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                <FaUpload className="w-8 h-8 mb-2 text-gray-500" />
-                <p className="mb-2 text-sm text-gray-500">
-                  <span className="font-semibold">Click to upload</span> style
-                  images
-                </p>
-                <p className="text-xs text-gray-500">
-                  PNG, JPG or JPEG (MAX. 5MB each)
-                </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[0, 1, 2, 3].map((index) => (
+              <div key={index} className="relative">
+                {!photoUrls[index] ? (
+                  <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                    <div className="flex flex-col items-center justify-center py-4">
+                      {isUploadingImages[index] ? (
+                        <>
+                          <FaSpinner className="w-8 h-8 mb-2 text-gray-500 animate-spin" />
+                          <p className="text-xs text-gray-500">Uploading...</p>
+                        </>
+                      ) : (
+                        <>
+                          <FaUpload className="w-6 h-6 mb-2 text-gray-500" />
+                          <p className="text-xs text-gray-500 text-center px-2">
+                            <span className="font-semibold">
+                              Click to upload
+                            </span>
+                            <br />
+                            Image {index + 1}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            PNG, JPG (MAX. 5MB)
+                          </p>
+                        </>
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, index)}
+                      disabled={isUploadingImages[index]}
+                    />
+                  </label>
+                ) : (
+                  <div className="relative w-full h-40">
+                    <img
+                      src={photoUrls[index]}
+                      alt={`Style ${index + 1}`}
+                      className="w-full h-full object-cover rounded-lg border border-gray-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                    >
+                      <FaTrash className="w-3 h-3" />
+                    </button>
+                    {/* Optional: Add replace button */}
+                    <label className="absolute bottom-2 right-2 bg-blue-500 text-white p-1.5 rounded-full hover:bg-blue-600 transition-colors shadow-lg cursor-pointer">
+                      <FaUpload className="w-3 h-3" />
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, index)}
+                        disabled={isUploadingImages[index]}
+                      />
+                    </label>
+                  </div>
+                )}
               </div>
-              <input
-                type="file"
-                className="hidden"
-                multiple
-                accept="image/*"
-                onChange={handleImageUpload}
-                disabled={isUploadingImages}
-              />
-            </label>
+            ))}
           </div>
-
-          {/* Display uploaded images */}
-          {photoUrls.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {photoUrls.map((url, index) => (
-                <div key={index} className="relative">
-                  <img
-                    src={url}
-                    alt={`Style ${index + 1}`}
-                    className="w-full h-32 object-cover rounded-lg border border-gray-200"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeImage(index)}
-                    className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
-                  >
-                    <FaTrash className="w-3 h-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {isUploadingImages && (
-            <div className="flex items-center justify-center py-4">
-              <FaSpinner className="animate-spin mr-2" />
-              <span>Uploading images...</span>
-            </div>
-          )}
         </div>
 
         {/* Submit Buttons */}
@@ -739,8 +775,8 @@ const AddStyle = () => {
           </button>
           <button
             type="submit"
-            disabled={isCreating || isUploadingImages || isUploadingVideo}
-            className="px-6 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-md hover:from-purple-600 hover:to-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+            disabled={!isFormValid() || isCreating}
+            className="cursor-pointer px-6 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-md hover:from-purple-600 hover:to-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
           >
             {isCreating ? (
               <>

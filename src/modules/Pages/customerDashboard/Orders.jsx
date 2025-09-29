@@ -1,14 +1,3 @@
-/**
- * Customer Orders Page
- *
- * Updated to use the /orders/fetch endpoint instead of static data.
- * Features:
- * - Displays orders with proper data mapping from API
- * - View Details button that navigates to order details page
- * - Correct status handling (PENDING, SHIPPED, DELIVERED, CANCELLED)
- * - Export functionality for orders data
- * - Search and pagination support
- */
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Search } from "lucide-react";
@@ -33,64 +22,6 @@ const SEARCH_FIELDS = [
   { label: "Status", value: "status" },
   { label: "Date", value: "dateAdded" },
 ];
-
-// Static data commented out - now using API endpoint
-// const orders = [
-//   {
-//     id: "01",
-//     orderId: "QWER123DFDG324R",
-//     date: "15-02-25",
-//     vendor: "Sandra Fabrics",
-//     designer: "Jude Stitches",
-//     delivery: "21-05-25",
-//     status: "Ongoing",
-//   },
-//   {
-//     id: "02",
-//     orderId: "QWER123DFDG324R",
-//     date: "15-02-25",
-//     vendor: "Sandra Fabrics",
-//     designer: "Hamzat Stitches",
-//     delivery: "21-05-25",
-//     status: "Ongoing",
-//   },
-//   {
-//     id: "03",
-//     orderId: "QWER123DFDG324R",
-//     date: "15-02-25",
-//     vendor: "Sandra Fabrics",
-//     designer: "Jude Stitches",
-//     delivery: "21-05-25",
-//     status: "Ongoing",
-//   },
-//   {
-//     id: "04",
-//     orderId: "QWER123DFDG324R",
-//     date: "15-02-25",
-//     vendor: "Sandra Fabrics",
-//     designer: "Jude Stitches",
-//     delivery: "21-05-25",
-//     status: "Cancelled",
-//   },
-//   {
-//     id: "05",
-//     orderId: "QWER123DFDG324R",
-//     date: "15-02-25",
-//     vendor: "Sandra Fabrics",
-//     designer: "Jude Stitches",
-//     delivery: "21-05-25",
-//     status: "Ongoing",
-//   },
-//   {
-//     id: "06",
-//     orderId: "QWER123DFDG324R",
-//     date: "15-02-25",
-//     vendor: "Sandra Fabrics",
-//     designer: "Jude Stitches",
-//     delivery: "21-05-25",
-//     status: "Completed",
-//   },
-// ];
 
 const OrderPage = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -156,10 +87,11 @@ const OrderPage = () => {
           </span>
         ),
       },
+
       {
         label: "Action",
         key: "action",
-        render: (_, row) => (
+        render: (_, row, index) => (
           <div
             className="relative"
             ref={openDropdown === row.id ? dropdownRef : null}
@@ -173,17 +105,19 @@ const OrderPage = () => {
               •••
             </button>
             {openDropdown === row.id && (
-              <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md z-[9999] border border-gray-200">
+              <div
+                className={`absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md z-[9999] border border-gray-200 ${
+                  // Check if this is one of the last 2 rows, then position dropdown above
+                  index >= filteredOrderData.length - 2
+                    ? "bottom-full mb-2"
+                    : ""
+                }`}
+              >
                 <Link to={`/customer/orders/orders-details/${row.id}`}>
                   <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">
                     View Details
                   </button>
                 </Link>
-                {/* <Link to={`/customer/orders/orders-details-test/${row.id}`}>
-                  <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-blue-600">
-                    🔍 Debug Test
-                  </button>
-                </Link>*/}
                 <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm border-t border-gray-100">
                   Cancel Order
                 </button>
@@ -398,7 +332,8 @@ const OrderPage = () => {
         </div>
 
         {/* Table Section */}
-        <div className="overflow-visible relative">
+        {/* <div className="overflow-visible relative">*/}
+        <div className="bg-white p-4 rounded-lg overflow-visible">
           <CustomTable
             loading={isPending}
             columns={columns}

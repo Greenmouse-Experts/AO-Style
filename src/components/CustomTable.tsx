@@ -80,7 +80,7 @@ export default function CustomTable(props: CustomTableProps) {
                           }
                         >
                           {col.render
-                            ? col.render(item[col.key], item)
+                            ? col.render(item[col.key], item, rowIdx)
                             : item[col.key]}
                         </td>
                       ))}

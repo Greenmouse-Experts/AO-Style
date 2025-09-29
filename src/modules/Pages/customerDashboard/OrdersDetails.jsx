@@ -514,72 +514,79 @@ const OrderDetails = () => {
           &gt; Orders
         </p>
       </div>
-      <h5 className="text-lg font-meduim text-[#A14DF6] mb-4">
+      <h5 className="text-lg font-medium text-[#A14DF6] mb-6">
         ORDER PROGRESS
       </h5>
-      <div className="flex flex-col md:flex-row items-center justify-between mb-6 relative space-y-4 md:space-y-0">
-        {orderSteps.map((step, index) => (
-          <div
-            key={index}
-            className="flex flex-col items-center w-full relative"
-          >
-            {/* Only render the connecting line if NOT the last step */}
-            {index > 0 &&
-              index !== orderSteps.length &&
-              index !== orderSteps.length - 0 &&
-              index !== orderSteps.length - 1 && (
-                <div
-                  className={`absolute top-3 left-0 right-0 h-1 ${
-                    orderDetails?.status === "CANCELLED"
-                      ? "bg-red-300"
-                      : index <= currentStep
-                        ? "bg-[#EC8B20]"
-                        : "bg-gray-300"
-                  }`}
-                ></div>
-              )}
-            {/* Render the connecting line for all except the last step */}
-            {index > 0 && index !== orderSteps.length - 1 && (
+
+      <div className="relative mb-6">
+        {/* Single continuous progress bar background */}
+        <div className="absolute top-6 left-6 right-6 h-1 bg-gray-300 rounded-full"></div>
+
+        {/* Filled progress bar */}
+        <div
+          className={`absolute top-6 left-6 h-1 rounded-full transition-all duration-700 ease-out ${
+            orderDetails?.status === "CANCELLED" ? "bg-red-400" : "bg-[#EC8B20]"
+          }`}
+          style={{
+            width:
+              orderDetails?.status === "CANCELLED"
+                ? "0%"
+                : `calc(${(currentStep / (orderSteps.length - 1)) * 100}% - 24px)`,
+          }}
+        ></div>
+
+        {/* Steps */}
+        <div className="relative flex justify-between items-start">
+          {orderSteps.map((step, index) => {
+            const isCompleted = index <= currentStep;
+            const isActive = index === currentStep;
+
+            return (
               <div
-                className={`absolute top-3 left-0 right-0 h-1 ${
-                  orderDetails?.status === "CANCELLED"
-                    ? "bg-red-300"
-                    : index <= currentStep
-                      ? "bg-[#EC8B20]"
-                      : "bg-gray-300"
-                }`}
-              ></div>
-            )}
-            <div
-              className={`z-10 w-8 h-8 flex items-center justify-center rounded-full border-2 ${
-                orderDetails?.status === "CANCELLED"
-                  ? "bg-red-500 border-red-500 text-white"
-                  : index <= currentStep
-                    ? "bg-[#EC8B20] border-[#EC8B20] text-white"
-                    : "bg-gray-200 border-gray-400 text-gray-600"
-              }`}
-            >
-              {orderDetails?.status === "CANCELLED" ? (
-                <X size={20} />
-              ) : index <= currentStep ? (
-                <CheckCircle size={20} />
-              ) : (
-                <Circle size={20} />
-              )}
-            </div>
-            <span
-              className={`mt-2 text-sm font-medium ${
-                orderDetails?.status === "CANCELLED"
-                  ? "text-red-600"
-                  : index <= currentStep
-                    ? "text-black"
-                    : "text-gray-400"
-              }`}
-            >
-              {step}
-            </span>
-          </div>
-        ))}
+                key={index}
+                className="flex flex-col items-center z-10"
+                style={{ width: `${100 / orderSteps.length}%` }}
+              >
+                {/* Circle with icon */}
+                <div
+                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
+                    orderDetails?.status === "CANCELLED"
+                      ? "bg-red-500 border-4 border-red-200"
+                      : isCompleted
+                        ? "bg-[#EC8B20] border-4 border-orange-200"
+                        : "bg-white border-4 border-gray-300"
+                  } ${isActive && orderDetails?.status !== "CANCELLED" ? "shadow-lg scale-110" : ""}`}
+                >
+                  {orderDetails?.status === "CANCELLED" ? (
+                    <X className="text-white" size={24} />
+                  ) : isCompleted ? (
+                    <CheckCircle className="text-white" size={24} />
+                  ) : (
+                    <Circle className="text-gray-400" size={24} />
+                  )}
+                </div>
+
+                {/* Label */}
+                <span
+                  className={`mt-3 text-sm font-medium text-center transition-colors ${
+                    orderDetails?.status === "CANCELLED"
+                      ? "text-red-600"
+                      : isCompleted
+                        ? "text-gray-900"
+                        : "text-gray-400"
+                  }`}
+                >
+                  {step}
+                </span>
+
+                {/* Active indicator */}
+                {isActive && orderDetails?.status !== "CANCELLED" && (
+                  <div className="mt-2 w-2 h-2 rounded-full bg-[#EC8B20] animate-pulse" />
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
       <div className="p-4 bg-white leading-loose rounded-md mt-2 flex flex-col md:flex-row justify-between items-center text-center md:text-left space-y-4 md:space-y-0">
         <span>

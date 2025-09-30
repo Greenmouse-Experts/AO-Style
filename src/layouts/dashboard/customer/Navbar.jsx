@@ -169,7 +169,7 @@ export default function Navbar({ toggleSidebar }) {
         </button>
 
         {/* Page Title */}
-        <h1 className="text-base font-bold text-gray-700 lg:ml-4">
+        <h1 className="text-xl font-bold text-gray-700 lg:ml-4">
           {token
             ? "Welcome to Your Customer Dashboard – Manage Orders, Track Deliveries, and View Notifications"
             : "Welcome to Carybin – Browse Products and Add to Cart"}

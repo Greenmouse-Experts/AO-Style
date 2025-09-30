@@ -58,11 +58,16 @@ const Subscriptions = () => {
   const { toastError } = useToast();
 
   // Subscription mutation hooks
-  const { isPending: createPending, mutate: createSubMutate } =
+  // const { isPending: createPending, mutate: createSubMutate } =
+  //   useCreateSubscriptionPayment();
+  // const { isPending: verifyPending, mutate: verifyPaymentMutate } =
+  //   useVerifySubPay();
+  // const { isPending: upgradePending, mutate: upgradeSubscriptionMutate } =
+  //   useUpgradeSubscription();
+  const { isPending: createPending, createSubMutate } =
     useCreateSubscriptionPayment();
-  const { isPending: verifyPending, mutate: verifyPaymentMutate } =
-    useVerifySubPay();
-  const { isPending: upgradePending, mutate: upgradeSubscriptionMutate } =
+  const { isPending: verifyPending, verifyPaymentMutate } = useVerifySubPay();
+  const { isPending: upgradePending, upgradeSubscriptionMutate } =
     useUpgradeSubscription();
 
   const toggleDropdown = (rowId) => {
@@ -173,11 +178,14 @@ const Subscriptions = () => {
 
   // Handle subscription/upgrade
   const handleSubscribe = (plan) => {
-    const currentPlanPrice =
+    const currentPlanPrice = Number(
       activePlan?.subscription_plan_prices?.[0]?.price ||
-      activePlan?.plan_price_at_subscription ||
-      0;
-    const targetPlanPrice = plan?.subscription_plan_prices?.[0]?.price || 0;
+        activePlan?.plan_price_at_subscription ||
+        0,
+    );
+    const targetPlanPrice = Number(
+      plan?.subscription_plan_prices?.[0]?.price || 0,
+    );
 
     // Check if user is trying to downgrade
     const isDowngrade =
@@ -192,7 +200,9 @@ const Subscriptions = () => {
 
     // Check if this is an upgrade or new subscription
     const isUpgrade =
-      activePlan?.is_active && activePlan?.subscription_plan_id !== plan?.id;
+      activePlan?.is_active &&
+      activePlan?.subscription_plan_id !== plan?.id &&
+      currentPlanPrice < targetPlanPrice;
 
     if (isUpgrade) {
       // Upgrade existing subscription
@@ -208,7 +218,6 @@ const Subscriptions = () => {
           console.log("✅ Upgrade initiated successfully:", upgradeResponse);
 
           const paymentId = upgradeResponse?.data?.data?.payment_id;
-          const authUrl = upgradeResponse?.data?.data?.authorization_url;
 
           if (paymentId) {
             console.log("🚀 Opening Paystack payment popup...");
@@ -402,17 +411,27 @@ const Subscriptions = () => {
   const plan_data = plan;
 
   // Get current plan price for comparison
-  const currentPlanPrice =
+  const currentPlanPrice = Number(
     activePlan?.subscription_plan_prices?.[0]?.price ||
-    activePlan?.plan_price_at_subscription ||
-    0;
-  const targetPlanPrice =
-    currentView?.subscription_plan_prices?.[0]?.price || 0;
+      activePlan?.plan_price_at_subscription ||
+      0,
+  );
+  const targetPlanPrice = Number(
+    currentView?.subscription_plan_prices?.[0]?.price || 0,
+  );
+  console.log("Price Comparison Debug:", {
+    currentPlanPrice,
+    targetPlanPrice,
+    activePlan,
+    isDowngrade: currentPlanPrice > targetPlanPrice,
+  });
+
   const isDowngrade =
     activePlan?.is_active && currentPlanPrice > targetPlanPrice;
   const isUpgrade =
     activePlan?.is_active &&
-    activePlan?.subscription_plan_id !== currentView?.id;
+    activePlan?.subscription_plan_id !== currentView?.id &&
+    currentPlanPrice > targetPlanPrice;
 
   return (
     <div className="bg-white p-6 rounded-xl overflow-visible">

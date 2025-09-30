@@ -1,7 +1,15 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { FaEllipsisH, FaCalendarAlt, FaBars, FaTh } from "react-icons/fa";
+import {
+  FaEllipsisH,
+  FaCalendarAlt,
+  FaBars,
+  FaTh,
+  FaTimes,
+  FaBriefcase,
+} from "react-icons/fa";
 import { useFormik } from "formik";
 import { useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import ReusableTable from "../adminDashboard/components/ReusableTable";
 import useQueryParams from "../../../hooks/useQueryParams";
 import { formatDateStr, formatNumberWithCommas } from "../../../lib/helper";
@@ -12,13 +20,18 @@ import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails
 import { useModalState } from "../../../hooks/useModalState";
 import ViewSubscription from "./ViewSubscription";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
-import SubscriptionModal from "./SubscribeModal";
 import useGetUserSubscription from "../../../hooks/subscription/useGetUserSub";
-import { useQuery } from "@tanstack/react-query";
+import useCreateSubscriptionPayment from "../../../hooks/subscription/useCreateSubscriptionPayment";
+import useVerifySubPay from "../../../hooks/subscription/useVerifySubPay";
+import useUpgradeSubscription from "../../../hooks/subscription/useUpgradeSubscription";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
 
 const Subscriptions = () => {
   const location = useLocation();
+  const queryClient = useQueryClient();
+  const { carybinUser } = useCarybinUserStore();
+
   const free_plan = useQuery({
     queryKey: ["free-plan"],
     queryFn: async () => {
@@ -26,10 +39,11 @@ const Subscriptions = () => {
       return resp.data;
     },
   });
+
   const [currentView, setCurrentView] = useState(null);
+  const [verifyPayment, setVerifyPayment] = useState("");
 
   const { isOpen, closeModal, openModal } = useModalState();
-
   const {
     isOpen: subIsOpen,
     closeModal: subCloseModal,
@@ -39,42 +53,17 @@ const Subscriptions = () => {
   const currUrl = location.pathname;
   const dropdownRef = useRef(null);
   const [openDropdown, setOpenDropdown] = useState(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [newCategory, setNewCategory] = useState();
-
-  const [type, setType] = useState("Add");
-
-  const initialValues = {
-    code: newCategory?.code ?? "",
-    type: newCategory?.type ?? "",
-    value: newCategory?.value ?? "",
-    start_date: newCategory?.start_date ?? "",
-    end_date: newCategory?.end_date ?? "",
-    usage_limit: newCategory?.usage_limit ?? "",
-    user_limit: newCategory?.user_limit ?? "",
-    min_purchase: newCategory?.min_purchase ?? "",
-  };
-
   const [activeTab, setActiveTab] = useState("table");
 
   const { toastError } = useToast();
 
-  const {
-    handleSubmit,
-    touched,
-    errors,
-    values,
-    handleChange,
-    setFieldValue,
-    resetForm,
-    // setFieldError,
-  } = useFormik({
-    initialValues: initialValues,
-    validateOnChange: false,
-    validateOnBlur: false,
-    enableReinitialize: true,
-    onSubmit: (val) => {},
-  });
+  // Subscription mutation hooks
+  const { isPending: createPending, mutate: createSubMutate } =
+    useCreateSubscriptionPayment();
+  const { isPending: verifyPending, mutate: verifyPaymentMutate } =
+    useVerifySubPay();
+  const { isPending: upgradePending, mutate: upgradeSubscriptionMutate } =
+    useUpgradeSubscription();
 
   const toggleDropdown = (rowId) => {
     setOpenDropdown(openDropdown === rowId ? null : rowId);
@@ -86,16 +75,10 @@ const Subscriptions = () => {
 
   const { data: businessDetails } = useGetBusinessDetails();
 
-  console.log(businessDetails);
-
   const { queryParams, updateQueryParams } = useQueryParams({
     "pagination[limit]": 10,
     "pagination[page]": 1,
   });
-
-  const { carybinUser } = useCarybinUserStore();
-
-  console.log(carybinUser, "sub");
 
   const {
     isPending,
@@ -109,9 +92,8 @@ const Subscriptions = () => {
     },
     currUrl == "/fabric/subscription" ? "fabric-vendor" : "fashion-designer",
   );
-  console.log(subscriptionData);
-  const [queryString, setQueryString] = useState(queryParams.q);
 
+  const [queryString, setQueryString] = useState(queryParams.q);
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
 
   // Get the active plan as the last item in the subscriptions array
@@ -123,25 +105,159 @@ const Subscriptions = () => {
         ]
       : undefined;
 
-  // Handle Paystack success callback
-  const handlePaystackSuccess = () => {
-    console.log("🔄 Paystack success - refreshing subscription data...");
-    refetch();
-    free_plan.refetch();
+  // Paystack payment handler
+  const payWithPaystack = ({ amount, payment_id }) => {
+    const handler = window.PaystackPop.setup({
+      key: import.meta.env.VITE_PAYSTACK_API_KEY,
+      email: carybinUser?.email,
+      id: payment_id,
+      amount: amount * 100,
+      currency: "NGN",
+      reference: payment_id,
+      ref: payment_id,
+      metadata: {
+        custom_fields: [
+          {
+            display_name: carybinUser?.email,
+            variable_name: carybinUser?.email,
+            value: payment_id,
+          },
+        ],
+      },
+      callback: function (response) {
+        console.log("💳 Payment successful:", response);
+        setVerifyPayment(response?.reference);
+        verifyPaymentMutate(
+          {
+            id: response?.reference,
+          },
+          {
+            onSuccess: (verifyData) => {
+              console.log("✅ Payment verified successfully!", verifyData);
+              setVerifyPayment("");
 
-    // Force a slight delay and additional refetch to ensure UI updates
-    setTimeout(() => {
-      refetch();
-      free_plan.refetch();
-      console.log("✅ Subscription data refreshed after upgrade");
-    }, 1000);
+              // Invalidate all subscription-related queries
+              queryClient.invalidateQueries({
+                queryKey: ["get-user-subscription"],
+              });
+              queryClient.invalidateQueries({ queryKey: ["get-subscription"] });
+              queryClient.invalidateQueries({ queryKey: ["free-plan"] });
+              queryClient.invalidateQueries({ queryKey: ["user-profile"] });
+
+              // Refetch immediately
+              refetch();
+              free_plan.refetch();
+
+              // Additional refetch after delay to ensure UI updates
+              setTimeout(() => {
+                refetch();
+                free_plan.refetch();
+              }, 1000);
+
+              subCloseModal();
+            },
+            onError: (error) => {
+              console.error("❌ Payment verification failed:", error);
+              setVerifyPayment("");
+            },
+          },
+        );
+      },
+      onClose: function () {
+        console.log("Payment window closed.");
+      },
+    });
+
+    handler.openIframe();
+  };
+
+  // Handle subscription/upgrade
+  const handleSubscribe = (plan) => {
+    const currentPlanPrice =
+      activePlan?.subscription_plan_prices?.[0]?.price ||
+      activePlan?.plan_price_at_subscription ||
+      0;
+    const targetPlanPrice = plan?.subscription_plan_prices?.[0]?.price || 0;
+
+    // Check if user is trying to downgrade
+    const isDowngrade =
+      activePlan?.is_active && currentPlanPrice > targetPlanPrice;
+
+    if (isDowngrade) {
+      toastError(
+        "You cannot downgrade to a lower plan. Please select a higher plan.",
+      );
+      return;
+    }
+
+    // Check if this is an upgrade or new subscription
+    const isUpgrade =
+      activePlan?.is_active && activePlan?.subscription_plan_id !== plan?.id;
+
+    if (isUpgrade) {
+      // Upgrade existing subscription
+      const upgradePayload = {
+        subscription_id: activePlan?.id,
+        new_plan_price_id: plan?.subscription_plan_prices[0]?.id,
+      };
+
+      console.log("🔄 Starting subscription upgrade:", upgradePayload);
+
+      upgradeSubscriptionMutate(upgradePayload, {
+        onSuccess: (upgradeResponse) => {
+          console.log("✅ Upgrade initiated successfully:", upgradeResponse);
+
+          const paymentId = upgradeResponse?.data?.data?.payment_id;
+          const authUrl = upgradeResponse?.data?.data?.authorization_url;
+
+          if (paymentId) {
+            console.log("🚀 Opening Paystack payment popup...");
+            payWithPaystack({
+              amount: targetPlanPrice,
+              payment_id: paymentId,
+            });
+          } else {
+            console.log("✅ No payment needed, upgrade completed directly");
+            subCloseModal();
+            refetch();
+            free_plan.refetch();
+          }
+        },
+        onError: (error) => {
+          console.error("❌ Upgrade initiation failed:", error);
+          toastError("Failed to upgrade subscription. Please try again.");
+        },
+      });
+    } else {
+      // New subscription
+      createSubMutate(
+        {
+          email: carybinUser?.email,
+          plan_price_id: plan?.subscription_plan_prices[0]?.id,
+          payment_method: "PAYSTACK",
+          auto_renew: true,
+        },
+        {
+          onSuccess: (data) => {
+            console.log("✅ Subscription created successfully:", data);
+            payWithPaystack({
+              amount: targetPlanPrice,
+              payment_id: data?.data?.data?.payment_id,
+            });
+          },
+          onError: (error) => {
+            console.error("❌ Subscription creation failed:", error);
+            toastError("Failed to create subscription. Please try again.");
+          },
+        },
+      );
+    }
   };
 
   const subscriptionRes = useMemo(
     () =>
       subscriptionData?.data
         ? subscriptionData?.data.map((details) => {
-            // Determine if this plan is the active plan (last item)
             const isActive =
               details?.id === activePlan?.subscription_plan_id ||
               details?.id ===
@@ -153,7 +269,6 @@ const Subscriptions = () => {
               ...details,
               name: `${details?.name}`,
               status: isActive ? "Active" : "Not-active",
-
               planValidity: `${
                 details?.subscription_plan_prices[0]?.period == "free"
                   ? "Free"
@@ -174,7 +289,6 @@ const Subscriptions = () => {
               amount: ` ${formatNumberWithCommas(
                 details?.subscription_plan_prices[0]?.price ?? 0,
               )}`,
-
               dateAdded: `${
                 details?.created_at
                   ? formatDateStr(
@@ -190,7 +304,6 @@ const Subscriptions = () => {
   );
 
   useUpdatedEffect(() => {
-    // update search params with undefined if debouncedSearchTerm is an empty string
     updateQueryParams({
       q: debouncedSearchTerm.trim() || undefined,
       "pagination[page]": 1,
@@ -206,14 +319,6 @@ const Subscriptions = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  useUpdatedEffect(() => {
-    // update search params with undefined if debouncedSearchTerm is an empty string
-    updateQueryParams({
-      q: debouncedSearchTerm.trim() || undefined,
-      "pagination[page]": 1,
-    });
-  }, [debouncedSearchTerm]);
 
   const columns = useMemo(
     () => [
@@ -237,7 +342,6 @@ const Subscriptions = () => {
           </span>
         ),
       },
-
       {
         label: "Action",
         key: "action",
@@ -275,7 +379,6 @@ const Subscriptions = () => {
                 ) : (
                   <button
                     onClick={() => {
-                      console.log(row, "sub");
                       subOpenModal();
                       setCurrentView(row);
                       setOpenDropdown(null);
@@ -294,29 +397,25 @@ const Subscriptions = () => {
     [openDropdown, activePlan],
   );
 
-  //   const totalPages = Math.ceil(
-  //     data?.count / (queryParams["pagination[limit]"] ?? 10)
-  //   );
-
-  // Use the last item as the active plan
   const plan = activePlan;
   const is_free = plan?.name === "Free Plan" ? true : false;
   const plan_data = plan;
 
-  // Debug logging to understand data structure
-  console.log("DEBUG - User subscription data:", {
-    subscription: activePlan,
-    allPlans: subscriptionData?.data?.slice(0, 2), // First 2 plans for brevity
-    planComparison: {
-      userSubscriptionId: activePlan?.id,
-      firstPlanId: subscriptionData?.data?.[0]?.id,
-      userPlanId: activePlan?.subscription_plan_id,
-    },
-  });
+  // Get current plan price for comparison
+  const currentPlanPrice =
+    activePlan?.subscription_plan_prices?.[0]?.price ||
+    activePlan?.plan_price_at_subscription ||
+    0;
+  const targetPlanPrice =
+    currentView?.subscription_plan_prices?.[0]?.price || 0;
+  const isDowngrade =
+    activePlan?.is_active && currentPlanPrice > targetPlanPrice;
+  const isUpgrade =
+    activePlan?.is_active &&
+    activePlan?.subscription_plan_id !== currentView?.id;
 
   return (
-    <div className="bg-white p-6  rounded-xl overflow-visible">
-      {/* <>loading {JSON.stringify(free_plan.data)}</>*/}
+    <div className="bg-white p-6 rounded-xl overflow-visible">
       <div
         data-theme="nord"
         className="card card-border bg-gradient-to-br from-primary/5 to-accent/5 mb-6 shadow-lg"
@@ -448,7 +547,7 @@ const Subscriptions = () => {
         </div>
       </div>
 
-      <div className="flex flex-wrap justify-between items-center pb-3  gap-4">
+      <div className="flex flex-wrap justify-between items-center pb-3 gap-4">
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <h2 className="text-lg font-semibold">Subscriptions</h2>
         </div>
@@ -459,10 +558,7 @@ const Subscriptions = () => {
               className={`p-2 rounded ${
                 activeTab === "table" ? "text-[#9847FE]" : "text-gray-600"
               }`}
-              onClick={() => {
-                setActiveTab("table");
-                setType("Add");
-              }}
+              onClick={() => setActiveTab("table")}
             >
               <FaBars size={16} />
             </button>
@@ -470,10 +566,7 @@ const Subscriptions = () => {
               className={`p-2 rounded ${
                 activeTab === "grid" ? "text-[#9847FE]" : "text-gray-600"
               }`}
-              onClick={() => {
-                setActiveTab("grid");
-                setType("Add");
-              }}
+              onClick={() => setActiveTab("grid")}
             >
               <FaTh size={16} />
             </button>
@@ -487,29 +580,16 @@ const Subscriptions = () => {
             }
             className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
           />
-
-          {/* <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-          Sort: Newest First ▾
-        </button> */}
         </div>
       </div>
       <p className="text-sm text-gray-500 mb-4">All Subscription Plans</p>
+
       {activeTab === "table" ? (
-        <>
-          <ReusableTable
-            loading={isPending}
-            columns={columns}
-            data={subscriptionRes}
-          />
-          {/*
-        {!fabricData?.length && !isPending ? (
-          <p className="flex-1 text-center text-sm md:text-sm">
-            No subscription found.
-          </p>
-        ) : (
-          <></>
-        )}*/}
-        </>
+        <ReusableTable
+          loading={isPending}
+          columns={columns}
+          data={subscriptionRes}
+        />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {subscriptionRes?.map((item) => (
@@ -543,12 +623,6 @@ const Subscriptions = () => {
 
               <div className="text-center mx-auto">
                 <h3 className="text-[#1E293B] font-medium mb-2">{item.name}</h3>
-                {/* <div className="flex items-center justify-center space-x-2 mt-2">
-                <FaLayerGroup className="text-[#9847FE]" size={14} />
-                <span className="text-gray-600 text-sm">
-                  {item.totalFabrics}
-                </span>
-              </div> */}
                 <div className="flex items-center justify-center space-x-2 mt-2">
                   <FaCalendarAlt className="text-[#9847FE]" size={14} />
                   <span className="text-gray-600 text-sm">
@@ -560,19 +634,241 @@ const Subscriptions = () => {
           ))}
         </div>
       )}
+
+      {/* View Subscription Modal */}
       {isOpen && (
         <ViewSubscription onClose={closeModal} currentView={currentView} />
       )}
+
+      {/* Subscribe/Upgrade Modal */}
       {subIsOpen && (
-        <SubscriptionModal
-          refetch={() => {
-            refetch();
-            free_plan.refetch();
-          }}
-          onClose={subCloseModal}
-          currentView={currentView}
-          onPaystackSuccess={handlePaystackSuccess}
-        />
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+            onClick={subCloseModal}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white/95 backdrop-blur-md rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {free_plan.isLoading ? (
+                <div className="p-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-xl font-bold text-gray-900">
+                      {currentView?.name}
+                    </h2>
+                    <button
+                      onClick={subCloseModal}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <FaTimes className="text-gray-500" />
+                    </button>
+                  </div>
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <div className="relative">
+                      <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+                      <div className="absolute inset-0 w-12 h-12 border-4 border-transparent border-t-purple-400 rounded-full animate-spin"></div>
+                    </div>
+                    <div className="mt-4 text-center">
+                      <p className="text-lg font-medium text-gray-700">
+                        Loading subscription details...
+                      </p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Please wait a moment
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="p-6 border-b border-gray-200">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center space-x-3">
+                        <div>
+                          <h2 className="text-xl font-bold text-gray-900">
+                            {currentView?.name}
+                          </h2>
+                        </div>
+                      </div>
+                      <button
+                        onClick={subCloseModal}
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      >
+                        <FaTimes className="text-gray-500" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-6 space-y-6">
+                    <div className="space-y-4">
+                      {isDowngrade ? (
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <span className="text-xl text-red-500">
+                              <FaBriefcase />
+                            </span>
+                            <span className="text-lg font-semibold text-red-700">
+                              Cannot Switch to Lower Plan
+                            </span>
+                          </div>
+                          <p className="text-sm text-red-700">
+                            You cannot switch from your current plan (
+                            <span className="font-semibold">
+                              {activePlan?.plan_name_at_subscription ||
+                                activePlan?.name}
+                            </span>
+                            ) to a lower plan (
+                            <span className="font-semibold">
+                              {currentView?.name}
+                            </span>
+                            ). Please select a plan with a higher price than
+                            your current plan.
+                          </p>
+                          <div className="mt-4 space-y-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-medium text-red-900">
+                                Current Plan Price:
+                              </span>
+                              <span className="text-sm font-bold text-red-900">
+                                ₦
+                                {new Intl.NumberFormat().format(
+                                  currentPlanPrice,
+                                )}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-medium text-red-900">
+                                Selected Plan Price:
+                              </span>
+                              <span className="text-sm font-bold text-red-900">
+                                ₦
+                                {new Intl.NumberFormat().format(
+                                  targetPlanPrice,
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-sm text-gray-500">
+                            {isUpgrade
+                              ? `Are you sure you want to upgrade from ${activePlan?.plan_name_at_subscription || activePlan?.name || "your current plan"} to ${currentView?.name}?`
+                              : "Are you sure you want to subscribe?"}
+                          </p>
+
+                          {isUpgrade && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                              <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-sm font-medium text-blue-900">
+                                    Current Plan:
+                                  </span>
+                                  <span className="text-sm text-blue-800 font-semibold">
+                                    {activePlan?.plan_name_at_subscription ||
+                                      activePlan?.name ||
+                                      "Free Plan"}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                  <span className="text-sm font-medium text-blue-900">
+                                    Upgrading to:
+                                  </span>
+                                  <span className="text-sm text-blue-800 font-semibold">
+                                    {currentView?.name}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between items-center pt-2 border-t border-blue-200">
+                                  <span className="text-sm font-medium text-blue-900">
+                                    Price:
+                                  </span>
+                                  <span className="text-lg font-bold text-blue-900">
+                                    ₦
+                                    {new Intl.NumberFormat().format(
+                                      targetPlanPrice,
+                                    )}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {!isUpgrade && (
+                            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium text-green-900">
+                                  Plan Price:
+                                </span>
+                                <span className="text-lg font-bold text-green-900">
+                                  ₦
+                                  {new Intl.NumberFormat().format(
+                                    targetPlanPrice,
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+
+                    <div className="flex justify-end space-x-3 pt-4">
+                      <button
+                        type="button"
+                        onClick={subCloseModal}
+                        disabled={
+                          createPending || upgradePending || verifyPending
+                        }
+                        className="px-6 py-2 cursor-pointer text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (!isDowngrade) {
+                            handleSubscribe(currentView);
+                          }
+                        }}
+                        disabled={
+                          createPending ||
+                          upgradePending ||
+                          verifyPending ||
+                          isDowngrade
+                        }
+                        className={`px-6 py-2 rounded-lg hover:shadow-lg cursor-pointer duration-200 transition-all flex items-center space-x-2 bg-gradient-to-r hover:from-[#8036D3] from-[#9847FE] to-[#8036D3] text-white hover:to-[#6B2BB5] disabled:opacity-50 disabled:cursor-not-allowed font-medium min-w-[140px] justify-center`}
+                      >
+                        {isDowngrade ? (
+                          "Cannot Downgrade"
+                        ) : verifyPending ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
+                            Verifying...
+                          </>
+                        ) : createPending || upgradePending ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
+                            Please wait...
+                          </>
+                        ) : isUpgrade ? (
+                          "Upgrade Plan"
+                        ) : (
+                          "Subscribe"
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        </AnimatePresence>
       )}
     </div>
   );

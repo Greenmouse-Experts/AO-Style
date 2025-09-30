@@ -108,7 +108,8 @@ const OrderPage = () => {
               <div
                 className={`absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md z-[9999] border border-gray-200 ${
                   // Check if this is one of the last 2 rows, then position dropdown above
-                  index >= filteredOrderData.length - 2
+                  index >= filteredOrderData.length - 2 &&
+                  filteredOrderData.length > 2
                     ? "bottom-full mb-2"
                     : ""
                 }`}

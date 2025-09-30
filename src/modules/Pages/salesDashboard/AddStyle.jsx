@@ -653,7 +653,7 @@ const AddStyle = () => {
                           style video
                         </p>
                         <p className="text-xs text-gray-500">
-                          MP4, AVI, MOV, WMV (MAX. 50MB)
+                          MP4, AVI, MOV, WMV (MAX. 10MB)
                         </p>
                       </>
                     )}
@@ -711,12 +711,17 @@ const AddStyle = () => {
                       ) : (
                         <>
                           <FaUpload className="w-6 h-6 mb-2 text-gray-500" />
-                          <p className="text-xs text-gray-500 text-center px-2">
-                            <span className="font-semibold">
-                              Click to upload
-                            </span>
+                          <p className="text-sm font-semibold text-gray-500 text-center px-2">
+                            <span className="font-normal">Click to upload</span>
                             <br />
-                            Image {index + 1}
+                            {index === 0 && "Front side style"}
+                            {index === 1 && "Back side style"}
+                            {index === 2 && "Right side style"}
+                            {index === 3 && "Left side style"}
+                            <br />
+                            {/* <span className="text-xs text-gray-400">
+                              (Less than 5MB)
+                            </span>*/}
                           </p>
                           <p className="text-xs text-gray-400 mt-1">
                             PNG, JPG (MAX. 5MB)

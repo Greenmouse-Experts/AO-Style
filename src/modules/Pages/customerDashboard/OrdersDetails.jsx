@@ -7,6 +7,7 @@ import {
   Mail,
   FileText,
   X,
+  Truck,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import useGetCustomerSingleOrder from "../../../hooks/order/useGetCustomerSingleOrder";
@@ -514,81 +515,79 @@ const OrderDetails = () => {
           &gt; Orders
         </p>
       </div>
-      <h5 className="text-lg font-medium text-[#A14DF6] mb-6">
-        ORDER PROGRESS
-      </h5>
-
-      <div className="relative mb-6">
-        {/* Single continuous progress bar background */}
-        <div className="absolute top-6 left-6 right-6 h-1 bg-gray-300 rounded-full"></div>
-
-        {/* Filled progress bar */}
-        <div
-          className={`absolute top-6 left-6 h-1 rounded-full transition-all duration-700 ease-out ${
-            orderDetails?.status === "CANCELLED" ? "bg-red-400" : "bg-[#EC8B20]"
-          }`}
-          style={{
-            width:
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <h5 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
+          <Truck className="w-5 h-5 text-purple-600" />
+          Order Progress
+        </h5>
+        <div className="relative px-8">
+          {/* Background line */}
+          <div
+            className="absolute top-5 h-1 bg-gray-200"
+            style={{
+              left: `calc(${100 / (orderSteps.length - 1) / 2}%)`,
+              right: `calc(${100 / (orderSteps.length - 1) / 2}%)`,
+            }}
+          />
+          {/* Progress line */}
+          <div
+            className={`absolute top-5 h-1 transition-all duration-500 ${
               orderDetails?.status === "CANCELLED"
-                ? "0%"
-                : `calc(${(currentStep / (orderSteps.length - 1)) * 100}% - 24px)`,
-          }}
-        ></div>
-
-        {/* Steps */}
-        <div className="relative flex justify-between items-start">
-          {orderSteps.map((step, index) => {
-            const isCompleted = index <= currentStep;
-            const isActive = index === currentStep;
-
-            return (
-              <div
-                key={index}
-                className="flex flex-col items-center z-10"
-                style={{ width: `${100 / orderSteps.length}%` }}
-              >
-                {/* Circle with icon */}
+                ? "bg-red-500"
+                : "bg-gradient-to-r from-purple-500 to-purple-600"
+            }`}
+            style={{
+              left: `calc(${100 / (orderSteps.length - 1) / 2}%)`,
+              width:
+                currentStep >= 0
+                  ? `calc(${(currentStep / (orderSteps.length - 1)) * 100}% - ${100 / (orderSteps.length - 1)}%)`
+                  : "0%",
+            }}
+          />
+          {/* Steps */}
+          <div className="relative flex items-start justify-between">
+            {orderSteps.map((step, index) => (
+              <div key={index} className="flex flex-col items-center flex-1">
                 <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
+                  className={`z-10 w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 ${
                     orderDetails?.status === "CANCELLED"
-                      ? "bg-red-500 border-4 border-red-200"
-                      : isCompleted
-                        ? "bg-[#EC8B20] border-4 border-orange-200"
-                        : "bg-white border-4 border-gray-300"
-                  } ${isActive && orderDetails?.status !== "CANCELLED" ? "shadow-lg scale-110" : ""}`}
+                      ? "bg-red-500 text-white shadow-lg ring-4 ring-red-100"
+                      : index <= currentStep
+                        ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg ring-4 ring-purple-100"
+                        : "bg-white border-2 border-gray-300 text-gray-400"
+                  }`}
                 >
                   {orderDetails?.status === "CANCELLED" ? (
-                    <X className="text-white" size={24} />
-                  ) : isCompleted ? (
-                    <CheckCircle className="text-white" size={24} />
+                    <X size={20} />
+                  ) : index <= currentStep ? (
+                    <CheckCircle size={20} />
                   ) : (
-                    <Circle className="text-gray-400" size={24} />
+                    <Circle size={20} />
                   )}
                 </div>
-
-                {/* Label */}
                 <span
-                  className={`mt-3 text-sm font-medium text-center transition-colors ${
+                  className={`mt-3 text-sm font-medium text-center ${
                     orderDetails?.status === "CANCELLED"
                       ? "text-red-600"
-                      : isCompleted
-                        ? "text-gray-900"
-                        : "text-gray-400"
+                      : index <= currentStep
+                        ? "text-purple-600"
+                        : "text-gray-500"
                   }`}
                 >
                   {step}
                 </span>
-
-                {/* Active indicator */}
-                {isActive && orderDetails?.status !== "CANCELLED" && (
-                  <div className="mt-2 w-2 h-2 rounded-full bg-[#EC8B20] animate-pulse" />
-                )}
               </div>
-            );
-          })}
+            ))}
+          </div>
+        </div>
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+          <p className="text-sm text-gray-700">
+            <strong>Status:</strong>{" "}
+            {statusMessages[orderSteps[currentStep]] || "Order status unknown"}
+          </p>
         </div>
       </div>
-      <div className="p-4 bg-white leading-loose rounded-md mt-2 flex flex-col md:flex-row justify-between items-center text-center md:text-left space-y-4 md:space-y-0">
+      {/* <div className="p-4 bg-white leading-loose rounded-md mt-2 flex flex-col md:flex-row justify-between items-center text-center md:text-left space-y-4 md:space-y-0">
         <span>
           Order Status:{" "}
           {orderDetails?.status === "CANCELLED"
@@ -630,7 +629,7 @@ const OrderDetails = () => {
             ❌ This order has been cancelled.
           </div>
         )}
-      </div>
+      </div>*/}
       <ETADisplay orderDetails={orderDetails} />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
         <div className="bg-white p-6 rounded-md md:col-span-2">

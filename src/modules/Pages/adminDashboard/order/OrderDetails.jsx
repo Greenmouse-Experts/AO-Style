@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   Package,
   User,
@@ -56,6 +56,7 @@ const statusMessages = {
 };
 
 const OrderDetails = () => {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [showImageModal, setShowImageModal] = useState(false);
   const [modalImageUrl, setModalImageUrl] = useState(null);
@@ -841,15 +842,23 @@ const OrderDetails = () => {
                 </h3>
               </div>
               <div className="p-6 space-y-3">
-                <button className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center gap-2">
+                {/* <button className="cursor-pointer w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center gap-2">
                   <Truck className="w-4 h-4" />
                   Update Status
-                </button>
-                <button className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
+                </button>*/}
+                {/* <button
+                  className="cursor-pointer w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
+                >
                   <Download className="w-4 h-4" />
                   Print Order
-                </button>
-                <button className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
+                </button>*/}
+
+                <button
+                  onClick={() => {
+                    navigate("/admin/messages");
+                  }}
+                  className="cursor-pointer w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
+                >
                   <MessageSquare className="w-4 h-4" />
                   Contact Customer
                 </button>

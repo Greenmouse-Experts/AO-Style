@@ -138,7 +138,7 @@ const AddFabric = () => {
       .min(1, "Quantity must be greater than 0"),
     minimum_yards: Yup.string().required("Minimum yards is required"),
     available_colors: Yup.string().required("Available colors is required"),
-    fabric_colors: Yup.string().required("Fabric colors is required"),
+    // fabric_colors: Yup.string().required("Fabric colors is required"),
     fabric_texture: Yup.string().required("Fabric texture is required"),
   });
 
@@ -161,7 +161,7 @@ const AddFabric = () => {
       feel_a_like: "",
       minimum_yards: "1",
       available_colors: "",
-      fabric_colors: "",
+      // fabric_colors: "",
       tags: "",
       video_url: "",
     },
@@ -201,7 +201,7 @@ const AddFabric = () => {
           quantity: parseInt(values.quantity),
           minimum_yards: values.minimum_yards.toString(),
           available_colors: values.available_colors,
-          fabric_colors: values.fabric_colors,
+          // fabric_colors: values.fabric_colors,
           photos: uploadedPhotos, // Send only non-empty URLs
           video_url: values.video_url,
         },
@@ -897,72 +897,9 @@ const AddFabric = () => {
                 </p>
               )}
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Video Upload
-              </label>
-
-              {!videoUrl ? (
-                <div>
-                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      {isUploadingVideo ? (
-                        <>
-                          <FaSpinner className="w-8 h-8 mb-2 text-gray-500 animate-spin" />
-                          <p className="text-sm text-gray-500">
-                            Uploading video...
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <FaUpload className="w-8 h-8 mb-2 text-gray-500" />
-                          <p className="mb-2 text-sm text-gray-500">
-                            <span className="font-semibold">
-                              Click to upload
-                            </span>{" "}
-                            fabric video
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            MP4, AVI, MOV, WMV (MAX. 50MB)
-                          </p>
-                        </>
-                      )}
-                    </div>
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept="video/*"
-                      onChange={handleVideoUpload}
-                      disabled={isUploadingVideo}
-                    />
-                  </label>
-                </div>
-              ) : (
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        Video uploaded successfully
-                      </p>
-                      <p className="text-xs text-gray-500 break-all">
-                        {videoUrl}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={removeVideo}
-                      className="ml-2 p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors"
-                    >
-                      <FaTrash className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+          <div className="grid grid-cols-1 gap-6 mt-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Available Colors *
@@ -1065,110 +1002,69 @@ const AddFabric = () => {
                   </p>
                 )}
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Fabric Colors *
-              </label>
-              <div className="flex items-center space-x-2 mb-2">
-                <input
-                  type="color"
-                  id="fabric-color-picker"
-                  className="w-10 h-10 border border-gray-300 rounded"
-                  value={(() => {
-                    // Show last color or default to #000000
-                    const colors = formik.values.fabric_colors
-                      .split(",")
-                      .map((c) => c.trim())
-                      .filter(Boolean);
-                    if (colors.length === 0) return "#000000";
-                    // If last is a hex, use it, else default
-                    const last = colors[colors.length - 1];
-                    // If it's a valid hex color, use it
-                    if (/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(last)) {
-                      return last;
-                    }
-                    return "#000000";
-                  })()}
-                  onChange={(e) => {
-                    const color = e.target.value;
-                    let current = formik.values.fabric_colors
-                      .split(",")
-                      .map((c) => c.trim())
-                      .filter(Boolean);
-                    // Prevent duplicate colors
-                    if (!current.includes(color)) {
-                      current.push(color);
-                      formik.setFieldValue("fabric_colors", current.join(", "));
-                    }
-                  }}
-                  title="Pick a color to add"
-                />
-                <span className="text-xs text-gray-500">
-                  Pick a color, it will be added to the list below
-                </span>
-              </div>
-              <input
-                type="text"
-                {...formik.getFieldProps("fabric_colors")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="Primary fabric colors"
-                onChange={(e) => {
-                  // Allow manual editing as well
-                  formik.setFieldValue("fabric_colors", e.target.value);
-                }}
-              />
-              {/* Show color chips for selected colors */}
-              <div className="flex flex-wrap mt-2 gap-2">
-                {formik.values.fabric_colors
-                  .split(",")
-                  .map((c) => c.trim())
-                  .filter(Boolean)
-                  .map((color, idx) => (
-                    <span
-                      key={idx}
-                      className="flex items-center space-x-1 bg-gray-100 px-2 py-1 rounded text-xs"
-                    >
-                      {/* Show color swatch if hex, else just text */}
-                      {/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(color) ? (
-                        <span
-                          className="inline-block w-4 h-4 rounded-full border border-gray-300 mr-1"
-                          style={{ backgroundColor: color }}
-                        ></span>
-                      ) : null}
-                      <span>{color}</span>
-                      <button
-                        type="button"
-                        className="ml-1 text-red-500 hover:text-red-700"
-                        onClick={() => {
-                          const colors = formik.values.fabric_colors
-                            .split(",")
-                            .map((c) => c.trim())
-                            .filter(Boolean)
-                            .filter((_, i) => i !== idx);
-                          formik.setFieldValue(
-                            "fabric_colors",
-                            colors.join(", "),
-                          );
-                        }}
-                        title="Remove color"
-                      >
-                        &times;
-                      </button>
-                    </span>
-                  ))}
-              </div>
-              {formik.touched.fabric_colors && formik.errors.fabric_colors && (
-                <p className="text-red-500 text-sm mt-1">
-                  {formik.errors.fabric_colors}
-                </p>
-              )}
-            </div>
           </div>
         </div>
 
         {/* Image Upload Section */}
         {/* Image Upload Section */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Video Upload
+          </label>
+
+          {!videoUrl ? (
+            <div>
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  {isUploadingVideo ? (
+                    <>
+                      <FaSpinner className="w-8 h-8 mb-2 text-gray-500 animate-spin" />
+                      <p className="text-sm text-gray-500">
+                        Uploading video...
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <FaUpload className="w-8 h-8 mb-2 text-gray-500" />
+                      <p className="mb-2 text-sm text-gray-500">
+                        <span className="font-semibold">Click to upload</span>{" "}
+                        fabric video
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        MP4, AVI, MOV, WMV (MAX. 50MB)
+                      </p>
+                    </>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="video/*"
+                  onChange={handleVideoUpload}
+                  disabled={isUploadingVideo}
+                />
+              </label>
+            </div>
+          ) : (
+            <div className="border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    Video uploaded successfully
+                  </p>
+                  <p className="text-xs text-gray-500 break-all">{videoUrl}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={removeVideo}
+                  className="ml-2 p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors"
+                >
+                  <FaTrash className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
         <div className="border-t pt-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
             Product Images
@@ -1188,12 +1084,13 @@ const AddFabric = () => {
                       ) : (
                         <>
                           <FaUpload className="w-6 h-6 mb-2 text-gray-500" />
-                          <p className="text-xs text-gray-500 text-center px-2">
-                            <span className="font-semibold">
-                              Click to upload
-                            </span>
+                          <p className="text-sm font-semibold text-gray-500 text-center px-2">
+                            <span className="font-normal">Click to upload</span>
                             <br />
-                            Image {index + 1}
+                            {index === 0 && "Close-up view"}
+                            {index === 1 && "Spread-out view"}
+                            {index === 2 && "Manufacturer's label"}
+                            {index === 3 && "Fabric's name"}
                           </p>
                           <p className="text-xs text-gray-400 mt-1">
                             PNG, JPG (MAX. 5MB)

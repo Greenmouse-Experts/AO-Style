@@ -176,10 +176,19 @@ const Subscriptions = () => {
     handler.openIframe();
   };
 
-  // Handle subscription/upgrade
   const handleSubscribe = (plan) => {
+    // Find current plan in subscription list to get original price
+    const currentPlanInList = subscriptionData?.data?.find(
+      (sub) =>
+        sub?.id === activePlan?.subscription_plan_id ||
+        sub?.id ===
+          activePlan?.subscription_plan_prices?.[0]?.subscription_plan_id ||
+        sub?.name === activePlan?.plan_name_at_subscription,
+    );
+
     const currentPlanPrice = Number(
-      activePlan?.subscription_plan_prices?.[0]?.price ||
+      currentPlanInList?.subscription_plan_prices?.[0]?.price ||
+        activePlan?.subscription_plan_prices?.[0]?.price ||
         activePlan?.plan_price_at_subscription ||
         0,
     );
@@ -410,9 +419,19 @@ const Subscriptions = () => {
   const is_free = plan?.name === "Free Plan" ? true : false;
   const plan_data = plan;
 
-  // Get current plan price for comparison
+  // Find current plan in subscription list to get original price
+  const currentPlanInList = subscriptionData?.data?.find(
+    (sub) =>
+      sub?.id === activePlan?.subscription_plan_id ||
+      sub?.id ===
+        activePlan?.subscription_plan_prices?.[0]?.subscription_plan_id ||
+      sub?.name === activePlan?.plan_name_at_subscription,
+  );
+
+  // Get current plan price for comparison from subscription list
   const currentPlanPrice = Number(
-    activePlan?.subscription_plan_prices?.[0]?.price ||
+    currentPlanInList?.subscription_plan_prices?.[0]?.price ||
+      activePlan?.subscription_plan_prices?.[0]?.price ||
       activePlan?.plan_price_at_subscription ||
       0,
   );
@@ -422,7 +441,12 @@ const Subscriptions = () => {
   console.log("Price Comparison Debug:", {
     currentPlanPrice,
     targetPlanPrice,
+    originalPriceFromList:
+      currentPlanInList?.subscription_plan_prices?.[0]?.price,
+    discountedPriceFromProfile:
+      activePlan?.subscription_plan_prices?.[0]?.price,
     activePlan,
+    currentPlanInList,
     isDowngrade: currentPlanPrice > targetPlanPrice,
   });
 

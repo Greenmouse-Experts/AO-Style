@@ -125,8 +125,8 @@ const OrderRequests = () => {
     Object.values(order).some(
       (value) =>
         typeof value === "string" &&
-        value.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+        value.toLowerCase().includes(searchTerm.toLowerCase()),
+    ),
   );
 
   // Close dropdown on outside click

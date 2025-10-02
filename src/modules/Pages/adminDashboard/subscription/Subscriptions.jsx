@@ -656,8 +656,11 @@ const SubscriptionsPlansTable = () => {
 
   // Remove handlePreviousPage, handleNextPage, handleItemsPerPageChange
 
-  const totalPages = Math.ceil(
-    subscriptionData?.count / (queryParams["pagination[limit]"] ?? 10),
+  const totalPages = Math.max(
+    1,
+    Math.ceil(
+      (subscriptionData?.count || 0) / (queryParams["pagination[limit]"] ?? 10),
+    ),
   );
 
   console.log(totalPages);
@@ -716,33 +719,139 @@ const SubscriptionsPlansTable = () => {
         </button>
       </div>
       <ReusableTable loading={isPending} columns={columns} data={new_data} />
-      {subscriptionRes?.length > 0 && (
-        <div className="flex justify-between items-center mt-4">
-          {/* REMOVE Items per page UI */}
-          <div className="flex gap-1">
-            <button
-              onClick={() => {
-                updateQueryParams({
-                  "pagination[page]": +queryParams["pagination[page]"] - 1,
-                });
-              }}
-              disabled={(queryParams["pagination[page]"] ?? 1) == 1}
-              className="px-3 py-1 rounded-md bg-gray-200"
+
+      {/* Empty State */}
+      {!isPending && new_data?.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+            <svg
+              className="w-8 h-8 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              ◀
-            </button>
-            <button
-              onClick={() => {
-                updateQueryParams({
-                  "pagination[page]": +queryParams["pagination[page]"] + 1,
-                });
-              }}
-              disabled={(queryParams["pagination[page]"] ?? 1) == totalPages}
-              className="px-3 py-1 rounded-md bg-gray-200"
-            >
-              ▶
-            </button>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
           </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No subscription plans found
+          </h3>
+          <p className="text-gray-500 mb-6">
+            {queryString
+              ? `No subscription plans match "${queryString}"`
+              : "Get started by creating your first subscription plan"}
+          </p>
+          <button
+            onClick={handleOpenAddModal}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-md text-sm font-medium"
+          >
+            + Add Subscription Plan
+          </button>
+        </div>
+      )}
+
+      {/* Results Info and Pagination */}
+      {!isPending && new_data?.length > 0 && (
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mt-6 gap-4 p-4 bg-gray-50 rounded-lg border border-gray-300">
+          {/* Left side: Results Info and Items per page */}
+
+          {/* Right side: Simple Custom Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              {/* Previous Button */}
+              <button
+                onClick={() => {
+                  updateQueryParams({
+                    "pagination[page]": Math.max(
+                      1,
+                      (queryParams["pagination[page]"] ?? 1) - 1,
+                    ),
+                  });
+                }}
+                disabled={
+                  (queryParams["pagination[page]"] ?? 1) === 1 || isPending
+                }
+                className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  (queryParams["pagination[page]"] ?? 1) === 1 || isPending
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-gray-700 hover:bg-purple-50 hover:text-purple-600 border border-gray-300"
+                }`}
+              >
+                Previous
+              </button>
+
+              {/* Page Numbers */}
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const currentPage = queryParams["pagination[page]"] ?? 1;
+                  let pageNumber;
+
+                  if (totalPages <= 5) {
+                    pageNumber = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNumber = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNumber = totalPages - 4 + i;
+                  } else {
+                    pageNumber = currentPage - 2 + i;
+                  }
+
+                  return (
+                    <button
+                      key={pageNumber}
+                      onClick={() => {
+                        updateQueryParams({
+                          "pagination[page]": pageNumber,
+                        });
+                      }}
+                      disabled={isPending}
+                      className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                        pageNumber === currentPage
+                          ? "bg-purple-600 text-white"
+                          : "bg-white text-gray-700 hover:bg-purple-50 hover:text-purple-600 border border-gray-300"
+                      }`}
+                    >
+                      {pageNumber}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Next Button */}
+              <button
+                onClick={() => {
+                  updateQueryParams({
+                    "pagination[page]": Math.min(
+                      totalPages,
+                      (queryParams["pagination[page]"] ?? 1) + 1,
+                    ),
+                  });
+                }}
+                disabled={
+                  (queryParams["pagination[page]"] ?? 1) === totalPages ||
+                  isPending
+                }
+                className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  (queryParams["pagination[page]"] ?? 1) === totalPages ||
+                  isPending
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-gray-700 hover:bg-purple-50 hover:text-purple-600 border border-gray-300"
+                }`}
+              >
+                Next
+              </button>
+
+              {/* Page Info */}
+              <span className="ml-3 text-sm text-gray-600">
+                Page {queryParams["pagination[page]"] ?? 1} of {totalPages}
+              </span>
+            </div>
+          )}
         </div>
       )}
       <AddSubscriptionModal

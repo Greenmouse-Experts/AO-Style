@@ -280,6 +280,7 @@ const ChatHead = () => {
         socketInstance.on(`chatsRetrieved:${customerInboxUserId}`, (data) => {
           if (data?.status === "success" && data?.data?.result) {
             setChats(data.data.result);
+            console.log(chats);
             const totalUnread = data.data.result.reduce(
               (sum, chat) => sum + (chat.unread || 0),
               0,
@@ -402,7 +403,7 @@ const ChatHead = () => {
 
   // Handle sending message to admin (for non-admin users) via socket
   const handleSendMessageToAdmin = () => {
-    if (!selectedAdmin || !messageText.trim()) {
+    if (!messageText.trim()) {
       toastError("Please select an admin and enter a message");
       return;
     }
@@ -410,51 +411,62 @@ const ChatHead = () => {
     if (!socket || !isConnected) {
       return;
     }
-
+    console.log("this is the currnt user type", currentUserUrl);
     const messageData = {
       token: userToken,
-      chatBuddy: selectedAdmin.id,
+      userType:
+        currentUserUrl === "customer"
+          ? "user"
+          : currentUserUrl === "fabric"
+            ? "fabric-vendor"
+            : currentUserUrl === "tailor"
+              ? "fashion-designer"
+              : currentUserUrl === "logistics"
+                ? "logistics-agent"
+                : currentUserUrl === "sales"
+                  ? "market-representative"
+                  : "user",
       message: messageText.trim(),
     };
 
     socket.emit("sendMessage", messageData);
 
     // Update existing chat or create new one in local state
-    if (selectedAdmin) {
-      setChats((prevChats) => {
-        // Check if chat with this admin already exists
-        const existingChatIndex = prevChats.findIndex(
-          (chat) => chat.chat_buddy?.id === selectedAdmin.id,
-        );
+    // if (selectedAdmin) {
+    //   setChats((prevChats) => {
+    //     // Check if chat with this admin already exists
+    //     const existingChatIndex = prevChats.findIndex(
+    //       (chat) => chat.chat_buddy?.id === selectedAdmin.id,
+    //     );
 
-        if (existingChatIndex !== -1) {
-          // Update existing chat
-          const updatedChats = [...prevChats];
-          updatedChats[existingChatIndex] = {
-            ...updatedChats[existingChatIndex],
-            last_message: messageText.trim(),
-            created_at: new Date().toISOString(),
-            unread: 0,
-          };
-          // Move updated chat to top
-          const updatedChat = updatedChats.splice(existingChatIndex, 1)[0];
-          return [updatedChat, ...updatedChats];
-        } else {
-          // Create new chat entry
-          const newChat = {
-            id: Date.now(),
-            last_message: messageText.trim(),
-            chat_buddy: selectedAdmin,
-            created_at: new Date().toISOString(),
-            unread: 0,
-          };
-          return [newChat, ...prevChats];
-        }
-      });
-    }
+    //     if (existingChatIndex !== -1) {
+    //       // Update existing chat
+    //       const updatedChats = [...prevChats];
+    //       updatedChats[existingChatIndex] = {
+    //         ...updatedChats[existingChatIndex],
+    //         last_message: messageText.trim(),
+    //         created_at: new Date().toISOString(),
+    //         unread: 0,
+    //       };
+    //       // Move updated chat to top
+    //       const updatedChat = updatedChats.splice(existingChatIndex, 1)[0];
+    //       return [updatedChat, ...updatedChats];
+    //     } else {
+    //       // Create new chat entry
+    //       const newChat = {
+    //         id: Date.now(),
+    //         last_message: messageText.trim(),
+    //         chat_buddy: selectedAdmin,
+    //         created_at: new Date().toISOString(),
+    //         unread: 0,
+    //       };
+    //       return [newChat, ...prevChats];
+    //     }
+    //   });
+    // }
 
     toastSuccess("Message sent successfully!");
-    setSelectedAdmin(null);
+    // setSelectedAdmin(null);
     setMessageText("");
     setCurrentView("chats");
 
@@ -861,59 +873,12 @@ const ChatHead = () => {
                             {/* Non-admin view - select admin to message */}
                             <div>
                               <label className="block text-xs font-medium text-gray-700 mb-1">
-                                Select Admin
-                              </label>
-                              <div className="max-h-24 overflow-y-auto border border-gray-300 rounded">
-                                {adminsFetching ? (
-                                  <div className="p-2 text-center text-xs text-gray-500">
-                                    Loading admins...
-                                  </div>
-                                ) : adminsFetchError ? (
-                                  <div className="p-2 text-center text-xs text-red-500">
-                                    Failed to load admins
-                                  </div>
-                                ) : availableAdmins.length === 0 ? (
-                                  <div className="p-2 text-center text-xs text-gray-500">
-                                    No admins available
-                                  </div>
-                                ) : (
-                                  availableAdmins.map((admin) => (
-                                    <div
-                                      key={admin.id}
-                                      onClick={() => setSelectedAdmin(admin)}
-                                      className={`p-2 text-xs cursor-pointer hover:bg-gray-50 flex items-center justify-between ${
-                                        selectedAdmin?.id === admin.id
-                                          ? "bg-purple-50 border-l-2 border-purple-500"
-                                          : ""
-                                      }`}
-                                    >
-                                      <div className="flex-1">
-                                        <div className="font-medium">
-                                          {admin.name || "No Name"}
-                                        </div>
-                                        <div className="text-gray-500">
-                                          {admin.email}
-                                        </div>
-                                      </div>
-                                      {selectedAdmin?.id === admin.id && (
-                                        <div className="text-purple-600 ml-2">
-                                          ✓
-                                        </div>
-                                      )}
-                                    </div>
-                                  ))
-                                )}
-                              </div>
-                            </div>
-
-                            <div>
-                              <label className="block text-xs font-medium text-gray-700 mb-1">
                                 Message
                               </label>
                               <textarea
                                 value={messageText}
                                 onChange={(e) => setMessageText(e.target.value)}
-                                placeholder="Type your message to admin..."
+                                placeholder="Send message to admins..."
                                 className="w-full p-2 border border-gray-300 rounded text-sm resize-none"
                                 rows={2}
                               />
@@ -931,9 +896,7 @@ const ChatHead = () => {
                           disabled={
                             isAdmin
                               ? !selectedUser || !messageText.trim()
-                              : !selectedAdmin ||
-                                !messageText.trim() ||
-                                !isConnected
+                              : !messageText.trim() || !isConnected
                           }
                           className="w-full bg-purple-600 text-white p-2 rounded text-sm font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         >

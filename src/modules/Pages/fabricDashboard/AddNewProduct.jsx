@@ -141,6 +141,7 @@ const AddProduct = () => {
     spreadout_url: productInfo?.fabric?.photos?.[1] ?? "",
     manufacturers_url: productInfo?.fabric?.photos?.[2] ?? "",
     fabric_url: productInfo?.fabric?.photos?.[3] ?? "",
+    enable_increment: Boolean(productInfo?.fabric?.enable_increment) || false,
   };
 
   // Auto-save functionality
@@ -269,6 +270,10 @@ const AddProduct = () => {
       };
       if (productInfo) {
         if (isAdminEditFabricRoute) {
+          console.log(
+            "Updating admin fabric with enable_increment:",
+            val.enable_increment,
+          );
           updateAdminFabricMutate(
             {
               id: productInfo?.id,
@@ -282,6 +287,7 @@ const AddProduct = () => {
                 tags: val.tags,
                 price: val.price?.toString(),
                 original_price: val.price?.toString(),
+                enable_increment: val.enable_increment,
                 status: productInfo?.status,
               },
               fabric: {
@@ -311,6 +317,10 @@ const AddProduct = () => {
             },
           );
         } else {
+          console.log(
+            "Updating fabric with enable_increment:",
+            val.enable_increment,
+          );
           updateFabricMutate(
             {
               id: productInfo?.id,
@@ -326,6 +336,7 @@ const AddProduct = () => {
                 price: val.price?.toString(),
                 original_price: val.price?.toString(),
                 status: productInfo?.status,
+                enable_increment: val.enable_increment,
               },
               fabric: {
                 market_id: val.market_id,
@@ -356,6 +367,10 @@ const AddProduct = () => {
         }
       } else {
         if (isAdminAddFabricRoute) {
+          console.log(
+            "Creating admin fabric with enable_increment:",
+            val.enable_increment,
+          );
           createAdminFabricProductMutate(
             {
               product: {
@@ -368,6 +383,7 @@ const AddProduct = () => {
                 tags: val.tags,
                 price: val.price?.toString(),
                 original_price: val.price?.toString(),
+                enable_increment: val.enable_increment,
               },
               fabric: {
                 market_id: val.market_id,
@@ -396,6 +412,10 @@ const AddProduct = () => {
             },
           );
         } else {
+          console.log(
+            "Creating fabric with enable_increment:",
+            val.enable_increment,
+          );
           createFabricProductMutate(
             {
               product: {
@@ -408,6 +428,7 @@ const AddProduct = () => {
                 tags: val.tags,
                 price: val.price?.toString(),
                 original_price: val.price?.toString(),
+                enable_increment: val.enable_increment,
               },
               fabric: {
                 market_id: val.market_id,
@@ -452,8 +473,21 @@ const AddProduct = () => {
 
   // Enhanced handleChange with auto-save
   const handleChangeWithAutoSave = (e) => {
+    const value =
+      e.target.type === "checkbox" ? e.target.checked : e.target.value;
+
+    // Debug logging for enable_increment toggle
+    if (e.target.name === "enable_increment") {
+      console.log("Toggle enable_increment:", {
+        oldValue: Boolean(values.enable_increment),
+        newValue: Boolean(value),
+        checked: e.target.checked,
+        type: e.target.type,
+      });
+    }
+
     handleChange(e);
-    const updatedValues = { ...values, [e.target.name]: e.target.value };
+    const updatedValues = { ...values, [e.target.name]: value };
     autoSave(updatedValues);
   };
 
@@ -889,6 +923,45 @@ const AddProduct = () => {
                   placeholder="Enter the minimum yards for purchase"
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                 />
+              </div>
+            </div>
+
+            {/* Enable Increment Toggle */}
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <div className="flex items-center justify-between p-5 border-2 border-gray-200 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 hover:shadow-md transition-all duration-200">
+                  <div className="flex-1">
+                    <label className="block text-gray-800 font-semibold mb-2 text-lg">
+                      Enable Increment
+                    </label>
+                    <p className="text-sm text-gray-600 leading-relaxed">
+                      Allow users to increment the quantity by 1 when purchasing
+                      this fabric. This gives customers more flexibility in
+                      their orders.
+                    </p>
+                    <div className="mt-2">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${Boolean(values.enable_increment) ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}
+                      >
+                        {Boolean(values.enable_increment)
+                          ? "✓ Enabled"
+                          : "✕ Disabled"}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center ml-4">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name="enable_increment"
+                        checked={Boolean(values.enable_increment)}
+                        onChange={handleChangeWithAutoSave}
+                        className="sr-only peer"
+                      />
+                      <div className="w-14 h-7 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-blue-600 peer-checked:to-blue-700 shadow-lg"></div>
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
 

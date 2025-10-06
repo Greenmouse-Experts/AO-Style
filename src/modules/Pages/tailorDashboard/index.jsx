@@ -60,7 +60,15 @@ export default function TailorDashboard() {
                   <span>
                     <span className="font-semibold">Free Plan</span>
                     <span className="mx-1">·</span>
-                    <span>Upgrade for more</span>
+                    <span
+                      className="cursor-pointer hover:underline"
+                      onClick={() =>
+                        (window.location.href =
+                          "/tailor/subscription?pagination[limit]=10&pagination[page]=1")
+                      }
+                    >
+                      Upgrade for more
+                    </span>
                   </span>
                 </div>
               ) : !carybinUser.subscriptions[
@@ -83,7 +91,15 @@ export default function TailorDashboard() {
                   <span>
                     <span className="font-semibold">Plan inactive</span>
                     <span className="mx-1">·</span>
-                    <span>Renew to unlock features</span>
+                    <span
+                      className="cursor-pointer hover:underline"
+                      onClick={() =>
+                        (window.location.href =
+                          "/tailor/subscription?pagination[limit]=10&pagination[page]=1")
+                      }
+                    >
+                      renew to unlock features
+                    </span>
                   </span>
                 </div>
               ) : null

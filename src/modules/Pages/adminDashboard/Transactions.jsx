@@ -28,7 +28,7 @@ import CustomTable from "../../../components/CustomTable";
 import TransferOperationsModal from "./components/TransferOperationsModal";
 import { toast } from "react-toastify";
 const PaymentTransactionTable = () => {
-  const [searchTerm, _setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [_currentPage, setCurrentPage] = useState(1);
   const [_itemsPerPage, _setItemsPerPage] = useState(10);
   const [activeTab, setActiveTab] = useState("All Transactions");
@@ -98,9 +98,9 @@ const PaymentTransactionTable = () => {
     "pagination[page]": 1,
   });
 
-  const [queryString, setQueryString] = useState(queryParams.q);
-
-  const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
+  // Remove queryString and debouncedSearchTerm, use searchTerm directly for filtering
+  // const [queryString, setQueryString] = useState(queryParams.q);
+  // const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
 
   // const { data: getAllTransactionData, isPending } =
   //   useFetchAllCartTransactions({
@@ -173,12 +173,13 @@ const PaymentTransactionTable = () => {
     doc.save("WithdrawalRequests.pdf");
   };
 
+  // Fetch all data without search param, filter on client
   const { data: getAllTransactionData, isPending: isPending } = useQuery({
-    queryKey: ["transactions_admin", debouncedSearchTerm],
+    queryKey: ["transactions_admin"],
     queryFn: async () => {
       let resp = await CaryBinApi.get("/payment/fetch-all", {
         params: {
-          q: debouncedSearchTerm,
+          // No q param, fetch all
         },
       });
       return resp.data;
@@ -188,16 +189,17 @@ const PaymentTransactionTable = () => {
   // Fetch withdrawal data for payouts tab using fetch-all endpoint
   const { data: withdrawalData, isPending: isWithdrawalPending } =
     useFetchAllWithdrawals({
-      // Don't filter by status anymore since we're using notes-based filtering
-      q: debouncedSearchTerm,
+      // No q param, fetch all
     });
-  useUpdatedEffect(() => {
-    // update search params with undefined if debouncedSearchTerm is an empty string
-    updateQueryParams({
-      q: debouncedSearchTerm.trim() || undefined,
-      "pagination[page]": 1,
-    });
-  }, [debouncedSearchTerm]);
+
+  // Remove useUpdatedEffect for search param
+  // useUpdatedEffect(() => {
+  //   // update search params with undefined if debouncedSearchTerm is an empty string
+  //   updateQueryParams({
+  //     q: debouncedSearchTerm.trim() || undefined,
+  //     "pagination[page]": 1,
+  //   });
+  // }, [debouncedSearchTerm]);
 
   // const totalTransactionPages = Math.ceil(
   //   getAllTransactionData?.count / (queryParams["pagination[limit]"] ?? 10),
@@ -367,25 +369,13 @@ const PaymentTransactionTable = () => {
     setOpenDropdown(openDropdown === rowId ? null : rowId);
   };
 
-  const _filteredData = data.filter((transaction) => {
-    const matchesSearch = Object.values(transaction).some(
-      (value) =>
-        typeof value === "string" &&
-        value.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
-    const matchesTab =
-      activeTab === "All Transactions" ||
-      (activeTab === "Income" &&
-        ["Payment"].includes(transaction.transactionType)) ||
-      (activeTab === "Payouts" &&
-        ["Payout", "Refund"].includes(transaction.transactionType));
-    return matchesSearch && matchesTab;
-  });
+  // Remove _filteredData, use filtering in TransactionData and WithdrawalData
 
-  const TransactionData = useMemo(
-    () =>
-      getAllTransactionData?.data
-        ? getAllTransactionData?.data.map((details) => {
+  // TransactionData: filter by searchTerm and tab
+  const TransactionData = useMemo(() => {
+    let arr =
+      getAllTransactionData?.data && Array.isArray(getAllTransactionData.data)
+        ? getAllTransactionData.data.map((details) => {
             return {
               ...details,
               transactionID: `${details?.transaction_id ?? ""}`,
@@ -405,9 +395,31 @@ const PaymentTransactionTable = () => {
               }`,
             };
           })
-        : [],
-    [getAllTransactionData?.data],
-  );
+        : [];
+
+    // Filter by search term
+    if (searchTerm && searchTerm.trim() !== "") {
+      const lower = searchTerm.trim().toLowerCase();
+      arr = arr.filter((item) =>
+        Object.values(item).some(
+          (val) => typeof val === "string" && val.toLowerCase().includes(lower),
+        ),
+      );
+    }
+
+    // Filter by tab
+    arr = arr.filter((transaction) => {
+      return (
+        activeTab === "All Transactions" ||
+        (activeTab === "Income" &&
+          ["Payment"].includes(transaction.transactionType)) ||
+        (activeTab === "Payouts" &&
+          ["Payout", "Refund"].includes(transaction.transactionType))
+      );
+    });
+
+    return arr;
+  }, [getAllTransactionData?.data, searchTerm, activeTab]);
 
   // Format withdrawal data for payouts using fetch-all endpoint structure
   const WithdrawalData = useMemo(() => {
@@ -421,6 +433,31 @@ const PaymentTransactionTable = () => {
       filteredData = withdrawalData.data.filter(
         (withdrawal) => withdrawal.notes && withdrawal.notes.trim() !== "",
       );
+    }
+
+    // Filter by search term
+    if (searchTerm && searchTerm.trim() !== "") {
+      const lower = searchTerm.trim().toLowerCase();
+      filteredData = filteredData.filter((withdrawal) => {
+        // Check relevant fields for search
+        return (
+          `WTH${withdrawal?.id}`.toLowerCase().includes(lower) ||
+          (withdrawal?.user?.name &&
+            withdrawal.user.name.toLowerCase().includes(lower)) ||
+          (withdrawal?.user?.email &&
+            withdrawal.user.email.toLowerCase().includes(lower)) ||
+          (withdrawal?.bank_name &&
+            withdrawal.bank_name.toLowerCase().includes(lower)) ||
+          (withdrawal?.account_number &&
+            withdrawal.account_number.toLowerCase().includes(lower)) ||
+          (withdrawal?.account_name &&
+            withdrawal.account_name.toLowerCase().includes(lower)) ||
+          (withdrawal?.status &&
+            withdrawal.status.toLowerCase().includes(lower)) ||
+          (withdrawal?.amount &&
+            withdrawal.amount.toString().toLowerCase().includes(lower))
+        );
+      });
     }
 
     return filteredData.map((withdrawal) => {
@@ -443,7 +480,7 @@ const PaymentTransactionTable = () => {
         isInitiated: withdrawal.notes && withdrawal.notes.trim() !== "",
       };
     });
-  }, [withdrawalData?.data, payoutSubTab]);
+  }, [withdrawalData?.data, payoutSubTab, searchTerm]);
 
   // Debug withdrawal data
   useEffect(() => {
@@ -509,7 +546,7 @@ const PaymentTransactionTable = () => {
           UserEmail: withdrawal.user?.email,
           UserPhone: withdrawal.user?.phone,
         })) || []
-      : getAllTransactionData?.data.flatMap((transaction) => {
+      : getAllTransactionData?.data?.flatMap((transaction) => {
           const user = transaction.user || {};
           const profile = user.profile || {};
           const items = transaction.purchase?.items || [];
@@ -614,19 +651,15 @@ const PaymentTransactionTable = () => {
               <input
                 type="text"
                 placeholder="Search ..."
-                value={queryString}
-                onChange={(evt) =>
-                  setQueryString(
-                    evt.target.value ? evt.target.value : undefined,
-                  )
-                }
+                value={searchTerm}
+                onChange={(evt) => setSearchTerm(evt.target.value)}
                 className="py-2 pl-10 pr-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
               />
               <AiOutlineSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
             <button
               onClick={() => {
-                console.log(getAllTransactionData.data[0]);
+                console.log(getAllTransactionData?.data?.[0]);
               }}
               className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap flex items-center"
             >

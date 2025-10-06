@@ -104,7 +104,7 @@ export default function ViewTransactionDetail() {
   }
 
   const transaction = data?.data;
-
+  console.log(transaction);
   if (!transaction) {
     return null;
   }
@@ -200,11 +200,14 @@ export default function ViewTransactionDetail() {
                     </span>
                   </div>
                   <div className="font-mono text-sm text-gray-900 bg-white px-4 py-2 rounded-lg border border-gray-200">
-                    {transaction.id}
+                    {transaction.id
+                      .replace(/-/g, "")
+                      .slice(0, 12)
+                      .toUpperCase()}
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-5 border border-blue-100">
+                {/*<div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-5 border border-blue-100">
                   <div className="flex items-center gap-3 mb-2">
                     <User className="w-5 h-5 text-blue-600" />
                     <span className="text-sm font-semibold text-gray-700">
@@ -214,7 +217,7 @@ export default function ViewTransactionDetail() {
                   <div className="font-mono text-sm text-gray-900 bg-white px-4 py-2 rounded-lg border border-gray-200">
                     {transaction.user_id}
                   </div>
-                </div>
+                </div>*/}
 
                 {/*<div className="bg-gradient-to-r from-violet-50 to-purple-50 rounded-xl p-5 border border-violet-100">
                   <div className="flex items-center gap-3 mb-2">

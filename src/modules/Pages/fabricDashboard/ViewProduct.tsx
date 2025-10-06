@@ -26,7 +26,7 @@ export default function ViewFabricProduct() {
   const location = useLocation();
   const navigate = useNavigate();
   const productData = location.state?.info;
-
+  console.log(productData);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
 
@@ -266,6 +266,7 @@ export default function ViewFabricProduct() {
                         {String(
                           productData.fabric?.gender ||
                             productData.fabric_gender ||
+                            productData.gender ||
                             "Unisex",
                         )}
                       </p>

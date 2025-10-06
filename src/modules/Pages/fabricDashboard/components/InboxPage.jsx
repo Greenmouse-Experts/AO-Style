@@ -94,14 +94,6 @@ export default function InboxPage() {
       message: messageText.trim(),
     };
 
-    console.log("=== SENDING MESSAGE TO ADMIN VIA SOCKET ===");
-    console.log("Socket ID:", socket.id);
-    console.log("Message data:", messageData);
-    console.log("Socket connected:", socket.connected);
-    console.log("User ID:", userId);
-    console.log("Admin ID:", selectedAdmin);
-    console.log("=========================================");
-
     socket.emit("sendMessage", messageData);
 
     // Update existing chat or create new one in local state
@@ -177,22 +169,12 @@ export default function InboxPage() {
   // Handle profile loading and setting user profile state
   useEffect(() => {
     if (profileSuccess && profileData) {
-      console.log("=== USER PROFILE LOADED ===");
-      console.log("Profile data:", profileData);
-      console.log("User ID from profile:", profileData.id);
-      console.log("============================");
       setUserProfile(profileData);
       setProfileLoading(false);
     } else if (profileError) {
-      console.error("=== PROFILE LOADING ERROR ===");
-      console.error("Error:", profileErrorData);
-      console.error("=============================");
       toastError("Failed to load user profile: " + profileErrorData?.message);
       setProfileLoading(false);
     } else if (profilePending) {
-      console.log("=== PROFILE LOADING ===");
-      console.log("Profile is loading...");
-      console.log("======================");
       setProfileLoading(true);
     }
   }, [
@@ -205,20 +187,8 @@ export default function InboxPage() {
 
   // Initialize Socket.IO connection - Wait for profile to be loaded
   useEffect(() => {
-    console.log("=== INITIALIZING FABRIC VENDOR SOCKET CONNECTION ===");
-    console.log("User token:", userToken);
-    console.log("User ID from profile:", userId);
-    console.log("Profile loading:", profileLoading);
-    console.log("Socket URL: https://api-staging.carybin.com/");
-    console.log("===============================================");
-
     // Wait for profile to be loaded before initializing socket
     if (userToken && userId && !profileLoading) {
-      console.log("=== FABRIC VENDOR PROFILE LOADED, INITIALIZING SOCKET ===");
-      console.log("User token:", userToken);
-      console.log("User ID:", userId);
-      console.log("==========================================");
-
       const socketInstance = io("https://api-staging.carybin.com/", {
         auth: { token: userToken },
         transports: ["websocket", "polling"],
@@ -252,37 +222,15 @@ export default function InboxPage() {
       // Listen for user-specific message sent events
       socketInstance.on(`messageSent:${userId}`, (data) => {
         console.log("🎉 === FABRIC VENDOR MESSAGE SENT EVENT RECEIVED === 🎉");
-        console.log("User ID:", userId);
-        console.log("Raw data:", data);
-        console.log("Formatted data:", JSON.stringify(data, null, 2));
-        console.log("Status:", data?.status);
-        console.log("Message:", data?.message);
-        console.log("Data object:", data?.data);
-        console.log("🎉 =========================================== 🎉");
         toastSuccess(data?.message || "Message delivered successfully");
       });
 
       // Listen for user-specific message sent events
       socketInstance.on(`messageSent:${userId}`, (data) => {
-        console.log("🎉 === FABRIC VENDOR MESSAGE SENT EVENT RECEIVED === 🎉");
-        console.log("User ID:", userId);
-        console.log("Raw data:", data);
-        console.log("Formatted data:", JSON.stringify(data, null, 2));
-        console.log("Status:", data?.status);
-        console.log("Message:", data?.message);
-        console.log("Data object:", data?.data);
-        console.log("🎉 ========================================= 🎉");
         toastSuccess(data?.message || "Message delivered successfully");
       });
 
       socketInstance.on("chatsRetrieved", (data) => {
-        console.log("=== FABRIC VENDOR CHATS RETRIEVED ON LOAD ===");
-        console.log("Full response:", JSON.stringify(data, null, 2));
-        console.log("Status:", data?.status);
-        console.log("Message:", data?.message);
-        console.log("Result array:", data?.data?.result);
-        console.log("==============================");
-
         if (data?.status === "success" && data?.data?.result) {
           setChats(data.data.result);
           if (!selectedChat && data.data.result.length > 0) {
@@ -294,23 +242,7 @@ export default function InboxPage() {
 
       // Listen for user-specific chat events (as shown in Postman)
       if (userId) {
-        console.log(
-          `🎯 Setting up fabric vendor user-specific event listeners for user: ${userId}`,
-        );
-        console.log(`🎯 Listening for: chatsRetrieved:${userId}`);
-        console.log(`🎯 Listening for: messagesRetrieved:${userId}`);
-        console.log(`🎯 Listening for: recentChatRetrieved:${userId}`);
-
         socketInstance.on(`chatsRetrieved:${userId}`, (data) => {
-          console.log(
-            `=== FABRIC VENDOR USER-SPECIFIC CHATS RETRIEVED (${userId}) ===`,
-          );
-          console.log("Full response:", JSON.stringify(data, null, 2));
-          console.log("Status:", data?.status);
-          console.log("Message:", data?.message);
-          console.log("Result array:", data?.data?.result);
-          console.log("=============================================");
-
           if (data?.status === "success" && data?.data?.result) {
             setChats(data.data.result);
             if (!selectedChat && data.data.result.length > 0) {

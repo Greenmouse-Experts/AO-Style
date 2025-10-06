@@ -561,7 +561,7 @@ const ViewFabric = () => {
         price: `₦${formatNumberWithCommas(details?.price ?? details?.original_price ?? 0)}`,
         status: details?.status ?? details?.approval_status ?? "DRAFT",
         fabric_type: `${details?.fabric?.type ?? "Cotton"}`,
-        fabric_gender: `${details?.fabric?.gender ?? "Unisex"}`,
+        fabric_gender: `${details?.fabric_gender ?? "Unisex"}`,
         fabric_id: `${details?.fabric?.id ?? ""}`,
         market_id: `${details?.fabric?.market_id ?? ""}`,
         business_name: `${details?.business_info?.Object?.business_name ?? ""}`,

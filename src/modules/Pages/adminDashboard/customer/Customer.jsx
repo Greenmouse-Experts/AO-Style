@@ -121,7 +121,7 @@ const CustomersTable = () => {
     { value: "11", label: "November" },
     { value: "12", label: "December" },
   ];
-
+  console.log("these are the customer rep data", getAllCustomerRepData);
   // Function to check if a date matches the filter criteria
   const matchesDateFilter = (dateString) => {
     if (!dateString) return true;

@@ -417,10 +417,8 @@ const SubscriptionModal = ({ isOpen, onClose, subscription, onUpdate }) => {
 const SubscriptionsPlansTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  // REMOVE itemsPerPage and related logic
-  // const [itemsPerPage, setItemsPerPage] = useState(10);
+  // Pagination state for items per page
   const dropdownRef = useRef(null);
-  // const [currentPage, setCurrentPage] = useState(1);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedSubscription, setSelectedSubscription] = useState(null);
@@ -432,11 +430,26 @@ const SubscriptionsPlansTable = () => {
 
   const { data: businessDetails } = useGetBusinessDetails();
 
+  // Determine role param based on tab
+  let roleParam;
+  if (tab === "vendor") {
+    // Vendor tab: show fabric-vendor
+    roleParam = "fabric-vendor";
+  } else {
+    // Tailor tab (default): show fashion-designer
+    roleParam = "fashion-designer";
+  }
+
+  // Items per page options
+  const itemsPerPageOptions = [5, 10, 20, 50, 100];
+
+  // Use queryParams for pagination and items per page
   const { queryParams, updateQueryParams } = useQueryParams({
     "pagination[limit]": 10,
     "pagination[page]": 1,
   });
 
+  // Add role to queryParams for fetching
   const {
     isPending,
     isLoading,
@@ -445,6 +458,7 @@ const SubscriptionsPlansTable = () => {
   } = useGetSubscription(
     {
       ...queryParams,
+      role: roleParam,
     },
     businessDetails?.data?.id,
   );
@@ -636,12 +650,10 @@ const SubscriptionsPlansTable = () => {
         ),
       },
     ],
-    [openDropdown],
+    [openDropdown, toggleDropdown],
   );
 
-  // Remove filteredData, indexOfLastItem, indexOfFirstItem, currentItems, itemsPerPage, setItemsPerPage, handleItemsPerPageChange, currentPage, setCurrentPage
-  // Instead, pagination is handled via queryParams["pagination[page]"] and queryParams["pagination[limit]"]
-
+  // Items per page state is handled via queryParams["pagination[limit]"]
   const [queryString, setQueryString] = useState(queryParams.q);
 
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
@@ -654,23 +666,18 @@ const SubscriptionsPlansTable = () => {
     });
   }, [debouncedSearchTerm]);
 
-  // Remove handlePreviousPage, handleNextPage, handleItemsPerPageChange
-
+  // Calculate total pages based on count and items per page
+  const itemsPerPage = Number(queryParams["pagination[limit]"]) || 10;
+  const currentPage = Number(queryParams["pagination[page]"]) || 1;
   const totalPages = Math.max(
     1,
-    Math.ceil(
-      (subscriptionData?.count || 0) / (queryParams["pagination[limit]"] ?? 10),
-    ),
+    Math.ceil((subscriptionData?.count || 0) / itemsPerPage),
   );
 
-  console.log(totalPages);
-
+  // No need to filter by userType here, since API already filtered by role
   const new_data = useMemo(() => {
-    return subscriptionRes.filter((item) => {
-      if (tab == "vendor") return item.userType === "Fabric Vendor";
-      return item.userType === "Tailors/Designers";
-    });
-  }, [subscriptionRes, tab]);
+    return subscriptionRes;
+  }, [subscriptionRes]);
 
   return (
     <div className="bg-white p-6 rounded-xl overflow-x-auto">
@@ -759,7 +766,40 @@ const SubscriptionsPlansTable = () => {
       {!isPending && new_data?.length > 0 && (
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mt-6 gap-4 p-4 bg-gray-50 rounded-lg border border-gray-300">
           {/* Left side: Results Info and Items per page */}
-
+          <div className="flex items-center gap-4 mb-2 lg:mb-0">
+            <span className="text-sm text-gray-600">
+              Showing{" "}
+              {subscriptionData?.count === 0
+                ? 0
+                : (currentPage - 1) * itemsPerPage + 1}{" "}
+              -{" "}
+              {Math.min(
+                currentPage * itemsPerPage,
+                subscriptionData?.count || 0,
+              )}{" "}
+              of {subscriptionData?.count || 0} results
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">Items per page:</span>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  updateQueryParams({
+                    "pagination[limit]": Number(e.target.value),
+                    "pagination[page]": 1, // reset to first page
+                  });
+                }}
+                className="border border-gray-300 rounded-md px-2 py-1 text-sm"
+                disabled={isPending}
+              >
+                {itemsPerPageOptions.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
           {/* Right side: Simple Custom Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center gap-2">
@@ -767,17 +807,12 @@ const SubscriptionsPlansTable = () => {
               <button
                 onClick={() => {
                   updateQueryParams({
-                    "pagination[page]": Math.max(
-                      1,
-                      (queryParams["pagination[page]"] ?? 1) - 1,
-                    ),
+                    "pagination[page]": Math.max(1, currentPage - 1),
                   });
                 }}
-                disabled={
-                  (queryParams["pagination[page]"] ?? 1) === 1 || isPending
-                }
+                disabled={currentPage === 1 || isPending}
                 className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                  (queryParams["pagination[page]"] ?? 1) === 1 || isPending
+                  currentPage === 1 || isPending
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                     : "bg-white text-gray-700 hover:bg-purple-50 hover:text-purple-600 border border-gray-300"
                 }`}
@@ -788,7 +823,6 @@ const SubscriptionsPlansTable = () => {
               {/* Page Numbers */}
               <div className="flex items-center gap-1">
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  const currentPage = queryParams["pagination[page]"] ?? 1;
                   let pageNumber;
 
                   if (totalPages <= 5) {
@@ -826,19 +860,12 @@ const SubscriptionsPlansTable = () => {
               <button
                 onClick={() => {
                   updateQueryParams({
-                    "pagination[page]": Math.min(
-                      totalPages,
-                      (queryParams["pagination[page]"] ?? 1) + 1,
-                    ),
+                    "pagination[page]": Math.min(totalPages, currentPage + 1),
                   });
                 }}
-                disabled={
-                  (queryParams["pagination[page]"] ?? 1) === totalPages ||
-                  isPending
-                }
+                disabled={currentPage === totalPages || isPending}
                 className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                  (queryParams["pagination[page]"] ?? 1) === totalPages ||
-                  isPending
+                  currentPage === totalPages || isPending
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                     : "bg-white text-gray-700 hover:bg-purple-50 hover:text-purple-600 border border-gray-300"
                 }`}
@@ -848,7 +875,7 @@ const SubscriptionsPlansTable = () => {
 
               {/* Page Info */}
               <span className="ml-3 text-sm text-gray-600">
-                Page {queryParams["pagination[page]"] ?? 1} of {totalPages}
+                Page {currentPage} of {totalPages}
               </span>
             </div>
           )}

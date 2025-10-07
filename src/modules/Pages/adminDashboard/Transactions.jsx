@@ -335,9 +335,19 @@ const PaymentTransactionTable = () => {
         render: (value, item) => (
           <div className="flex space-x-2">
             <button
-              onClick={() =>
-                nav("/admin/transactions/" + item.id, { viewTransition: true })
-              }
+              onClick={() => {
+                // If in Payouts tab, go to withdrawal details, else transaction details
+                if (activeTab === "Payouts") {
+                  // Go to withdrawal details page, pass withdrawal id
+                  nav("/admin/transactions/" + item.id, {
+                    viewTransition: true,
+                  });
+                } else {
+                  nav("/admin/transactions/" + item.id, {
+                    viewTransition: true,
+                  });
+                }
+              }}
               className="cursor-pointer text-blue-600 hover:text-blue-800 text-sm font-medium"
             >
               View Details
@@ -362,7 +372,7 @@ const PaymentTransactionTable = () => {
         ),
       },
     ],
-    [nav, openTransferModal],
+    [nav, openTransferModal, activeTab],
   );
 
   const _toggleDropdown = (rowId) => {
@@ -499,23 +509,6 @@ const PaymentTransactionTable = () => {
     getAllTransactionData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
-  // const handlePreviousPage = () => {
-  //   if (currentPage > 1) {
-  //     setCurrentPage(currentPage - 1);
-  //   }
-  // };
-
-  // const handleNextPage = () => {
-  //   if (currentPage < totalPages) {
-  //     setCurrentPage(currentPage + 1);
-  //   }
-  // };
-
-  // const handleItemsPerPageChange = (e) => {
-  //   setItemsPerPage(Number(e.target.value));
-  //   setCurrentPage(1);
-  // };
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -612,9 +605,16 @@ const PaymentTransactionTable = () => {
   const actions_col = [
     {
       action: (item) => {
-        return nav("/admin/transactions/" + item.id, {
-          viewTransition: true,
-        });
+        // If in Payouts tab, go to withdrawal details, else transaction details
+        if (activeTab === "Payouts") {
+          return nav("/admin/transactions/" + item.id, {
+            viewTransition: true,
+          });
+        } else {
+          return nav("/admin/transactions/" + item.id, {
+            viewTransition: true,
+          });
+        }
       },
       key: "view_details",
       label: "View Details",

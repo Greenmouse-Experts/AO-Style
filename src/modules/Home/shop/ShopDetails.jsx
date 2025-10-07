@@ -82,7 +82,7 @@ export default function ShopDetails() {
     useSingleProductGeneral("FABRIC", productInfo);
 
   const productVal = getSingleProductData?.data;
-
+  // console.log("this is the roduct val gfotten", productVal);
   // Log product data changes
   useEffect(() => {
     if (getSingleProductData) {
@@ -765,60 +765,164 @@ export default function ShopDetails() {
                 </h3>
                 <div className="flex items-center">
                   <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
-                    <Tooltip
-                      title={
-                        quantity <= productVal?.minimum_yards
-                          ? `Minimum quantity is ${productVal?.minimum_yards} yards`
-                          : "Decrease quantity"
-                      }
-                      placement="top"
-                    >
-                      <span>
-                        <button
-                          onClick={decrementQty}
-                          disabled={quantity <= productVal?.minimum_yards}
-                          className="p-3 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    {/* If coming from style, show double -/+ buttons */}
+                    {fromStyleFirst && productVal?.product?.enable_increment ? (
+                      <>
+                        {/* -1 Button */}
+                        <Tooltip
+                          title={
+                            quantity <= productVal?.minimum_yards
+                              ? `Minimum quantity is ${productVal?.minimum_yards} yards`
+                              : "Decrease quantity by 1"
+                          }
+                          placement="top"
                         >
-                          <svg
-                            className="w-4 h-4 text-gray-600"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
+                          <span>
+                            <button
+                              onClick={() =>
+                                setQuantity((prev) =>
+                                  +prev > +productVal?.minimum_yards
+                                    ? +prev - 1
+                                    : +productVal?.minimum_yards,
+                                )
+                              }
+                              disabled={quantity <= productVal?.minimum_yards}
+                              className="flex items-center justify-center w-12 h-12 bg-white border border-gray-300 text-gray-700 rounded-l-lg hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100 transition-all duration-200 shadow-sm"
+                            >
+                              <span className="font-semibold text-sm whitespace-nowrap">
+                                -1
+                              </span>
+                            </button>
+                          </span>
+                        </Tooltip>
+
+                        {/* -minimum yards Button */}
+                        <Tooltip
+                          title={
+                            quantity <= productVal?.minimum_yards
+                              ? `Minimum quantity is ${productVal?.minimum_yards} yards`
+                              : `Decrease quantity by ${productVal?.minimum_yards} yards`
+                          }
+                          placement="top"
+                        >
+                          <span>
+                            <button
+                              onClick={() =>
+                                setQuantity((prev) =>
+                                  +prev - +productVal?.minimum_yards >=
+                                  +productVal?.minimum_yards
+                                    ? +prev - +productVal?.minimum_yards
+                                    : +productVal?.minimum_yards,
+                                )
+                              }
+                              disabled={quantity <= productVal?.minimum_yards}
+                              className="flex items-center justify-center px-3 h-12 bg-white border-t border-b border-gray-300 text-purple-600 hover:bg-purple-50 hover:border-purple-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 transition-all duration-200 shadow-sm"
+                            >
+                              <span className="font-semibold text-sm whitespace-nowrap">
+                                -{productVal?.minimum_yards}
+                              </span>
+                            </button>
+                          </span>
+                        </Tooltip>
+
+                        {/* Quantity Display */}
+                        <div className="flex items-center justify-center px-6 h-12 bg-gradient-to-b from-white to-gray-50 border-t border-b border-gray-300 text-gray-900 font-bold text-lg min-w-[100px] shadow-sm">
+                          {quantity}
+                        </div>
+
+                        {/* +1 Button */}
+                        <Tooltip title="Increase quantity by 1" placement="top">
+                          <button
+                            onClick={() => setQuantity((prev) => +prev + 1)}
+                            className="flex items-center justify-center w-12 h-12 bg-white border-t border-b border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M20 12H4"
-                            />
-                          </svg>
-                        </button>
-                      </span>
-                    </Tooltip>
-                    <span className="px-6 py-3 text-lg font-semibold text-gray-900 bg-white border-x border-gray-200 min-w-[80px] text-center">
-                      {quantity}
-                    </span>
-                    <Tooltip title={"Increase quantity"} placement="top">
-                      <button
-                        onClick={incrementQty}
-                        className="p-3 hover:bg-gray-100 transition-colors"
-                        title="Increase quantity"
-                      >
-                        <svg
-                          className="w-4 h-4 text-gray-600"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                            <span className="font-semibold text-sm whitespace-nowrap">
+                              +1
+                            </span>
+                          </button>
+                        </Tooltip>
+
+                        {/* +minimum yards Button */}
+                        <Tooltip
+                          title={`Increase quantity by ${productVal?.minimum_yards} yards`}
+                          placement="top"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                          />
-                        </svg>
-                      </button>
-                    </Tooltip>
+                          <button
+                            onClick={() =>
+                              setQuantity(
+                                (prev) => +prev + +productVal?.minimum_yards,
+                              )
+                            }
+                            className="flex items-center justify-center px-3 h-12 bg-white border border-gray-300 text-purple-600 rounded-r-lg hover:bg-purple-50 hover:border-purple-400 transition-all duration-200 shadow-sm"
+                          >
+                            <span className="font-semibold text-sm whitespace-nowrap">
+                              +{productVal?.minimum_yards}
+                            </span>
+                          </button>
+                        </Tooltip>
+                      </>
+                    ) : (
+                      <>
+                        {/* Standard Decrease Button */}
+                        <Tooltip
+                          title={
+                            quantity <= productVal?.minimum_yards
+                              ? `Minimum quantity is ${productVal?.minimum_yards} yards`
+                              : "Decrease quantity"
+                          }
+                          placement="top"
+                        >
+                          <span>
+                            <button
+                              onClick={decrementQty}
+                              disabled={quantity <= productVal?.minimum_yards}
+                              className="flex items-center justify-center w-14 h-12 bg-white border border-gray-300 text-gray-700 rounded-l-lg hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100 transition-all duration-200 shadow-sm"
+                            >
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M20 12H4"
+                                />
+                              </svg>
+                            </button>
+                          </span>
+                        </Tooltip>
+
+                        {/* Quantity Display */}
+                        <div className="flex items-center justify-center px-8 h-12 bg-gradient-to-b from-white to-gray-50 border-t border-b border-gray-300 text-gray-900 font-bold text-lg min-w-[120px] shadow-sm">
+                          {quantity}
+                        </div>
+
+                        {/* Standard Increase Button */}
+                        <Tooltip title="Increase quantity" placement="top">
+                          <button
+                            onClick={incrementQty}
+                            className="flex items-center justify-center w-14 h-12 bg-white border border-gray-300 text-gray-700 rounded-r-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm"
+                          >
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                              />
+                            </svg>
+                          </button>
+                        </Tooltip>
+                      </>
+                    )}
                   </div>
                   <div className="ml-4 text-sm text-gray-600">
                     <span className="font-medium">

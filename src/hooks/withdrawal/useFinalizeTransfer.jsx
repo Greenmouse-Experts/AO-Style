@@ -27,7 +27,7 @@ function useFinalizeTransfer(onFinalizeSuccess) {
       console.error("❌ Failed to finalize transfer:", error);
       const errorMessage =
         error?.response?.data?.message ||
-        error?.message ||
+        error?.data?.message ||
         "Failed to finalize transfer";
       toast.error(errorMessage);
     },

@@ -324,9 +324,9 @@ const ProductPage = () => {
               <span className="w-2 h-2 bg-purple-400 rounded-full mr-2"></span>
               <span className="truncate">{fabric_type || "N/A"}</span>
             </div>
-            {row.fabric_gender && (
+            {row.gender && (
               <div className="text-xs text-gray-500 ml-4 mt-1 italic truncate">
-                {row.fabric_gender}
+                {row.gender}
               </div>
             )}
           </div>

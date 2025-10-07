@@ -128,7 +128,7 @@ export default function StyleForm() {
     photos: [],
     video_url: styleInfo?.style?.video_url ?? "",
     original_price: "",
-    sku: styleInfo?.sku ?? "",
+    // sku: styleInfo?.sku ?? "",
     multimedia_url: "",
     estimated_sewing_time: styleInfo?.style?.estimated_sewing_time ?? "",
     front_url: styleInfo?.style?.photos[0] ?? "",
@@ -242,7 +242,7 @@ export default function StyleForm() {
           type: val.type,
           name: val.name,
           category_id: val.category_id,
-          sku: val.sku,
+          // sku: val.sku,
           description: val.description,
           gender: val.gender,
           tags: val.tags,
@@ -1023,7 +1023,7 @@ export default function StyleForm() {
             </div>
 
             {/* SKU */}
-            <div>
+            {/* <div>
               <label className="block text-gray-700 mb-4 mt-4">SKU</label>
               <input
                 type="text"
@@ -1033,7 +1033,7 @@ export default function StyleForm() {
                 placeholder="Enter SKU"
                 className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
               />
-            </div>
+            </div>*/}
 
             {/* Modal and Submit Button */}
             <ModalThanks

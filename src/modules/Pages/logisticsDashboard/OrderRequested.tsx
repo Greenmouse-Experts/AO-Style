@@ -566,7 +566,7 @@ const OrderRequests = () => {
       label: "Amount",
       render: (_, item) => (
         <div className="font-semibold text-right">
-          ₦{parseFloat(item.total_amount).toLocaleString()}
+          ₦{parseFloat(item?.payment?.purchase?.delivery_fee).toLocaleString()}
         </div>
       ),
     },

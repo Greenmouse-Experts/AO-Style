@@ -121,7 +121,7 @@ export default function ViewTransaction() {
   }
 
   const transactions = query.data?.data;
-
+  console.log("this is the transaction query", query.data);
   if (!transactions || transactions.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex justify-center items-center">

@@ -27,7 +27,7 @@ export default function TransactionPage() {
   const { data: getMyProductData, isPending } = useGetMyPayment({
     ...queryParams,
   });
-
+  console.log("this is the transaction data", getMyProductData);
   const [queryString, setQueryString] = useState(queryParams.q);
 
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);

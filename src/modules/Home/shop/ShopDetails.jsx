@@ -763,8 +763,8 @@ export default function ShopDetails() {
                     </span>
                   }
                 </h3>
-                <div className="flex items-center">
-                  <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <div className="flex items-center bg-gray-50 sm:bg-none rounded-lg overflow-hidden">
                     {/* If coming from style, show double -/+ buttons */}
                     {fromStyleFirst && productVal?.product?.enable_increment ? (
                       <>
@@ -836,9 +836,7 @@ export default function ShopDetails() {
                             onClick={() => setQuantity((prev) => +prev + 1)}
                             className="flex items-center justify-center w-12 h-12 bg-white border-t border-b border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm"
                           >
-                            <span className="font-semibold text-sm whitespace-nowrap">
-                              +1
-                            </span>
+                            +1
                           </button>
                         </Tooltip>
 

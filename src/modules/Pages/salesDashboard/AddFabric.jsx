@@ -1052,7 +1052,18 @@ const AddFabric = () => {
                   <p className="text-sm font-medium text-gray-900">
                     Video uploaded successfully
                   </p>
-                  <p className="text-xs text-gray-500 break-all">{videoUrl}</p>
+                  {/* Video preview */}
+                  <video
+                    src={videoUrl}
+                    controls
+                    className="w-full max-w-xs mt-2 rounded shadow"
+                    style={{ maxHeight: 200 }}
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                  <p className="text-xs text-gray-500 break-all mt-2">
+                    {videoUrl}
+                  </p>
                 </div>
                 <button
                   type="button"

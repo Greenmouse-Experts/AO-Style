@@ -131,7 +131,7 @@ export default function ViewTransactionDetail() {
           <CustomBackbtn />
           <div className="mt-6 text-center">
             <h1 className="text-4xl font-bold bg-purple-600 bg-clip-text text-transparent mb-2">
-              Transaction Detai
+              Transaction Details
             </h1>
             <p className="text-gray-600">
               Complete information for this transaction

@@ -1022,19 +1022,6 @@ export default function StyleForm() {
               </div>
             </div>
 
-            {/* SKU */}
-            {/* <div>
-              <label className="block text-gray-700 mb-4 mt-4">SKU</label>
-              <input
-                type="text"
-                name="sku"
-                value={values.sku}
-                onChange={handleChangeWithAutoSave}
-                placeholder="Enter SKU"
-                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-              />
-            </div>*/}
-
             {/* Modal and Submit Button */}
             <ModalThanks
               isOpen={isModalOpen}

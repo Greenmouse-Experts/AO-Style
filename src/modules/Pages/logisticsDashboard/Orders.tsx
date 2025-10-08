@@ -170,6 +170,7 @@ export default function OrderRequests() {
       return resp.data;
     },
   });
+  console.log("this is the user profile data", user);
   console.log("Available orders data (outside):", availableOrdersData);
   // Query for ongoing orders
   const {
@@ -196,8 +197,17 @@ export default function OrderRequests() {
     enabled: !!user?.id,
   });
   console.log("Ongoing orders data (outside):", ongoingOrdersData);
+  // Count the number of ongoing orders where logistics_agent_id exists and is not equal to user?.id
+  const otherAgentsOngoingCount = ongoingOrdersData?.data
+    ? ongoingOrdersData.data.filter(
+        (order) =>
+          order.logistics_agent_id && order.logistics_agent_id !== user?.id,
+      ).length
+    : 0;
   const hasOngoingOrders =
-    ongoingOrdersData?.data && ongoingOrdersData.data.length > 0;
+    ongoingOrdersData?.data &&
+    ongoingOrdersData.data.length > 0 &&
+    otherAgentsOngoingCount !== ongoingOrdersData.data.length;
   const isLoading = isAvailableLoading || isOngoingLoading;
   const isError = isAvailableError || isOngoingError;
   const error = availableError || ongoingError;
@@ -435,7 +445,9 @@ export default function OrderRequests() {
               Pending Orders Found
             </h3>
             <p className="text-gray-600 text-sm mb-4">
-              You have {ongoingOrdersData?.data.length} ongoing order
+              You have{" "}
+              {ongoingOrdersData?.data.length - otherAgentsOngoingCount} ongoing
+              order
               {ongoingOrdersData?.data.length !== 1 ? "s" : ""} that must be
               completed before accepting new ones.
             </p>
@@ -447,42 +459,48 @@ export default function OrderRequests() {
                 Your Ongoing Orders:
               </h4>
               <div className="space-y-2">
-                {ongoingOrdersData?.data.map((order) => (
-                  <div
-                    key={order.id}
-                    className="flex items-center justify-between p-3 bg-white rounded-md border border-gray-100 hover:border-orange-200 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
-                      <div>
-                        <span className="font-mono text-sm font-medium text-gray-900">
-                          {formatOrderId(order.payment?.id || order.id)}
-                        </span>
-                        <div className="text-xs text-gray-500">
-                          {order.order_items.length} item
-                          {order.order_items.length !== 1 ? "s" : ""} • ₦
-                          {parseFloat(
-                            order.payment.purchase.delivery_fee,
-                          ).toLocaleString()}
+                {ongoingOrdersData?.data
+                  .filter(
+                    (order) =>
+                      order.logistics_agent_id === null ||
+                      order.logistics_agent_id === user?.id,
+                  )
+                  .map((order) => (
+                    <div
+                      key={order.id}
+                      className="flex items-center justify-between p-3 bg-white rounded-md border border-gray-100 hover:border-orange-200 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
+                        <div>
+                          <span className="font-mono text-sm font-medium text-gray-900">
+                            {formatOrderId(order.payment?.id || order.id)}
+                          </span>
+                          <div className="text-xs text-gray-500">
+                            {order.order_items.length} item
+                            {order.order_items.length !== 1 ? "s" : ""} • ₦
+                            {parseFloat(
+                              order.payment.purchase.delivery_fee,
+                            ).toLocaleString()}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-700 rounded-full">
-                        {order.status.replaceAll("_", " ").toUpperCase()}
+                      <div className="flex items-center gap-2">
+                        <div className="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-700 rounded-full">
+                          {order.status.replaceAll("_", " ").toUpperCase()}
+                        </div>
+                        <button
+                          className="text-orange-600 hover:text-orange-700 p-1 rounded-md hover:bg-orange-50 transition-colors"
+                          onClick={() =>
+                            navigate(`/logistics/orders/${order.id}`)
+                          }
+                          title="View Order"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
                       </div>
-                      <button
-                        className="text-orange-600 hover:text-orange-700 p-1 rounded-md hover:bg-orange-50 transition-colors"
-                        onClick={() =>
-                          navigate(`/logistics/orders/${order.id}`)
-                        }
-                        title="View Order"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
 

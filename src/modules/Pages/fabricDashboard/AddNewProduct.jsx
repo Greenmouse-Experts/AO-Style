@@ -785,7 +785,7 @@ const AddProduct = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-gray-700 mb-4">
-                  Weight per yard
+                  Weight per yard(g)
                 </label>
                 <input
                   type="number"

@@ -988,7 +988,7 @@ export default function ShopDetails() {
                 {productVal?.weight_per_unit && (
                   <div className="space-y-1">
                     <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                      Weight per Yard
+                      Weight per Yard(g)
                     </span>
                     <p className="text-sm font-medium text-gray-900">
                       {productVal.weight_per_unit} g

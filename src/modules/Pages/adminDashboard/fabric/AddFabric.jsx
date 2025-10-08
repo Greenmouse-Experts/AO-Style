@@ -72,7 +72,9 @@ const AddFabric = () => {
 
           {/* Weight per yard */}
           <div>
-            <label className="block text-gray-700 mb-4">Weight per yard</label>
+            <label className="block text-gray-700 mb-4">
+              Weight per yard(g)
+            </label>
             <input
               type="text"
               placeholder="Enter the weight per yard"

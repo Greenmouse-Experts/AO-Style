@@ -682,7 +682,7 @@ const AddFabric = () => {
                 type="text"
                 {...formik.getFieldProps("weight_per_unit")}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="e.g., 10kg"
+                placeholder="e.g., 10g"
               />
               {formik.touched.weight_per_unit &&
                 formik.errors.weight_per_unit && (

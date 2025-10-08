@@ -590,7 +590,7 @@ export default function StylesTable() {
                         onClick={() => setOpenDropdown(null)}
                       >
                         <Edit3 className="w-4 h-4" />
-                        Edit Product
+                        Edit Produc
                       </Link>
                     </>
                   )}

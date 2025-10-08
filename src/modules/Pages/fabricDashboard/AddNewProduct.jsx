@@ -269,6 +269,8 @@ const AddProduct = () => {
         navigate(-1);
       };
       if (productInfo) {
+        // --- CHECK: Are we sending enable_increment as part of the body? ---
+        // Yes, in both updateAdminFabricMutate and updateFabricMutate, enable_increment is included in the "product" object.
         if (isAdminEditFabricRoute) {
           console.log(
             "Updating admin fabric with enable_increment:",
@@ -287,7 +289,7 @@ const AddProduct = () => {
                 tags: val.tags,
                 price: val.price?.toString(),
                 original_price: val.price?.toString(),
-                enable_increment: val.enable_increment,
+                enable_increment: val.enable_increment, // <--- SENT HERE
                 status: productInfo?.status,
               },
               fabric: {
@@ -336,7 +338,7 @@ const AddProduct = () => {
                 price: val.price?.toString(),
                 original_price: val.price?.toString(),
                 status: productInfo?.status,
-                enable_increment: val.enable_increment,
+                enable_increment: val.enable_increment, // <--- SENT HERE
               },
               fabric: {
                 market_id: val.market_id,

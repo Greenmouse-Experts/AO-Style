@@ -20,6 +20,10 @@ const initiateTransfer = (payload) => {
   return CaryBinApi.post(`/withdraw/initiate`, payload);
 };
 
+const resendOTP = (payload) => {
+  return CaryBinApi.post(`/withdraw/re-initiate`, payload);
+};
+
 const finalizeTransfer = (payload) => {
   return CaryBinApi.post(`/withdraw/finalize-transfer`, payload);
 };
@@ -30,6 +34,7 @@ const verifyTransfer = (payload) => {
 
 const WithdrawalService = {
   createWithdrawal,
+  resendOTP,
   getWithdrawal,
   getAllWithdrawals,
   initiateTransfer,

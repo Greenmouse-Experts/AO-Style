@@ -189,21 +189,40 @@ export default function ViewTransaction() {
                   <div>
                     <dt className="text-sm text-gray-600">Transaction ID</dt>
                     <dd className="font-mono text-sm bg-gray-100 px-2 py-1 rounded mt-1">
-                      {transaction.transaction_id || transaction.id}
+                      {(() => {
+                        const src = String(
+                          transaction.transaction_id ?? transaction.id ?? "",
+                        );
+                        const digits = src.replace(/\D/g, "").slice(0, 12);
+                        if (digits) return digits;
+                        const noHyphen = src.replace(/-/g, "").slice(0, 12);
+                        return noHyphen || src;
+                      })()}
                     </dd>
                   </div>
                   {transaction.order_id && (
                     <div>
                       <dt className="text-sm text-gray-600">Order ID</dt>
                       <dd className="font-mono text-sm bg-gray-100 px-2 py-1 rounded mt-1">
-                        {transaction.order_id}
+                        {(() => {
+                          const digits = String(transaction.order_id ?? "")
+                            .replace(/\D/g, "")
+                            .slice(0, 12);
+                          return (
+                            digits ||
+                            String(transaction.order_id ?? "")
+                              .replace(/-/g, "")
+                              .slice(0, 12) ||
+                            transaction.order_id
+                          );
+                        })()}
                       </dd>
                     </div>
                   )}
                   <div>
                     <dt className="text-sm text-gray-600">Payment Method</dt>
                     <dd className="font-medium capitalize mt-1">
-                      {transaction.payment_method}
+                      {transaction.payment_method || "PAYSTACK"}
                     </dd>
                   </div>
                   <div>

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FaTimes, FaSpinner } from "react-icons/fa";
 import useInitiateTransfer from "../../../../hooks/withdrawal/useInitiateTransfer";
+import useResendOtp from "../../../../hooks/withdrawal/useResendOtp";
 
 const TransferOperationsModal = ({
   isOpen,
@@ -15,8 +16,7 @@ const TransferOperationsModal = ({
   const [error, setError] = useState("");
 
   // Hook to allow resending (re-initiate) the transfer from inside this modal
-  const { initiateTransfer, isPending: isResendPending } =
-    useInitiateTransfer();
+  const { resendOtp, isPending: isResendPending } = useResendOtp();
 
   if (!isOpen) return null;
 
@@ -180,7 +180,7 @@ const TransferOperationsModal = ({
                     setError("Invalid withdrawal ID for resend");
                     return;
                   }
-                  initiateTransfer({ withdrawalId: withdrawal.id });
+                  resendOtp({ withdrawalId: withdrawal.id });
                 }}
                 className="px-4 py-2 text-gray-700 bg-yellow-100 hover:bg-yellow-200 rounded-md transition-all duration-200 cursor-pointer font-medium flex items-center"
                 disabled={isLoading || isResendPending}

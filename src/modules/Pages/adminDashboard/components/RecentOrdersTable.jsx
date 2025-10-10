@@ -62,8 +62,8 @@ const RecentOrdersTable = () => {
             row.status === "In Progress"
               ? "text-blue-500"
               : row.status === "Pending"
-              ? "text-yellow-500"
-              : "text-green-500"
+                ? "text-yellow-500"
+                : "text-green-500"
           }`}
         >
           {row.status}
@@ -91,8 +91,8 @@ const RecentOrdersTable = () => {
     Object.values(order).some(
       (value) =>
         typeof value === "string" &&
-        value.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+        value.toLowerCase().includes(searchTerm.toLowerCase()),
+    ),
   );
 
   const indexOfLastItem = currentPage * itemsPerPage;

@@ -484,9 +484,7 @@ const OrderPage = () => {
         key: "dateAdded",
         width: "w-32",
         render: (value) => (
-          <span className="text-xs text-gray-600">
-            {formatDateToLocalTime(value)}
-          </span>
+          <span className="text-xs text-gray-600">{value}</span>
         ),
       },
       {
@@ -623,7 +621,34 @@ const OrderPage = () => {
               amount: `₦${formatNumberWithCommas(details?.payment?.purchase?.items?.[0]?.vendor_amount ?? 0)}`,
               productStatus: details?.payment?.payment_status || "PENDING",
               orderStatus: details?.status || "PENDING",
-              dateAdded: details?.created_at ? details?.created_at : "N/A",
+              dateAdded: `${
+                details?.created_at
+                  ? (() => {
+                      try {
+                        const dateObj = new Date(details.created_at);
+                        const opts = {
+                          day: "numeric",
+                          month: "numeric",
+                          year: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                          hour12: true,
+                          timeZone: "Africa/Lagos",
+                        };
+                        // en-GB gives day/month/year order; remove any comma between date and time
+                        return dateObj
+                          .toLocaleString("en-GB", opts)
+                          .replace(",", "");
+                      } catch (err) {
+                        // Fallback to existing formatting if something goes wrong
+                        return formatDateStr(
+                          details?.created_at.split(".").shift(),
+                          "D/M/YYYY h:mm A",
+                        );
+                      }
+                    })()
+                  : ""
+              }`,
             };
           })
         : [],

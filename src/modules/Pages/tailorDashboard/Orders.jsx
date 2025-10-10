@@ -152,10 +152,30 @@ const OrderPage = () => {
               status: `${details?.payment?.payment_status}`,
               dateAdded: `${
                 details?.created_at
-                  ? formatDateStr(
-                      details?.created_at.split(".").shift(),
-                      "D/M/YYYY h:mm A",
-                    )
+                  ? (() => {
+                      try {
+                        const dateObj = new Date(details.created_at);
+                        const opts = {
+                          day: "numeric",
+                          month: "numeric",
+                          year: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                          hour12: true,
+                          timeZone: "Africa/Lagos",
+                        };
+                        // en-GB gives day/month/year order; remove any comma between date and time
+                        return dateObj
+                          .toLocaleString("en-GB", opts)
+                          .replace(",", "");
+                      } catch (err) {
+                        // Fallback to existing formatting if something goes wrong
+                        return formatDateStr(
+                          details?.created_at.split(".").shift(),
+                          "D/M/YYYY h:mm A",
+                        );
+                      }
+                    })()
                   : ""
               }`,
             };

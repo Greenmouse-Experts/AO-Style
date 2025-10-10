@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { formatDateStr } from "../../../../lib/helper";
 import {
   Package,
   User,
@@ -676,8 +677,32 @@ const OrderDetails = () => {
                       Order Date
                     </p>
                     <p className="text-gray-900 font-semibold">
-                      {formatDate(orderDetails?.created_at) ||
-                        "September 11, 2025 at 12:12 PM"}
+                      {orderDetails?.created_at
+                        ? (() => {
+                            try {
+                              const dateObj = new Date(orderDetails.created_at);
+                              const opts = {
+                                day: "numeric",
+                                month: "numeric",
+                                year: "numeric",
+                                hour: "numeric",
+                                minute: "2-digit",
+                                hour12: true,
+                                timeZone: "Africa/Lagos",
+                              };
+                              // en-GB gives day/month/year order; remove any comma between date and time
+                              return dateObj
+                                .toLocaleString("en-GB", opts)
+                                .replace(",", "");
+                            } catch (err) {
+                              // Fallback to existing formatting if something goes wrong
+                              return formatDateStr(
+                                orderDetails?.created_at.split(".").shift(),
+                                "D/M/YYYY h:mm A",
+                              );
+                            }
+                          })()
+                        : ""}
                     </p>
                   </div>
                 </div>

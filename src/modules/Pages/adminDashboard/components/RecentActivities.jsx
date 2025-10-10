@@ -91,8 +91,8 @@ const RecentActivitiesTable = (dataVal) => {
     Object.values(order).some(
       (value) =>
         typeof value === "string" &&
-        value.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+        value.toLowerCase().includes(searchTerm.toLowerCase()),
+    ),
   );
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -135,22 +135,42 @@ const RecentActivitiesTable = (dataVal) => {
                   ? `${details?.purchase?.items[0]?.name.slice(0, 15)}...`
                   : details?.purchase?.items[0]?.name,
               amount: `${formatNumberWithCommas(
-                details?.payment?.amount ?? 0
+                details?.payment?.amount ?? 0,
               )}`,
 
               status: `${details?.payment?.payment_status}`,
               orderDate: `${
                 details?.created_at
-                  ? formatDateStr(
-                      details?.created_at.split(".").shift(),
-                      "D/M/YYYY h:mm A"
-                    )
+                  ? (() => {
+                      try {
+                        const dateObj = new Date(details.created_at);
+                        const opts = {
+                          day: "numeric",
+                          month: "numeric",
+                          year: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                          hour12: true,
+                          timeZone: "Africa/Lagos",
+                        };
+                        // en-GB gives day/month/year order; remove any comma between date and time
+                        return dateObj
+                          .toLocaleString("en-GB", opts)
+                          .replace(",", "");
+                      } catch (err) {
+                        // Fallback to existing formatting if something goes wrong
+                        return formatDateStr(
+                          details?.created_at.split(".").shift(),
+                          "D/M/YYYY h:mm A",
+                        );
+                      }
+                    })()
                   : ""
               }`,
             };
           })
         : [],
-    [dataVal?.dataVal?.recentOrders]
+    [dataVal?.dataVal?.recentOrders],
   );
 
   console.log(dataVal?.dataVal?.recentOrders, "here");

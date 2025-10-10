@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import Cookies from "js-cookie";
 import { useCarybinUserStore } from "../store/carybinUserStore";
 import { ChatHead } from "./chat";
+import tawkToService from "../services/tawkto";
 
 /**
  * LiveChatManager Component
@@ -48,23 +49,31 @@ const LiveChatManager = () => {
     window.Tawk_API = window.Tawk_API || {};
     window.Tawk_LoadStart = new Date();
 
-    (function () {
-      var s1 = document.createElement("script");
-      var s0 = document.getElementsByTagName("script")[0];
-      s1.async = true;
-      s1.src = "https://embed.tawk.to/68c3f9b421b83119262dd0e6/1j4uoeqsn";
-      s1.charset = "UTF-8";
-      s1.setAttribute("crossorigin", "*");
+    // Initialize Tawk.to via the centralized TawkToService using environment configuration
+    (async function () {
+      const propertyId = import.meta.env.VITE_APP_TAWKTO_PROPERTY_ID;
+      const widgetId = import.meta.env.VITE_APP_TAWKTO_WIDGET_ID || "default";
 
-      s1.onload = () => {
-        console.log("✅ Tawk.to script loaded successfully");
-      };
+      if (!propertyId) {
+        console.error("❌ Tawk.to: VITE_APP_TAWKTO_PROPERTY_ID is not set");
+        return;
+      }
 
-      s1.onerror = () => {
-        console.error("❌ Failed to load Tawk.to script");
-      };
-
-      s0.parentNode.insertBefore(s1, s0);
+      try {
+        await tawkToService.initialize({
+          propertyId,
+          widgetId,
+          hideWidget: false,
+        });
+        console.log("✅ Tawk.to: Initialized via tawkToService");
+        // Ensure widget is visible for guests
+        tawkToService.show();
+      } catch (err) {
+        console.error(
+          "❌ Tawk.to: Failed to initialize via tawkToService",
+          err,
+        );
+      }
     })();
 
     // Cleanup function

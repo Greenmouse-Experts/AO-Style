@@ -275,6 +275,12 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
     },
   ];
 
+  // Hide actions on the table when current path includes logistics (or common typo logictcs)
+  const hideActions =
+    window.location.pathname.includes("logistics") ||
+    window.location.pathname.includes("logictcs");
+  const tableActions = hideActions ? [] : actions;
+
   // Handle search with debouncing effect
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -533,7 +539,7 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
         <CustomTable
           data={TransactionData}
           columns={columns}
-          actions={actions}
+          actions={tableActions}
         />
       )}
 

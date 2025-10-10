@@ -627,6 +627,11 @@ const OrderRequests = () => {
         navigate(`/logistics/orders/${item.id}`);
       },
     },
+    //tawkto
+    // GMT timing
+    // reinitiate
+    // logistics accurate pricing
+    // viewing details takes us to 404 page
     {
       key: "locate",
       label: "Track Location",

@@ -669,22 +669,33 @@ const AddStyle = () => {
               </div>
             ) : (
               <div className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 pr-4">
                     <p className="text-sm font-medium text-gray-900">
                       Video uploaded successfully
                     </p>
-                    <p className="text-xs text-gray-500 break-all">
+                    <div className="mt-2">
+                      <video
+                        controls
+                        src={videoUrl}
+                        className="w-full max-h-60 rounded-md bg-black"
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                    </div>
+                    <p className="text-xs text-gray-500 break-all mt-2">
                       {videoUrl}
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={removeVideo}
-                    className="ml-2 p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors"
-                  >
-                    <FaTrash className="w-4 h-4" />
-                  </button>
+                  <div className="flex-shrink-0 self-start">
+                    <button
+                      type="button"
+                      onClick={removeVideo}
+                      className="ml-2 p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors"
+                    >
+                      <FaTrash className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

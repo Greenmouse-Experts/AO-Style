@@ -400,7 +400,7 @@ const ViewCustomer = () => {
                   to={`/admin/tailors/view?tab=personal`}
                 >
                   <button className="block cursor-pointer w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
-                    View Detailss
+                    View Details
                   </button>
                 </Link>
                 <button className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">

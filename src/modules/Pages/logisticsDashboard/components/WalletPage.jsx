@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { FaEye, FaEyeSlash, FaArrowUp, FaArrowDown } from "react-icons/fa";
 import { useQuery } from "@tanstack/react-query";
 import CaryBinApi from "../../../../services/CarybinBaseUrl";
@@ -17,76 +17,121 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
       console.log("THIS IS FROM THE SECOND ENDPOINT.", resp.data);
       return resp.data;
     },
-    // enabled: !!businessError, // Only run if businessError is truthy
   });
 
-  const { data: businessData, error: businessError } = useGetBusinessDetails();
+  const {
+    data: businessData,
+    error: businessError,
+    isLoading: businessLoading,
+  } = useGetBusinessDetails();
   const { data: vendorSummary } = useVendorSummaryStat();
   const { data: withdrawalData } = useFetchWithdrawal({ limit: 10 });
-
-  // If useGetBusinessDetails runs into error, run user profile query
 
   console.log("🏦 WalletPage - Business Data:", businessData);
   console.log("📊 WalletPage - Vendor Summary:", vendorSummary);
   console.log("💸 WalletPage - Withdrawal Data:", withdrawalData);
+  console.log("👤 WalletPage - User Profile:", userProfile);
 
-  // Use businessWallet from businessData if no error, else fallback to userProfile
-  let businessWallet;
-  if (!businessError) {
-    businessWallet = businessData?.data?.business_wallet?.balance;
-  } else {
-    businessWallet = userProfile?.wallet_balance ?? 0;
-  }
-  console.log("💰 WalletPage - Business Wallet Balance:", businessWallet);
+  // ✅ Use useMemo to recalculate whenever data changes
+  const businessWallet = useMemo(() => {
+    console.log("🔄 WalletPage - Recalculating businessWallet");
+
+    const individualAgent = userProfile?.individual_agent_wallet;
+
+    // Priority 1: Individual agent wallet
+    if (
+      individualAgent?.balance !== undefined &&
+      individualAgent?.balance !== null
+    ) {
+      console.log(
+        "✅ Using individual agent balance:",
+        individualAgent.balance,
+      );
+      return individualAgent.balance;
+    }
+
+    // Priority 2: Business wallet (if no business error)
+    if (
+      !businessError &&
+      businessData?.data?.business_wallet?.balance !== undefined
+    ) {
+      console.log(
+        "✅ Using business wallet balance:",
+        businessData.data.business_wallet.balance,
+      );
+      return businessData.data.business_wallet.balance;
+    }
+
+    // Priority 3: User profile wallet balance
+    if (
+      userProfile?.wallet_balance !== undefined &&
+      userProfile?.wallet_balance !== null
+    ) {
+      console.log(
+        "✅ Using user profile wallet balance:",
+        userProfile.wallet_balance,
+      );
+      return userProfile.wallet_balance;
+    }
+
+    // Fallback
+    console.log("⚠️ Using fallback balance: 0");
+    return 0;
+  }, [userProfile, businessData, businessError]);
+
+  console.log("💰 WalletPage - Final Business Wallet Balance:", businessWallet);
 
   // Calculate total income from vendor summary
   const totalIncome = vendorSummary?.data?.total_revenue || 0;
   console.log("📈 WalletPage - Total Income Calculated:", totalIncome);
 
   // Calculate total withdrawals from withdrawal data
-  const totalWithdrawals =
-    withdrawalData?.data?.reduce((sum, withdrawal) => {
-      if (
-        withdrawal.status === "COMPLETED" ||
-        withdrawal.status === "completed"
-      ) {
-        return sum + (withdrawal.amount || 0);
-      }
-      return sum;
-    }, 0) || 0;
-  console.log(
-    "💸 WalletPage - Total Withdrawals Calculated:",
-    totalWithdrawals,
-  );
-  console.log(
-    "🧮 WalletPage - Withdrawal Data for Calculation:",
-    withdrawalData?.data,
-  );
+  const totalWithdrawals = useMemo(() => {
+    const total =
+      withdrawalData?.data?.reduce((sum, withdrawal) => {
+        if (
+          withdrawal.status === "COMPLETED" ||
+          withdrawal.status === "completed"
+        ) {
+          return sum + (withdrawal.amount || 0);
+        }
+        return sum;
+      }, 0) || 0;
+
+    console.log("💸 WalletPage - Total Withdrawals Calculated:", total);
+    return total;
+  }, [withdrawalData]);
 
   // Get recent transaction for display
   const recentTransaction = withdrawalData?.data?.[0];
   console.log("🕒 WalletPage - Recent Transaction:", recentTransaction);
+
+  // Show loading state while critical data is loading
+  const isLoading = userProfileLoading && businessLoading;
 
   return (
     <div className="bg-white p-6 rounded-xl lg:max-w-md md:max-w-auto mx-auto stagger-animation">
       {/* Wallet Header */}
       <div className="flex justify-between items-center mb-6 animate-fade-in-up">
         <h2 className="text-lg font-semibold">Wallet</h2>
-        {/* <button className="bg-gray-100 px-3 py-1 rounded-md text-gray-700 text-sm">
-          Monthly ▾
-        </button> */}
       </div>
+
       {/* Balance Card */}
       <div className="bg-gradient text-white p-6 h-28 rounded-lg relative smooth-transition card-hover-scale">
         <p className="text-sm mb-3">TOTAL BALANCE</p>
         <h1 className="text-3xl font-bold animate-fade-in-up">
-          {showBalance
-            ? `₦ ${formatNumberWithCommas(businessWallet ?? 0)}`
-            : "******"}
+          {isLoading ? (
+            <span className="inline-block animate-pulse">Loading...</span>
+          ) : showBalance ? (
+            `₦ ${formatNumberWithCommas(businessWallet ?? 0)}`
+          ) : (
+            "******"
+          )}
         </h1>
         <button
           className="absolute top-6 right-6 text-white text-xl hover:scale-110 transition-transform duration-200 ease-in-out animate-pulse-scale"
           onClick={() => setShowBalance(!showBalance)}
+          disabled={isLoading}
         >
           {showBalance ? <FaEyeSlash /> : <FaEye />}
         </button>
@@ -121,14 +166,16 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
       {/* Withdraw Button */}
       <div className="mt-6 text-center space-y-3">
         <button
-          className="border border-purple-600 w-full text-purple-600 px-6 py-4 rounded-lg font-light cursor-pointer hover:bg-purple-600 hover:text-white transform transition-all duration-300 ease-in-out active:scale-95"
+          className="border border-purple-600 w-full text-purple-600 px-6 py-4 rounded-lg font-light cursor-pointer hover:bg-purple-600 hover:text-white transform transition-all duration-300 ease-in-out active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={onWithdrawClick}
+          disabled={isLoading}
         >
           Withdraw
         </button>
         <button
-          className="bg-purple-600 w-full text-white px-6 py-3 rounded-lg font-light cursor-pointer hover:bg-purple-700 hover:shadow-lg transform transition-all duration-300 ease-in-out active:scale-95"
+          className="bg-purple-600 w-full text-white px-6 py-3 rounded-lg font-light cursor-pointer hover:bg-purple-700 hover:shadow-lg transform transition-all duration-300 ease-in-out active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={onViewAllClick}
+          disabled={isLoading}
         >
           View All Withdrawals
         </button>

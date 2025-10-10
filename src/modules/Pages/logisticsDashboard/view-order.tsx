@@ -432,20 +432,25 @@ export default function ViewOrderLogistics() {
   const isInTransit = transitStatuses.includes(currentStatus || "");
   const isDelivered = currentStatus === "DELIVERED";
 
-  // Assignment logic
-  const isAssigned =
-    order_data?.logistics_agent_id === userProfile?.id ||
-    order_data?.first_leg_logistics_agent_id === userProfile?.id;
-
-  // Second leg assignment eligibility:
-  // If there is a first_leg_logistics_agent_id (someone did first leg), and
-  // there is NO logistics_agent_id (nobody has accepted second leg yet), and
-  // status is OUT_FOR_DELIVERY, and current user is NOT the first_leg_logistics_agent
-  const canAcceptSecondLeg =
-    !!order_data?.first_leg_logistics_agent_id &&
-    !order_data?.logistics_agent_id &&
-    currentStatus === "OUT_FOR_DELIVERY" &&
+  // Determine if the current user can accept the "second leg" of delivery.
+  // This is true only when:
+  // 1. There is already a first-leg logistics agent (meaning vendor->tailor pickup happened),
+  // 2. There is no second-leg logistics agent yet (nobody has accepted the tailor->customer leg),
+  // 3. The order status is currently OUT_FOR_DELIVERY (the handoff to the second leg is ready),
+  // 4. The current user is not the same person who handled the first leg (to prevent the same agent from accepting both legs).
+  const hasFirstLegAgent = !!order_data?.first_leg_logistics_agent_id;
+  const hasNoSecondLegAgent = !order_data?.logistics_agent_id;
+  const isOutForDelivery = currentStatus === "OUT_FOR_DELIVERY";
+  const isNotFirstLegAgent =
     userProfile?.id !== order_data?.first_leg_logistics_agent_id;
+
+  const canAcceptSecondLeg =
+    hasFirstLegAgent && hasNoSecondLegAgent && isOutForDelivery;
+  // Assignment logic
+
+  const isAssigned = canAcceptSecondLeg
+    ? order_data?.logistics_agent_id === userProfile?.id
+    : order_data?.first_leg_logistics_agent_id === userProfile?.id;
 
   // Debug logging
   console.log("🔍 Order data debug:", {

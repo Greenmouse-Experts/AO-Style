@@ -21,9 +21,7 @@ function useInitiateTransfer() {
     onError: (error) => {
       console.error("❌ Failed to initiate transfer:", error);
       const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Failed to initiate transfer";
+        error?.data?.message || error?.message || "Failed to initiate transfer";
       toast.error(errorMessage);
     },
   });

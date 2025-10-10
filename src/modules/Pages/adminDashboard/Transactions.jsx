@@ -59,8 +59,8 @@ const PaymentTransactionTable = () => {
     // Extract reference from finalize response - try multiple possible locations
     let reference = null;
 
-    if (finalizeResponse?.reference) {
-      reference = finalizeResponse.reference;
+    if (finalizeResponse?.transfer_reference) {
+      reference = finalizeResponse.transfer_reference;
     } else if (finalizeResponse?.data?.reference) {
       reference = finalizeResponse.data.reference;
     } else if (finalizeResponse?.transfer_code) {

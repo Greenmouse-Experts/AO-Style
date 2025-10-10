@@ -97,7 +97,10 @@ const MyProducts = () => {
     isError: productsError,
     refetch: refetchProducts,
   } = useGetVendorProducts(selectedVendor?.id);
-
+  console.log(
+    "🚀 ~ file: useGetVendorProducts.jsx:93 ~ products:",
+    vendorProducts,
+  );
   // Process vendors data
   const allVendors = useMemo(() => {
     // Only update UI after vendorTypeChanged is false (i.e., after fetch)
@@ -348,9 +351,13 @@ const MyProducts = () => {
         <div className="flex items-center space-x-3">
           <img
             src={
+              Array.isArray(item?.fabric?.photos) &&
               typeof item.fabric.photos[0] === "string"
                 ? item.fabric.photos[0].split(" from ")[0]
-                : ""
+                : Array.isArray(item?.style?.photos) &&
+                    typeof item.style.photos[0] === "string"
+                  ? item.style.photos[0].split(" from ")[0]
+                  : ""
             }
             alt={item.name || "Product"}
             className="w-12 h-12 rounded-lg object-cover"
@@ -712,7 +719,7 @@ const MyProducts = () => {
           className="flex items-center px-3 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
         >
           <FaArrowLeft className="mr-2 w-4 h-4" />
-          Back to Vendors
+          Back
         </button>
       </div>
 

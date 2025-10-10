@@ -59,6 +59,7 @@ export default function AnkaraGownPage() {
 
         // Ensure fabric data has the right structure
         const processedFabricData = {
+          id: fabricData.id,
           product_id: fabricData.product_id,
           name: fabricData.name || "Selected Fabric",
           price: fabricData.price || 0,
@@ -796,14 +797,18 @@ export default function AnkaraGownPage() {
                         <button
                           className="cursor-pointer mt-2 w-fit border border-yellow-400 text-gray-900 font-semibold px-5 py-2 rounded-lg shadow transition-opacity"
                           onClick={() => {
-                            if (pendingFabric) {
-                              localStorage.removeItem("pending_fabric");
-                              setPendingFabric(null);
-                            }
+                            // if (pendingFabric) {
+                            //   localStorage.removeItem("pending_fabric");
+                            //   setPendingFabric(null);
+                            // }
                             // navigate(
                             //   `/shop-details/${pendingFabric?.product_id}`,
                             // );
-                            navigate("/marketplace");
+                            console.log(
+                              "This is a pending fabric we want to see rn",
+                              pendingFabric,
+                            );
+                            navigate("/shop-details/" + pendingFabric?.id);
                           }}
                         >
                           Increase Fabric Yards

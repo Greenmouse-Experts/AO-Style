@@ -114,10 +114,11 @@ export default function ShopDetails() {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [fabricData, setFabricData] = useState(null);
-
+  console.log("this is the product van i got so now we test", productVal);
   const handleShowCartSelection = () => {
     // Store fabric data for later use
     const fabricInfo = {
+      id: productVal?.id,
       product_id: productVal?.product_id,
       product_type: "FABRIC",
       quantity: +quantity,

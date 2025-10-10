@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { FaTimes, FaSpinner } from "react-icons/fa";
+import useInitiateTransfer from "../../../../hooks/withdrawal/useInitiateTransfer";
 
 const TransferOperationsModal = ({
   isOpen,
@@ -12,6 +13,10 @@ const TransferOperationsModal = ({
   const [otp, setOtp] = useState("");
   const [reference, setReference] = useState("");
   const [error, setError] = useState("");
+
+  // Hook to allow resending (re-initiate) the transfer from inside this modal
+  const { initiateTransfer, isPending: isResendPending } =
+    useInitiateTransfer();
 
   if (!isOpen) return null;
 
@@ -165,6 +170,27 @@ const TransferOperationsModal = ({
 
           {/* Action Buttons */}
           <div className="flex justify-end space-x-3">
+            {operation === "finalize" && (
+              <button
+                type="button"
+                onClick={() => {
+                  // Clear any existing error, then call initiateTransfer to resend the code
+                  setError("");
+                  if (!withdrawal?.id) {
+                    setError("Invalid withdrawal ID for resend");
+                    return;
+                  }
+                  initiateTransfer({ withdrawalId: withdrawal.id });
+                }}
+                className="px-4 py-2 text-gray-700 bg-yellow-100 hover:bg-yellow-200 rounded-md transition-all duration-200 cursor-pointer font-medium flex items-center"
+                disabled={isLoading || isResendPending}
+              >
+                {isResendPending && (
+                  <FaSpinner className="animate-spin mr-2" size={16} />
+                )}
+                <span>Resend Code</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={handleClose}

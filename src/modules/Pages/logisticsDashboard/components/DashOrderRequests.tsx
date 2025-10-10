@@ -412,7 +412,7 @@ export default function DashOrderRequests() {
       key: "amount",
       label: "Amount",
       render: (value: any, item: Order) => {
-        return <>{item.total_amount}</>;
+        return <>{item?.payment?.purchase?.delivery_fee}</>;
       },
     },
     {

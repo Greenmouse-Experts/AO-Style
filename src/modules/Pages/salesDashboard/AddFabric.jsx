@@ -18,7 +18,7 @@ const AddFabric = () => {
   const { toastSuccess, toastError } = useToast();
 
   // Changed: Remove underscore from photoFiles and make it stateful for previews
-  const [photoFiles, setPhotoFiles] = useState([]);
+  // const [photoFiles, setPhotoFiles] = useState([]); // Not used, can be removed if desired
   const [photoUrls, setPhotoUrls] = useState(["", "", "", ""]);
   const [isUploadingImages, setIsUploadingImages] = useState([
     false,
@@ -164,6 +164,7 @@ const AddFabric = () => {
       // fabric_colors: "",
       tags: "",
       video_url: "",
+      enable_increment: false,
     },
     validationSchema,
     onSubmit: (values) => {
@@ -188,6 +189,7 @@ const AddFabric = () => {
             ? values.tags.split(",").map((tag) => tag.trim())
             : [],
           price: values.price.toString(),
+          enable_increment: !!values.enable_increment,
         },
         fabric: {
           market_id: values.market_id,
@@ -231,6 +233,24 @@ const AddFabric = () => {
       });
     },
   });
+
+  // Handler to sync enable_increment toggle with autosave
+  const handleChangeWithAutoSave = (e) => {
+    const { name, type, checked, value } = e.target;
+    let fieldValue;
+    if (type === "checkbox") {
+      fieldValue = checked;
+    } else {
+      fieldValue = value;
+    }
+    formik.setFieldValue(name, fieldValue);
+
+    // Immediately save draft with updated value
+    // Use setTimeout to ensure formik.values is updated
+    setTimeout(() => {
+      saveDraft({ ...formik.values, [name]: fieldValue }, photoUrls, videoUrl);
+    }, 0);
+  };
 
   useEffect(() => {
     const savedDraft = loadDraft();
@@ -287,6 +307,7 @@ const AddFabric = () => {
     }
 
     setIsLoadingDraft(false);
+    // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
@@ -690,6 +711,45 @@ const AddFabric = () => {
                     {formik.errors.weight_per_unit}
                   </p>
                 )}
+            </div>
+          </div>
+
+          {/* Enabling increment*/}
+          <div className="grid grid-cols-1 gap-6 my-5">
+            <div>
+              <div className="flex items-center justify-between p-5 border-2 border-gray-200 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 hover:shadow-md transition-all duration-200">
+                <div className="flex-1">
+                  <label className="block text-gray-800 font-semibold mb-2 text-lg">
+                    Enable Increment
+                  </label>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    Allow users to increment the quantity by 1 when purchasing
+                    this fabric. This gives customers more flexibility in their
+                    orders.
+                  </p>
+                  <div className="mt-2">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${formik.values.enable_increment ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}
+                    >
+                      {formik.values.enable_increment
+                        ? "✓ Enabled"
+                        : "✕ Disabled"}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center ml-4">
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="enable_increment"
+                      checked={formik.values.enable_increment}
+                      onChange={handleChangeWithAutoSave}
+                      className="sr-only peer"
+                    />
+                    <div className="w-14 h-7 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-blue-600 peer-checked:to-blue-700 shadow-lg"></div>
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
 

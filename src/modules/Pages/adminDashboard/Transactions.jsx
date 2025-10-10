@@ -56,30 +56,57 @@ const PaymentTransactionTable = () => {
       finalizeResponse,
     );
 
-    // Extract reference from finalize response - try multiple possible locations
+    // Extract reference from finalize response - try multiple possible locations (robust)
     let reference = null;
 
-    if (finalizeResponse?.transfer_reference) {
-      reference = finalizeResponse.transfer_reference;
-    } else if (finalizeResponse?.data?.reference) {
-      reference = finalizeResponse.data.reference;
-    } else if (finalizeResponse?.transfer_code) {
-      reference = finalizeResponse.transfer_code;
-    } else if (finalizeResponse?.data?.transfer_code) {
-      reference = finalizeResponse.data.transfer_code;
-    } else if (finalizeResponse?.notes) {
-      // Try to parse notes field if it contains JSON with reference
-      try {
-        const notesData = JSON.parse(finalizeResponse.notes);
-        reference = notesData.reference || notesData.transfer_code;
-      } catch (e) {
-        console.warn("Could not parse notes field:", e);
+    // Helper to extract reference from known possible shapes
+    const extractReference = (resp) => {
+      if (!resp) return null;
+
+      // Candidate fields in order of likelihood / known shapes
+      const candidates = [
+        resp.transfer_reference,
+        resp.reference,
+        resp.transfer_code,
+        resp.data?.transfer_reference,
+        resp.data?.reference,
+        resp.data?.transfer_code,
+        resp.data?.data?.transfer_reference,
+        resp.data?.data?.reference,
+        resp.data?.data?.transfer_code,
+      ];
+
+      for (const c of candidates) {
+        if (c) return c;
       }
-    }
+
+      // Try parsing notes if present (some APIs embed reference in notes JSON)
+      if (resp.notes) {
+        try {
+          const notesData =
+            typeof resp.notes === "string"
+              ? JSON.parse(resp.notes)
+              : resp.notes;
+          return (
+            notesData?.reference ||
+            notesData?.transfer_code ||
+            notesData?.transfer_reference ||
+            null
+          );
+        } catch (e) {
+          console.warn("Could not parse notes field:", e);
+        }
+      }
+
+      return null;
+    };
+
+    reference = extractReference(finalizeResponse);
 
     if (reference) {
       console.log("🔍 Auto-verifying with reference:", reference);
-      verifyTransfer({ reference });
+      // Ensure reference is string when calling verify
+      verifyTransfer({ reference: String(reference) });
     } else {
       console.error(
         "❌ No reference found in finalize response for auto-verify",

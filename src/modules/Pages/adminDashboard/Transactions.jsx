@@ -219,74 +219,6 @@ const PaymentTransactionTable = () => {
       // No q param, fetch all
     });
 
-  // Remove useUpdatedEffect for search param
-  // useUpdatedEffect(() => {
-  //   // update search params with undefined if debouncedSearchTerm is an empty string
-  //   updateQueryParams({
-  //     q: debouncedSearchTerm.trim() || undefined,
-  //     "pagination[page]": 1,
-  //   });
-  // }, [debouncedSearchTerm]);
-
-  // const totalTransactionPages = Math.ceil(
-  //   getAllTransactionData?.count / (queryParams["pagination[limit]"] ?? 10),
-  // );
-  // useEffect(() => {
-  //   console.log(getAllTransactionData, "data");
-  // }, []);
-  const data = [
-    {
-      id: 1,
-      transactionID: "TRX215465789123",
-      date: "12 Aug 2025 - 12:25 am",
-      userName: "Chukka Uzo",
-      userType: "Customer",
-      amount: "₦25,000.00",
-      transactionType: "Payment",
-      status: "In-Progress",
-    },
-    {
-      id: 2,
-      transactionID: "TRX215465789123",
-      date: "12 Aug 2025 - 12:25 am",
-      userName: "Chukka Uzo",
-      userType: "Tailor",
-      amount: "₦25,000.00",
-      transactionType: "Refund",
-      status: "In-Progress",
-    },
-    {
-      id: 3,
-      transactionID: "TRX215465789123",
-      date: "12 Aug 2025 - 12:25 am",
-      userName: "Chukka Uzo",
-      userType: "Vendors",
-      amount: "₦25,000.00",
-      transactionType: "Payment",
-      status: "Completed",
-    },
-    {
-      id: 4,
-      transactionID: "TRX215465789123",
-      date: "12 Aug 2025 - 12:25 am",
-      userName: "Chukka Uzo",
-      userType: "Sales Rep",
-      amount: "₦25,000.00",
-      transactionType: "Payout",
-      status: "In-Progress",
-    },
-    {
-      id: 5,
-      transactionID: "TRX215465789123",
-      date: "12 Aug 2025 - 12:25 am",
-      userName: "Chukka Uzo",
-      userType: "Logistics",
-      amount: "₦25,000.00",
-      transactionType: "Payment",
-      status: "Completed",
-    },
-  ];
-
   const tabs = ["All Transactions", "Income", "Payouts"];
   const nav = useNavigate();
 
@@ -406,58 +338,6 @@ const PaymentTransactionTable = () => {
     setOpenDropdown(openDropdown === rowId ? null : rowId);
   };
 
-  // Remove _filteredData, use filtering in TransactionData and WithdrawalData
-
-  // TransactionData: filter by searchTerm and tab
-  const TransactionData = useMemo(() => {
-    let arr =
-      getAllTransactionData?.data && Array.isArray(getAllTransactionData.data)
-        ? getAllTransactionData.data.map((details) => {
-            return {
-              ...details,
-              transactionID: `${details?.transaction_id ?? ""}`,
-              userName: `${details?.user?.email ?? "ss"}`,
-              amount: details?.amount,
-              location: `${details?.profile?.address ?? ""}`,
-              status: details?.payment_status ?? "",
-              transactionType: details?.purchase_type ?? "",
-              userType: details?.subscription_plan?.role ?? "customer",
-              date: `${
-                details?.created_at
-                  ? formatDateStr(
-                      details?.created_at.split(".").shift(),
-                      "DD MMM YYYY",
-                    )
-                  : ""
-              }`,
-            };
-          })
-        : [];
-
-    // Filter by search term
-    if (searchTerm && searchTerm.trim() !== "") {
-      const lower = searchTerm.trim().toLowerCase();
-      arr = arr.filter((item) =>
-        Object.values(item).some(
-          (val) => typeof val === "string" && val.toLowerCase().includes(lower),
-        ),
-      );
-    }
-
-    // Filter by tab
-    arr = arr.filter((transaction) => {
-      return (
-        activeTab === "All Transactions" ||
-        (activeTab === "Income" &&
-          ["Payment"].includes(transaction.transactionType)) ||
-        (activeTab === "Payouts" &&
-          ["Payout", "Refund"].includes(transaction.transactionType))
-      );
-    });
-
-    return arr;
-  }, [getAllTransactionData?.data, searchTerm, activeTab]);
-
   // Format withdrawal data for payouts using fetch-all endpoint structure
   const WithdrawalData = useMemo(() => {
     if (!withdrawalData?.data) return [];
@@ -515,9 +395,72 @@ const PaymentTransactionTable = () => {
             )
           : "",
         isInitiated: withdrawal.notes && withdrawal.notes.trim() !== "",
+        id: withdrawal?.id,
       };
     });
   }, [withdrawalData?.data, payoutSubTab, searchTerm]);
+
+  // TransactionData: filter by searchTerm and tab
+  const TransactionData = useMemo(() => {
+    let arr =
+      getAllTransactionData?.data && Array.isArray(getAllTransactionData.data)
+        ? getAllTransactionData.data.map((details) => {
+            return {
+              ...details,
+              transactionID: `${details?.transaction_id ?? ""}`,
+              userName: `${details?.user?.email ?? "ss"}`,
+              amount: details?.amount,
+              rawAmount: details?.amount,
+              location: `${details?.profile?.address ?? ""}`,
+              status: details?.payment_status ?? "",
+              transactionType: details?.purchase_type ?? "",
+              userType: details?.subscription_plan?.role ?? "customer",
+              date: `${
+                details?.created_at
+                  ? formatDateStr(
+                      details?.created_at.split(".").shift(),
+                      "DD MMM YYYY",
+                    )
+                  : ""
+              }`,
+              id: details?.id,
+            };
+          })
+        : [];
+
+    // Filter by search term
+    if (searchTerm && searchTerm.trim() !== "") {
+      const lower = searchTerm.trim().toLowerCase();
+      arr = arr.filter((item) =>
+        Object.values(item).some(
+          (val) => typeof val === "string" && val.toLowerCase().includes(lower),
+        ),
+      );
+    }
+
+    // For All Transactions: show both income and payouts (withdrawals)
+    // For Income: show only "income" (payments), i.e. anything that is NOT a payout/withdrawal
+    // For Payouts: handled separately
+
+    if (activeTab === "Income") {
+      // Only show transactions that are NOT withdrawals
+      arr = arr.filter(
+        (transaction) =>
+          transaction.transactionType &&
+          transaction.transactionType.toLowerCase() !== "withdrawal",
+      );
+    }
+
+    // For All Transactions, combine both payments and withdrawals
+    if (activeTab === "All Transactions") {
+      // Combine payment transactions and withdrawal transactions
+      // WithdrawalData is already formatted
+      return [...arr, ...WithdrawalData];
+    }
+
+    // For Payouts, handled in WithdrawalData
+    return arr;
+  }, [getAllTransactionData?.data, searchTerm, activeTab, WithdrawalData]);
 
   // Debug withdrawal data
   useEffect(() => {
@@ -736,13 +679,6 @@ const PaymentTransactionTable = () => {
         )}
 
         <div className="flex border-b border-gray-200 mb-4"></div>
-        {/* <ReusableTable
-          columns={columns}
-          loading={isPending}
-          data={TransactionData}
-          rowClassName="border-none text-gray-700 text-sm"
-          cellClassName="py-4"
-        />*/}
         <CustomTable
           columns={columns}
           data={activeTab === "Payouts" ? WithdrawalData : TransactionData}

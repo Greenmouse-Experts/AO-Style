@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import SettingsService from "../../services/api/settings";
 
-function useGetBusinessDetails() {
+function useGetBusinessDetails(options = {}) {
   const { isLoading, isFetching, data, isError, refetch, isPending } = useQuery(
     {
       queryKey: ["get-business-details"],
@@ -12,6 +12,7 @@ function useGetBusinessDetails() {
         console.log("💰 Wallet Data:", response?.data?.data?.business_wallet);
         return response;
       },
+      ...options,
     },
   );
 

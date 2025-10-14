@@ -13,8 +13,12 @@ export default function TransactionPage() {
   const [isViewWithdrawalsModalOpen, setIsViewWithdrawalsModalOpen] =
     useState(false);
 
-  const { data: businessData, error: businessError } = useGetBusinessDetails();
-  const { data: userProfile, isLoading: userProfileLoading } = useQuery({
+  // ⭐ Step 1: Always fetch user profile first
+  const {
+    data: userProfile,
+    isLoading: userProfileLoading,
+    isFetching: userProfileFetching,
+  } = useQuery({
     queryKey: ["user-profile"],
     queryFn: async () => {
       let resp = await CaryBinApi.get("/auth/view-profile");
@@ -23,22 +27,42 @@ export default function TransactionPage() {
     },
   });
 
+  // ⭐ Step 2: Check if user is an individual logistics agent
+  const isIndividualAgent = useMemo(() => {
+    return !!userProfile?.individual_agent_wallet
+      ?.individual_logistics_agent_id;
+  }, [userProfile]);
+
+  console.log("🔍 Is Individual Agent:", isIndividualAgent);
+
+  // ⭐ Step 3: Only fetch business details if NOT an individual agent
+  const {
+    data: businessData,
+    error: businessError,
+    isLoading: businessLoading,
+    // isFetching: businessFetching,
+  } = useGetBusinessDetails({
+    enabled: !userProfileLoading && !isIndividualAgent, // ⭐ Conditional fetching
+  });
+
+  // ⭐ Step 4: Calculate loading state based on which query is active
+  const isLoadingWallet =
+    userProfileLoading ||
+    userProfileFetching ||
+    (!isIndividualAgent && businessLoading);
+
   console.log(
     "this is the user profile for the individual logistics agent",
     userProfile,
   );
 
-  // ✅ Use useMemo to recalculate wallet whenever data changes
+  // ⭐ Step 5: Simplified wallet calculation
   const businessWallet = useMemo(() => {
     console.log("🔄 TransactionPage - Recalculating businessWallet");
 
-    const individualAgent = userProfile?.individual_agent_wallet;
-
-    // Priority 1: Individual agent wallet
-    if (
-      individualAgent?.balance !== undefined &&
-      individualAgent?.balance !== null
-    ) {
+    // Priority 1: Individual agent wallet (if they are an individual agent)
+    if (isIndividualAgent) {
+      const individualAgent = userProfile.individual_agent_wallet;
       console.log("✅ Using individual agent wallet");
       return {
         balance: individualAgent.balance ?? 0,
@@ -46,7 +70,7 @@ export default function TransactionPage() {
       };
     }
 
-    // Priority 2: Business wallet (if no business error)
+    // Priority 2: Business wallet (only fetched if not individual agent)
     if (!businessError && businessData?.data?.business_wallet) {
       console.log("✅ Using business wallet");
       return {
@@ -55,7 +79,7 @@ export default function TransactionPage() {
       };
     }
 
-    // Priority 3: User profile wallet balance
+    // Priority 3: User profile wallet balance (fallback for business users)
     if (
       userProfile?.wallet_balance !== undefined &&
       userProfile?.wallet_balance !== null
@@ -73,7 +97,7 @@ export default function TransactionPage() {
       balance: 0,
       currency: "NGN",
     };
-  }, [userProfile, businessData, businessError]);
+  }, [userProfile, businessData, businessError, isIndividualAgent]);
 
   console.log("💰 TransactionPage - Business Wallet Object:", businessWallet);
 
@@ -107,6 +131,8 @@ export default function TransactionPage() {
           <WalletPage
             onWithdrawClick={handleWithdrawClick}
             onViewAllClick={handleViewAllClick}
+            // businessWallet={businessWallet}
+            isLoading={isLoadingWallet}
           />
         </div>
       </div>

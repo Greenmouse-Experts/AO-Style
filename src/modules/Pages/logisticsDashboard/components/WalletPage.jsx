@@ -1,16 +1,23 @@
 import { useState, useMemo } from "react";
 import { FaEye, FaEyeSlash, FaArrowUp, FaArrowDown } from "react-icons/fa";
-import { useQuery } from "@tanstack/react-query";
-import CaryBinApi from "../../../../services/CarybinBaseUrl";
-import useGetBusinessDetails from "../../../../hooks/settings/useGetBusinessDetails";
 import useVendorSummaryStat from "../../../../hooks/analytics/useGetVendorSummmary";
 import useFetchWithdrawal from "../../../../hooks/withdrawal/useFetchWithdrawal";
 import { formatNumberWithCommas } from "../../../../lib/helper";
+import { useQuery } from "@tanstack/react-query";
+import CaryBinApi from "../../../../services/CarybinBaseUrl";
+import useGetBusinessDetails from "../../../../hooks/settings/useGetBusinessDetails";
 
-const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
-  const [showBalance, setShowBalance] = useState(true);
-
-  const { data: userProfile, isLoading: userProfileLoading } = useQuery({
+const WalletPage = ({
+  onWithdrawClick,
+  onViewAllClick,
+  // ⭐ NEW: Receive data and loading states as props
+  isLoading,
+}) => {
+  const {
+    data: userProfile,
+    isLoading: userProfileLoading,
+    isFetching: userProfileFetching,
+  } = useQuery({
     queryKey: ["user-profile"],
     queryFn: async () => {
       let resp = await CaryBinApi.get("/auth/view-profile");
@@ -19,71 +26,84 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
     },
   });
 
+  // ⭐ Step 2: Check if user is an individual logistics agent
+  const isIndividualAgent = useMemo(() => {
+    return !!userProfile?.individual_agent_wallet
+      ?.individual_logistics_agent_id;
+  }, [userProfile]);
+
+  console.log("🔍 Is Individual Agent:", isIndividualAgent);
+
+  // ⭐ Step 3: Only fetch business details if NOT an individual agent
   const {
     data: businessData,
     error: businessError,
     isLoading: businessLoading,
-  } = useGetBusinessDetails();
-  const { data: vendorSummary } = useVendorSummaryStat();
-  const { data: withdrawalData } = useFetchWithdrawal({ limit: 10 });
+    // isFetching: businessFetching,
+  } = useGetBusinessDetails({
+    enabled: !userProfileLoading && !isIndividualAgent, // ⭐ Conditional fetching
+  });
 
-  console.log("🏦 WalletPage - Business Data:", businessData);
-  console.log("📊 WalletPage - Vendor Summary:", vendorSummary);
-  console.log("💸 WalletPage - Withdrawal Data:", withdrawalData);
-  console.log("👤 WalletPage - User Profile:", userProfile);
+  // ⭐ Step 4: Calculate loading state based on which query is active
+  const isLoadingWallet =
+    userProfileLoading ||
+    userProfileFetching ||
+    (!isIndividualAgent && businessLoading);
 
-  // ✅ Use useMemo to recalculate whenever data changes
+  console.log(
+    "this is the user profile for the individual logistics agent",
+    userProfile,
+  );
+
+  // ⭐ Step 5: Simplified wallet calculation
   const businessWallet = useMemo(() => {
-    console.log("🔄 WalletPage - Recalculating businessWallet");
+    console.log("🔄 TransactionPage - Recalculating businessWallet");
 
-    const individualAgent = userProfile?.individual_agent_wallet;
-
-    // Priority 1: Individual agent wallet
-    if (
-      individualAgent?.balance !== undefined &&
-      individualAgent?.balance !== null
-    ) {
-      console.log(
-        "✅ Using individual agent balance:",
-        individualAgent.balance,
-      );
-      return individualAgent.balance;
+    // Priority 1: Individual agent wallet (if they are an individual agent)
+    if (isIndividualAgent) {
+      const individualAgent = userProfile.individual_agent_wallet;
+      console.log("✅ Using individual agent wallet");
+      return {
+        balance: individualAgent.balance ?? 0,
+        currency: individualAgent.currency || "NGN",
+      };
     }
 
-    // Priority 2: Business wallet (if no business error)
-    if (
-      !businessError &&
-      businessData?.data?.business_wallet?.balance !== undefined
-    ) {
-      console.log(
-        "✅ Using business wallet balance:",
-        businessData.data.business_wallet.balance,
-      );
-      return businessData.data.business_wallet.balance;
+    // Priority 2: Business wallet (only fetched if not individual agent)
+    if (!businessError && businessData?.data?.business_wallet) {
+      console.log("✅ Using business wallet");
+      return {
+        balance: businessData.data.business_wallet.balance ?? 0,
+        currency: businessData.data.business_wallet.currency || "NGN",
+      };
     }
 
-    // Priority 3: User profile wallet balance
+    // Priority 3: User profile wallet balance (fallback for business users)
     if (
       userProfile?.wallet_balance !== undefined &&
       userProfile?.wallet_balance !== null
     ) {
-      console.log(
-        "✅ Using user profile wallet balance:",
-        userProfile.wallet_balance,
-      );
-      return userProfile.wallet_balance;
+      console.log("✅ Using user profile wallet balance");
+      return {
+        balance: userProfile.wallet_balance ?? 0,
+        currency: "NGN",
+      };
     }
 
     // Fallback
-    console.log("⚠️ Using fallback balance: 0");
-    return 0;
-  }, [userProfile, businessData, businessError]);
+    console.log("⚠️ Using fallback wallet");
+    return {
+      balance: 0,
+      currency: "NGN",
+    };
+  }, [userProfile, businessData, businessError, isIndividualAgent]);
+  const [showBalance, setShowBalance] = useState(true);
 
-  console.log("💰 WalletPage - Final Business Wallet Balance:", businessWallet);
+  const { data: vendorSummary } = useVendorSummaryStat();
+  const { data: withdrawalData } = useFetchWithdrawal({ limit: 10 });
 
   // Calculate total income from vendor summary
   const totalIncome = vendorSummary?.data?.total_revenue || 0;
-  console.log("📈 WalletPage - Total Income Calculated:", totalIncome);
 
   // Calculate total withdrawals from withdrawal data
   const totalWithdrawals = useMemo(() => {
@@ -98,16 +118,14 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
         return sum;
       }, 0) || 0;
 
-    console.log("💸 WalletPage - Total Withdrawals Calculated:", total);
     return total;
   }, [withdrawalData]);
 
   // Get recent transaction for display
   const recentTransaction = withdrawalData?.data?.[0];
-  console.log("🕒 WalletPage - Recent Transaction:", recentTransaction);
 
-  // Show loading state while critical data is loading
-  const isLoading = userProfileLoading && businessLoading;
+  // ⭐ Use balance from props (already calculated in parent)
+  const balanceToShow = businessWallet?.balance ?? 0;
 
   return (
     <div className="bg-white p-6 rounded-xl lg:max-w-md md:max-w-auto mx-auto stagger-animation">
@@ -123,7 +141,7 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
           {isLoading ? (
             <span className="inline-block animate-pulse">Loading...</span>
           ) : showBalance ? (
-            `₦ ${formatNumberWithCommas(businessWallet ?? 0)}`
+            `₦ ${formatNumberWithCommas(balanceToShow)}`
           ) : (
             "******"
           )}

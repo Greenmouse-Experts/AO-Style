@@ -448,9 +448,17 @@ export default function ViewOrderLogistics() {
     hasFirstLegAgent && hasNoSecondLegAgent && isOutForDelivery;
   // Assignment logic
 
-  const isAssigned = canAcceptSecondLeg
-    ? order_data?.logistics_agent_id === userProfile?.id
-    : order_data?.first_leg_logistics_agent_id === userProfile?.id;
+  // "isAssigned" should reflect whether the current user is assigned to the relevant leg of the delivery.
+  // - If canAcceptSecondLeg is true, assignment is for the second leg (logistics_agent_id).
+  // - If canAcceptSecondLeg is false, assignment is for the first leg (first_leg_logistics_agent_id).
+  // - If neither, fallback to either leg (covers all cases).
+  const isAssigned =
+    (canAcceptSecondLeg &&
+      order_data?.logistics_agent_id === userProfile?.id) ||
+    (!canAcceptSecondLeg &&
+      order_data?.first_leg_logistics_agent_id === userProfile?.id) ||
+    order_data?.logistics_agent_id === userProfile?.id ||
+    order_data?.first_leg_logistics_agent_id === userProfile?.id;
 
   // Debug logging
   console.log("🔍 Order data debug:", {

@@ -149,7 +149,7 @@ export default function MarketplaceSection() {
 
   const maxIndex = useMemo(
     () => marketPlacePublic?.length - itemsPerPage,
-    [marketPlacePublic]
+    [marketPlacePublic],
   );
 
   console.log(maxIndex);
@@ -169,22 +169,22 @@ export default function MarketplaceSection() {
   }, [index, maxIndex]);
 
   return (
-    <section className="Resizer just px-4">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center text-left sm:pt-0 pt-20 top">
+    <section className="Resizer just px-4 mt-4">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center text-left md:pt-6 pt-6 top">
         <button className="border border-purple-500 text-purple-500 px-4 py-2 rounded-full text-sm w-full md:w-auto mb-2 md:mb-0">
           Shop Fabrics
         </button>
         <Link to="/marketplace">
-          <button className="bg-gradient text-white px-8 py-3 w-full md:w-auto sm:mt-38 mt-3 cursor-pointer">
+          <button className="bg-gradient text-white px-8 py-3 w-full md:w-auto md:mt-0 mt-3 cursor-pointer">
             Explore All Markets
           </button>
         </Link>
       </div>
 
-      <h2 className="text-2xl font-medium sm:-mt-14 mt-6">
+      <h2 className="text-2xl font-medium mt-4">
         Explore Materials by Market Place
       </h2>
-      <p className="text-[#4B4A4A] mt-4 max-w-md font-light leading-loose mb-6">
+      <p className="text-[#4B4A4A] mt-4 md:max-w-lg max-w-md font-light leading-loose mb-6">
         A virtual marketplace that offers high-quality fabric from various parts
         of the country.
       </p>
@@ -193,8 +193,18 @@ export default function MarketplaceSection() {
       {isPending ? (
         <LoaderComponent />
       ) : (
-        <div className="relative w-full mt-10 items-center">
-          <Slider {...settings}>
+        <div className="relative w-full md:mt-8 mt-10 items-center">
+          <Slider
+            {...settings}
+            // force 3 slides on typical tablet widths to preview tablet layout
+            slidesToShow={
+              typeof window !== "undefined" &&
+              window.innerWidth >= 768 &&
+              window.innerWidth < 1024
+                ? 3
+                : undefined
+            }
+          >
             {marketPlacePublic?.map((market) => (
               <Link
                 to={`/inner-marketplace`}
@@ -205,7 +215,7 @@ export default function MarketplaceSection() {
                 <img
                   src={market?.multimedia_url}
                   alt={market.name}
-                  className="w-20 h-20 sm:w-24 sm:h-24 md:w-48 md:h-48 rounded-full object-cover mx-auto"
+                  className="w-20 h-20 sm:w-24 sm:h-24 md:w-36 md:h-36 rounded-full object-cover mx-auto"
                 />
                 <h3
                   className="font-medium mt-6 mb-2 truncate"

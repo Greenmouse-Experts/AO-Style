@@ -150,7 +150,9 @@ export default function ViewTransaction() {
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                   <h2 className="text-xl font-semibold">
-                    #{transaction.transaction_id || transaction.id}
+                    {String(
+                      transaction.transaction_id || transaction.id || "",
+                    ).toUpperCase()}
                   </h2>
                   <p className="text-gray-300 text-sm">
                     {new Date(transaction.created_at).toLocaleDateString()} at{" "}
@@ -188,16 +190,10 @@ export default function ViewTransaction() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <dt className="text-sm text-gray-600">Transaction ID</dt>
-                    <dd className="font-mono text-sm bg-gray-100 px-2 py-1 rounded mt-1">
-                      {(() => {
-                        const src = String(
-                          transaction.transaction_id ?? transaction.id ?? "",
-                        );
-                        const digits = src.replace(/\D/g, "").slice(0, 12);
-                        if (digits) return digits;
-                        const noHyphen = src.replace(/-/g, "").slice(0, 12);
-                        return noHyphen || src;
-                      })()}
+                    <dd className="font-mono text-sm px-2 py-1 rounded mt-1">
+                      {String(
+                        transaction.transaction_id || transaction.id || "",
+                      ).toUpperCase()}
                     </dd>
                   </div>
                   {transaction.order_id && (
@@ -327,56 +323,129 @@ export default function ViewTransaction() {
                     <h3 className="text-lg font-medium text-gray-900 mb-4">
                       Items ({transaction.purchase.items.length})
                     </h3>
-                    <div className="space-y-4">
-                      {transaction.purchase.items.map((item) => (
-                        <div
-                          key={item.id}
-                          className="border border-gray-200 rounded-lg p-4"
-                        >
-                          <div className="flex items-start gap-4">
-                            <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
-                              <img
-                                src={
-                                  item.thumbnail_url ||
-                                  `https://via.placeholder.com/64x64/6366f1/ffffff?text=${encodeURIComponent(item.name.substring(0, 1))}`
-                                }
-                                alt={item.name}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-medium text-gray-900 truncate">
-                                {item.name}
-                              </h4>
-                              {/* Adjusted grid for better responsiveness on small screens */}
-                              <div className="mt-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-sm text-gray-600">
-                                <div>Qty: {item.quantity}</div>
-                                <div>
-                                  Price: {transaction.currency}{" "}
-                                  {item.price.toFixed(2)}
-                                </div>
-                                <div>Type: {item.purchase_type}</div>
-                                <div className="font-medium text-gray-900">
-                                  Total: {transaction.currency}{" "}
+
+                    <div className="overflow-x-auto bg-white border border-gray-200 rounded-lg">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th
+                              scope="col"
+                              className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            >
+                              Item
+                            </th>
+                            <th
+                              scope="col"
+                              className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            >
+                              Qty
+                            </th>
+                            <th
+                              scope="col"
+                              className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            >
+                              Price
+                            </th>
+                            <th
+                              scope="col"
+                              className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            >
+                              Type
+                            </th>
+                            <th
+                              scope="col"
+                              className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            >
+                              Vendor charges
+                            </th>
+                            <th
+                              scope="col"
+                              className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            >
+                              Total
+                            </th>
+                          </tr>
+                        </thead>
+
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {transaction.purchase.items.map((item) => {
+                            const fabric =
+                              item.vendor_charge?.fabric_vendor_fee ?? 0;
+                            const designer =
+                              item.vendor_charge?.fashion_designer_fee ?? 0;
+                            const hasVendorCharges = fabric > 0 || designer > 0;
+                            const vendorText = hasVendorCharges
+                              ? [
+                                  fabric > 0 &&
+                                    `Fabric: ${transaction.currency}${fabric.toFixed(
+                                      2,
+                                    )}`,
+                                  designer > 0 &&
+                                    `Designer: ${transaction.currency}${designer.toFixed(
+                                      2,
+                                    )}`,
+                                ]
+                                  .filter(Boolean)
+                                  .join(" • ")
+                              : "—";
+
+                            return (
+                              <tr key={item.id} className="group">
+                                <td className="px-4 py-3 align-top">
+                                  <div className="flex items-start gap-3 min-w-0">
+                                    <div className="w-14 h-14 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
+                                      <img
+                                        src={
+                                          item.thumbnail_url ||
+                                          `https://via.placeholder.com/64x64/6366f1/ffffff?text=${encodeURIComponent(
+                                            item.name.substring(0, 1),
+                                          )}`
+                                        }
+                                        alt={item.name}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    </div>
+                                    <div className="min-w-0">
+                                      <div className="text-sm font-medium text-gray-900 truncate">
+                                        {item.name}
+                                      </div>
+                                      <div className="text-xs text-gray-500 mt-1 truncate">
+                                        Created:{" "}
+                                        {new Date(
+                                          item.created_at,
+                                        ).toLocaleDateString()}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </td>
+
+                                <td className="px-4 py-3 align-top text-right whitespace-nowrap text-sm text-gray-700">
+                                  {item.quantity}
+                                </td>
+
+                                <td className="px-4 py-3 align-top text-right whitespace-nowrap text-sm text-gray-700">
+                                  {transaction.currency} {item.price.toFixed(2)}
+                                </td>
+
+                                <td className="px-4 py-3 align-top text-sm text-gray-700">
+                                  <span className="capitalize">
+                                    {item.purchase_type}
+                                  </span>
+                                </td>
+
+                                <td className="px-4 py-3 align-top text-sm text-gray-500">
+                                  <div className="text-sm">{vendorText}</div>
+                                </td>
+
+                                <td className="px-4 py-3 align-top text-right whitespace-nowrap font-medium text-gray-900">
+                                  {transaction.currency}{" "}
                                   {(item.price * item.quantity).toFixed(2)}
-                                </div>
-                              </div>
-                              {(item.vendor_charge.fabric_vendor_fee > 0 ||
-                                item.vendor_charge.fashion_designer_fee >
-                                  0) && (
-                                <div className="mt-2 text-xs text-gray-500">
-                                  Vendor charges:
-                                  {item.vendor_charge.fabric_vendor_fee > 0 &&
-                                    ` Fabric: ${transaction.currency}${item.vendor_charge.fabric_vendor_fee.toFixed(2)}`}
-                                  {item.vendor_charge.fashion_designer_fee >
-                                    0 &&
-                                    ` Designer: ${transaction.currency}${item.vendor_charge.fashion_designer_fee.toFixed(2)}`}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 )}

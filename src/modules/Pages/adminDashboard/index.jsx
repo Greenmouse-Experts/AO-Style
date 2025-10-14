@@ -27,7 +27,7 @@ export default function SuperDashboard() {
     };
   }, []);
   const { isPending, isLoading, isError, data } = useGetDashboardStat();
-
+  console.log("this is the data for stats", data);
   if (isPending) {
     return (
       <div className="m-auto flex h-[80vh] items-center justify-center">

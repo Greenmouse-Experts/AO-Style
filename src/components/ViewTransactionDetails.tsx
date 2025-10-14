@@ -169,11 +169,11 @@ export default function ViewTransactionDetail() {
             <div className="flex items-center justify-between mb-4">
               <User className="w-10 h-10 text-gray-400" />
               <span className="text-xs font-medium bg-gray-100 px-3 py-1 rounded-full text-gray-600">
-                Customer
+                Customer ID
               </span>
             </div>
             <div className="text-lg font-bold truncate mb-1">
-              {transaction.user_name}
+              {transaction.user_id.replace(/-/g, "").slice(0, 12).toUpperCase()}
             </div>
             <div className="text-gray-500 text-xs truncate">
               {transaction.user_email}
@@ -206,44 +206,6 @@ export default function ViewTransactionDetail() {
                       .toUpperCase()}
                   </div>
                 </div>
-
-                {/*<div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-5 border border-blue-100">
-                  <div className="flex items-center gap-3 mb-2">
-                    <User className="w-5 h-5 text-blue-600" />
-                    <span className="text-sm font-semibold text-gray-700">
-                      User ID
-                    </span>
-                  </div>
-                  <div className="font-mono text-sm text-gray-900 bg-white px-4 py-2 rounded-lg border border-gray-200">
-                    {transaction.user_id}
-                  </div>
-                </div>*/}
-
-                {/*<div className="bg-gradient-to-r from-violet-50 to-purple-50 rounded-xl p-5 border border-violet-100">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Mail className="w-5 h-5 text-violet-600" />
-                    <span className="text-sm font-semibold text-gray-700">
-                      Email Address
-                    </span>
-                  </div>
-                  <div className="text-gray-900 bg-white px-4 py-2 rounded-lg border border-gray-200 break-all">
-                    {transaction.user_email}
-                  </div>
-                </div>*/}
-
-                {transaction.notes && (
-                  <div className="mt-6 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-5 border-l-4 border-amber-400">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-8 h-8 bg-amber-400 rounded-lg flex items-center justify-center">
-                        <AlertCircle className="w-5 h-5 text-white" />
-                      </div>
-                      <span className="font-bold text-gray-900">Notes</span>
-                    </div>
-                    <p className="text-gray-700 leading-relaxed">
-                      {transaction.notes}
-                    </p>
-                  </div>
-                )}
               </div>
             </div>
           </div>

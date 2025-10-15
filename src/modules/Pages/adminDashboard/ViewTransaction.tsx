@@ -196,7 +196,10 @@ export default function ViewTransaction() {
                       <dd className="font-mono text-sm px-2 py-1 rounded mt-1">
                         {String(
                           transaction.transaction_id || transaction.id || "",
-                        ).toUpperCase()}
+                        )
+                          .replace(/-/g, "")
+                          .slice(0, 12)
+                          .toUpperCase()}
                       </dd>
                     </div>
                     {transaction.order_id && (

@@ -1,9 +1,7 @@
-import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import useGetMarketPlaces from "../../../hooks/dashboard/useGetMarketPlaces";
 import LoaderComponent from "../../../components/BeatLoader";
-import { useMemo } from "react";
 import Slider from "react-slick";
 
 export const SamplePrevArrow = (props) => {
@@ -32,36 +30,42 @@ export const SampleNextArrow = (props) => {
   );
 };
 
-export const settings = {
-  infinite: true,
+export const getSettings = (itemCount) => ({
+  infinite: itemCount > 5, // Only infinite if we have more items than slides to show
   speed: 500,
-  slidesToShow: 5, // Default
+  slidesToShow: Math.min(itemCount, 5), // Don't show more slides than items available
   slidesToScroll: 1,
-  autoplay: true,
-  arrows: true,
+  autoplay: itemCount > 5, // Only autoplay if infinite
+  arrows: itemCount > 5, // Only show arrows if we have enough items
   prevArrow: <SamplePrevArrow />,
   nextArrow: <SampleNextArrow />,
   responsive: [
     {
       breakpoint: 1024, // lg
       settings: {
-        slidesToShow: 3,
+        slidesToShow: Math.min(itemCount, 3),
+        infinite: itemCount > 3,
+        arrows: itemCount > 3,
       },
     },
     {
       breakpoint: 768, // md
       settings: {
-        slidesToShow: 2,
+        slidesToShow: Math.min(itemCount, 2),
+        infinite: itemCount > 2,
+        arrows: itemCount > 2,
       },
     },
     {
       breakpoint: 480, // sm
       settings: {
         slidesToShow: 1,
+        infinite: itemCount > 1,
+        arrows: itemCount > 1,
       },
     },
   ],
-};
+});
 
 // const markets = [
 //   {
@@ -137,36 +141,11 @@ export const settings = {
 // ];
 
 export default function MarketplaceSection() {
-  const itemsPerPage = 6; // Show 6 items at a time on large screens
-
   const { data: getMarketPlacePublicData, isPending } = useGetMarketPlaces({
     "pagination[limit]": 10,
   });
 
   const marketPlacePublic = getMarketPlacePublicData?.data;
-
-  const [index, setIndex] = useState(0);
-
-  const maxIndex = useMemo(
-    () => marketPlacePublic?.length - itemsPerPage,
-    [marketPlacePublic],
-  );
-
-  console.log(maxIndex);
-
-  const nextSlide = () => {
-    setIndex((prev) => (prev < maxIndex ? prev + 1 : 0));
-  };
-
-  const prevSlide = () => {
-    setIndex((prev) => (prev > 0 ? prev - 1 : maxIndex));
-  };
-
-  // Auto-scroll effect
-  useEffect(() => {
-    const interval = setInterval(nextSlide, 3000); // Change slide every 3 seconds
-    return () => clearInterval(interval); // Cleanup interval on unmount
-  }, [index, maxIndex]);
 
   return (
     <section className="Resizer just px-4 mt-4">
@@ -194,17 +173,7 @@ export default function MarketplaceSection() {
         <LoaderComponent />
       ) : (
         <div className="relative w-full md:mt-8 mt-10 items-center">
-          <Slider
-            {...settings}
-            // force 3 slides on typical tablet widths to preview tablet layout
-            slidesToShow={
-              typeof window !== "undefined" &&
-              window.innerWidth >= 768 &&
-              window.innerWidth < 1024
-                ? 3
-                : undefined
-            }
-          >
+          <Slider {...getSettings(marketPlacePublic?.length || 0)}>
             {marketPlacePublic?.map((market) => (
               <Link
                 to={`/inner-marketplace`}

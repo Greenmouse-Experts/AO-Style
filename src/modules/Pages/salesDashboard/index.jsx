@@ -1,10 +1,54 @@
+import { useState } from "react";
 import Cards from "./components/Cards";
 import AddedUser from "./components/AddedUser";
 import WalletPage from "./components/WalletPage";
 import BarChartComponent from "./components/BarChartComponent";
+import RecentTransactions from "./components/RecentTransactions";
+import WithdrawalModal from "./components/WithdrawalModal";
+import ViewWithdrawalsModal from "./components/ViewWithdrawalsModal";
+import useMarketRepWalletData from "../../../hooks/marketRep/useMarketRepWalletData";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
+
 export default function SalesDashboard() {
   const { carybinUser } = useCarybinUserStore();
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [isViewWithdrawalsModalOpen, setIsViewWithdrawalsModalOpen] =
+    useState(false);
+  const { walletMetrics } = useMarketRepWalletData();
+
+  console.log("🔧 SALES DASHBOARD: Wallet Metrics:", walletMetrics);
+  console.log(
+    "🔧 SALES DASHBOARD: Current Balance:",
+    walletMetrics?.currentBalance,
+  );
+  console.log("🔧 SALES DASHBOARD: Currency:", walletMetrics?.currency);
+
+  const marketRepWallet = {
+    balance: walletMetrics?.currentBalance || 0,
+    currency: walletMetrics?.currency || "NGN",
+  };
+
+  console.log("🔧 SALES DASHBOARD: Market Rep Wallet:", marketRepWallet);
+
+  const handleWithdrawClick = () => {
+    console.log("🎯 Opening withdrawal modal");
+    setIsWithdrawModalOpen(true);
+  };
+
+  const handleViewAllClick = () => {
+    console.log("👁️ Opening view all withdrawals modal");
+    setIsViewWithdrawalsModalOpen(true);
+  };
+
+  const handleCloseWithdrawModal = () => {
+    console.log("🚪 Closing withdrawal modal");
+    setIsWithdrawModalOpen(false);
+  };
+
+  const handleCloseViewWithdrawalsModal = () => {
+    console.log("🚪 Closing view withdrawals modal");
+    setIsViewWithdrawalsModalOpen(false);
+  };
 
   return (
     <>
@@ -28,12 +72,29 @@ export default function SalesDashboard() {
           <AddedUser />
         </div>
         <div className="lg:col-span-1">
-          <WalletPage />
+          <WalletPage
+            onWithdrawClick={handleWithdrawClick}
+            onViewAllClick={handleViewAllClick}
+          />
         </div>
       </div>
+      <div className="mt-6">{/* <BarChartComponent />*/}</div>
       <div className="mt-6">
-        <BarChartComponent />
+        <RecentTransactions />
       </div>
+
+      {/* Withdrawal Modal */}
+      <WithdrawalModal
+        isOpen={isWithdrawModalOpen}
+        onClose={handleCloseWithdrawModal}
+        businessWallet={marketRepWallet}
+      />
+
+      {/* View All Withdrawals Modal */}
+      <ViewWithdrawalsModal
+        isOpen={isViewWithdrawalsModalOpen}
+        onClose={handleCloseViewWithdrawalsModal}
+      />
     </>
   );
 }

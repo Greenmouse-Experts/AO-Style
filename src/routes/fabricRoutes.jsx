@@ -16,7 +16,7 @@ import ProtectedRoute from "../components/ProtectedRoute";
 import Subscriptions from "../modules/Pages/tailorDashboard/Subscription";
 import ViewFabricProduct from "../modules/Pages/fabricDashboard/ViewProduct";
 import NotificationsSinglePage from "../components/notifications/NotificationsSingle";
-import ViewTransactionDetail from "../components/ViewTransactionDetails";
+import UniversalTransactionDetails from "../components/UniversalTransactionDetails";
 
 export const fabricRoutes = [
   {
@@ -89,7 +89,7 @@ export const fabricRoutes = [
       },
       {
         path: "/fabric/transactions/:id",
-        element: <ViewTransactionDetail />,
+        element: <UniversalTransactionDetails mode="page" />,
       },
       {
         path: "/fabric/settings",

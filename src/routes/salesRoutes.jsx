@@ -10,7 +10,7 @@ import SettingPages from "../modules/Pages/salesDashboard/Settings";
 import InboxPage from "../modules/Pages/salesDashboard/Inbox";
 import NotificationPageUpdate from "../modules/Pages/adminDashboard/NotificationPageUpdate";
 import ViewVendorDetails from "../modules/Pages/salesDashboard/ViewVendorDetails";
-import ViewTransactionDetail from "../components/ViewTransactionDetails";
+import UniversalTransactionDetails from "../components/UniversalTransactionDetails";
 import MarketRepAnnouncements from "../modules/Pages/salesDashboard/Announcements";
 import MyProducts from "../modules/Pages/salesDashboard/MyProducts";
 import AddFabric from "../modules/Pages/salesDashboard/AddFabric";
@@ -68,7 +68,7 @@ export const salesRoutes = [
       },
       {
         path: "/sales/transactions/:id",
-        element: <ViewTransactionDetail />,
+        element: <UniversalTransactionDetails mode="page" />,
       },
       {
         path: "/sales/notifications",

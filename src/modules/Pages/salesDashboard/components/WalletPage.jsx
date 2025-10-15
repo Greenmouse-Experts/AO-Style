@@ -1,52 +1,37 @@
 import { useState } from "react";
 import { FaEye, FaEyeSlash, FaArrowUp, FaArrowDown } from "react-icons/fa";
 
-import useGetBusinessDetails from "../../../../hooks/settings/useGetBusinessDetails";
-import useVendorSummaryStat from "../../../../hooks/analytics/useGetVendorSummmary";
-import useFetchWithdrawal from "../../../../hooks/withdrawal/useFetchWithdrawal";
-import { formatNumberWithCommas } from "../../../../lib/helper";
+import useMarketRepWalletData from "../../../../hooks/marketRep/useMarketRepWalletData";
+import TransactionDetailsModal from "../../../../components/modals/TransactionDetailsModal";
 
 const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
   const [showBalance, setShowBalance] = useState(true);
+  const [selectedTransactionId, setSelectedTransactionId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { data: businessData } = useGetBusinessDetails();
-  const { data: vendorSummary } = useVendorSummaryStat();
-  const { data: withdrawalData } = useFetchWithdrawal({ limit: 10 });
+  const {
+    walletMetrics,
+    isError,
+    formatAmount,
+    getTransactionType,
+    formatDate,
+    loadingStates,
+  } = useMarketRepWalletData();
 
-  console.log("🏦 WalletPage - Business Data:", businessData);
-  console.log("📊 WalletPage - Vendor Summary:", vendorSummary);
-  console.log("💸 WalletPage - Withdrawal Data:", withdrawalData);
+  console.log("🏦 WalletPage - Using comprehensive wallet data");
+  console.log("💰 WalletPage - Wallet Metrics:", walletMetrics);
 
-  const businessWallet = businessData?.data?.business_wallet?.balance;
-  console.log("💰 WalletPage - Business Wallet Balance:", businessWallet);
+  // Handle transaction click
+  const handleTransactionClick = (transactionId) => {
+    setSelectedTransactionId(transactionId);
+    setIsModalOpen(true);
+  };
 
-  // Calculate total income from vendor summary
-  const totalIncome = vendorSummary?.data?.total_revenue || 0;
-  console.log("📈 WalletPage - Total Income Calculated:", totalIncome);
-
-  // Calculate total withdrawals from withdrawal data
-  const totalWithdrawals =
-    withdrawalData?.data?.reduce((sum, withdrawal) => {
-      if (
-        withdrawal.status === "COMPLETED" ||
-        withdrawal.status === "completed"
-      ) {
-        return sum + (withdrawal.amount || 0);
-      }
-      return sum;
-    }, 0) || 0;
-  console.log(
-    "💸 WalletPage - Total Withdrawals Calculated:",
-    totalWithdrawals,
-  );
-  console.log(
-    "🧮 WalletPage - Withdrawal Data for Calculation:",
-    withdrawalData?.data,
-  );
-
-  // Get recent transaction for display
-  const recentTransaction = withdrawalData?.data?.[0];
-  console.log("🕒 WalletPage - Recent Transaction:", recentTransaction);
+  // Handle modal close
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedTransactionId(null);
+  };
 
   return (
     <div className="bg-white p-6 rounded-xl lg:max-w-md md:max-w-auto mx-auto stagger-animation">
@@ -61,9 +46,11 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
       <div className="bg-gradient text-white p-6 h-28 rounded-lg relative smooth-transition card-hover-scale">
         <p className="text-sm mb-3">TOTAL BALANCE</p>
         <h1 className="text-3xl font-bold animate-fade-in-up">
-          {showBalance
-            ? `₦ ${formatNumberWithCommas(businessWallet ?? 0)}`
-            : "******"}
+          {loadingStates.profile
+            ? "Loading..."
+            : showBalance
+              ? formatAmount(walletMetrics?.currentBalance)
+              : "******"}
         </h1>
         <button
           className="absolute top-6 right-6 text-white text-xl hover:scale-110 transition-transform duration-200 ease-in-out animate-pulse-scale"
@@ -82,7 +69,9 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
           <div>
             <p className="text-green-600 text-sm">INCOME</p>
             <p className="font-semibold animate-fade-in-up">
-              ₦ {formatNumberWithCommas(totalIncome)}
+              {loadingStates.analytics
+                ? "Loading..."
+                : formatAmount(walletMetrics?.totalIncome)}
             </p>
           </div>
         </div>
@@ -93,7 +82,9 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
           <div>
             <p className="text-red-600 text-sm">WITHDRAWALS</p>
             <p className="font-semibold animate-fade-in-up">
-              ₦ {formatNumberWithCommas(totalWithdrawals)}
+              {loadingStates.withdrawals
+                ? "Loading..."
+                : formatAmount(walletMetrics?.totalWithdrawals)}
             </p>
           </div>
         </div>
@@ -118,50 +109,48 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
       {/* Recent Transactions */}
       <div className="mt-6">
         <p className="text-gray-500 text-sm">RECENT</p>
-        {recentTransaction ? (
-          <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg mt-2 hover:bg-gray-100 transition-all duration-300 ease-in-out card-hover-scale animate-slide-up">
+        {loadingStates.payments ? (
+          <div className="flex justify-center items-center bg-gray-50 p-4 rounded-lg mt-2">
+            <p className="text-gray-500 text-sm">Loading transactions...</p>
+          </div>
+        ) : isError ? (
+          <div className="flex justify-center items-center bg-red-50 p-4 rounded-lg mt-2">
+            <div className="text-center">
+              <p className="text-red-600 text-sm">Error Occurred</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-1 text-xs text-blue-600 hover:underline"
+              >
+                Reload
+              </button>
+            </div>
+          </div>
+        ) : walletMetrics?.recentTransaction ? (
+          <div
+            className="flex justify-between items-center bg-gray-50 p-4 rounded-lg mt-2 hover:bg-gray-100 transition-all duration-300 ease-in-out card-hover-scale animate-slide-up cursor-pointer"
+            onClick={() =>
+              handleTransactionClick(walletMetrics.recentTransaction.id)
+            }
+          >
             <div className="flex items-center gap-2">
-              <div className="bg-red-100 p-4 rounded-full animate-pulse-scale">
-                <FaArrowDown className="text-red-500" />
+              <div className="bg-green-100 p-4 rounded-full animate-pulse-scale">
+                <FaArrowUp className="text-green-500" />
               </div>
               <div>
-                <p className="text-sm">Withdrawal Request</p>
+                <p className="text-sm">
+                  {getTransactionType(walletMetrics.recentTransaction)}
+                </p>
                 <p className="text-xs text-gray-500">
-                  {recentTransaction.created_at
-                    ? new Date(recentTransaction.created_at).toLocaleDateString(
-                        "en-GB",
-                        {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "2-digit",
-                        },
-                      )
-                    : "Recent"}
+                  {formatDate(walletMetrics.recentTransaction.created_at)}
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <p className="font-semibold text-red-600">
-                - ₦ {formatNumberWithCommas(recentTransaction.amount || 0)}
+              <p className="font-semibold text-green-600">
+                + {formatAmount(walletMetrics.recentTransaction.amount)}
               </p>
-              <p
-                className={`text-xs ${
-                  recentTransaction.status === "COMPLETED" ||
-                  recentTransaction.status === "completed"
-                    ? "text-green-500"
-                    : recentTransaction.status === "PENDING" ||
-                        recentTransaction.status === "pending"
-                      ? "text-yellow-500"
-                      : "text-red-500"
-                }`}
-              >
-                {recentTransaction.status === "PENDING" ||
-                recentTransaction.status === "pending"
-                  ? "Pending"
-                  : recentTransaction.status === "COMPLETED" ||
-                      recentTransaction.status === "completed"
-                    ? "Completed"
-                    : "Failed"}
+              <p className="text-xs text-green-500">
+                {walletMetrics.recentTransaction.payment_status || "Success"}
               </p>
             </div>
           </div>
@@ -171,6 +160,13 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
           </div>
         )}
       </div>
+
+      {/* Transaction Details Modal */}
+      <TransactionDetailsModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        transactionId={selectedTransactionId}
+      />
     </div>
   );
 };

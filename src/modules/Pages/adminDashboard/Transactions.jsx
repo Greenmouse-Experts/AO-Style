@@ -5,10 +5,10 @@ import SalesSummaryChart from "./components/SalesSummaryChart";
 import { FaEllipsisH } from "react-icons/fa";
 import { AiOutlineSearch } from "react-icons/ai";
 import { BsFilter } from "react-icons/bs";
-import useDebounce from "../../../hooks/useDebounce";
+
 import useQueryParams from "../../../hooks/useQueryParams";
 // import useFetchAllCartTransactions from "../../../hooks/admin/useFetchAllCartTransactions";
-import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
+
 import { formatDateStr } from "../../../lib/helper";
 import useFetchAllWithdrawals from "../../../hooks/withdrawal/useFetchAllWithdrawals";
 import useInitiateTransfer from "../../../hooks/withdrawal/useInitiateTransfer";
@@ -407,13 +407,14 @@ const PaymentTransactionTable = () => {
         ? getAllTransactionData.data.map((details) => {
             return {
               ...details,
-              transactionID: `${details?.transaction_id ?? ""}`,
+              transactionID: `${details?.transaction_id || details?.id || ""}`,
               userName: `${details?.user?.email ?? "ss"}`,
               amount: details?.amount,
               rawAmount: details?.amount,
               location: `${details?.profile?.address ?? ""}`,
               status: details?.payment_status ?? "",
-              transactionType: details?.purchase_type ?? "",
+              transactionType:
+                details?.transaction_type || details?.purchase_type || "",
               userType: details?.subscription_plan?.role ?? "customer",
               date: `${
                 details?.created_at
@@ -515,12 +516,13 @@ const PaymentTransactionTable = () => {
           const items = transaction.purchase?.items || [];
 
           return items.map((item) => ({
-            TransactionID: transaction.transaction_id,
+            TransactionID: transaction.transaction_id || transaction.id || "",
             PaymentStatus: transaction.payment_status,
             PaymentMethod: transaction.payment_method,
             Amount: transaction.amount,
             Currency: transaction.currency,
-            PurchaseType: transaction.purchase_type,
+            PurchaseType:
+              transaction.transaction_type || transaction.purchase_type || "",
             ProductName: item.name,
             Quantity: item.quantity,
             ProductPrice: item.price,

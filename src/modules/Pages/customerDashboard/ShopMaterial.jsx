@@ -12,7 +12,7 @@ import LoaderComponent from "../../../components/BeatLoader";
 import useProductGeneral from "../../../hooks/dashboard/useGetProductGeneral";
 import useQueryParams from "../../../hooks/useQueryParams";
 import Slider from "react-slick";
-import { settings } from "../../Home/components/MarketplaceSection";
+import { getSettings } from "../../Home/components/MarketplaceSection";
 import useDebounce from "../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 
@@ -390,7 +390,7 @@ export default function ShopMaterials() {
             <></>
           ) : (
             <div className="relative w-full  mt-10 items-center">
-              <Slider {...settings}>
+              <Slider {...getSettings(marketPlacePublic?.length || 0)}>
                 {marketPlacePublic?.map((market) => (
                   <button
                     onClick={() => {

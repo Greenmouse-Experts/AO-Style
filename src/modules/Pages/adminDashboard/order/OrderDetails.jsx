@@ -158,7 +158,7 @@ const OrderDetails = () => {
   const deliveryFee = parseInt(
     orderDetails?.payment?.purchase?.delivery_fee || 0,
   );
-
+  console.log("this is the order dtails", orderDetails);
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Image Modal */}
@@ -294,7 +294,62 @@ const OrderDetails = () => {
             </div>
           )}
 
-          {/* Order Progress */}
+          {/* Delivery Codes Section */}
+          {(orderDetails?.tailor_delivery_code ||
+            orderDetails?.user_delivery_code) && (
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Tailor Delivery Code */}
+              {orderDetails?.tailor_delivery_code && (
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 flex items-center gap-4">
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Truck className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-purple-900 mb-1">
+                      Tailor Delivery Code
+                    </h4>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-mono font-bold text-purple-700 bg-white border border-purple-200 rounded px-3 py-1 tracking-widest shadow-sm">
+                        {orderDetails?.tailor_delivery_code}
+                      </span>
+                      <span className="text-xs text-purple-600 bg-purple-100 rounded px-2 py-0.5">
+                        For Tailor
+                      </span>
+                    </div>
+                    <p className="text-xs text-purple-700 mt-1">
+                      Provide this code to the tailor for delivery verification.
+                    </p>
+                  </div>
+                </div>
+              )}
+              {/* User Delivery Code */}
+              {orderDetails?.user_delivery_code && (
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 flex items-center gap-4">
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <User className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-purple-900 mb-1">
+                      Customer Delivery Code
+                    </h4>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-mono font-bold text-purple-700 bg-white border border-purple-200 rounded px-3 py-1 tracking-widest shadow-sm">
+                        {orderDetails?.user_delivery_code}
+                      </span>
+                      <span className="text-xs text-purple-600 bg-purple-100 rounded px-2 py-0.5">
+                        For Customer
+                      </span>
+                    </div>
+                    <p className="text-xs text-purple-700 mt-1">
+                      Provide this code to the customer for delivery
+                      verification.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Order Progress */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h5 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">

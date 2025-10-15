@@ -51,6 +51,22 @@ const getMarketRepProducts = (params) => {
   });
 };
 
+const getMarketRepAnalyticsSummary = () => {
+  return CaryBinApi.get(`/market-rep-analytics/summary`);
+};
+
+const getMarketRepPayments = (params) => {
+  return CaryBinApi.get(`/payment/my-payments`, { params });
+};
+
+const getMarketRepProfile = () => {
+  return CaryBinApi.get(`/auth/view-profile`);
+};
+
+const getPaymentDetails = (paymentId) => {
+  return CaryBinApi.get(`/payment/my-payments/${paymentId}`);
+};
+
 // Product update and delete endpoints
 const updateMarketRepFabric = (id, payload, vendorId) => {
   return CaryBinApi.patch(`/market-rep-fabric/${id}`, payload, {
@@ -110,6 +126,10 @@ const MarketRepService = {
   getMarketRepFabricById,
   getMarketRepStyleById,
   getMarketRepProducts,
+  getMarketRepAnalyticsSummary,
+  getMarketRepPayments,
+  getMarketRepProfile,
+  getPaymentDetails,
   updateMarketRepFabric,
   deleteMarketRepFabric,
   updateMarketRepStyle,

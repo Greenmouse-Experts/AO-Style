@@ -41,49 +41,44 @@ export default function AnalyticsCards() {
   const { data, isLoading, isError } = useQuery<AnalyticsResponse>({
     queryKey: ["analytics"],
     queryFn: async () => {
-      const resp = await CaryBinApi.get(
-        "/owner-analytics/fetch-revenue?year=2025",
-      );
-      console.log(resp.data, "analytics data");
+      const resp = await CaryBinApi.get("/owner-analytics/fetch-metrics");
+      console.log("This is the Admin analytics data", resp.data);
       return resp.data;
     },
   });
 
   // Extract and compute revenue values
-  const totalProductRevenue = parseCurrency(data?.data.totals.product_revenue);
-  const totalSubscriptionRevenue = parseCurrency(
-    data?.data.totals.subscription_revenue,
-  );
-  const totalRevenue = totalProductRevenue + totalSubscriptionRevenue;
-  const totalPayouts = parseCurrency(data?.data.totals.withdrawals);
+  const totalProductRevenue = parseCurrency(data?.data.total_revenue);
+  // const totalSubscriptionRevenue = parseCurrency(
+  //   data?.data.totals.subscription_revenue,
+  // );
+  const totalOrganisations = data?.data?.total_organizations;
+  const totalRevenue = data?.data?.total_revenue;
+  const totalPayouts = parseCurrency(data?.data.total_withdrawals);
 
-  // Use the latest month (assumed to be the last with non-zero values)
-  const breakdown = data?.data.monthly_breakdown || [];
-  const latestMonth =
-    [...breakdown]
-      .reverse()
-      .find(
-        (m) =>
-          parseCurrency(m.product_revenue) > 0 ||
-          parseCurrency(m.subscription_revenue) > 0 ||
-          parseCurrency(m.withdrawals) > 0,
-      ) || breakdown[breakdown.length - 1];
+  // // Use the latest month (assumed to be the last with non-zero values)
+  // const breakdown = data?.data.monthly_breakdown || [];
+  // const latestMonth =
+  //   [...breakdown]
+  //     .reverse()
+  //     .find(
+  //       (m) =>
+  //         parseCurrency(m.product_revenue) > 0 ||
+  //         parseCurrency(m.subscription_revenue) > 0 ||
+  //         parseCurrency(m.withdrawals) > 0,
+  //     ) || breakdown[breakdown.length - 1];
 
-  const monthlyProduct = parseCurrency(latestMonth?.product_revenue);
-  const monthlySub = parseCurrency(latestMonth?.subscription_revenue);
-  const monthlyWithdrawals = parseCurrency(latestMonth?.withdrawals);
-  const monthlyRevenue = monthlyProduct + monthlySub;
+  // const monthlyProduct = parseCurrency(latestMonth?.product_revenue);
+  // const monthlySub = parseCurrency(latestMonth?.subscription_revenue);
+  // const monthlyWithdrawals = parseCurrency(latestMonth?.withdrawals);
+  // const monthlyRevenue = monthlyProduct + monthlySub;
 
   const stats = [
     {
-      icon: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1746536471/AoStyle/Group1_vg0mlf.png",
-      value: isLoading
-        ? "Loading..."
-        : isError
-          ? "Error"
-          : formatCurrency(monthlyRevenue),
-      label: "Total Revenue",
-      subtext: "This Month",
+      icon: "https://img.icons8.com/ios-filled/32/800080/organization.png",
+      value: isLoading ? "Loading..." : isError ? "Error" : totalOrganisations,
+      label: "Total Organizations",
+      // subtext: "This Month",
       bgColor: "bg-[#F4EFFF]",
     },
     {
@@ -92,9 +87,9 @@ export default function AnalyticsCards() {
         ? "Loading..."
         : isError
           ? "Error"
-          : data?.data?.totals?.withdrawals, // Placeholder value
-      label: "Withdrawals",
-      subtext: " This Year",
+          : data?.data?.total_withdrawal_requests, // Placeholder value
+      label: "Withdrawal Requests",
+      // subtext: " This Year",
       bgColor: "bg-[#F4EFFF]",
     },
     {
@@ -103,20 +98,16 @@ export default function AnalyticsCards() {
         ? "Loading..."
         : isError
           ? "Error"
-          : formatCurrency(monthlyWithdrawals),
-      label: "Total Payouts",
-      subtext: "This Month",
+          : formatCurrency(totalPayouts),
+      label: "Total Withdrawals",
+      // subtext: "This Month",
       bgColor: "bg-[#FFE4E1]",
     },
     {
       icon: "https://res.cloudinary.com/greenmouse-tech/image/upload/v1746536473/AoStyle/Group4_ogapaw.png",
-      value: isLoading
-        ? "Loading..."
-        : isError
-          ? "Error"
-          : data?.data.totals.product_revenue, // Placeholder
+      value: isLoading ? "Loading..." : isError ? "Error" : totalRevenue, // Placeholder
       label: "Total Revenue",
-      subtext: "This Year",
+      // subtext: "This Year",
       bgColor: "bg-[#E0FFFF]",
     },
   ];

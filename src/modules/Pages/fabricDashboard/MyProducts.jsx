@@ -31,9 +31,10 @@ import useGetAdminManageStyleProduct from "../../../hooks/style/useGetManageStyl
 import useToast from "../../../hooks/useToast";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
 import { useEffect } from "react";
+import useGetAdminBusinessDetails from "../../../hooks/settings/useGetAdmnBusinessInfo";
 
 const ProductPage = () => {
-  const { data: businessDetails } = useGetBusinessDetails();
+  const { data: businessDetails } = useGetAdminBusinessDetails();
   const location = useLocation();
   useEffect(() => {
     console.log(businessDetails, "details");
@@ -69,16 +70,24 @@ const ProductPage = () => {
     ...queryParams,
   });
   console.log(businessDetails);
+
+  // Move currProd declaration above its usage
+  const [currProd, setCurrProd] = useState("all");
+
   // Add hook for managing fabric products (admin only) - for "My Products"
   const {
     data: getAllAdminManageFabricData,
     isPending: adminManageFabricIsPending,
     refetch: adManageFabricRefetch,
-  } = useGetAdminManageFabricProduct({
-    id: businessDetails?.data?.id,
+  } = useGetAdminFabricProduct({
+    type: productType,
+    // CHANGE: If in "my fabrics" tab, use business_id param instead of id
+    ...(isAdminRoute && !isAdminStyleRoute && currProd === "my"
+      ? { business_id: businessDetails?.data?.id }
+      : {}),
     ...queryParams,
   });
-
+  console.log("Testing out the admin products", getAllAdminManageFabricData);
   // Add hook for managing style products (admin only) - for "My Products"
   const {
     data: getAllAdminManageStyleData,
@@ -102,8 +111,6 @@ const ProductPage = () => {
   }, [debouncedSearchTerm]);
 
   const [filter, setFilter] = useState("all");
-
-  const [currProd, setCurrProd] = useState("all");
 
   const [openDropdown, setOpenDropdown] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ x: 0, y: 0 });

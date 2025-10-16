@@ -358,7 +358,11 @@ const PaymentTransactionTable = () => {
       filteredData = filteredData.filter((withdrawal) => {
         // Check relevant fields for search
         return (
-          `WTH${withdrawal?.id}`.toLowerCase().includes(lower) ||
+          withdrawal?.id
+            .replace(/-/g, "")
+            .slice(0, 12)
+            .toLowerCase()
+            .includes(lower) ||
           (withdrawal?.user?.name &&
             withdrawal.user.name.toLowerCase().includes(lower)) ||
           (withdrawal?.user?.email &&
@@ -380,7 +384,10 @@ const PaymentTransactionTable = () => {
     return filteredData.map((withdrawal) => {
       return {
         ...withdrawal,
-        transactionID: `WTH${withdrawal?.id}`,
+        transactionID: withdrawal?.id
+          ?.replace(/-/g, "")
+          ?.slice(0, 12)
+          .toUpperCase(),
         userName: withdrawal?.user?.name || withdrawal?.user?.email,
         amount: withdrawal?.amount?.toLocaleString() || withdrawal?.amount,
         rawAmount: withdrawal?.amount,
@@ -405,9 +412,15 @@ const PaymentTransactionTable = () => {
     let arr =
       getAllTransactionData?.data && Array.isArray(getAllTransactionData.data)
         ? getAllTransactionData.data.map((details) => {
+            // Fix: always show only first 12 chars of transaction_id/id, no hyphens
+            let txIdRaw = details?.transaction_id ?? details?.id ?? "";
+            let txIdFormatted =
+              typeof txIdRaw === "string"
+                ? txIdRaw.replace(/-/g, "").slice(0, 12).toUpperCase()
+                : "";
             return {
               ...details,
-              transactionID: `${details?.transaction_id || details?.id || ""}`,
+              transactionID: txIdFormatted,
               userName: `${details?.user?.email ?? "ss"}`,
               amount: details?.amount,
               rawAmount: details?.amount,
@@ -492,7 +505,10 @@ const PaymentTransactionTable = () => {
   const csv_data =
     activeTab === "Payouts"
       ? withdrawalData?.data?.map((withdrawal) => ({
-          TransactionID: `WTH${withdrawal.id}`,
+          TransactionID: withdrawal.id
+            .replace(/-/g, "")
+            .slice(0, 12)
+            .toUpperCase(),
           UserName: withdrawal.user?.name || withdrawal.user?.email,
           UserType:
             withdrawal.user?.role?.name || withdrawal.user?.role || "Unknown",
@@ -515,8 +531,15 @@ const PaymentTransactionTable = () => {
           const profile = user.profile || {};
           const items = transaction.purchase?.items || [];
 
+          // Fix: always show only first 12 chars of transaction_id/id, no hyphens
+          let txIdRaw = transaction.transaction_id ?? transaction.id ?? "";
+          let txIdFormatted =
+            typeof txIdRaw === "string"
+              ? txIdRaw.replace(/-/g, "").slice(0, 12).toUpperCase()
+              : "";
+
           return items.map((item) => ({
-            TransactionID: transaction.transaction_id || transaction.id || "",
+            TransactionID: txIdFormatted,
             PaymentStatus: transaction.payment_status,
             PaymentMethod: transaction.payment_method,
             Amount: transaction.amount,

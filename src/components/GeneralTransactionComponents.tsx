@@ -77,11 +77,13 @@ const default_filters: Filters = {
 export function GeneralTransactionComponent({ hideWallet = false }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<Filters>(default_filters);
-  const [transactions, setTransactions] = useState<Withdraw[]>([]);
+  const [activeTab, setActiveTab] = useState<"transactions" | "withdrawals">(
+    "transactions",
+  );
 
-  // Fetch both payments and withdraws regardless of user type
+  // Fetch payments and withdraws
   const paymentsQuery = useQuery<ApiResponse>({
-    queryKey: ["payments", filters],
+    queryKey: ["payments", filters, searchTerm],
     queryFn: async () => {
       const response = await CaryBinApi.get("/payment/my-payments", {
         params: {
@@ -94,7 +96,7 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
   });
 
   const withdrawsQuery = useQuery<ApiResponse>({
-    queryKey: ["withdraws", filters],
+    queryKey: ["withdraws", filters, searchTerm],
     queryFn: async () => {
       const response = await CaryBinApi.get("/withdraw/fetch", {
         params: {
@@ -106,45 +108,11 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
     },
   });
 
-  // Combine transactions from both endpoints
-  const combinedTransactions = useMemo(() => {
-    const payments = paymentsQuery.data?.data || [];
-    const withdraws = withdrawsQuery.data?.data || [];
-    // Add a type field to distinguish
-    const paymentsWithType = payments.map((item) => ({
-      ...item,
-      _transactionType: "Payment",
-    }));
-    const withdrawsWithType = withdraws.map((item) => ({
-      ...item,
-      _transactionType: "Withdraw",
-    }));
-    // Combine and sort by created_at descending
-    const all = [...paymentsWithType, ...withdrawsWithType].sort(
-      (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-    );
-    return all;
-  }, [paymentsQuery.data?.data, withdrawsQuery.data?.data]);
+  // Memoized filtered payments
+  const filteredPayments = useMemo(() => {
+    let data = paymentsQuery.data?.data || [];
 
-  // Set transactions state for legacy compatibility (if needed)
-  // setTransactions is not really needed anymore, but kept for compatibility
-  // setTransactions(combinedTransactions);
-
-  const { queryParams, updateQueryParams } = useQueryParams({
-    ...filters,
-    "pagination[limit]": 10,
-    "pagination[page]": 1,
-  });
-
-  const modalRef = useRef<HTMLInputElement>(null);
-  const nav = useNavigate();
-
-  // Process and filter the transaction data
-  const TransactionData = useMemo(() => {
-    let data = combinedTransactions;
-
-    // Apply client-side filtering if needed
+    // Status filter
     if (filters.status) {
       data = data.filter(
         (item) =>
@@ -153,7 +121,7 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
       );
     }
 
-    // Apply search filtering
+    // Search filter
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase();
       data = data.filter(
@@ -166,15 +134,14 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
       );
     }
 
-    // Apply date filtering
+    // Date filters
     if (filters.startDate) {
       const startDate = new Date(filters.startDate);
       data = data.filter((item) => new Date(item.created_at) >= startDate);
     }
-
     if (filters.endDate) {
       const endDate = new Date(filters.endDate);
-      endDate.setHours(23, 59, 59, 999); // Include the entire end date
+      endDate.setHours(23, 59, 59, 999);
       data = data.filter((item) => new Date(item.created_at) <= endDate);
     }
 
@@ -189,11 +156,65 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
             "DD MMM YYYY - hh:mm a",
           )
         : "",
-      transactionType: details._transactionType || "Payment",
+      _transactionType: "payment", // Add transaction type for routing
       status: details.payment_status || details?.status || "N/A",
     }));
-  }, [combinedTransactions, filters, searchTerm]);
+  }, [paymentsQuery.data?.data, filters, searchTerm]);
 
+  // Memoized filtered withdrawals
+  const filteredWithdrawals = useMemo(() => {
+    let data = withdrawsQuery.data?.data || [];
+
+    // Status filter
+    if (filters.status) {
+      data = data.filter(
+        (item) =>
+          (item.payment_status && item.payment_status === filters.status) ||
+          (item.status && item.status === filters.status),
+      );
+    }
+
+    // Search filter
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
+      data = data.filter(
+        (item) =>
+          item.user?.email?.toLowerCase().includes(searchLower) ||
+          item.user?.name?.toLowerCase().includes(searchLower) ||
+          item.amount?.toString().includes(searchLower) ||
+          item.currency?.toLowerCase().includes(searchLower) ||
+          item.payment_status?.toLowerCase().includes(searchLower),
+      );
+    }
+
+    // Date filters
+    if (filters.startDate) {
+      const startDate = new Date(filters.startDate);
+      data = data.filter((item) => new Date(item.created_at) >= startDate);
+    }
+    if (filters.endDate) {
+      const endDate = new Date(filters.endDate);
+      endDate.setHours(23, 59, 59, 999);
+      data = data.filter((item) => new Date(item.created_at) <= endDate);
+    }
+
+    return data.map((details) => ({
+      ...details,
+      transactionID: details.id,
+      userName: details.user?.email ?? "",
+      amount: details.amount,
+      date: details.created_at
+        ? formatDateStr(
+            details.created_at.split(".").shift(),
+            "DD MMM YYYY - hh:mm a",
+          )
+        : "",
+      _transactionType: "withdrawal", // Add transaction type for routing
+      status: details.payment_status || details?.status || "N/A",
+    }));
+  }, [withdrawsQuery.data?.data, filters, searchTerm]);
+
+  // Columns for table
   interface COLUMN_TYPE {
     label: string;
     key: string;
@@ -230,7 +251,11 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
         key: "transactionType",
         render: (_, item) => (
           <span className="capitalize">
-            {item._transactionType || "Payment"}
+            {item._transactionType === "withdrawal"
+              ? "Withdraw"
+              : item._transactionType === "payment"
+                ? "Payment"
+                : "Payment"}
           </span>
         ),
       },
@@ -263,13 +288,18 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
     [],
   );
 
+  const nav = useNavigate();
+
+  // Pass transaction type in route so details page can use it to determine endpoint
   const actions = [
     {
       key: "view Detail",
       label: "View Detail",
-      action: (item: Withdraw) => {
+      action: (item: Withdraw & { _transactionType?: string }) => {
         let url = window.location.pathname;
-        const nav_url = url + "/" + item.id;
+        // Pass transaction type as a query param
+        const nav_url =
+          url + "/" + item.id + "?type=" + (item._transactionType || "payment");
         nav(nav_url);
       },
     },
@@ -284,7 +314,6 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
   // Handle search with debouncing effect
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-    // Reset to first page when searching
     setFilters((prev) => ({ ...prev, page: 1 }));
   };
 
@@ -294,15 +323,22 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
     setSearchTerm("");
   };
 
-  // For pagination, use the larger of the two counts
-  const totalCount = Math.max(
-    paymentsQuery.data?.count || 0,
-    withdrawsQuery.data?.count || 0,
-  );
+  // For pagination, use the count for the active tab
+  const totalCount =
+    activeTab === "transactions"
+      ? paymentsQuery.data?.count || 0
+      : withdrawsQuery.data?.count || 0;
   const totalPages = Math.ceil(totalCount / filters.limit);
   const next_page_disabled = filters.page >= totalPages;
 
-  const isFetching = paymentsQuery.isFetching || withdrawsQuery.isFetching;
+  const isFetching =
+    activeTab === "transactions"
+      ? paymentsQuery.isFetching
+      : withdrawsQuery.isFetching;
+
+  // Data for current tab
+  const currentData =
+    activeTab === "transactions" ? filteredPayments : filteredWithdrawals;
 
   return (
     <>
@@ -343,6 +379,30 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
           </div>
         </div>
       )}
+
+      {/* Tabs */}
+      <div className="mb-4">
+        <div className="flex space-x-2">
+          <button
+            className={`btn btn-sm ${activeTab === "transactions" ? "btn-primary" : "btn-outline"}`}
+            onClick={() => {
+              setActiveTab("transactions");
+              setFilters((prev) => ({ ...prev, page: 1 }));
+            }}
+          >
+            Transactions
+          </button>
+          <button
+            className={`btn btn-sm ${activeTab === "withdrawals" ? "btn-primary" : "btn-outline"}`}
+            onClick={() => {
+              setActiveTab("withdrawals");
+              setFilters((prev) => ({ ...prev, page: 1 }));
+            }}
+          >
+            Withdrawals
+          </button>
+        </div>
+      </div>
 
       {/* Filters */}
       <div className="bg-white p-4 rounded-lg shadow mb-4" data-theme="nord">
@@ -482,12 +542,13 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
             )}
             {filters.startDate && (
               <span className="badge badge-accent badge-sm">
-                From: {filters.startDate}
+                From:{" "}
+                {typeof filters.startDate === "string" ? filters.startDate : ""}
               </span>
             )}
             {filters.endDate && (
               <span className="badge badge-accent badge-sm">
-                To: {filters.endDate}
+                To: {typeof filters.endDate === "string" ? filters.endDate : ""}
               </span>
             )}
           </div>
@@ -497,7 +558,7 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
       {/* Results summary */}
       {/*<div className="bg-white p-2 mb-4 rounded-md shadow">
         <p className="text-sm text-gray-600">
-          Showing {TransactionData.length} of {totalCount || 0} transactions
+          Showing {currentData.length} of {totalCount || 0} transactions
           {(searchTerm ||
             filters.status ||
             filters.startDate ||
@@ -509,14 +570,20 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
       {isFetching ? (
         <div data-theme="nord" className="px-4 py-12 bg-white shadow">
           <div className="flex flex-col items-center justify-center h-full">
-            <p className="mb-4">Loading Transactions...</p>
+            <p className="mb-4">
+              Loading{" "}
+              {activeTab === "transactions" ? "Transactions" : "Withdrawals"}...
+            </p>
             <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-purple-500"></div>
           </div>
         </div>
-      ) : TransactionData.length === 0 ? (
+      ) : currentData.length === 0 ? (
         <div data-theme="nord" className="px-4 py-12 bg-white shadow">
           <div className="flex flex-col items-center justify-center h-full">
-            <p className="text-gray-500 text-lg mb-2">No transactions found</p>
+            <p className="text-gray-500 text-lg mb-2">
+              No {activeTab === "transactions" ? "transactions" : "withdrawals"}{" "}
+              found
+            </p>
             {(searchTerm ||
               filters.status ||
               filters.startDate ||
@@ -537,7 +604,7 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
         </div>
       ) : (
         <CustomTable
-          data={TransactionData}
+          data={currentData}
           columns={columns}
           actions={tableActions}
         />
@@ -595,7 +662,7 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
               }));
             }}
             disabled={
-              next_page_disabled || isFetching || TransactionData.length === 0
+              next_page_disabled || isFetching || currentData.length === 0
             }
           >
             »

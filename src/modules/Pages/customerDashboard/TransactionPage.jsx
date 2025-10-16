@@ -51,9 +51,10 @@ export default function TransactionPage() {
         ? getMyProductData?.data.map((details) => {
             return {
               ...details,
-              transactionId: `${details?.transaction_id}`,
+              orderId: `${details?.id?.replace(/-/g, "").slice(0, 12).toUpperCase()}`,
               amount: `${formatNumberWithCommas(details?.amount)}`,
               status: `${details?.payment_status}`,
+              type: `${details?.purchase_type}`,
               dateAdded: `${
                 details?.created_at
                   ? formatDateStr(
@@ -70,9 +71,9 @@ export default function TransactionPage() {
 
   const columns = useMemo(
     () => [
-      { key: "transactionId", label: "Transaction ID" },
+      { key: "orderId", label: "Order ID" },
 
-      { key: "category", label: "Category" },
+      { key: "type", label: "Type" },
       { key: "amount", label: "Amount" },
       {
         label: "Date",
@@ -124,7 +125,7 @@ export default function TransactionPage() {
   const exportToPDF = () => {
     const doc = new jsPDF();
     autoTable(doc, {
-      head: [["Transaction ID", "Category", "Amount", "Status", "Date"]],
+      head: [["Transaction ID", "Type", "Amount", "Status", "Date"]],
       body: transactionsData?.map((row) => [
         row.transactionId,
         row.amount,

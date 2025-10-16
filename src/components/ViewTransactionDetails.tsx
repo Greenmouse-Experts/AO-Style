@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import CaryBinApi from "../services/CarybinBaseUrl";
 import {
@@ -53,13 +53,24 @@ const getVerificationStyle = (isVerified: boolean) => {
 
 export default function ViewTransactionDetail() {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
+
+  // Parse query params from location.search
+  const queryParams = new URLSearchParams(location.search);
+  const type = queryParams.get("type") || "payment";
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
+  // Use the correct endpoint based on type
   const { data, isLoading, error } = useQuery<PaymentResponse>({
-    queryKey: ["payment", id],
+    queryKey: [type === "withdrawal" ? "withdraw" : "payment", id],
     queryFn: async () => {
-      const resp = await CaryBinApi.get("/payment/my-payments/" + id);
-      return resp.data;
+      if (type === "withdrawal") {
+        const resp = await CaryBinApi.get("/withdraw/details/" + id);
+        return resp.data;
+      } else {
+        const resp = await CaryBinApi.get("/payment/my-payments/" + id);
+        return resp.data;
+      }
     },
   });
 

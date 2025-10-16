@@ -1,17 +1,20 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import TransactionDetailsModal from "./modals/TransactionDetailsModal";
 
 const UniversalTransactionDetails = ({
   mode = "page", // "page" or "modal"
   isOpen,
   onClose,
-  transactionId: propTransactionId
+  transactionId: propTransactionId,
 }) => {
   const { id } = useParams();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const type = queryParams.get("type") || "payment";
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
-
+  console.log("This is the type", type);
   // Use prop transactionId or route param id
   const transactionId = propTransactionId || id;
 
@@ -57,6 +60,7 @@ const UniversalTransactionDetails = ({
       isOpen={showModal}
       onClose={handleClose}
       transactionId={transactionId}
+      type={type}
     />
   );
 };

@@ -19,7 +19,7 @@ const OrdersTable = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [activeReviewModal, setActiveReviewModal] = useState(null);
   const nav = useNavigate();
-  const { isPending: ordersLoading, data: ordersResponse } = useGetOrder();
+  // const { isPending: ordersLoading, data: ordersResponse } = useGetOrder(); // Not needed for search
   const columns = [
     {
       label: "Customer",
@@ -119,49 +119,52 @@ const OrdersTable = () => {
       ),
     },
   ];
+
+  // Use React Query to fetch orders, passing `q` as the search term
   const order_query = useQuery({
-    queryKey: ["order_data"],
+    queryKey: ["order_data", { q: searchTerm }],
     queryFn: async () => {
-      let resp = await CaryBinApi.get("/orders/fetch");
+      // Always pass q, even if empty
+      let resp = await CaryBinApi.get("/orders/fetch", {
+        params: { q: searchTerm },
+      });
+      console.log("This is the data gotten from orders fetch", resp);
       return resp.data;
     },
+    keepPreviousData: true,
   });
+
+  // Refetch orders when searchTerm changes
+  useEffect(() => {
+    console.log("This is the search term", searchTerm);
+    order_query.refetch();
+  }, [searchTerm]);
+
   useEffect(() => {
     if (order_query.data) {
       console.log("orders_now", order_query.data);
     }
-  }, [order_query.isFetching]);
+  }, [order_query.data]);
 
   const data = order_query?.data?.data || [];
 
-  const toggleDropdown = (rowId) => {
-    setOpenDropdown(openDropdown === rowId ? null : rowId);
-  };
+  // Remove local filtering, since API search is used
+  // const filteredData = data.filter((order) => {
+  //   if (!searchTerm) return true;
+  //   const searchLower = searchTerm.toLowerCase();
+  //   return (
+  //     order.id?.toLowerCase().includes(searchLower) ||
+  //     order.payment?.transaction_id?.toLowerCase().includes(searchLower) ||
+  //     order.payment?.user?.email?.toLowerCase().includes(searchLower) ||
+  //     order.payment?.purchase?.items?.[0]?.name
+  //       ?.toLowerCase()
+  //       .includes(searchLower) ||
+  //     order.status?.toLowerCase().includes(searchLower)
+  //   );
+  // });
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenDropdown(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const filteredData = data.filter((order) => {
-    if (!searchTerm) return true;
-
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      order.id?.toLowerCase().includes(searchLower) ||
-      order.payment?.transaction_id?.toLowerCase().includes(searchLower) ||
-      order.payment?.user?.email?.toLowerCase().includes(searchLower) ||
-      order.payment?.purchase?.items?.[0]?.name
-        ?.toLowerCase()
-        .includes(searchLower) ||
-      order.status?.toLowerCase().includes(searchLower)
-    );
-  });
+  // Use data directly from API
+  const filteredData = data;
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -187,13 +190,16 @@ const OrdersTable = () => {
     setCurrentPage(1);
   };
 
-  if (order_query.isFetching) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Loader />
-      </div>
-    );
-  }
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenDropdown(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const actions = [
     {
       key: "view-details",

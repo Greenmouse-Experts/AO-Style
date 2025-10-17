@@ -432,6 +432,18 @@ export default function ViewOrderLogistics() {
   const isInTransit = transitStatuses.includes(currentStatus || "");
   const isDelivered = currentStatus === "DELIVERED";
 
+  // Assignment logic (REWRITE: fix isAssigned and button visibility)
+  // Determine if the current user is assigned to the relevant leg of the delivery
+  // First leg: first_leg_logistics_agent_id
+  // Second leg: logistics_agent_id
+  const isFirstLegAssignedToMe =
+    order_data?.first_leg_logistics_agent_id === userProfile?.id;
+  const isSecondLegAssignedToMe =
+    order_data?.logistics_agent_id === userProfile?.id;
+
+  // For status update actions, only show if assigned to me for the relevant leg
+  // For accepting, only show if not assigned and assignment is available
+
   // Determine if the current user can accept the "second leg" of delivery.
   // This is true only when:
   // 1. There is already a first-leg logistics agent (meaning vendor->tailor pickup happened),
@@ -444,21 +456,35 @@ export default function ViewOrderLogistics() {
   const isNotFirstLegAgent =
     userProfile?.id !== order_data?.first_leg_logistics_agent_id;
 
+  // Only allow second leg accept if not assigned to first leg
   const canAcceptSecondLeg =
-    hasFirstLegAgent && hasNoSecondLegAgent && isOutForDelivery;
-  // Assignment logic
+    hasFirstLegAgent &&
+    hasNoSecondLegAgent &&
+    isOutForDelivery &&
+    isNotFirstLegAgent;
 
-  // "isAssigned" should reflect whether the current user is assigned to the relevant leg of the delivery.
-  // - If canAcceptSecondLeg is true, assignment is for the second leg (logistics_agent_id).
-  // - If canAcceptSecondLeg is false, assignment is for the first leg (first_leg_logistics_agent_id).
-  // - If neither, fallback to either leg (covers all cases).
-  const isAssigned =
-    (canAcceptSecondLeg &&
-      order_data?.logistics_agent_id === userProfile?.id) ||
-    (!canAcceptSecondLeg &&
-      order_data?.first_leg_logistics_agent_id === userProfile?.id) ||
-    order_data?.logistics_agent_id === userProfile?.id ||
-    order_data?.first_leg_logistics_agent_id === userProfile?.id;
+  // Only allow first leg accept if not assigned to anyone
+  const canAcceptFirstLeg =
+    !order_data?.first_leg_logistics_agent_id &&
+    !order_data?.logistics_agent_id &&
+    !canAcceptSecondLeg;
+
+  // Only show status update actions if assigned to me for the relevant leg
+  // For first leg statuses, only first leg agent can update
+  // For second leg statuses, only second leg agent can update
+  const canShowStatusUpdate =
+    (isFirstLeg &&
+      isFirstLegAssignedToMe &&
+      ["DISPATCHED_TO_AGENT"].includes(currentStatus || "")) ||
+    (isSecondLeg &&
+      isSecondLegAssignedToMe &&
+      ["OUT_FOR_DELIVERY"].includes(currentStatus || "")) ||
+    (isInTransit && isSecondLegAssignedToMe) ||
+    (isDelivered && isSecondLegAssignedToMe);
+
+  // For code modal, only show if assigned to me for the relevant leg
+  // For "DELIVERED_TO_TAILOR", only first leg agent
+  // For "DELIVERED", only second leg agent
 
   // Debug logging
   console.log("🔍 Order data debug:", {
@@ -467,8 +493,11 @@ export default function ViewOrderLogistics() {
     logistics_agent_id: order_data?.logistics_agent_id,
     first_leg_logistics_agent_id: order_data?.first_leg_logistics_agent_id,
     userProfile_id: userProfile?.id,
-    isAssigned,
+    isFirstLegAssignedToMe,
+    isSecondLegAssignedToMe,
+    canAcceptFirstLeg,
     canAcceptSecondLeg,
+    canShowStatusUpdate,
     user_profile: order_data?.user?.profile,
     order_items: order_data?.order_items,
     payment: order_data?.payment,
@@ -622,9 +651,7 @@ export default function ViewOrderLogistics() {
                 </h3>
 
                 {/* First leg assignment */}
-                {!order_data?.logistics_agent_id &&
-                !order_data?.first_leg_logistics_agent_id &&
-                !canAcceptSecondLeg ? (
+                {canAcceptFirstLeg && (
                   <div className="space-y-4">
                     <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
                       <p className="text-amber-800 text-sm font-medium">
@@ -655,7 +682,7 @@ export default function ViewOrderLogistics() {
                       )}
                     </button>
                   </div>
-                ) : null}
+                )}
 
                 {/* Second leg assignment */}
                 {canAcceptSecondLeg && (
@@ -682,8 +709,8 @@ export default function ViewOrderLogistics() {
                   </div>
                 )}
 
-                {/* Already assigned to me */}
-                {isAssigned && !canAcceptSecondLeg && (
+                {/* Already assigned to me - show status update actions only if assigned to me for the relevant leg */}
+                {canShowStatusUpdate && (
                   <div className="space-y-4">
                     <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                       <p className="text-green-800 text-sm font-medium">
@@ -748,7 +775,9 @@ export default function ViewOrderLogistics() {
                 )}
 
                 {/* Assigned to someone else */}
-                {!isAssigned &&
+                {!isFirstLegAssignedToMe &&
+                  !isSecondLegAssignedToMe &&
+                  !canAcceptFirstLeg &&
                   !canAcceptSecondLeg &&
                   (order_data?.logistics_agent_id ||
                     order_data?.first_leg_logistics_agent_id) && (
@@ -814,7 +843,7 @@ export default function ViewOrderLogistics() {
                           </div>
                         </div>
                         {/* Second Leg: Tailor → Customer */}
-                        {canAcceptSecondLeg &&
+                        {hasFirstLegAgent &&
                           (currentStatus === "OUT_FOR_DELIVERY" ||
                           currentStatus === "SHIPPED" ||
                           currentStatus === "IN_TRANSIT" ||
@@ -930,44 +959,6 @@ export default function ViewOrderLogistics() {
 
             {/* Right Column - Order Details */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Customer Information */}
-              {/*<div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-                <h3 className="text-lg font-semibold mb-4 flex items-center">
-                  <User className="w-5 h-5 mr-2 text-purple-600" />
-                  Customer Information
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-3">
-                      <Mail className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm text-gray-600">
-                        {order_data?.user.email}
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <Phone className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm text-gray-600">
-                        {order_data?.user.phone}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-2">
-                      Delivery Address
-                    </h4>
-                    <div className="text-sm text-gray-600 space-y-1">
-                      <p>{deliveryAddress}</p>
-                      <p>
-                        {deliveryCity}, {deliveryState}
-                      </p>
-                      <p>{deliveryCountry}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>*/}
-
               {/* Order Items */}
               <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
                 <h3 className="text-lg font-semibold mb-4 flex items-center">

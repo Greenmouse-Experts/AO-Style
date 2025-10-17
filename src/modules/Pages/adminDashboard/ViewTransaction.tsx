@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
 import CustomBackbtn from "../../../components/CustomBackBtn";
 
@@ -75,17 +75,62 @@ interface TransactionResponse {
   count: number;
 }
 
+// Withdrawal interface based on your sample data
+interface WithdrawalData {
+  id: string;
+  user_id: string;
+  amount: string;
+  created_at: string;
+  currency: string;
+  deleted_at: string | null;
+  notes: string | null;
+  processed_at: string | null;
+  processed_by: string | null;
+  status: string;
+  updated_at: string;
+  user_id_ref?: string;
+}
+
 export default function ViewTransaction() {
   const { id } = useParams();
-  const query = useQuery<TransactionResponse>({
-    queryKey: ["transactions_details", id],
+  const location = useLocation();
+
+  // Get query params from URL
+  const searchParams = new URLSearchParams(location.search);
+  const type = searchParams.get("type");
+
+  // Determine endpoint and queryKey based on type
+  let endpoint: string;
+  let queryKey: (string | undefined)[];
+
+  if (type === "withdrawal") {
+    // For withdrawal, endpoint is /withdraw/:id and no query param
+    endpoint = `/withdraw/${id}`;
+    queryKey = ["withdraw_details", id];
+  } else {
+    // For payment, endpoint is /payment/fetch-all?q=:id
+    endpoint = "/payment/fetch-all";
+    queryKey = ["transactions_details", id];
+  }
+
+  const query = useQuery<any>({
+    queryKey,
     queryFn: async () => {
-      let resp = await CaryBinApi.get("/payment/fetch-all", {
-        params: {
-          q: id,
-        },
-      });
-      return resp.data;
+      if (type === "withdrawal") {
+        // GET /withdraw/:id
+        let resp = await CaryBinApi.get(endpoint);
+        console.log("Withdrawal data", resp.data);
+        // Withdrawal endpoint returns { statusCode, data: { ... } }
+        return resp.data;
+      } else {
+        // GET /payment/fetch-all?q=:id
+        let resp = await CaryBinApi.get(endpoint, {
+          params: {
+            q: id,
+          },
+        });
+        return resp.data;
+      }
     },
   });
 
@@ -121,6 +166,183 @@ export default function ViewTransaction() {
     );
   }
 
+  // Withdrawal UI
+  if (type === "withdrawal") {
+    const withdrawal: WithdrawalData | undefined = query.data?.data;
+    if (!withdrawal) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex justify-center items-center">
+          <div className="bg-white rounded-lg shadow p-6 max-w-md mx-4 text-center">
+            <div className="text-gray-800 font-medium">No withdrawal found</div>
+            <div className="text-gray-600 text-sm mt-1">ID: {id}</div>
+          </div>
+        </div>
+      );
+    }
+
+    // Parse notes if present and JSON
+    let notesObj: any = null;
+    if (withdrawal.notes) {
+      try {
+        notesObj = JSON.parse(withdrawal.notes);
+      } catch (e) {
+        notesObj = withdrawal.notes;
+      }
+    }
+
+    return (
+      <>
+        <CustomBackbtn />
+        <div className="min-h-screen bg-gray-50 py-6 px-4">
+          <div className="max-w-2xl mx-auto">
+            <h1 className="text-2xl font-bold text-gray-900 mb-6">
+              Withdrawal Details
+            </h1>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              {/* Header */}
+              <div className="bg-purple-700 text-white px-6 py-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <h2 className="text-xl font-semibold">
+                      {withdrawal.id.toUpperCase()}
+                    </h2>
+                    <p className="text-gray-300 text-sm">
+                      {new Date(withdrawal.created_at).toLocaleDateString()} at{" "}
+                      {new Date(withdrawal.created_at).toLocaleTimeString()}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wider ${
+                        withdrawal.status === "APPROVED"
+                          ? "bg-green-100 text-green-800"
+                          : withdrawal.status === "PENDING"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {withdrawal.status}
+                    </span>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold">
+                        {withdrawal.currency}{" "}
+                        {parseFloat(withdrawal.amount).toLocaleString(
+                          undefined,
+                          {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          },
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-8">
+                {/* Withdrawal Info */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">
+                    Withdrawal Information
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <dt className="text-sm text-gray-600">Withdrawal ID</dt>
+                      <dd className="font-mono text-sm px-2 py-1 rounded mt-1">
+                        {withdrawal.id
+                          .replace(/-/g, "")
+                          .slice(0, 12)
+                          .toUpperCase()}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-600">User ID</dt>
+                      <dd className="font-mono text-sm bg-gray-100 px-2 py-1 rounded mt-1">
+                        {withdrawal.user_id
+                          .replace(/-/g, "")
+                          .slice(0, 12)
+                          .toUpperCase()}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-600">Amount</dt>
+                      <dd className="font-medium mt-1">
+                        {withdrawal.currency}{" "}
+                        {parseFloat(withdrawal.amount).toLocaleString(
+                          undefined,
+                          {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          },
+                        )}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-600">Status</dt>
+                      <dd className="font-medium mt-1 capitalize">
+                        {withdrawal.status}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-600">Created At</dt>
+                      <dd className="font-medium mt-1">
+                        {new Date(withdrawal.created_at).toLocaleString()}
+                      </dd>
+                    </div>
+                    {withdrawal.processed_at && (
+                      <div>
+                        <dt className="text-sm text-gray-600">Processed At</dt>
+                        <dd className="font-medium mt-1">
+                          {new Date(withdrawal.processed_at).toLocaleString()}
+                        </dd>
+                      </div>
+                    )}
+                    {withdrawal.processed_by && (
+                      <div>
+                        <dt className="text-sm text-gray-600">Processed By</dt>
+                        <dd className="font-mono text-sm bg-gray-100 px-2 py-1 rounded mt-1">
+                          {withdrawal.processed_by
+                            .replace(/-/g, "")
+                            .slice(0, 12)
+                            .toUpperCase()}
+                        </dd>
+                      </div>
+                    )}
+                    <div>
+                      <dt className="text-sm text-gray-600">Last Updated</dt>
+                      <dd className="font-medium mt-1">
+                        {new Date(withdrawal.updated_at).toLocaleString()}
+                      </dd>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notes */}
+                {withdrawal.notes && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h3 className="font-medium text-blue-800 mb-2">
+                      Withdrawal Notes
+                    </h3>
+                    <div className="text-sm text-blue-700 break-all">
+                      {typeof notesObj === "object" && notesObj !== null ? (
+                        <pre className="whitespace-pre-wrap break-all text-xs bg-blue-100 rounded p-2">
+                          {JSON.stringify(notesObj, null, 2)}
+                        </pre>
+                      ) : (
+                        <span>{withdrawal.notes}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Normal transaction UI
   const transactions = query.data?.data;
   console.log("this is the transaction query", query.data);
   if (!transactions || transactions.length === 0) {

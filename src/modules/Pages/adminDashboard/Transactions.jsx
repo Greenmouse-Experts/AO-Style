@@ -296,9 +296,12 @@ const PaymentTransactionTable = () => {
             <button
               onClick={() => {
                 // If in Payouts tab, go to withdrawal details, else transaction details
-                if (activeTab === "Payouts") {
-                  // Go to withdrawal details page, pass withdrawal id
-                  nav("/admin/transactions/" + item.id, {
+                if (
+                  activeTab === "Payouts" ||
+                  item.transactionType?.toLowerCase() === "withdrawal"
+                ) {
+                  // Go to withdrawal details page, pass withdrawal id and type=withdrawal
+                  nav("/admin/transactions/" + item.id + "?type=withdrawal", {
                     viewTransition: true,
                   });
                 } else {
@@ -601,8 +604,11 @@ const PaymentTransactionTable = () => {
     {
       action: (item) => {
         // If in Payouts tab, go to withdrawal details, else transaction details
-        if (activeTab === "Payouts") {
-          return nav("/admin/transactions/" + item.id, {
+        if (
+          activeTab === "Payouts" ||
+          item.transactionType?.toLowerCase() === "withdrawal"
+        ) {
+          return nav("/admin/transactions/" + item.id + "?type=withdrawal", {
             viewTransition: true,
           });
         } else {

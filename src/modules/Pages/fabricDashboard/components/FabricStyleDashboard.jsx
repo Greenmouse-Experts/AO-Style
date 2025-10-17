@@ -114,7 +114,7 @@ export default function FabricStyleDashboard({ data: passedData = null }) {
           >
             Style
           </button>*/}
-          <button
+          {/* <button
             onClick={() => setChartType("both")}
             className={`px-4 sm:px-6 py-2 rounded-lg font-semibold text-sm sm:text-base transition-all cursor-pointer ${
               chartType === "both"
@@ -123,7 +123,7 @@ export default function FabricStyleDashboard({ data: passedData = null }) {
             }`}
           >
             Both
-          </button>
+          </button>*/}
         </div>
 
         {/* Chart */}

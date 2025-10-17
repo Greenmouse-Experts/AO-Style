@@ -26,6 +26,21 @@ export default function TransactionPage() {
       return resp.data;
     },
   });
+  const currentYear = new Date().getFullYear();
+  const {
+    data: graphData,
+    isLoading: graphDataLoading,
+    isFetching: graphDataFetching,
+  } = useQuery({
+    queryKey: ["logistics-graph"],
+    queryFn: async () => {
+      let resp = await CaryBinApi.get(
+        `/vendor-analytics/logistics-monthly-revenue?year=${currentYear}`,
+      );
+      console.log("This is the grah endpoint", resp.data);
+      return resp.data;
+    },
+  });
 
   // ⭐ Step 2: Check if user is an individual logistics agent
   const isIndividualAgent = useMemo(() => {
@@ -125,7 +140,7 @@ export default function TransactionPage() {
     <>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 mb-6">
         <div className="lg:col-span-2">
-          <BarChartComponent />
+          <BarChartComponent data={graphData?.data} />
         </div>
         <div className="lg:col-span-1">
           <WalletPage

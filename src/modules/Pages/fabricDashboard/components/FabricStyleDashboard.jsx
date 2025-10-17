@@ -12,26 +12,26 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-export default function DashboardGraph({ data: passedData = null }) {
-  const [chartType, setChartType] = useState("revenue");
+export default function FabricStyleDashboard({ data: passedData = null }) {
+  const [chartType, setChartType] = useState("fabric");
 
   // Use passed data or fallback to sample data
   const data =
     passedData && Array.isArray(passedData) && passedData.length > 0
       ? passedData
       : [
-          { month: 1, orders: 45, revenue: 2400 },
-          { month: 2, orders: 52, revenue: 2810 },
-          { month: 3, orders: 48, revenue: 2290 },
-          { month: 4, orders: 61, revenue: 2000 },
-          { month: 5, orders: 55, revenue: 2181 },
-          { month: 6, orders: 67, revenue: 2500 },
-          { month: 7, orders: 72, revenue: 2100 },
-          { month: 8, orders: 68, revenue: 2200 },
-          { month: 9, orders: 73, revenue: 2290 },
-          { month: 10, orders: 80, revenue: 2000 },
-          { month: 11, orders: 85, revenue: 2181 },
-          { month: 12, orders: 92, revenue: 2500 },
+          { month: 1, fabric: 150, style: 200 },
+          { month: 2, fabric: 180, style: 220 },
+          { month: 3, fabric: 165, style: 210 },
+          { month: 4, fabric: 195, style: 240 },
+          { month: 5, fabric: 210, style: 250 },
+          { month: 6, fabric: 225, style: 270 },
+          { month: 7, fabric: 240, style: 290 },
+          { month: 8, fabric: 230, style: 280 },
+          { month: 9, fabric: 250, style: 300 },
+          { month: 10, fabric: 260, style: 310 },
+          { month: 11, fabric: 275, style: 330 },
+          { month: 12, fabric: 290, style: 350 },
         ];
 
   const monthNames = [
@@ -50,42 +50,44 @@ export default function DashboardGraph({ data: passedData = null }) {
   ];
 
   const formattedData = data.map((item) => ({
-    ...item,
+    month: item.month,
+    fabric: item.fabric,
+    styleCount: item.style, // Rename 'style' to 'styleCount' to avoid conflict
     name: monthNames[item.month - 1],
   }));
 
-  const totalRevenue = data.reduce((sum, item) => sum + item.revenue, 0);
-  const totalOrders = data.reduce((sum, item) => sum + item.orders, 0);
+  const totalFabric = data.reduce((sum, item) => sum + (item.fabric || 0), 0);
+  const totalStyle = data.reduce((sum, item) => sum + (item.style || 0), 0);
 
   return (
     <div className="w-full bg-gradient-to-br from-slate-50 to-slate-100 p-4 sm:p-6 lg:p-8">
       <div className="w-full max-w-7xl mx-auto">
         {/* Header */}
-        {/*<div className="mb-6 sm:mb-8">
+        {/* <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-1 sm:mb-2">
-            Performance Dashboard
+            Fabric & Style Dashboard
           </h1>
           <p className="text-sm sm:text-base text-slate-600">
-            Yearly overview of revenue and orders
+            Yearly overview of fabric and style metrics
           </p>
         </div>*/}
 
         {/* Stats Cards */}
-        {/*<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-blue-500">
+        {/* <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-amber-500">
             <p className="text-slate-600 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
-              TOTAL REVENUE
+              TOTAL FABRIC
             </p>
             <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900">
-              ₦{totalRevenue.toLocaleString()}
+              {totalFabric.toLocaleString()}
             </p>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-purple-500">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-pink-500">
             <p className="text-slate-600 text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
-              TOTAL ORDERS
+              TOTAL STYLE
             </p>
             <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900">
-              {totalOrders.toLocaleString()}
+              {totalStyle.toLocaleString()}
             </p>
           </div>
         </div>*/}
@@ -93,31 +95,31 @@ export default function DashboardGraph({ data: passedData = null }) {
         {/* Chart Type Selector */}
         <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8">
           <button
-            onClick={() => setChartType("revenue")}
-            className={`cursor-pointer px-4 sm:px-6 py-2 rounded-lg font-semibold text-sm sm:text-base transition-all ${
-              chartType === "revenue"
-                ? "bg-purple-500 text-white shadow-lg"
-                : "bg-white text-slate-700 border border-slate-200 hover:shadow-md"
+            onClick={() => setChartType("fabric")}
+            className={`px-4 sm:px-6 py-2 rounded-lg font-semibold text-sm sm:text-base transition-all cursor-pointer ${
+              chartType === "fabric"
+                ? "bg-purple-600 text-white shadow-lg"
+                : "bg-white text-purple-700 border border-purple-200 hover:shadow-md"
             }`}
           >
-            Revenue
+            Fabric
           </button>
           <button
-            onClick={() => setChartType("orders")}
-            className={`cursor-pointer px-4 sm:px-6 py-2 rounded-lg font-semibold text-sm sm:text-base transition-all ${
-              chartType === "orders"
-                ? "bg-blue-500 text-white shadow-lg"
-                : "bg-white text-slate-700 border border-slate-200 hover:shadow-md"
+            onClick={() => setChartType("style")}
+            className={`px-4 sm:px-6 py-2 rounded-lg font-semibold text-sm sm:text-base transition-all cursor-pointer ${
+              chartType === "style"
+                ? "bg-blue-600 text-white shadow-lg"
+                : "bg-white text-blue-700 border border-blue-200 hover:shadow-md"
             }`}
           >
-            Orders
+            Style
           </button>
           <button
             onClick={() => setChartType("both")}
-            className={`cursor-pointer px-4 sm:px-6 py-2 rounded-lg font-semibold text-sm sm:text-base transition-all ${
+            className={`px-4 sm:px-6 py-2 rounded-lg font-semibold text-sm sm:text-base transition-all cursor-pointer ${
               chartType === "both"
-                ? "bg-teal-500 text-white shadow-lg"
-                : "bg-white text-slate-700 border border-slate-200 hover:shadow-md"
+                ? "bg-indigo-500 text-white shadow-lg"
+                : "bg-white text-indigo-700 border border-indigo-200 hover:shadow-md"
             }`}
           >
             Both
@@ -127,7 +129,7 @@ export default function DashboardGraph({ data: passedData = null }) {
         {/* Chart */}
         <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 overflow-x-auto">
           <div className="w-full h-64 sm:h-80 lg:h-96 min-w-full">
-            {chartType === "revenue" && (
+            {chartType === "fabric" && (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={formattedData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -145,15 +147,14 @@ export default function DashboardGraph({ data: passedData = null }) {
                       color: "#fff",
                       fontSize: "12px",
                     }}
-                    formatter={(value) => `₦${value.toLocaleString()}`}
+                    formatter={(value) => value.toLocaleString()}
                   />
-                  {/* Revenue is now purple */}
-                  <Bar dataKey="revenue" fill="#a855f7" radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="fabric" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
 
-            {chartType === "orders" && (
+            {chartType === "style" && (
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={formattedData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -171,14 +172,14 @@ export default function DashboardGraph({ data: passedData = null }) {
                       color: "#fff",
                       fontSize: "12px",
                     }}
+                    formatter={(value) => value.toLocaleString()}
                   />
-                  {/* Orders is now blue */}
                   <Line
                     type="monotone"
-                    dataKey="orders"
-                    stroke="#3b82f6"
+                    dataKey="styleCount"
+                    stroke="#2563eb"
                     strokeWidth={3}
-                    dot={{ fill: "#3b82f6", r: 5 }}
+                    dot={{ fill: "#2563eb", r: 5 }}
                     activeDot={{ r: 7 }}
                   />
                 </LineChart>
@@ -218,25 +219,23 @@ export default function DashboardGraph({ data: passedData = null }) {
                   <Legend
                     wrapperStyle={{ fontSize: "12px", paddingTop: "10px" }}
                   />
-                  {/* Revenue is now purple */}
                   <Line
                     yAxisId="left"
                     type="monotone"
-                    dataKey="revenue"
-                    stroke="#a855f7"
+                    dataKey="fabric"
+                    stroke="#8b5cf6"
                     strokeWidth={2}
-                    dot={{ fill: "#a855f7", r: 4 }}
-                    name="Revenue ($)"
+                    dot={{ fill: "#8b5cf6", r: 4 }}
+                    name="Fabric"
                   />
-                  {/* Orders is now blue */}
                   <Line
                     yAxisId="right"
                     type="monotone"
-                    dataKey="orders"
-                    stroke="#3b82f6"
+                    dataKey="styleCount"
+                    stroke="#2563eb"
                     strokeWidth={2}
-                    dot={{ fill: "#3b82f6", r: 4 }}
-                    name="Orders"
+                    dot={{ fill: "#2563eb", r: 4 }}
+                    name="Style"
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -246,7 +245,7 @@ export default function DashboardGraph({ data: passedData = null }) {
 
         {/* Footer */}
         <div className="mt-6 sm:mt-8 text-center text-xs sm:text-sm text-slate-500">
-          Data represents monthly performance metrics for the year
+          Data represents monthly fabric and style metrics for the year
         </div>
       </div>
     </div>

@@ -93,15 +93,15 @@ export default function SignInCustomer() {
   };
 
   // Debug utilities for testing
-  const checkAllCookies = () => {
-    console.log("🍪🍪🍪 COOKIE DEBUG REPORT 🍪🍪🍪");
-    console.log("token:", Cookies.get("token"));
-    console.log("currUserUrl:", Cookies.get("currUserUrl"));
-    console.log("approvedByAdmin:", Cookies.get("approvedByAdmin"));
-    console.log("adminToken:", Cookies.get("adminToken"));
-    console.log("All cookies:", document.cookie);
-    console.log("🍪🍪🍪 END COOKIE REPORT 🍪🍪🍪");
-  };
+  // const checkAllCookies = () => {
+  //   console.log("🍪🍪🍪 COOKIE DEBUG REPORT 🍪🍪🍪");
+  //   console.log("token:", Cookies.get("token"));
+  //   console.log("currUserUrl:", Cookies.get("currUserUrl"));
+  //   console.log("approvedByAdmin:", Cookies.get("approvedByAdmin"));
+  //   console.log("adminToken:", Cookies.get("adminToken"));
+  //   console.log("All cookies:", document.cookie);
+  //   console.log("🍪🍪🍪 END COOKIE REPORT 🍪🍪🍪");
+  // };
 
   const checkSessionManager = () => {
     console.log("📦📦📦 SESSION MANAGER DEBUG 📦📦📦");

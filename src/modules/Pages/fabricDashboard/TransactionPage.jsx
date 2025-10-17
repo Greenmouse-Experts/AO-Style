@@ -11,6 +11,10 @@ import ViewWithdrawalsModal from "./components/ViewWithdrawalsModal";
 import BarChartComponent from "../salesDashboard/components/BarChartComponent";
 import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails";
 import useVendorSummaryStat from "../../../hooks/analytics/useGetVendorSummmary";
+import CaryBinApi from "../../../services/CarybinBaseUrl";
+import { useQuery } from "@tanstack/react-query";
+import VendorGraph from "./components/FabricStyleDashboard";
+import FabricStyleDashboard from "./components/FabricStyleDashboard";
 
 export default function TransactionPage() {
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
@@ -24,6 +28,20 @@ export default function TransactionPage() {
   } = useVendorSummaryStat();
   const { data: businessData } = useGetBusinessDetails();
   const businessWallet = businessData?.data?.business_wallet;
+
+  const currentYear = new Date().getFullYear();
+  const {
+    data: graphData,
+    isLoading: graphDataLoading,
+    isFetching: graphDataFetching,
+  } = useQuery({
+    queryKey: ["logistics-graph"],
+    queryFn: async () => {
+      let resp = await CaryBinApi.get(`/vendor-analytics/monthly-revenue`);
+      console.log("This is the grah endpoint", resp.data);
+      return resp.data;
+    },
+  });
 
   const handleWithdrawClick = () => {
     console.log("🎯 Opening withdrawal modal");
@@ -51,7 +69,8 @@ export default function TransactionPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 mb-6">
         <div className="lg:col-span-2">
-          <BarChartComponent />
+          {/* <BarChartComponent data={graphData?.data} />*/}
+          <FabricStyleDashboard data={graphData?.data} />
         </div>
         <div className="lg:col-span-1">
           <WalletPage

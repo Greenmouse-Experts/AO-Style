@@ -119,10 +119,10 @@ export default function SignInCustomer() {
   // Expose debug functions to window for testing
   if (typeof window !== "undefined") {
     window.clearGoogleAuth = clearGoogleAuthData;
-    window.checkCookies = checkAllCookies;
+    // window.checkCookies = checkAllCookies;
     window.checkSession = checkSessionManager;
     window.debugAuth = () => {
-      checkAllCookies();
+      // checkAllCookies();
       checkSessionManager();
     };
   }

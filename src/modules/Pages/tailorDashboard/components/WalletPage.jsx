@@ -21,20 +21,11 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
   console.log("💰 WalletPage - Business Wallet Balance:", businessWallet);
 
   // Calculate total income from vendor summary
-  const totalIncome = vendorSummary?.data?.total_revenue || 0;
+  const totalIncome = vendorSummary?.data?.totalIncome || 0;
   console.log("📈 WalletPage - Total Income Calculated:", totalIncome);
 
   // Calculate total withdrawals from withdrawal data
-  const totalWithdrawals =
-    withdrawalData?.data?.reduce((sum, withdrawal) => {
-      if (
-        withdrawal.status === "COMPLETED" ||
-        withdrawal.status === "completed"
-      ) {
-        return sum + (withdrawal.amount || 0);
-      }
-      return sum;
-    }, 0) || 0;
+  const totalWithdrawals = vendorSummary?.data?.totalWithdrawals
   console.log(
     "💸 WalletPage - Total Withdrawals Calculated:",
     totalWithdrawals,

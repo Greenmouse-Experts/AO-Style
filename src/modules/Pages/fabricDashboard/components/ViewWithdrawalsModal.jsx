@@ -187,10 +187,10 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                   console.log(
                     "🔘 ViewWithdrawalsModal - Status filter changed to: pending",
                   );
-                  setStatusFilter("pending");
+                  setStatusFilter("PENDING");
                 }}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out transform  active:scale-95 ${
-                  statusFilter === "pending"
+                  statusFilter === "PENDING"
                     ? "bg-purple-600 text-white shadow-lg"
                     : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 hover:shadow-md"
                 }`}
@@ -202,10 +202,10 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                   console.log(
                     "🔘 ViewWithdrawalsModal - Status filter changed to: completed",
                   );
-                  setStatusFilter("completed");
+                  setStatusFilter("SHIPPED");
                 }}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out transform  active:scale-95 ${
-                  statusFilter === "completed"
+                  statusFilter === "SHIPPED"
                     ? "bg-purple-600 text-white shadow-lg"
                     : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 hover:shadow-md"
                 }`}
@@ -217,10 +217,10 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                   console.log(
                     "🔘 ViewWithdrawalsModal - Status filter changed to: failed",
                   );
-                  setStatusFilter("failed");
+                  setStatusFilter("FAILED");
                 }}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out transform  active:scale-95 ${
-                  statusFilter === "failed"
+                  statusFilter === "FAILED"
                     ? "bg-purple-600 text-white shadow-lg"
                     : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 hover:shadow-md"
                 }`}
@@ -299,7 +299,7 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                             Request ID
                           </p>
                           <p className="font-mono text-sm">
-                            {withdrawal.id || `WR${index + 1}`}
+                            {withdrawal.id?.replace(/-/g, "").slice(0, 12).toUpperCase() || `WR${index + 1}`}
                           </p>
                         </div>
                         <span

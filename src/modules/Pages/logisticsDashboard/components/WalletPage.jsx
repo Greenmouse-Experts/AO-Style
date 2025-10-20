@@ -103,23 +103,10 @@ const WalletPage = ({
   const { data: withdrawalData } = useFetchWithdrawal({ limit: 10 });
 
   // Calculate total income from vendor summary
-  const totalIncome = vendorSummary?.data?.total_revenue || 0;
+  const totalIncome = vendorSummary?.data?.totalIncome || 0;
 
   // Calculate total withdrawals from withdrawal data
-  const totalWithdrawals = useMemo(() => {
-    const total =
-      withdrawalData?.data?.reduce((sum, withdrawal) => {
-        if (
-          withdrawal.status === "COMPLETED" ||
-          withdrawal.status === "completed"
-        ) {
-          return sum + (withdrawal.amount || 0);
-        }
-        return sum;
-      }, 0) || 0;
-
-    return total;
-  }, [withdrawalData]);
+  const totalWithdrawals = vendorSummary?.data?.totalWithdrawals || 0;
 
   // Get recent transaction for display
   const recentTransaction = withdrawalData?.data?.[0];
@@ -175,7 +162,7 @@ const WalletPage = ({
           <div>
             <p className="text-red-600 text-sm">WITHDRAWALS</p>
             <p className="font-semibold animate-fade-in-up">
-              ₦ {formatNumberWithCommas(totalWithdrawals)}
+              {(totalWithdrawals)}
             </p>
           </div>
         </div>

@@ -281,7 +281,7 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                 <div>Date</div>
                 <div>Time</div>
                 <div>Status</div>
-                <div>Notes</div>
+                {/* <div>Notes</div> */}
               </div>
 
               {/* Table Body */}
@@ -299,7 +299,7 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                             Request ID
                           </p>
                           <p className="font-mono text-sm">
-                            {withdrawal.id || `WR${index + 1}`}
+                            {withdrawal.id?.replace(/-/g, "").slice(0, 2).toUpperCase()|| `WR${index + 1}`}
                           </p>
                         </div>
                         <span
@@ -332,23 +332,12 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                           </p>
                         </div>
                       </div>
-
-                      {withdrawal.notes && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">
-                            Notes
-                          </p>
-                          <p className="text-sm text-gray-700">
-                            {withdrawal.notes}
-                          </p>
-                        </div>
-                      )}
                     </div>
 
                     {/* Desktop Layout */}
                     <div className="hidden lg:contents">
                       <div className="font-mono text-sm text-gray-700">
-                        {withdrawal.id || `WR${index + 1}`}
+                        {withdrawal.id?.replace(/-/g, "").slice(0, 2).toUpperCase() || `WR${index + 1}`}
                       </div>
                       <div className="text-lg font-semibold text-gray-800">
                         ₦{formatNumberWithCommas(withdrawal.amount || 0)}
@@ -367,9 +356,6 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                         >
                           {getStatusText(withdrawal.status)}
                         </span>
-                      </div>
-                      <div className="text-sm text-gray-700">
-                        {withdrawal.notes || "—"}
                       </div>
                     </div>
                   </div>

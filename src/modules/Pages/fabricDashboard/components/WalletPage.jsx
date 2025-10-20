@@ -13,35 +13,23 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
   const { data: vendorSummary } = useVendorSummaryStat();
   const { data: withdrawalData } = useFetchWithdrawal({ limit: 10 });
 
-  console.log("🏦 WalletPage - Business Data:", businessData);
-  console.log("📊 WalletPage - Vendor Summary:", vendorSummary);
-  console.log("💸 WalletPage - Withdrawal Data:", withdrawalData);
-
+  console.log("This is the vendor summary", vendorSummary);
   const businessWallet = businessData?.data?.business_wallet?.balance;
   console.log("💰 WalletPage - Business Wallet Balance:", businessWallet);
 
   // Calculate total income from vendor summary
-  const totalIncome = vendorSummary?.data?.total_revenue || 0;
+  const totalIncome = vendorSummary?.data?.totalIncome || 0;
   console.log("📈 WalletPage - Total Income Calculated:", totalIncome);
 
   // Calculate total withdrawals from withdrawal data
-  const totalWithdrawals =
-    withdrawalData?.data?.reduce((sum, withdrawal) => {
-      if (
-        withdrawal.status === "COMPLETED" ||
-        withdrawal.status === "completed"
-      ) {
-        return sum + (withdrawal.amount || 0);
-      }
-      return sum;
-    }, 0) || 0;
+  const totalWithdrawals = vendorSummary?.data?.totalWithdrawals;
   console.log(
     "💸 WalletPage - Total Withdrawals Calculated:",
-    totalWithdrawals,
+    totalWithdrawals
   );
   console.log(
     "🧮 WalletPage - Withdrawal Data for Calculation:",
-    withdrawalData?.data,
+    withdrawalData?.data
   );
 
   // Get recent transaction for display
@@ -93,7 +81,7 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
           <div>
             <p className="text-red-600 text-sm">WITHDRAWALS</p>
             <p className="font-semibold animate-fade-in-up">
-              ₦ {formatNumberWithCommas(totalWithdrawals)}
+              {totalWithdrawals}
             </p>
           </div>
         </div>
@@ -134,7 +122,7 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
                           day: "2-digit",
                           month: "2-digit",
                           year: "2-digit",
-                        },
+                        }
                       )
                     : "Recent"}
                 </p>
@@ -150,18 +138,18 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
                   recentTransaction.status === "completed"
                     ? "text-green-500"
                     : recentTransaction.status === "PENDING" ||
-                        recentTransaction.status === "pending"
-                      ? "text-yellow-500"
-                      : "text-red-500"
+                      recentTransaction.status === "pending"
+                    ? "text-yellow-500"
+                    : "text-red-500"
                 }`}
               >
                 {recentTransaction.status === "PENDING" ||
                 recentTransaction.status === "pending"
                   ? "Pending"
                   : recentTransaction.status === "COMPLETED" ||
-                      recentTransaction.status === "completed"
-                    ? "Completed"
-                    : "Failed"}
+                    recentTransaction.status === "completed"
+                  ? "Completed"
+                  : "Failed"}
               </p>
             </div>
           </div>

@@ -281,14 +281,14 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                 <div>Date</div>
                 <div>Time</div>
                 <div>Status</div>
-                <div>Notes</div>
+                {/* <div>Notes</div> */}
               </div>
 
               {/* Table Body */}
               <div className="space-y-4 mt-4">
                 {filteredWithdrawals.map((withdrawal, index) => (
                   <div
-                    key={withdrawal.id || index}
+                    key={withdrawal.id?.replace(/-/g, "").slice(0, 12).toUpperCase() || index}
                     className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg  transition-all duration-200 ease-in-out lg:grid lg:grid-cols-6 lg:gap-4 lg:items-center"
                   >
                     {/* Mobile Layout */}
@@ -332,23 +332,12 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                           </p>
                         </div>
                       </div>
-
-                      {withdrawal.notes && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">
-                            Notes
-                          </p>
-                          <p className="text-sm text-gray-700">
-                            {withdrawal.notes}
-                          </p>
-                        </div>
-                      )}
                     </div>
 
                     {/* Desktop Layout */}
                     <div className="hidden lg:contents">
                       <div className="font-mono text-sm text-gray-700">
-                        {withdrawal.id || `WR${index + 1}`}
+                        {withdrawal.id?.replace(/-/g, "").slice(0, 12).toUpperCase() || `WR${index + 1}`}
                       </div>
                       <div className="text-lg font-semibold text-gray-800">
                         ₦{formatNumberWithCommas(withdrawal.amount || 0)}
@@ -367,9 +356,6 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                         >
                           {getStatusText(withdrawal.status)}
                         </span>
-                      </div>
-                      <div className="text-sm text-gray-700">
-                        {withdrawal.notes || "—"}
                       </div>
                     </div>
                   </div>

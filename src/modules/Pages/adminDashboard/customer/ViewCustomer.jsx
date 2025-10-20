@@ -7,6 +7,7 @@ import useGetOrder from "../../../../hooks/order/useGetOrder";
 import Loader from "../../../../components/ui/Loader";
 import { formatDateStr } from "../../../../lib/helper";
 import ReviewList from "../../../../components/reviews/ReviewList";
+import CustomBackbtn from "../../../../components/CustomBackBtn";
 
 // Static orders removed - now using real API data
 
@@ -250,6 +251,7 @@ const ViewCustomer = () => {
 
   return (
     <div>
+      <CustomBackbtn/>
       {/* Customer Info Section */}
       <div className="mb-6">
         <div className="flex justify-between items-center mb-4">

@@ -15,48 +15,65 @@ const ViewCustomer = () => {
   const { id } = useParams();
 
   const { isPending: getUserIsPending, data } = useGetUser(id);
-  const { isPending: ordersLoading, data: ordersData } = useGetOrder();
-  const [activeReviewModal, setActiveReviewModal] = useState(null);
-  const [openDropdown, setOpenDropdown] = useState(null);
 
+  // Tabs: "all", "ongoing", "completed", "cancelled"
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
+
+  // Pass user_id ONLY when in "all" tab, else fetch all (legacy tabs process on frontend)
+  const ordersQueryParams = React.useMemo(() => {
+    if (filter === "all") {
+      return { user_id: id };
+    }
+    // Optionally, could extend to support backend tab filtering if API supports
+    return {};
+  }, [filter, id]);
+
+  const { isPending: ordersLoading, data: ordersData } =
+    useGetOrder(ordersQueryParams);
+
+  const [activeReviewModal, setActiveReviewModal] = useState(null);
+  const [openDropdown, setOpenDropdown] = useState(null);
 
   // Console log the admin customer orders data
   console.log("🔍 Admin ViewCustomer - Full API Response:", ordersData);
   console.log("🔍 Admin ViewCustomer - All Orders Data:", ordersData?.data);
   console.log(
     "🔍 Admin ViewCustomer - Total Orders Count:",
-    ordersData?.data?.length,
+    ordersData?.data?.length
   );
   console.log("🔍 Admin ViewCustomer - Customer ID:", id);
 
-  // Process real order data
-  const allOrders = ordersData?.data || [];
+  // The API will filter orders on "all" tab; on other tabs, filter here
+  let allOrders = ordersData || [];
 
-  // Filter orders for this specific customer
-  const customerOrders = allOrders.filter((order) => order.user_id === id);
+  // On 'all' tab, API filtered by user_id, so use allOrders directly.
+  // On other tabs, filter out customer's orders by user_id (to support legacy API if still returns others)
+  const customerOrders =
+    filter === "all"
+      ? allOrders
+      : allOrders.filter((order) => order.user_id === id);
 
   console.log("🔍 Admin ViewCustomer - Customer Orders:", customerOrders);
   console.log(
     "🔍 Admin ViewCustomer - Customer Orders Count:",
-    customerOrders.length,
+    customerOrders.length
   );
 
   if (customerOrders.length > 0) {
     console.log(
       "🔍 Admin ViewCustomer - First Customer Order:",
-      customerOrders[0],
+      customerOrders[0]
     );
     console.log(
       "🔍 Admin ViewCustomer - Payment Structure:",
-      customerOrders[0]?.payment,
+      customerOrders[0]?.payment
     );
     console.log(
       "🔍 Admin ViewCustomer - Purchase Items:",
-      customerOrders[0]?.payment?.purchase?.items,
+      customerOrders[0]?.payment?.purchase?.items
     );
   }
 
@@ -65,7 +82,7 @@ const ViewCustomer = () => {
       filter === "all" ||
       (filter === "ongoing" &&
         ["PROCESSING", "SHIPPED", "IN_TRANSIT", "OUT_FOR_DELIVERY"].includes(
-          order.status,
+          order.status
         )) ||
       (filter === "completed" && order.status === "DELIVERED") ||
       (filter === "cancelled" && order.status === "CANCELLED");
@@ -109,21 +126,21 @@ const ViewCustomer = () => {
   };
 
   const columns = [
-    {
-      label: "#",
-      key: "index",
-      render: (_, row, index) => (
-        <span className="font-mono text-xs text-gray-600">
-          {String(index + 1).padStart(2, "0")}
-        </span>
-      ),
-    },
+    // {
+    //   label: "#",
+    //   key: "index",
+    //   render: (_, row, index) => (
+    //     <span className="font-mono text-xs text-gray-600">
+    //       {String(index + 1).padStart(2, "0")}
+    //     </span>
+    //   ),
+    // },
     {
       label: "Order ID",
       key: "id",
       render: (value) => (
         <span className="font-mono text-xs text-gray-600">
-          {value.slice(-8)}
+          {value.replace(/-/g, "").slice(0, 12).toUpperCase()}
         </span>
       ),
     },
@@ -132,7 +149,10 @@ const ViewCustomer = () => {
       key: "transaction_id",
       render: (_, row) => (
         <span className="font-mono text-xs text-gray-600">
-          {row.payment?.transaction_id?.slice(-8) || "N/A"}
+          {row.payment?.transaction_id
+            ?.replace(/-/g, "")
+            ?.slice(0, 12)
+            .toUpperCase() || "N/A"}
         </span>
       ),
     },
@@ -153,7 +173,10 @@ const ViewCustomer = () => {
       key: "amount",
       render: (_, row) => (
         <span className="font-medium text-gray-900">
-          ₦{(row.total_amount || row.payment?.amount || 0).toLocaleString()}
+          ₦
+          {Number(row.total_amount || row.payment?.amount || 0).toLocaleString(
+            "en-NG"
+          )}
         </span>
       ),
     },
@@ -173,29 +196,29 @@ const ViewCustomer = () => {
             status === "DELIVERED"
               ? "bg-green-100 text-green-600"
               : [
-                    "PROCESSING",
-                    "SHIPPED",
-                    "IN_TRANSIT",
-                    "OUT_FOR_DELIVERY",
-                  ].includes(status)
-                ? "bg-blue-100 text-blue-600"
-                : status === "CANCELLED"
-                  ? "bg-red-100 text-red-600"
-                  : "bg-yellow-100 text-yellow-600"
-          }`}
-        >
-          {status === "DELIVERED"
-            ? "Completed"
-            : [
                   "PROCESSING",
                   "SHIPPED",
                   "IN_TRANSIT",
                   "OUT_FOR_DELIVERY",
                 ].includes(status)
-              ? "Ongoing"
+              ? "bg-blue-100 text-blue-600"
               : status === "CANCELLED"
-                ? "Cancelled"
-                : status}
+              ? "bg-red-100 text-red-600"
+              : "bg-yellow-100 text-yellow-600"
+          }`}
+        >
+          {status === "DELIVERED"
+            ? "Delivered"
+            : [
+                "PROCESSING",
+                "SHIPPED",
+                "IN_TRANSIT",
+                "OUT_FOR_DELIVERY",
+              ].includes(status)
+            ? status
+            : status === "CANCELLED"
+            ? "Cancelled"
+            : status}
         </span>
       ),
     },
@@ -223,7 +246,7 @@ const ViewCustomer = () => {
                   <button
                     onClick={() => {
                       setActiveReviewModal(
-                        row.payment.purchase.items[0].product_id,
+                        row.payment.purchase.items[0].product_id
                       );
                       setOpenDropdown(null);
                     }}
@@ -251,7 +274,7 @@ const ViewCustomer = () => {
 
   return (
     <div>
-      <CustomBackbtn/>
+      <CustomBackbtn />
       {/* Customer Info Section */}
       <div className="mb-6">
         <div className="flex justify-between items-center mb-4">
@@ -310,7 +333,7 @@ const ViewCustomer = () => {
                 <td className="p-4">
                   {data?.data?.user?.created_at
                     ? formatDateStr(
-                        data?.data?.user?.created_at.split(".").shift(),
+                        data?.data?.user?.created_at.split(".").shift()
                       )
                     : ""}
                 </td>
@@ -324,7 +347,7 @@ const ViewCustomer = () => {
         {/* Filters & Actions */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pb-3 mb-4 gap-4">
           <div className="flex flex-wrap justify-center sm:justify-start gap-3 text-gray-600 text-sm font-medium">
-            {["all", "ongoing", "completed", "cancelled"].map((tab) => (
+            {["all"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setFilter(tab)}
@@ -334,7 +357,7 @@ const ViewCustomer = () => {
                     : "text-gray-500"
                 }`}
               >
-                {tab} Orders
+                {tab === "all" ? "Customer" : tab} Orders
               </button>
             ))}
           </div>

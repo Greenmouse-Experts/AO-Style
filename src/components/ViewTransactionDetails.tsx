@@ -230,7 +230,7 @@ export default function ViewTransactionDetail() {
                     </button>
                   </div>
                   <div className="font-mono text-sm text-gray-900 bg-white px-4 py-2 rounded-lg border border-gray-200">
-                    {user.id}
+                    {user.id?.replace(/-/g, "").slice(0, 12)}
                   </div>
                 </div>
 

@@ -309,7 +309,7 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
   const hideActions =
     window.location.pathname.includes("logistics") ||
     window.location.pathname.includes("logictcs");
-  const tableActions = hideActions ? [] : actions;
+  const tableActions = actions;
 
   // Handle search with debouncing effect
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {

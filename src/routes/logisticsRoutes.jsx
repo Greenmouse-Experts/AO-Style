@@ -12,6 +12,7 @@ import NotificationPageUpdate from "../modules/Pages/adminDashboard/Notification
 import TransactionPage from "../modules/Pages/logisticsDashboard/TransactionPage";
 import LogisticMapLocation from "../modules/Pages/logisticsDashboard/order-location";
 import ViewItemMap from "../modules/Pages/logisticsDashboard/view-item-map";
+import UniversalTransactionDetails from "../components/UniversalTransactionDetails";
 
 export const logisticsRoutes = [
   {
@@ -45,6 +46,10 @@ export const logisticsRoutes = [
       {
         path: "/logistics/transactions",
         element: <TransactionPage />,
+      },
+      {
+        path: "/logistics/transactions/:id",
+        element: <UniversalTransactionDetails mode="page" />,
       },
       {
         path: "/logistics/inbox",

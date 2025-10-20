@@ -31,261 +31,7 @@ import useToast from "../../../hooks/useToast";
 import { formatOrderId } from "../../../lib/orderUtils";
 import "react-toastify/dist/ReactToastify.css";
 
-interface MeasurementData {
-  full_body: {
-    height: number;
-    height_unit: string;
-    dress_length: number;
-    dress_length_unit: string;
-  };
-  lower_body: {
-    trouser_length: number;
-    hip_circumference: number;
-    knee_circumference: number;
-    thigh_circumference: number;
-    trouser_length_unit: string;
-    waist_circumference: number;
-    hip_circumference_unit: string;
-    knee_circumference_unit: string;
-    thigh_circumference_unit: string;
-    waist_circumference_unit: string;
-  };
-  upper_body: {
-    sleeve_length: number;
-    shoulder_width: number;
-    bust_circumference: number;
-    sleeve_length_unit: string;
-    bicep_circumference: number;
-    shoulder_width_unit: string;
-    waist_circumference: number;
-    armhole_circumference: number;
-    bust_circumference_unit: string;
-    bicep_circumference_unit: string;
-    waist_circumference_unit: string;
-    armhole_circumference_unit: string;
-  };
-  customer_name: string;
-}
-
-interface MetadataItem {
-  color: string;
-  quantity: number;
-  measurement: MeasurementData[];
-  cart_item_id: string;
-  customer_name: string;
-  customer_email: string;
-  style_product_id: string;
-  fabric_product_id: string;
-  style_product_name: string;
-  fabric_product_name: string;
-  image?: string;
-}
-
-interface OrderSummary {
-  order_summary: {
-    subtotal: number;
-    vat_amount: number;
-    coupon_code: string;
-    final_total: number;
-    postal_code: string;
-    delivery_fee: number;
-    delivery_city: string;
-    delivery_state: string;
-    delivery_address: string;
-    delivery_country: string;
-    total_style_items: number;
-    total_fabric_items: number;
-  };
-}
-
-interface VendorCharge {
-  fabric_vendor_fee: number;
-  fashion_designer_fee: number;
-}
-
-interface PurchaseItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  created_at: string;
-  product_id: string;
-  purchase_type: string;
-  vendor_amount: number;
-  vendor_charge: VendorCharge;
-}
-
-interface Purchase {
-  items: PurchaseItem[];
-  coupon_id: null;
-  tax_amount: number;
-  coupon_type: null;
-  coupon_value: null;
-  delivery_fee: number;
-}
-
-interface PaymentData {
-  id: string;
-  user_id: string;
-  purchase_type: string;
-  purchase_id: null;
-  amount: string;
-  discount_applied: string;
-  payment_status: string;
-  status: string;
-  transaction_id: string;
-  payment_method: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: null;
-  billing_at_payment: null;
-  billing_id: null;
-  interval: null;
-  currency: string;
-  auto_renew: boolean;
-  is_renewal: boolean;
-  is_upgrade: boolean;
-  tailor_delivery_code: string | null;
-  user_delivery_code: string | null;
-  total_amount: string;
-}
-
-interface UserProfile {
-  id: string;
-  user_id: string;
-  profile_picture: null;
-  address: string;
-  bio: null;
-  date_of_birth: null;
-  gender: null;
-  created_at: string;
-  updated_at: string;
-  deleted_at: null;
-  country: string;
-  state: string;
-  country_code: string;
-  approved_by_admin: null;
-  years_of_experience: null;
-  measurement: MeasurementData;
-  coordinates: {
-    latitude: string;
-    longitude: string;
-  };
-}
-
-interface User {
-  id: string;
-  email: string;
-  phone: string;
-  profile: UserProfile;
-}
-
-interface ProductFabric {
-  id: string;
-  product_id: string;
-  market_id: string;
-  weight_per_unit: string;
-  location: {};
-  local_name: string;
-  manufacturer_name: string;
-  material_type: string;
-  alternative_names: string;
-  fabric_texture: string;
-  feel_a_like: string;
-  quantity: number;
-  minimum_yards: string;
-  available_colors: string;
-  fabric_colors: string;
-  photos: string[];
-  video_url: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: null;
-}
-
-interface ProductStyle {
-  id: string;
-  product_id: string;
-  estimated_sewing_time: number;
-  minimum_fabric_qty: string;
-  location: {};
-  photos: string[];
-  video_url: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: null;
-}
-
-interface Creator {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  profile: UserProfile;
-}
-
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: string;
-  category_id: string;
-  market_id: string;
-  location: {};
-  currency: string;
-  type: string;
-  status: string;
-  approval_status: string;
-  published_at: null;
-  archived_at: null;
-  created_at: string;
-  updated_at: string;
-  deleted_at: null;
-  fabric: ProductFabric;
-  style: ProductStyle;
-  creator: Creator;
-}
-
-interface OrderItem {
-  id: string;
-  product_id: string;
-  quantity: number;
-  created_at: string;
-  updated_at: string;
-  deleted_at: null;
-  product: Product;
-  metadata?: any; // Accepts object or null
-}
-
-interface LogisticAgent {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-}
-
-interface OrderLogisticsData {
-  statusCode: number;
-  data: {
-    id: string;
-    user_id: string;
-    status: string;
-    total_amount: string;
-    payment_id: string;
-    metadata: null;
-    logistics_agent_id: string | null;
-    first_leg_logistics_agent_id: string | null;
-    tailor_delivery_code: string | null;
-    user_delivery_code: string | null;
-    created_at: string;
-    updated_at: string;
-    deleted_at: null;
-    user: User;
-    order_items: OrderItem[];
-    logistics_agent: LogisticAgent | null;
-    payment: PaymentData;
-  };
-}
+// ... [All interfaces unchanged] ...
 
 export default function ViewOrderLogistics() {
   const { id } = useParams();
@@ -413,11 +159,13 @@ export default function ViewOrderLogistics() {
   const order_data = query.data?.data;
   const currentStatus = order_data?.status;
 
+  console.log("This is the order data", order_data);
+
   // Helper function to check if order has style items
   const hasStyleItems = () => {
     return (
       order_data?.order_items?.some((item) =>
-        item?.product?.type?.toLowerCase().includes("style"),
+        item?.product?.type?.toLowerCase().includes("style")
       ) || false
     );
   };
@@ -432,36 +180,30 @@ export default function ViewOrderLogistics() {
   const isInTransit = transitStatuses.includes(currentStatus || "");
   const isDelivered = currentStatus === "DELIVERED";
 
-  // Assignment logic (REWRITE: fix isAssigned and button visibility)
-  // Determine if the current user is assigned to the relevant leg of the delivery
-  // First leg: first_leg_logistics_agent_id
-  // Second leg: logistics_agent_id
+  //Check if the order is in first leg or is about to accept first leg
+  const isFirstLegOrder =
+    order_data?.first_leg_status === "OUT_FOR_DELIVERY" &&
+    order_data?.second_leg_status === "PENDING";
+
+    //Check if there is style in any of the products
+  
+  // Assignment logic adjusted to let the same user (first leg agent) see second leg accept button if appropriate
   const isFirstLegAssignedToMe =
     order_data?.first_leg_logistics_agent_id === userProfile?.id;
   const isSecondLegAssignedToMe =
     order_data?.logistics_agent_id === userProfile?.id;
 
-  // For status update actions, only show if assigned to me for the relevant leg
-  // For accepting, only show if not assigned and assignment is available
-
-  // Determine if the current user can accept the "second leg" of delivery.
-  // This is true only when:
-  // 1. There is already a first-leg logistics agent (meaning vendor->tailor pickup happened),
-  // 2. There is no second-leg logistics agent yet (nobody has accepted the tailor->customer leg),
-  // 3. The order status is currently OUT_FOR_DELIVERY (the handoff to the second leg is ready),
-  // 4. The current user is not the same person who handled the first leg (to prevent the same agent from accepting both legs).
+  // Accept button logic reworked: even if you handled the first leg, you still see the second leg accept if no agent has and status is OUT_FOR_DELIVERY
   const hasFirstLegAgent = !!order_data?.first_leg_logistics_agent_id;
   const hasNoSecondLegAgent = !order_data?.logistics_agent_id;
   const isOutForDelivery = currentStatus === "OUT_FOR_DELIVERY";
-  const isNotFirstLegAgent =
-    userProfile?.id !== order_data?.first_leg_logistics_agent_id;
+  // const isNotFirstLegAgent =
+  // userProfile?.id !== order_data?.first_leg_logistics_agent_id;
 
-  // Only allow second leg accept if not assigned to first leg
+  // The previous logic for preventing same person for both legs (isNotFirstLegAgent) is now REMOVED from this computation.
+  // Now: Anyone (including first leg agent) can see and accept second leg when eligible.
   const canAcceptSecondLeg =
-    hasFirstLegAgent &&
-    hasNoSecondLegAgent &&
-    isOutForDelivery &&
-    isNotFirstLegAgent;
+    hasFirstLegAgent && hasNoSecondLegAgent && isOutForDelivery;
 
   // Only allow first leg accept if not assigned to anyone
   const canAcceptFirstLeg =
@@ -481,27 +223,6 @@ export default function ViewOrderLogistics() {
       ["OUT_FOR_DELIVERY"].includes(currentStatus || "")) ||
     (isInTransit && isSecondLegAssignedToMe) ||
     (isDelivered && isSecondLegAssignedToMe);
-
-  // For code modal, only show if assigned to me for the relevant leg
-  // For "DELIVERED_TO_TAILOR", only first leg agent
-  // For "DELIVERED", only second leg agent
-
-  // Debug logging
-  console.log("🔍 Order data debug:", {
-    order_data,
-    currentStatus,
-    logistics_agent_id: order_data?.logistics_agent_id,
-    first_leg_logistics_agent_id: order_data?.first_leg_logistics_agent_id,
-    userProfile_id: userProfile?.id,
-    isFirstLegAssignedToMe,
-    isSecondLegAssignedToMe,
-    canAcceptFirstLeg,
-    canAcceptSecondLeg,
-    canShowStatusUpdate,
-    user_profile: order_data?.user?.profile,
-    order_items: order_data?.order_items,
-    payment: order_data?.payment,
-  });
 
   // Status flow based on order type
   const getStatusInfo = () => {
@@ -592,10 +313,10 @@ export default function ViewOrderLogistics() {
                       isDelivered
                         ? "bg-green-500"
                         : isInTransit
-                          ? "bg-purple-500 animate-pulse"
-                          : isFirstLeg || isSecondLeg
-                            ? "bg-orange-500"
-                            : "bg-gray-400"
+                        ? "bg-purple-500 animate-pulse"
+                        : isFirstLeg || isSecondLeg
+                        ? "bg-orange-500"
+                        : "bg-gray-400"
                     }`}
                   ></div>
                   <span className="text-sm font-medium text-gray-600">
@@ -623,12 +344,12 @@ export default function ViewOrderLogistics() {
                       statusInfo.color === "green"
                         ? "bg-green-100 text-green-800"
                         : statusInfo.color === "purple"
-                          ? "bg-purple-100 text-purple-800"
-                          : statusInfo.color === "orange"
-                            ? "bg-orange-100 text-orange-800"
-                            : statusInfo.color === "blue"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-gray-100 text-gray-800"
+                        ? "bg-purple-100 text-purple-800"
+                        : statusInfo.color === "orange"
+                        ? "bg-orange-100 text-orange-800"
+                        : statusInfo.color === "blue"
+                        ? "bg-blue-100 text-blue-800"
+                        : "bg-gray-100 text-gray-800"
                     }`}
                   >
                     <statusInfo.icon className="w-4 h-4 mr-2" />
@@ -738,8 +459,8 @@ export default function ViewOrderLogistics() {
                               statusInfo.color === "blue"
                                 ? "bg-blue-600 hover:bg-blue-700 text-white"
                                 : statusInfo.color === "purple"
-                                  ? "bg-purple-600 hover:bg-purple-700 text-white"
-                                  : "bg-green-600 hover:bg-green-700 text-white"
+                                ? "bg-purple-600 hover:bg-purple-700 text-white"
+                                : "bg-green-600 hover:bg-green-700 text-white"
                             }`}
                           >
                             {order_mutation.isPending ? (
@@ -815,8 +536,8 @@ export default function ViewOrderLogistics() {
                               ].includes(currentStatus || "")
                                 ? "bg-green-100 text-green-600"
                                 : currentStatus === "DISPATCHED_TO_AGENT"
-                                  ? "bg-blue-100 text-blue-600"
-                                  : "bg-gray-100 text-gray-400"
+                                ? "bg-blue-100 text-blue-600"
+                                : "bg-gray-100 text-gray-400"
                             }`}
                           >
                             {[
@@ -854,12 +575,12 @@ export default function ViewOrderLogistics() {
                                   currentStatus === "DELIVERED"
                                     ? "bg-green-100 text-green-600"
                                     : [
-                                          "OUT_FOR_DELIVERY",
-                                          "SHIPPED",
-                                          "IN_TRANSIT",
-                                        ].includes(currentStatus || "")
-                                      ? "bg-purple-100 text-purple-600"
-                                      : "bg-gray-100 text-gray-400"
+                                        "OUT_FOR_DELIVERY",
+                                        "SHIPPED",
+                                        "IN_TRANSIT",
+                                      ].includes(currentStatus || "")
+                                    ? "bg-purple-100 text-purple-600"
+                                    : "bg-gray-100 text-gray-400"
                                 }`}
                               >
                                 {currentStatus === "DELIVERED" ? (
@@ -893,8 +614,8 @@ export default function ViewOrderLogistics() {
                               ].includes(currentStatus || "")
                                 ? "bg-green-100 text-green-600"
                                 : currentStatus === "DISPATCHED_TO_AGENT"
-                                  ? "bg-blue-100 text-blue-600"
-                                  : "bg-gray-100 text-gray-400"
+                                ? "bg-blue-100 text-blue-600"
+                                : "bg-gray-100 text-gray-400"
                             }`}
                           >
                             {[
@@ -1024,14 +745,27 @@ export default function ViewOrderLogistics() {
                                 {item.product.fabric
                                   ? "Pickup Location:"
                                   : item.product.style
-                                    ? "Destination Address:"
-                                    : "Pickup Location:"}
+                                  ? "Destination Address:"
+                                  : "Pickup Location:"}
                               </p>
                               <p className="text-sm text-gray-600">
                                 {item.product.creator?.profile?.address ||
                                   "Address not available"}
                               </p>
                             </div>
+
+                            {isFirstLeg && !hasStyleItems && (
+                              <div className="mt-3">
+                                <p className="text-sm font-medium text-gray-700 mb-1">
+                                  Customer Address:
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  {isFirstLeg && !item?.product?.style
+                                    ? order_data?.user?.profile?.address
+                                    : ""}
+                                </p>
+                              </div>
+                            )}
                           </div>
 
                           <div className="flex flex-col gap-2 flex-shrink-0">

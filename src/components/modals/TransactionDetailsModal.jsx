@@ -99,7 +99,7 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId, type }) => {
           </button>
         </div>
       )}
-      {user?.email && (
+      {/* {user?.email && (
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
           <div>
             <p className="text-sm text-gray-500">Email</p>
@@ -134,12 +134,12 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId, type }) => {
             )}
           </button>
         </div>
-      )}
+      )} */}
       {user?.id && (
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
           <div>
             <p className="text-sm text-gray-500">User ID</p>
-            <p className="font-medium text-gray-900 text-sm">{user.id}</p>
+            <p className="font-medium text-gray-900 text-sm">{user.id?.replace(/-/g, "").slice(0, 12).toUpperCase()}</p>
           </div>
           <button
             onClick={() => copyToClipboard(user.id, "user_id")}

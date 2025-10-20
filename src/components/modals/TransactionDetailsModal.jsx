@@ -308,7 +308,7 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId, type }) => {
           className="cursor-pointer flex-1 inline-flex justify-center rounded-md border border-transparent bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
           onClick={() =>
             copyToClipboard(
-              transaction?.user?.id || transaction.user_id || transactionId,
+              transaction?.user.id?.replace(/-/g, "").slice(0, 12).toUpperCase() || transaction.user.id?.replace(/-/g, "").slice(0, 12).toUpperCase() || transactionId,
               "copy_all",
             )
           }

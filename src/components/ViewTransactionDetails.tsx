@@ -219,7 +219,7 @@ export default function ViewTransactionDetail() {
                       </span>
                     </div>
                     <button
-                      onClick={() => copyToClipboard(user.id, "user_id")}
+                      onClick={() => copyToClipboard(user.id?.replace(/-/g, "").slice(0, 12).toUpperCase(), "user_id")}
                       className="text-gray-400 hover:text-gray-600 transition-colors"
                     >
                       {copiedField === "user_id" ? (

@@ -142,7 +142,7 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId, type }) => {
             <p className="font-medium text-gray-900 text-sm">{user.id?.replace(/-/g, "").slice(0, 12).toUpperCase()}</p>
           </div>
           <button
-            onClick={() => copyToClipboard(user.id, "user_id")}
+            onClick={() => copyToClipboard(user.id?.replace(/-/g, "").slice(0, 12), "user_id")}
             className="text-gray-400 hover:text-gray-600 transition-colors"
           >
             {copiedField === "user_id" ? (

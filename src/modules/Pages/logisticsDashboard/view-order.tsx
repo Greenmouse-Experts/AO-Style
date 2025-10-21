@@ -22,6 +22,7 @@ import {
   Image as ImageIcon,
   Bus,
   Bike,
+  Eye,
 } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import { useItemMap } from "../../../store/useTempStore";
@@ -49,6 +50,9 @@ export default function ViewOrderLogistics() {
 
   // Modal state for viewing item image
   const [viewImageUrl, setViewImageUrl] = useState<string | null>(null);
+
+  // NEW: Modal state for viewing pickup fabric image (for "View pick-up item" button in Second Leg Locations)
+  const [pickupItemImageUrl, setPickupItemImageUrl] = useState<string | null>(null);
 
   const query = useQuery<OrderLogisticsData>({
     queryKey: ["logistic", id, "view"],
@@ -314,11 +318,40 @@ export default function ViewOrderLogistics() {
   // If this is a style order
   const showSecondLegLocations =
     hasStyleItems() &&
-    (
-      canAcceptSecondLeg ||
+    (canAcceptSecondLeg ||
       (isSecondLeg && isSecondLegAssignedToMe) ||
-      (isInTransit && isSecondLegAssignedToMe)
-    );
+      (isInTransit && isSecondLegAssignedToMe) ||
+      (isDelivered && isSecondLegAssignedToMe));
+
+  // For "View pick-up item" image in LOCATIONS: pick the first order_item with a fabric image
+  let locationPickupImage: string | undefined;
+  if (
+    Array.isArray(order_data?.order_items)
+  ) {
+    // Try to pick order_items[0] or order_items[1], see which has a fabric image
+    // We may want the item that has fabric, not style, so prefer .fabric.photos[0]
+    for (let item of order_data.order_items) {
+      if (
+        item.product &&
+        item.product.fabric &&
+        Array.isArray(item.product.fabric.photos) &&
+        item.product.fabric.photos.length
+      ) {
+        locationPickupImage = item.product.fabric.photos[0];
+        break;
+      }
+      // Optionally, fallback to image in metadata
+      if (
+        item.metadata &&
+        typeof item.metadata === "object" &&
+        "image" in item.metadata &&
+        typeof item.metadata.image === "string" &&
+        !locationPickupImage
+      ) {
+        locationPickupImage = item.metadata.image;
+      }
+    }
+  }
 
   // --- End: SECOND LEG PHASE LOGIC ---
 
@@ -765,20 +798,24 @@ export default function ViewOrderLogistics() {
                               Quantity: {item.quantity}
                             </p>
 
-                            {!canAcceptSecondLeg && (
-                              <div className="mt-3">
-                              <p className="text-sm font-medium text-gray-700 mb-1">
-                                {item.product.fabric
-                                  ? "Pickup Location:"
-                                  : item.product.style
-                                  ? "Destination Address:"
-                                  : "Pickup Location:"}
-                              </p>
-                              <p className="text-sm text-gray-600">
-                                {item.product.creator?.profile?.address ||
-                                  "Address not available"}
-                              </p>
+                            <div className="mt-3 text-purple-700 bg-purple-100 inline-flex rounded-sm py-1 px-2 w-auto max-w-max">
+                              {item?.product?.fabric ? "FABRIC" : "STYLE"}
                             </div>
+
+                            {!showSecondLegLocations && (
+                              <div className="mt-3">
+                                <p className="text-sm font-medium text-gray-700 mb-1">
+                                  {item.product.fabric
+                                    ? "Pickup Location:"
+                                    : item.product.style
+                                    ? "Destination Address:"
+                                    : "Pickup Location:"}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  {item.product.creator?.profile?.address ||
+                                    "Address not available"}
+                                </p>
+                              </div>
                             )}
 
                             {isFirstLeg && !hasStyleItems && (
@@ -825,42 +862,96 @@ export default function ViewOrderLogistics() {
               {/* LOCATIONS Component: Only show in second leg phase */}
               {showSecondLegLocations && (
                 <div className="bg-white rounded-xl shadow-lg border border-gray-100">
-                  <div className="w-full bg-purple-100 flex gap-1 p-4 rounded-t-xl items-center">
-                    <MapPin className="text-purple-700 h-5" />
-                    <p className="text-purple-700 text-lg font-semibold">
-                      LOCATIONS:{" "}
-                    </p>
+                  <div className="w-full bg-purple-100 p-4 flex flex-col gap-2 items-center md:flex-row md:justify-between rounded-t-xl">
+                    <div className="flex items-center gap-1">
+                      <MapPin className="text-purple-700 h-5" />
+                      <p className="text-purple-700 text-lg font-semibold">
+                        LOCATIONS:{" "}
+                      </p>
+                    </div>
+                    <div>
+                      <button
+                        className="w-full px-2 py-1 flex items-center bg-purple-300 text-purple-800 cursor-pointer text-purle-800 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => {
+                          if (locationPickupImage) {
+                            setPickupItemImageUrl(locationPickupImage);
+                          } else {
+                            toast.error("No pick-up item image available");
+                          }
+                        }}
+                        type="button"
+                      >
+                        <Eye className="h-4" />
+                        View pick-up item
+                      </button>
+                    </div>
                   </div>
                   <div>
-                    {/* pickup address */}
-                    <div className="m-3 bg-purple-100 p-4 rounded-md">
-                      <div className="flex items-center gap-1">
-                        <Bike className="text-purple-900 h-5 mb-1" />
-                        <p className="mb-1 text-purple-900 text-sm font-medium">
-                          PICK-UP ADDRESS:
-                        </p>
+                    {/* pickup address and tailor contact*/}
+                    <div className="m-3 bg-purple-100 p-4 rounded-md mb-5">
+                      <div>
+                        <div className="flex items-center gap-1">
+                          <Bike className="text-purple-900 h-5 mb-1" />
+                          <p className="mb-1 text-purple-900 text-sm font-medium">
+                            PICK-UP ADDRESS:
+                          </p>
+                        </div>
+                        <div className="bg-white p-2 rounded">
+                          <p className="text-gray-700 text-sm font-semibold">
+                            {
+                              order_data?.order_items?.[1]?.product?.creator
+                                ?.profile?.address
+                            }
+                          </p>
+                        </div>
                       </div>
-                      <div className="bg-white p-2 rounded">
-                        <p className="text-gray-700 text-sm font-bold">
-                          {
-                            order_data?.order_items?.[1]?.product?.creator
-                              ?.profile?.address
-                          }
-                        </p>
+
+                      <div className="mt-3">
+                        <div className="flex items-center gap-1">
+                          <Phone className="text-purple-900 h-5 mb-1" />
+                          <p className="mb-1 text-purple-900 text-sm font-medium">
+                            TAILOR CONTACT:
+                          </p>
+                        </div>
+                        <div className="bg-white p-2 rounded">
+                          <p className="text-gray-700 text-sm font-semibold">
+                            {/* {
+                              order_data?.order_items?.[1]?.product?.creator
+                                ?.profile?.address
+                            } */}{" "}
+                            000 000 000
+                          </p>
+                        </div>
                       </div>
                     </div>
-                    {/* destination address */}
+                    {/* destination address and tailor contact*/}
                     <div className="m-3 bg-purple-100 p-4 rounded-md">
-                      <div className="flex items-center gap-1">
-                        <Bus className="text-purple-900 h-5 mb-1" />
-                        <p className="mb-1 text-purple-900 text-sm font-medium">
-                          DESTINATION ADDRESS:
-                        </p>
+                      <div>
+                        <div className="flex items-center gap-1">
+                          <Bus className="text-purple-900 h-5 mb-1" />
+                          <p className="mb-1 text-purple-900 text-sm font-medium">
+                            DESTINATION ADDRESS:
+                          </p>
+                        </div>
+                        <div className="bg-white p-2 rounded">
+                          <p className="text-gray-700 text-sm font-semibold">
+                            {order_data?.user?.profile?.address}
+                          </p>
+                        </div>
                       </div>
-                      <div className="bg-white p-2 rounded">
-                        <p className="text-gray-700 text-sm font-bold">
-                          {order_data?.user?.profile?.address}
-                        </p>
+
+                      <div className="mt-3">
+                        <div className="flex items-center gap-1">
+                          <Phone className="text-purple-900 h-5 mb-1" />
+                          <p className="mb-1 text-purple-900 text-sm font-medium">
+                            CUTOMER'S CONTACT:
+                          </p>
+                        </div>
+                        <div className="bg-white p-2 rounded">
+                          <p className="text-gray-700 text-sm font-semibold">
+                            {order_data?.user?.phone}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1013,6 +1104,59 @@ export default function ViewOrderLogistics() {
                 />
                 <div className="mt-3 text-center text-gray-700 text-sm">
                   Order Item Image
+                </div>
+              </div>
+            </div>
+          </dialog>
+        )}
+
+        {/* Modal for viewing pickup fabric image in LOCATIONS (Second Leg) */}
+        {pickupItemImageUrl && (
+          <dialog
+            open
+            className="modal"
+            style={{
+              background: "rgba(0,0,0,0.3)",
+              position: "fixed",
+              zIndex: 60,
+              left: 0,
+              top: 0,
+              width: "100vw",
+              height: "100vh",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            onClick={() => setPickupItemImageUrl(null)}
+          >
+            <div
+              className="modal-box bg-white rounded-2xl shadow-2xl max-w-lg p-4 relative"
+              style={{ maxWidth: 480, width: "90%" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl font-bold"
+                onClick={() => setPickupItemImageUrl(null)}
+                aria-label="Close"
+                type="button"
+              >
+                ×
+              </button>
+              <div className="flex flex-col items-center">
+                {pickupItemImageUrl ? (
+                  <img
+                    src={pickupItemImageUrl}
+                    alt="Pick-up Item"
+                    className="max-h-96 w-auto rounded-lg border border-gray-200 object-contain"
+                    style={{ maxWidth: "100%" }}
+                  />
+                ) : (
+                  <div className="text-gray-500 text-center py-12">
+                    No pick-up item image available
+                  </div>
+                )}
+                <div className="mt-3 text-center text-gray-700 text-sm">
+                  Pick-up Fabric Image
                 </div>
               </div>
             </div>

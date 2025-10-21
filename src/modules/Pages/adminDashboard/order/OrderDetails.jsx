@@ -99,7 +99,7 @@ const OrderDetails = () => {
         return statusMap[status] || 0;
       }
     },
-    [hasStyleItems],
+    [hasStyleItems]
   );
 
   React.useEffect(() => {
@@ -156,7 +156,7 @@ const OrderDetails = () => {
   const totalAmount =
     orderDetails?.total_amount || orderDetails?.payment?.amount || 0;
   const deliveryFee = parseInt(
-    orderDetails?.payment?.purchase?.delivery_fee || 0,
+    orderDetails?.payment?.purchase?.delivery_fee || 0
   );
   console.log("this is the order dtails", orderDetails);
   return (
@@ -244,7 +244,9 @@ const OrderDetails = () => {
             </div>
             <div className="flex items-center gap-4">
               <span
-                className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(orderDetails?.status)}`}
+                className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(
+                  orderDetails?.status
+                )}`}
               >
                 {orderDetails?.status || "Unknown"}
               </span>
@@ -263,33 +265,73 @@ const OrderDetails = () => {
             </div>
           </div>
 
-          {/* Reference Image Section */}
-          {orderDetails?.metadata?.image && (
-            <div className="mb-6 bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <div className="flex items-center justify-between">
+          {/* Tailor reference image */}
+
+          {orderDetails?.metadata?.tailorReferenceImage && (
+            <div className="mb-6 md:flex-1 bg-purple-50 border border-purple-200 rounded-lg p-4 flex flex-col justify-between">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                     <Image className="w-6 h-6 text-purple-600" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">
-                      Reference Image
+                      Tailor reference Image
                     </h3>
                     <p className="text-sm text-gray-600">
-                      Provided reference image for this order
+                      Reference image provided by fashion designer
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => {
-                    setModalImageUrl(orderDetails?.metadata?.image);
-                    setShowImageModal(true);
-                  }}
-                  className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  <Eye className="w-4 h-4" />
-                  View Image
-                </button>
+                <div>
+                  <button
+                    onClick={() => {
+                      setModalImageUrl(
+                        orderDetails?.metadata?.tailorReferenceImage
+                      );
+                      setShowImageModal(true);
+                    }}
+                    className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    <Eye className="w-4 h-4" />
+                    View Image
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* vendor reference image */}
+          {orderDetails?.metadata?.vendorReferenceImage && (
+            <div className="mb-6 md:flex-1 bg-purple-50 border border-purple-200 rounded-lg p-4 flex flex-col justify-between">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Image className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">
+                      Vendor reference Image
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Reference image provided by fabric vendor
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <button
+                    onClick={() => {
+                      setModalImageUrl(
+                        orderDetails?.metadata?.vendorReferenceImage
+                      );
+                      setShowImageModal(true);
+                    }}
+                    className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    <Eye className="w-4 h-4" />
+                    View Image
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -376,7 +418,9 @@ const OrderDetails = () => {
                   left: `calc(${100 / (orderSteps.length - 1) / 2}%)`,
                   width:
                     currentStep >= 0
-                      ? `calc(${(currentStep / (orderSteps.length - 1)) * 100}% - ${100 / (orderSteps.length - 1)}%)`
+                      ? `calc(${
+                          (currentStep / (orderSteps.length - 1)) * 100
+                        }% - ${100 / (orderSteps.length - 1)}%)`
                       : "0%",
                 }}
               />
@@ -393,8 +437,8 @@ const OrderDetails = () => {
                         orderDetails?.status === "CANCELLED"
                           ? "bg-red-500 text-white shadow-lg ring-4 ring-red-100"
                           : index <= currentStep
-                            ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg ring-4 ring-purple-100"
-                            : "bg-white border-2 border-gray-300 text-gray-400"
+                          ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg ring-4 ring-purple-100"
+                          : "bg-white border-2 border-gray-300 text-gray-400"
                       }`}
                     >
                       {orderDetails?.status === "CANCELLED" ? (
@@ -410,8 +454,8 @@ const OrderDetails = () => {
                         orderDetails?.status === "CANCELLED"
                           ? "text-red-600"
                           : index <= currentStep
-                            ? "text-purple-600"
-                            : "text-gray-500"
+                          ? "text-purple-600"
+                          : "text-gray-500"
                       }`}
                     >
                       {step}
@@ -620,7 +664,7 @@ const OrderDetails = () => {
                                   ₦
                                   {item?.product?.price
                                     ? parseInt(
-                                        item?.product?.price,
+                                        item?.product?.price
                                       ).toLocaleString()
                                     : "0"}
                                 </p>
@@ -753,7 +797,7 @@ const OrderDetails = () => {
                               // Fallback to existing formatting if something goes wrong
                               return formatDateStr(
                                 orderDetails?.created_at.split(".").shift(),
-                                "D/M/YYYY h:mm A",
+                                "D/M/YYYY h:mm A"
                               );
                             }
                           })()
@@ -809,8 +853,8 @@ const OrderDetails = () => {
                                 {hasStyleItems && index === 0
                                   ? "Tailor Address"
                                   : hasStyleItems && index === 1
-                                    ? "Customer Address"
-                                    : "Delivery Address"}
+                                  ? "Customer Address"
+                                  : "Delivery Address"}
                               </h4>
                             </div>
                             <div className="bg-gray-50 rounded-lg p-4">

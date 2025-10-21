@@ -100,55 +100,10 @@ export default function InboxPage() {
     console.log("Admin ID:", selectedAdmin);
     console.log("=========================================");
 
-    socket.emit("sendMessage", messageData);
+    socket.emit("sendMessageToAdmin", messageData);
 
     // Update existing chat or create new one in local state
-    const adminUser = admins?.find((admin) => admin.id === selectedAdmin);
-    if (adminUser) {
-      console.log("=== UPDATING CHAT LIST AFTER MESSAGE ===");
-      console.log("Admin ID:", selectedAdmin);
-      console.log("Current chats count:", chats.length);
-
-      setChats((prevChats) => {
-        // Check if chat with this admin already exists
-        const existingChatIndex = prevChats.findIndex(
-          (chat) => chat.chat_buddy?.id === selectedAdmin,
-        );
-
-        console.log("Existing chat index:", existingChatIndex);
-
-        if (existingChatIndex !== -1) {
-          // Update existing chat
-          console.log("📝 Updating existing chat with admin");
-          const updatedChats = [...prevChats];
-          updatedChats[existingChatIndex] = {
-            ...updatedChats[existingChatIndex],
-            last_message: messageText.trim(),
-            created_at: new Date().toISOString(),
-            unread: 0,
-          };
-          // Move updated chat to top
-          const updatedChat = updatedChats.splice(existingChatIndex, 1)[0];
-          console.log("✅ Chat updated and moved to top");
-          return [updatedChat, ...updatedChats];
-        } else {
-          // Create new chat entry
-          console.log("➕ Creating new chat with admin");
-          const newChat = {
-            id: Date.now(),
-            last_message: messageText.trim(),
-            chat_buddy: adminUser,
-            created_at: new Date().toISOString(),
-            unread: 0,
-          };
-          console.log("✅ New chat created");
-          return [newChat, ...prevChats];
-        }
-      });
-
-      console.log("========================================");
-    }
-
+  
     toastSuccess("Message sent successfully!");
     setShowNewMessageModal(false);
     setSelectedAdmin("");
@@ -248,7 +203,7 @@ export default function InboxPage() {
       });
 
       // Listen for user-specific message sent events
-      socketInstance.on(`messageSent:${userId}`, (data) => {
+      socketInstance.on(`messageToAdminSent:${userId}`, (data) => {
         console.log("🎉 === TAILOR MESSAGE SENT EVENT RECEIVED === 🎉");
         console.log("User ID:", userId);
         console.log("Raw data:", data);
@@ -261,7 +216,7 @@ export default function InboxPage() {
       });
 
       // Listen for user-specific message sent events
-      socketInstance.on(`messageSent:${userId}`, (data) => {
+      socketInstance.on(`messageToAdminSent:${userId}`, (data) => {
         console.log("🎉 === TAILOR MESSAGE SENT EVENT RECEIVED === 🎉");
         console.log("User ID:", userId);
         console.log("Raw data:", data);
@@ -437,7 +392,8 @@ export default function InboxPage() {
               console.log(
                 "🔄 Auto-refreshing messages for currently selected tailor chat (user-specific)",
               );
-              socketInstance.emit("retrieveMessages", {
+              //changed this from retrieveMessages
+              socketInstance.emit("messagesRetrieved", {
                 token: userToken,
                 chatBuddy: currentSelectedChat.chat_buddy.id,
               });
@@ -445,7 +401,7 @@ export default function InboxPage() {
           }
         });
       }
-
+//changed this from messagesRetrieved
       socketInstance.on("messagesRetrieved", (data) => {
         console.log("=== TAILOR MESSAGES RETRIEVED ===");
         console.log("Full response:", JSON.stringify(data, null, 2));
@@ -622,7 +578,7 @@ export default function InboxPage() {
       };
 
       console.log("Message data to send:", messageData);
-      socket.emit("sendMessage", messageData);
+      socket.emit("sendMessageToAdmin", messageData);
 
       // Add message to local state immediately
       const newMsg = {

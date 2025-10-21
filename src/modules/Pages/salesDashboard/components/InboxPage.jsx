@@ -19,6 +19,7 @@ import useToast from "../../../../hooks/useToast";
 import { useId } from "react";
 import { useCarybinUserStore } from "../../../../store/carybinUserStore";
 import useGetUserProfile from "../../../Auth/hooks/useGetProfile";
+import useSendMessage from "../../../../hooks/messaging/useSendMessage";
 
 export default function InboxPage() {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -30,7 +31,10 @@ export default function InboxPage() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const emojiPickerRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const [showNewMessageModal, setShowNewMessageModal] = useState(false);
+  const [messageText, setMessageText] = useState("");
   const { carybinUser, logOut } = useCarybinUserStore();
+  const { isPending: sendingMessage, sendMessageMutate } = useSendMessage();
 
   // Socket and messaging states
   const [socket, setSocket] = useState(null);
@@ -99,6 +103,43 @@ export default function InboxPage() {
     profilePending,
   ]);
 
+  //send message to admin
+  const handleSendMessageToAdmin = () => {
+    
+    if (!socket || !isConnected) {
+      toastError("Not connected to messaging service. Please try again.");
+      return;
+    }
+
+    const messageData = {
+      token: userToken,
+      initiator_id: profileData?.id,
+      target_role: "market-representative",
+      message: messageText.trim(),
+    };
+
+    console.log("=== SENDING MESSAGE TO ADMIN VIA SOCKET ===");
+    console.log("Socket ID:", socket.id);
+    console.log("Message data:", messageData);
+    console.log("Socket connected:", socket.connected);
+    console.log("User ID:", userId);
+    console.log("=========================================");
+
+    socket.emit("sendMessageToAdmin", messageData);
+
+    toastSuccess("Message sent successfully!");
+    setShowNewMessageModal(false);
+    setMessageText("");
+
+    // Refresh chats with a delay to prevent duplicates
+    setTimeout(() => {
+      if (socket && userId) {
+        console.log("🔄 Refreshing chats after delay to sync with server");
+        socket.emit("getChats", { userId });
+      }
+    }, 1000);
+  };
+
   // Initialize Socket.IO connection - Wait for profile to be loaded
   useEffect(() => {
     console.log("=== INITIALIZING SALES SOCKET CONNECTION ===");
@@ -141,7 +182,7 @@ export default function InboxPage() {
       });
 
       // Listen for user-specific message sent events
-      socketInstance.on(`messageSent:${userId}`, (data) => {
+      socketInstance.on(`messageToAdminSent:${userId}`, (data) => {
         console.log("🎉 === SALES MESSAGE SENT EVENT RECEIVED === 🎉");
         console.log("User ID:", userId);
         console.log("Raw data:", data);
@@ -154,7 +195,7 @@ export default function InboxPage() {
       });
 
       // Listen for user-specific message sent events
-      socketInstance.on(`messageSent:${userId}`, (data) => {
+      socketInstance.on(`messageToAdminSent:${userId}`, (data) => {
         console.log("🎉 === SALES MESSAGE SENT EVENT RECEIVED === 🎉");
         console.log("User ID:", userId);
         console.log("Raw data:", data);
@@ -212,7 +253,7 @@ export default function InboxPage() {
             toastSuccess(data?.message || "Chats loaded successfully");
           }
         });
-
+//changed from messagesRerieved
         socketInstance.on(`messagesRetrieved:${userId}`, (data) => {
           console.log(
             `=== SALES USER-SPECIFIC MESSAGES RETRIEVED (${userId}) ===`,
@@ -666,7 +707,7 @@ export default function InboxPage() {
                   {isConnected ? "Connected" : "Disconnected"}
                 </span>
               </div>
-              <button className="p-2 hover:bg-gray-100 rounded-full">
+              <button className="cursor-pointer p-2 hover:bg-gray-100 rounded-full" onClick={()=>setShowNewMessageModal(true)}>
                 <FaPlus className="w-5 h-5 text-gray-600" />
               </button>
             </div>
@@ -895,6 +936,72 @@ export default function InboxPage() {
             </div>
           </div>
         )}
+        {showNewMessageModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-md">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  New Message to Admins
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowNewMessageModal(false);
+                    setMessageText("");
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <FaTimes size={20} />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* Message Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Message
+                </label>
+                <textarea
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  placeholder="Type your message here..."
+                  rows={4}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowNewMessageModal(false);
+                  setMessageText("");
+                }}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                disabled={sendingMessage}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendMessageToAdmin}
+                disabled={
+                  !messageText.trim() ||
+                  !isConnected ||
+                  sendingMessage
+                }
+                className="cursor-pointer px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {sendingMessage
+                  ? "Sending..."
+                  : !isConnected
+                    ? "Connecting..."
+                    : "Send Message"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );

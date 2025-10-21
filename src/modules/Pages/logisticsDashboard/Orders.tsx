@@ -391,7 +391,7 @@ export default function OrderRequests() {
         return (
           <div className="flex flex-col items-end">
             <span className="font-bold text-success">
-              ₦{parseFloat(item.payment.purchase.delivery_fee).toLocaleString()}
+              ₦{parseFloat(priceToDisplay(item)).toLocaleString()}
             </span>
             <span className="text-xs text-base-content/60">Total</span>
           </div>
@@ -399,6 +399,14 @@ export default function OrderRequests() {
       },
     },
   ];
+
+  const priceToDisplay = (item: Order) => {
+    if(item?.status === "OUT_FOR_DELIVERY" || (item?.status === "IN_TRANSIT" && item?.logistics_agent_id)) {
+      return item?.payment?.purchase?.delivery_data?.data?.second_leg_delivery_fee
+    } else{
+      return item?.payment?.purchase?.delivery_data?.data?.first_leg_delivery_fee
+    }
+  }
 
   // Actions with improved styling
   interface ActionConfig {

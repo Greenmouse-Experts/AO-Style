@@ -14,6 +14,8 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
 import CustomTable from "../../../components/CustomTable";
+import { useQuery } from "@tanstack/react-query";
+import CaryBinApi from "../../../services/CarybinBaseUrl";
 
 const SEARCH_FIELDS = [
   { label: "Order ID", value: "orderId" },
@@ -133,8 +135,8 @@ const OrderPage = () => {
 
   const customersOrderData = useMemo(
     () =>
-      orderData?.data
-        ? orderData?.data.map((details) => {
+      orderData
+        ? orderData.map((details) => {
             return {
               ...details,
               orderId: `${details?.payment?.id ? details.payment.id.replace(/-/g, "").slice(0, 12).toUpperCase() : ""}`,

@@ -64,7 +64,6 @@ export default function InboxPage() {
 
   // Handle sending message to admin via socket
   const handleSendMessageToAdmin = () => {
-
     if (!socket || !isConnected) {
       toastError("Not connected to messaging service. Please try again.");
       return;
@@ -85,7 +84,7 @@ export default function InboxPage() {
     console.log("Admin ID:", selectedAdmin);
     console.log("=========================================");
 
-    socket.emit("sendMessage", messageData);
+    socket.emit("sendMessageToAdmin", messageData);
 
     // Update existing chat or create new one in local state
     const adminUser = admins?.find((admin) => admin.id === selectedAdmin);
@@ -97,7 +96,7 @@ export default function InboxPage() {
       setChats((prevChats) => {
         // Check if chat with this admin already exists
         const existingChatIndex = prevChats.findIndex(
-          (chat) => chat.chat_buddy?.id === selectedAdmin,
+          (chat) => chat.chat_buddy?.id === selectedAdmin
         );
 
         console.log("Existing chat index:", existingChatIndex);
@@ -248,7 +247,7 @@ export default function InboxPage() {
       });
 
       // Listen for user-specific message sent events
-      socketInstance.on(`messageSent:${userId}`, (data) => {
+      socketInstance.on(`messageToAdminSent:${userId}`, (data) => {
         console.log("🎉 === CUSTOMER MESSAGE SENT EVENT RECEIVED === 🎉");
         console.log("User ID:", userId);
         console.log("Raw data:", data);
@@ -280,7 +279,7 @@ export default function InboxPage() {
       // Listen for user-specific chat events (as shown in Postman)
       if (userId) {
         console.log(
-          `🎯 Setting up user-specific event listeners for user: ${userId}`,
+          `🎯 Setting up user-specific event listeners for user: ${userId}`
         );
         console.log(`🎯 Listening for: chatsRetrieved.${userId}`);
         console.log(`🎯 Listening for: messagesRetrieved.${userId}`);
@@ -302,8 +301,8 @@ export default function InboxPage() {
             toastSuccess(data?.message || "Chats loaded successfully");
           }
         });
-
-        socketInstance.on(`messagesRetrieved:${userId}`, (data) => {
+        //I CHANGES THE EVENT HERE FROM messagesRetrieved
+        socketInstance.on(`recentMessageToAdminRetrieved:${userId}`, (data) => {
           console.log(`=== USER-SPECIFIC MESSAGES RETRIEVED (${userId}) ===`);
           console.log("Full response:", JSON.stringify(data, null, 2));
           console.log("Status:", data?.status);
@@ -344,14 +343,14 @@ export default function InboxPage() {
 
           socketInstance.on(eventName, (data) => {
             console.log(
-              `=== CHAT-SPECIFIC MESSAGES RETRIEVED (${chatId}:${userId}) ===`,
+              `=== CHAT-SPECIFIC MESSAGES RETRIEVED (${chatId}:${userId}) ===`
             );
             console.log("Full response:", JSON.stringify(data, null, 2));
             console.log("Status:", data?.status);
             console.log("Messages array:", data?.data?.result);
             console.log("Selected chat from ref:", selectedChatRef.current);
             console.log(
-              "========================================================",
+              "========================================================"
             );
 
             if (data?.status === "success" && data?.data?.result) {
@@ -385,7 +384,7 @@ export default function InboxPage() {
 
         socketInstance.on(`recentChatRetrieved:${userId}`, (data) => {
           console.log(
-            `=== USER-SPECIFIC RECENT CHAT RETRIEVED (${userId}) ===`,
+            `=== USER-SPECIFIC RECENT CHAT RETRIEVED (${userId}) ===`
           );
           console.log("Chat data:", JSON.stringify(data, null, 2));
           console.log("=============================================");
@@ -397,7 +396,7 @@ export default function InboxPage() {
               const existingChatIndex = prevChats.findIndex(
                 (chat) =>
                   chat.id === data.data.id ||
-                  chat.chat_buddy?.id === data.data.chat_buddy?.id,
+                  chat.chat_buddy?.id === data.data.chat_buddy?.id
               );
               if (existingChatIndex >= 0) {
                 console.log("🔄 Updating existing chat from socket event");
@@ -420,7 +419,7 @@ export default function InboxPage() {
               currentSelectedChat.id === data.data.id
             ) {
               console.log(
-                "🔄 Auto-refreshing messages for currently selected chat (user-specific)",
+                "🔄 Auto-refreshing messages for currently selected chat (user-specific)"
               );
               socketInstance.emit("retrieveMessages", {
                 token: userToken,
@@ -476,11 +475,11 @@ export default function InboxPage() {
             const existingChatIndex = prevChats.findIndex(
               (chat) =>
                 chat.id === data.data.id ||
-                chat.chat_buddy?.id === data.data.chat_buddy?.id,
+                chat.chat_buddy?.id === data.data.chat_buddy?.id
             );
             if (existingChatIndex >= 0) {
               console.log(
-                "🔄 Updating existing chat from general socket event",
+                "🔄 Updating existing chat from general socket event"
               );
               const updatedChats = [...prevChats];
               updatedChats[existingChatIndex] = {
@@ -498,7 +497,7 @@ export default function InboxPage() {
           // Auto-refresh messages if this chat is currently selected
           if (currentSelectedChat && currentSelectedChat.id === data.data.id) {
             console.log(
-              "🔄 Auto-refreshing messages for currently selected chat",
+              "🔄 Auto-refreshing messages for currently selected chat"
             );
             socketInstance.emit("retrieveMessages", {
               token: userToken,
@@ -682,8 +681,8 @@ export default function InboxPage() {
                 profileLoading
                   ? "bg-yellow-100 text-yellow-700"
                   : isConnected
-                    ? "bg-green-100 text-green-700"
-                    : "bg-red-100 text-red-700"
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700"
               }`}
             >
               <FaCircle size={8} />
@@ -691,8 +690,8 @@ export default function InboxPage() {
                 {profileLoading
                   ? "Loading..."
                   : isConnected
-                    ? "Online"
-                    : "Offline"}
+                  ? "Online"
+                  : "Offline"}
               </span>
             </div>
           </div>
@@ -799,7 +798,7 @@ export default function InboxPage() {
                           </h4>
                           <span className="text-xs text-gray-500 ml-2">
                             {new Date(
-                              chat.created_at || Date.now(),
+                              chat.created_at || Date.now()
                             ).toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",
@@ -1074,18 +1073,14 @@ export default function InboxPage() {
               </button>
               <button
                 onClick={handleSendMessageToAdmin}
-                disabled={
-                  !messageText.trim() ||
-                  !isConnected ||
-                  sendingMessage
-                }
-                className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!messageText.trim() || !isConnected || sendingMessage}
+                className="cursor-pointer px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {sendingMessage
                   ? "Sending..."
                   : !isConnected
-                    ? "Connecting..."
-                    : "Send Message"}
+                  ? "Connecting..."
+                  : "Send Message"}
               </button>
             </div>
           </div>

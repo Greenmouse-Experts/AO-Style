@@ -91,7 +91,7 @@ export default function InboxPage() {
       message: messageText.trim(),
     };
 
-    socket.emit("sendMessage", messageData);
+    socket.emit("sendMessageToAdmin", messageData);
 
     // Update existing chat or create new one in local state
     const adminUser = admins?.find((admin) => admin.id === selectedAdmin);
@@ -217,13 +217,13 @@ export default function InboxPage() {
       });
 
       // Listen for user-specific message sent events
-      socketInstance.on(`messageSent:${userId}`, (data) => {
+      socketInstance.on(`messageToAdminSent:${userId}`, (data) => {
         console.log("🎉 === FABRIC VENDOR MESSAGE SENT EVENT RECEIVED === 🎉");
         toastSuccess(data?.message || "Message delivered successfully");
       });
 
       // Listen for user-specific message sent events
-      socketInstance.on(`messageSent:${userId}`, (data) => {
+      socketInstance.on(`messageToAdminSent:${userId}`, (data) => {
         toastSuccess(data?.message || "Message delivered successfully");
       });
 
@@ -500,8 +500,8 @@ export default function InboxPage() {
       if (socket.setupChatSpecificListener) {
         socket.setupChatSpecificListener(selectedChat.id);
       }
-
-      socket.emit("retrieveMessages", {
+//changed this frm retrieveMessages
+      socket.emit("messagesRetrieved", {
         token: userToken,
         chatBuddy: selectedChat.chat_buddy.id,
       });

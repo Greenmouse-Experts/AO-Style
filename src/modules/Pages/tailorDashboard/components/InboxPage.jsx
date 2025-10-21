@@ -71,6 +71,7 @@ export default function InboxPage() {
     error: profileErrorData,
   } = useGetUserProfile();
 
+  console.log("This is the user profile", profileData)
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -78,11 +79,7 @@ export default function InboxPage() {
 
   // Handle sending message to admin via socket
   const handleSendMessageToAdmin = () => {
-    if (!selectedAdmin || !messageText.trim()) {
-      toastError("Please select an admin and enter a message");
-      return;
-    }
-
+    
     if (!socket || !isConnected) {
       toastError("Not connected to messaging service. Please try again.");
       return;
@@ -90,7 +87,8 @@ export default function InboxPage() {
 
     const messageData = {
       token: userToken,
-      chatBuddy: selectedAdmin,
+      initiator_id: profileData?.id,
+      target_role: "fashion-designer",
       message: messageText.trim(),
     };
 
@@ -1039,7 +1037,7 @@ export default function InboxPage() {
             <div className="p-6 border-b border-gray-200">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  New Message to Admin
+                  New Message to Admins
                 </h3>
                 <button
                   onClick={() => {
@@ -1055,33 +1053,6 @@ export default function InboxPage() {
             </div>
 
             <div className="p-6 space-y-4">
-              {/* Admin Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Admin
-                </label>
-                {adminsLoading ? (
-                  <div className="text-sm text-gray-500">Loading admins...</div>
-                ) : adminsError ? (
-                  <div className="text-sm text-red-500">
-                    Failed to load admins
-                  </div>
-                ) : (
-                  <select
-                    value={selectedAdmin}
-                    onChange={(e) => setSelectedAdmin(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  >
-                    <option value="">Choose an admin...</option>
-                    {admins?.map((admin) => (
-                      <option key={admin.id} value={admin.id}>
-                        {admin.name} - {admin.email}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
-
               {/* Message Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1112,12 +1083,11 @@ export default function InboxPage() {
               <button
                 onClick={handleSendMessageToAdmin}
                 disabled={
-                  !selectedAdmin ||
                   !messageText.trim() ||
                   !isConnected ||
                   sendingMessage
                 }
-                className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="cursor-pointer px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {sendingMessage
                   ? "Sending..."

@@ -188,8 +188,6 @@ export default function ViewOrderLogistics() {
     order_data?.first_leg_status === "OUT_FOR_DELIVERY" &&
     order_data?.second_leg_status === "PENDING";
 
-  //Check if there is style in any of the products
-
   // Assignment logic adjusted to let the same user (first leg agent) see second leg accept button if appropriate
   const isFirstLegAssignedToMe =
     order_data?.first_leg_logistics_agent_id === userProfile?.id;
@@ -200,8 +198,6 @@ export default function ViewOrderLogistics() {
   const hasFirstLegAgent = !!order_data?.first_leg_logistics_agent_id;
   const hasNoSecondLegAgent = !order_data?.logistics_agent_id;
   const isOutForDelivery = currentStatus === "OUT_FOR_DELIVERY";
-  // const isNotFirstLegAgent =
-  // userProfile?.id !== order_data?.first_leg_logistics_agent_id;
 
   // The previous logic for preventing same person for both legs (isNotFirstLegAgent) is now REMOVED from this computation.
   // Now: Anyone (including first leg agent) can see and accept second leg when eligible.
@@ -299,6 +295,32 @@ export default function ViewOrderLogistics() {
   const deliveryCity = order_data?.user?.profile?.state;
   const deliveryState = order_data?.user?.profile?.state;
   const deliveryCountry = order_data?.user?.profile?.country;
+
+  // --- Begin: SECOND LEG PHASE LOGIC ---
+
+  // For double leg (style order): Second leg phase is OUT_FOR_DELIVERY or IN_TRANSIT or (ACCEPT SECOND LEG is visible)
+  // For single leg: never applies
+  //
+  // Definition for showing LOCATIONS:
+  // Show only if:
+  //   - The order is a "style" order (has style items)
+  //   - Either (a) you can accept second leg, (b) second leg assigned to you & currentStatus is OUT_FOR_DELIVERY, or (c) you're the second leg assignee and status is IN_TRANSIT/DELIVERED
+  //
+  // Simpler: show for
+  //   - canAcceptSecondLeg
+  //   - (isSecondLeg || isInTransit || isDelivered) && isSecondLegAssignedToMe
+  //   (show during OUT_FOR_DELIVERY and IN_TRANSIT and after accepting/starting by second leg agent)
+  //
+  // If this is a style order
+  const showSecondLegLocations =
+    hasStyleItems() &&
+    (
+      canAcceptSecondLeg ||
+      (isSecondLeg && isSecondLegAssignedToMe) ||
+      (isInTransit && isSecondLegAssignedToMe)
+    );
+
+  // --- End: SECOND LEG PHASE LOGIC ---
 
   return (
     <>
@@ -800,14 +822,15 @@ export default function ViewOrderLogistics() {
                   })}
                 </div>
               </div>
-              <div className="bg-white rounded-xl shadow-lg border border-gray-100">
-                <div className="w-full bg-purple-100 flex gap-1 p-4 rounded-t-xl items-center">
-                  <MapPin className="text-purple-700 h-5" />
-                  <p className="text-purple-700 text-lg font-semibold">
-                    LOCATIONS:{" "}
-                  </p>
-                </div>
-                {canAcceptSecondLeg && (
+              {/* LOCATIONS Component: Only show in second leg phase */}
+              {showSecondLegLocations && (
+                <div className="bg-white rounded-xl shadow-lg border border-gray-100">
+                  <div className="w-full bg-purple-100 flex gap-1 p-4 rounded-t-xl items-center">
+                    <MapPin className="text-purple-700 h-5" />
+                    <p className="text-purple-700 text-lg font-semibold">
+                      LOCATIONS:{" "}
+                    </p>
+                  </div>
                   <div>
                     {/* pickup address */}
                     <div className="m-3 bg-purple-100 p-4 rounded-md">
@@ -826,7 +849,7 @@ export default function ViewOrderLogistics() {
                         </p>
                       </div>
                     </div>
-                          {/* destinayion address */}
+                    {/* destination address */}
                     <div className="m-3 bg-purple-100 p-4 rounded-md">
                       <div className="flex items-center gap-1">
                         <Bus className="text-purple-900 h-5 mb-1" />
@@ -836,15 +859,13 @@ export default function ViewOrderLogistics() {
                       </div>
                       <div className="bg-white p-2 rounded">
                         <p className="text-gray-700 text-sm font-bold">
-                          {
-                            order_data?.user?.profile?.address
-                          }
+                          {order_data?.user?.profile?.address}
                         </p>
                       </div>
                     </div>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
               {/* Order Summary */}
               <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
                 <h3 className="text-lg font-semibold mb-4 flex items-center">

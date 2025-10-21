@@ -20,6 +20,8 @@ import {
   Target,
   Route,
   Image as ImageIcon,
+  Bus,
+  Bike,
 } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import { useItemMap } from "../../../store/useTempStore";
@@ -30,6 +32,7 @@ import CustomBackbtn from "../../../components/CustomBackBtn";
 import useToast from "../../../hooks/useToast";
 import { formatOrderId } from "../../../lib/orderUtils";
 import "react-toastify/dist/ReactToastify.css";
+import Item from "antd/es/list/Item";
 
 // ... [All interfaces unchanged] ...
 
@@ -185,8 +188,8 @@ export default function ViewOrderLogistics() {
     order_data?.first_leg_status === "OUT_FOR_DELIVERY" &&
     order_data?.second_leg_status === "PENDING";
 
-    //Check if there is style in any of the products
-  
+  //Check if there is style in any of the products
+
   // Assignment logic adjusted to let the same user (first leg agent) see second leg accept button if appropriate
   const isFirstLegAssignedToMe =
     order_data?.first_leg_logistics_agent_id === userProfile?.id;
@@ -740,7 +743,8 @@ export default function ViewOrderLogistics() {
                               Quantity: {item.quantity}
                             </p>
 
-                            <div className="mt-3">
+                            {!canAcceptSecondLeg && (
+                              <div className="mt-3">
                               <p className="text-sm font-medium text-gray-700 mb-1">
                                 {item.product.fabric
                                   ? "Pickup Location:"
@@ -753,6 +757,7 @@ export default function ViewOrderLogistics() {
                                   "Address not available"}
                               </p>
                             </div>
+                            )}
 
                             {isFirstLeg && !hasStyleItems && (
                               <div className="mt-3">
@@ -795,7 +800,51 @@ export default function ViewOrderLogistics() {
                   })}
                 </div>
               </div>
-
+              <div className="bg-white rounded-xl shadow-lg border border-gray-100">
+                <div className="w-full bg-purple-100 flex gap-1 p-4 rounded-t-xl items-center">
+                  <MapPin className="text-purple-700 h-5" />
+                  <p className="text-purple-700 text-lg font-semibold">
+                    LOCATIONS:{" "}
+                  </p>
+                </div>
+                {canAcceptSecondLeg && (
+                  <div>
+                    {/* pickup address */}
+                    <div className="m-3 bg-purple-100 p-4 rounded-md">
+                      <div className="flex items-center gap-1">
+                        <Bike className="text-purple-900 h-5 mb-1" />
+                        <p className="mb-1 text-purple-900 text-sm font-medium">
+                          PICK-UP ADDRESS:
+                        </p>
+                      </div>
+                      <div className="bg-white p-2 rounded">
+                        <p className="text-gray-700 text-sm font-bold">
+                          {
+                            order_data?.order_items?.[1]?.product?.creator
+                              ?.profile?.address
+                          }
+                        </p>
+                      </div>
+                    </div>
+                          {/* destinayion address */}
+                    <div className="m-3 bg-purple-100 p-4 rounded-md">
+                      <div className="flex items-center gap-1">
+                        <Bus className="text-purple-900 h-5 mb-1" />
+                        <p className="mb-1 text-purple-900 text-sm font-medium">
+                          DESTINATION ADDRESS:
+                        </p>
+                      </div>
+                      <div className="bg-white p-2 rounded">
+                        <p className="text-gray-700 text-sm font-bold">
+                          {
+                            order_data?.user?.profile?.address
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
               {/* Order Summary */}
               <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
                 <h3 className="text-lg font-semibold mb-4 flex items-center">

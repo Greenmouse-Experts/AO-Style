@@ -139,7 +139,8 @@ const OrderDetails = () => {
     const statusData = {
       status: newStatus,
       metadata: {
-        image: imageUrl,
+        ...(orderInfo?.metadata || []),
+        tailorReferenceImage: imageUrl,
       },
     };
 

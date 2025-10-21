@@ -203,17 +203,10 @@ const OrderDetails = () => {
     const statusData = {
       status: nextStatus,
       metadata: {
-        image: imageUrl,
+        ...(orderInfo?.metadata || {}),
+        vendorReferenceImage: imageUrl,
       },
     };
-
-    console.log("=== FABRIC VENDOR STATUS UPDATE DETAILS ===");
-    console.log("Order ID:", id);
-    console.log("Current Status:", orderInfo?.status);
-    console.log("Next Status:", nextStatus);
-    console.log("Status Data:", statusData);
-    console.log("Image URL:", imageUrl);
-    console.log("==========================================");
 
     return new Promise((resolve, reject) => {
       updateOrderStatusMutate(

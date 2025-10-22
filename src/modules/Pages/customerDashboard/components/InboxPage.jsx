@@ -76,66 +76,10 @@ export default function InboxPage() {
       message: messageText.trim(),
     };
 
-    console.log("=== SENDING MESSAGE TO ADMIN VIA SOCKET ===");
-    console.log("Socket ID:", socket.id);
-    console.log("Message data:", messageData);
-    console.log("Socket connected:", socket.connected);
-    console.log("User ID:", userId);
-    console.log("Admin ID:", selectedAdmin);
-    console.log("=========================================");
-
     socket.emit("sendMessageToAdmin", messageData);
-
-    // Update existing chat or create new one in local state
-    const adminUser = admins?.find((admin) => admin.id === selectedAdmin);
-    if (adminUser) {
-      console.log("=== UPDATING CHAT LIST AFTER MESSAGE ===");
-      console.log("Admin ID:", selectedAdmin);
-      console.log("Current chats count:", chats.length);
-
-      setChats((prevChats) => {
-        // Check if chat with this admin already exists
-        const existingChatIndex = prevChats.findIndex(
-          (chat) => chat.chat_buddy?.id === selectedAdmin
-        );
-
-        console.log("Existing chat index:", existingChatIndex);
-
-        if (existingChatIndex !== -1) {
-          // Update existing chat
-          console.log("📝 Updating existing chat with admin");
-          const updatedChats = [...prevChats];
-          updatedChats[existingChatIndex] = {
-            ...updatedChats[existingChatIndex],
-            last_message: messageText.trim(),
-            created_at: new Date().toISOString(),
-            unread: 0,
-          };
-          // Move updated chat to top
-          const updatedChat = updatedChats.splice(existingChatIndex, 1)[0];
-          console.log("✅ Chat updated and moved to top");
-          return [updatedChat, ...updatedChats];
-        } else {
-          // Create new chat entry
-          console.log("➕ Creating new chat with admin");
-          const newChat = {
-            id: Date.now(),
-            last_message: messageText.trim(),
-            chat_buddy: adminUser,
-            created_at: new Date().toISOString(),
-            unread: 0,
-          };
-          console.log("✅ New chat created");
-          return [newChat, ...prevChats];
-        }
-      });
-
-      console.log("========================================");
-    }
 
     toastSuccess("Message sent successfully!");
     setShowNewMessageModal(false);
-    setSelectedAdmin("");
     setMessageText("");
 
     // Refresh chats with a delay to prevent duplicates
@@ -302,7 +246,7 @@ export default function InboxPage() {
           }
         });
         //I CHANGES THE EVENT HERE FROM messagesRetrieved
-        socketInstance.on(`recentMessageToAdminRetrieved:${userId}`, (data) => {
+        socketInstance.on(`messagesRetrieved:${userId}`, (data) => {
           console.log(`=== USER-SPECIFIC MESSAGES RETRIEVED (${userId}) ===`);
           console.log("Full response:", JSON.stringify(data, null, 2));
           console.log("Status:", data?.status);

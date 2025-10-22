@@ -189,7 +189,7 @@ export default function InboxPage() {
       });
 
       // Listen for user-specific message sent events
-      socketInstance.on(`messageSentToAdmin:${userId}`, (data) => {
+      socketInstance.on(`messageToAdminSent:${userId}`, (data) => {
         console.log("🎉 === LOGISTICS MESSAGE SENT EVENT RECEIVED === 🎉");
         console.log("User ID:", userId);
         console.log("Raw data:", data);

@@ -6,7 +6,7 @@ import CaryBinApi from "../../services/CarybinBaseUrl";
  * getAllOrder = (params) => CaryBinApi.get('/orders', { params })
  */
 const getAllOrder = (params) => {
-  return CaryBinApi.get(window.location.pathname.includes("customer") ? "/orders" : "/orders/fetch", { params });
+  return CaryBinApi.get(window.location.pathname.includes("admin") ? "/orders/fetch" : "/orders", { params });
 };
 
 /**

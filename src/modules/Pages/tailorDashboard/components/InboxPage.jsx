@@ -92,17 +92,7 @@ export default function InboxPage() {
       message: messageText.trim(),
     };
 
-    console.log("=== SENDING MESSAGE TO ADMIN VIA SOCKET ===");
-    console.log("Socket ID:", socket.id);
-    console.log("Message data:", messageData);
-    console.log("Socket connected:", socket.connected);
-    console.log("User ID:", userId);
-    console.log("Admin ID:", selectedAdmin);
-    console.log("=========================================");
-
     socket.emit("sendMessageToAdmin", messageData);
-
-    // Update existing chat or create new one in local state
   
     toastSuccess("Message sent successfully!");
     setShowNewMessageModal(false);

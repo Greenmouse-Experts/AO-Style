@@ -118,13 +118,6 @@ export default function InboxPage() {
       message: messageText.trim(),
     };
 
-    console.log("=== SENDING MESSAGE TO ADMIN VIA SOCKET ===");
-    console.log("Socket ID:", socket.id);
-    console.log("Message data:", messageData);
-    console.log("Socket connected:", socket.connected);
-    console.log("User ID:", userId);
-    console.log("=========================================");
-
     socket.emit("sendMessageToAdmin", messageData);
 
     toastSuccess("Message sent successfully!");
@@ -142,13 +135,6 @@ export default function InboxPage() {
 
   // Initialize Socket.IO connection - Wait for profile to be loaded
   useEffect(() => {
-    console.log("=== INITIALIZING SALES SOCKET CONNECTION ===");
-    console.log("User token:", userToken);
-    console.log("User ID from profile:", userId);
-    console.log("Profile loading:", profileLoading);
-    console.log("Socket URL: https://api-staging.carybin.com/");
-    console.log("=============================================");
-
     // Wait for profile to be loaded before initializing socket
     if (userToken && userId && !profileLoading) {
       const socketInstance = io("https://api-staging.carybin.com/", {

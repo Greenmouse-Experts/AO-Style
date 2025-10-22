@@ -414,7 +414,8 @@ const ChatHead = () => {
     console.log("this is the currnt user type", currentUserUrl);
     const messageData = {
       token: userToken,
-      userType:
+      initiator_id: currentUserId,
+      target_role:
         currentUserUrl === "customer"
           ? "user"
           : currentUserUrl === "fabric"
@@ -429,41 +430,7 @@ const ChatHead = () => {
       message: messageText.trim(),
     };
 
-    socket.emit("sendMessage", messageData);
-
-    // Update existing chat or create new one in local state
-    // if (selectedAdmin) {
-    //   setChats((prevChats) => {
-    //     // Check if chat with this admin already exists
-    //     const existingChatIndex = prevChats.findIndex(
-    //       (chat) => chat.chat_buddy?.id === selectedAdmin.id,
-    //     );
-
-    //     if (existingChatIndex !== -1) {
-    //       // Update existing chat
-    //       const updatedChats = [...prevChats];
-    //       updatedChats[existingChatIndex] = {
-    //         ...updatedChats[existingChatIndex],
-    //         last_message: messageText.trim(),
-    //         created_at: new Date().toISOString(),
-    //         unread: 0,
-    //       };
-    //       // Move updated chat to top
-    //       const updatedChat = updatedChats.splice(existingChatIndex, 1)[0];
-    //       return [updatedChat, ...updatedChats];
-    //     } else {
-    //       // Create new chat entry
-    //       const newChat = {
-    //         id: Date.now(),
-    //         last_message: messageText.trim(),
-    //         chat_buddy: selectedAdmin,
-    //         created_at: new Date().toISOString(),
-    //         unread: 0,
-    //       };
-    //       return [newChat, ...prevChats];
-    //     }
-    //   });
-    // }
+    socket.emit("sendMessageToAdmin", messageData);
 
     toastSuccess("Message sent successfully!");
     // setSelectedAdmin(null);
@@ -737,7 +704,7 @@ const ChatHead = () => {
                         <div className="p-4 text-center text-gray-500 text-sm">
                           {isAdmin
                             ? "No conversations yet. Start a new chat!"
-                            : "No messages yet. Admins will message you here."}
+                            : "No Chats here yet, You will see chats when an admin respond to your message. "}
                         </div>
                       ) : (
                         chats.map((chat) => (
@@ -898,7 +865,7 @@ const ChatHead = () => {
                               ? !selectedUser || !messageText.trim()
                               : !messageText.trim() || !isConnected
                           }
-                          className="w-full bg-purple-600 text-white p-2 rounded text-sm font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="cursor-pointer w-full bg-purple-600 text-white p-2 rounded text-sm font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {!isConnected ? "Connecting..." : "Send Message"}
                         </button>

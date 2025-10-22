@@ -235,7 +235,7 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
         label: "Amount",
         key: "amount",
         render: (_, item) =>
-          `${item.currency} ${Number(item.amount).toLocaleString()}`,
+          `${item?.currency} ${Number(item?.amount)?.toLocaleString() || 0}`,
       },
       {
         label: "Currency",

@@ -49,16 +49,35 @@ const OrderPage = () => {
     "pagination[page]": 1,
   });
 
+  // Here is the core: why does data not show even though we get a response in console from backend?
+  // Usually, this is because how the response is shaped or how it's accessed.
+  // The original expects orderData to be an array, but frequently APIs respond with { data: [], count: n }
+  // Let's check/adjust that.
+
   const {
     isPending,
     isLoading,
     isError,
-    data: orderData,
+    data: orderDataRaw,
   } = useGetOrder({
     ...queryParams,
   });
 
-  console.log(orderData, "orders");
+  // Debug output
+  console.log("orderDataRaw from backend hook:", orderDataRaw);
+
+  // Defensive: sometimes orderDataRaw is undefined/null, or structure is { data: [ ... ], count }
+  // Try to parse accordingly.
+  // We want our orderData to be an array of orders.
+  let orderData = [];
+  if (Array.isArray(orderDataRaw)) {
+    orderData = orderDataRaw;
+  } else if (orderDataRaw && Array.isArray(orderDataRaw.data)) {
+    orderData = orderDataRaw.data;
+  }
+
+  // If data is empty, but you see raw data in console, check here!
+  // Now orderData is always an array. If orderDataRaw.data is not the array, adjust above accordingly.
 
   const columns = useMemo(
     () => [
@@ -130,7 +149,7 @@ const OrderPage = () => {
         ),
       },
     ],
-    [openDropdown],
+    [openDropdown]
   );
 
   const customersOrderData = useMemo(
@@ -186,7 +205,7 @@ const OrderPage = () => {
             };
           })
         : [],
-    [orderData?.data],
+    [orderData]
   );
 
   const [filter, setFilter] = useState("all");
@@ -214,8 +233,13 @@ const OrderPage = () => {
     });
   }, [customersOrderData, searchField, searchTerm]);
 
+  // Count: Prefer .count from object if exists, or fallback to array length
+  let totalItems = (orderDataRaw && typeof orderDataRaw.count === "number")
+    ? orderDataRaw.count
+    : filteredOrderData?.length || 0;
+
   const totalPages = Math.ceil(
-    (orderData?.count || filteredOrderData?.length || 0) /
+    totalItems /
       (queryParams["pagination[limit]"] ?? 10),
   );
 
@@ -324,9 +348,6 @@ const OrderPage = () => {
                 />
               </div>
             </div>
-            {/* <button className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md text-sm">
-              Export As ▼
-            </button> */}
             <select
               onChange={handleExport}
               className="bg-gray-100 outline-none text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
@@ -334,9 +355,9 @@ const OrderPage = () => {
               <option value="" disabled selected>
                 Export As
               </option>
-              <option value="csv">Export to CSV</option>{" "}
-              <option value="excel">Export to Excel</option>{" "}
-              <option value="pdf">Export to PDF</option>{" "}
+              <option value="csv">Export to CSV</option>
+              <option value="excel">Export to Excel</option>
+              <option value="pdf">Export to PDF</option>
             </select>
             <CSVLink
               id="csvDownload"
@@ -354,68 +375,77 @@ const OrderPage = () => {
           </div>
         </div>
 
-        {/* Table Section */}
-        {/* <div className="overflow-visible relative">*/}
-        <div className="bg-white p-4 rounded-lg overflow-visible">
-          <CustomTable
-            loading={isPending}
-            columns={columns}
-            data={filteredOrderData}
-          />
-        </div>
-
-        {!filteredOrderData?.length && !isPending ? (
-          <p className="flex-1 text-center text-sm md:text-sm">
-            No Order found.
-          </p>
-        ) : (
-          <></>
-        )}
-
-        {filteredOrderData?.length > 0 && (
-          <div className="flex justify-between items-center mt-4">
-            <div className="flex items-center">
-              <p className="text-sm text-gray-600">Items per page: </p>
-              <select
-                value={queryParams["pagination[limit]"] || 10}
-                onChange={(e) =>
-                  updateQueryParams({
-                    "pagination[limit]": +e.target.value,
-                  })
-                }
-                className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={15}>15</option>
-                <option value={20}>20</option>
-              </select>
-            </div>
-            <div className="flex gap-1">
-              <button
-                onClick={() => {
-                  updateQueryParams({
-                    "pagination[page]": +queryParams["pagination[page]"] - 1,
-                  });
-                }}
-                disabled={(queryParams["pagination[page]"] ?? 1) == 1}
-                className="px-3 py-1 rounded-md bg-gray-200"
-              >
-                ◀
-              </button>
-              <button
-                onClick={() => {
-                  updateQueryParams({
-                    "pagination[page]": +queryParams["pagination[page]"] + 1,
-                  });
-                }}
-                disabled={(queryParams["pagination[page]"] ?? 1) == totalPages}
-                className="px-3 py-1 rounded-md bg-gray-200"
-              >
-                ▶
-              </button>
-            </div>
+        {/* Table Section (Loader UI for fetching) */}
+        {isLoading || isPending ? (
+          <div className="flex flex-col items-center justify-center py-10">
+            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#A14DF6] mb-4"></div>
+            <div className="text-[#A14DF6] text-base font-medium">Loading orders...</div>
           </div>
+        ) : (
+          <>
+            <div className="bg-white p-4 rounded-lg overflow-visible">
+              <CustomTable
+                loading={false}
+                columns={columns}
+                data={filteredOrderData}
+              />
+            </div>
+
+            {!filteredOrderData?.length ? (
+              <p className="flex-1 text-center text-sm md:text-sm">
+                No Order found.
+              </p>
+            ) : null}
+
+            {filteredOrderData?.length > 0 && (
+              <div className="flex justify-between items-center mt-4">
+                <div className="flex items-center">
+                  <p className="text-sm text-gray-600">Items per page: </p>
+                  <select
+                    value={queryParams["pagination[limit]"] || 10}
+                    onChange={(e) =>
+                      updateQueryParams({
+                        "pagination[limit]": +e.target.value,
+                      })
+                    }
+                    className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
+                  >
+                    <option value={5}>5</option>
+                    <option value={10}>10</option>
+                    <option value={15}>15</option>
+                    <option value={20}>20</option>
+                  </select>
+                </div>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => {
+                      updateQueryParams({
+                        "pagination[page]": +queryParams["pagination[page]"] - 1,
+                      });
+                    }}
+                    disabled={(queryParams["pagination[page]"] ?? 1) === 1}
+                    className="px-3 py-1 rounded-md bg-gray-200"
+                  >
+                    ◀
+                  </button>
+                  <button
+                    onClick={() => {
+                      updateQueryParams({
+                        "pagination[page]": +queryParams["pagination[page]"] + 1,
+                      });
+                    }}
+                    disabled={
+                      (queryParams["pagination[page]"] ?? 1) === totalPages ||
+                      totalPages === 0
+                    }
+                    className="px-3 py-1 rounded-md bg-gray-200"
+                  >
+                    ▶
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

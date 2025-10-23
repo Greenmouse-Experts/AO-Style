@@ -75,6 +75,7 @@ export default function InboxPage() {
 
   const [currentView, setCurrentView] = useState("all");
   const totalPages = Math.ceil(totalUsers / usersPerPage);
+  const [currentSelectedChatTwo,setCurrentSelectedChatTwo] = useState("")
 
   const [currentSelectedChatMessages, setCurrentSelectedChatMessages] =
     useState();
@@ -494,6 +495,7 @@ export default function InboxPage() {
           if (data?.status === "success" && data?.data?.result) {
             const currentSelectedChat = selectedChatRef.current;
             console.log("Current selected chat:", currentSelectedChat);
+            setCurrentSelectedChatTwo(currentSelectedChat)
 
             const formattedMessages = data.data.result.map((msg) => ({
               id: msg.id,
@@ -854,7 +856,7 @@ export default function InboxPage() {
       } else {
         messageData = {
           token: adminToken,
-          chatBuddy: currentSelectedChatMessages.initiator_id,
+          chatBuddy: currentSelectedChatMessages?.initiator_id || currentSelectedChatTwo?.initiator_id,
           message: newMessage.trim(),
         };
       }
@@ -1159,7 +1161,7 @@ export default function InboxPage() {
                       </div>
                     ) : (
                       <>
-                        {messageList.map((msg) => (
+                        {messageList.slice().reverse().map((msg) => (
                           <div
                             key={msg.id}
                             className={`flex ${

@@ -21,8 +21,12 @@ import { useCarybinUserStore } from "../../../../store/carybinUserStore";
 import useGetUserProfile from "../../../Auth/hooks/useGetProfile";
 import useGetAdmins from "../../../../hooks/messaging/useGetAdmins";
 import useSendMessage from "../../../../hooks/messaging/useSendMessage";
+import { Eye } from "lucide-react";
+import {
+  ChatBubbleBottomCenterIcon,
+  ChatBubbleBottomCenterTextIcon,
+} from "@heroicons/react/24/outline";
 import { motion } from "framer-motion";
-import { ChatBubbleBottomCenterIcon, ChatBubbleBottomCenterTextIcon } from "@heroicons/react/24/outline";
 
 export default function InboxPage() {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -32,6 +36,7 @@ export default function InboxPage() {
   const [showSidebar, setShowSidebar] = useState(false);
   const [showNewMessageModal, setShowNewMessageModal] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState("");
+  const [showToAdminMessages, setShowToAdminMessages] = useState(false);
   const [messageText, setMessageText] = useState("");
   const dropdownRef = useRef(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -43,18 +48,18 @@ export default function InboxPage() {
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [chats, setChats] = useState([]);
-const [roleConversations, setRoleConversations] = useState([])
+  const [roleConversations, setRoleConversations] = useState([]);
   // User profile state
   const [userProfile, setUserProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
-  const [showToAdminMessages, setShowToAdminMessages] = useState(false);
+
   const { toastError, toastSuccess } = useToast();
   const userToken = Cookies.get("token");
   // Use profile ID instead of hardcoded ID
   const userId = userProfile?.id || null;
   const selectedChatRef = useRef(selectedChat);
 
-  // Get admins and send message hooks
+  // Fetch admins for messaging
   const {
     data: admins,
     isPending: adminsLoading,
@@ -63,6 +68,41 @@ const [roleConversations, setRoleConversations] = useState([])
 
   // Send message hook
   const { isPending: sendingMessage, sendMessageMutate } = useSendMessage();
+
+  // Handle sending message to admin via socket
+  const handleSendMessageToAdmin = () => {
+    if (!socket || !isConnected) {
+      toastError("Not connected to messaging service. Please try again.");
+      return;
+    }
+
+    const messageData = {
+      token: userToken,
+      initiator_id: profileData?.id,
+      target_role: "fashion-designer",
+      message: messageText.trim(),
+    };
+
+    socket.emit("sendMessageToAdmin", messageData);
+
+    toastSuccess("Message sent successfully!");
+    setShowNewMessageModal(false);
+    setMessageText("");
+    socket.emit("retrieveMessagesToAdmin", {
+      token: userToken,
+      target_role: "fashion-designer",
+    });
+
+    // Refresh chats with a delay to prevent duplicates
+    setTimeout(() => {
+      if (socket && userId) {
+        console.log("🔄 Refreshing chats after delay to sync with server");
+        socket.emit("getChats", { userId });
+      }
+    }, 1000);
+
+    console.log("✅ Message sent, local chat state updated");
+  };
 
   // Get user profile hook
   const {
@@ -73,7 +113,6 @@ const [roleConversations, setRoleConversations] = useState([])
     error: profileErrorData,
   } = useGetUserProfile();
 
-  console.log("This is the user profile", profileData)
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -91,41 +130,6 @@ const [roleConversations, setRoleConversations] = useState([])
       console.log("====================================");
     }
   }, [socket, isConnected, roleConversations]);
-
-  // Handle sending message to admin via socket
-  const handleSendMessageToAdmin = () => {
-    
-    if (!socket || !isConnected) {
-      toastError("Not connected to messaging service. Please try again.");
-      return;
-    }
-
-    const messageData = {
-      token: userToken,
-      initiator_id: profileData?.id,
-      target_role: "fashion-designer",
-      message: messageText.trim(),
-    };
-
-    socket.emit("sendMessageToAdmin", messageData);
-  
-    toastSuccess("Message sent successfully!");
-    setShowNewMessageModal(false);
-    setSelectedAdmin("");
-    setMessageText("");
-    socket.emit("retrieveMessagesToAdmin", {
-      token: userToken,
-      target_role: "fashion-designer",
-    });
-
-    // Refresh chats with a delay to prevent duplicates
-    setTimeout(() => {
-      if (socket && userId) {
-        console.log("🔄 Refreshing chats after delay to sync with server");
-        socket.emit("getChats", { userId });
-      }
-    }, 1000);
-  };
 
   useEffect(() => {
     scrollToBottom();
@@ -167,7 +171,7 @@ const [roleConversations, setRoleConversations] = useState([])
 
   // Initialize Socket.IO connection - Wait for profile to be loaded
   useEffect(() => {
-    console.log("=== INITIALIZING TAILOR SOCKET CONNECTION ===");
+    console.log("=== INITIALIZING CUSTOMER SOCKET CONNECTION ===");
     console.log("User token:", userToken);
     console.log("User ID from profile:", userId);
     console.log("Profile loading:", profileLoading);
@@ -180,7 +184,6 @@ const [roleConversations, setRoleConversations] = useState([])
       console.log("User token:", userToken);
       console.log("User ID:", userId);
       console.log("==========================================");
-
       const socketInstance = io("https://api-staging.carybin.com/", {
         auth: { token: userToken },
         transports: ["websocket", "polling"],
@@ -195,7 +198,7 @@ const [roleConversations, setRoleConversations] = useState([])
       });
 
       socketInstance.on("connect", () => {
-        console.log("=== TAILOR SOCKET CONNECTED ===");
+        console.log("=== CUSTOMER SOCKET CONNECTED ===");
         console.log("Socket ID:", socketInstance.id);
         console.log("Socket connected:", socketInstance.connected);
         console.log("User ID being used:", userId);
@@ -204,13 +207,12 @@ const [roleConversations, setRoleConversations] = useState([])
       });
 
       socketInstance.on("disconnect", (reason) => {
-        console.log("=== TAILOR SOCKET DISCONNECTED ===");
+        console.log("=== CUSTOMER SOCKET DISCONNECTED ===");
         console.log("Disconnect reason:", reason);
         console.log("User ID:", userId);
         console.log("=====================================");
         setIsConnected(false);
       });
-
       socketInstance.on(`messagesRetrievedToAdmin:${userId}`, (data) => {
         console.log(
           `=== ADMIN ROLE-SPECIFIC MESSAGES RETRIEVED (${userId}) ===`
@@ -221,32 +223,19 @@ const [roleConversations, setRoleConversations] = useState([])
 
       // Listen for user-specific message sent events
       socketInstance.on(`messageToAdminSent:${userId}`, (data) => {
-        console.log("🎉 === TAILOR MESSAGE SENT EVENT RECEIVED === 🎉");
+        console.log("🎉 === CUSTOMER MESSAGE SENT EVENT RECEIVED === 🎉");
         console.log("User ID:", userId);
         console.log("Raw data:", data);
         console.log("Formatted data:", JSON.stringify(data, null, 2));
         console.log("Status:", data?.status);
         console.log("Message:", data?.message);
         console.log("Data object:", data?.data);
-        console.log("🎉 =========================================== 🎉");
-        toastSuccess(data?.message || "Message delivered successfully");
-      });
-
-      // Listen for user-specific message sent events
-      socketInstance.on(`messageToAdminSent:${userId}`, (data) => {
-        console.log("🎉 === TAILOR MESSAGE SENT EVENT RECEIVED === 🎉");
-        console.log("User ID:", userId);
-        console.log("Raw data:", data);
-        console.log("Formatted data:", JSON.stringify(data, null, 2));
-        console.log("Status:", data?.status);
-        console.log("Message:", data?.message);
-        console.log("Data object:", data?.data);
-        console.log("🎉 ========================================= 🎉");
+        console.log("🎉 ============================================= 🎉");
         toastSuccess(data?.message || "Message delivered successfully");
       });
 
       socketInstance.on("chatsRetrieved", (data) => {
-        console.log("=== TAILOR CHATS RETRIEVED ON LOAD ===");
+        console.log("=== CHATS RETRIEVED ON LOAD ===");
         console.log("Full response:", JSON.stringify(data, null, 2));
         console.log("Status:", data?.status);
         console.log("Message:", data?.message);
@@ -265,16 +254,14 @@ const [roleConversations, setRoleConversations] = useState([])
       // Listen for user-specific chat events (as shown in Postman)
       if (userId) {
         console.log(
-          `🎯 Setting up user-specific event listeners for user: ${userId}`,
+          `🎯 Setting up user-specific event listeners for user: ${userId}`
         );
-        console.log(`🎯 Listening for: chatsRetrieved:${userId}`);
-        console.log(`🎯 Listening for: messagesRetrieved:${userId}`);
-        console.log(`🎯 Listening for: recentChatRetrieved:${userId}`);
+        console.log(`🎯 Listening for: chatsRetrieved.${userId}`);
+        console.log(`🎯 Listening for: messagesRetrieved.${userId}`);
+        console.log(`🎯 Listening for: recentChatRetrieved.${userId}`);
 
         socketInstance.on(`chatsRetrieved:${userId}`, (data) => {
-          console.log(
-            `=== TAILOR USER-SPECIFIC CHATS RETRIEVED (${userId}) ===`,
-          );
+          console.log(`=== USER-SPECIFIC CHATS RETRIEVED (${userId}) ===`);
           console.log("Full response:", JSON.stringify(data, null, 2));
           console.log("Status:", data?.status);
           console.log("Message:", data?.message);
@@ -289,11 +276,9 @@ const [roleConversations, setRoleConversations] = useState([])
             toastSuccess(data?.message || "Chats loaded successfully");
           }
         });
-
+        //I CHANGES THE EVENT HERE FROM messagesRetrieved
         socketInstance.on(`messagesRetrieved:${userId}`, (data) => {
-          console.log(
-            `=== TAILOR USER-SPECIFIC MESSAGES RETRIEVED (${userId}) ===`,
-          );
+          console.log(`=== USER-SPECIFIC MESSAGES RETRIEVED (${userId}) ===`);
           console.log("Full response:", JSON.stringify(data, null, 2));
           console.log("Status:", data?.status);
           console.log("Messages array:", data?.data?.result);
@@ -333,14 +318,14 @@ const [roleConversations, setRoleConversations] = useState([])
 
           socketInstance.on(eventName, (data) => {
             console.log(
-              `=== TAILOR CHAT-SPECIFIC MESSAGES RETRIEVED (${chatId}:${userId}) ===`,
+              `=== CHAT-SPECIFIC MESSAGES RETRIEVED (${chatId}:${userId}) ===`
             );
             console.log("Full response:", JSON.stringify(data, null, 2));
             console.log("Status:", data?.status);
             console.log("Messages array:", data?.data?.result);
             console.log("Selected chat from ref:", selectedChatRef.current);
             console.log(
-              "========================================================",
+              "========================================================"
             );
 
             if (data?.status === "success" && data?.data?.result) {
@@ -374,21 +359,22 @@ const [roleConversations, setRoleConversations] = useState([])
 
         socketInstance.on(`recentChatRetrieved:${userId}`, (data) => {
           console.log(
-            `=== TAILOR USER-SPECIFIC RECENT CHAT RETRIEVED (${userId}) ===`,
+            `=== USER-SPECIFIC RECENT CHAT RETRIEVED (${userId}) ===`
           );
           console.log("Chat data:", JSON.stringify(data, null, 2));
-          console.log(
-            "=============================================================",
-          );
+          console.log("=============================================");
 
           if (data?.data) {
             const currentSelectedChat = selectedChatRef.current;
 
             setChats((prevChats) => {
               const existingChatIndex = prevChats.findIndex(
-                (chat) => chat.id === data.data.id,
+                (chat) =>
+                  chat.id === data.data.id ||
+                  chat.chat_buddy?.id === data.data.chat_buddy?.id
               );
               if (existingChatIndex >= 0) {
+                console.log("🔄 Updating existing chat from socket event");
                 const updatedChats = [...prevChats];
                 updatedChats[existingChatIndex] = {
                   ...updatedChats[existingChatIndex],
@@ -397,6 +383,7 @@ const [roleConversations, setRoleConversations] = useState([])
                 };
                 return updatedChats;
               } else {
+                console.log("➕ Adding new chat from socket event");
                 return [data.data, ...prevChats];
               }
             });
@@ -407,10 +394,9 @@ const [roleConversations, setRoleConversations] = useState([])
               currentSelectedChat.id === data.data.id
             ) {
               console.log(
-                "🔄 Auto-refreshing messages for currently selected tailor chat (user-specific)",
+                "🔄 Auto-refreshing messages for currently selected chat (user-specific)"
               );
-              //changed this from retrieveMessages
-              socketInstance.emit("messagesRetrieved", {
+              socketInstance.emit("retrieveMessages", {
                 token: userToken,
                 chatBuddy: currentSelectedChat.chat_buddy.id,
               });
@@ -418,9 +404,9 @@ const [roleConversations, setRoleConversations] = useState([])
           }
         });
       }
-//changed this from messagesRetrieved
+
       socketInstance.on("messagesRetrieved", (data) => {
-        console.log("=== TAILOR MESSAGES RETRIEVED ===");
+        console.log("=== MESSAGES RETRIEVED ===");
         console.log("Full response:", JSON.stringify(data, null, 2));
         console.log("Status:", data?.status);
         console.log("Messages array:", data?.data?.result);
@@ -453,18 +439,23 @@ const [roleConversations, setRoleConversations] = useState([])
       });
 
       socketInstance.on("recentChatRetrieved", (data) => {
-        console.log("=== TAILOR GENERAL RECENT CHAT RETRIEVED ===");
+        console.log("=== RECENT CHAT RETRIEVED ===");
         console.log("Chat data:", JSON.stringify(data, null, 2));
-        console.log("====================================");
+        console.log("============================");
 
         if (data?.data) {
           const currentSelectedChat = selectedChatRef.current;
 
           setChats((prevChats) => {
             const existingChatIndex = prevChats.findIndex(
-              (chat) => chat.id === data.data.id,
+              (chat) =>
+                chat.id === data.data.id ||
+                chat.chat_buddy?.id === data.data.chat_buddy?.id
             );
             if (existingChatIndex >= 0) {
+              console.log(
+                "🔄 Updating existing chat from general socket event"
+              );
               const updatedChats = [...prevChats];
               updatedChats[existingChatIndex] = {
                 ...updatedChats[existingChatIndex],
@@ -473,6 +464,7 @@ const [roleConversations, setRoleConversations] = useState([])
               };
               return updatedChats;
             } else {
+              console.log("➕ Adding new chat from general socket event");
               return [data.data, ...prevChats];
             }
           });
@@ -480,7 +472,7 @@ const [roleConversations, setRoleConversations] = useState([])
           // Auto-refresh messages if this chat is currently selected
           if (currentSelectedChat && currentSelectedChat.id === data.data.id) {
             console.log(
-              "🔄 Auto-refreshing messages for currently selected tailor chat (general event)",
+              "🔄 Auto-refreshing messages for currently selected chat"
             );
             socketInstance.emit("retrieveMessages", {
               token: userToken,
@@ -491,15 +483,16 @@ const [roleConversations, setRoleConversations] = useState([])
       });
 
       socketInstance.on("connect_error", (error) => {
-        console.error("=== TAILOR SOCKET CONNECTION ERROR ===");
+        console.error("=== CUSTOMER SOCKET CONNECTION ERROR ===");
         console.error("Error:", error);
         console.error("Error message:", error.message);
         console.error("========================================");
       });
+
       setSocket(socketInstance);
 
       return () => {
-        console.log("=== CLEANING UP TAILOR SOCKET ===");
+        console.log("=== CLEANING UP CUSTOMER SOCKET ===");
         console.log("User ID:", userId);
         socketInstance.disconnect();
         console.log("====================================");
@@ -574,7 +567,7 @@ const [roleConversations, setRoleConversations] = useState([])
   const sendMessage = () => {
     if (!newMessage.trim() || !selectedChat) return;
 
-    console.log("=== TAILOR SENDING MESSAGE VIA SOCKET ===");
+    console.log("=== CUSTOMER SENDING MESSAGE VIA SOCKET ===");
     console.log("Socket ID:", socket?.id);
     console.log("Selected chat:", selectedChat.id);
     console.log("Message:", newMessage);
@@ -648,7 +641,7 @@ const [roleConversations, setRoleConversations] = useState([])
             <h1 className="text-2xl font-bold text-gray-800">Inbox</h1>
             <p className="text-sm text-gray-500 mt-1">
               <Link
-                to="/tailor"
+                to="/customer"
                 className="text-purple-600 hover:text-purple-700 transition-colors"
               >
                 Dashboard
@@ -657,7 +650,6 @@ const [roleConversations, setRoleConversations] = useState([])
               <span>Inbox</span>
             </p>
           </div>
-          <div className="flex items-center space-x-2">
           <div className="flex items-center space-x-2">
             <motion.button
               whileTap={{ scale: 0.95 }}
@@ -682,7 +674,6 @@ const [roleConversations, setRoleConversations] = useState([])
               View messages to admin
             </motion.button>
           </div>
-          </div>
         </div>
       </div>
 
@@ -701,7 +692,7 @@ const [roleConversations, setRoleConversations] = useState([])
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => setShowNewMessageModal(true)}
-                  className="text-white hover:text-gray-200 transition-colors p-1.5 bg-purple-600 rounded-full"
+                  className="cursor-pointer text-white hover:text-gray-200 transition-colors p-1.5 bg-purple-600 rounded-full"
                   title="New Message"
                 >
                   <FaPlus size={14} />
@@ -786,7 +777,7 @@ const [roleConversations, setRoleConversations] = useState([])
                           </h4>
                           <span className="text-xs text-gray-500 ml-2">
                             {new Date(
-                              chat.created_at || Date.now(),
+                              chat.created_at || Date.now()
                             ).toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",
@@ -873,7 +864,7 @@ const [roleConversations, setRoleConversations] = useState([])
                 </div>
               ) : (
                 <>
-                  {messageList.map((msg) => (
+                  {messageList?.map((msg) => (
                     <div
                       key={msg.id}
                       className={`flex ${
@@ -1061,18 +1052,14 @@ const [roleConversations, setRoleConversations] = useState([])
               </button>
               <button
                 onClick={handleSendMessageToAdmin}
-                disabled={
-                  !messageText.trim() ||
-                  !isConnected ||
-                  sendingMessage
-                }
+                disabled={!messageText.trim() || !isConnected || sendingMessage}
                 className="cursor-pointer px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {sendingMessage
                   ? "Sending..."
                   : !isConnected
-                    ? "Connecting..."
-                    : "Send Message"}
+                  ? "Connecting..."
+                  : "Send Message"}
               </button>
             </div>
           </div>
@@ -1086,7 +1073,10 @@ const [roleConversations, setRoleConversations] = useState([])
           transition={{ type: "spring", stiffness: 350, damping: 30 }}
           className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-40 flex justify-center items-center z-50"
         >
-          <div className="bg-white p-8 rounded-lg max-w-xl w-full shadow-lg my-10" style={{ maxHeight: "80vh" }}>
+          <div
+            className="bg-white p-8 rounded-lg max-w-xl w-full shadow-lg my-10"
+            style={{ maxHeight: "80vh" }}
+          >
             <h2 className="text-2xl font-bold mb-3 text-purple-700 flex items-center gap-2">
               <ChatBubbleBottomCenterIcon className="h-7 w-7 text-purple-500" />
               Messages to Admin
@@ -1102,8 +1092,8 @@ const [roleConversations, setRoleConversations] = useState([])
                 style={{
                   maxHeight: "45vh",
                   minHeight: "120px",
-                  scrollbarWidth: "thin",           // For Firefox
-                  scrollbarColor: "#a78bfa #f3f4f6" // For Firefox (thumb and track)
+                  scrollbarWidth: "thin", // For Firefox
+                  scrollbarColor: "#a78bfa #f3f4f6", // For Firefox (thumb and track)
                 }}
               >
                 <style>

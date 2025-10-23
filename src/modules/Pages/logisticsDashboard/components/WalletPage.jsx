@@ -102,6 +102,21 @@ const WalletPage = ({
   const { data: vendorSummary } = useVendorSummaryStat();
   const { data: withdrawalData } = useFetchWithdrawal({ limit: 10 });
 
+  const {
+    data: logisticsSum,
+    isLoading: sumLoading,
+    isFetching: sumFetching,
+  } = useQuery({
+    queryKey: ["logistics-sum"],
+    queryFn: async () => {
+      let resp = await CaryBinApi.get(
+        `/vendor-analytics/logistics-summary`,
+      );
+      console.log("This is the summary for log", resp.data);
+      return resp.data?.data;
+    },
+  });
+
   // Calculate total income from vendor summary
   const totalIncome = vendorSummary?.data?.totalIncome || 0;
 
@@ -151,7 +166,7 @@ const WalletPage = ({
           <div>
             <p className="text-green-600 text-sm">INCOME</p>
             <p className="font-semibold animate-fade-in-up">
-              ₦ {formatNumberWithCommas(totalIncome)}
+              ₦ {formatNumberWithCommas(logisticsSum?.total_income)}
             </p>
           </div>
         </div>
@@ -162,7 +177,7 @@ const WalletPage = ({
           <div>
             <p className="text-red-600 text-sm">WITHDRAWALS</p>
             <p className="font-semibold animate-fade-in-up">
-              {(totalWithdrawals)}
+              {(logisticsSum?.total_withdrawals)}
             </p>
           </div>
         </div>

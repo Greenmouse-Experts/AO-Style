@@ -3,6 +3,8 @@ import { FaEye, FaEyeSlash, FaArrowUp, FaArrowDown } from "react-icons/fa";
 
 import useMarketRepWalletData from "../../../../hooks/marketRep/useMarketRepWalletData";
 import TransactionDetailsModal from "../../../../components/modals/TransactionDetailsModal";
+import CaryBinApi from "../../../../services/CarybinBaseUrl";
+import { useQuery } from "@tanstack/react-query";
 
 const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
   const [showBalance, setShowBalance] = useState(true);
@@ -20,6 +22,16 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
 
   console.log("🏦 WalletPage - Using comprehensive wallet data");
   console.log("💰 WalletPage - Wallet Metrics:", walletMetrics);
+
+  const {data: repSum, isFetching, isLoading: tailorStatsLoading} = useQuery({
+    queryKey: ["rep-sum"],
+    queryFn: async()=>{
+      let response = await CaryBinApi.get(`/market-rep-analytics/summary`)
+      console.log("This is the rep sum response", response)
+      return response?.data?.data
+    }
+  })
+
 
   // Handle transaction click
   const handleTransactionClick = (transactionId) => {
@@ -71,7 +83,7 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
             <p className="font-semibold animate-fade-in-up">
               {loadingStates.analytics
                 ? "Loading..."
-                : formatAmount(walletMetrics?.totalIncome)}
+                : formatAmount(repSum?.total_income)}
             </p>
           </div>
         </div>
@@ -84,7 +96,7 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
             <p className="font-semibold animate-fade-in-up">
               {loadingStates.withdrawals
                 ? "Loading..."
-                : formatAmount(walletMetrics?.totalWithdrawals)}
+                : formatAmount(repSum?.total_withdrawals)}
             </p>
           </div>
         </div>

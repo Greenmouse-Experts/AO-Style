@@ -20,6 +20,11 @@ import { useId } from "react";
 import { useCarybinUserStore } from "../../../../store/carybinUserStore";
 import useGetUserProfile from "../../../Auth/hooks/useGetProfile";
 import useSendMessage from "../../../../hooks/messaging/useSendMessage";
+import {
+  ChatBubbleBottomCenterTextIcon,
+  ChatBubbleBottomCenterIcon,
+} from "@heroicons/react/24/outline";
+import { motion } from "framer-motion";
 
 export default function InboxPage() {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -35,6 +40,8 @@ export default function InboxPage() {
   const [messageText, setMessageText] = useState("");
   const { carybinUser, logOut } = useCarybinUserStore();
   const { isPending: sendingMessage, sendMessageMutate } = useSendMessage();
+  const [showToAdminMessages, setShowToAdminMessages] = useState(false);
+  const [roleConversations, setRoleConversations] = useState([]);
 
   // Socket and messaging states
   const [socket, setSocket] = useState(null);
@@ -123,6 +130,10 @@ export default function InboxPage() {
     toastSuccess("Message sent successfully!");
     setShowNewMessageModal(false);
     setMessageText("");
+    socket.emit("retrieveMessagesToAdmin", {
+      token: userToken,
+      target_role: "market-representative",
+    });
 
     // Refresh chats with a delay to prevent duplicates
     setTimeout(() => {
@@ -132,6 +143,19 @@ export default function InboxPage() {
       }
     }, 1000);
   };
+
+  useEffect(() => {
+    if (socket && isConnected) {
+      console.log("=== FETCHING admin MESSAGES VIA SOCKET ===");
+
+      socket.emit("retrieveMessagesToAdmin", {
+        token: userToken,
+        target_role: "market-representative",
+      });
+
+      console.log("====================================");
+    }
+  }, [socket, isConnected, roleConversations]);
 
   // Initialize Socket.IO connection - Wait for profile to be loaded
   useEffect(() => {
@@ -178,6 +202,14 @@ export default function InboxPage() {
         console.log("Data object:", data?.data);
         console.log("🎉 =========================================== 🎉");
         toastSuccess(data?.message || "Message delivered successfully");
+      });
+
+      socketInstance.on(`messagesRetrievedToAdmin:${userId}`, (data) => {
+        console.log(
+          `=== ADMIN ROLE-SPECIFIC MESSAGES RETRIEVED (${userId}) ===`
+        );
+        console.log("Full response:", data);
+        setRoleConversations(data?.data?.result);
       });
 
       // Listen for user-specific message sent events
@@ -679,19 +711,33 @@ export default function InboxPage() {
       >
         {/* Header */}
         <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col gap-2 items-center justify-between mb-4">
             <h1 className="text-xl font-semibold text-gray-800">Messages</h1>
             <div className="flex items-center space-x-2">
               {/* Connection Status Indicator */}
-              <div className="flex items-center space-x-1">
-                <FaCircle
-                  className={`text-xs ${isConnected ? "text-green-500" : "text-red-500"}`}
-                />
-                <span
-                  className={`text-xs ${isConnected ? "text-green-600" : "text-red-600"}`}
+              <div>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  className={` cursor-pointer flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
+                    profileLoading
+                      ? "bg-yellow-100 text-yellow-700"
+                      : isConnected
+                      ? "bg-purple-100 text-purple-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                  onClick={() => setShowToAdminMessages(true)}
                 >
-                  {isConnected ? "Connected" : "Disconnected"}
-                </span>
+                  <ChatBubbleBottomCenterTextIcon className="h-5 mr-2" />
+                  {/* <FaCircle size={8} /> */}
+                  {/* <span>
+                {profileLoading
+                  ? "Loading..."
+                  : isConnected
+                  ? "Online"
+                  : "Offline"}
+              </span> */}
+                  View messages to admin
+                </motion.button>
               </div>
               <button className="cursor-pointer p-2 hover:bg-gray-100 rounded-full" onClick={()=>setShowNewMessageModal(true)}>
                 <FaPlus className="w-5 h-5 text-gray-600" />
@@ -988,6 +1034,91 @@ export default function InboxPage() {
           </div>
         </div>
       )}
+      {showToAdminMessages && (
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.98 }}
+            transition={{ type: "spring", stiffness: 350, damping: 30 }}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-40 flex justify-center items-center z-50"
+          >
+            <div
+              className="bg-white p-8 rounded-lg max-w-xl w-full shadow-lg my-10"
+              style={{ maxHeight: "80vh" }}
+            >
+              <h2 className="text-2xl font-bold mb-3 text-purple-700 flex items-center gap-2">
+                <ChatBubbleBottomCenterIcon className="h-7 w-7 text-purple-500" />
+                Messages to Admin
+              </h2>
+              <div className="mt-2">
+                <p className="text-gray-600 mb-5">
+                  Here are the messages you initiated to customer admins. as
+                  soon as an admin responds, they automatically go to your inbox
+                </p>
+                {/* Messages list ONLY is scrollable */}
+                <div
+                  className="overflow-auto"
+                  style={{
+                    maxHeight: "45vh",
+                    minHeight: "120px",
+                    scrollbarWidth: "thin", // For Firefox
+                    scrollbarColor: "#a78bfa #f3f4f6", // For Firefox (thumb and track)
+                  }}
+                >
+                  <style>
+                    {`
+                    /* For Chrome, Edge, and Safari */
+                    .overflow-auto::-webkit-scrollbar {
+                      width: 6px;
+                    }
+                    .overflow-auto::-webkit-scrollbar-thumb {
+                      background: #a78bfa;
+                      border-radius: 3px;
+                    }
+                    .overflow-auto::-webkit-scrollbar-track {
+                      background: #f3f4f6;
+                      border-radius: 3px;
+                    }
+                  `}
+                  </style>
+                  {roleConversations?.map((message) => (
+                    <div
+                      key={message.id}
+                      className="mb-4 p-3 bg-gray-100 rounded-md shadow-sm text-sm flex flex-col"
+                    >
+                      <span className="font-semibold text-purple-700">
+                        {message.initiator?.name || message.sender || "You"}
+                      </span>
+                      <span className="mt-1 text-gray-800">
+                        {message.message || message.text}
+                      </span>
+                      <span className="mt-1 text-gray-500 text-xs self-end">
+                        {message.created_at
+                          ? new Date(message.created_at).toLocaleTimeString(
+                              [],
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true,
+                              }
+                            )
+                          : message.time || ""}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-6 flex justify-end">
+                <button
+                  className="cursor-pointer px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded transition"
+                  onClick={() => setShowToAdminMessages(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </div>
     </div>
   );

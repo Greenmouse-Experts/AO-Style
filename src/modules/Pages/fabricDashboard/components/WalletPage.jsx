@@ -5,6 +5,8 @@ import useGetBusinessDetails from "../../../../hooks/settings/useGetBusinessDeta
 import useVendorSummaryStat from "../../../../hooks/analytics/useGetVendorSummmary";
 import useFetchWithdrawal from "../../../../hooks/withdrawal/useFetchWithdrawal";
 import { formatNumberWithCommas } from "../../../../lib/helper";
+import { useQuery } from "@tanstack/react-query";
+import CaryBinApi from "../../../../services/CarybinBaseUrl";
 
 const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
   const [showBalance, setShowBalance] = useState(true);
@@ -12,6 +14,21 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
   const { data: businessData } = useGetBusinessDetails();
   const { data: vendorSummary } = useVendorSummaryStat();
   const { data: withdrawalData } = useFetchWithdrawal({ limit: 10 });
+
+  const {
+    data: fabSum,
+    isLoading: sumLoading,
+    isFetching: sumFetching,
+  } = useQuery({
+    queryKey: ["logistics-sum"],
+    queryFn: async () => {
+      let resp = await CaryBinApi.get(
+        `/vendor-analytics/logistics-summary`,
+      );
+      console.log("This is the summary for fabric", resp.data);
+      return resp.data?.data;
+    },
+  });
 
   console.log("This is the vendor summary", vendorSummary);
   const businessWallet = businessData?.data?.business_wallet?.balance;
@@ -70,7 +87,7 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
           <div>
             <p className="text-green-600 text-sm">INCOME</p>
             <p className="font-semibold animate-fade-in-up">
-              ₦ {formatNumberWithCommas(totalIncome)}
+              ₦ {formatNumberWithCommas(fabSum?.total_income)}
             </p>
           </div>
         </div>
@@ -81,7 +98,7 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
           <div>
             <p className="text-red-600 text-sm">WITHDRAWALS</p>
             <p className="font-semibold animate-fade-in-up">
-              {totalWithdrawals}
+              {fabSum?.total_withdrawals}
             </p>
           </div>
         </div>

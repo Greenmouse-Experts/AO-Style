@@ -357,7 +357,8 @@ export default function InboxPage() {
           const currentSelectedChat = selectedChatRef.current;
           console.log("Current selected chat:", currentSelectedChat);
           setCurrentSelectedChatMessages(currentSelectedChat);
-
+          console.log("This is the currentSelectedChatMessages", currentSelectedChatMessages)
+          console.log("This is the currentSelectedChatMessagesTwo", currentSelectedChatTwo)
           const formattedMessages = data.data.result.map((msg) => ({
             id: msg.id,
             sender: msg.initiator?.name || "Unknown",
@@ -856,7 +857,7 @@ export default function InboxPage() {
       } else {
         messageData = {
           token: adminToken,
-          chatBuddy: currentSelectedChatMessages?.initiator_id || currentSelectedChatTwo?.initiator_id,
+          chatBuddy: currentView === "all" ? selectedChatRef?.current?.chat_buddy_id : selectedChatRef?.current?.initiator_id,
           message: newMessage.trim(),
         };
       }
@@ -879,8 +880,13 @@ export default function InboxPage() {
       setMessageList((prev) => [...prev, newMsg]);
       setNewMessage("");
       toastSuccess("Message sent successfully!");
-      setCurrentView("all");
-      setSelectedChat(null);
+      if(currentView === "all"){
+        return
+      }else{
+        setCurrentView("all");
+        setSelectedChat(null);
+      }
+
     } else {
       console.error("=== SOCKET NOT CONNECTED ===");
       console.error("Socket exists:", !!socket);
@@ -934,7 +940,7 @@ export default function InboxPage() {
                 All Inbox
               </button>
               <button
-                className={`cursor-pointer px-6 py-2 rounded-t-full transition-colors duration-200 text-sm font-semibold focus:outline-none ${
+                className={`relative cursor-pointer px-6 py-2 rounded-t-full transition-colors duration-200 text-sm font-semibold focus:outline-none ${
                   currentView === "role"
                     ? "bg-purple-600 text-white shadow"
                     : "text-gray-700 hover:bg-gray-300"
@@ -948,6 +954,11 @@ export default function InboxPage() {
                 aria-pressed={currentView === "role"}
               >
                 {getUserAdminRole()} Inbox
+                {roleConversations?.length > 0 && (
+                  <span className="absolute top-1 right-0 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow animate-pulse">
+                    {roleConversations.length}
+                  </span>
+                )}
               </button>
             </div>
           </div>

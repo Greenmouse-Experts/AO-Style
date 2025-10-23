@@ -29,7 +29,7 @@ export default function TransactionPage() {
   const { data: businessData } = useGetBusinessDetails();
   const businessWallet = businessData?.data?.business_wallet;
 
-  const currentYear = new Date().getFullYear();
+  // const currentYear = new Date().getFullYear();
   const {
     data: graphData,
     isLoading: graphDataLoading,

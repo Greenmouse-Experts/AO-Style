@@ -6,7 +6,8 @@ import { GeneralTransactionComponent } from "../../../components/GeneralTransact
 import WalletPage from "./components/WalletPage";
 import WithdrawalModal from "./components/WithdrawalModal";
 import ViewWithdrawalsModal from "./components/ViewWithdrawalsModal";
-import BarChartComponent from "../salesDashboard/components/BarChartComponent";
+// import BarChartComponent from "../salesDashboard/components/BarChartComponent";
+import BarChartComponent from "./components/BarChartComponent"
 import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails";
 import Cards from "./components/Cards";
 import useVendorSummaryStat from "../../../hooks/analytics/useGetVendorSummmary";
@@ -31,7 +32,7 @@ const currentYear = new Date().getFullYear()
     queryFn: async()=>{
       let response = await CaryBinApi.get(`/vendor-analytics/logistics-monthly-revenue?year=${currentYear}`)
       console.log("This is the tailor graph response", response)
-      return response
+      return response?.data?.data
     }
   })
 
@@ -60,7 +61,7 @@ const currentYear = new Date().getFullYear()
       {/* <Cards vendorSummaryStat={vendorSummaryStat?.data} />*/}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 mb-6">
         <div className="lg:col-span-2">
-          <BarChartComponent />
+          <BarChartComponent data={tailorStats}/>
         </div>
         <div className="lg:col-span-1">
           <WalletPage

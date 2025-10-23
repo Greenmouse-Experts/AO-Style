@@ -20,6 +20,11 @@ import { useId } from "react";
 import { useCarybinUserStore } from "../../../../store/carybinUserStore";
 import useGetUserProfile from "../../../Auth/hooks/useGetProfile";
 import useSendMessage from "../../../../hooks/messaging/useSendMessage";
+import {
+  ChatBubbleBottomCenterTextIcon,
+  ChatBubbleBottomCenterIcon,
+} from "@heroicons/react/24/outline";
+import { motion } from "framer-motion";
 
 export default function InboxPage() {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -35,6 +40,8 @@ export default function InboxPage() {
   const [messageText, setMessageText] = useState("");
   const { isPending: sendingMessage, sendMessageMutate } = useSendMessage();
   const { carybinUser, logOut } = useCarybinUserStore();
+  const [showToAdminMessages, setShowToAdminMessages] = useState(false);
+  const [roleConversations, setRoleConversations] = useState([]);
 
   // Socket and messaging states
   const [socket, setSocket] = useState(null);
@@ -75,7 +82,6 @@ export default function InboxPage() {
   }, [selectedChat]);
 
   const handleSendMessageToAdmin = () => {
-
     if (!socket || !isConnected) {
       toastError("Not connected to messaging service. Please try again.");
       return;
@@ -88,11 +94,15 @@ export default function InboxPage() {
       message: messageText.trim(),
     };
 
-    socket.emit("sendMessageToAdmin", messageData);   
+    socket.emit("sendMessageToAdmin", messageData);
 
     toastSuccess("Message sent successfully!");
     setShowNewMessageModal(false);
     setMessageText("");
+    socket.emit("retrieveMessagesToAdmin", {
+      token: userToken,
+      target_role: "logistics-agent",
+    });
 
     // Refresh chats with a delay to prevent duplicates
     setTimeout(() => {
@@ -102,6 +112,19 @@ export default function InboxPage() {
       }
     }, 1000);
   };
+
+  useEffect(() => {
+    if (socket && isConnected) {
+      console.log("=== FETCHING admin MESSAGES VIA SOCKET ===");
+
+      socket.emit("retrieveMessagesToAdmin", {
+        token: userToken,
+        target_role: "logistics-agent",
+      });
+
+      console.log("====================================");
+    }
+  }, [socket, isConnected, roleConversations]);
 
   // Handle profile loading and setting user profile state
   useEffect(() => {
@@ -131,8 +154,6 @@ export default function InboxPage() {
     profileErrorData,
     profilePending,
   ]);
-  
-
 
   // Initialize Socket.IO connection - Wait for profile to be loaded
   useEffect(() => {
@@ -173,6 +194,14 @@ export default function InboxPage() {
         console.log("User ID:", userId);
         console.log("=====================================");
         setIsConnected(false);
+      });
+
+      socketInstance.on(`messagesRetrievedToAdmin:${userId}`, (data) => {
+        console.log(
+          `=== ADMIN ROLE-SPECIFIC MESSAGES RETRIEVED (${userId}) ===`
+        );
+        console.log("Full response:", data);
+        setRoleConversations(data?.data?.result);
       });
 
       // Listen for user-specific message sent events
@@ -221,7 +250,7 @@ export default function InboxPage() {
       // Listen for user-specific chat events
       if (userId) {
         console.log(
-          `🎯 Setting up logistics user-specific event listeners for user: ${userId}`,
+          `🎯 Setting up logistics user-specific event listeners for user: ${userId}`
         );
         console.log(`🎯 Listening for: chatsRetrieved.${userId}`);
         console.log(`🎯 Listening for: messagesRetrieved.${userId}`);
@@ -229,14 +258,14 @@ export default function InboxPage() {
 
         socketInstance.on(`chatsRetrieved:${userId}`, (data) => {
           console.log(
-            `=== LOGISTICS USER-SPECIFIC CHATS RETRIEVED (${userId}) ===`,
+            `=== LOGISTICS USER-SPECIFIC CHATS RETRIEVED (${userId}) ===`
           );
           console.log("Full response:", JSON.stringify(data, null, 2));
           console.log("Status:", data?.status);
           console.log("Message:", data?.message);
           console.log("Result array:", data?.data?.result);
           console.log(
-            "===========================================================",
+            "==========================================================="
           );
 
           if (data?.status === "success" && data?.data?.result) {
@@ -250,14 +279,14 @@ export default function InboxPage() {
 
         socketInstance.on(`messagesRetrieved:${userId}`, (data) => {
           console.log(
-            `=== LOGISTICS USER-SPECIFIC MESSAGES RETRIEVED (${userId}) ===`,
+            `=== LOGISTICS USER-SPECIFIC MESSAGES RETRIEVED (${userId}) ===`
           );
           console.log("Full response:", JSON.stringify(data, null, 2));
           console.log("Status:", data?.status);
           console.log("Messages array:", data?.data?.result);
           console.log("Selected chat from ref:", selectedChatRef.current);
           console.log(
-            "============================================================",
+            "============================================================"
           );
 
           if (data?.status === "success" && data?.data?.result) {
@@ -284,7 +313,7 @@ export default function InboxPage() {
             console.log("Formatted messages with types:", formattedMessages);
             // Sort messages by created_at (oldest first for chat display)
             const sortedMessages = formattedMessages.sort(
-              (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
+              (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
             );
             setMessageList(sortedMessages);
           }
@@ -298,14 +327,14 @@ export default function InboxPage() {
 
           socketInstance.on(eventName, (data) => {
             console.log(
-              `=== LOGISTICS CHAT-SPECIFIC MESSAGES RETRIEVED (${chatId}:${userId}) ===`,
+              `=== LOGISTICS CHAT-SPECIFIC MESSAGES RETRIEVED (${chatId}:${userId}) ===`
             );
             console.log("Full response:", JSON.stringify(data, null, 2));
             console.log("Status:", data?.status);
             console.log("Messages array:", data?.data?.result);
             console.log("Selected chat from ref:", selectedChatRef.current);
             console.log(
-              "====================================================================",
+              "===================================================================="
             );
 
             if (data?.status === "success" && data?.data?.result) {
@@ -332,7 +361,7 @@ export default function InboxPage() {
               console.log("Formatted messages with types:", formattedMessages);
               // Sort messages by created_at (oldest first for chat display)
               const sortedMessages = formattedMessages.sort(
-                (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
+                (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
               );
               setMessageList(sortedMessages);
             }
@@ -344,11 +373,11 @@ export default function InboxPage() {
 
         socketInstance.on(`recentChatRetrieved:${userId}`, (data) => {
           console.log(
-            `=== LOGISTICS USER-SPECIFIC RECENT CHAT RETRIEVED (${userId}) ===`,
+            `=== LOGISTICS USER-SPECIFIC RECENT CHAT RETRIEVED (${userId}) ===`
           );
           console.log("Chat data:", JSON.stringify(data, null, 2));
           console.log(
-            "===========================================================",
+            "==========================================================="
           );
 
           if (data?.data) {
@@ -356,7 +385,7 @@ export default function InboxPage() {
 
             setChats((prevChats) => {
               const existingChatIndex = prevChats.findIndex(
-                (chat) => chat.id === data.data.id,
+                (chat) => chat.id === data.data.id
               );
               if (existingChatIndex >= 0) {
                 const updatedChats = [...prevChats];
@@ -380,7 +409,7 @@ export default function InboxPage() {
               currentSelectedChat.id === data.data.id
             ) {
               console.log(
-                "🔄 Auto-refreshing messages for currently selected logistics chat (user-specific)",
+                "🔄 Auto-refreshing messages for currently selected logistics chat (user-specific)"
               );
               socketInstance.emit("retrieveMessages", {
                 token: userToken,
@@ -423,7 +452,7 @@ export default function InboxPage() {
           console.log("Formatted messages with types:", formattedMessages);
           // Sort messages by created_at (oldest first for chat display)
           const sortedMessages = formattedMessages.sort(
-            (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
+            (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
           );
           setMessageList(sortedMessages);
         }
@@ -439,7 +468,7 @@ export default function InboxPage() {
 
           setChats((prevChats) => {
             const existingChatIndex = prevChats.findIndex(
-              (chat) => chat.id === data.data.id,
+              (chat) => chat.id === data.data.id
             );
             if (existingChatIndex >= 0) {
               const updatedChats = [...prevChats];
@@ -460,7 +489,7 @@ export default function InboxPage() {
           // Auto-refresh messages if this chat is currently selected
           if (currentSelectedChat && currentSelectedChat.id === data.data.id) {
             console.log(
-              "🔄 Auto-refreshing messages for currently selected logistics chat",
+              "🔄 Auto-refreshing messages for currently selected logistics chat"
             );
             socketInstance.emit("retrieveMessages", {
               token: userToken,
@@ -577,7 +606,7 @@ export default function InboxPage() {
       // Update chat list to move this chat to top with latest message
       setChats((prevChats) => {
         const currentChatIndex = prevChats.findIndex(
-          (chat) => chat.id === selectedChat.id,
+          (chat) => chat.id === selectedChat.id
         );
         if (currentChatIndex >= 0) {
           const updatedChats = [...prevChats];
@@ -687,21 +716,37 @@ export default function InboxPage() {
       >
         {/* Header */}
         <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col gap-2 items-center justify-between mb-4">
             <h1 className="text-xl font-semibold text-gray-800">Messages</h1>
             <div className="flex items-center space-x-2">
-              {/* Connection Status Indicator */}
-              <div className="flex items-center space-x-1">
-                <FaCircle
-                  className={`text-xs ${isConnected ? "text-green-500" : "text-red-500"}`}
-                />
-                <span
-                  className={`text-xs ${isConnected ? "text-green-600" : "text-red-600"}`}
+              <div>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  className={` cursor-pointer flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
+                    profileLoading
+                      ? "bg-yellow-100 text-yellow-700"
+                      : isConnected
+                      ? "bg-purple-100 text-purple-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                  onClick={() => setShowToAdminMessages(true)}
                 >
-                  {isConnected ? "Connected" : "Disconnected"}
-                </span>
+                  <ChatBubbleBottomCenterTextIcon className="h-5 mr-2" />
+                  {/* <FaCircle size={8} /> */}
+                  {/* <span>
+                {profileLoading
+                  ? "Loading..."
+                  : isConnected
+                  ? "Online"
+                  : "Offline"}
+              </span> */}
+                  View messages to admin
+                </motion.button>
               </div>
-              <button className="cursor-pointer p-2 hover:bg-gray-100 rounded-full" onClick={()=>setShowNewMessageModal(true)}>
+              <button
+                className="cursor-pointer p-2 hover:bg-gray-100 rounded-full"
+                onClick={() => setShowNewMessageModal(true)}
+              >
                 <FaPlus className="w-5 h-5 text-gray-600" />
               </button>
             </div>
@@ -746,7 +791,7 @@ export default function InboxPage() {
                       <span className="text-xs text-gray-500">
                         {chat.updated_at || chat.created_at
                           ? new Date(
-                              chat.updated_at || chat.created_at,
+                              chat.updated_at || chat.created_at
                             ).toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",
@@ -931,71 +976,154 @@ export default function InboxPage() {
           </div>
         )}
         {showNewMessageModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-md">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  New Message to Admins
-                </h3>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg w-full max-w-md">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    New Message to Admins
+                  </h3>
+                  <button
+                    onClick={() => {
+                      setShowNewMessageModal(false);
+                      setMessageText("");
+                    }}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <FaTimes size={20} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4">
+                {/* Message Input */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Message
+                  </label>
+                  <textarea
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    placeholder="Type your message here..."
+                    rows={4}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                  />
+                </div>
+              </div>
+
+              <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
                 <button
                   onClick={() => {
                     setShowNewMessageModal(false);
                     setMessageText("");
                   }}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                  disabled={sendingMessage}
                 >
-                  <FaTimes size={20} />
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSendMessageToAdmin}
+                  disabled={
+                    !messageText.trim() || !isConnected || sendingMessage
+                  }
+                  className="cursor-pointer px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {sendingMessage
+                    ? "Sending..."
+                    : !isConnected
+                    ? "Connecting..."
+                    : "Send Message"}
                 </button>
               </div>
             </div>
-
-            <div className="p-6 space-y-4">
-              {/* Message Input */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Message
-                </label>
-                <textarea
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  placeholder="Type your message here..."
-                  rows={4}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                />
+          </div>
+        )}
+        {showToAdminMessages && (
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.98 }}
+            transition={{ type: "spring", stiffness: 350, damping: 30 }}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-40 flex justify-center items-center z-50"
+          >
+            <div
+              className="bg-white p-8 rounded-lg max-w-xl w-full shadow-lg my-10"
+              style={{ maxHeight: "80vh" }}
+            >
+              <h2 className="text-2xl font-bold mb-3 text-purple-700 flex items-center gap-2">
+                <ChatBubbleBottomCenterIcon className="h-7 w-7 text-purple-500" />
+                Messages to Admin
+              </h2>
+              <div className="mt-2">
+                <p className="text-gray-600 mb-5">
+                  Here are the messages you initiated to customer admins. as
+                  soon as an admin responds, they automatically go to your inbox
+                </p>
+                {/* Messages list ONLY is scrollable */}
+                <div
+                  className="overflow-auto"
+                  style={{
+                    maxHeight: "45vh",
+                    minHeight: "120px",
+                    scrollbarWidth: "thin", // For Firefox
+                    scrollbarColor: "#a78bfa #f3f4f6", // For Firefox (thumb and track)
+                  }}
+                >
+                  <style>
+                    {`
+                    /* For Chrome, Edge, and Safari */
+                    .overflow-auto::-webkit-scrollbar {
+                      width: 6px;
+                    }
+                    .overflow-auto::-webkit-scrollbar-thumb {
+                      background: #a78bfa;
+                      border-radius: 3px;
+                    }
+                    .overflow-auto::-webkit-scrollbar-track {
+                      background: #f3f4f6;
+                      border-radius: 3px;
+                    }
+                  `}
+                  </style>
+                  {roleConversations?.map((message) => (
+                    <div
+                      key={message.id}
+                      className="mb-4 p-3 bg-gray-100 rounded-md shadow-sm text-sm flex flex-col"
+                    >
+                      <span className="font-semibold text-purple-700">
+                        {message.initiator?.name || message.sender || "You"}
+                      </span>
+                      <span className="mt-1 text-gray-800">
+                        {message.message || message.text}
+                      </span>
+                      <span className="mt-1 text-gray-500 text-xs self-end">
+                        {message.created_at
+                          ? new Date(message.created_at).toLocaleTimeString(
+                              [],
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true,
+                              }
+                            )
+                          : message.time || ""}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-6 flex justify-end">
+                <button
+                  className="cursor-pointer px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded transition"
+                  onClick={() => setShowToAdminMessages(false)}
+                >
+                  Close
+                </button>
               </div>
             </div>
-
-            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
-              <button
-                onClick={() => {
-                  setShowNewMessageModal(false);
-                  setMessageText("");
-                }}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-                disabled={sendingMessage}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSendMessageToAdmin}
-                disabled={
-                  !messageText.trim() ||
-                  !isConnected ||
-                  sendingMessage
-                }
-                className="cursor-pointer px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {sendingMessage
-                  ? "Sending..."
-                  : !isConnected
-                    ? "Connecting..."
-                    : "Send Message"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
       </div>
     </div>
   );

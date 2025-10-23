@@ -226,7 +226,7 @@ export default function ViewTransaction() {
                     <div className="text-right">
                       <div className="text-2xl font-bold">
                         {withdrawal.currency}{" "}
-                        {parseFloat(withdrawal.amount).toLocaleString(
+                        {parseFloat(withdrawal.amount)?.toLocaleString(
                           undefined,
                           {
                             minimumFractionDigits: 2,
@@ -268,7 +268,7 @@ export default function ViewTransaction() {
                       <dt className="text-sm text-gray-600">Amount</dt>
                       <dd className="font-medium mt-1">
                         {withdrawal.currency}{" "}
-                        {parseFloat(withdrawal.amount).toLocaleString(
+                        {parseFloat(withdrawal.amount)?.toLocaleString(
                           undefined,
                           {
                             minimumFractionDigits: 2,
@@ -286,14 +286,14 @@ export default function ViewTransaction() {
                     <div>
                       <dt className="text-sm text-gray-600">Created At</dt>
                       <dd className="font-medium mt-1">
-                        {new Date(withdrawal.created_at).toLocaleString()}
+                        {new Date(withdrawal.created_at)?.toLocaleString()}
                       </dd>
                     </div>
                     {withdrawal.processed_at && (
                       <div>
                         <dt className="text-sm text-gray-600">Processed At</dt>
                         <dd className="font-medium mt-1">
-                          {new Date(withdrawal.processed_at).toLocaleString()}
+                          {new Date(withdrawal.processed_at)?.toLocaleString()}
                         </dd>
                       </div>
                     )}
@@ -311,7 +311,7 @@ export default function ViewTransaction() {
                     <div>
                       <dt className="text-sm text-gray-600">Last Updated</dt>
                       <dd className="font-medium mt-1">
-                        {new Date(withdrawal.updated_at).toLocaleString()}
+                        {new Date(withdrawal.updated_at)?.toLocaleString()}
                       </dd>
                     </div>
                   </div>

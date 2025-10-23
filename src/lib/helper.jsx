@@ -26,7 +26,7 @@ export const formatNumberWithCommas = (num) => {
   // Convert to number if it's a string
   const number = typeof num === "string" ? parseFloat(num) : num;
 
-  return number.toLocaleString("en-US", {
+  return number?.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });

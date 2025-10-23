@@ -864,36 +864,33 @@ export default function InboxPage() {
                 </div>
               ) : (
                 <>
-                  {messageList
-                    .slice()
-                    .reverse()
-                    .map((msg) => (
+                  {messageList?.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex ${
+                        msg.type === "sent" ? "justify-end" : "justify-start"
+                      }`}
+                    >
                       <div
-                        key={msg.id}
-                        className={`flex ${
-                          msg.type === "sent" ? "justify-end" : "justify-start"
+                        className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm ${
+                          msg.type === "sent"
+                            ? "bg-purple-600 text-white rounded-br-md"
+                            : "bg-white text-gray-800 border border-gray-200 rounded-bl-md"
                         }`}
                       >
-                        <div
-                          className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm ${
+                        <p className="text-sm leading-relaxed">{msg.text}</p>
+                        <span
+                          className={`block text-xs mt-1 ${
                             msg.type === "sent"
-                              ? "bg-purple-600 text-white rounded-br-md"
-                              : "bg-white text-gray-800 border border-gray-200 rounded-bl-md"
+                              ? "text-purple-200"
+                              : "text-gray-500"
                           }`}
                         >
-                          <p className="text-sm leading-relaxed">{msg.text}</p>
-                          <span
-                            className={`block text-xs mt-1 ${
-                              msg.type === "sent"
-                                ? "text-purple-200"
-                                : "text-gray-500"
-                            }`}
-                          >
-                            {msg.time}
-                          </span>
-                        </div>
+                          {msg.time}
+                        </span>
                       </div>
-                    ))}
+                    </div>
+                  ))}
                   <div ref={messagesEndRef} />
                 </>
               )
@@ -1076,7 +1073,10 @@ export default function InboxPage() {
           transition={{ type: "spring", stiffness: 350, damping: 30 }}
           className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-40 flex justify-center items-center z-50"
         >
-          <div className="bg-white p-8 rounded-lg max-w-xl w-full shadow-lg my-10" style={{ maxHeight: "80vh" }}>
+          <div
+            className="bg-white p-8 rounded-lg max-w-xl w-full shadow-lg my-10"
+            style={{ maxHeight: "80vh" }}
+          >
             <h2 className="text-2xl font-bold mb-3 text-purple-700 flex items-center gap-2">
               <ChatBubbleBottomCenterIcon className="h-7 w-7 text-purple-500" />
               Messages to Admin
@@ -1092,8 +1092,8 @@ export default function InboxPage() {
                 style={{
                   maxHeight: "45vh",
                   minHeight: "120px",
-                  scrollbarWidth: "thin",           // For Firefox
-                  scrollbarColor: "#a78bfa #f3f4f6" // For Firefox (thumb and track)
+                  scrollbarWidth: "thin", // For Firefox
+                  scrollbarColor: "#a78bfa #f3f4f6", // For Firefox (thumb and track)
                 }}
               >
                 <style>

@@ -811,7 +811,7 @@ export default function InboxPage() {
                 </div>
               ) : (
                 <>
-                  {messageList.slice().reverse().map((msg) => (
+                  {messageList?.map((msg) => (
                     <div
                       key={msg.id}
                       className={`flex ${

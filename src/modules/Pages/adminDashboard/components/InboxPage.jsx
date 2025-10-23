@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Plus, Mail, ChevronRight } from "lucide-react";
+import { Plus, Mail, ChevronRight, Info } from "lucide-react";
 import {
   FaSearch,
   FaPaperPlane,
@@ -862,7 +862,6 @@ export default function InboxPage() {
       console.log("Message data to send:", messageData);
       socket.emit("sendMessage", messageData);
 
-
       // Add message to local state immediately (only for current chat)
       const newMsg = {
         id: Date.now(),
@@ -878,8 +877,8 @@ export default function InboxPage() {
       setMessageList((prev) => [...prev, newMsg]);
       setNewMessage("");
       toastSuccess("Message sent successfully!");
-      setCurrentView("all")
-      setSelectedChat(null)
+      setCurrentView("all");
+      setSelectedChat(null);
     } else {
       console.error("=== SOCKET NOT CONNECTED ===");
       console.error("Socket exists:", !!socket);
@@ -926,7 +925,7 @@ export default function InboxPage() {
                   setCurrentView("all");
                   setSearchTerm("");
                   setSelectedUser("");
-                  setSelectedChat(null)
+                  setSelectedChat(null);
                 }}
                 aria-pressed={!currentView}
               >
@@ -942,7 +941,7 @@ export default function InboxPage() {
                   setCurrentView("role");
                   setSearchTerm("");
                   setSelectedUser("");
-                  setSelectedChat(null)
+                  setSelectedChat(null);
                 }}
                 aria-pressed={currentView === "role"}
               >
@@ -955,7 +954,9 @@ export default function InboxPage() {
       {/* MAIN INBOX AREA KEEP AT h-screen, ensure only messages area scrolls, input always visible */}
       <div className="h-screen flex flex-col bg-gray-50">
         {currentView === "all" ? (
-          <div className="flex flex-col h-full"> {/*  add h-full to fill parent */}
+          <div className="flex flex-col h-full">
+            {" "}
+            {/*  add h-full to fill parent */}
             {/* Fixed header */}
             <div className="bg-white border-b border-gray-200 px-6 py-6 flex-shrink-0">
               <div className="flex justify-between items-center">
@@ -992,7 +993,6 @@ export default function InboxPage() {
                 </button>
               </div>
             </div>
-
             {/* Main Chat Container FLEX with scrollable content but message input always sticky */}
             <div className="flex flex-1 min-h-0 overflow-hidden">
               {/* Sidebar */}
@@ -1295,7 +1295,6 @@ export default function InboxPage() {
                 </div>
               </div>
             </div>
-
             {/* Enhanced Modal with Socket.IO Integration */}
             {showModal && (
               <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm">
@@ -1532,7 +1531,7 @@ export default function InboxPage() {
 
                 {/* Scrollable Chat List */}
                 <div className="flex-1 overflow-y-auto">
-                  {filteredChats.length === 0 ? (
+                  {roleConversations.length === 0 ? (
                     <div className="text-center text-gray-500 py-12 px-6">
                       <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
                         <FaSearch className="text-gray-400" size={24} />
@@ -1634,6 +1633,20 @@ export default function InboxPage() {
 
                 {/* Scrollable Messages Area */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 min-h-0">
+                  {roleConversations.length > 0 && (
+                    <div className="w-full max-w-3xl bg-purple-200 text-purple-500 rounded-lg p-3 flex items-center gap-2 ">
+                      <div>
+                        <Info className="text-purple-500" />
+                      </div>
+                      <div>
+                        <p>
+                          After responding to this chat, you'll be redirected to
+                          all inbox. This chat becomes part of all inbox chats
+                          once respnded to.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   {selectedChat ? (
                     currentSelectedChatMessages?.message === null ? (
                       <div className="text-center text-gray-500 py-12">
@@ -1656,8 +1669,8 @@ export default function InboxPage() {
                               "fashion-designer" ||
                             currentSelectedChatMessages?.role ===
                               "market-representative"
-                              ? "justify-end"
-                              : "justify-start"
+                              ? "justify-start"
+                              : "justify-end"
                           }`}
                         >
                           <div
@@ -1671,8 +1684,8 @@ export default function InboxPage() {
                                 "fashion-designer" ||
                               currentSelectedChatMessages?.role ===
                                 "market-representative"
-                                ? "bg-purple-500 text-white rounded-br-md"
-                                : "bg-white text-gray-800 rounded-bl-md border border-gray-200"
+                                ? "bg-white text-gray-800 rounded-bl-md border border-gray-200"
+                                : "bg-purple-500 text-white rounded-br-md"
                             }`}
                           >
                             <p className="text-sm leading-relaxed">

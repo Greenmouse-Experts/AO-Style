@@ -568,7 +568,7 @@ export default function InboxPage() {
       };
 
       console.log("Message data to send:", messageData);
-      socket.emit("sendMessageToAdmin", messageData);
+      socket.emit("sendMessage", messageData);
 
       // Add message to local state immediately
       const newMsg = {

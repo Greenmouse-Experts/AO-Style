@@ -657,7 +657,7 @@ export default function InboxPage() {
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => setShowNewMessageModal(true)}
-                  className="text-white hover:text-gray-200 transition-colors p-1.5 bg-purple-600 rounded-full"
+                  className="cursor-pointer text-white hover:text-gray-200 transition-colors p-1.5 bg-purple-600 rounded-full"
                   title="New Message"
                 >
                   <FaPlus size={14} />

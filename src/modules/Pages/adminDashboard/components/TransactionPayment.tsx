@@ -24,9 +24,12 @@ interface AnalyticsResponse {
 }
 
 // Helper function to parse currency strings like "₦1,000.00" → 1000
-const parseCurrency = (value: string | undefined): number => {
-  if (!value) return 0;
-  return Number(value.replace(/[^0-9.-]+/g, "").replace(/,/g, ""));
+const parseCurrency = (value: string | number | undefined | null): number => {
+  if (value === undefined || value === null) return 0;
+  if (typeof value === "number") return value;
+  const num = Number(String(value)?.replace(/[^0-9.-]+/g, "")?.replace(/,/g, ""));
+  if (isNaN(num)) return 0;
+  return num;
 };
 
 // Utility to format number into Nigerian Naira currency

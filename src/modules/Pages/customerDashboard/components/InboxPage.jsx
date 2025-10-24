@@ -521,6 +521,15 @@ export default function InboxPage() {
     }
   }, [socket, isConnected, userToken, userId]);
 
+  useEffect(() => {
+    if (socket && isConnected && selectedChat) {
+      socket.emit("retrieveMessages", {
+        token: userToken,
+        chatBuddy: selectedChat.chat_buddy.id,
+      });
+    }
+  }, [isConnected, selectedChat, socket, userToken]);
+
   // Fetch messages when chat is selected
   useEffect(() => {
     if (socket && isConnected && selectedChat && userToken && userId) {

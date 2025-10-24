@@ -140,6 +140,15 @@ export default function InboxPage() {
     selectedChatRef.current = selectedChat;
   }, [selectedChat]);
 
+  useEffect(() => {
+    if (socket && isConnected && selectedChat) {
+      socket.emit("retrieveMessages", {
+        token: userToken,
+        chatBuddy: selectedChat.chat_buddy.id,
+      });
+    }
+  }, [isConnected, selectedChat, socket, userToken]);
+
   // Handle profile loading and setting user profile state
   useEffect(() => {
     if (profileSuccess && profileData) {

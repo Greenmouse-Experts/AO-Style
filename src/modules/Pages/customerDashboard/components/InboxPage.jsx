@@ -508,7 +508,7 @@ export default function InboxPage() {
         toastError("User token not found. Please login again.");
       }
     }
-  }, [userToken, userId, profileLoading]);
+  }, [userToken, userId, profileLoading, selectedChatRef]);
 
   // Fetch chats via Socket.IO on mount
   useEffect(() => {

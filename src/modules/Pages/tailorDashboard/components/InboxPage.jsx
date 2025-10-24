@@ -491,6 +491,7 @@ export default function InboxPage() {
         }
       });
 
+      //hi
       socketInstance.on("connect_error", (error) => {
         console.error("=== CUSTOMER SOCKET CONNECTION ERROR ===");
         console.error("Error:", error);

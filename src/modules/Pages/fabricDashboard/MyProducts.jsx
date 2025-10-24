@@ -32,6 +32,7 @@ import useToast from "../../../hooks/useToast";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
 import { useEffect } from "react";
 import useGetAdminBusinessDetails from "../../../hooks/settings/useGetAdmnBusinessInfo";
+import { useQuery } from "@tanstack/react-query";
 
 const ProductPage = () => {
   const { data: businessDetails } = useGetAdminBusinessDetails();
@@ -50,13 +51,25 @@ const ProductPage = () => {
     "pagination[limit]": 10,
   });
 
+  const { data: vendorOrStyleBusinessDetails } = useQuery({
+    queryKey: ["vendor-and-tailor-businessdetails"],
+    queryFn: async () => {
+      let resp = await CaryBinApi.get("/onboard/fetch-business-details");
+      console.log("This is the fabrc vendor and the tailor business details response",resp)
+      return resp?.data?.data
+    },
+    
+  });
+
+  console.log("This is the busness details", businessDetails);
+
   const {
     data: getAllFabricData,
     isPending,
     refetch,
   } = useGetFabricProduct({
     type: productType,
-    id: businessDetails?.data?.id,
+    id: vendorOrStyleBusinessDetails?.id,
     ...queryParams,
   });
 
@@ -128,7 +141,7 @@ const ProductPage = () => {
         setOpenDropdown(id);
       }
     },
-    [openDropdown],
+    [openDropdown]
   );
 
   const { isPending: updateIsPending } = useUpdateFabric();
@@ -185,8 +198,8 @@ const ProductPage = () => {
           ? "/product-general/fetch"
           : "/product-general"
         : isAdminStyleRoute
-          ? `/manage-style/${businessDetails?.data?.id}`
-          : `/manage-fabric/${businessDetails?.data?.id}`,
+        ? `/manage-style/${businessDetails?.data?.id}`
+        : `/manage-fabric/${businessDetails?.data?.id}`,
     hasBusinessDetails: !!businessDetails?.data,
     hasBusinessId: !!businessDetails?.data?.id,
   });
@@ -196,7 +209,7 @@ const ProductPage = () => {
 
     // Remove duplicates based on unique product ID
     const uniqueProducts = updatedData.data.filter(
-      (item, index, self) => index === self.findIndex((t) => t.id === item.id),
+      (item, index, self) => index === self.findIndex((t) => t.id === item.id)
     );
 
     return uniqueProducts.map((details) => {
@@ -210,8 +223,12 @@ const ProductPage = () => {
         name: `${details?.name ?? ""}`,
         sku: `${details?.sku ?? ""}`,
         category: `${details?.category?.name ?? ""}`,
-        qty: `${details?.fabric?.quantity ?? details?.fabric?.weight_per_unit ?? "0"} ${details?.fabric?.weight_per_unit ? "units" : ""}`.trim(),
-        price: `₦${formatNumberWithCommas(details?.price ?? details?.original_price ?? 0)}`,
+        qty: `${
+          details?.fabric?.quantity ?? details?.fabric?.weight_per_unit ?? "0"
+        } ${details?.fabric?.weight_per_unit ? "units" : ""}`.trim(),
+        price: `₦${formatNumberWithCommas(
+          details?.price ?? details?.original_price ?? 0
+        )}`,
         status: details?.status ?? details?.approval_status ?? "DRAFT",
         fabric_type: `${details?.fabric?.type ?? "Cotton"}`,
         fabric_gender: `${details?.fabric?.gender ?? "Unisex"}`,
@@ -359,7 +376,11 @@ const ProductPage = () => {
         render: (qty) => (
           <div className="text-center min-w-[100px]">
             <div
-              className={`text-sm font-semibold whitespace-nowrap ${qty === "0" || qty === "0 units" ? "text-red-600" : "text-gray-900"}`}
+              className={`text-sm font-semibold whitespace-nowrap ${
+                qty === "0" || qty === "0 units"
+                  ? "text-red-600"
+                  : "text-gray-900"
+              }`}
             >
               {qty || "0"}
             </div>
@@ -386,8 +407,8 @@ const ProductPage = () => {
                 status === "PUBLISHED"
                   ? "bg-green-50 text-green-700 border-green-200"
                   : status === "Cancelled"
-                    ? "bg-red-50 text-red-700 border-red-200"
-                    : "bg-yellow-50 text-yellow-700 border-yellow-200"
+                  ? "bg-red-50 text-red-700 border-red-200"
+                  : "bg-yellow-50 text-yellow-700 border-yellow-200"
               }`}
             >
               <span
@@ -395,8 +416,8 @@ const ProductPage = () => {
                   status === "PUBLISHED"
                     ? "bg-green-400"
                     : status === "Cancelled"
-                      ? "bg-red-400"
-                      : "bg-yellow-400"
+                    ? "bg-red-400"
+                    : "bg-yellow-400"
                 }`}
               ></span>
               {status}
@@ -420,14 +441,14 @@ const ProductPage = () => {
         ),
       },
     ],
-    [toggleDropdown],
+    [toggleDropdown]
   );
 
   const [newCategory, setNewCategory] = useState();
 
   const currentData = currProd === "all" ? allProductsData : myProductsData;
   const totalPages = Math.ceil(
-    currentData?.count / (queryParams["pagination[limit]"] ?? 10),
+    currentData?.count / (queryParams["pagination[limit]"] ?? 10)
   );
 
   const handleExport = (e) => {
@@ -450,7 +471,7 @@ const ProductPage = () => {
     });
     saveAs(
       blob,
-      `${currProd === "all" ? "All" : "My"}_${productType}_Products.xlsx`,
+      `${currProd === "all" ? "All" : "My"}_${productType}_Products.xlsx`
     );
   };
 
@@ -474,7 +495,7 @@ const ProductPage = () => {
       },
     });
     doc.save(
-      `${currProd === "all" ? "All" : "My"}_${productType}_Products.pdf`,
+      `${currProd === "all" ? "All" : "My"}_${productType}_Products.pdf`
     );
   };
 
@@ -488,8 +509,8 @@ const ProductPage = () => {
               {!isAdminRoute
                 ? "My Products"
                 : currProd == "all"
-                  ? `All ${productType === "STYLE" ? "Styles" : "Fabrics"}`
-                  : `My ${productType === "STYLE" ? "Styles" : "Fabrics"}`}
+                ? `All ${productType === "STYLE" ? "Styles" : "Fabrics"}`
+                : `My ${productType === "STYLE" ? "Styles" : "Fabrics"}`}
             </h1>
             <p className="text-gray-600 flex items-center">
               <Link
@@ -746,7 +767,7 @@ const ProductPage = () => {
                   value={queryString}
                   onChange={(evt) =>
                     setQueryString(
-                      evt.target.value ? evt.target.value : undefined,
+                      evt.target.value ? evt.target.value : undefined
                     )
                   }
                 />
@@ -794,7 +815,9 @@ const ProductPage = () => {
                 Business: row.business_name,
                 Creator: row.creator_name,
               }))}
-              filename={`${currProd === "all" ? "All" : "My"}_${productType}_Products.csv`}
+              filename={`${
+                currProd === "all" ? "All" : "My"
+              }_${productType}_Products.csv`}
               className="hidden"
             />
           </div>
@@ -810,24 +833,26 @@ const ProductPage = () => {
                     ? adminProductIsPending
                     : isPending
                   : isAdminRoute
-                    ? isAdminStyleRoute
-                      ? adminManageStyleIsPending
-                      : adminManageFabricIsPending
-                    : isPending
+                  ? isAdminStyleRoute
+                    ? adminManageStyleIsPending
+                    : adminManageFabricIsPending
+                  : isPending
               }
               data={FabricData}
               emptyStateMessage={
                 !isAdminRoute && !isPending && FabricData.length === 0
                   ? `🎨 No ${productType.toLowerCase()} products found. Create your first product to get started!`
                   : isAdminRoute &&
-                      !(currProd === "all"
-                        ? adminProductIsPending
-                        : isAdminStyleRoute
-                          ? adminManageStyleIsPending
-                          : adminManageFabricIsPending) &&
-                      FabricData.length === 0
-                    ? `🏢 No ${currProd === "all" ? "admin" : "your"} ${productType.toLowerCase()} products found. Create your first product to get started!`
-                    : undefined
+                    !(currProd === "all"
+                      ? adminProductIsPending
+                      : isAdminStyleRoute
+                      ? adminManageStyleIsPending
+                      : adminManageFabricIsPending) &&
+                    FabricData.length === 0
+                  ? `🏢 No ${
+                      currProd === "all" ? "admin" : "your"
+                    } ${productType.toLowerCase()} products found. Create your first product to get started!`
+                  : undefined
               }
               className="border-0"
               style={{ minWidth: "1000px" }}
@@ -841,10 +866,10 @@ const ProductPage = () => {
               ? adminProductIsPending
               : isPending
             : isAdminRoute
-              ? isAdminStyleRoute
-                ? adminManageStyleIsPending
-                : adminManageFabricIsPending
-              : isPending) && (
+            ? isAdminStyleRoute
+              ? adminManageStyleIsPending
+              : adminManageFabricIsPending
+            : isPending) && (
             <div className="flex flex-col items-center justify-center py-12 bg-white rounded-xl shadow-sm border border-gray-200">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                 <svg
@@ -992,7 +1017,7 @@ const ProductPage = () => {
                             onSuccess: (response) => {
                               console.log(
                                 "✅ Publish Style Success:",
-                                response,
+                                response
                               );
                               setOpenDropdown(null);
                               adManageStyleRefetch();
@@ -1006,7 +1031,7 @@ const ProductPage = () => {
                             onSuccess: (response) => {
                               console.log(
                                 "✅ Publish Fabric Success:",
-                                response,
+                                response
                               );
                               setOpenDropdown(null);
                               if (currProd === "my") {
@@ -1040,7 +1065,9 @@ const ProductPage = () => {
                       updateIsPending ||
                       updateAdminStyleIsPending
                         ? "Publishing..."
-                        : `Publish ${productType === "STYLE" ? "Style" : "Fabric"}`}
+                        : `Publish ${
+                            productType === "STYLE" ? "Style" : "Fabric"
+                          }`}
                     </button>
                   ) : null}
 
@@ -1064,7 +1091,7 @@ const ProductPage = () => {
                             onSuccess: (response) => {
                               console.log(
                                 "✅ Unpublish Style Success:",
-                                response,
+                                response
                               );
                               setOpenDropdown(null);
                               adManageStyleRefetch();
@@ -1078,7 +1105,7 @@ const ProductPage = () => {
                             onSuccess: (response) => {
                               console.log(
                                 "✅ Unpublish Fabric Success:",
-                                response,
+                                response
                               );
                               setOpenDropdown(null);
                               if (currProd === "my") {
@@ -1090,7 +1117,7 @@ const ProductPage = () => {
                             onError: (error) => {
                               console.error(
                                 "❌ Unpublish Fabric Error:",
-                                error,
+                                error
                               );
                             },
                           });
@@ -1115,7 +1142,9 @@ const ProductPage = () => {
                       updateIsPending ||
                       updateAdminStyleIsPending
                         ? "Unpublishing..."
-                        : `Unpublish ${productType === "STYLE" ? "Style" : "Fabric"}`}
+                        : `Unpublish ${
+                            productType === "STYLE" ? "Style" : "Fabric"
+                          }`}
                     </button>
                   ) : null}
 
@@ -1247,7 +1276,7 @@ const ProductPage = () => {
               onSubmit={(e) => {
                 if (!navigator.onLine) {
                   toastError(
-                    "No internet connection. Please check your network.",
+                    "No internet connection. Please check your network."
                   );
                   return;
                 }
@@ -1291,7 +1320,7 @@ const ProductPage = () => {
                         setNewCategory(null);
                         refetch();
                       },
-                    },
+                    }
                   );
                 }
               }}

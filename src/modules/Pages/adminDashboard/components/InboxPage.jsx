@@ -75,54 +75,90 @@ export default function InboxPage() {
 
   const [currentView, setCurrentView] = useState("all");
   const totalPages = Math.ceil(totalUsers / usersPerPage);
-  const [currentSelectedChatTwo,setCurrentSelectedChatTwo] = useState("")
+  const [currentSelectedChatTwo, setCurrentSelectedChatTwo] = useState("");
+  const [selectedRoleTab, setSelectedRoleTab] = useState(""); // Add this with other state declarations
 
   const [currentSelectedChatMessages, setCurrentSelectedChatMessages] =
     useState();
 
+  // This is correct. adminProfile.admin_role.role is an array of strings like ["user", "fashion-designer"]
+  // No need to change anything structurally.
   const getUserAdminRole = () => {
-    if (adminProfile?.admin_role?.title.toLowerCase().includes("customer")) {
-      return "Customer";
-    } else if (
-      adminProfile?.admin_role?.title.toLowerCase().includes("logistics")
-    ) {
-      return "Logistics";
-    } else if (
-      adminProfile?.admin_role?.title.toLowerCase().includes("tailor") ||
-      adminProfile?.admin_role?.title.includes("fashion")
-    ) {
-      return "Tailor";
-    } else if (
-      adminProfile?.admin_role?.title.toLowerCase().includes("fabric")
-    ) {
-      return "Vendor";
-    } else if (adminProfile?.admin_role?.title.toLowerCase().includes("rep")) {
-      return "Representative";
-    } else {
-      return null;
-    }
+    if (!adminProfile?.admin_role?.role) return [];
+
+    // Map role_id to display names
+    const roleMap = {
+      "user": "Customer",
+      "logistics-agent": "Logistics",
+      "fashion-designer": "Tailor",
+      "fabric-vendor": "Fabric",
+      "market-representative": "Market Rep",
+    };
+
+    // Return array of role display names based on array of role strings
+    return adminProfile.admin_role.role
+      .map((roleId) => roleMap[roleId])
+      .filter(Boolean); // Remove any undefined values
   };
 
+  // const getUserAdminRole = () => {
+  //   if (adminProfile?.admin_role?.title.toLowerCase().includes("customer")) {
+  //     return "Customer";
+  //   } else if (
+  //     adminProfile?.admin_role?.title.toLowerCase().includes("logistics")
+  //   ) {
+  //     return "Logistics";
+  //   } else if (
+  //     adminProfile?.admin_role?.title.toLowerCase().includes("tailor") ||
+  //     adminProfile?.admin_role?.title.includes("fashion")
+  //   ) {
+  //     return "Tailor";
+  //   } else if (
+  //     adminProfile?.admin_role?.title.toLowerCase().includes("fabric")
+  //   ) {
+  //     return "Vendor";
+  //   } else if (adminProfile?.admin_role?.title.toLowerCase().includes("rep")) {
+  //     return "Representative";
+  //   } else {
+  //     return null;
+  //   }
+  // };
+
   const getUserAdminTypeCode = () => {
-    if (adminProfile?.admin_role?.title.toLowerCase().includes("customer")) {
-      return "user";
-    } else if (
-      adminProfile?.admin_role?.title.toLowerCase().includes("logistics")
-    ) {
-      return "logistics-agent";
-    } else if (
-      adminProfile?.admin_role?.title.toLowerCase().includes("tailor") ||
-      adminProfile?.admin_role?.title.includes("fashion")
-    ) {
-      return "fashion-designer";
-    } else if (
-      adminProfile?.admin_role?.title.toLowerCase().includes("fabric")
-    ) {
-      return "fabric-vendor";
-    } else {
-      return "market-representative";
-    }
+    if (!adminProfile?.admin_role?.role || !selectedRoleTab) return null;
+
+    // Map display names back to role_id
+    const reverseMap = {
+      Customer: "user",
+      Logistics: "logistics-agent",
+      Tailor: "fashion-designer",
+      Fabric: "fabric-vendor",
+      "Market Rep": "market-representative",
+    };
+
+    return reverseMap[selectedRoleTab];
   };
+
+  // const getUserAdminTypeCode = () => {
+  //   if (adminProfile?.admin_role?.title.toLowerCase().includes("customer")) {
+  //     return "user";
+  //   } else if (
+  //     adminProfile?.admin_role?.title.toLowerCase().includes("logistics")
+  //   ) {
+  //     return "logistics-agent";
+  //   } else if (
+  //     adminProfile?.admin_role?.title.toLowerCase().includes("tailor") ||
+  //     adminProfile?.admin_role?.title.includes("fashion")
+  //   ) {
+  //     return "fashion-designer";
+  //   } else if (
+  //     adminProfile?.admin_role?.title.toLowerCase().includes("fabric")
+  //   ) {
+  //     return "fabric-vendor";
+  //   } else {
+  //     return "market-representative";
+  //   }
+  // };
   // Fetch users with pagination using the correct endpoint
   const fetchUsers = async (role, page = 1) => {
     if (!role) return;
@@ -255,13 +291,33 @@ export default function InboxPage() {
   ]);
 
   // Fetch role-specific chats when switching to role view
+  // useEffect(() => {
+  //   if (
+  //     socket &&
+  //     isConnected &&
+  //     adminToken &&
+  //     adminId &&
+  //     currentView === "role"
+  //   ) {
+  //     console.log("=== FETCHING ROLE-BASED CHATS VIA SOCKET ===");
+  //     console.log("Emitting retrieveMessagesToAdmin with token:", adminToken);
+  //     console.log("Admin ID:", adminId);
+  //     console.log("target_role", getUserAdminTypeCode());
+  //     socket.emit("retrieveMessagesToAdmin", {
+  //       token: adminToken,
+  //       target_role: getUserAdminTypeCode(),
+  //     });
+  //     console.log("============================================");
+  //   }
+  // }, [socket, isConnected, adminToken, adminId, currentView]);
   useEffect(() => {
     if (
       socket &&
       isConnected &&
       adminToken &&
       adminId &&
-      currentView === "role"
+      currentView === "role" &&
+      selectedRoleTab
     ) {
       console.log("=== FETCHING ROLE-BASED CHATS VIA SOCKET ===");
       console.log("Emitting retrieveMessagesToAdmin with token:", adminToken);
@@ -273,7 +329,7 @@ export default function InboxPage() {
       });
       console.log("============================================");
     }
-  }, [socket, isConnected, adminToken, adminId, currentView]);
+  }, [socket, isConnected, adminToken, adminId, currentView, selectedRoleTab]);
   // Initialize Socket.IO connection
   useEffect(() => {
     console.log("=== INITIALIZING ADMIN SOCKET CONNECTION ===");
@@ -357,8 +413,14 @@ export default function InboxPage() {
           const currentSelectedChat = selectedChatRef.current;
           console.log("Current selected chat:", currentSelectedChat);
           setCurrentSelectedChatMessages(currentSelectedChat);
-          console.log("This is the currentSelectedChatMessages", currentSelectedChatMessages)
-          console.log("This is the currentSelectedChatMessagesTwo", currentSelectedChatTwo)
+          console.log(
+            "This is the currentSelectedChatMessages",
+            currentSelectedChatMessages
+          );
+          console.log(
+            "This is the currentSelectedChatMessagesTwo",
+            currentSelectedChatTwo
+          );
           const formattedMessages = data.data.result.map((msg) => ({
             id: msg.id,
             sender: msg.initiator?.name || "Unknown",
@@ -496,7 +558,7 @@ export default function InboxPage() {
           if (data?.status === "success" && data?.data?.result) {
             const currentSelectedChat = selectedChatRef.current;
             console.log("Current selected chat:", currentSelectedChat);
-            setCurrentSelectedChatTwo(currentSelectedChat)
+            setCurrentSelectedChatTwo(currentSelectedChat);
 
             const formattedMessages = data.data.result.map((msg) => ({
               id: msg.id,
@@ -857,7 +919,10 @@ export default function InboxPage() {
       } else {
         messageData = {
           token: adminToken,
-          chatBuddy: currentView === "all" ? selectedChatRef?.current?.chat_buddy_id : selectedChatRef?.current?.initiator_id,
+          chatBuddy:
+            currentView === "all"
+              ? selectedChatRef?.current?.chat_buddy_id
+              : selectedChatRef?.current?.initiator_id,
           message: newMessage.trim(),
         };
       }
@@ -880,13 +945,12 @@ export default function InboxPage() {
       setMessageList((prev) => [...prev, newMsg]);
       setNewMessage("");
       toastSuccess("Message sent successfully!");
-      if(currentView === "all"){
-        return
-      }else{
+      if (currentView === "all") {
+        return;
+      } else {
         setCurrentView("all");
         setSelectedChat(null);
       }
-
     } else {
       console.error("=== SOCKET NOT CONNECTED ===");
       console.error("Socket exists:", !!socket);
@@ -920,7 +984,7 @@ export default function InboxPage() {
       {/* chat toggle */}
       {adminProfile?.role?.role_id !== "owner-super-administrator" && (
         <div>
-          {/* Inbox toggler (All Inbox / Customer Inbox) */}
+          {/* Inbox toggler - Dynamic tabs based on role array */}
           <div className="flex items-center justify-center space-x-4 mt-4">
             <div className="inline-flex bg-gray-200 rounded-t-full p-1 shadow-sm">
               <button
@@ -934,32 +998,42 @@ export default function InboxPage() {
                   setSearchTerm("");
                   setSelectedUser("");
                   setSelectedChat(null);
+                  setSelectedRoleTab("");
                 }}
-                aria-pressed={!currentView}
+                aria-pressed={currentView === "all"}
               >
                 All Inbox
               </button>
-              <button
-                className={`relative cursor-pointer px-6 py-2 rounded-t-full transition-colors duration-200 text-sm font-semibold focus:outline-none ${
-                  currentView === "role"
-                    ? "bg-purple-600 text-white shadow"
-                    : "text-gray-700 hover:bg-gray-300"
-                }`}
-                onClick={() => {
-                  setCurrentView("role");
-                  setSearchTerm("");
-                  setSelectedUser("");
-                  setSelectedChat(null);
-                }}
-                aria-pressed={currentView === "role"}
-              >
-                {getUserAdminRole()} Inbox
-                {roleConversations?.length > 0 && (
-                  <span className="absolute top-1 right-0 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow animate-pulse">
-                    {roleConversations.length}
-                  </span>
-                )}
-              </button>
+
+              {/* Dynamic role tabs */}
+              {getUserAdminRole().map((roleName) => (
+                <button
+                  key={roleName}
+                  className={`relative cursor-pointer px-6 py-2 rounded-t-full transition-colors duration-200 text-sm font-semibold focus:outline-none ${
+                    currentView === "role" && selectedRoleTab === roleName
+                      ? "bg-purple-600 text-white shadow"
+                      : "text-gray-700 hover:bg-gray-300"
+                  }`}
+                  onClick={() => {
+                    setCurrentView("role");
+                    setSelectedRoleTab(roleName);
+                    setSearchTerm("");
+                    setSelectedUser("");
+                    setSelectedChat(null);
+                  }}
+                  aria-pressed={
+                    currentView === "role" && selectedRoleTab === roleName
+                  }
+                >
+                  {roleName} Inbox
+                  {roleConversations?.length > 0 &&
+                    selectedRoleTab === roleName && (
+                      <span className="absolute top-1 right-0 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow animate-pulse">
+                        {roleConversations.length}
+                      </span>
+                    )}
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -1484,8 +1558,11 @@ export default function InboxPage() {
                     <Mail className="w-6 h-6 text-purple-600" />
                   </div>
                   <div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-1">
+                    {/* <h1 className="text-3xl font-bold text-gray-900 mb-1">
                       {getUserAdminRole()} Messages
+                    </h1> */}
+                    <h1 className="text-3xl font-bold text-gray-900 mb-1">
+                      {selectedRoleTab} Messages
                     </h1>
                     <div className="flex items-center text-sm text-gray-500">
                       <a

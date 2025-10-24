@@ -9,6 +9,8 @@ import WithdrawalModal from "./components/WithdrawalModal";
 // import WalletPage from "../salesDashboard/components/WalletPage";
 import WalletPage from "./components/WalletPage";
 import ViewWithdrawalsModal from "./components/ViewWithdrawalsModal";
+import { useQuery } from "@tanstack/react-query";
+import CaryBinApi from "../../../services/CarybinBaseUrl";
 export default function LogisticsDashboard() {
   const { carybinUser } = useCarybinUserStore();
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
@@ -34,6 +36,21 @@ export default function LogisticsDashboard() {
     console.log("🚪 Closing view withdrawals modal");
     setIsViewWithdrawalsModalOpen(false);
   };
+const currentYear = new Date().getFullYear()
+  const {
+    data: graphData,
+    isLoading: graphDataLoading,
+    isFetching: graphDataFetching,
+  } = useQuery({
+    queryKey: ["logistics-graph"],
+    queryFn: async () => {
+      let resp = await CaryBinApi.get(
+        `/vendor-analytics/logistics-monthly-revenue?year=${currentYear}`,
+      );
+      console.log("This is the grah endpoint", resp.data);
+      return resp.data;
+    },
+  });
 
   return (
     <>
@@ -48,7 +65,7 @@ export default function LogisticsDashboard() {
       <DashOrderRequests />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
         <div className="lg:col-span-2">
-          <BarChartComponent />
+          <BarChartComponent data={graphData?.data}/>
         </div>
         <div className="lg:col-span-1">
           {/* <DoughnutChartComponent />*/}

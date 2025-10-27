@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { formatNumberWithCommas } from "../../../../lib/helper";
 import useFetchWithdrawal from "../../../../hooks/withdrawal/useFetchWithdrawal";
-import { Search, X, Eye, Calendar, Filter } from "lucide-react";
+import { Search, X, Eye } from "lucide-react";
 
 const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -143,10 +143,14 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
         onClick={(e) => e.stopPropagation()}
         style={{
           animation: isOpen ? "modalSlideIn 0.3s ease-out" : "none",
+          display: "flex",
+          flexDirection: "column",
+          position: "relative",
+          height: "90vh",
         }}
       >
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-gray-200">
+        <div className="flex justify-between items-center p-6 border-b border-gray-200 flex-shrink-0">
           <div>
             <h2 className="text-2xl font-semibold text-gray-800">
               All Withdrawal Requests
@@ -164,7 +168,7 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* Filters and Search */}
-        <div className="p-6 border-b border-gray-200 bg-gray-50">
+        <div className="p-6 border-b border-gray-200 bg-gray-50 flex-shrink-0">
           <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
             <div className="flex flex-wrap gap-2">
               <button
@@ -251,8 +255,16 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+        {/* Content (Scrollable) */}
+        <div
+          className="p-6 overflow-y-auto flex-1"
+          style={{
+            // 132px = header(72) + filters(72) + borders, 96px = footer
+            // The flex-1 will take all available space
+            minHeight: 0,
+            maxHeight: "calc(90vh - 160px)", // fallback if flex doesn't work, but flex-1 is best for this
+          }}
+        >
           {isLoading ? (
             <div className="flex justify-center items-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
@@ -281,7 +293,6 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                 <div>Date</div>
                 <div>Time</div>
                 <div>Status</div>
-                {/* <div>Notes</div> */}
               </div>
 
               {/* Table Body */}
@@ -425,8 +436,17 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
           )}
         </div>
 
-        {/* Footer */}
-        <div className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50">
+        {/* Footer (Fixed at the bottom) */}
+        <div
+          className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50"
+          style={{
+            position: "sticky",
+            bottom: "0",
+            left: "0",
+            right: "0",
+            zIndex: 10,
+          }}
+        >
           <div className="text-sm text-gray-600">
             {filteredWithdrawals.length > 0 && (
               <>

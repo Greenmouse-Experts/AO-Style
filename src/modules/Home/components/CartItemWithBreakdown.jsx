@@ -112,11 +112,11 @@ const CartItemWithBreakdown = ({
             </div>
           </div>
           {/* Show style product data for debugging */}
-          {item.style_product && (
+          {/* {item.style_product && (
             <div className="text-xs text-gray-400 break-all mb-2">
               <strong>Style Data:</strong> {JSON.stringify(item.style_product)}
             </div>
-          )}
+          )} */}
           {/* Style Section */}
           {(item.style_product || item.style_product_id) && (
             <>

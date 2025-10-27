@@ -118,6 +118,9 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
     });
   };
 
+  // Calculate footer height so content below doesn't scroll under it
+  const FOOTER_HEIGHT = 80; // in px, adjust as necessary to match Tailwind classes for p-6 etc.
+
   return (
     <div
       className={`fixed inset-0 flex justify-center items-center z-50 transition-all duration-300 ease-out ${
@@ -139,7 +142,7 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
           isOpen
             ? "scale-100 translate-y-0 opacity-100"
             : "scale-90 translate-y-8 opacity-0"
-        }`}
+        } flex flex-col`}
         onClick={(e) => e.stopPropagation()}
         style={{
           animation: isOpen ? "modalSlideIn 0.3s ease-out" : "none",
@@ -251,8 +254,15 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+        {/* Content - Make scrollable, not the footer */}
+        <div
+          className="flex-1 overflow-y-auto p-6"
+          style={{
+            // Leave space at the bottom for the fixed footer
+            maxHeight: `calc(90vh - 80px - 76px - 72px)`, // 80: footer, 76: header, 72: filters, adjust as needed
+            minHeight: 0,
+          }}
+        >
           {isLoading ? (
             <div className="flex justify-center items-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
@@ -425,8 +435,18 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
           )}
         </div>
 
-        {/* Footer */}
-        <div className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50">
+        {/* Fixed Footer */}
+        <div
+          className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50"
+          style={{
+            position: "sticky",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 20,
+            background: "inherit"
+          }}
+        >
           <div className="text-sm text-gray-600">
             {filteredWithdrawals.length > 0 && (
               <>

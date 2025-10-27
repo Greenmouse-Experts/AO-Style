@@ -1,8 +1,6 @@
-import { useParams } from "react-router-dom";
 import { useItemMap } from "../../../store/useTempStore";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { BackButton } from "../salesDashboard/ViewVendorDetails";
 import {
   GoogleMap,
   useJsApiLoader,
@@ -19,14 +17,33 @@ const containerStyle = {
 
 export default function ViewItemMap() {
   const item = useItemMap((state) => state.item);
-  const coordinates = item?.product?.creator?.profile?.coordinates;
+  const isCustomerInfo = typeof item?.isCustomer === "object" && !!item.isCustomer;
+  const customerInfo = isCustomerInfo ? (item?.isCustomer as any) : undefined;
 
-  const destination = coordinates
-    ? {
-        lat: parseFloat(coordinates.latitude),
-        lng: parseFloat(coordinates.longitude),
-      }
-    : null;
+  // For debugging
+  console.log("This is the isCustomer node", item?.isCustomer);
+  console.log("This is the item for the location processing", item);
+
+  // Determine destination coordinates
+  let coordinates;
+  if (isCustomerInfo) {
+    coordinates = customerInfo?.coordinates;
+  } else {
+    coordinates = item?.product?.creator?.profile?.coordinates;
+  }
+
+  // Parse coordinates for Google Maps
+  const destination =
+    coordinates &&
+    coordinates.latitude &&
+    coordinates.longitude &&
+    !isNaN(Number(coordinates.latitude)) &&
+    !isNaN(Number(coordinates.longitude))
+      ? {
+          lat: parseFloat(coordinates.latitude),
+          lng: parseFloat(coordinates.longitude),
+        }
+      : null;
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
@@ -42,26 +59,22 @@ export default function ViewItemMap() {
   const [directions, setDirections] =
     useState<google.maps.DirectionsResult | null>(null);
 
-  const [distanceKm, setDistanceKm] = useState<string | null>(null);
-
-  // Subscribe to realtime location updates
   useEffect(() => {
     let watchId: number | null = null;
-
     if (navigator.geolocation) {
       watchId = navigator.geolocation.watchPosition(
-        (pos) =>
+        (pos) => {
           setUserLocation({
             lat: pos.coords.latitude,
             lng: pos.coords.longitude,
-          }),
+          });
+        },
         (err) => {
           toast.error("Enable location services to see directions.");
           console.error(err);
-        },
+        }
       );
     }
-
     return () => {
       if (watchId !== null) {
         navigator.geolocation.clearWatch(watchId);
@@ -69,10 +82,59 @@ export default function ViewItemMap() {
     };
   }, []);
 
-  // if (!isLoaded) return <>Loading map…</>;
-  // if (!destination) return <>No destination provided.</>;
+  // Defensive center logic, never null for GoogleMap
+  const center: google.maps.LatLngLiteral | undefined =
+    userLocation ||
+    (destination
+      ? { lat: destination.lat, lng: destination.lng }
+      : undefined);
 
-  const center = userLocation || destination;
+  if (!item) {
+    return (
+      <div className="p-4 text-center text-red-500">
+        Error: No item found to display map.
+      </div>
+    );
+  }
+
+  if (!isLoaded) {
+    return <div className="p-4 text-center text-gray-500">Loading map…</div>;
+  }
+
+  if (!destination) {
+    return (
+      <div className="p-4 text-center text-red-500">
+        No valid destination provided.
+      </div>
+    );
+  }
+
+  // Get all info depending on customer/destination
+  // Use email instead of name, and use profile picture when available
+  // Get pickup email (truncate if too long)
+  const pickupEmail = (() => {
+    let email: string | undefined;
+    if (isCustomerInfo) {
+      email = customerInfo?.email;
+    } else {
+      // There is no .email directly on creator, so we try to fallback to profile?.email if ever available
+      email = (item.product.creator as any)?.email; // still fallback, may be undefined
+    }
+    const safeEmail = email || item?.product?.creator?.name || "No email";
+    return safeEmail.length > 22 ? safeEmail.slice(0, 19) + "..." : safeEmail;
+  })();
+  const profilePicture = isCustomerInfo
+    ? customerInfo?.profile_picture // Assuming customerData has no profile picture. Change if schema allows.
+    : item.product.creator?.profile?.profile_picture || null;
+  const pickupRole = isCustomerInfo
+    ? "Customer"
+    : item.product.creator?.role?.name;
+  const pickupAddress = isCustomerInfo
+    ? customerInfo?.address
+    : item.product.creator?.profile?.address;
+  const pickupPhone = isCustomerInfo
+    ? customerInfo?.phone
+    : undefined; // tailor phone not available in schema
 
   return (
     <div className="flex flex-col h-full bg-transparent" data-theme="nord">
@@ -86,40 +148,50 @@ export default function ViewItemMap() {
           </div>
           <div className="bg-base-100 p-3 rounded-md ring-1 ring-primary/20 shadow-md">
             <div className="flex items-center">
-              <div className="label text-xs">{item.id}</div>{" "}
+              <div className="label text-xs">ID: {item.id?.replace(/-/g, "").slice(0, 12).toUpperCase()}</div>{" "}
               <span className="badge badge-primary badge-soft outline outline-current/50 ml-auto">
                 {item.product.style ? "clothe" : "fabric"}
               </span>
             </div>
             <div className="text-2xl font-bold text-primary my-3">
-              {directions?.routes[0]?.legs[0]?.distance?.text || "Calculating…"}
+              {directions?.routes?.[0]?.legs?.[0]?.distance?.text ||
+                "Calculating…"}
             </div>
             <div className="my-2">
-              <span className="label">Pickup Location</span>
-              <div className="text-xs">
-                {item.product.creator.profile.address}
-              </div>
+              <span className="label">
+                {isCustomerInfo ? "Delivery Location" : "Pickup Location"}
+              </span>
+              <div className="text-xs">{pickupAddress}</div>
             </div>
             <div className="divider my-1"></div>
             <section className="flex items-center gap-2">
-              <div>
-                <img
-                  className="size-10 rounded-full"
-                  src={item.product.creator.profile.profile_picture}
-                  alt=""
-                />
-              </div>
-              <div>
-                <div>{item.product.creator.name}</div>
-                <span className="label">{item.product.creator.role.name}</span>
+              <div className="flex items-center gap-2">
+                {/* Profile picture if available */}
+                {profilePicture && (
+                  <img
+                    src={profilePicture}
+                    alt="Profile"
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                )}
+                <div>
+                  <div>{pickupEmail}</div>
+                  <span className="label">{pickupRole}</span>
+                </div>
               </div>
               <div className="ml-auto flex gap-2">
-                <button className="btn btn-circle btn-clean">
-                  <PhoneIcon size={18} />
-                </button>
-                <button className="btn btn-circle btn-clean">
+                {/* Only show phone if available */}
+                {pickupPhone && (
+                  <a
+                    href={`tel:${pickupPhone}`}
+                    className="btn btn-circle btn-clean"
+                  >
+                    <PhoneIcon size={18} />
+                  </a>
+                )}
+                {/* <button className="btn btn-circle btn-clean">
                   <MessageCircleIcon size={18} />
-                </button>
+                </button> */}
               </div>
             </section>
           </div>
@@ -130,13 +202,13 @@ export default function ViewItemMap() {
                   <img
                     loading="lazy"
                     className="w-full  size-32 object-cover rounded-md"
-                    src={item.product.fabric.photos[0]}
+                    src={item.product.fabric?.photos?.[0]}
                     alt="Fabric"
                   />
                   <img
                     loading="lazy"
                     className="w-full h-32 object-cover rounded-md"
-                    src={item.product.fabric?.photos[1]}
+                    src={item.product.fabric?.photos?.[1]}
                     alt="Fabric"
                   />
                 </>
@@ -145,12 +217,12 @@ export default function ViewItemMap() {
                 <>
                   <img
                     className="w-full h-32 object-cover rounded-md"
-                    src={item.product.style.photos[0]}
+                    src={item.product.style?.photos?.[0]}
                     alt="Style"
                   />
                   <img
                     className="w-full h-32 object-cover rounded-md"
-                    src={item.product.style.photos[1]}
+                    src={item.product.style?.photos?.[1]}
                     alt="Style"
                   />
                 </>
@@ -159,36 +231,32 @@ export default function ViewItemMap() {
           </section>
         </div>
         <div className="bg-base-200 rounded-xl  flex-1 overflow-hidden">
-          {isLoaded && center && (
-            <>
-              {" "}
-              <GoogleMap
-                mapContainerStyle={containerStyle}
-                center={center}
-                zoom={11}
-              >
-                {userLocation && destination && !directions && (
-                  <DirectionsService
-                    options={{
-                      origin: userLocation,
-                      destination: destination,
-                      travelMode: google.maps.TravelMode.DRIVING,
-                    }}
-                    callback={(res, status) => {
-                      if (status === "OK" && res) {
-                        setDirections(res);
-                      } else {
-                        toast.error("Could not calculate directions.");
-                        console.error("DirectionsService failed:", status);
-                      }
-                    }}
-                  />
-                )}
+          <GoogleMap
+            mapContainerStyle={containerStyle}
+            center={center}
+            zoom={11}
+          >
+            {/* Only render DirectionsService if directions NOT set and both locations present */}
+            {userLocation && destination && !directions && (
+              <DirectionsService
+                options={{
+                  origin: userLocation,
+                  destination: destination,
+                  travelMode: google.maps.TravelMode.DRIVING,
+                }}
+                callback={(res, status) => {
+                  if (status === "OK" && res && !directions) {
+                    setDirections(res);
+                  } else if (status !== "OK") {
+                    toast.error("Could not calculate directions.");
+                    console.error("DirectionsService failed:", status);
+                  }
+                }}
+              />
+            )}
 
-                {directions && <DirectionsRenderer directions={directions} />}
-              </GoogleMap>
-            </>
-          )}
+            {directions && <DirectionsRenderer directions={directions} />}
+          </GoogleMap>
         </div>
       </div>
     </div>

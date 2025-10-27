@@ -265,7 +265,40 @@ const OrderDetails = () => {
             </div>
           </div>
 
-          {/* Tailor reference image */}
+          {/* Tailor reference images */}
+          {orderDetails?.metadata?.tailorReferenceImage1 && (
+            <div className="mb-6 md:flex-1 bg-purple-50 border border-purple-200 rounded-lg p-4 flex flex-col justify-between">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Image className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">
+                      Tailor reference Image 1
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Reference image provided by fashion designer when processing the fabric
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <button
+                    onClick={() => {
+                      setModalImageUrl(
+                        orderDetails?.metadata?.tailorReferenceImage1
+                      );
+                      setShowImageModal(true);
+                    }}
+                    className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    <Eye className="w-4 h-4" />
+                    View Image
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {orderDetails?.metadata?.tailorReferenceImage && (
             <div className="mb-6 md:flex-1 bg-purple-50 border border-purple-200 rounded-lg p-4 flex flex-col justify-between">
@@ -276,10 +309,10 @@ const OrderDetails = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">
-                      Tailor reference Image
+                      Tailor reference Image 2
                     </h3>
                     <p className="text-sm text-gray-600">
-                      Reference image provided by fashion designer
+                      Reference image provided by fashion designer when sent out for delivery
                     </p>
                   </div>
                 </div>

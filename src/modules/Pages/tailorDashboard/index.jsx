@@ -4,24 +4,63 @@ import AddedUser from "./components/AddedUser";
 import UpcomingDelivery from "./components/UpcomingDelivery";
 import IncomeExpensesChart from "./components/IncomeExpensesChart";
 import WalletPage from "./components/WalletPage";
+import WithdrawalModal from "./components/WithdrawalModal";
+import ViewWithdrawalsModal from "./components/ViewWithdrawalsModal";
 import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useVendorSummaryStat from "../../../hooks/analytics/useGetVendorSummmary";
+import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails";
 import Loader from "../../../components/ui/Loader";
 import TopSellingProducts from "../fabricDashboard/components/TopSelling";
+import CaryBinApi from "../../../services/CarybinBaseUrl";
+import BarChartComponent from "./components/BarChartComponent"
+import { useQuery } from "@tanstack/react-query";
 
 export default function TailorDashboard() {
   const { carybinUser } = useCarybinUserStore();
-  const [currentSubscriptionPlan, setCurrentSybscriptionPlan] = useState(null);
+  // Removed unused state for currentSubscriptionPlan
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [isViewWithdrawalsModalOpen, setIsViewWithdrawalsModalOpen] = useState(false);
+
   console.log(carybinUser);
-  // setCurrentSybscriptionPlan(
-  //   carybinUser?.subscriptions?.[carybinUser.subscriptions.length - 1]?.name,
-  // );
   const {
     isPending,
-    isLoading,
-    isError,
+    // Removed unused isLoading and isError
     data: vendorSummaryStat,
   } = useVendorSummaryStat();
+
+  const currentYear = new Date().getFullYear();
+
+  const { data: tailorStats } = useQuery({
+    queryKey: ["tailor-graph"],
+    queryFn: async () => {
+      let response = await CaryBinApi.get(`/vendor-analytics/logistics-monthly-revenue?year=${currentYear}`);
+      console.log("This is the tailor graph response", response);
+      return response?.data?.data;
+    }
+  });
+
+  const { data: businessData } = useGetBusinessDetails();
+  const businessWallet = businessData?.data?.business_wallet;
+
+  const handleWithdrawClick = () => {
+    console.log("🎯 Opening withdrawal modal");
+    setIsWithdrawModalOpen(true);
+  };
+
+  const handleViewAllClick = () => {
+    console.log("👁️ Opening view all withdrawals modal");
+    setIsViewWithdrawalsModalOpen(true);
+  };
+
+  const handleCloseWithdrawModal = () => {
+    console.log("🚪 Closing withdrawal modal");
+    setIsWithdrawModalOpen(false);
+  };
+
+  const handleCloseViewWithdrawalsModal = () => {
+    console.log("🚪 Closing view withdrawals modal");
+    setIsViewWithdrawalsModalOpen(false);
+  };
 
   if (isPending) {
     return (
@@ -120,11 +159,30 @@ export default function TailorDashboard() {
         </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-        <div className="lg:col-span-2">{/* <IncomeExpensesChart />*/}</div>
+        <div className="lg:col-span-2">
+          {/* Here we fill the vacant space with the BarChartComponent, passing tailorStats?.data */}
+          <BarChartComponent data={tailorStats} />
+        </div>
         <div className="lg:col-span-1">
-          <WalletPage />
+          <WalletPage
+            onWithdrawClick={handleWithdrawClick}
+            onViewAllClick={handleViewAllClick}
+          />
         </div>
       </div>
+
+      {/* Withdrawal Modal */}
+      <WithdrawalModal
+        isOpen={isWithdrawModalOpen}
+        onClose={handleCloseWithdrawModal}
+        businessWallet={businessWallet}
+      />
+
+      {/* View All Withdrawals Modal */}
+      <ViewWithdrawalsModal
+        isOpen={isViewWithdrawalsModalOpen}
+        onClose={handleCloseViewWithdrawalsModal}
+      />
     </>
   );
 }

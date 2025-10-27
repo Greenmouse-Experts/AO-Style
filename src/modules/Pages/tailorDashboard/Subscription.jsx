@@ -40,6 +40,8 @@ const Subscriptions = () => {
     },
   });
 
+  console.log("This is the user free plan data", free_plan)
+
   const [currentView, setCurrentView] = useState(null);
   const [verifyPayment, setVerifyPayment] = useState("");
 
@@ -97,6 +99,8 @@ const Subscriptions = () => {
     },
     currUrl == "/fabric/subscription" ? "fabric-vendor" : "fashion-designer",
   );
+
+  console.log("This is the subscription table data", subscriptionData)
 
   const [queryString, setQueryString] = useState(queryParams.q);
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
@@ -277,10 +281,7 @@ const Subscriptions = () => {
       subscriptionData?.data
         ? subscriptionData?.data.map((details) => {
             const isActive =
-              details?.id === activePlan?.subscription_plan_id ||
-              details?.id ===
-                activePlan?.subscription_plan_prices?.[0]
-                  ?.subscription_plan_id ||
+             
               details?.name === activePlan?.plan_name_at_subscription;
 
             return {

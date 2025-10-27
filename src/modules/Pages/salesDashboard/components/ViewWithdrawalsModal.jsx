@@ -1,20 +1,13 @@
 import React, { useState } from "react";
 import { formatNumberWithCommas } from "../../../../lib/helper";
 import useFetchWithdrawal from "../../../../hooks/withdrawal/useFetchWithdrawal";
-import { Search, X, Eye, Calendar, Filter } from "lucide-react";
+import { Search, X, Eye } from "lucide-react";
 
 const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-
-  console.log("👁️ ViewWithdrawalsModal - Component state:", {
-    isOpen,
-    searchTerm,
-    statusFilter,
-    currentPage,
-  });
 
   const {
     data: withdrawalData,
@@ -30,14 +23,6 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
   const totalItems = withdrawalData?.total || 0;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  console.log("📊 ViewWithdrawalsModal - Withdrawal data:", {
-    withdrawalData,
-    withdrawals,
-    totalItems,
-    totalPages,
-    isLoading,
-  });
-
   const filteredWithdrawals = withdrawals.filter(
     (withdrawal) =>
       withdrawal.id
@@ -47,13 +32,6 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
       withdrawal.amount?.toString().includes(searchTerm) ||
       withdrawal.status?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
-
-  console.log("🔍 ViewWithdrawalsModal - Filtering results:", {
-    originalCount: withdrawals.length,
-    filteredCount: filteredWithdrawals.length,
-    searchTerm,
-    statusFilter,
-  });
 
   const getStatusColor = (status) => {
     const normalizedStatus = status?.toLowerCase();
@@ -118,6 +96,7 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
     });
   };
 
+  // modal content container: set relative for sticky/fixed footer
   return (
     <div
       className={`fixed inset-0 flex justify-center items-center z-50 transition-all duration-300 ease-out ${
@@ -127,9 +106,6 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
       }`}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
-          console.log(
-            "🚪 ViewWithdrawalsModal - Backdrop clicked, closing modal",
-          );
           onClose();
         }
       }}
@@ -139,7 +115,7 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
           isOpen
             ? "scale-100 translate-y-0 opacity-100"
             : "scale-90 translate-y-8 opacity-0"
-        }`}
+        } relative`}
         onClick={(e) => e.stopPropagation()}
         style={{
           animation: isOpen ? "modalSlideIn 0.3s ease-out" : "none",
@@ -167,68 +143,20 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
         <div className="p-6 border-b border-gray-200 bg-gray-50">
           <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
             <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => {
-                  console.log(
-                    "🔘 ViewWithdrawalsModal - Status filter changed to: all",
-                  );
-                  setStatusFilter("all");
-                }}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out transform  active:scale-95 ${
-                  statusFilter === "all"
-                    ? "bg-purple-600 text-white shadow-lg"
-                    : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 hover:shadow-md"
-                }`}
-              >
-                All
-              </button>
-              <button
-                onClick={() => {
-                  console.log(
-                    "🔘 ViewWithdrawalsModal - Status filter changed to: pending",
-                  );
-                  setStatusFilter("pending");
-                }}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out transform  active:scale-95 ${
-                  statusFilter === "pending"
-                    ? "bg-purple-600 text-white shadow-lg"
-                    : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 hover:shadow-md"
-                }`}
-              >
-                Pending
-              </button>
-              <button
-                onClick={() => {
-                  console.log(
-                    "🔘 ViewWithdrawalsModal - Status filter changed to: completed",
-                  );
-                  setStatusFilter("completed");
-                }}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out transform  active:scale-95 ${
-                  statusFilter === "completed"
-                    ? "bg-purple-600 text-white shadow-lg"
-                    : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 hover:shadow-md"
-                }`}
-              >
-                Completed
-              </button>
-              <button
-                onClick={() => {
-                  console.log(
-                    "🔘 ViewWithdrawalsModal - Status filter changed to: failed",
-                  );
-                  setStatusFilter("failed");
-                }}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out transform  active:scale-95 ${
-                  statusFilter === "failed"
-                    ? "bg-purple-600 text-white shadow-lg"
-                    : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 hover:shadow-md"
-                }`}
-              >
-                Failed
-              </button>
+              {["all", "pending", "completed", "failed"].map((statusValue) => (
+                <button
+                  key={statusValue}
+                  onClick={() => setStatusFilter(statusValue)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out transform active:scale-95 ${
+                    statusFilter === statusValue
+                      ? "bg-purple-600 text-white shadow-lg"
+                      : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 hover:shadow-md"
+                  }`}
+                >
+                  {statusValue.charAt(0).toUpperCase() + statusValue.slice(1)}
+                </button>
+              ))}
             </div>
-
             <div className="relative">
               <Search
                 className="absolute left-3 top-3 text-gray-400"
@@ -239,20 +167,21 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                 placeholder="Search withdrawals..."
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent w-full sm:w-64"
                 value={searchTerm}
-                onChange={(e) => {
-                  console.log(
-                    "🔍 ViewWithdrawalsModal - Search term changed:",
-                    e.target.value,
-                  );
-                  setSearchTerm(e.target.value);
-                }}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+        {/* Main Scrollable Content */}
+        <div
+          className="p-6 overflow-y-auto"
+          style={{
+            // Make this fill available space except the fixed footer (footer height: 86px based on p-6)
+            maxHeight: "calc(90vh - 88px - 80px - 24px)", // modal max-h - header - filters - margin
+            minHeight: "150px",
+          }}
+        >
           {isLoading ? (
             <div className="flex justify-center items-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
@@ -281,7 +210,6 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                 <div>Date</div>
                 <div>Time</div>
                 <div>Status</div>
-                {/* <div>Notes</div> */}
               </div>
 
               {/* Table Body */}
@@ -299,7 +227,7 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                             Request ID
                           </p>
                           <p className="font-mono text-sm">
-                            {withdrawal.id?.replace(/-/g, "").slice(0, 2).toUpperCase()|| `WR${index + 1}`}
+                            {withdrawal.id?.replace(/-/g, "").slice(0, 2).toUpperCase() || `WR${index + 1}`}
                           </p>
                         </div>
                         <span
@@ -310,7 +238,6 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                           {getStatusText(withdrawal.status)}
                         </span>
                       </div>
-
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <p className="text-sm font-medium text-gray-600">
@@ -333,7 +260,6 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                         </div>
                       </div>
                     </div>
-
                     {/* Desktop Layout */}
                     <div className="hidden lg:contents">
                       <div className="font-mono text-sm text-gray-700">
@@ -366,33 +292,19 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
               {totalPages > 1 && (
                 <div className="flex justify-center items-center mt-8 space-x-2">
                   <button
-                    onClick={() => {
-                      const newPage = Math.max(1, currentPage - 1);
-                      console.log(
-                        "⬅️ ViewWithdrawalsModal - Previous page clicked, new page:",
-                        newPage,
-                      );
-                      setCurrentPage(newPage);
-                    }}
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
                     className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50  transition-all duration-200 ease-in-out active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     Previous
                   </button>
-
                   <div className="flex space-x-1">
                     {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                       const pageNum = i + 1;
                       return (
                         <button
                           key={pageNum}
-                          onClick={() => {
-                            console.log(
-                              "📄 ViewWithdrawalsModal - Page number clicked:",
-                              pageNum,
-                            );
-                            setCurrentPage(pageNum);
-                          }}
+                          onClick={() => setCurrentPage(pageNum)}
                           className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out transform hover:scale-110 active:scale-95 ${
                             currentPage === pageNum
                               ? "bg-purple-600 text-white shadow-lg"
@@ -404,16 +316,10 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                       );
                     })}
                   </div>
-
                   <button
-                    onClick={() => {
-                      const newPage = Math.min(totalPages, currentPage + 1);
-                      console.log(
-                        "➡️ ViewWithdrawalsModal - Next page clicked, new page:",
-                        newPage,
-                      );
-                      setCurrentPage(newPage);
-                    }}
+                    onClick={() =>
+                      setCurrentPage(Math.min(totalPages, currentPage + 1))
+                    }
                     disabled={currentPage === totalPages}
                     className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50  transition-all duration-200 ease-in-out active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
@@ -425,8 +331,19 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
           )}
         </div>
 
-        {/* Footer */}
-        <div className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50">
+        {/* Footer - Fixed to bottom of modal */}
+        <div
+          className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50"
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 10,
+            // fallback for mobile scroll
+            minHeight: "80px",
+          }}
+        >
           <div className="text-sm text-gray-600">
             {filteredWithdrawals.length > 0 && (
               <>
@@ -436,10 +353,7 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
             )}
           </div>
           <button
-            onClick={() => {
-              console.log("🔄 ViewWithdrawalsModal - Refresh button clicked");
-              refetch();
-            }}
+            onClick={refetch}
             disabled={isLoading}
             className="px-4 py-2 text-sm font-medium text-purple-600 bg-white border border-purple-600 rounded-lg hover:bg-purple-50  transition-all duration-200 ease-in-out active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >

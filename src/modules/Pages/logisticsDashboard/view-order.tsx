@@ -34,6 +34,7 @@ import useToast from "../../../hooks/useToast";
 import { formatOrderId } from "../../../lib/orderUtils";
 import "react-toastify/dist/ReactToastify.css";
 import Item from "antd/es/list/Item";
+import { FaRoad } from "react-icons/fa";
 
 // ... [All interfaces unchanged] ...
 
@@ -52,7 +53,9 @@ export default function ViewOrderLogistics() {
   const [viewImageUrl, setViewImageUrl] = useState<string | null>(null);
 
   // NEW: Modal state for viewing pickup fabric image (for "View pick-up item" button in Second Leg Locations)
-  const [pickupItemImageUrl, setPickupItemImageUrl] = useState<string | null>(null);
+  const [pickupItemImageUrl, setPickupItemImageUrl] = useState<string | null>(
+    null
+  );
 
   const query = useQuery<OrderLogisticsData>({
     queryKey: ["logistic", id, "view"],
@@ -323,36 +326,64 @@ export default function ViewOrderLogistics() {
       (isInTransit && isSecondLegAssignedToMe) ||
       (isDelivered && isSecondLegAssignedToMe));
 
+  const showLocations =
+    // Style orders - show during first leg and second leg
+    (hasStyleItems() &&
+      (
+        isFirstLeg || // Show during first leg for style orders
+        canAcceptSecondLeg ||
+        (isSecondLeg && isSecondLegAssignedToMe) ||
+        (isInTransit && isSecondLegAssignedToMe) ||
+        (isDelivered && isSecondLegAssignedToMe)
+      )
+    ) ||
+    // Fabric-only orders - first/only leg
+    (!hasStyleItems() &&
+      (
+        (isSecondLeg && isSecondLegAssignedToMe) || // OUT_FOR_DELIVERY for fabric-only
+        (isInTransit && isSecondLegAssignedToMe) ||
+        (isDelivered && isSecondLegAssignedToMe) ||
+        canAcceptFirstLeg // When agent can accept the fabric-only order
+      )
+    );
+
   // For "View pick-up item" image in LOCATIONS: pick the first order_item with a fabric image
   let locationPickupImage: string | undefined;
-  if (
-    Array.isArray(order_data?.order_items)
-  ) {
-    // Try to pick order_items[0] or order_items[1], see which has a fabric image
-    // We may want the item that has fabric, not style, so prefer .fabric.photos[0]
-    for (let item of order_data.order_items) {
+  if (Array.isArray(order_data?.order_items)) {
+    // For fabric-only orders, get the fabric image from the first item
+    if (!hasStyleItems()) {
+      const fabricItem = order_data.order_items[0];
       if (
-        item.product &&
-        item.product.fabric &&
-        Array.isArray(item.product.fabric.photos) &&
-        item.product.fabric.photos.length
+        fabricItem?.product?.fabric &&
+        Array.isArray(fabricItem.product.fabric.photos) &&
+        fabricItem.product.fabric.photos.length
       ) {
-        locationPickupImage = item.product.fabric.photos[0];
-        break;
+        locationPickupImage = fabricItem.product.fabric.photos[0];
       }
-      // Optionally, fallback to image in metadata
-      if (
-        item.metadata &&
-        typeof item.metadata === "object" &&
-        "image" in item.metadata &&
-        typeof item.metadata.image === "string" &&
-        !locationPickupImage
-      ) {
-        locationPickupImage = item.metadata.image;
+    } else {
+      // For style orders, existing logic
+      for (let item of order_data.order_items) {
+        if (
+          item.product &&
+          item.product.fabric &&
+          Array.isArray(item.product.fabric.photos) &&
+          item.product.fabric.photos.length
+        ) {
+          locationPickupImage = item.product.fabric.photos[0];
+          break;
+        }
+        if (
+          item.metadata &&
+          typeof item.metadata === "object" &&
+          "image" in item.metadata &&
+          typeof item.metadata.image === "string" &&
+          !locationPickupImage
+        ) {
+          locationPickupImage = item.metadata.image;
+        }
       }
     }
   }
-
   // --- End: SECOND LEG PHASE LOGIC ---
 
   return (
@@ -802,7 +833,7 @@ export default function ViewOrderLogistics() {
                               {item?.product?.fabric ? "FABRIC" : "STYLE"}
                             </div>
 
-                            {!showSecondLegLocations && (
+                            {/* {!showSecondLegLocations && (
                               <div className="mt-3">
                                 <p className="text-sm font-medium text-gray-700 mb-1">
                                   {item.product.fabric
@@ -816,7 +847,7 @@ export default function ViewOrderLogistics() {
                                     "Address not available"}
                                 </p>
                               </div>
-                            )}
+                            )} */}
 
                             {isFirstLeg && !hasStyleItems && (
                               <div className="mt-3">
@@ -833,15 +864,20 @@ export default function ViewOrderLogistics() {
                           </div>
 
                           <div className="flex flex-col gap-2 flex-shrink-0">
-                            <button
-                              className="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors"
-                              onClick={() => {
-                                setItem(item);
-                                nav(`/logistics/orders/item/${item.id}/map`);
-                              }}
-                            >
-                              View Pickup
-                            </button>
+                            {showSecondLegLocations &&
+                              !item?.product?.fabric && (
+                                <button
+                                  className="cursor-pointer px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors"
+                                  onClick={() => {
+                                    setItem(item);
+                                    nav(
+                                      `/logistics/orders/item/${item.id}/map`
+                                    );
+                                  }}
+                                >
+                                  View Pickup
+                                </button>
+                              )}
                             {metaImage && (
                               <button
                                 className="px-3 py-2 bg-pink-100 text-pink-700 rounded-lg text-sm font-medium hover:bg-pink-200 transition-colors flex items-center justify-center"
@@ -860,7 +896,7 @@ export default function ViewOrderLogistics() {
                 </div>
               </div>
               {/* LOCATIONS Component: Only show in second leg phase */}
-              {showSecondLegLocations && (
+              {showLocations && (
                 <div className="bg-white rounded-xl shadow-lg border border-gray-100">
                   <div className="w-full bg-purple-100 p-4 flex flex-col gap-2 items-center md:flex-row md:justify-between rounded-t-xl">
                     <div className="flex items-center gap-1">
@@ -898,10 +934,11 @@ export default function ViewOrderLogistics() {
                         </div>
                         <div className="bg-white p-2 rounded">
                           <p className="text-gray-700 text-sm font-semibold">
-                            {
-                              order_data?.order_items?.[1]?.product?.creator
-                                ?.profile?.address
-                            }
+                            {hasStyleItems()
+                              ? order_data?.order_items?.[1]?.product?.creator
+                                  ?.profile?.address
+                              : order_data?.order_items?.[0]?.product?.creator
+                                  ?.profile?.address}
                           </p>
                         </div>
                       </div>
@@ -910,7 +947,9 @@ export default function ViewOrderLogistics() {
                         <div className="flex items-center gap-1">
                           <Phone className="text-purple-900 h-5 mb-1" />
                           <p className="mb-1 text-purple-900 text-sm font-medium">
-                            TAILOR CONTACT:
+                            {hasStyleItems()
+                              ? "TAILOR CONTACT:"
+                              : "VENDOR CONTACT:"}
                           </p>
                         </div>
                         <div className="bg-white p-2 rounded">
@@ -927,11 +966,48 @@ export default function ViewOrderLogistics() {
                     {/* destination address and tailor contact*/}
                     <div className="m-3 bg-purple-100 p-4 rounded-md">
                       <div>
-                        <div className="flex items-center gap-1">
-                          <Bus className="text-purple-900 h-5 mb-1" />
-                          <p className="mb-1 text-purple-900 text-sm font-medium">
-                            DESTINATION ADDRESS:
-                          </p>
+                        <div className="flex justify-between mb-3 items-center">
+                          <div className="flex items-center gap-1">
+                            <Bus className="text-purple-900 h-5 mb-1" />
+                            <p className="mb-1 text-purple-900 text-sm font-medium">
+                              DESTINATION ADDRESS:
+                            </p>
+                          </div>
+                          {/* view destination button */}
+                          {/* // In ViewOrderLogistics.tsx - "View Route" button */}
+                          <button
+                            className="px-2 py-1 flex items-center bg-purple-300 text-purple-800 cursor-pointer text-purle-800 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={() => {
+                              const orderItem = hasStyleItems() ? order_data?.order_items?.[1] : order_data?.order_items?.[0];
+                              if (orderItem) {
+                                setItem({
+                                  ...orderItem,
+                                  isCustomer: {
+                                    address:
+                                      order_data?.user?.profile?.address || "",
+                                    phone: order_data?.user?.phone,
+                                    name: order_data?.user?.profile?.name,
+                                    email: order_data?.user?.email,
+                                    profile_picture:
+                                      order_data?.user?.profile
+                                        ?.profile_picture,
+                                    coordinates:
+                                      order_data?.user?.profile?.coordinates ||
+                                      undefined,
+                                  },
+                                });
+                                nav(
+                                  `/logistics/orders/item/${orderItem.id}/map`
+                                );
+                              } else {
+                                toast.error("Order item not found");
+                              }
+                            }}
+                            type="button"
+                          >
+                            <FaRoad className="h-4" />
+                            View Route
+                          </button>
                         </div>
                         <div className="bg-white p-2 rounded">
                           <p className="text-gray-700 text-sm font-semibold">
@@ -1135,13 +1211,17 @@ export default function ViewOrderLogistics() {
               onClick={(e) => e.stopPropagation()}
             >
               <button
-                className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl font-bold"
+                className="cursor-pointer absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl font-bold"
                 onClick={() => setPickupItemImageUrl(null)}
                 aria-label="Close"
                 type="button"
               >
                 ×
               </button>
+              {hasStyleItems() && (<div className="mb-2 text-yellow-800 bg-yellow-50 border border-yellow-300 rounded px-3 py-2 text-sm">
+                <span className="font-medium">Tip:</span> You can use the fabric
+                image to know the kind of item to expect from the tailor.
+              </div>)}
               <div className="flex flex-col items-center">
                 {pickupItemImageUrl ? (
                   <img

@@ -7,6 +7,10 @@ import { useCarybinUserStore } from "../../../store/carybinUserStore";
 import useVendorSummaryStat from "../../../hooks/analytics/useGetVendorSummmary";
 import Loader from "../../../components/ui/Loader";
 import NewOrders from "./components/AddedUser";
+import CaryBinApi from "../../../services/CarybinBaseUrl";
+import { useQuery } from "@tanstack/react-query";
+import BarChartComponent from "./components/BarChartComponent";
+import FabricStyleDashboard from "./components/FabricStyleDashboard";
 
 export default function FabricDashboard() {
   const { carybinUser } = useCarybinUserStore();
@@ -17,6 +21,19 @@ export default function FabricDashboard() {
     isError,
     data: vendorSummaryStat,
   } = useVendorSummaryStat();
+
+  const {
+    data: graphData,
+    isLoading: graphDataLoading,
+    isFetching: graphDataFetching,
+  } = useQuery({
+    queryKey: ["logistics-graph"],
+    queryFn: async () => {
+      let resp = await CaryBinApi.get(`/vendor-analytics/monthly-revenue`);
+      console.log("This is the grah endpoint", resp.data);
+      return resp.data;
+    },
+  });
 
   console.log(vendorSummaryStat);
 
@@ -119,7 +136,7 @@ export default function FabricDashboard() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
         <div className="lg:col-span-2">
-          <IncomeExpensesChart />
+          <FabricStyleDashboard data={graphData?.data} />
         </div>
         <div className="lg:col-span-1">
           <Noti />

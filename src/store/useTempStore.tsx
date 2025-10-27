@@ -19,11 +19,24 @@ export const useTempStore = create(
       setUser: (data: User) => set({ user: data }),
     }),
     {
-      name: "temp-storage", // Choose a unique name for your storage
+      name: "temp-storage",
       storage: createJSONStorage(() => localStorage),
     },
   ),
 );
+
+// NEW: Define customer data structure
+interface CustomerData {
+  address: string;
+  phone?: string;
+  name?: string;
+  coordinates?: {
+    latitude: string;
+    longitude: string;
+  };
+  email?: string
+  // Add any other customer fields you need
+}
 
 interface OrderItem {
   id: string;
@@ -35,6 +48,7 @@ interface OrderItem {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+  isCustomer?: boolean | CustomerData; // ✅ Can be boolean OR customer data object
   product: {
     id: string;
     business_id: string;
@@ -122,20 +136,28 @@ interface OrderItem {
     } | null;
   };
 }
+
 interface ItemMap {
-  item: OrderItem;
-  setItem: (data: any) => void;
+  item: OrderItem | undefined;
+  setItem: (data: OrderItem) => void;
 }
 
 export const useItemMap = create(
   persist<ItemMap>(
     (set) => ({
       item: undefined,
-      setItem: (data: any) => set({ item: data }),
+      setItem: (data: OrderItem) => {
+        console.log("🔧 Setting item in store:", data);
+        console.log("🔧 Has isCustomer:", data?.isCustomer);
+        set({ item: data });
+      },
     }),
     {
-      name: "item-map-storage", // Choose a unique name for your storage
+      name: "item-map-storage",
       storage: createJSONStorage(() => localStorage),
     },
   ),
 );
+
+// Export the CustomerData type so you can use it elsewhere
+export type { CustomerData, OrderItem };

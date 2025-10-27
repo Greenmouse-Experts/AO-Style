@@ -831,21 +831,6 @@ const MyProducts = () => {
                 ? "Try adjusting your search or filters"
                 : `${selectedVendor?.displayName || "This vendor"} hasn't added any products yet`}
             </p>
-            {/* Debug info in development */}
-            {import.meta.env.DEV && (
-              <div className="mt-4 p-4 bg-gray-100 rounded-lg text-left text-xs">
-                <p>
-                  <strong>Debug Info:</strong>
-                </p>
-                <p>Products loading: {productsLoading.toString()}</p>
-                <p>Products error: {productsError?.toString() || "none"}</p>
-                <p>Raw products count: {products?.length || 0}</p>
-                <p>Filtered products count: {filteredProducts?.length || 0}</p>
-                <p>Selected vendor ID: {selectedVendor?.id || "none"}</p>
-                <p>Search term: "{searchTerm}"</p>
-                <p>Filter type: {filterType}</p>
-              </div>
-            )}
             {!searchTerm && filterType === "all" && (
               <div className="flex justify-center space-x-4">
                 {vendorType === "fabric-vendor" && (

@@ -2,9 +2,17 @@ import { useMemo } from "react";
 import Loader from "../../../../components/ui/Loader";
 import useGetCustomerOrderStat from "../../../../hooks/analytics/useGetCustomerOrderStats";
 import { formatNumberWithCommas } from "../../../../lib/helper";
+import useGetCustomerExpensesStat from "../../../../hooks/analytics/useGetCustomerExpensesStat";
 
 export default function StatsCard() {
   const { isPending, isLoading, isError, data } = useGetCustomerOrderStat();
+
+  const {
+    isPending: expensePending,
+    isLoading: expenseLoading,
+    isError: expenseError,
+    data: customerExpensesStat,
+  } = useGetCustomerExpensesStat();
 
   const stats = useMemo(
     () => [
@@ -23,14 +31,14 @@ export default function StatsCard() {
       {
         image:
           "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741980408/AoStyle/Group_386385_avoje8.png",
-        value: `${formatNumberWithCommas(data?.data?.totalSpent ?? 0)}`,
+        value: `${isLoading || isPending ? "Loading..." : formatNumberWithCommas(customerExpensesStat?.data?.fabricExpenses + customerExpensesStat?.data?.styleExpenses)}`,
         label: "Total Spent",
       },
     ],
     [data?.data]
   );
 
-  if (isPending) {
+  if (isPending || expensePending || expenseLoading) {
     return (
       <div className="m-auto flex h-[80vh] items-center justify-center">
         <Loader />

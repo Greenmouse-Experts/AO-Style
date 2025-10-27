@@ -3,24 +3,6 @@ import useGetNotification from "../../../../hooks/notification/useGetNotificatio
 import useMarkReadNotification from "../../../../hooks/notification/useMarkReadNotification";
 import { Link } from "react-router-dom";
 
-const notifications = [
-  {
-    message: "Order has been moved to the tailor",
-    subMessage: "Your order is in the next stage",
-  },
-  {
-    message: "Order has been moved to the tailor",
-    subMessage: "Your order is in the next stage",
-  },
-  {
-    message: "Order has been moved to the tailor",
-    subMessage: "Your order is in the next stage",
-  },
-  {
-    message: "Order has been moved to the tailor",
-    subMessage: "Your order is in the next stage",
-  },
-];
 
 export default function NotificationsCard() {
   const { data, isPending } = useGetNotification({
@@ -49,7 +31,7 @@ export default function NotificationsCard() {
               key={notification?.id}
               onClick={() => {
                 if (!notification?.read) {
-                  markReadNotificationMutate({ id: notification?.id });
+                  markReadNotificationMutate(notification?.id);
                 }
               }}
               className={`flex items-start py-4 px-4 last:border-none gap-3 ${

@@ -140,9 +140,12 @@ const OrderDetails = () => {
       status: newStatus,
       metadata: {
         ...(orderInfo?.metadata || []),
-        tailorReferenceImage: imageUrl,
+        ...(newStatus === "PROCESSING"
+          ? { tailorReferenceImage1: imageUrl }
+          : { tailorReferenceImage: imageUrl }),
       },
     };
+    console.log("This is the status Data", statusData)
 
     return new Promise((resolve, reject) => {
       updateOrderStatusMutate(
@@ -695,7 +698,7 @@ const OrderDetails = () => {
                         <button
                           onClick={() => handleStatusUpdate("PROCESSING")}
                           disabled={isStatusUpdating || isUploading}
-                          className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                          className="cursor-pointer w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                         >
                           <Upload className="w-4 h-4" />
                           {isStatusUpdating || isUploading
@@ -729,7 +732,7 @@ const OrderDetails = () => {
                         <button
                           onClick={() => handleStatusUpdate("OUT_FOR_DELIVERY")}
                           disabled={isStatusUpdating || isUploading}
-                          className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                          className="cursor-pointer w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                         >
                           <Upload className="w-4 h-4" />
                           {isStatusUpdating || isUploading
@@ -1038,7 +1041,7 @@ const OrderDetails = () => {
                 </button>
                 <button
                   onClick={handleCompleteUpload}
-                  className={`flex-1 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+                  className={`cursor-pointer flex-1 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
                     selectedFile && !isUploading
                       ? "bg-purple-600 text-white hover:bg-purple-700"
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"

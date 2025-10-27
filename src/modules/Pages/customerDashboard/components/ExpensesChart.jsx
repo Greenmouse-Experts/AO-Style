@@ -10,6 +10,7 @@ export default function ExpensesChart() {
     data: customerExpensesStat,
   } = useGetCustomerExpensesStat();
 
+  console.log("This is the customer espenses chart", customerExpensesStat)
   const data = useMemo(
     () => [
       {

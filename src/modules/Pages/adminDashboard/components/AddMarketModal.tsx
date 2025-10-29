@@ -15,6 +15,7 @@ export default function AddMarketModal({ isOpen, onClose }: any) {
       );
 
       const businessId = busiRes.data.data[0]?.id;
+      console.log("This is the business id", businessId)
       if (!businessId) {
         throw new Error("No business found");
       }
@@ -22,6 +23,7 @@ export default function AddMarketModal({ isOpen, onClose }: any) {
       // Second request using the businessId
       const resp = await CaryBinApi.post("/contact/invite", {
         ...data,
+        role: "market-representative",
         business_id: businessId,
       });
 
@@ -39,6 +41,7 @@ export default function AddMarketModal({ isOpen, onClose }: any) {
       );
     },
   });
+  // console.log()
   const onsubmit = (e) => {
     e.preventDefault();
     let business_id = userData?.data?.id;
@@ -47,7 +50,7 @@ export default function AddMarketModal({ isOpen, onClose }: any) {
       // business_id: business_id,
       email: e.target.email.value,
       name: e.target.name.value,
-      role: e.target.role.value,
+      // role: e.target.role.value,
     };
     mutate.mutateAsync(data);
     setAddAddress(false);

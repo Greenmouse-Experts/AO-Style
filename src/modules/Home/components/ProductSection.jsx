@@ -176,7 +176,8 @@ export default function ProductSection() {
               <img
                 src={product?.style?.photos[0]}
                 alt={product.name}
-                className="w-full h-[200px] object-cover rounded-md"
+                className="w-full rounded-md"
+                style={{ objectFit: "contain", maxHeight: "250px", background: "#f8f8f8" }}
               />
               <h3 className="font-medium text-left uppercase mt-4 mb-3">
                 {product?.name?.length > 20

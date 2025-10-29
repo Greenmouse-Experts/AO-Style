@@ -129,7 +129,7 @@ export default function InboxPage() {
 
       console.log("====================================");
     }
-  }, [socket, isConnected, roleConversations]);
+  }, [socket, isConnected]);
 
   useEffect(() => {
     scrollToBottom();
@@ -245,7 +245,7 @@ export default function InboxPage() {
 
       socketInstance.on("chatsRetrieved", (data) => {
         console.log("=== CHATS RETRIEVED ON LOAD ===");
-        console.log("Full response:", JSON.stringify(data, null, 2));
+        console.log("Full response from first:", data);
         console.log("Status:", data?.status);
         console.log("Message:", data?.message);
         console.log("Result array:", data?.data?.result);
@@ -271,7 +271,7 @@ export default function InboxPage() {
 
         socketInstance.on(`chatsRetrieved:${userId}`, (data) => {
           console.log(`=== USER-SPECIFIC CHATS RETRIEVED (${userId}) ===`);
-          console.log("Full response:", JSON.stringify(data, null, 2));
+          console.log("Full response frm second endpoint:", data);
           console.log("Status:", data?.status);
           console.log("Message:", data?.message);
           console.log("Result array:", data?.data?.result);

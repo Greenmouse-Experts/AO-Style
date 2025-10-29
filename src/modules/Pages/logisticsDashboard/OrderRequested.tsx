@@ -356,6 +356,14 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
+const priceToDisplay = (item: Order) => {
+  if(item?.status === "OUT_FOR_DELIVERY" || (item?.status === "IN_TRANSIT" && item?.logistics_agent_id)) {
+    return item?.payment?.purchase?.delivery_data?.data?.second_leg_delivery_fee
+  } else{
+    return item?.payment?.purchase?.delivery_data?.data?.first_leg_delivery_fee
+  }
+}
+
 // Delivery Stage Component
 const DeliveryStage = ({ item }: { item: Order }) => {
   const status = item.status.toLowerCase();
@@ -566,7 +574,7 @@ const OrderRequests = () => {
       label: "Amount",
       render: (_, item) => (
         <div className="font-semibold text-right">
-          ₦{parseFloat(item?.payment?.purchase?.delivery_fee).toLocaleString()}
+          ₦{parseFloat(priceToDisplay(item)).toLocaleString()}
         </div>
       ),
     },

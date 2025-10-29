@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import ReusableTable from "../components/ReusableTable";
 import { FaEllipsisH } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, data, useNavigate } from "react-router-dom";
 import useGetAllMarketRep from "../../../../hooks/marketRep/useGetMarketRep";
 import useQueryParams from "../../../../hooks/useQueryParams";
 import useGetBusinessDetails from "../../../../hooks/settings/useGetBusinessDetails";
@@ -18,6 +18,8 @@ import AddMarketModal from "./AddMarketModal";
 import * as XLSX from "xlsx";
 import { CSVLink } from "react-csv";
 import CustomTable from "../../../../components/CustomTable";
+import { useQuery } from "@tanstack/react-query";
+import CaryBinApi from "../../../../services/CarybinBaseUrl";
 
 const NewlyAddedUsers = () => {
   const [currView, setCurrView] = useState("approved");
@@ -44,7 +46,17 @@ const NewlyAddedUsers = () => {
   const nav = useNavigate();
   const [newCategory, setNewCategory] = useState();
 
-  const { data: businessData } = useGetBusinessDetails();
+  // const { data: businessData } = useGetBusinessDetails();
+
+  const { data: businessData } = useQuery({
+    queryKey: ["get-business-data"],
+    queryFn: async () => {
+      const url = `/onboard/fetch-businesses?q=market-representative`;
+      const response = await CaryBinApi.get(url);
+      console.log("This are the businesses data", response);
+      return response.data;
+    },
+  });
 
   const { queryParams, updateQueryParams, clearAllFilters } = useQueryParams({
     approved: true,
@@ -52,6 +64,7 @@ const NewlyAddedUsers = () => {
     "pagination[limit]": 10,
   });
 
+  // Query for approved market reps (uses the original endpoint)
   const { data: getAllMarketRepData, isPending } = useGetAllUsersByRole({
     ...queryParams,
     role: "market-representative",
@@ -63,15 +76,67 @@ const NewlyAddedUsers = () => {
     });
   }, []);
 
-  const { data: getAllInviteData, isPending: allInviteIsPending } =
-    useGetAllMarketRep({
-      status: queryParams?.status,
-      "pagination[page]": queryParams["pagination[page]"],
-      "pagination[limit]": queryParams["pagination[limit]"],
-      id: businessData?.data?.id,
+  // Query for pending market reps (uses contact/invites endpoint with status=pending)
+  const { data: getPendingInviteData, isPending: pendingInviteIsPending } =
+    useQuery({
+      queryKey: [
+        "get-pending-rep-invites",
+        businessData?.data?.[0]?.id,
+        queryParams["pagination[page]"],
+        queryParams["pagination[limit]"],
+      ],
+      queryFn: async () => {
+        const page = queryParams["pagination[page]"] ?? 1;
+        const limit = queryParams["pagination[limit]"] ?? 10;
+        const url = `/contact/invites/${businessData?.data?.[0]?.id}?status=pending&role=market-representative&pagination[page]=${page}&pagination[limit]=${limit}`;
+        const response = await CaryBinApi.get(url);
+        console.log("This is the pending market rep invitees", response);
+        return response.data;
+      },
+      enabled: !!businessData?.data?.[0]?.id && currView === "pending",
     });
 
-    console.log("This is all the invites data", getAllInviteData)
+  // Query for rejected market reps (uses contact/invites endpoint with status=expired)
+  const { data: getRejectedInviteData, isPending: rejectedInviteIsPending } =
+    useQuery({
+      queryKey: [
+        "get-rejected-rep-invites",
+        businessData?.data?.[0]?.id,
+        queryParams["pagination[page]"],
+        queryParams["pagination[limit]"],
+      ],
+      queryFn: async () => {
+        const page = queryParams["pagination[page]"] ?? 1;
+        const limit = queryParams["pagination[limit]"] ?? 10;
+        const url = `/contact/invites/${businessData?.data?.[0]?.id}?status=expired&role=market-representative&pagination[page]=${page}&pagination[limit]=${limit}`;
+        const response = await CaryBinApi.get(url);
+        console.log("This is the rejected market rep invitees", response);
+        return response.data;
+      },
+      enabled: !!businessData?.data?.[0]?.id && currView === "rejected",
+    });
+
+  // Query for all invites (uses contact/invites endpoint with no status param)
+  const { data: getAllInviteData, isPending: allInviteIsPending } = useQuery({
+    queryKey: [
+      "get-admin-rep-invites",
+      businessData?.data?.[0]?.id,
+      queryParams["pagination[page]"],
+      queryParams["pagination[limit]"],
+    ],
+    queryFn: async () => {
+      const page = queryParams["pagination[page]"] ?? 1;
+      const limit = queryParams["pagination[limit]"] ?? 10;
+      const url = `/contact/invites/${businessData?.data?.[0]?.id}?role=market-representative&pagination[page]=${page}&pagination[limit]=${limit}`;
+      const response = await CaryBinApi.get(url);
+      console.log("This is the markt rep invitees", response);
+      return response.data;
+    },
+    enabled: !!businessData?.data?.[0]?.id && currView === "invites",
+  });
+
+  console.log("This is all the invites data", getAllInviteData);
+
   const [queryString, setQueryString] = useState(queryParams.q);
 
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
@@ -84,63 +149,104 @@ const NewlyAddedUsers = () => {
     });
   }, [debouncedSearchTerm]);
 
+  // Determine which data to use based on currView
+  const currentData = useMemo(() => {
+    switch (currView) {
+      case "pending":
+        return getPendingInviteData;
+      case "rejected":
+        return getRejectedInviteData;
+      case "invites":
+        return getAllInviteData;
+      case "approved":
+      default:
+        return getAllMarketRepData;
+    }
+  }, [
+    currView,
+    getPendingInviteData,
+    getRejectedInviteData,
+    getAllInviteData,
+    getAllMarketRepData,
+  ]);
+
+  // Determine loading state based on currView
+  const isLoading = useMemo(() => {
+    switch (currView) {
+      case "pending":
+        return pendingInviteIsPending;
+      case "rejected":
+        return rejectedInviteIsPending;
+      case "invites":
+        return allInviteIsPending;
+      case "approved":
+      default:
+        return isPending;
+    }
+  }, [
+    currView,
+    pendingInviteIsPending,
+    rejectedInviteIsPending,
+    allInviteIsPending,
+    isPending,
+  ]);
+
   const totalPages = Math.ceil(
-    getAllMarketRepData?.count / (queryParams["pagination[limit]"] ?? 10),
+    currentData?.count / (queryParams["pagination[limit]"] ?? 10)
   );
 
-  const totalallInvitePages = Math.ceil(
-    getAllInviteData?.count / (queryParams["pagination[limit]"] ?? 10),
-  );
+  const totalPageCount = totalPages;
 
-  const totalPageCount =
-    currView === "invites" ? totalallInvitePages : totalPages;
-    const actions = [
-      {
-        key: "view-details",
-        label: "View Market Rep",
-        action: (item) => {
-          return nav(`/admin/sales-rep/view-sales/${item.id}`);
-        },
+  const actions = [
+    {
+      key: "view-details",
+      label: "View Market Rep",
+      action: (item) => {
+        return nav(`/admin/sales-rep/view-sales/${item.id}`);
       },
-      ...(currView === "invites" 
-        ? [
-            {
-              key: "edit-user",
-              label: "Edit User",
-              action: (item) => {
-                // Add your edit logic here
-                console.log("Edit user:", item);
-              },
+    },
+    ...(currView === "invites" ||
+    currView === "pending" ||
+    currView === "rejected"
+      ? [
+          {
+            key: "edit-user",
+            label: "Edit User",
+            action: (item) => {
+              // Add your edit logic here
+              console.log("Edit user:", item);
             },
-            {
-              key: "remove-user",
-              label: "Remove User",
-              action: (item) => {
-                // Add your remove logic here
-                console.log("Remove user:", item);
-              },
+          },
+          {
+            key: "remove-user",
+            label: "Remove User",
+            action: (item) => {
+              // Add your remove logic here
+              console.log("Remove user:", item);
             },
-          ]
-        : [
-            {
-              key: "suspend-vendor",
-              label: currView === "approved" ? "Suspend Vendor" : "Unsuspend Vendor",
-              action: (item) => {
-                setSuspendModalOpen(true);
-                setNewCategory(item);
-                setOpenDropdown(null);
-              },
+          },
+        ]
+      : [
+          {
+            key: "suspend-vendor",
+            label:
+              currView === "approved" ? "Suspend Vendor" : "Unsuspend Vendor",
+            action: (item) => {
+              setSuspendModalOpen(true);
+              setNewCategory(item);
+              setOpenDropdown(null);
             },
-            {
-              key: "delete-vendor",
-              label: "Delete Market Rep",
-              action: (item) => {
-                handleDeleteUser(item);
-              },
+          },
+          {
+            key: "delete-vendor",
+            label: "Delete Market Rep",
+            action: (item) => {
+              handleDeleteUser(item);
             },
-          ]
-      ),
-    ];
+          },
+        ]),
+  ];
+
   const MarketRepData = useMemo(
     () =>
       getAllMarketRepData?.data
@@ -157,7 +263,7 @@ const NewlyAddedUsers = () => {
             };
           })
         : [],
-    [getAllMarketRepData?.data],
+    [getAllMarketRepData?.data]
   );
 
   const handleDeleteUser = (user) => {
@@ -182,11 +288,12 @@ const NewlyAddedUsers = () => {
 
   const InviteData = useMemo(
     () =>
-      getAllInviteData?.data
-        ? getAllInviteData?.data.map((details) => {
+      currentData?.data
+        ? currentData?.data.map((details) => {
             return {
               ...details,
               name: `${details?.name}`,
+              email: `${details?.email ?? ""}`,
               userType: `${details?.role?.name ?? ""}`,
               created_at: `${
                 details?.created_at
@@ -196,7 +303,7 @@ const NewlyAddedUsers = () => {
             };
           })
         : [],
-    [getAllInviteData?.data],
+    [currentData?.data]
   );
 
   // Toggle dropdown function
@@ -204,7 +311,7 @@ const NewlyAddedUsers = () => {
     setOpenDropdown((prev) => (prev === rowId ? null : rowId));
   }, []);
 
-  // Table Columns
+  // Table Columns for approved market reps
   const columns = useMemo(
     () => [
       { label: "Name", key: "name" },
@@ -219,22 +326,23 @@ const NewlyAddedUsers = () => {
               row.profile?.approved_by_admin
                 ? "bg-green-100 text-green-600"
                 : row.profile?.approved_by_admin == null
-                  ? "bg-yellow-100 text-yellow-600"
-                  : "bg-red-100 text-red-600"
+                ? "bg-yellow-100 text-yellow-600"
+                : "bg-red-100 text-red-600"
             }`}
           >
             {row.profile?.approved_by_admin == null
               ? "Pending"
               : row.profile?.approved_by_admin
-                ? "Approved"
-                : "Rejected"}
+              ? "Approved"
+              : "Expired"}
           </span>
         ),
       },
     ],
-    [toggleDropdown, openDropdown],
+    [toggleDropdown, openDropdown]
   );
 
+  // Table columns for invites/pending/rejected (from contact/invites endpoint)
   const inviteRepColumn = useMemo(
     () => [
       { label: "Name", key: "name" },
@@ -249,21 +357,22 @@ const NewlyAddedUsers = () => {
               row?.status == "active"
                 ? "bg-green-100 text-green-600"
                 : row?.status == "pending"
-                  ? "bg-yellow-100 text-yellow-600"
-                  : "bg-red-100 text-red-600"
+                ? "bg-yellow-100 text-yellow-600"
+                : "bg-red-100 text-red-600"
             }`}
           >
             {row?.status == "pending"
               ? "Pending"
               : row?.status == "active"
-                ? "Active"
-                : "Rejected"}
+              ? "Active"
+              : row?.status == "expired"
+              ? "Expired"
+              : "Rejected"}
           </span>
         ),
       },
-      // Removed the Action column - CustomTable will handle it
     ],
-    [],
+    []
   );
 
   // Close dropdown when clicking outside
@@ -276,16 +385,16 @@ const NewlyAddedUsers = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
   const handleExport = (e) => {
     const value = e.target.value;
     if (value === "excel") exportToExcel();
-    // if (value === "pdf") exportToPDF();
     if (value === "csv") document.getElementById("csvDownload").click();
   };
+
   const exportToExcel = () => {
-    // return console.log(MarketRepData);
     const worksheet = XLSX.utils.json_to_sheet(
-      currView == "invites" ? InviteData : MarketRepData,
+      currView === "approved" ? MarketRepData : InviteData
     );
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
@@ -298,8 +407,9 @@ const NewlyAddedUsers = () => {
     });
     saveAs(blob, "MyProducts.xlsx");
   };
+
   return (
-    <div className="bg-white p-6 rounded-xl overflow-x-auto overflow-y-visible" >
+    <div className="bg-white p-6 rounded-xl overflow-x-auto overflow-y-visible">
       <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
         <h2 className="text-lg font-semibold">Market Rep</h2>
         <div className="flex flex-wrap gap-3 w-full sm:w-auto">
@@ -319,9 +429,8 @@ const NewlyAddedUsers = () => {
             <option value="" disabled selected>
               Export As
             </option>
-            <option value="csv">Export to CSV</option>{" "}
-            <option value="excel">Export to Excel</option>{" "}
-            {/* <option value="pdf">Export to PDF</option>{" "}*/}
+            <option value="csv">Export to CSV</option>
+            <option value="excel">Export to Excel</option>
           </select>
 
           <button
@@ -339,34 +448,9 @@ const NewlyAddedUsers = () => {
               key={tab}
               onClick={() => {
                 setCurrView(tab);
-                if (tab == "pending") {
-                  updateQueryParams({
-                    ...queryParams,
-                    newly_onboarded: true,
-                    approved: null,
-                  });
-                }
-                if (tab == "approved") {
-                  return updateQueryParams({
-                    ...queryParams,
-                    newly_onboarded: null,
-                    approved: true,
-                  });
-                }
-                if (tab == "rejected") {
-                  return updateQueryParams({
-                    ...queryParams,
-                    newly_onboarded: null,
-                    approved: false,
-                  });
-                }
-                if (tab == "invites") {
-                  return updateQueryParams({
-                    ...queryParams,
-                    newly_onboarded: undefined,
-                    approved: undefined,
-                  });
-                }
+                updateQueryParams({
+                  "pagination[page]": 1,
+                });
               }}
               className={`font-medium capitalize px-3 py-1 ${
                 currView === tab
@@ -374,17 +458,17 @@ const NewlyAddedUsers = () => {
                   : "text-gray-500"
               }`}
             >
-              {tab}
+              {tab === "rejected" ? "Expired" : tab}
             </button>
           ))}
         </div>
       </div>
       <CSVLink
         id="csvDownload"
-        data={currView == "invites" ? InviteData : MarketRepData}
+        data={currView === "approved" ? MarketRepData : InviteData}
         filename="MyProducts.csv"
         className="hidden"
-      />{" "}
+      />
       {/* table */}
       <div className="overflow-x-auto">
         <AddMarketModal
@@ -394,15 +478,10 @@ const NewlyAddedUsers = () => {
         />
         <CustomTable
           actions={actions}
-          loading={isPending || allInviteIsPending}
-          columns={currView == "invites" ? inviteRepColumn : columns}
-          data={currView == "invites" ? InviteData : MarketRepData}
+          loading={isLoading}
+          columns={currView === "approved" ? columns : inviteRepColumn}
+          data={currView === "approved" ? MarketRepData : InviteData}
         />
-        {/* <ReusableTable
-          loading={isPending || allInviteIsPending}
-          columns={currView == "invites" ? inviteRepColumn : columns}
-          data={currView == "invites" ? InviteData : MarketRepData}
-        />*/}
         <div className="flex justify-between items-center mt-4">
           <div className="flex items-center">
             <p className="text-sm text-gray-600">Items per page: </p>
@@ -483,7 +562,7 @@ const NewlyAddedUsers = () => {
               onSubmit={(e) => {
                 if (!navigator.onLine) {
                   toastError(
-                    "No internet connection. Please check your network.",
+                    "No internet connection. Please check your network."
                   );
                   return;
                 }
@@ -502,7 +581,7 @@ const NewlyAddedUsers = () => {
                       setNewCategory(null);
                       setReason("");
                     },
-                  },
+                  }
                 );
               }}
             >
@@ -532,8 +611,8 @@ const NewlyAddedUsers = () => {
                 {approoveIsPending
                   ? "Please wait..."
                   : newCategory?.profile?.approved_by_admin
-                    ? "Suspend"
-                    : "Unsuspend"}
+                  ? "Suspend"
+                  : "Unsuspend"}
               </button>
             </form>
           </div>

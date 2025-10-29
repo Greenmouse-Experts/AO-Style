@@ -572,6 +572,7 @@ export default function AnkaraGownPage() {
                       src={styleInfo?.style?.photos[selectedImage]}
                       alt={styleInfo?.name}
                       className="w-full h-64 sm:h-80 md:h-96 object-cover rounded"
+                      style={{objectFit: "contain"}}
                     />
                   )}
                 </div>
@@ -589,7 +590,8 @@ export default function AnkaraGownPage() {
                       <img
                         src={image}
                         alt={`${styleInfo?.name} thumbnail ${index + 1}`}
-                        className="w-16 h-16 object-cover"
+                        className="w-16 h-16"
+                        style={{objectFit: "contain"}}
                       />
                     </div>
                   ))}

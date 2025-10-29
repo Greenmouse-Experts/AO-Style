@@ -19,14 +19,6 @@ import useToast from "../../../../hooks/useToast";
 import { useId } from "react";
 import { useCarybinUserStore } from "../../../../store/carybinUserStore";
 import useGetUserProfile from "../../../Auth/hooks/useGetProfile";
-import useGetAdmins from "../../../../hooks/messaging/useGetAdmins";
-import useSendMessage from "../../../../hooks/messaging/useSendMessage";
-import { Eye } from "lucide-react";
-import {
-  ChatBubbleBottomCenterIcon,
-  ChatBubbleBottomCenterTextIcon,
-} from "@heroicons/react/24/outline";
-import { motion } from "framer-motion";
 
 export default function InboxPage() {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -34,10 +26,6 @@ export default function InboxPage() {
   const [newMessage, setNewMessage] = useState("");
   const [showOptions, setShowOptions] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
-  const [showNewMessageModal, setShowNewMessageModal] = useState(false);
-  const [selectedAdmin, setSelectedAdmin] = useState("");
-  const [showToAdminMessages, setShowToAdminMessages] = useState(false);
-  const [messageText, setMessageText] = useState("");
   const dropdownRef = useRef(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const emojiPickerRef = useRef(null);
@@ -48,7 +36,7 @@ export default function InboxPage() {
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [chats, setChats] = useState([]);
-  const [roleConversations, setRoleConversations] = useState([]);
+
   // User profile state
   const [userProfile, setUserProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
@@ -58,51 +46,6 @@ export default function InboxPage() {
   // Use profile ID instead of hardcoded ID
   const userId = userProfile?.id || null;
   const selectedChatRef = useRef(selectedChat);
-
-  // Fetch admins for messaging
-  const {
-    data: admins,
-    isPending: adminsLoading,
-    isError: adminsError,
-  } = useGetAdmins();
-
-  // Send message hook
-  const { isPending: sendingMessage, sendMessageMutate } = useSendMessage();
-
-  // Handle sending message to admin via socket
-  const handleSendMessageToAdmin = () => {
-    if (!socket || !isConnected) {
-      toastError("Not connected to messaging service. Please try again.");
-      return;
-    }
-
-    const messageData = {
-      token: userToken,
-      initiator_id: profileData?.id,
-      target_role: "user",
-      message: messageText.trim(),
-    };
-
-    socket.emit("sendMessageToAdmin", messageData);
-
-    toastSuccess("Message sent successfully!");
-    setShowNewMessageModal(false);
-    setMessageText("");
-    socket.emit("retrieveMessagesToAdmin", {
-      token: userToken,
-      target_role: "user",
-    });
-
-    // Refresh chats with a delay to prevent duplicates
-    setTimeout(() => {
-      if (socket && userId) {
-        console.log("🔄 Refreshing chats after delay to sync with server");
-        socket.emit("getChats", { userId });
-      }
-    }, 1000);
-
-    console.log("✅ Message sent, local chat state updated");
-  };
 
   // Get user profile hook
   const {
@@ -117,19 +60,6 @@ export default function InboxPage() {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-
-  useEffect(() => {
-    if (socket && isConnected) {
-      console.log("=== FETCHING admin MESSAGES VIA SOCKET ===");
-
-      socket.emit("retrieveMessagesToAdmin", {
-        token: userToken,
-        target_role: "user",
-      });
-
-      console.log("====================================");
-    }
-  }, [socket, isConnected, roleConversations]);
 
   useEffect(() => {
     scrollToBottom();
@@ -161,13 +91,7 @@ export default function InboxPage() {
       console.log("======================");
       setProfileLoading(true);
     }
-  }, [
-    profileSuccess,
-    profileData,
-    profileError,
-    profileErrorData,
-    profilePending,
-  ]);
+  }, [profileSuccess, profileData, profileError, profileErrorData, profilePending]);
 
   // Initialize Socket.IO connection - Wait for profile to be loaded
   useEffect(() => {
@@ -175,7 +99,7 @@ export default function InboxPage() {
     console.log("User token:", userToken);
     console.log("User ID from profile:", userId);
     console.log("Profile loading:", profileLoading);
-    console.log("Socket URL: https://api-staging.carybin.com/");
+    console.log("Socket URL: https://api-carybin.victornwadinobi.com");
     console.log("===============================================");
 
     // Wait for profile to be loaded before initializing socket
@@ -184,7 +108,7 @@ export default function InboxPage() {
       console.log("User token:", userToken);
       console.log("User ID:", userId);
       console.log("==========================================");
-      const socketInstance = io("https://api-staging.carybin.com/", {
+      const socketInstance = io("https://api-carybin.victornwadinobi.com", {
         auth: { token: userToken },
         transports: ["websocket", "polling"],
         timeout: 20000,
@@ -204,6 +128,7 @@ export default function InboxPage() {
         console.log("User ID being used:", userId);
         console.log("==================================");
         setIsConnected(true);
+        toastSuccess("Socket connected successfully");
       });
 
       socketInstance.on("disconnect", (reason) => {
@@ -212,17 +137,11 @@ export default function InboxPage() {
         console.log("User ID:", userId);
         console.log("=====================================");
         setIsConnected(false);
-      });
-      socketInstance.on(`messagesRetrievedToAdmin:${userId}`, (data) => {
-        console.log(
-          `=== ADMIN ROLE-SPECIFIC MESSAGES RETRIEVED (${userId}) ===`
-        );
-        console.log("Full response:", data);
-        setRoleConversations(data?.data?.result);
+        toastError("Socket disconnected: " + reason);
       });
 
       // Listen for user-specific message sent events
-      socketInstance.on(`messageToAdminSent:${userId}`, (data) => {
+      socketInstance.on(`messageSent:${userId}`, (data) => {
         console.log("🎉 === CUSTOMER MESSAGE SENT EVENT RECEIVED === 🎉");
         console.log("User ID:", userId);
         console.log("Raw data:", data);
@@ -276,7 +195,7 @@ export default function InboxPage() {
             toastSuccess(data?.message || "Chats loaded successfully");
           }
         });
-        //I CHANGES THE EVENT HERE FROM messagesRetrieved
+
         socketInstance.on(`messagesRetrieved:${userId}`, (data) => {
           console.log(`=== USER-SPECIFIC MESSAGES RETRIEVED (${userId}) ===`);
           console.log("Full response:", JSON.stringify(data, null, 2));
@@ -315,18 +234,14 @@ export default function InboxPage() {
         const setupChatSpecificListener = (chatId) => {
           const eventName = `messagesRetrieved:${chatId}:${userId}`;
           console.log(`🎯 Setting up chat-specific listener: ${eventName}`);
-
+          
           socketInstance.on(eventName, (data) => {
-            console.log(
-              `=== CHAT-SPECIFIC MESSAGES RETRIEVED (${chatId}:${userId}) ===`
-            );
+            console.log(`=== CHAT-SPECIFIC MESSAGES RETRIEVED (${chatId}:${userId}) ===`);
             console.log("Full response:", JSON.stringify(data, null, 2));
             console.log("Status:", data?.status);
             console.log("Messages array:", data?.data?.result);
             console.log("Selected chat from ref:", selectedChatRef.current);
-            console.log(
-              "========================================================"
-            );
+            console.log("========================================================");
 
             if (data?.status === "success" && data?.data?.result) {
               const currentSelectedChat = selectedChatRef.current;
@@ -366,15 +281,12 @@ export default function InboxPage() {
 
           if (data?.data) {
             const currentSelectedChat = selectedChatRef.current;
-
+            
             setChats((prevChats) => {
               const existingChatIndex = prevChats.findIndex(
-                (chat) =>
-                  chat.id === data.data.id ||
-                  chat.chat_buddy?.id === data.data.chat_buddy?.id
+                (chat) => chat.id === data.data.id
               );
               if (existingChatIndex >= 0) {
-                console.log("🔄 Updating existing chat from socket event");
                 const updatedChats = [...prevChats];
                 updatedChats[existingChatIndex] = {
                   ...updatedChats[existingChatIndex],
@@ -383,19 +295,13 @@ export default function InboxPage() {
                 };
                 return updatedChats;
               } else {
-                console.log("➕ Adding new chat from socket event");
                 return [data.data, ...prevChats];
               }
             });
 
             // Auto-refresh messages if this chat is currently selected
-            if (
-              currentSelectedChat &&
-              currentSelectedChat.id === data.data.id
-            ) {
-              console.log(
-                "🔄 Auto-refreshing messages for currently selected chat (user-specific)"
-              );
+            if (currentSelectedChat && currentSelectedChat.id === data.data.id) {
+              console.log("🔄 Auto-refreshing messages for currently selected chat (user-specific)");
               socketInstance.emit("retrieveMessages", {
                 token: userToken,
                 chatBuddy: currentSelectedChat.chat_buddy.id,
@@ -445,17 +351,12 @@ export default function InboxPage() {
 
         if (data?.data) {
           const currentSelectedChat = selectedChatRef.current;
-
+          
           setChats((prevChats) => {
             const existingChatIndex = prevChats.findIndex(
-              (chat) =>
-                chat.id === data.data.id ||
-                chat.chat_buddy?.id === data.data.chat_buddy?.id
+              (chat) => chat.id === data.data.id
             );
             if (existingChatIndex >= 0) {
-              console.log(
-                "🔄 Updating existing chat from general socket event"
-              );
               const updatedChats = [...prevChats];
               updatedChats[existingChatIndex] = {
                 ...updatedChats[existingChatIndex],
@@ -464,16 +365,13 @@ export default function InboxPage() {
               };
               return updatedChats;
             } else {
-              console.log("➕ Adding new chat from general socket event");
               return [data.data, ...prevChats];
             }
           });
 
           // Auto-refresh messages if this chat is currently selected
           if (currentSelectedChat && currentSelectedChat.id === data.data.id) {
-            console.log(
-              "🔄 Auto-refreshing messages for currently selected chat"
-            );
+            console.log("🔄 Auto-refreshing messages for currently selected chat");
             socketInstance.emit("retrieveMessages", {
               token: userToken,
               chatBuddy: currentSelectedChat.chat_buddy.id,
@@ -487,7 +385,93 @@ export default function InboxPage() {
         console.error("Error:", error);
         console.error("Error message:", error.message);
         console.error("========================================");
+        toastError("Socket connection failed: " + error.message);
       });
+
+      // socketInstance.onAny((event, ...args) => {
+      //   console.log(`🔍 === CUSTOMER SOCKET EVENT: ${event} === 🔍`);
+
+      //   if (event.includes("chatsRetrieved")) {
+      //     console.log("Event data:", args);
+      //     const response = args[0];
+      //     if (response?.status === "success" && response?.data) {
+      //       setChats(response.data.result);
+      //       console.log("Here are the chats:", response.data.result);
+
+      //       if (
+      //         !selectedChatRef.current &&
+      //         response.data.result &&
+      //         response.data.result.length > 0
+      //       ) {
+      //         setSelectedChat(response.data.result[0]);
+      //       }
+
+      //       toastSuccess(response?.message || "Chats loaded successfully");
+      //     }
+      //   } else if (event.includes("messagesRetrieved")) {
+      //     console.log("--------MESSAGES RETRIEVED------");
+      //     console.log("Event data:", args);
+      //     console.log(
+      //       "Selected chat from ref in onAny:",
+      //       selectedChatRef.current,
+      //     );
+
+      //     const response = args[0];
+      //     if (response?.status === "success" && response?.data?.result) {
+      //       const currentSelectedChat = selectedChatRef.current;
+
+      //       const formattedMessages = response.data.result.map((msg) => ({
+      //         id: msg.id,
+      //         sender: msg.initiator?.name || "Unknown",
+      //         text: msg.message,
+      //         time: new Date(msg.created_at).toLocaleTimeString([], {
+      //           hour: "2-digit",
+      //           minute: "2-digit",
+      //           hour12: true,
+      //         }),
+      //         type:
+      //           msg.initiator_id === currentSelectedChat?.chat_buddy?.id
+      //             ? "received"
+      //             : "sent",
+      //         read: msg.read,
+      //       }));
+
+      //       console.log("Formatted messages in onAny:", formattedMessages);
+      //       setMessageList(formattedMessages);
+      //     }
+      //   } else if (event.includes("recentChatRetrieved")) {
+      //     console.log("Event data:", args);
+      //     const response = args[0];
+      //     console.log(response);
+
+      //     if (response?.status === "success" && response?.data) {
+      //       setChats((prevChats) => {
+      //         const existingChatIndex = prevChats.findIndex(
+      //           (chat) => chat.id === response.data.id,
+      //         );
+
+      //         if (existingChatIndex >= 0) {
+      //           // Update existing chat
+      //           const updatedChats = [...prevChats];
+      //           updatedChats[existingChatIndex] = {
+      //             ...updatedChats[existingChatIndex],
+      //             last_message: response.data.last_message,
+      //             created_at: response.data.created_at,
+      //             updated_at: response.data.updated_at,
+      //           };
+      //           return updatedChats;
+      //         } else {
+      //           // Add new chat to the beginning
+      //           return [response.data, ...prevChats];
+      //         }
+      //       });
+
+      //       toastSuccess(response?.message || "Chat updated successfully");
+      //     }
+      //   }
+
+      //   console.log("🔍 ========================================= 🔍");
+      // });
 
       setSocket(socketInstance);
 
@@ -503,12 +487,12 @@ export default function InboxPage() {
       console.log("User ID exists:", !!userId);
       console.log("Profile loading:", profileLoading);
       console.log("==========================================");
-
+      
       if (!userToken) {
         toastError("User token not found. Please login again.");
       }
     }
-  }, [userToken, userId, profileLoading, selectedChatRef]);
+  }, [userToken, userId, profileLoading]);
 
   // Fetch chats via Socket.IO on mount
   useEffect(() => {
@@ -521,15 +505,6 @@ export default function InboxPage() {
     }
   }, [socket, isConnected, userToken, userId]);
 
-  useEffect(() => {
-    if (socket && isConnected && selectedChat) {
-      socket.emit("retrieveMessages", {
-        token: userToken,
-        chatBuddy: selectedChat.chat_buddy.id,
-      });
-    }
-  }, [isConnected, selectedChat, socket, userToken]);
-
   // Fetch messages when chat is selected
   useEffect(() => {
     if (socket && isConnected && selectedChat && userToken && userId) {
@@ -539,12 +514,12 @@ export default function InboxPage() {
       console.log("User ID:", userId);
       console.log("Chat buddy ID:", selectedChat.chat_buddy?.id);
       console.log("Emitting retrieveMessages");
-
+      
       // Set up chat-specific listener for this chat
       if (socket.setupChatSpecificListener) {
         socket.setupChatSpecificListener(selectedChat.id);
       }
-
+      
       socket.emit("retrieveMessages", {
         token: userToken,
         chatBuddy: selectedChat.chat_buddy.id,
@@ -620,7 +595,7 @@ export default function InboxPage() {
       console.error("Is connected:", isConnected);
       console.error("Socket state:", socket?.connected);
       console.error("============================");
-      console.error("Socket not connected. Please check your connection.");
+      toastError("Socket not connected. Please check your connection.");
     }
   };
 
@@ -660,28 +635,25 @@ export default function InboxPage() {
             </p>
           </div>
           <div className="flex items-center space-x-2">
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              className={` cursor-pointer flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
+            <div
+              className={`flex items-center space-x-2 px-3 py-1.5 rounded-full text-sm font-medium ${
                 profileLoading
                   ? "bg-yellow-100 text-yellow-700"
                   : isConnected
-                  ? "bg-purple-100 text-purple-700"
+                  ? "bg-green-100 text-green-700"
                   : "bg-red-100 text-red-700"
               }`}
-              onClick={() => setShowToAdminMessages(true)}
             >
-              <ChatBubbleBottomCenterTextIcon className="h-5 mr-2" />
-              {/* <FaCircle size={8} /> */}
-              {/* <span>
-                {profileLoading
-                  ? "Loading..."
-                  : isConnected
-                  ? "Online"
-                  : "Offline"}
-              </span> */}
-              View messages to admin
-            </motion.button>
+              <FaCircle size={8} />
+              <span>
+                {profileLoading 
+                  ? "Loading..." 
+                  : isConnected 
+                  ? "Online" 
+                  : "Offline"
+                }
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -698,21 +670,12 @@ export default function InboxPage() {
           <div className="p-4 border-b border-gray-300 bg-purple-300 text-gray-800 flex-shrink-0">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-semibold">Messages</h2>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setShowNewMessageModal(true)}
-                  className="cursor-pointer text-white hover:text-gray-200 transition-colors p-1.5 bg-purple-600 rounded-full"
-                  title="New Message"
-                >
-                  <FaPlus size={14} />
-                </button>
-                <button
-                  className="md:hidden text-white hover:text-gray-200 transition-colors"
-                  onClick={() => setShowSidebar(false)}
-                >
-                  <FaTimes size={20} />
-                </button>
-              </div>
+              <button
+                className="md:hidden text-white hover:text-gray-200 transition-colors"
+                onClick={() => setShowSidebar(false)}
+              >
+                <FaTimes size={20} />
+              </button>
             </div>
           </div>
 
@@ -873,7 +836,7 @@ export default function InboxPage() {
                 </div>
               ) : (
                 <>
-                  {messageList?.map((msg) => (
+                  {messageList.map((msg) => (
                     <div
                       key={msg.id}
                       className={`flex ${
@@ -1008,154 +971,6 @@ export default function InboxPage() {
           </div>
         </div>
       </div>
-
-      {/* New Message Modal */}
-      {showNewMessageModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-md">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  New Message to Admins
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowNewMessageModal(false);
-                    setSelectedAdmin("");
-                    setMessageText("");
-                  }}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <FaTimes size={20} />
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6 space-y-4">
-              {/* Message Input */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Message
-                </label>
-                <textarea
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  placeholder="Type your message here..."
-                  rows={4}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                />
-              </div>
-            </div>
-
-            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
-              <button
-                onClick={() => {
-                  setShowNewMessageModal(false);
-                  setSelectedAdmin("");
-                  setMessageText("");
-                }}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-                disabled={sendingMessage}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSendMessageToAdmin}
-                disabled={!messageText.trim() || !isConnected || sendingMessage}
-                className="cursor-pointer px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {sendingMessage
-                  ? "Sending..."
-                  : !isConnected
-                  ? "Connecting..."
-                  : "Send Message"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {showToAdminMessages && (
-        <motion.div
-          initial={{ opacity: 0, y: 30, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 20, scale: 0.98 }}
-          transition={{ type: "spring", stiffness: 350, damping: 30 }}
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-40 flex justify-center items-center z-50"
-        >
-          <div
-            className="bg-white p-8 rounded-lg max-w-xl w-full shadow-lg my-10"
-            style={{ maxHeight: "80vh" }}
-          >
-            <h2 className="text-2xl font-bold mb-3 text-purple-700 flex items-center gap-2">
-              <ChatBubbleBottomCenterIcon className="h-7 w-7 text-purple-500" />
-              Messages to Admin
-            </h2>
-            <div className="mt-2">
-              <p className="text-gray-600 mb-5">
-                Here are the messages you initiated to customer admins. as soon
-                as an admin responds, they automatically go to your inbox
-              </p>
-              {/* Messages list ONLY is scrollable */}
-              <div
-                className="overflow-auto"
-                style={{
-                  maxHeight: "45vh",
-                  minHeight: "120px",
-                  scrollbarWidth: "thin", // For Firefox
-                  scrollbarColor: "#a78bfa #f3f4f6", // For Firefox (thumb and track)
-                }}
-              >
-                <style>
-                  {`
-                    /* For Chrome, Edge, and Safari */
-                    .overflow-auto::-webkit-scrollbar {
-                      width: 6px;
-                    }
-                    .overflow-auto::-webkit-scrollbar-thumb {
-                      background: #a78bfa;
-                      border-radius: 3px;
-                    }
-                    .overflow-auto::-webkit-scrollbar-track {
-                      background: #f3f4f6;
-                      border-radius: 3px;
-                    }
-                  `}
-                </style>
-                {roleConversations?.map((message) => (
-                  <div
-                    key={message.id}
-                    className="mb-4 p-3 bg-gray-100 rounded-md shadow-sm text-sm flex flex-col"
-                  >
-                    <span className="font-semibold text-purple-700">
-                      {message.initiator?.name || message.sender || "You"}
-                    </span>
-                    <span className="mt-1 text-gray-800">
-                      {message.message || message.text}
-                    </span>
-                    <span className="mt-1 text-gray-500 text-xs self-end">
-                      {message.created_at
-                        ? new Date(message.created_at).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: true,
-                          })
-                        : message.time || ""}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="mt-6 flex justify-end">
-              <button
-                className="cursor-pointer px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded transition"
-                onClick={() => setShowToAdminMessages(false)}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </motion.div>
-      )}
     </div>
   );
 }

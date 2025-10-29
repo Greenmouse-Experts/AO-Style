@@ -315,8 +315,8 @@ const ViewCustomer = () => {
           </div>
           <SalesCards />
           <div className="bg-white rounded-lg">
-            <CustomTable columns={customerColumns} data={customerData} />
-            {/* <ReusableTable columns={customerColumns} data={customerData} />*/}
+            {/* <CustomTable columns={customerColumns} data={customerData} /> */}
+            <ReusableTable columns={customerColumns} data={customerData} />
           </div>
           <div className=" mt-12   rounded-md ">
             <div className="flex items-center justify-between mb-4   rounded-md  py-0">

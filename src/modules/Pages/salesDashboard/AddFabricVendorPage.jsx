@@ -14,6 +14,7 @@ import useAddFabricVendor from "../../../hooks/marketRep/useAddFabricVendor";
 // import { usePlacesWidget } from "react-google-autocomplete";
 import CustomLocationInput from "../../../components/customLocationInput";
 import CustomBackbtn from "../../../components/CustomBackBtn";
+import { useLoadScript } from "@react-google-maps/api";
 
 /**
  * If the user navigates between tabs (steps), previously entered address/location fields are now *retained* and Google Autocomplete remains functional. 
@@ -70,6 +71,13 @@ export default function AddFabricVendorPage() {
   const [step, setStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const libraries = ["places"]
+
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: "AIzaSyBstumBKZoQNTHm3Y865tWEHkkFnNiHGGE", // Replace with your API key
+    libraries,
+  });
 
   // For plain country code options list
   const options = countryCodes.map((code) => ({
@@ -200,19 +208,52 @@ export default function AddFabricVendorPage() {
   // Initialize Google Autocomplete on the address field (personal tab)
   // Use effect on mount & value change to re-sync Formik and input/UI
   useEffect(() => {
+    if (!isLoaded || !addressInputRef.current) return;
+    
     if (step === 1) {
-      // When on step 1, attach Autocomplete to personal address field 
       applyGoogleAutocomplete(addressInputRef, (place) => {
         const components = place.address_components || [];
         setFieldValue("address", place.formatted_address || "");
-        // You can extract and set other address parts if desired.
       });
-      // whenever Formik value changes, keep input in sync (for controlled value)
+      
       if (addressInputRef.current) {
         addressInputRef.current.value = values.address || "";
       }
     }
-  }, [step, addressInputRef, setFieldValue, values.address]);
+  }, [step, isLoaded, setFieldValue, values.address]);
+
+  if (loadError) return <div>Error loading maps</div>;
+  if (!isLoaded) {
+    return (
+      <div style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "60vh"
+      }}>
+        <svg
+          className="animate-spin h-10 w-10 text-[#A14DF6]"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+          ></path>
+        </svg>
+      </div>
+    );
+  }
 
   return (
     <div className="">

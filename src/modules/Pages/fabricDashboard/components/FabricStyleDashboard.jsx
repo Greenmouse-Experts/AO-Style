@@ -102,7 +102,7 @@ export default function FabricStyleDashboard({ data: passedData = null }) {
                 : "bg-white text-purple-700 border border-purple-200 hover:shadow-md"
             }`}
           >
-            Fabric
+            Income
           </button>
           {/* <button
             onClick={() => setChartType("style")}

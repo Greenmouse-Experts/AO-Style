@@ -71,6 +71,7 @@ const NewlyAddedUsers = () => {
       id: businessData?.data?.id,
     });
 
+    console.log("This is all the invites data", getAllInviteData)
   const [queryString, setQueryString] = useState(queryParams.q);
 
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
@@ -93,31 +94,53 @@ const NewlyAddedUsers = () => {
 
   const totalPageCount =
     currView === "invites" ? totalallInvitePages : totalPages;
-  const actions = [
-    {
-      key: "view-details",
-      label: "View Details",
-      action: (item) => {
-        return nav(`/admin/sales-rep/view-sales/${item.id}`);
+    const actions = [
+      {
+        key: "view-details",
+        label: "View Market Rep",
+        action: (item) => {
+          return nav(`/admin/sales-rep/view-sales/${item.id}`);
+        },
       },
-    },
-    {
-      key: "suspend-vendor",
-      label: "Suspend Vendor",
-      action: (item) => {
-        setSuspendModalOpen(true);
-        setNewCategory(row);
-        setOpenDropdown(null);
-      },
-    },
-    {
-      key: "delete-vendor",
-      label: "Delete Vendor",
-      action: (item) => {
-        handleDeleteUser(item);
-      },
-    },
-  ];
+      ...(currView === "invites" 
+        ? [
+            {
+              key: "edit-user",
+              label: "Edit User",
+              action: (item) => {
+                // Add your edit logic here
+                console.log("Edit user:", item);
+              },
+            },
+            {
+              key: "remove-user",
+              label: "Remove User",
+              action: (item) => {
+                // Add your remove logic here
+                console.log("Remove user:", item);
+              },
+            },
+          ]
+        : [
+            {
+              key: "suspend-vendor",
+              label: currView === "approved" ? "Suspend Vendor" : "Unsuspend Vendor",
+              action: (item) => {
+                setSuspendModalOpen(true);
+                setNewCategory(item);
+                setOpenDropdown(null);
+              },
+            },
+            {
+              key: "delete-vendor",
+              label: "Delete Market Rep",
+              action: (item) => {
+                handleDeleteUser(item);
+              },
+            },
+          ]
+      ),
+    ];
   const MarketRepData = useMemo(
     () =>
       getAllMarketRepData?.data
@@ -208,74 +231,6 @@ const NewlyAddedUsers = () => {
           </span>
         ),
       },
-      // {
-      //   label: "Action",
-      //   key: "action",
-      //   render: (_, row) => (
-      //     <div className="relative">
-      //       <button
-      //         className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
-      //         onClick={() => {
-      //           toggleDropdown(row.id);
-      //         }}
-      //       >
-      //         <FaEllipsisH />
-      //       </button>
-      //       {openDropdown === row.id && (
-      //         <div className="dropdown-menu absolute right-0 mt-2 w-50 bg-white rounded-md z-10 border-gray-200">
-      //           <Link
-      //             to={`/admin/sales-rep/view-sales/${row.id}`}
-      //             onClick={() => {
-      //               clearAllFilters();
-      //             }}
-      //             className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
-      //           >
-      //             View Market Rep
-      //           </Link>
-
-      //           {row.profile?.approved_by_admin !== null ? (
-      //             row?.profile?.approved_by_admin ? (
-      //               <>
-      //                 {" "}
-      //                 <button
-      //                   onClick={() => {
-      //                     setSuspendModalOpen(true);
-      //                     setNewCategory(row);
-      //                     setOpenDropdown(null);
-      //                   }}
-      //                   className="block text-red-500 hover:bg-red-100 cursor-pointer px-4 py-2  w-full text-center"
-      //                 >
-      //                   {"Suspend User"}
-      //                 </button>
-      //               </>
-      //             ) : (
-      //               <>
-      //                 <button
-      //                   onClick={() => {
-      //                     setSuspendModalOpen(true);
-      //                     setNewCategory(row);
-      //                     setOpenDropdown(null);
-      //                   }}
-      //                   className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
-      //                 >
-      //                   {"Unsuspend User"}
-      //                 </button>
-      //               </>
-      //             )
-      //           ) : (
-      //             <></>
-      //           )}
-      //           <button
-      //             onClick={() => handleDeleteUser(row)}
-      //             className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center"
-      //           >
-      //             Delete Market Rep
-      //           </button>
-      //         </div>
-      //       )}
-      //     </div>
-      //   ),
-      // },
     ],
     [toggleDropdown, openDropdown],
   );
@@ -283,7 +238,7 @@ const NewlyAddedUsers = () => {
   const inviteRepColumn = useMemo(
     () => [
       { label: "Name", key: "name" },
-      { label: "Emaill", key: "email" },
+      { label: "Email", key: "email" },
       { label: "Date Added", key: "created_at" },
       {
         label: "Status",
@@ -306,43 +261,9 @@ const NewlyAddedUsers = () => {
           </span>
         ),
       },
-      {
-        label: "Action",
-        key: "action",
-        render: (_, row) => (
-          <div className="relative">
-            <button
-              className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
-              onClick={() => {
-                toggleDropdown(row.id);
-              }}
-            >
-              <FaEllipsisH />
-            </button>
-            {openDropdown === row.id && (
-              <div className="dropdown-menu absolute right-0 mt-2 w-50 bg-white rounded-md z-10 border-gray-200">
-                <Link
-                  to={`/admin/sales-rep/view-sales/${row.id}`}
-                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
-                >
-                  View Market Rep
-                </Link>
-                <button
-                  onClick={() => {}}
-                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
-                >
-                  Edit User
-                </button>
-                <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full text-center">
-                  Remove User
-                </button>
-              </div>
-            )}
-          </div>
-        ),
-      },
+      // Removed the Action column - CustomTable will handle it
     ],
-    [toggleDropdown, openDropdown],
+    [],
   );
 
   // Close dropdown when clicking outside
@@ -378,7 +299,7 @@ const NewlyAddedUsers = () => {
     saveAs(blob, "MyProducts.xlsx");
   };
   return (
-    <div className="bg-white p-6 rounded-xl overflow-x-auto">
+    <div className="bg-white p-6 rounded-xl overflow-x-auto overflow-y-visible" >
       <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
         <h2 className="text-lg font-semibold">Market Rep</h2>
         <div className="flex flex-wrap gap-3 w-full sm:w-auto">

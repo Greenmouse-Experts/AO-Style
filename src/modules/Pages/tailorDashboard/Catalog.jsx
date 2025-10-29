@@ -549,8 +549,9 @@ export default function StylesTable() {
                           const businessId = businessDetails?.data?.id;
                           toast.promise(
                             async () => {
+                              console.log(row)
                               const resp = await CaryBinApi.patch(
-                                "/manage-style/" + row.id,
+                                "/manage-style/" + row.style.id,
                                 {
                                   product: {
                                     status:

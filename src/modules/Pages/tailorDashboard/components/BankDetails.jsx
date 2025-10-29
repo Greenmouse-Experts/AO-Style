@@ -6,10 +6,11 @@ import { useEffect } from "react";
 import useSaveWithdrawal from "../../../../hooks/settings/useSaveWithdrawal";
 import useGetBusinessDetails from "../../../../hooks/settings/useGetBusinessDetails";
 import useToast from "../../../../hooks/useToast";
+import { useCarybinUserStore } from "../../../../store/carybinUserStore";
 
 const BankDetailsUpdate = () => {
   const { data: businessDetails } = useGetBusinessDetails();
-
+  const { carybinUser } = useCarybinUserStore();
   const businessInfo = businessDetails?.data;
 
   console.log(businessInfo);
@@ -26,10 +27,10 @@ const BankDetailsUpdate = () => {
   );
 
   const initialValues = {
-    account_number: businessInfo?.withdrawal_account?.account_number ?? "",
-    account_type: businessInfo?.withdrawal_account?.account_type ?? "",
-    bank_name: selectedBank?.label ?? "",
-    bank_code: selectedBank?.value ?? "",
+    account_number: carybinUser?.withdrawal_account?.account_number ?? "",
+    account_type: carybinUser?.withdrawal_account?.account_type ?? "",
+    bank_name: carybinUser?.withdrawal_account?.bank_name ?? "",
+    bank_code: carybinUser?.withdrawal_account?.bank_code ?? "",
     account_name: "",
   };
 

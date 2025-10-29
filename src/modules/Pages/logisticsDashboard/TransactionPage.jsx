@@ -146,8 +146,8 @@ export default function TransactionPage() {
           <WalletPage
             onWithdrawClick={handleWithdrawClick}
             onViewAllClick={handleViewAllClick}
-            // businessWallet={businessWallet}
-            isLoading={isLoadingWallet}
+            businessWallet={businessWallet}
+            isLoading={isLoadingWallet || businessLoading}
           />
         </div>
       </div>

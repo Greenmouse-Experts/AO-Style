@@ -592,7 +592,7 @@ const AddStyle = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Estimated Sewing Time (hours) *
+                Estimated Sewing Time (days) *
               </label>
               <input
                 type="number"
@@ -611,7 +611,7 @@ const AddStyle = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Minimum Fabric Quantity (yards) *
+                Minimum Fabric Quantity (yards) - required
               </label>
               <input
                 type="number"

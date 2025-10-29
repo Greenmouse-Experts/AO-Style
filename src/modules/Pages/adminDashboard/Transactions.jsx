@@ -29,8 +29,8 @@ import TransferOperationsModal from "./components/TransferOperationsModal";
 import { toast } from "react-toastify";
 const PaymentTransactionTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [_currentPage, setCurrentPage] = useState(1);
-  const [_itemsPerPage, _setItemsPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [activeTab, setActiveTab] = useState("All Transactions");
   const [payoutSubTab, setPayoutSubTab] = useState("All");
   const [_selectAll, setSelectAll] = useState(false);
@@ -51,19 +51,9 @@ const PaymentTransactionTable = () => {
 
   // Finalize transfer with auto-verify callback
   const handleAutoVerify = (finalizeResponse) => {
-    console.log(
-      "🔄 Auto-triggering verify with finalize response:",
-      finalizeResponse,
-    );
-
-    // Extract reference from finalize response - try multiple possible locations (robust)
     let reference = null;
-
-    // Helper to extract reference from known possible shapes
     const extractReference = (resp) => {
       if (!resp) return null;
-
-      // Candidate fields in order of likelihood / known shapes
       const candidates = [
         resp.transfer_reference,
         resp.reference,
@@ -75,12 +65,9 @@ const PaymentTransactionTable = () => {
         resp.data?.data?.reference,
         resp.data?.data?.transfer_code,
       ];
-
       for (const c of candidates) {
         if (c) return c;
       }
-
-      // Try parsing notes if present (some APIs embed reference in notes JSON)
       if (resp.notes) {
         try {
           const notesData =
@@ -94,24 +81,17 @@ const PaymentTransactionTable = () => {
             null
           );
         } catch (e) {
-          console.warn("Could not parse notes field:", e);
+          // Ignore
         }
       }
-
       return null;
     };
 
     reference = extractReference(finalizeResponse);
 
     if (reference) {
-      console.log("🔍 Auto-verifying with reference:", reference);
-      // Ensure reference is string when calling verify
       verifyTransfer({ reference: String(reference) });
     } else {
-      console.error(
-        "❌ No reference found in finalize response for auto-verify",
-        finalizeResponse,
-      );
       toast.error("Could not auto-verify: missing reference in response");
     }
   };
@@ -119,105 +99,18 @@ const PaymentTransactionTable = () => {
   const { finalizeTransfer, isPending: isFinalizing } =
     useFinalizeTransfer(handleAutoVerify);
 
-  const { queryParams, updateQueryParams } = useQueryParams({
-    status: "",
-    "pagination[limit]": 10,
-    "pagination[page]": 1,
-  });
-
-  // Remove queryString and debouncedSearchTerm, use searchTerm directly for filtering
-  // const [queryString, setQueryString] = useState(queryParams.q);
-  // const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
-
-  // const { data: getAllTransactionData, isPending } =
-  //   useFetchAllCartTransactions({
-  //     ...queryParams,
-  //   });
-  const handleExport = (e) => {
-    const value = e.target.value;
-    if (value === "excel") exportToExcel();
-    if (value === "pdf") exportToPDF();
-    if (value === "csv") document.getElementById("csvDownload").click();
-  };
-
-  const exportToExcel = () => {
-    const data = activeTab === "Payouts" ? withdrawalData?.data : [];
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
-    const excelBuffer = XLSX.write(workbook, {
-      bookType: "xlsx",
-      type: "array",
-    });
-    const blob = new Blob([excelBuffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-    saveAs(blob, "MyProducts.xlsx");
-  };
-
-  const exportToPDF = () => {
-    const doc = new jsPDF();
-
-    if (activeTab === "Payouts") {
-      autoTable(doc, {
-        head: [
-          [
-            "Withdrawal ID",
-            "User Name",
-            "Amount",
-            "Status",
-            "Bank Name",
-            "Account Number",
-            "Date",
-          ],
-        ],
-        body:
-          withdrawalData?.data?.map((withdrawal) => [
-            `WTH${withdrawal.id}`,
-            withdrawal.user?.name || withdrawal.user?.email,
-            withdrawal.amount,
-            withdrawal.status,
-            withdrawal.bank_name,
-            withdrawal.account_number,
-            formatDateStr(withdrawal.created_at),
-          ]) || [],
-        headStyles: {
-          fillColor: [209, 213, 219],
-          textColor: [0, 0, 0],
-          halign: "center",
-          valign: "middle",
-          fontSize: 8,
-        },
-        styles: {
-          fontSize: 7,
-          cellPadding: 2,
-        },
-        theme: "grid",
-        startY: 10,
-      });
-    }
-
-    doc.save("WithdrawalRequests.pdf");
-  };
-
-  // Fetch all data without search param, filter on client
+  // We will use our own local pagination
+  // Fetch all data as before; optionally fetch pages server-side if API supports; else do front-end paging
   const { data: getAllTransactionData, isPending: isPending } = useQuery({
     queryKey: ["transactions_admin"],
     queryFn: async () => {
-      let resp = await CaryBinApi.get("/payment/fetch-all", {
-        params: {
-          // No q param, fetch all
-        },
-      });
+      let resp = await CaryBinApi.get("/payment/fetch-all", {});
       return resp.data;
     },
   });
 
-  // Fetch withdrawal data for payouts tab using fetch-all endpoint
   const { data: withdrawalData, isPending: isWithdrawalPending } =
-    useFetchAllWithdrawals({
-      // No q param, fetch all
-    });
+    useFetchAllWithdrawals({});
 
   const tabs = ["All Transactions", "Income", "Payouts"];
   const nav = useNavigate();
@@ -295,12 +188,10 @@ const PaymentTransactionTable = () => {
           <div className="flex space-x-2">
             <button
               onClick={() => {
-                // If in Payouts tab, go to withdrawal details, else transaction details
                 if (
                   activeTab === "Payouts" ||
                   item.transactionType?.toLowerCase() === "withdrawal"
                 ) {
-                  // Go to withdrawal details page, pass withdrawal id and type=withdrawal
                   nav("/admin/transactions/" + item.id + "?type=withdrawal", {
                     viewTransition: true,
                   });
@@ -346,20 +237,14 @@ const PaymentTransactionTable = () => {
     if (!withdrawalData?.data) return [];
 
     let filteredData = withdrawalData.data;
-
-    // Filter based on sub-tab selection
     if (payoutSubTab === "Initiated") {
-      // Filter withdrawals that have notes (indicating they've been initiated)
       filteredData = withdrawalData.data.filter(
         (withdrawal) => withdrawal.notes && withdrawal.notes.trim() !== "",
       );
     }
-
-    // Filter by search term
     if (searchTerm && searchTerm.trim() !== "") {
       const lower = searchTerm.trim().toLowerCase();
       filteredData = filteredData.filter((withdrawal) => {
-        // Check relevant fields for search
         return (
           withdrawal?.id
             .replace(/-/g, "")
@@ -383,7 +268,6 @@ const PaymentTransactionTable = () => {
         );
       });
     }
-
     return filteredData.map((withdrawal) => {
       return {
         ...withdrawal,
@@ -415,7 +299,6 @@ const PaymentTransactionTable = () => {
     let arr =
       getAllTransactionData?.data && Array.isArray(getAllTransactionData.data)
         ? getAllTransactionData.data.map((details) => {
-            // Fix: always show only first 12 chars of transaction_id/id, no hyphens
             let txIdRaw = details?.transaction_id ?? details?.id ?? "";
             let txIdFormatted =
               typeof txIdRaw === "string"
@@ -445,7 +328,6 @@ const PaymentTransactionTable = () => {
           })
         : [];
 
-    // Filter by search term
     if (searchTerm && searchTerm.trim() !== "") {
       const lower = searchTerm.trim().toLowerCase();
       arr = arr.filter((item) =>
@@ -455,12 +337,7 @@ const PaymentTransactionTable = () => {
       );
     }
 
-    // For All Transactions: show both income and payouts (withdrawals)
-    // For Income: show only "income" (payments), i.e. anything that is NOT a payout/withdrawal
-    // For Payouts: handled separately
-
     if (activeTab === "Income") {
-      // Only show transactions that are NOT withdrawals
       arr = arr.filter(
         (transaction) =>
           transaction.transactionType &&
@@ -468,32 +345,32 @@ const PaymentTransactionTable = () => {
       );
     }
 
-    // For All Transactions, combine both payments and withdrawals
     if (activeTab === "All Transactions") {
-      // Combine payment transactions and withdrawal transactions
-      // WithdrawalData is already formatted
       return [...arr, ...WithdrawalData];
     }
 
-    // For Payouts, handled in WithdrawalData
     return arr;
   }, [getAllTransactionData?.data, searchTerm, activeTab, WithdrawalData]);
 
-  // Debug withdrawal data
-  useEffect(() => {
-    if (activeTab === "Payouts") {
-      console.log("💸 Withdrawal Data:", withdrawalData);
-      console.log("💰 Formatted Withdrawal Data:", WithdrawalData);
-      console.log("🎯 Payout Sub Tab:", payoutSubTab);
-    }
-  }, [withdrawalData, WithdrawalData, payoutSubTab, activeTab]);
+  // AGINATION LOGIC (Frontend-based)
+  // Get current page data for display; calculate page count from filtered dataset
+  const currentTableData = useMemo(() => {
+    const dataSource =
+      activeTab === "Payouts" ? WithdrawalData : TransactionData;
+    const startIdx = (currentPage - 1) * itemsPerPage;
+    const endIdx = startIdx + itemsPerPage;
+    return dataSource.slice(startIdx, endIdx);
+  }, [activeTab, WithdrawalData, TransactionData, currentPage, itemsPerPage]);
 
-  // const indexOfLastItem = currentPage * itemsPerPage;
-  // const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  // const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+  const getTotalItems = () => {
+    return activeTab === "Payouts"
+      ? WithdrawalData.length
+      : TransactionData.length;
+  };
 
-  const totalPages = Math.ceil(
-    getAllTransactionData?.count / (queryParams["pagination[limit]"] ?? 10),
+  const totalPages = Math.max(
+    1,
+    Math.ceil(getTotalItems() / itemsPerPage)
   );
 
   useEffect(() => {
@@ -505,6 +382,8 @@ const PaymentTransactionTable = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Export supports ALL records regardless of pagination
   const csv_data =
     activeTab === "Payouts"
       ? withdrawalData?.data?.map((withdrawal) => ({
@@ -534,7 +413,6 @@ const PaymentTransactionTable = () => {
           const profile = user.profile || {};
           const items = transaction.purchase?.items || [];
 
-          // Fix: always show only first 12 chars of transaction_id/id, no hyphens
           let txIdRaw = transaction.transaction_id ?? transaction.id ?? "";
           let txIdFormatted =
             typeof txIdRaw === "string"
@@ -565,6 +443,73 @@ const PaymentTransactionTable = () => {
           }));
         }) || [];
 
+  const handleExport = (e) => {
+    const value = e.target.value;
+    if (value === "excel") exportToExcel();
+    if (value === "pdf") exportToPDF();
+    if (value === "csv") document.getElementById("csvDownload").click();
+  };
+
+  const exportToExcel = () => {
+    const data = activeTab === "Payouts" ? withdrawalData?.data : [];
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const blob = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    saveAs(blob, "MyProducts.xlsx");
+  };
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+
+    if (activeTab === "Payouts") {
+      autoTable(doc, {
+        head: [
+          [
+            "Withdrawal ID",
+            "User Name",
+            "Amount",
+            "Status",
+            "Bank Name",
+            "Account Number",
+            "Date",
+          ],
+        ],
+        body:
+          withdrawalData?.data?.map((withdrawal) => [
+            `WTH${withdrawal.id}`,
+            withdrawal.user?.name || withdrawal.user?.email,
+            withdrawal.amount,
+            withdrawal.status,
+            withdrawal.bank_name,
+            withdrawal.account_number,
+            formatDateStr(withdrawal.created_at),
+          ]) || [],
+        headStyles: {
+          fillColor: [209, 213, 219],
+          textColor: [0, 0, 0],
+          halign: "center",
+          valign: "middle",
+          fontSize: 8,
+        },
+        styles: {
+          fontSize: 7,
+          cellPadding: 2,
+        },
+        theme: "grid",
+        startY: 10,
+      });
+    }
+
+    doc.save("WithdrawalRequests.pdf");
+  };
+
   const closeTransferModal = () => {
     setTransferModal({
       isOpen: false,
@@ -581,7 +526,6 @@ const PaymentTransactionTable = () => {
         onSuccess: () => closeTransferModal(),
       });
     } else if (operation === "finalize") {
-      // Finalize will auto-trigger verify on success
       finalizeTransfer(payload, {
         onSuccess: () => closeTransferModal(),
       });
@@ -603,7 +547,6 @@ const PaymentTransactionTable = () => {
   const actions_col = [
     {
       action: (item) => {
-        // If in Payouts tab, go to withdrawal details, else transaction details
         if (
           activeTab === "Payouts" ||
           item.transactionType?.toLowerCase() === "withdrawal"
@@ -653,7 +596,10 @@ const PaymentTransactionTable = () => {
                 type="text"
                 placeholder="Search ..."
                 value={searchTerm}
-                onChange={(evt) => setSearchTerm(evt.target.value)}
+                onChange={(evt) => {
+                  setSearchTerm(evt.target.value);
+                  setCurrentPage(1); // reset to first page on new search
+                }}
                 className="py-2 pl-10 pr-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
               />
               <AiOutlineSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -686,7 +632,6 @@ const PaymentTransactionTable = () => {
           </div>
         </div>
 
-        {/* Sub-tabs for Payouts */}
         {activeTab === "Payouts" && (
           <div className="flex space-x-4 mb-4 border-b border-gray-100">
             {["All", "Initiated"].map((subTab) => (
@@ -698,7 +643,6 @@ const PaymentTransactionTable = () => {
                     : "text-gray-500 hover:text-gray-700"
                 }`}
                 onClick={() => {
-                  console.log("🎯 Switching to payout sub-tab:", subTab);
                   setPayoutSubTab(subTab);
                   setCurrentPage(1);
                 }}
@@ -710,25 +654,25 @@ const PaymentTransactionTable = () => {
         )}
 
         <div className="flex border-b border-gray-200 mb-4"></div>
+
         <CustomTable
           columns={columns}
-          data={activeTab === "Payouts" ? WithdrawalData : TransactionData}
+          data={currentTableData}
           actions={activeTab === "Payouts" ? [] : actions_col}
           loading={activeTab === "Payouts" ? isWithdrawalPending : isPending}
         />
-        {(activeTab === "Payouts" ? WithdrawalData : TransactionData)?.length >
-        0 ? (
+
+        {(getTotalItems() > 0) ? (
           <>
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center">
                 <p className="text-sm text-gray-600">Items per page: </p>
                 <select
-                  value={queryParams["pagination[limit]"] || 10}
-                  onChange={(e) =>
-                    updateQueryParams({
-                      "pagination[limit]": +e.target.value,
-                    })
-                  }
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
                   className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
                 >
                   <option value={5}>5</option>
@@ -737,34 +681,24 @@ const PaymentTransactionTable = () => {
                   <option value={20}>20</option>
                 </select>
               </div>
-              <div className="flex gap-1">
+              <div className="flex gap-1 items-center">
+                <span className="text-sm text-gray-500 mr-2">
+                  Page {currentPage} of {totalPages}
+                </span>
                 <button
-                  onClick={() => {
-                    updateQueryParams({
-                      "pagination[page]": +queryParams["pagination[page]"] - 1,
-                    });
-                  }}
-                  disabled={(queryParams["pagination[page]"] ?? 1) == 1}
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
                   className="px-3 py-1 rounded-md bg-gray-200"
                 >
                   ◀
                 </button>
                 <button
-                  onClick={() => {
-                    updateQueryParams({
-                      "pagination[page]": +queryParams["pagination[page]"] + 1,
-                    });
-                  }}
-                  disabled={
-                    (queryParams["pagination[page]"] ?? 1) >=
-                    (activeTab === "Payouts"
-                      ? Math.ceil(
-                          (withdrawalData?.total ||
-                            withdrawalData?.data?.length ||
-                            0) / (queryParams["pagination[limit]"] ?? 10),
-                        )
-                      : totalPages)
+                  onClick={() =>
+                    setCurrentPage((prev) =>
+                      Math.min(totalPages, prev + 1)
+                    )
                   }
+                  disabled={currentPage >= totalPages}
                   className="px-3 py-1 rounded-md bg-gray-200"
                 >
                   ▶

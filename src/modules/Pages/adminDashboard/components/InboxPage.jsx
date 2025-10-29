@@ -88,7 +88,7 @@ export default function InboxPage() {
 
     // Map role_id to display names
     const roleMap = {
-      "user": "Customer",
+      user: "Customer",
       "logistics-agent": "Logistics",
       "fashion-designer": "Tailor",
       "fabric-vendor": "Fabric",
@@ -1414,11 +1414,22 @@ export default function InboxPage() {
                           required
                         >
                           <option value="">Choose user type</option>
-                          <option value="Customer">Customer</option>
-                          <option value="Tailor">Tailor</option>
-                          <option value="Fabric">Fabric</option>
-                          <option value="Market Rep">Market Rep</option>
-                          <option value="Logistics">Logistics</option>
+                          {adminProfile?.role?.role_id ===
+                            "owner-super-administrator" && (
+                            <>
+                              <option value="Customer">Customer</option>
+                              <option value="Tailor">Tailor</option>
+                              <option value="Fabric">Fabric</option>
+                              <option value="Market Rep">Market Rep</option>
+                              <option value="Logistics">Logistics</option>
+                            </>
+                          )}
+                          {adminProfile?.role?.role_id !==
+                            "owner-super-administrator" && (
+                              getUserAdminRole().map((role) =>(
+                                <option value={role}>{role}</option>
+                              ))
+                            )}
                         </select>
                       </div>
 

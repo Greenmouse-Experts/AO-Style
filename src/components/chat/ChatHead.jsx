@@ -695,7 +695,7 @@ const ChatHead = () => {
                           }}
                           className="text-purple-600 hover:text-purple-700 text-sm font-medium"
                         >
-                          {isAdmin ? "New Message" : "Message Admin"}
+                          {isAdmin && adminProfile?.role?.role_id ==="owner-super-administrator" ? "New Message" : !isAdmin ? "Message Admin" : ""}
                         </button>
                       </div>
                     </div>

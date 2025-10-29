@@ -1,21 +1,28 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Eye, EyeOff, Upload } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import Select from "react-select";
 
 import { nigeriaStates } from "../../../constant";
-
 import { countryCodes } from "../../../constant";
 
 import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 import useToast from "../../../hooks/useToast";
 import PhoneInput from "react-phone-input-2";
-
 import useAddFabricVendor from "../../../hooks/marketRep/useAddFabricVendor";
-import { usePlacesWidget } from "react-google-autocomplete";
+// import { usePlacesWidget } from "react-google-autocomplete";
 import CustomLocationInput from "../../../components/customLocationInput";
 import CustomBackbtn from "../../../components/CustomBackBtn";
+
+/**
+ * If the user navigates between tabs (steps), previously entered address/location fields are now *retained* and Google Autocomplete remains functional. 
+ * Uses input refs and manual value management for Google Autocomplete fields.
+ * Address/Location state is kept within Formik values, and input values are always *controlled* from Formik's state.
+ * 
+ * Google Autocomplete ref is managed with useRef for stability on input re-mount.
+ */
+
 const initialValues = {
   name: "",
   email: "",
@@ -24,6 +31,7 @@ const initialValues = {
   business_name: "",
   gender: "",
   phoneCode: "+234",
+  phone: "",
   tags: [],
   price: "",
   weight_per_unit: "",
@@ -42,6 +50,17 @@ const initialValues = {
   original_price: "",
   sku: "",
   multimedia_url: "",
+  address: "",
+  location: "",
+  business_type: "",
+  business_registration_number: "",
+  city: "",
+  country: "",
+  state: "",
+  doc_front: "",
+  doc_back: "",
+  utility_doc: "",
+  id_type: "",
 };
 
 export default function AddFabricVendorPage() {
@@ -52,6 +71,7 @@ export default function AddFabricVendorPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // For plain country code options list
   const options = countryCodes.map((code) => ({
     label: code,
     value: code,
@@ -62,116 +82,79 @@ export default function AddFabricVendorPage() {
     isPending: uploadPictureIsPending,
     uploadImageMutate: uploadPictureMutate,
   } = useUploadImage();
-
   const {
     isPending: uploadFrontIsPending,
     uploadImageMutate: uploadFrontMutate,
   } = useUploadImage();
-
   const {
     isPending: uploadBackIsPending,
     uploadImageMutate: uploadBackMutate,
   } = useUploadImage();
-
   const {
     isPending: uploadUtilityIsPending,
     uploadImageMutate: uploadUtilityMutate,
   } = useUploadImage();
 
   const { toastError } = useToast();
-
   const navigate = useNavigate();
 
   const { isPending, addMarketRepFabricVendorMutate } = useAddFabricVendor();
 
   const isExact = currentPath === "/sales/add-fashion-designers";
+
+  // KEEP text input refs for Google Autocomplete (so re-mount doesn't break autocomplete); 
+  // These refs are just for wiring Google Autocomplete to a controlled input.
+  const addressInputRef = useRef(null);
+
+  // Google Places API loader (manual binding to ref, so it's not re-initialized on re-mount)
+  const applyGoogleAutocomplete = (inputRef, cb) => {
+    if (!window.google || !inputRef?.current) return;
+    // Prevent double-initialization
+    if (inputRef.current.__autocomplete) return;
+    // eslint-disable-next-line no-undef
+    const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
+      componentRestrictions: { country: "ng" },
+      types: [],
+    });
+    autocomplete.addListener("place_changed", () => {
+      const place = autocomplete.getPlace();
+      cb(place);
+    });
+    inputRef.current.__autocomplete = autocomplete;
+  };
+
+  // Needed for extracting address fields from google place object
   function getAddressComponent(components, type) {
+    if (!Array.isArray(components)) return "";
     const component = components.find((c) => c.types.includes(type));
     return component?.long_name || "";
   }
-  const { ref } = usePlacesWidget({
-    apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
-    onPlaceSelected: (place) => {
-      console.log(place);
-      const components = place.address_components;
-      const country = getAddressComponent(components, "country");
-      const state = getAddressComponent(
-        components,
-        "administrative_area_level_1",
-      );
-      const city = getAddressComponent(components, "locality");
 
-      setFieldValue("address", place.formatted_address);
-      // setFieldValue("location", place.formatted_address);
-    },
-    options: {
-      componentRestrictions: { country: "ng" },
-      types: [],
-    },
-  });
-  const { ref: busiRef } = usePlacesWidget({
-    apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
-    onPlaceSelected: (place) => {
-      console.log("Business Address:", place);
-      const components = place.address_components;
-      const country = getAddressComponent(components, "country");
-      const state = getAddressComponent(
-        components,
-        "administrative_area_level_1",
-      );
-      const city = getAddressComponent(components, "locality");
-
-      setFieldValue("location", place.formatted_address); // Business location
-      setFieldValue("business_country", country); // Separate business country field
-      setFieldValue("business_state", state); // Separate business state field
-      setFieldValue("business_city", city); // Separate business city field
-
-      // Optional: If you want business coordinates too
-      setFieldValue(
-        "business_latitude",
-        place.geometry?.location?.lat().toString(),
-      );
-      setFieldValue(
-        "business_longitude",
-        place.geometry?.location?.lng().toString(),
-      );
-    },
-    options: {
-      componentRestrictions: { country: "ng" },
-      types: [],
-    },
-  });
+  // Formik
   const {
     handleSubmit,
-    touched,
-    errors,
     setFieldValue,
     values,
     handleChange,
-    // setFieldError,
   } = useFormik({
     initialValues: initialValues,
     validateOnChange: false,
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      // return console.log(val);
       if (!navigator.onLine) {
         toastError("No internet connection. Please check your network.");
         return;
       }
       const phoneno = `${val.phone}`;
-
-      if (step == 1) {
+      if (step === 1) {
         if (values.confirmPassword !== values.password) {
           return toastError("Password must match");
         }
         setStep(2);
       }
-      if (step == 2) {
-        setStep(3);
-      }
-      if (step == 3) {
+      if (step === 2) setStep(3);
+      if (step === 3) {
         addMarketRepFabricVendorMutate(
           {
             role: isExact ? "fashion-designer" : "fabric-vendor",
@@ -214,6 +197,23 @@ export default function AddFabricVendorPage() {
     },
   });
 
+  // Initialize Google Autocomplete on the address field (personal tab)
+  // Use effect on mount & value change to re-sync Formik and input/UI
+  useEffect(() => {
+    if (step === 1) {
+      // When on step 1, attach Autocomplete to personal address field 
+      applyGoogleAutocomplete(addressInputRef, (place) => {
+        const components = place.address_components || [];
+        setFieldValue("address", place.formatted_address || "");
+        // You can extract and set other address parts if desired.
+      });
+      // whenever Formik value changes, keep input in sync (for controlled value)
+      if (addressInputRef.current) {
+        addressInputRef.current.value = values.address || "";
+      }
+    }
+  }, [step, addressInputRef, setFieldValue, values.address]);
+
   return (
     <div className="">
       <CustomBackbtn />
@@ -229,20 +229,14 @@ export default function AddFabricVendorPage() {
           {isExact ? "Fashion Designers" : "Fabric Vendors"}{" "}
         </p>
       </div>
-
       {/* Tabs Section */}
       <div className="mt-6 bg-white p-4 rounded-md">
         <div className="flex pb-2 text-sm font-medium">
           {["Personal Info", "Business Info", "KYC"].map((tab, index) => (
             <button
               key={index}
-              onClick={() => {
-                if (index + 1 < step) {
-                  setStep(index + 1);
-                } else if (index + 1 === step) {
-                  setStep(index + 1);
-                }
-              }}
+              type="button"
+              onClick={() => setStep(index + 1)}
               className={`w-1/3 text-center pb-2 ${
                 step === index + 1
                   ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
@@ -253,7 +247,6 @@ export default function AddFabricVendorPage() {
             </button>
           ))}
         </div>
-
         {/* Form Sections */}
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           {step === 1 && (
@@ -269,7 +262,6 @@ export default function AddFabricVendorPage() {
                 <p className="cursor-pointer text-gray-500 mt-2">
                   {"Upload profile picture"}
                 </p>
-
                 <input
                   type="file"
                   id="profile"
@@ -296,7 +288,6 @@ export default function AddFabricVendorPage() {
                     }
                   }}
                 />
-
                 {uploadPictureIsPending ? (
                   <p className="cursor-pointer text-gray-400">
                     please wait...{" "}
@@ -315,7 +306,6 @@ export default function AddFabricVendorPage() {
                   <></>
                 )}
               </div>
-
               {/* Full Name & Email */}
               <div className="mt-4 flex flex-col sm:flex-row gap-4">
                 <div className="w-full sm:w-1/2">
@@ -347,7 +337,6 @@ export default function AddFabricVendorPage() {
                   />
                 </div>
               </div>
-
               {/* Password & Confirm Password */}
               <div className="mt-4 flex flex-col sm:flex-row gap-4">
                 <div className="w-full sm:w-1/2 relative">
@@ -386,7 +375,9 @@ export default function AddFabricVendorPage() {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    onClick={() =>
+                      setShowConfirmPassword(!showConfirmPassword)
+                    }
                     className="absolute right-3 top-10 text-gray-400"
                   >
                     {showConfirmPassword ? (
@@ -397,12 +388,14 @@ export default function AddFabricVendorPage() {
                   </button>
                 </div>
               </div>
-              <div className="w-full  relative mt-4">
+              <div className="w-full relative mt-4">
                 <label className="block text-gray-600 font-medium mb-4">
                   Address
                 </label>
+                {/* Google Autocomplete manual, keep the value in Formik & always display current value */}
                 <input
-                  ref={ref}
+                  ref={addressInputRef}
+                  value={values.address}
                   placeholder="address here"
                   name="address"
                   type="text"
@@ -410,6 +403,7 @@ export default function AddFabricVendorPage() {
                     setFieldValue("address", e.currentTarget.value);
                   }}
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                  autoComplete="off"
                 />
               </div>
               <button
@@ -421,12 +415,10 @@ export default function AddFabricVendorPage() {
               </button>
             </div>
           )}
-
           {/* Business Info Section */}
           {step === 2 && (
             <div className="p-4">
               <h2 className="text-lg font-medium mb-4">Business Information</h2>
-
               {/* Business Name & Registration Number */}
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="w-full">
@@ -457,7 +449,6 @@ export default function AddFabricVendorPage() {
                   />
                 </div>
               </div>
-
               {/* Phone Number & Market Location */}
               <div className="flex flex-col sm:flex-row gap-4 mt-4">
                 <div className="w-full relative">
@@ -465,7 +456,6 @@ export default function AddFabricVendorPage() {
                     Phone Number
                   </label>
                   <div className="flex flex-col md:flex-row md:items-center gap-2 ">
-                    {/* Country Code Dropdown */}
                     <PhoneInput
                       country={"ng"}
                       value={values.phone}
@@ -474,7 +464,6 @@ export default function AddFabricVendorPage() {
                         required: true,
                       }}
                       onChange={(value) => {
-                        // Ensure `+` is included and validate
                         if (!value.startsWith("+")) {
                           value = "+" + value;
                         }
@@ -488,11 +477,9 @@ export default function AddFabricVendorPage() {
                   </div>
                 </div>
               </div>
-
               {/* Business Address */}
               <div className="flex flex-col sm:flex-row gap-4 mt-4 w-full">
                 <div className="mt-4 w-full">
-                  {" "}
                   <label className="block text-gray-700 mb-3">
                     Business Type
                   </label>
@@ -503,7 +490,7 @@ export default function AddFabricVendorPage() {
                     className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg text-gray-500"
                     required
                   >
-                    <option value="" disabled selected>
+                    <option value="" disabled>
                       Select your business type
                     </option>
                     <option value="sole-proprietorship">
@@ -519,25 +506,12 @@ export default function AddFabricVendorPage() {
                   </select>
                 </div>
                 <div className="mt-3 w-full">
-                  <CustomLocationInput setFieldValue={setFieldValue} />
-                  {/* <label className="block text-gray-600 font-medium mb-4">
-                    Business Address
-                  </label>
-                  <input
-                    ref={busiRef}
-                    type="text"
-                    name={"location"}
-                    onChange={(e) => {
-                      setFieldValue("location", e.currentTarget.value);
-                    }}
-                    // onChange={handleChange}
-                    placeholder="Enter your business address"
-                    className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                  <CustomLocationInput
+                    setFieldValue={setFieldValue}
+                    value={values.location}
                   />
-                </div>*/}
                 </div>
               </div>
-
               {/* City & State Dropdowns */}
               <div className="flex flex-col sm:flex-row gap-4 mt-4 w-full">
                 <div className="w-full">
@@ -545,32 +519,25 @@ export default function AddFabricVendorPage() {
                   <Select
                     options={[{ value: "Nigeria", label: "Nigeria" }]}
                     name="country"
-                    value={[{ value: "Nigeria", label: "Nigeria" }]?.find(
-                      (opt) => opt.value === values.country,
-                    )}
+                    value={
+                      [{ value: "Nigeria", label: "Nigeria" }]?.find(
+                        (opt) => opt.value === values.country,
+                      ) || null
+                    }
                     onChange={(selectedOption) =>
                       setFieldValue("country", selectedOption.value)
                     }
                     placeholder="Select"
                     className="p-2 w-full mb-6 border border-[#CCCCCC] outline-none rounded-lg"
                     styles={{
-                      control: (base, state) => ({
+                      control: (base) => ({
                         ...base,
-                        border: "none",
-                        boxShadow: "none",
-                        outline: "none",
-                        backgroundColor: "#fff",
-                        "&:hover": {
-                          border: "none",
-                        },
+                        border: "none", boxShadow: "none",
+                        outline: "none", backgroundColor: "#fff",
+                        "&:hover": { border: "none" },
                       }),
-                      indicatorSeparator: () => ({
-                        display: "none",
-                      }),
-                      menu: (base) => ({
-                        ...base,
-                        zIndex: 9999,
-                      }),
+                      indicatorSeparator: () => ({ display: "none" }),
+                      menu: (base) => ({ ...base, zIndex: 9999 }),
                     }}
                   />{" "}
                 </div>
@@ -588,23 +555,14 @@ export default function AddFabricVendorPage() {
                     placeholder="Select"
                     className="p-2 w-full mb-6 border border-[#CCCCCC] outline-none rounded-lg"
                     styles={{
-                      control: (base, state) => ({
+                      control: (base) => ({
                         ...base,
-                        border: "none",
-                        boxShadow: "none",
-                        outline: "none",
-                        backgroundColor: "#fff",
-                        "&:hover": {
-                          border: "none",
-                        },
+                        border: "none", boxShadow: "none",
+                        outline: "none", backgroundColor: "#fff",
+                        "&:hover": { border: "none" },
                       }),
-                      indicatorSeparator: () => ({
-                        display: "none",
-                      }),
-                      menu: (base) => ({
-                        ...base,
-                        zIndex: 9999,
-                      }),
+                      indicatorSeparator: () => ({ display: "none" }),
+                      menu: (base) => ({ ...base, zIndex: 9999 }),
                     }}
                   />{" "}
                 </div>
@@ -646,31 +604,24 @@ export default function AddFabricVendorPage() {
                     placeholder="Choose suitability gender"
                     className="w-full p-2 border border-[#CCCCCC] outline-none rounded-lg"
                     styles={{
-                      control: (base, state) => ({
+                      control: (base) => ({
                         ...base,
                         border: "none",
                         boxShadow: "none",
                         outline: "none",
                         backgroundColor: "#fff",
-                        "&:hover": {
-                          border: "none",
-                        },
+                        "&:hover": { border: "none" },
                       }),
-                      indicatorSeparator: () => ({
-                        display: "none",
-                      }),
-                      menu: (base) => ({
-                        ...base,
-                        zIndex: 9999,
-                      }),
+                      indicatorSeparator: () => ({ display: "none" }),
+                      menu: (base) => ({ ...base, zIndex: 9999 }),
                     }}
                   />{" "}
                 </div>
               </div>
-
               {/* Navigation Buttons */}
               <div className="flex justify-between mt-6">
                 <button
+                  type="button"
                   onClick={() => setStep(1)}
                   className="bg-gray-300 cursor-pointer text-gray-700 px-6 py-3 rounded-md"
                 >
@@ -685,18 +636,15 @@ export default function AddFabricVendorPage() {
               </div>
             </div>
           )}
-
           {/* KYC Section */}
           {step === 3 && (
             <div className="p-4">
               <h2 className="text-lg font-medium mb-4">KYC Verification</h2>
-
               {/* ID Upload */}
               <div className="mb-4">
                 <label className="block text-gray-600 font-medium mb-4">
                   National ID / Driver’s License / Passport
                 </label>
-
                 <div>
                   <label className="block mb-2 text-gray-700">ID Type</label>
                   <Select
@@ -719,27 +667,19 @@ export default function AddFabricVendorPage() {
                     placeholder="Select"
                     className="w-full p-2 border border-gray-300 rounded-md mb-6"
                     styles={{
-                      control: (base, state) => ({
+                      control: (base) => ({
                         ...base,
                         border: "none",
                         boxShadow: "none",
                         outline: "none",
                         backgroundColor: "#fff",
-                        "&:hover": {
-                          border: "none",
-                        },
+                        "&:hover": { border: "none" },
                       }),
-                      indicatorSeparator: () => ({
-                        display: "none",
-                      }),
-                      menu: (base) => ({
-                        ...base,
-                        zIndex: 9999,
-                      }),
+                      indicatorSeparator: () => ({ display: "none" }),
+                      menu: (base) => ({ ...base, zIndex: 9999 }),
                     }}
                   />{" "}
                 </div>
-
                 <div className="flex flex-col sm:flex-row gap-4">
                   <div
                     onClick={() => document.getElementById("doc_front").click()}
@@ -748,7 +688,6 @@ export default function AddFabricVendorPage() {
                     <p className="cursor-pointer flex flex-col items-center space-y-2 text-gray-500">
                       <span>⬆️</span> <span>Upload Front</span>
                     </p>
-
                     <input
                       type="file"
                       name="doc_front"
@@ -772,7 +711,6 @@ export default function AddFabricVendorPage() {
                       className="hidden"
                       id="doc_front"
                     />
-
                     {uploadFrontIsPending ? (
                       <p className="cursor-pointer text-gray-400">
                         please wait...{" "}
@@ -787,11 +725,8 @@ export default function AddFabricVendorPage() {
                       >
                         View file upload
                       </a>
-                    ) : (
-                      <></>
-                    )}
+                    ) : null}
                   </div>
-
                   <div
                     onClick={() => document.getElementById("doc_back").click()}
                     className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg flex flex-col items-center"
@@ -799,10 +734,9 @@ export default function AddFabricVendorPage() {
                     <p className="cursor-pointer flex flex-col items-center space-y-2 text-gray-500">
                       <span>⬆️</span> <span>Upload Back</span>
                     </p>
-
                     <input
                       type="file"
-                      name="doc_front"
+                      name="doc_back"
                       onChange={(e) => {
                         if (e.target.files) {
                           if (e.target.files[0].size > 5 * 1024 * 1024) {
@@ -823,7 +757,6 @@ export default function AddFabricVendorPage() {
                       className="hidden"
                       id="doc_back"
                     />
-
                     {uploadBackIsPending ? (
                       <p className="cursor-pointer text-gray-400">
                         please wait...{" "}
@@ -838,13 +771,10 @@ export default function AddFabricVendorPage() {
                       >
                         View file upload
                       </a>
-                    ) : (
-                      <></>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               </div>
-
               {/* Utility Bill Upload */}
               <div className="mb-4">
                 <label className="block text-gray-600 font-medium mb-4">
@@ -857,7 +787,6 @@ export default function AddFabricVendorPage() {
                   <p className="cursor-pointer flex flex-col items-center space-y-2 text-gray-500">
                     <span>⬆️</span> <span>Upload Utility Bill</span>
                   </p>
-
                   <input
                     type="file"
                     name="utility_doc"
@@ -895,28 +824,13 @@ export default function AddFabricVendorPage() {
                     >
                       View file upload
                     </a>
-                  ) : (
-                    <></>
-                  )}
+                  ) : null}
                 </div>
               </div>
-
-              {/* BVN Input */}
-              {/* <div className="mb-4">
-                            <label className="block text-gray-600 font-medium mb-4">BVN</label>
-                            <input
-                                type="text"
-                                name="bvn"
-                                value={formData.bvn}
-                                onChange={handleChange}
-                                placeholder="Enter your BVN"
-                                className="w-full p-3 border border-[#CCCCCC] outline-none rounded-lg"
-                            />
-                        </div> */}
-
               {/* Navigation Buttons */}
               <div className="flex flex-col sm:flex-row justify-between gap-4 mt-6">
                 <button
+                  type="button"
                   onClick={() => setStep(2)}
                   className="bg-gray-300 cursor-pointer text-gray-700 px-6 py-3 rounded-md w-full sm:w-auto"
                 >

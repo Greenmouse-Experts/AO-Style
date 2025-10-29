@@ -368,23 +368,23 @@ export default function OrderRequests() {
         );
       },
     },
-    {
-      key: "items",
-      label: "Items",
-      render: (value: any, item: Order) => {
-        return (
-          <div className="flex items-center gap-2">
-            <Package className="w-4 h-4 text-base-content/60" />
-            <span className="font-semibold text-primary">
-              {item.order_items.length}
-            </span>
-            <span className="text-xs text-base-content/60">
-              item{item.order_items.length !== 1 ? "s" : ""}
-            </span>
-          </div>
-        );
-      },
-    },
+    // {
+    //   key: "items",
+    //   label: "Items",
+    //   render: (value: any, item: Order) => {
+    //     return (
+    //       <div className="flex items-center gap-2">
+    //         <Package className="w-4 h-4 text-base-content/60" />
+    //         <span className="font-semibold text-primary">
+    //           {item.order_items.length}
+    //         </span>
+    //         <span className="text-xs text-base-content/60">
+    //           item{item.order_items.length !== 1 ? "s" : ""}
+    //         </span>
+    //       </div>
+    //     );
+    //   },
+    // },
     {
       key: "amount",
       label: "Amount",

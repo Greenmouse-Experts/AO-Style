@@ -87,7 +87,7 @@ const OrderPage = () => {
   console.log(orderData);
   const columns = useMemo(
     () => [
-      { label: "Order ID", key: "transactionId" },
+      { label: "Order ID", key: "transactionIabricd" },
       { label: "Customer", key: "customer" },
       { label: "Product", key: "product" },
       { label: "Amount", key: "amount" },
@@ -98,11 +98,11 @@ const OrderPage = () => {
         render: (status) => (
           <span
             className={`px-3 py-1 text-sm rounded-full ${
-              status === "Ongoing"
+              status === "PAID"
                 ? "bg-yellow-100 text-yellow-700"
-                : status === "Cancelled"
-                  ? "bg-red-100 text-red-700"
-                  : "bg-green-100 text-green-700"
+                : status === "OUT_FOR_DELIVERY"
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700"
             }`}
           >
             {status}
@@ -149,7 +149,7 @@ const OrderPage = () => {
                 details?.payment?.purchase?.items[1]?.vendor_amount ?? 0,
               )}`,
 
-              status: `${details?.payment?.payment_status}`,
+              status: `${details?.status}`,
               dateAdded: `${
                 details?.created_at
                   ? (() => {

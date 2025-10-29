@@ -181,7 +181,7 @@ export default function ViewOrderLogistics() {
   };
 
   // Delivery leg determination based on order type
-  const firstLegStatuses = ["DISPATCHED_TO_AGENT"]; // Fabric+Style orders: vendor to tailor
+  const firstLegStatuses = ["DISPATCHED_TO_AGENT", "DELIVERED_TO_TAILOR"]; // Fabric+Style orders: vendor to tailor
   const secondLegStatuses = ["OUT_FOR_DELIVERY"]; // Tailor to customer OR fabric-only vendor to customer
   const transitStatuses = ["IN_TRANSIT"];
 
@@ -329,23 +329,17 @@ export default function ViewOrderLogistics() {
   const showLocations =
     // Style orders - show during first leg and second leg
     (hasStyleItems() &&
-      (
-        isFirstLeg || // Show during first leg for style orders
+      (isFirstLeg || // Show during first leg for style orders
         canAcceptSecondLeg ||
         (isSecondLeg && isSecondLegAssignedToMe) ||
         (isInTransit && isSecondLegAssignedToMe) ||
-        (isDelivered && isSecondLegAssignedToMe)
-      )
-    ) ||
+        (isDelivered && isSecondLegAssignedToMe))) ||
     // Fabric-only orders - first/only leg
     (!hasStyleItems() &&
-      (
-        (isSecondLeg && isSecondLegAssignedToMe) || // OUT_FOR_DELIVERY for fabric-only
+      ((isSecondLeg && isSecondLegAssignedToMe) || // OUT_FOR_DELIVERY for fabric-only
         (isInTransit && isSecondLegAssignedToMe) ||
         (isDelivered && isSecondLegAssignedToMe) ||
-        canAcceptFirstLeg // When agent can accept the fabric-only order
-      )
-    );
+        canAcceptFirstLeg)); // When agent can accept the fabric-only order
 
   // For "View pick-up item" image in LOCATIONS: pick the first order_item with a fabric image
   let locationPickupImage: string | undefined;
@@ -773,7 +767,7 @@ export default function ViewOrderLogistics() {
               <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
                 <h3 className="text-lg font-semibold mb-4 flex items-center">
                   <Package className="w-5 h-5 mr-2 text-purple-600" />
-                  Order Items ({order_data?.order_items.length})
+                  Order Items
                 </h3>
 
                 <div className="space-y-4">
@@ -790,107 +784,169 @@ export default function ViewOrderLogistics() {
                     }
 
                     return (
-                      <div
-                        key={item.id}
-                        className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex items-start space-x-4">
-                          <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                            {metaImage ? (
-                              <img
-                                src={metaImage}
-                                alt={item.product.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : item.product.style?.photos?.[0] ? (
-                              <img
-                                src={item.product.style.photos[0]}
-                                alt={item.product.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : item.product.fabric?.photos?.[0] ? (
-                              <img
-                                src={item.product.fabric.photos[0]}
-                                alt={item.product.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                <Package className="w-6 h-6" />
+                      <>
+                        {isFirstLeg ? (
+                          item?.product?.fabric && (
+                            <div
+                              key={item.id}
+                              className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                            >
+                              <div className="flex items-start space-x-4">
+                                <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                                  {metaImage ? (
+                                    <img
+                                      src={metaImage}
+                                      alt={item.product.name}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : item.product.style?.photos?.[0] ? (
+                                    <img
+                                      src={item.product.style.photos[0]}
+                                      alt={item.product.name}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : item.product.fabric?.photos?.[0] ? (
+                                    <img
+                                      src={item.product.fabric.photos[0]}
+                                      alt={item.product.name}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                      <Package className="w-6 h-6" />
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-medium text-gray-900 truncate">
+                                    {item.product.name}
+                                  </h4>
+                                  <p className="text-sm text-gray-600 mt-1">
+                                    Quantity: {item.quantity}
+                                  </p>
+
+                                  <div className="mt-3 text-purple-700 bg-purple-100 inline-flex rounded-sm py-1 px-2 w-auto max-w-max">
+                                    {item?.product?.fabric ? "FABRIC" : "STYLE"}
+                                  </div>
+
+                                  {isFirstLeg && !hasStyleItems && (
+                                    <div className="mt-3">
+                                      <p className="text-sm font-medium text-gray-700 mb-1">
+                                        Customer Address:
+                                      </p>
+                                      <p className="text-sm text-gray-600">
+                                        {isFirstLeg && !item?.product?.style
+                                          ? order_data?.user?.profile?.address
+                                          : ""}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="flex flex-col gap-2 flex-shrink-0">
+                                  {showSecondLegLocations &&
+                                    !item?.product?.fabric && (
+                                      <button
+                                        className="cursor-pointer px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors"
+                                        onClick={() => {
+                                          setItem(item);
+                                          nav(
+                                            `/logistics/orders/item/${item.id}/map`
+                                          );
+                                        }}
+                                      >
+                                        View Pickup
+                                      </button>
+                                    )}
+                                  {metaImage && (
+                                    <button
+                                      className="px-3 py-2 bg-pink-100 text-pink-700 rounded-lg text-sm font-medium hover:bg-pink-200 transition-colors flex items-center justify-center"
+                                      onClick={() =>
+                                        setViewImageUrl(metaImage!)
+                                      }
+                                      type="button"
+                                    >
+                                      <ImageIcon className="w-4 h-4 mr-1" />
+                                      View Item Image
+                                    </button>
+                                  )}
+                                </div>
                               </div>
-                            )}
-                          </div>
-
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-gray-900 truncate">
-                              {item.product.name}
-                            </h4>
-                            <p className="text-sm text-gray-600 mt-1">
-                              Quantity: {item.quantity}
-                            </p>
-
-                            <div className="mt-3 text-purple-700 bg-purple-100 inline-flex rounded-sm py-1 px-2 w-auto max-w-max">
-                              {item?.product?.fabric ? "FABRIC" : "STYLE"}
                             </div>
-
-                            {/* {!showSecondLegLocations && (
-                              <div className="mt-3">
-                                <p className="text-sm font-medium text-gray-700 mb-1">
-                                  {item.product.fabric
-                                    ? "Pickup Location:"
-                                    : item.product.style
-                                    ? "Destination Address:"
-                                    : "Pickup Location:"}
-                                </p>
-                                <p className="text-sm text-gray-600">
-                                  {item.product.creator?.profile?.address ||
-                                    "Address not available"}
-                                </p>
+                          )
+                        ) : (
+                          <div
+                            key={item.id}
+                            className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                          >
+                            <div className="flex items-start space-x-4">
+                              <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                                {metaImage ? (
+                                  <img
+                                    src={metaImage}
+                                    alt={item.product.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : item.product.style?.photos?.[0] ? (
+                                  <img
+                                    src={item.product.style.photos[0]}
+                                    alt={item.product.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : item.product.fabric?.photos?.[0] ? (
+                                  <img
+                                    src={item.product.fabric.photos[0]}
+                                    alt={item.product.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                    <Package className="w-6 h-6" />
+                                  </div>
+                                )}
                               </div>
-                            )} */}
-
-                            {isFirstLeg && !hasStyleItems && (
-                              <div className="mt-3">
-                                <p className="text-sm font-medium text-gray-700 mb-1">
-                                  Customer Address:
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-medium text-gray-900 truncate">
+                                  {item.product.name}
+                                </h4>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  Quantity: {item.quantity}
                                 </p>
-                                <p className="text-sm text-gray-600">
-                                  {isFirstLeg && !item?.product?.style
-                                    ? order_data?.user?.profile?.address
-                                    : ""}
-                                </p>
+                                <div className="mt-3 text-purple-700 bg-purple-100 inline-flex rounded-sm py-1 px-2 w-auto max-w-max">
+                                  {item?.product?.fabric ? "FABRIC" : "STYLE"}
+                                </div>
                               </div>
-                            )}
+                              <div className="flex flex-col gap-2 flex-shrink-0">
+                                {showSecondLegLocations &&
+                                  !item?.product?.fabric && (
+                                    <button
+                                      className="cursor-pointer px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors"
+                                      onClick={() => {
+                                        setItem(item);
+                                        nav(
+                                          `/logistics/orders/item/${item.id}/map`
+                                        );
+                                      }}
+                                    >
+                                      View Pickup
+                                    </button>
+                                  )}
+                                {metaImage && (
+                                  <button
+                                    className="px-3 py-2 bg-pink-100 text-pink-700 rounded-lg text-sm font-medium hover:bg-pink-200 transition-colors flex items-center justify-center"
+                                    onClick={() => setViewImageUrl(metaImage!)}
+                                    type="button"
+                                  >
+                                    <ImageIcon className="w-4 h-4 mr-1" />
+                                    View Item Image
+                                  </button>
+                                )}
+                              </div>
+                            </div>
                           </div>
-
-                          <div className="flex flex-col gap-2 flex-shrink-0">
-                            {showSecondLegLocations &&
-                              !item?.product?.fabric && (
-                                <button
-                                  className="cursor-pointer px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors"
-                                  onClick={() => {
-                                    setItem(item);
-                                    nav(
-                                      `/logistics/orders/item/${item.id}/map`
-                                    );
-                                  }}
-                                >
-                                  View Pickup
-                                </button>
-                              )}
-                            {metaImage && (
-                              <button
-                                className="px-3 py-2 bg-pink-100 text-pink-700 rounded-lg text-sm font-medium hover:bg-pink-200 transition-colors flex items-center justify-center"
-                                onClick={() => setViewImageUrl(metaImage!)}
-                                type="button"
-                              >
-                                <ImageIcon className="w-4 h-4 mr-1" />
-                                View Item Image
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
+                        )}
+                      </>
                     );
                   })}
                 </div>
@@ -978,7 +1034,9 @@ export default function ViewOrderLogistics() {
                           <button
                             className="px-2 py-1 flex items-center bg-purple-300 text-purple-800 cursor-pointer text-purle-800 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             onClick={() => {
-                              const orderItem = hasStyleItems() ? order_data?.order_items?.[1] : order_data?.order_items?.[0];
+                              const orderItem = hasStyleItems()
+                                ? order_data?.order_items?.[1]
+                                : order_data?.order_items?.[0];
                               if (orderItem) {
                                 setItem({
                                   ...orderItem,
@@ -1218,10 +1276,13 @@ export default function ViewOrderLogistics() {
               >
                 ×
               </button>
-              {hasStyleItems() && (<div className="mb-2 text-yellow-800 bg-yellow-50 border border-yellow-300 rounded px-3 py-2 text-sm">
-                <span className="font-medium">Tip:</span> You can use the fabric
-                image to know the kind of item to expect from the tailor.
-              </div>)}
+              {hasStyleItems() && (
+                <div className="mb-2 text-yellow-800 bg-yellow-50 border border-yellow-300 rounded px-3 py-2 text-sm">
+                  <span className="font-medium">Tip:</span> You can use the
+                  fabric image to know the kind of item to expect from the
+                  tailor.
+                </div>
+              )}
               <div className="flex flex-col items-center">
                 {pickupItemImageUrl ? (
                   <img

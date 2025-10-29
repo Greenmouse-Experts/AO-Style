@@ -10,10 +10,10 @@ import Loader from "../../components/ui/Loader";
 import { useFormik } from "formik";
 import useAcceptInvite from "./hooks/useAcceptInvite";
 import { countryCodes } from "../../constant";
-import PhoneInput from "react-phone-input-2";
 
 import Select from "react-select";
 import useToast from "../../hooks/useToast";
+import { usePlacesWidget } from "react-google-autocomplete";
 
 export default function MarketRepInvite() {
   const { toastError } = useToast();
@@ -39,8 +39,11 @@ export default function MarketRepInvite() {
     password_confirmation: "",
     referral_source: "",
     location: "",
+    latitude: "",
+    longitude: "",
     years_of_experience: "",
     phoneCode: "+234",
+    altCode: "+234",
   };
 
   const { isPending, acceptInviteMutate } = useAcceptInvite();
@@ -67,12 +70,16 @@ export default function MarketRepInvite() {
         toastError("No internet connection. Please check your network.");
         return;
       }
-      const phoneno = `${val.phoneCode + val.phone}`;
-      const altno = `${val.altCode + val.alternative_phone}`;
 
       if (values.password_confirmation !== values.password) {
         return toastError("Password must match");
       }
+
+      // Format phone numbers properly
+      const phoneno = `${val.phoneCode}${val.phone}`;
+      const altno = val.alternative_phone 
+        ? `${val.altCode}${val.alternative_phone}` 
+        : undefined;
 
       acceptInviteMutate(
         {
@@ -80,7 +87,11 @@ export default function MarketRepInvite() {
           token,
           role: "market-representative",
           phone: phoneno,
-          alternative_phone: val?.alternative_phone === "" ? undefined : altno,
+          alternative_phone: altno,
+          coordinates: {
+            longitude: val.longitude,
+            latitude: val.latitude,
+          },
         },
         {
           onSuccess: () => {
@@ -88,6 +99,20 @@ export default function MarketRepInvite() {
           },
         },
       );
+    },
+  });
+
+  // Google Places Autocomplete setup
+  const { ref } = usePlacesWidget({
+    apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
+    onPlaceSelected: (place) => {
+      setFieldValue("location", place.formatted_address);
+      setFieldValue("latitude", place.geometry?.location?.lat().toString());
+      setFieldValue("longitude", place.geometry?.location?.lng().toString());
+    },
+    options: {
+      componentRestrictions: { country: "ng" },
+      types: [],
     },
   });
 
@@ -167,27 +192,50 @@ export default function MarketRepInvite() {
 
             <div className="mb-3">
               <label className="block text-black mb-2">Phone Number</label>
-
-              <div className="flex flex-col md:flex-row md:items-center gap-2 ">
+              <div className="flex flex-col md:flex-row md:items-center gap-2">
                 {/* Country Code Dropdown */}
-                <PhoneInput
-                  country={"ng"}
+                <Select
+                  options={options}
+                  name="phoneCode"
+                  value={options.find((opt) => opt.value === values.phoneCode)}
+                  onChange={(selectedOption) =>
+                    setFieldValue("phoneCode", selectedOption.value)
+                  }
+                  placeholder="Select"
+                  className="p-2 md:w-28 border border-[#CCCCCC] outline-none rounded-lg text-gray-500"
+                  styles={{
+                    control: (base, state) => ({
+                      ...base,
+                      border: "none",
+                      boxShadow: "none",
+                      outline: "none",
+                      backgroundColor: "#fff",
+                      "&:hover": {
+                        border: "none",
+                      },
+                    }),
+                    indicatorSeparator: () => ({
+                      display: "none",
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      zIndex: 9999,
+                    }),
+                  }}
+                />
+                {/* Phone Input */}
+                <input
+                  type="tel"
+                  name="phone"
+                  placeholder="8012345678"
+                  className="flex-1 p-4 border border-[#CCCCCC] outline-none rounded-lg"
                   value={values.phone}
-                  inputProps={{
-                    name: "phone",
-                    required: true,
+                  onChange={(e) => {
+                    // Only allow numbers
+                    const onlyNums = e.target.value.replace(/\D/g, "");
+                    setFieldValue("phone", onlyNums);
                   }}
-                  onChange={(value) => {
-                    // Ensure `+` is included and validate
-                    if (!value.startsWith("+")) {
-                      value = "+" + value;
-                    }
-                    setFieldValue("phone", value);
-                  }}
-                  containerClass="w-full disabled:bg-gray-100"
-                  dropdownClass="flex flex-col gap-2 text-black disabled:bg-gray-100"
-                  buttonClass="bg-gray-100 !border !border-gray-100 hover:!bg-gray-100 disabled:bg-gray-100"
-                  inputClass="!w-full px-4 font-sans disabled:bg-gray-100  !h-[54px] !py-4 border border-gray-300 !rounded-md focus:outline-none"
+                  required
                 />
               </div>
             </div>
@@ -197,27 +245,49 @@ export default function MarketRepInvite() {
                 Alternative Phone Number{" "}
                 <small className="text-[#CCCCCC]">(Optional)</small>
               </label>
-
-              <div className="flex flex-col md:flex-row md:items-center gap-2 ">
+              <div className="flex flex-col md:flex-row md:items-center gap-2">
                 {/* Country Code Dropdown */}
-                <PhoneInput
-                  country={"ng"}
+                <Select
+                  options={options}
+                  name="altCode"
+                  value={options.find((opt) => opt.value === values.altCode)}
+                  onChange={(selectedOption) =>
+                    setFieldValue("altCode", selectedOption.value)
+                  }
+                  placeholder="Select"
+                  className="p-2 md:w-28 border border-[#CCCCCC] outline-none rounded-lg text-gray-500"
+                  styles={{
+                    control: (base, state) => ({
+                      ...base,
+                      border: "none",
+                      boxShadow: "none",
+                      outline: "none",
+                      backgroundColor: "#fff",
+                      "&:hover": {
+                        border: "none",
+                      },
+                    }),
+                    indicatorSeparator: () => ({
+                      display: "none",
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      zIndex: 9999,
+                    }),
+                  }}
+                />
+                {/* Phone Input */}
+                <input
+                  type="tel"
+                  name="alternative_phone"
+                  placeholder="8012345678"
+                  className="flex-1 p-4 border border-[#CCCCCC] outline-none rounded-lg"
                   value={values.alternative_phone}
-                  inputProps={{
-                    name: "alternative_phone",
-                    required: true,
+                  onChange={(e) => {
+                    // Only allow numbers
+                    const onlyNums = e.target.value.replace(/\D/g, "");
+                    setFieldValue("alternative_phone", onlyNums);
                   }}
-                  onChange={(value) => {
-                    // Ensure `+` is included and validate
-                    if (!value.startsWith("+")) {
-                      value = "+" + value;
-                    }
-                    setFieldValue("alternative_phone", value);
-                  }}
-                  containerClass="w-full disabled:bg-gray-100"
-                  dropdownClass="flex flex-col gap-2 text-black disabled:bg-gray-100"
-                  buttonClass="bg-gray-100 !border !border-gray-100 hover:!bg-gray-100 disabled:bg-gray-100"
-                  inputClass="!w-full px-4 font-sans disabled:bg-gray-100  !h-[54px] !py-4 border border-gray-300 !rounded-md focus:outline-none"
                 />
               </div>
             </div>
@@ -227,7 +297,7 @@ export default function MarketRepInvite() {
             </label>
 
             <input
-              type="numeric"
+              type="text"
               name={"years_of_experience"}
               required
               value={values.years_of_experience}
@@ -239,16 +309,23 @@ export default function MarketRepInvite() {
               className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
             />
 
-            <label className="block text-black">Address</label>
-            <input
-              type="text"
-              name={"location"}
-              value={values.location}
-              onChange={handleChange}
-              placeholder="Enter your home address"
-              className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
-              required
-            />
+            <div>
+              <label className="block text-black mb-1">Address</label>
+              <input
+                type="text"
+                ref={ref}
+                className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                placeholder="Enter full detailed address"
+                required
+                name="location"
+                onChange={(e) => {
+                  setFieldValue("location", e.currentTarget.value);
+                  setFieldValue("latitude", "");
+                  setFieldValue("longitude", "");
+                }}
+                value={values.location}
+              />
+            </div>
 
             {/* <div>
               <HowDidYouHearAboutUs />
@@ -263,7 +340,7 @@ export default function MarketRepInvite() {
               onChange={handleChange}
               className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg text-gray-500"
             >
-              <option value="" disabled selected>
+              <option value="" disabled>
                 Select option
               </option>
               <option value="Social Media">Social Media</option>

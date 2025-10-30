@@ -9,6 +9,7 @@ import Cards from "./components/Cards";
 import useVendorSummaryStat from "../../../hooks/analytics/useGetVendorSummmary";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
 import { useQuery } from "@tanstack/react-query";
+import useMarketRepWalletData from "../../../hooks/marketRep/useMarketRepWalletData";
 
 export default function TransactionPage() {
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
@@ -23,6 +24,12 @@ export default function TransactionPage() {
   const { data: businessData } = useGetBusinessDetails();
   const businessWallet = businessData?.data?.business_wallet;
 
+  const { walletMetrics } = useMarketRepWalletData();
+
+  const marketRepWallet = {
+    balance: walletMetrics?.currentBalance || 0,
+    currency: walletMetrics?.currency || "NGN",
+  };
   // const currentYear = new Date().getFullYear()
   const {data: repStats, isFetching, isLoading: tailorStatsLoading} = useQuery({
     queryKey: ["rep-graph"],
@@ -75,7 +82,7 @@ export default function TransactionPage() {
       <WithdrawalModal
         isOpen={isWithdrawModalOpen}
         onClose={handleCloseWithdrawModal}
-        businessWallet={businessWallet}
+        businessWallet={marketRepWallet}
       />
 
       {/* View All Withdrawals Modal */}

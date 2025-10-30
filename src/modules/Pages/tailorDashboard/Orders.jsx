@@ -1,20 +1,16 @@
-import React, { act, useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import { formatDateStr, formatNumberWithCommas } from "../../../lib/helper";
 import useQueryParams from "../../../hooks/useQueryParams";
-import useGetAllOrder from "../../../hooks/order/useGetOrder";
 import useDebounce from "../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
-
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
-import ReusableTable from "../adminDashboard/components/ReusableTable";
 import useGetVendorOrder from "../../../hooks/order/useGetVendorOrder";
-import { useEffect } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import { useMutation } from "@tanstack/react-query";
 import CustomTable from "../../../components/CustomTable";
@@ -36,9 +32,10 @@ const OrderPage = () => {
   const [currentItem, setCurrentItem] = useState(null);
   const nav = useNavigate();
   const dialogRef = useRef(null);
+
   const update_status = useMutation({
     mutationFn: async (status) => {
-      return await CaryBinApi.put(`/orders/${currentItem.id}/status `, {
+      return await CaryBinApi.put(`/orders/${currentItem.id}/status`, {
         status,
       });
     },
@@ -49,13 +46,13 @@ const OrderPage = () => {
     onSuccess: () => {
       toast.success("status updated");
       refetch();
-
-      setTimeout((handler) => {
+      setTimeout(() => {
         toast.dismiss();
         dialogRef.current.close();
       }, 800);
     },
   });
+
   const statusOptions = useMemo(
     () => [
       { value: "DELIVERED_TO_TAILOR", label: "Delivered to Tailor" },
@@ -74,20 +71,26 @@ const OrderPage = () => {
     "pagination[page]": 1,
   });
 
-  // Get all orders once, no search params
   const {
     isPending,
-    isLoading,
-    isError,
     data: orderData,
     refetch,
   } = useGetVendorOrder({
     ...queryParams,
   });
-  console.log(orderData);
+
+  // FIX: The "Order ID" column uses a wrong key, should be 'transactionId'
   const columns = useMemo(
     () => [
-      { label: "Order ID", key: "transactionIabricd" },
+      { 
+        label: "Order ID", 
+        key: "transactionId",
+        render: (val) => (
+          <span title={val} className="font-mono text-xs">
+            {val}
+          </span>
+        ),
+      },
       { label: "Customer", key: "customer" },
       { label: "Product", key: "product" },
       { label: "Amount", key: "amount" },
@@ -98,11 +101,13 @@ const OrderPage = () => {
         render: (status) => (
           <span
             className={`px-3 py-1 text-sm rounded-full ${
-              status === "PAID"
+              status === "DELIVERED"
+                ? "bg-green-100 text-green-700"
+                : status === "PROCESSING"
                 ? "bg-yellow-100 text-yellow-700"
-                : status === "OUT_FOR_DELIVERY"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
+                : status === "CANCELLED"
+                ? "bg-red-100 text-red-700"
+                : "bg-gray-100 text-gray-700"
             }`}
           >
             {status}
@@ -112,6 +117,7 @@ const OrderPage = () => {
     ],
     [openDropdown],
   );
+
   const actions = [
     {
       label: "View Details",

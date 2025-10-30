@@ -24,6 +24,7 @@ import useGetUserSubscription from "../../../hooks/subscription/useGetUserSub";
 import useCreateSubscriptionPayment from "../../../hooks/subscription/useCreateSubscriptionPayment";
 import useVerifySubPay from "../../../hooks/subscription/useVerifySubPay";
 import useUpgradeSubscription from "../../../hooks/subscription/useUpgradeSubscription";
+import useRenewSubscription from "../../../hooks/subscription/useRenewSubscription";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
 
@@ -71,6 +72,8 @@ const Subscriptions = () => {
   const { isPending: verifyPending, verifyPaymentMutate } = useVerifySubPay();
   const { isPending: upgradePending, upgradeSubscriptionMutate } =
     useUpgradeSubscription();
+  const { isPending: renewPending, renewSubscriptionMutate } =
+    useRenewSubscription();
 
   const toggleDropdown = (rowId) => {
     setOpenDropdown(openDropdown === rowId ? null : rowId);
@@ -276,12 +279,74 @@ const Subscriptions = () => {
     }
   };
 
+  const handleRenew = (plan) => {
+    console.log("🔄 Starting subscription renewal:", {
+      subscription_id: activePlan?.id,
+    });
+
+    const amount = Number(
+      plan?.subscription_plan_prices?.[0]?.price || 0,
+    );
+
+    renewSubscriptionMutate(
+      {
+        subscription_id: activePlan?.id,
+      },
+      {
+        onSuccess: (renewResponse) => {
+          console.log("✅ Renewal initiated successfully:", renewResponse);
+          console.log("Full renewal response:", JSON.stringify(renewResponse, null, 2));
+
+          // The renewal endpoint returns payment_id directly in data
+          const paymentId = renewResponse?.data?.payment_id || renewResponse?.data?.data?.payment_id;
+
+          console.log("Extracted payment_id:", paymentId);
+
+          if (paymentId) {
+            console.log("🚀 Opening Paystack payment popup for renewal with amount:", amount);
+            // Use the same payWithPaystack flow that handles verification
+            payWithPaystack({
+              amount: amount,
+              payment_id: paymentId,
+            });
+          } else {
+            console.log("✅ Renewal completed directly (no payment needed)");
+            
+            // Invalidate all subscription-related queries
+            queryClient.invalidateQueries({
+              queryKey: ["get-user-subscription"],
+            });
+            queryClient.invalidateQueries({ queryKey: ["get-subscription"] });
+            queryClient.invalidateQueries({ queryKey: ["free-plan"] });
+            queryClient.invalidateQueries({ queryKey: ["user-profile"] });
+
+            // Refetch immediately
+            refetch();
+            free_plan.refetch();
+
+            // Additional refetch after delay to ensure UI updates
+            setTimeout(() => {
+              refetch();
+              free_plan.refetch();
+            }, 1000);
+
+            subCloseModal();
+          }
+        },
+        onError: (error) => {
+          console.error("❌ Renewal initiation failed:", error);
+        },
+      },
+    );
+  };
+
   const subscriptionRes = useMemo(
     () =>
       subscriptionData?.data
         ? subscriptionData?.data.map((details) => {
+            // FIX: Check both is_active AND name match
             const isActive =
-             
+              activePlan?.is_active &&
               details?.name === activePlan?.plan_name_at_subscription;
 
             return {
@@ -392,9 +457,22 @@ const Subscriptions = () => {
                   activePlan?.subscription_plan_prices?.[0]
                     ?.subscription_plan_id == row?.id ||
                   activePlan?.plan_name_at_subscription == row?.name ? (
-                  <span className="block px-4 py-2 text-green-600 text-sm font-medium">
-                    Current Plan
-                  </span>
+                  activePlan?.is_active ? (
+                    <span className="block px-4 py-2 text-green-600 text-sm font-medium">
+                      Current Plan
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        subOpenModal();
+                        setCurrentView(row);
+                        setOpenDropdown(null);
+                      }}
+                      className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
+                    >
+                      Renew Plan
+                    </button>
+                  )
                 ) : (
                   <button
                     onClick={() => {
@@ -457,6 +535,13 @@ const Subscriptions = () => {
     activePlan?.is_active &&
     activePlan?.subscription_plan_id !== currentView?.id &&
     currentPlanPrice > targetPlanPrice;
+  
+  // Check if this is a renewal scenario (inactive current plan)
+  const isCurrentPlan = 
+    activePlan?.subscription_plan_id === currentView?.id ||
+    activePlan?.subscription_plan_prices?.[0]?.subscription_plan_id === currentView?.id ||
+    activePlan?.plan_name_at_subscription === currentView?.name;
+  const isRenewal = isCurrentPlan && !activePlan?.is_active;
 
   return (
     <div className="bg-white p-6 rounded-xl overflow-visible">
@@ -800,6 +885,44 @@ const Subscriptions = () => {
                             </div>
                           </div>
                         </div>
+                      ) : isRenewal ? (
+                        <>
+                          <p className="text-sm text-gray-500">
+                            Your {currentView?.name} subscription has expired. Would you like to renew it?
+                          </p>
+
+                          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                            <div className="space-y-2">
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium text-purple-900">
+                                  Plan:
+                                </span>
+                                <span className="text-sm text-purple-800 font-semibold">
+                                  {currentView?.name}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium text-purple-900">
+                                  Status:
+                                </span>
+                                <span className="text-sm text-red-600 font-semibold">
+                                  Expired
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center pt-2 border-t border-purple-200">
+                                <span className="text-sm font-medium text-purple-900">
+                                  Renewal Price:
+                                </span>
+                                <span className="text-lg font-bold text-purple-900">
+                                  ₦
+                                  {new Intl.NumberFormat().format(
+                                    targetPlanPrice,
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </>
                       ) : (
                         <>
                           <p className="text-sm text-gray-500">
@@ -877,13 +1000,18 @@ const Subscriptions = () => {
                       <button
                         onClick={() => {
                           if (!isDowngrade) {
-                            handleSubscribe(currentView);
+                            if (isRenewal) {
+                              handleRenew(currentView);
+                            } else {
+                              handleSubscribe(currentView);
+                            }
                           }
                         }}
                         disabled={
                           createPending ||
                           upgradePending ||
                           verifyPending ||
+                          renewPending ||
                           isDowngrade
                         }
                         className={`px-6 py-2 rounded-lg hover:shadow-lg cursor-pointer duration-200 transition-all flex items-center space-x-2 bg-gradient-to-r hover:from-[#8036D3] from-[#9847FE] to-[#8036D3] text-white hover:to-[#6B2BB5] disabled:opacity-50 disabled:cursor-not-allowed font-medium min-w-[140px] justify-center`}
@@ -895,11 +1023,13 @@ const Subscriptions = () => {
                             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
                             Verifying...
                           </>
-                        ) : createPending || upgradePending ? (
+                        ) : createPending || upgradePending || renewPending ? (
                           <>
                             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
                             Please wait...
                           </>
+                        ) : isRenewal ? (
+                          "Renew Plan"
                         ) : isUpgrade ? (
                           "Upgrade Plan"
                         ) : (

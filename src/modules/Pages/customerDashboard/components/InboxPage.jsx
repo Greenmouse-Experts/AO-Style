@@ -155,17 +155,39 @@ export default function InboxPage() {
 
       socketInstance.on("chatsRetrieved", (data) => {
         console.log("=== CHATS RETRIEVED ON LOAD ===");
-        console.log("Full response:", JSON.stringify(data, null, 2));
+        console.log("Full response from first:", data);
         console.log("Status:", data?.status);
         console.log("Message:", data?.message);
         console.log("Result array:", data?.data?.result);
         console.log("==============================");
-
+      
         if (data?.status === "success" && data?.data?.result) {
           setChats(data.data.result);
-          if (!selectedChat && data.data.result.length > 0) {
+          
+          // Check for pending chat selection
+          if (socketInstance.pendingChatSelection) {
+            const { chatId, chatBuddyId } = socketInstance.pendingChatSelection;
+            const chatToSelect = data.data.result.find(
+              (chat) => chat.id === chatId || chat.chat_buddy?.id === chatBuddyId
+            );
+            
+            if (chatToSelect) {
+              console.log("🎯 Auto-selecting chat from recent update:", chatToSelect);
+              setSelectedChat(chatToSelect);
+              
+              if (chatToSelect.chat_buddy?.id) {
+                socketInstance.emit("retrieveMessages", {
+                  token: userToken,
+                  chatBuddy: chatToSelect.chat_buddy.id,
+                });
+              }
+            }
+            
+            delete socketInstance.pendingChatSelection;
+          } else if (!selectedChatRef.current && data.data.result.length > 0) {
             setSelectedChat(data.data.result[0]);
           }
+          
           toastSuccess(data?.message || "Chats loaded successfully");
         }
       });
@@ -181,17 +203,42 @@ export default function InboxPage() {
 
         socketInstance.on(`chatsRetrieved:${userId}`, (data) => {
           console.log(`=== USER-SPECIFIC CHATS RETRIEVED (${userId}) ===`);
-          console.log("Full response:", JSON.stringify(data, null, 2));
+          console.log("Full response frm second endpoint:", data);
           console.log("Status:", data?.status);
           console.log("Message:", data?.message);
           console.log("Result array:", data?.data?.result);
           console.log("=============================================");
-
+        
           if (data?.status === "success" && data?.data?.result) {
             setChats(data.data.result);
-            if (!selectedChat && data.data.result.length > 0) {
+            
+            // Check if there's a pending chat selection from recentChatRetrieved
+            if (socketInstance.pendingChatSelection) {
+              const { chatId, chatBuddyId } = socketInstance.pendingChatSelection;
+              const chatToSelect = data.data.result.find(
+                (chat) => chat.id === chatId || chat.chat_buddy?.id === chatBuddyId
+              );
+              
+              if (chatToSelect) {
+                console.log("🎯 Auto-selecting chat from recent update:", chatToSelect);
+                setSelectedChat(chatToSelect);
+                
+                // Fetch messages for the selected chat
+                if (chatToSelect.chat_buddy?.id) {
+                  socketInstance.emit("retrieveMessages", {
+                    token: userToken,
+                    chatBuddy: chatToSelect.chat_buddy.id,
+                  });
+                }
+              }
+              
+              // Clear the pending selection
+              delete socketInstance.pendingChatSelection;
+            } else if (!selectedChatRef.current && data.data.result.length > 0) {
+              // Normal behavior: select first chat if nothing is selected
               setSelectedChat(data.data.result[0]);
             }
+            
             toastSuccess(data?.message || "Chats loaded successfully");
           }
         });
@@ -273,40 +320,24 @@ export default function InboxPage() {
         socketInstance.setupChatSpecificListener = setupChatSpecificListener;
 
         socketInstance.on(`recentChatRetrieved:${userId}`, (data) => {
-          console.log(
-            `=== USER-SPECIFIC RECENT CHAT RETRIEVED (${userId}) ===`
-          );
+          console.log(`=== USER-SPECIFIC RECENT CHAT RETRIEVED (${userId}) ===`);
           console.log("Chat data:", JSON.stringify(data, null, 2));
           console.log("=============================================");
-
+        
           if (data?.data) {
-            const currentSelectedChat = selectedChatRef.current;
+            // Trigger full chat refresh using socketInstance (not socket)
+            console.log("🔄 Triggering full chat refresh after recent chat update");
+            socketInstance.emit("retrieveChats", { token: userToken });
             
-            setChats((prevChats) => {
-              const existingChatIndex = prevChats.findIndex(
-                (chat) => chat.id === data.data.id
-              );
-              if (existingChatIndex >= 0) {
-                const updatedChats = [...prevChats];
-                updatedChats[existingChatIndex] = {
-                  ...updatedChats[existingChatIndex],
-                  last_message: data.data.last_message,
-                  created_at: data.data.created_at,
-                };
-                return updatedChats;
-              } else {
-                return [data.data, ...prevChats];
-              }
-            });
-
-            // Auto-refresh messages if this chat is currently selected
-            if (currentSelectedChat && currentSelectedChat.id === data.data.id) {
-              console.log("🔄 Auto-refreshing messages for currently selected chat (user-specific)");
-              socketInstance.emit("retrieveMessages", {
-                token: userToken,
-                chatBuddy: currentSelectedChat.chat_buddy.id,
-              });
-            }
+            // Store the chat info to select after chats are loaded
+            const newChatId = data.data.id;
+            const newChatBuddyId = data.data.chat_buddy?.id;
+            
+            // Set a flag or store this info to be used when chatsRetrieved fires
+            socketInstance.pendingChatSelection = {
+              chatId: newChatId,
+              chatBuddyId: newChatBuddyId
+            };
           }
         });
       }
@@ -348,35 +379,18 @@ export default function InboxPage() {
         console.log("=== RECENT CHAT RETRIEVED ===");
         console.log("Chat data:", JSON.stringify(data, null, 2));
         console.log("============================");
-
+      
         if (data?.data) {
-          const currentSelectedChat = selectedChatRef.current;
+          console.log("🔄 Triggering full chat refresh after recent chat update");
+          socketInstance.emit("retrieveChats", { token: userToken });
           
-          setChats((prevChats) => {
-            const existingChatIndex = prevChats.findIndex(
-              (chat) => chat.id === data.data.id
-            );
-            if (existingChatIndex >= 0) {
-              const updatedChats = [...prevChats];
-              updatedChats[existingChatIndex] = {
-                ...updatedChats[existingChatIndex],
-                last_message: data.data.last_message,
-                created_at: data.data.created_at,
-              };
-              return updatedChats;
-            } else {
-              return [data.data, ...prevChats];
-            }
-          });
-
-          // Auto-refresh messages if this chat is currently selected
-          if (currentSelectedChat && currentSelectedChat.id === data.data.id) {
-            console.log("🔄 Auto-refreshing messages for currently selected chat");
-            socketInstance.emit("retrieveMessages", {
-              token: userToken,
-              chatBuddy: currentSelectedChat.chat_buddy.id,
-            });
-          }
+          const newChatId = data.data.id;
+          const newChatBuddyId = data.data.chat_buddy?.id;
+          
+          socketInstance.pendingChatSelection = {
+            chatId: newChatId,
+            chatBuddyId: newChatBuddyId
+          };
         }
       });
 

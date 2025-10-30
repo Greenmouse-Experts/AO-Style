@@ -299,12 +299,21 @@ export default function ViewTransaction() {
                     )}
                     {withdrawal.processed_by && (
                       <div>
-                        <dt className="text-sm text-gray-600">Processed By</dt>
+                        <dt className="text-sm text-gray-600">Processed By (ID)</dt>
                         <dd className="font-mono text-sm bg-gray-100 px-2 py-1 rounded mt-1">
                           {withdrawal.processed_by
                             .replace(/-/g, "")
                             .slice(0, 12)
                             .toUpperCase()}
+                        </dd>
+                      </div>
+                    )}
+                    {withdrawal.processed_by_details && (
+                      <div>
+                        <dt className="text-sm text-gray-600">Processed By (E-MAIL)</dt>
+                        <dd className="font-mono text-sm bg-gray-100 px-2 py-1 rounded mt-1">
+                          {withdrawal.processed_by_details?.email
+  }
                         </dd>
                       </div>
                     )}

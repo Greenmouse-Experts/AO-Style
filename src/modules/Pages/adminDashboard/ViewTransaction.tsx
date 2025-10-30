@@ -204,7 +204,7 @@ export default function ViewTransaction() {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div>
                     <h2 className="text-xl font-semibold">
-                      {withdrawal.id.toUpperCase()}
+                     ID: {withdrawal.id.replace(/-/g, "")?.slice(0, 12)?.toUpperCase()}
                     </h2>
                     <p className="text-gray-300 text-sm">
                       {new Date(withdrawal.created_at).toLocaleDateString()} at{" "}

@@ -381,25 +381,51 @@ export function GeneralTransactionComponent({ hideWallet = false }) {
       )}
 
       {/* Tabs */}
-      <div className="mb-4">
-        <div className="flex space-x-2">
+      <div className="mb-4 mt-10 flex justify-center">
+        <div className="inline-flex rounded-lg bg-gray-100 p-1 shadow-inner">
           <button
-            className={`btn btn-sm ${activeTab === "transactions" ? "btn-primary" : "btn-outline"}`}
+            className={`cursor-pointer px-5 py-2 text-sm font-semibold rounded-lg transition-all duration-150
+              ${
+                activeTab === "transactions"
+                  ? "bg-purple-600 text-white shadow"
+                  : "bg-transparent text-gray-700 hover:bg-gray-200"
+              }
+            `}
+            aria-current={activeTab === "transactions"}
             onClick={() => {
               setActiveTab("transactions");
               setFilters((prev) => ({ ...prev, page: 1 }));
             }}
           >
             Transactions
+            {activeTab === "transactions" && (
+              <span
+                className="block h-1 w-6 mx-auto mt-1 rounded-full bg-purple-400"
+                aria-hidden="true"
+              ></span>
+            )}
           </button>
           <button
-            className={`btn btn-sm ${activeTab === "withdrawals" ? "btn-primary" : "btn-outline"}`}
+            className={`cursor-pointer px-5 py-2 text-sm font-semibold rounded-lg transition-all duration-150
+              ${
+                activeTab === "withdrawals"
+                  ? "bg-purple-600 text-white shadow"
+                  : "bg-transparent text-gray-700 hover:bg-gray-200"
+              }
+            `}
+            aria-current={activeTab === "withdrawals"}
             onClick={() => {
               setActiveTab("withdrawals");
               setFilters((prev) => ({ ...prev, page: 1 }));
             }}
           >
             Withdrawals
+            {activeTab === "withdrawals" && (
+              <span
+                className="block h-1 w-6 mx-auto mt-1 rounded-full bg-purple-400"
+                aria-hidden="true"
+              ></span>
+            )}
           </button>
         </div>
       </div>

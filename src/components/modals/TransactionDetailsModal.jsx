@@ -35,7 +35,7 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId, type }) => {
         return resp.data;
       } else {
         const resp = await CaryBinApi.get(
-          "/payment/my-payments/" + transactionId,
+          "/payment/my-payments/" + transactionId
         );
         return resp.data;
       }
@@ -139,10 +139,17 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId, type }) => {
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
           <div>
             <p className="text-sm text-gray-500">User ID</p>
-            <p className="font-medium text-gray-900 text-sm">{user.id?.replace(/-/g, "").slice(0, 12).toUpperCase()}</p>
+            <p className="font-medium text-gray-900 text-sm">
+              {user.id?.replace(/-/g, "").slice(0, 12).toUpperCase()}
+            </p>
           </div>
           <button
-            onClick={() => copyToClipboard(user.id?.replace(/-/g, "").slice(0, 12), "user_id")}
+            onClick={() =>
+              copyToClipboard(
+                user.id?.replace(/-/g, "").slice(0, 12),
+                "user_id"
+              )
+            }
             className="text-gray-400 hover:text-gray-600 transition-colors"
           >
             {copiedField === "user_id" ? (
@@ -196,6 +203,18 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId, type }) => {
         </p>
       </div>
 
+      {/* withdrawal id */}
+      {transaction.id && (
+        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <div>
+            <p className="text-sm text-gray-500">Withdrawal ID</p>
+            <p className="font-medium text-gray-900 text-sm">
+              {transaction.id.replace(/-/g, "").slice(0, 12).toUpperCase()}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Withdrawal Info */}
       <div className="space-y-3">
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -227,8 +246,8 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId, type }) => {
                   transaction.status === "PENDING"
                     ? "bg-yellow-100 text-yellow-700"
                     : transaction.status === "COMPLETED"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-gray-100 text-gray-700"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-gray-100 text-gray-700"
                 }`}
               >
                 {transaction.status}
@@ -239,23 +258,14 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId, type }) => {
         {transaction.created_at && (
           <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
             <div>
-              <p className="text-sm text-gray-500">Created At</p>
+              <p className="text-sm text-gray-500">Date requested</p>
               <p className="font-medium text-gray-900 text-sm">
                 {formatDate(transaction.created_at)}
               </p>
             </div>
           </div>
         )}
-        {transaction.updated_at && (
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <div>
-              <p className="text-sm text-gray-500">Last Updated</p>
-              <p className="font-medium text-gray-900 text-sm">
-                {formatDate(transaction.updated_at)}
-              </p>
-            </div>
-          </div>
-        )}
+
         {transaction.reference && (
           <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
             <div>
@@ -308,8 +318,16 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId, type }) => {
           className="cursor-pointer flex-1 inline-flex justify-center rounded-md border border-transparent bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
           onClick={() =>
             copyToClipboard(
-              transaction?.user.id?.replace(/-/g, "").slice(0, 12).toUpperCase() || transaction.user.id?.replace(/-/g, "").slice(0, 12).toUpperCase() || transactionId,
-              "copy_all",
+              transaction?.user.id
+                ?.replace(/-/g, "")
+                .slice(0, 12)
+                .toUpperCase() ||
+                transaction.user.id
+                  ?.replace(/-/g, "")
+                  .slice(0, 12)
+                  .toUpperCase() ||
+                transactionId,
+              "copy_all"
             )
           }
         >

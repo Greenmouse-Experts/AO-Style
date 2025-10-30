@@ -6,10 +6,10 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import useToast from "../../../hooks/useToast";
 import useCreateMarketRepFabric from "../../../hooks/marketRep/useCreateMarketRepFabric";
 
-import imageUpload from "../../../utils/imageUpload";
 import useGetProductCategories from "../../../hooks/useGetProductCategories";
 import useGetMarkets from "../../../hooks/useGetMarkets";
 import useUploadVideo from "../../../hooks/multimedia/useUploadVideo";
+import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 import useGetAllMarketRepVendor from "../../../hooks/marketRep/useGetAllReps";
 import Autocomplete from "react-google-autocomplete";
 
@@ -17,8 +17,6 @@ const AddFabric = () => {
   const navigate = useNavigate();
   const { toastSuccess, toastError } = useToast();
 
-  // Changed: Remove underscore from photoFiles and make it stateful for previews
-  // const [photoFiles, setPhotoFiles] = useState([]); // Not used, can be removed if desired
   const [photoUrls, setPhotoUrls] = useState(["", "", "", ""]);
   const [isUploadingImages, setIsUploadingImages] = useState([
     false,
@@ -40,7 +38,6 @@ const AddFabric = () => {
   const AUTOSAVE_DELAY = 2000; // 2 seconds
 
   useEffect(() => {
-    // Fetch fabric vendors
     console.log(photoUrls);
   }, [photoUrls]);
 
@@ -59,6 +56,12 @@ const AddFabric = () => {
   const { data: getAllFabVendorData, isLoading: vendorsLoading } =
     useGetAllMarketRepVendor({}, "fabric-vendor");
 
+  // Image upload hook
+  const { uploadImageMutate, isPending: isUploadingImage } = useUploadImage();
+
+  // Video upload hook
+  const { uploadVideoMutate } = useUploadVideo();
+
   // Debug logging
   console.log("🔧 ADDFABRIC: getAllFabVendorData:", getAllFabVendorData);
   console.log(
@@ -70,9 +73,6 @@ const AddFabric = () => {
     "🔧 ADDFABRIC: Is data an array?",
     Array.isArray(getAllFabVendorData?.data),
   );
-
-  // Video upload hook
-  const { uploadVideoMutate } = useUploadVideo();
 
   const saveDraft = useCallback((values, photoUrls, videoUrl) => {
     try {
@@ -138,7 +138,6 @@ const AddFabric = () => {
       .min(1, "Quantity must be greater than 0"),
     minimum_yards: Yup.string().required("Minimum yards is required"),
     available_colors: Yup.string().required("Available colors is required"),
-    // fabric_colors: Yup.string().required("Fabric colors is required"),
     fabric_texture: Yup.string().required("Fabric texture is required"),
   });
 
@@ -161,7 +160,6 @@ const AddFabric = () => {
       feel_a_like: "",
       minimum_yards: "1",
       available_colors: "",
-      // fabric_colors: "",
       tags: "",
       video_url: "",
       enable_increment: false,
@@ -203,7 +201,6 @@ const AddFabric = () => {
           quantity: parseInt(values.quantity),
           minimum_yards: values.minimum_yards.toString(),
           available_colors: values.available_colors,
-          // fabric_colors: values.fabric_colors,
           photos: uploadedPhotos, // Send only non-empty URLs
           video_url: values.video_url,
         },
@@ -224,7 +221,7 @@ const AddFabric = () => {
         onSuccess: (response) => {
           console.log("🎉 Fabric creation response:", response);
           clearDraft();
-          // toastSuccess("Fabric created successfully!");
+          toastSuccess("Fabric created successfully!");
           navigate("/sales/my-products");
         },
         onError: (error) => {
@@ -246,7 +243,6 @@ const AddFabric = () => {
     formik.setFieldValue(name, fieldValue);
 
     // Immediately save draft with updated value
-    // Use setTimeout to ensure formik.values is updated
     setTimeout(() => {
       saveDraft({ ...formik.values, [name]: fieldValue }, photoUrls, videoUrl);
     }, 0);
@@ -319,7 +315,7 @@ const AddFabric = () => {
         formik.values.name ||
         formik.values.description ||
         formik.values.vendor_id ||
-        photoUrls.length > 0;
+        photoUrls.some((url) => url !== "");
 
       if (hasContent) {
         saveDraft(formik.values, photoUrls, videoUrl);
@@ -383,16 +379,22 @@ const AddFabric = () => {
     formik.setFieldValue("video_url", "");
   };
 
-  // --- REWRITE: handleImageUpload to show previews immediately ---
+  // Updated handleImageUpload to use useUploadImage hook
   const handleImageUpload = async (event, index) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Validate file before upload
-    if (!imageUpload.isValidImageFile(file)) {
-      toastError(
-        `Invalid file: ${file.name}. Please use PNG, JPG, or JPEG files under 5MB.`,
-      );
+    // Validate file type
+    const validImageTypes = ["image/png", "image/jpeg", "image/jpg"];
+    if (!validImageTypes.includes(file.type)) {
+      toastError("Please upload a valid image file (PNG, JPG, or JPEG)");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toastError("Image file must be less than 5MB");
       return;
     }
 
@@ -403,39 +405,70 @@ const AddFabric = () => {
       return newState;
     });
 
-    try {
-      const result = await imageUpload.uploadImagesWithProgress(
-        [file],
-        (progress) => {
-          console.log(
-            `Upload progress: ${progress.percentage}% (${progress.currentFile})`,
-          );
-        },
-      );
+    // Create preview immediately
+    const previewUrl = URL.createObjectURL(file);
+    setPhotoUrls((prev) => {
+      const newUrls = [...prev];
+      newUrls[index] = previewUrl;
+      return newUrls;
+    });
 
-      if (result.success && result.results.length > 0) {
-        const url = result.results[0].url;
+    // Prepare FormData for upload
+    const formData = new FormData();
+    formData.append("image", file);
+
+    uploadImageMutate(formData, {
+      onSuccess: (response) => {
+        console.log("📸 Image upload response:", response);
+        const imageUrl =
+          response?.data?.data?.url ||
+          response?.data?.url ||
+          response?.data?.image_url;
+
+        if (imageUrl) {
+          // Revoke the preview URL and set the actual URL
+          URL.revokeObjectURL(previewUrl);
+          setPhotoUrls((prev) => {
+            const newUrls = [...prev];
+            newUrls[index] = imageUrl;
+            return newUrls;
+          });
+          toastSuccess(`Image ${index + 1} uploaded successfully!`);
+        } else {
+          toastError("Image uploaded but URL not received");
+          // Keep the preview if URL not received
+        }
+
+        setIsUploadingImages((prev) => {
+          const newState = [...prev];
+          newState[index] = false;
+          return newState;
+        });
+      },
+      onError: (error) => {
+        console.error("📸 Image upload error:", error);
+        // Revert to empty on error
+        URL.revokeObjectURL(previewUrl);
         setPhotoUrls((prev) => {
           const newUrls = [...prev];
-          newUrls[index] = url;
+          newUrls[index] = "";
           return newUrls;
         });
-        toastSuccess(`Image ${index + 1} uploaded successfully!`);
-      } else {
-        toastError("Failed to upload image. Please try again.");
-      }
-    } catch {
-      toastError("Failed to upload image. Please try again.");
-    } finally {
-      setIsUploadingImages((prev) => {
-        const newState = [...prev];
-        newState[index] = false;
-        return newState;
-      });
-    }
+        toastError(`Failed to upload image ${index + 1}. Please try again.`);
+        setIsUploadingImages((prev) => {
+          const newState = [...prev];
+          newState[index] = false;
+          return newState;
+        });
+      },
+    });
   };
 
   const removeImage = (index) => {
+    // Revoke object URL if it's a preview
+    if (photoUrls[index] && photoUrls[index].startsWith("blob:")) {
+      URL.revokeObjectURL(photoUrls[index]);
+    }
     setPhotoUrls((prev) => {
       const newUrls = [...prev];
       newUrls[index] = "";
@@ -753,82 +786,6 @@ const AddFabric = () => {
             </div>
           </div>
 
-          {/* <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Address *
-            </label>
-            <Autocomplete
-              apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Enter fabric location address"
-              name="address"
-              value={formik.values.address}
-              onChange={(e) => {
-                console.log("📝 Address input changed:", e.target.value);
-                formik.setFieldValue("address", e.target.value);
-                formik.setFieldValue("latitude", "");
-                formik.setFieldValue("longitude", "");
-              }}
-              onPlaceSelected={(place) => {
-                console.log("🗺️ Google Place Selected:", place);
-                const lat = place.geometry?.location?.lat();
-                const lng = place.geometry?.location?.lng();
-                console.log("📍 Setting coordinates:", { lat, lng });
-
-                formik.setFieldValue("address", place.formatted_address);
-                formik.setFieldValue("latitude", lat ? lat.toString() : "");
-                formik.setFieldValue("longitude", lng ? lng.toString() : "");
-              }}
-              options={{
-                componentRestrictions: { country: "ng" },
-                types: ["address"],
-              }}
-            />
-            {formik.touched.latitude && formik.errors.latitude && (
-              <p className="text-red-500 text-sm mt-1">
-                Please select an address to auto-fill coordinates
-              </p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Latitude *
-              </label>
-              <input
-                type="text"
-                {...formik.getFieldProps("latitude")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-50"
-                placeholder="Auto-filled from address"
-                readOnly
-              />
-              {formik.touched.latitude && formik.errors.latitude && (
-                <p className="text-red-500 text-sm mt-1">
-                  {formik.errors.latitude}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Longitude *
-              </label>
-              <input
-                type="text"
-                {...formik.getFieldProps("longitude")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-50"
-                placeholder="Auto-filled from address"
-                readOnly
-              />
-              {formik.touched.longitude && formik.errors.longitude && (
-                <p className="text-red-500 text-sm mt-1">
-                  {formik.errors.longitude}
-                </p>
-              )}
-            </div>
-          </div>*/}
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -886,7 +843,7 @@ const AddFabric = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Fabric Texture
+                Fabric Texture *
               </label>
               <input
                 type="text"
@@ -894,6 +851,11 @@ const AddFabric = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="Enter fabric texture"
               />
+              {formik.touched.fabric_texture && formik.errors.fabric_texture && (
+                <p className="text-red-500 text-sm mt-1">
+                  {formik.errors.fabric_texture}
+                </p>
+              )}
             </div>
           </div>
 
@@ -970,15 +932,12 @@ const AddFabric = () => {
                   id="color-picker"
                   className="w-10 h-10 border border-gray-300 rounded"
                   value={(() => {
-                    // Show last color or default to #000000
                     const colors = formik.values.available_colors
                       .split(",")
                       .map((c) => c.trim())
                       .filter(Boolean);
                     if (colors.length === 0) return "#000000";
-                    // If last is a hex, use it, else default
                     const last = colors[colors.length - 1];
-                    // If it's a valid hex color, use it
                     if (/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(last)) {
                       return last;
                     }
@@ -990,7 +949,6 @@ const AddFabric = () => {
                       .split(",")
                       .map((c) => c.trim())
                       .filter(Boolean);
-                    // Prevent duplicate colors
                     if (!current.includes(color)) {
                       current.push(color);
                       formik.setFieldValue(
@@ -1011,11 +969,9 @@ const AddFabric = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="Red, Blue, #ff0000"
                 onChange={(e) => {
-                  // Allow manual editing as well
                   formik.setFieldValue("available_colors", e.target.value);
                 }}
               />
-              {/* Show color chips for selected colors */}
               <div className="flex flex-wrap mt-2 gap-2">
                 {formik.values.available_colors
                   .split(",")
@@ -1026,7 +982,6 @@ const AddFabric = () => {
                       key={idx}
                       className="flex items-center space-x-1 bg-gray-100 px-2 py-1 rounded text-xs"
                     >
-                      {/* Show color swatch if hex, else just text */}
                       {/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(color) ? (
                         <span
                           className="inline-block w-4 h-4 rounded-full border border-gray-300 mr-1"
@@ -1065,11 +1020,10 @@ const AddFabric = () => {
           </div>
         </div>
 
-        {/* Image Upload Section */}
-        {/* Image Upload Section */}
+        {/* Video Upload Section */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Video Upload
+            Video Upload (Optional)
           </label>
 
           {!videoUrl ? (
@@ -1112,7 +1066,6 @@ const AddFabric = () => {
                   <p className="text-sm font-medium text-gray-900">
                     Video uploaded successfully
                   </p>
-                  {/* Video preview */}
                   <video
                     src={videoUrl}
                     controls
@@ -1136,10 +1089,16 @@ const AddFabric = () => {
             </div>
           )}
         </div>
+
+        {/* Image Upload Section */}
         <div className="border-t pt-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Product Images
+            Product Images *
           </h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Upload at least one image. The images should show different angles
+            of the fabric.
+          </p>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[0, 1, 2, 3].map((index) => (
@@ -1184,14 +1143,19 @@ const AddFabric = () => {
                       alt={`Fabric ${index + 1}`}
                       className="w-full h-full object-cover rounded-lg border border-gray-200"
                     />
+                    {isUploadingImages[index] && (
+                      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
+                        <FaSpinner className="w-8 h-8 text-white animate-spin" />
+                      </div>
+                    )}
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
-                      className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                      disabled={isUploadingImages[index]}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors shadow-lg disabled:opacity-50"
                     >
                       <FaTrash className="w-3 h-3" />
                     </button>
-                    {/* Optional: Add replace button */}
                     <label className="absolute bottom-2 right-2 bg-blue-500 text-white p-1.5 rounded-full hover:bg-blue-600 transition-colors shadow-lg cursor-pointer">
                       <FaUpload className="w-3 h-3" />
                       <input
@@ -1220,7 +1184,7 @@ const AddFabric = () => {
           </button>
           <button
             type="submit"
-            disabled={isCreating}
+            disabled={isCreating || isUploadingImages.some((uploading) => uploading) || isUploadingVideo}
             className="cursor-pointer px-6 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-md hover:from-purple-600 hover:to-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
           >
             {isCreating ? (

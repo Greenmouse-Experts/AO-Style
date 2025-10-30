@@ -6,16 +6,15 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import useToast from "../../../hooks/useToast";
 import useCreateMarketRepStyle from "../../../hooks/marketRep/useCreateMarketRepStyle";
 
-import imageUpload from "../../../utils/imageUpload";
 import useGetProductCategories from "../../../hooks/useGetProductCategories";
 import useUploadVideo from "../../../hooks/multimedia/useUploadVideo";
+import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 import useGetAllMarketRepVendor from "../../../hooks/marketRep/useGetAllReps";
 import Autocomplete from "react-google-autocomplete";
 
 const AddStyle = () => {
   const navigate = useNavigate();
   const { toastSuccess, toastError } = useToast();
-  const [_photoFiles, setPhotoFiles] = useState([]);
   const [photoUrls, setPhotoUrls] = useState(["", "", "", ""]);
   const [isUploadingImages, setIsUploadingImages] = useState([
     false,
@@ -34,6 +33,7 @@ const AddStyle = () => {
   const vendorIdFromUrl = searchParams.get("style_id");
   const DRAFT_KEY = "style_form_draft";
   const AUTOSAVE_DELAY = 2000; // 2 seconds
+
   // Create style mutation
   const { createMarketRepStyleMutate, isPending: isCreating } =
     useCreateMarketRepStyle();
@@ -45,6 +45,9 @@ const AddStyle = () => {
   // Fetch tailors/fashion designers
   const { data: getAllTailorData, isLoading: tailorsLoading } =
     useGetAllMarketRepVendor({}, "fashion-designer");
+
+  // Image upload hook
+  const { uploadImageMutate, isPending: isUploadingImage } = useUploadImage();
 
   // Video upload hook
   const { uploadVideoMutate } = useUploadVideo();
@@ -103,9 +106,6 @@ const AddStyle = () => {
     price: Yup.number()
       .required("Price is required")
       .min(1, "Price must be greater than 0"),
-    // original_price: Yup.number()
-    //   .required("Original price is required")
-    //   .min(1, "Price must be greater than 0"),
     estimated_sewing_time: Yup.number()
       .required("Estimated sewing time is required")
       .min(1, "Estimated sewing time must be at least 1 hour"),
@@ -157,8 +157,12 @@ const AddStyle = () => {
           video_url: values.video_url,
         },
       };
+
+      console.log("🔧 STYLE PAYLOAD: Sending payload to API:", payload);
+
       createMarketRepStyleMutate(payload, {
         onSuccess: (response) => {
+          console.log("🎉 Style creation response:", response);
           clearDraft(); // Clear draft on successful submission
           toastSuccess(response.message || "Style created successfully!");
           navigate("/sales/my-products");
@@ -231,9 +235,10 @@ const AddStyle = () => {
     }
 
     setIsLoadingDraft(false);
+    // eslint-disable-next-line
   }, []);
 
-  // 7. Add debounced autosave effect
+  // Add debounced autosave effect
   useEffect(() => {
     if (isLoadingDraft) return; // Don't save while loading
 
@@ -243,7 +248,7 @@ const AddStyle = () => {
         formik.values.name ||
         formik.values.description ||
         formik.values.vendor_id ||
-        photoUrls.length > 0;
+        photoUrls.some((url) => url !== "");
 
       if (hasContent) {
         saveDraft(formik.values, photoUrls, videoUrl);
@@ -307,15 +312,22 @@ const AddStyle = () => {
     formik.setFieldValue("video_url", "");
   };
 
+  // Updated handleImageUpload to use useUploadImage hook
   const handleImageUpload = async (event, index) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Validate file before upload
-    if (!imageUpload.isValidImageFile(file)) {
-      toastError(
-        `Invalid file: ${file.name}. Please use PNG, JPG, or JPEG files under 5MB.`,
-      );
+    // Validate file type
+    const validImageTypes = ["image/png", "image/jpeg", "image/jpg"];
+    if (!validImageTypes.includes(file.type)) {
+      toastError("Please upload a valid image file (PNG, JPG, or JPEG)");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toastError("Image file must be less than 5MB");
       return;
     }
 
@@ -326,39 +338,70 @@ const AddStyle = () => {
       return newState;
     });
 
-    try {
-      const result = await imageUpload.uploadImagesWithProgress(
-        [file],
-        (progress) => {
-          console.log(
-            `Upload progress: ${progress.percentage}% (${progress.currentFile})`,
-          );
-        },
-      );
+    // Create preview immediately
+    const previewUrl = URL.createObjectURL(file);
+    setPhotoUrls((prev) => {
+      const newUrls = [...prev];
+      newUrls[index] = previewUrl;
+      return newUrls;
+    });
 
-      if (result.success && result.results.length > 0) {
-        const url = result.results[0].url;
+    // Prepare FormData for upload
+    const formData = new FormData();
+    formData.append("image", file);
+
+    uploadImageMutate(formData, {
+      onSuccess: (response) => {
+        console.log("📸 Style Image upload response:", response);
+        const imageUrl =
+          response?.data?.data?.url ||
+          response?.data?.url ||
+          response?.data?.image_url;
+
+        if (imageUrl) {
+          // Revoke the preview URL and set the actual URL
+          URL.revokeObjectURL(previewUrl);
+          setPhotoUrls((prev) => {
+            const newUrls = [...prev];
+            newUrls[index] = imageUrl;
+            return newUrls;
+          });
+          toastSuccess(`Image ${index + 1} uploaded successfully!`);
+        } else {
+          toastError("Image uploaded but URL not received");
+          // Keep the preview if URL not received
+        }
+
+        setIsUploadingImages((prev) => {
+          const newState = [...prev];
+          newState[index] = false;
+          return newState;
+        });
+      },
+      onError: (error) => {
+        console.error("📸 Style Image upload error:", error);
+        // Revert to empty on error
+        URL.revokeObjectURL(previewUrl);
         setPhotoUrls((prev) => {
           const newUrls = [...prev];
-          newUrls[index] = url;
+          newUrls[index] = "";
           return newUrls;
         });
-        toastSuccess(`Image ${index + 1} uploaded successfully!`);
-      } else {
-        toastError("Failed to upload image. Please try again.");
-      }
-    } catch {
-      toastError("Failed to upload image. Please try again.");
-    } finally {
-      setIsUploadingImages((prev) => {
-        const newState = [...prev];
-        newState[index] = false;
-        return newState;
-      });
-    }
+        toastError(`Failed to upload image ${index + 1}. Please try again.`);
+        setIsUploadingImages((prev) => {
+          const newState = [...prev];
+          newState[index] = false;
+          return newState;
+        });
+      },
+    });
   };
 
   const removeImage = (index) => {
+    // Revoke object URL if it's a preview
+    if (photoUrls[index] && photoUrls[index].startsWith("blob:")) {
+      URL.revokeObjectURL(photoUrls[index]);
+    }
     setPhotoUrls((prev) => {
       const newUrls = [...prev];
       newUrls[index] = "";
@@ -534,6 +577,11 @@ const AddStyle = () => {
               <option value="female">Female</option>
               <option value="unisex">Unisex</option>
             </select>
+            {formik.touched.gender && formik.errors.gender && (
+              <p className="text-red-500 text-sm mt-1">
+                {formik.errors.gender}
+              </p>
+            )}
           </div>
         </div>
 
@@ -598,7 +646,7 @@ const AddStyle = () => {
                 type="number"
                 {...formik.getFieldProps("estimated_sewing_time")}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="Enter hours"
+                placeholder="Enter days"
                 min="1"
               />
               {formik.touched.estimated_sewing_time &&
@@ -611,7 +659,7 @@ const AddStyle = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Minimum Fabric Quantity (yards) - required
+                Minimum Fabric Quantity (yards) *
               </label>
               <input
                 type="number"
@@ -629,9 +677,10 @@ const AddStyle = () => {
             </div>
           </div>
 
+          {/* Video Upload Section */}
           <div className="mt-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Video Upload
+              Video Upload (Optional)
             </label>
 
             {!videoUrl ? (
@@ -653,7 +702,7 @@ const AddStyle = () => {
                           style video
                         </p>
                         <p className="text-xs text-gray-500">
-                          MP4, AVI, MOV, WMV (MAX. 10MB)
+                          MP4, AVI, MOV, WMV (MAX. 50MB)
                         </p>
                       </>
                     )}
@@ -705,8 +754,12 @@ const AddStyle = () => {
         {/* Image Upload Section */}
         <div className="border-t pt-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Style Images
+            Style Images *
           </h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Upload at least one image. The images should show different angles
+            of the style.
+          </p>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[0, 1, 2, 3].map((index) => (
@@ -729,10 +782,6 @@ const AddStyle = () => {
                             {index === 1 && "Back side style"}
                             {index === 2 && "Right side style"}
                             {index === 3 && "Left side style"}
-                            <br />
-                            {/* <span className="text-xs text-gray-400">
-                              (Less than 5MB)
-                            </span>*/}
                           </p>
                           <p className="text-xs text-gray-400 mt-1">
                             PNG, JPG (MAX. 5MB)
@@ -755,14 +804,20 @@ const AddStyle = () => {
                       alt={`Style ${index + 1}`}
                       className="w-full h-full object-cover rounded-lg border border-gray-200"
                     />
+                    {isUploadingImages[index] && (
+                      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
+                        <FaSpinner className="w-8 h-8 text-white animate-spin" />
+                      </div>
+                    )}
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
-                      className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                      disabled={isUploadingImages[index]}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors shadow-lg disabled:opacity-50"
                     >
                       <FaTrash className="w-3 h-3" />
                     </button>
-                    {/* Optional: Add replace button */}
+                    {/* Replace button */}
                     <label className="absolute bottom-2 right-2 bg-blue-500 text-white p-1.5 rounded-full hover:bg-blue-600 transition-colors shadow-lg cursor-pointer">
                       <FaUpload className="w-3 h-3" />
                       <input
@@ -791,7 +846,7 @@ const AddStyle = () => {
           </button>
           <button
             type="submit"
-            disabled={!isFormValid() || isCreating}
+            disabled={isCreating}
             className="cursor-pointer px-6 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-md hover:from-purple-600 hover:to-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
           >
             {isCreating ? (

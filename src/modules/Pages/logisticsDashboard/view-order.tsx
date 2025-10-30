@@ -830,7 +830,7 @@ export default function ViewOrderLogistics() {
                                     {item?.product?.fabric ? "FABRIC" : "STYLE"}
                                   </div>
 
-                                  {isFirstLeg && !hasStyleItems && (
+                                  {isFirstLeg && !hasStyleItems() && (
                                     <div className="mt-3">
                                       <p className="text-sm font-medium text-gray-700 mb-1">
                                         Customer Address:
@@ -979,7 +979,7 @@ export default function ViewOrderLogistics() {
                     </div>
                   </div>
                   <div>
-                    {/* pickup address and tailor contact*/}
+                    {/* pickup address and contact*/}
                     <div className="m-3 bg-purple-100 p-4 rounded-md mb-5">
                       <div>
                         <div className="flex items-center gap-1">
@@ -990,8 +990,9 @@ export default function ViewOrderLogistics() {
                         </div>
                         <div className="bg-white p-2 rounded">
                           <p className="text-gray-700 text-sm font-semibold">
-                            {hasStyleItems()
-                              ? order_data?.order_items?.[1]?.product?.creator
+                            {/* First leg: fabric vendor for style orders, vendor for fabric-only */}
+                            {isFirstLeg && hasStyleItems()
+                              ? order_data?.order_items?.[0]?.product?.creator
                                   ?.profile?.address
                               : order_data?.order_items?.[0]?.product?.creator
                                   ?.profile?.address}
@@ -1003,23 +1004,20 @@ export default function ViewOrderLogistics() {
                         <div className="flex items-center gap-1">
                           <Phone className="text-purple-900 h-5 mb-1" />
                           <p className="mb-1 text-purple-900 text-sm font-medium">
-                            {hasStyleItems()
-                              ? "TAILOR CONTACT:"
+                            {isFirstLeg && hasStyleItems()
+                              ? "FABRIC VENDOR CONTACT:"
                               : "VENDOR CONTACT:"}
                           </p>
                         </div>
                         <div className="bg-white p-2 rounded">
                           <p className="text-gray-700 text-sm font-semibold">
-                            {/* {
-                              order_data?.order_items?.[1]?.product?.creator
-                                ?.profile?.address
-                            } */}{" "}
-                            000 000 000
+                            {order_data?.order_items?.[0]?.product?.creator
+                              ?.phone || "000 000 000"}
                           </p>
                         </div>
                       </div>
                     </div>
-                    {/* destination address and tailor contact*/}
+                    {/* destination address and contact*/}
                     <div className="m-3 bg-purple-100 p-4 rounded-md">
                       <div>
                         <div className="flex justify-between mb-3 items-center">
@@ -1030,7 +1028,6 @@ export default function ViewOrderLogistics() {
                             </p>
                           </div>
                           {/* view destination button */}
-                          {/* // In ViewOrderLogistics.tsx - "View Route" button */}
                           <button
                             className="px-2 py-1 flex items-center bg-purple-300 text-purple-800 cursor-pointer text-purle-800 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             onClick={() => {
@@ -1038,21 +1035,28 @@ export default function ViewOrderLogistics() {
                                 ? order_data?.order_items?.[1]
                                 : order_data?.order_items?.[0];
                               if (orderItem) {
+                                // For first leg, destination is tailor. For second leg, destination is customer.
+                                const destinationData = isFirstLeg && hasStyleItems()
+                                  ? {
+                                      address: order_data?.order_items?.[1]?.product?.creator?.profile?.address || "",
+                                      phone: order_data?.order_items?.[1]?.product?.creator?.phone,
+                                      name: order_data?.order_items?.[1]?.product?.creator?.profile?.name,
+                                      email: order_data?.order_items?.[1]?.product?.creator?.email,
+                                      profile_picture: order_data?.order_items?.[1]?.product?.creator?.profile?.profile_picture,
+                                      coordinates: order_data?.order_items?.[1]?.product?.creator?.profile?.coordinates || undefined,
+                                    }
+                                  : {
+                                      address: order_data?.user?.profile?.address || "",
+                                      phone: order_data?.user?.phone,
+                                      name: order_data?.user?.profile?.name,
+                                      email: order_data?.user?.email,
+                                      profile_picture: order_data?.user?.profile?.profile_picture,
+                                      coordinates: order_data?.user?.profile?.coordinates || undefined,
+                                    };
+                                
                                 setItem({
                                   ...orderItem,
-                                  isCustomer: {
-                                    address:
-                                      order_data?.user?.profile?.address || "",
-                                    phone: order_data?.user?.phone,
-                                    name: order_data?.user?.profile?.name,
-                                    email: order_data?.user?.email,
-                                    profile_picture:
-                                      order_data?.user?.profile
-                                        ?.profile_picture,
-                                    coordinates:
-                                      order_data?.user?.profile?.coordinates ||
-                                      undefined,
-                                  },
+                                  isCustomer: destinationData,
                                 });
                                 nav(
                                   `/logistics/orders/item/${orderItem.id}/map`
@@ -1069,7 +1073,11 @@ export default function ViewOrderLogistics() {
                         </div>
                         <div className="bg-white p-2 rounded">
                           <p className="text-gray-700 text-sm font-semibold">
-                            {order_data?.user?.profile?.address}
+                            {/* First leg: tailor address for style orders, customer for fabric-only */}
+                            {isFirstLeg || currentStatus === "DELIVERED" && hasStyleItems()
+                              ? order_data?.order_items?.[1]?.product?.creator
+                                  ?.profile?.address
+                              : order_data?.user?.profile?.address}
                           </p>
                         </div>
                       </div>
@@ -1078,12 +1086,17 @@ export default function ViewOrderLogistics() {
                         <div className="flex items-center gap-1">
                           <Phone className="text-purple-900 h-5 mb-1" />
                           <p className="mb-1 text-purple-900 text-sm font-medium">
-                            CUTOMER'S CONTACT:
+                            {isFirstLeg && hasStyleItems()
+                              ? "TAILOR'S CONTACT:"
+                              : "CUSTOMER'S CONTACT:"}
                           </p>
                         </div>
                         <div className="bg-white p-2 rounded">
                           <p className="text-gray-700 text-sm font-semibold">
-                            {order_data?.user?.phone}
+                            {isFirstLeg && hasStyleItems()
+                              ? order_data?.order_items?.[1]?.product?.creator
+                                  ?.phone || "000 000 000"
+                              : order_data?.user?.phone}
                           </p>
                         </div>
                       </div>
@@ -1298,7 +1311,7 @@ export default function ViewOrderLogistics() {
                 )}
                 <div className="mt-3 text-center text-gray-700 text-sm">
                   Pick-up Fabric Image
-                </div>
+                </div> 
               </div>
             </div>
           </dialog>

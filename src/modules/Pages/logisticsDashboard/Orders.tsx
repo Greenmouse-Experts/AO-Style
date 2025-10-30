@@ -263,6 +263,34 @@ export default function OrderRequests() {
     );
   }
 
+  // Helper function to determine if order is in second leg
+  const isSecondLeg = (item: Order) => {
+    return item?.status === "OUT_FOR_DELIVERY" || 
+           (item?.status === "IN_TRANSIT" && item?.logistics_agent_id);
+  };
+
+  // Helper function to get pickup contact info
+  const getPickupContact = (item: Order) => {
+    if (isSecondLeg(item)) {
+      // Second leg: Show tailor info
+      // TODO: Replace with actual tailor data from your order structure
+      // You may need to add tailor info to your Order interface
+      return {
+        email: item.payment?.purchase?.tailor_email || "tailor@example.com",
+        phone: item.payment?.purchase?.tailor_phone || "N/A",
+        type: "Tailor"
+      };
+    } else {
+      // First leg: Show fabric vendor info
+      // TODO: Replace with actual fabric vendor data from your order structure
+      return {
+        email: item.payment?.purchase?.fabric_vendor_email || "fabricvendor@example.com",
+        phone: item.payment?.purchase?.fabric_vendor_phone || "N/A",
+        type: "Fabric Vendor"
+      };
+    }
+  };
+
   // Improved Columns with better styling
   const columns: {
     key: string;
@@ -291,16 +319,20 @@ export default function OrderRequests() {
       },
     },
     {
-      key: "customer",
-      label: "Customer",
+      key: "pickup_contact",
+      label: "Pickup Contact",
       render: (value: any, item: Order) => {
+        const contact = getPickupContact(item);
         return (
           <div className="flex flex-col">
             <span className="font-medium text-base-content">
-              {item.user?.email?.split("@")[0] || "Unknown"}
+              {contact.email?.split("@")[0] || "Unknown"}
             </span>
             <span className="text-xs text-base-content/60">
-              {item.user?.phone || "No phone"}
+              {contact.phone}
+            </span>
+            <span className={`text-xs mt-1 ${isSecondLeg(item) ? 'text-warning' : 'text-info'}`}>
+              {contact.type}
             </span>
           </div>
         );
@@ -352,17 +384,16 @@ export default function OrderRequests() {
     },
     {
       key: "location",
-      label: "Location",
+      label: "Pickup Location",
       render: (value: any, item: Order) => {
         return (
           <div className="flex items-center gap-2 max-w-[200px]">
             <MapPin className="w-4 h-4 text-base-content/60 flex-shrink-0" />
             <span
               className="truncate text-sm"
-              title={item.user.profile.address}
+              title={addressToDisplay(item)}
             >
               {addressToDisplay(item)}
-              {/* {item.user.profile.address} */}
             </span>
           </div>
         );
@@ -410,10 +441,13 @@ export default function OrderRequests() {
   }
 
   const addressToDisplay = (item: Order) =>{
-    if(item?.status === "OUT_FOR_DELIVERY" || (item?.status === "IN_TRANSIT" && item?.logistics_agent_id)) {
-      return item?.user?.profile?.address
+    if(isSecondLeg(item)) {
+      // Second leg: Show customer address (delivery destination)
+      return item?.user?.profile?.address || "Customer address not available"
     } else{
-      return "Tailor address will be here"
+      // First leg: Show fabric vendor address (pickup location)
+      // TODO: Replace with actual fabric vendor address from your order structure
+      return item?.payment?.purchase?.fabric_vendor_address || "Fabric vendor address not available"
     }
   }
 
@@ -697,22 +731,38 @@ export default function OrderRequests() {
 
               <div className="bg-base-200 rounded-lg p-4">
                 <h4 className="font-semibold text-base-content mb-3">
-                  Customer
+                  Pickup Contact
                 </h4>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-base-content/70">Email:</span>
-                    <span>{selectedItem?.user?.email || "N/A"}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-base-content/70">Phone:</span>
-                    <span>{selectedItem?.user?.phone || "N/A"}</span>
-                  </div>
+                  {selectedItem && (
+                    <>
+                      {(() => {
+                        const contact = getPickupContact(selectedItem);
+                        return (
+                          <>
+                            <div className="flex justify-between">
+                              <span className="text-base-content/70">Type:</span>
+                              <span className={`badge badge-sm ${isSecondLeg(selectedItem) ? 'badge-warning' : 'badge-info'}`}>
+                                {contact.type}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-base-content/70">Email:</span>
+                              <span>{contact.email}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-base-content/70">Phone:</span>
+                              <span>{contact.phone}</span>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </>
+                  )}
                   <div className="flex flex-col gap-1">
-                    <span className="text-base-content/70">Address:</span>
+                    <span className="text-base-content/70">Pickup Address:</span>
                     <span className="text-xs bg-base-100 p-2 rounded">
-                      {selectedItem?.user?.profile?.address ||
-                        "No address provided"}
+                      {selectedItem && addressToDisplay(selectedItem)}
                     </span>
                   </div>
                 </div>

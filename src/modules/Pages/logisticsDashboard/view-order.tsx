@@ -1140,24 +1140,35 @@ export default function ViewOrderLogistics() {
                       </div>
 
                       {/* NEW: Add Name Field for Destination */}
-                      <div className="mt-3">
-                        <div className="flex items-center gap-1">
-                          <User className="text-purple-900 h-5 mb-1" />
-                          <p className="mb-1 text-purple-900 text-sm font-medium">
-                            {isFirstLeg && hasStyleItems()
-                              ? "TAILOR'S NAME:"
-                              : ""}
-                          </p>
+                      {(isFirstLeg && hasStyleItems()) ? (
+                        <div className="mt-3">
+                          <div className="flex items-center gap-1">
+                            <User className="text-purple-900 h-5 mb-1" />
+                            <p className="mb-1 text-purple-900 text-sm font-medium">
+                              TAILOR'S NAME:
+                            </p>
+                          </div>
+                          <div className="bg-white p-2 rounded">
+                            <p className="text-gray-700 text-sm font-semibold">
+                              {order_data?.order_items?.[1]?.product?.creator?.name || "N/A"}
+                            </p>
+                          </div>
                         </div>
-                        <div className="bg-white p-2 rounded">
-                          <p className="text-gray-700 text-sm font-semibold">
-                            {isFirstLeg && hasStyleItems()
-                              ? order_data?.order_items?.[1]?.product?.creator
-                                  ?.name || "N/A"
-                              : ""}
-                          </p>
+                      ) : order_data?.user?.profile?.name || order_data?.user?.email ? (
+                        <div className="mt-3">
+                          <div className="flex items-center gap-1">
+                            <User className="text-purple-900 h-5 mb-1" />
+                            <p className="mb-1 text-purple-900 text-sm font-medium">
+                              CUSTOMER'S NAME:
+                            </p>
+                          </div>
+                          <div className="bg-white p-2 rounded">
+                            <p className="text-gray-700 text-sm font-semibold">
+                              {order_data?.user?.profile?.name || order_data?.user?.email}
+                            </p>
+                          </div>
                         </div>
-                      </div>
+                      ) : null}
 
                       <div className="mt-3">
                         <div className="flex items-center gap-1">

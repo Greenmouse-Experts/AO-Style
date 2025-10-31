@@ -1003,6 +1003,32 @@ export default function ViewOrderLogistics() {
                         </div>
                       </div>
 
+                      {/* NEW: Add Name Field */}
+                      <div className="mt-3">
+                        <div className="flex items-center gap-1">
+                          <User className="text-purple-900 h-5 mb-1" />
+                          <p className="mb-1 text-purple-900 text-sm font-medium">
+                            {isFirstLeg && hasStyleItems()
+                              ? "FABRIC VENDOR NAME:"
+                              : hasStyleItems()
+                              ? "TAILOR'S NAME:"
+                              : "VENDOR NAME:"}
+                          </p>
+                        </div>
+                        <div className="bg-white p-2 rounded">
+                          <p className="text-gray-700 text-sm font-semibold">
+                            {isFirstLeg && hasStyleItems()
+                              ? order_data?.order_items?.[0]?.product?.creator
+                                  ?.name || "N/A"
+                              : hasStyleItems()
+                              ? order_data?.order_items?.[1]?.product?.creator
+                                  ?.name || "N/A"
+                              : order_data?.order_items?.[0]?.product?.creator
+                                  ?.name || "N/A"}
+                          </p>
+                        </div>
+                      </div>
+
                       <div className="mt-3">
                         <div className="flex items-center gap-1">
                           <Phone className="text-purple-900 h-5 mb-1" />
@@ -1109,6 +1135,26 @@ export default function ViewOrderLogistics() {
                               ? order_data?.order_items?.[1]?.product?.creator
                                   ?.profile?.address
                               : order_data?.user?.profile?.address}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* NEW: Add Name Field for Destination */}
+                      <div className="mt-3">
+                        <div className="flex items-center gap-1">
+                          <User className="text-purple-900 h-5 mb-1" />
+                          <p className="mb-1 text-purple-900 text-sm font-medium">
+                            {isFirstLeg && hasStyleItems()
+                              ? "TAILOR'S NAME:"
+                              : "CUSTOMER'S NAME:"}
+                          </p>
+                        </div>
+                        <div className="bg-white p-2 rounded">
+                          <p className="text-gray-700 text-sm font-semibold">
+                            {isFirstLeg && hasStyleItems()
+                              ? order_data?.order_items?.[1]?.product?.creator
+                                  ?.name || "N/A"
+                              : order_data?.user?.profile?.name || order_data?.user?.email}
                           </p>
                         </div>
                       </div>

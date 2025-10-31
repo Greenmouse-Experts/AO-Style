@@ -8,7 +8,8 @@ import { GeneralTransactionComponent } from "../../../components/GeneralTransact
 import WalletPage from "./components/WalletPage";
 import WithdrawalModal from "./components/WithdrawalModal";
 import ViewWithdrawalsModal from "./components/ViewWithdrawalsModal";
-import BarChartComponent from "../salesDashboard/components/BarChartComponent";
+// import BarChartComponent from "../salesDashboard/components/BarChartComponent";
+import BarChartComponent from "../fabricDashboard/components/BarChartComponent";
 import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails";
 import useVendorSummaryStat from "../../../hooks/analytics/useGetVendorSummmary";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
@@ -70,7 +71,7 @@ export default function TransactionPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 mb-6">
         <div className="lg:col-span-2">
           {/* <BarChartComponent data={graphData?.data} />*/}
-          <FabricStyleDashboard data={graphData?.data} />
+          <BarChartComponent data={graphData?.data} />
         </div>
         <div className="lg:col-span-1">
           <WalletPage

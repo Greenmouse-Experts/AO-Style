@@ -281,7 +281,7 @@ export default function ViewOrderLogistics() {
         };
       default:
         return {
-          phase: "Pending",
+          phase: "Status",
           description: "Waiting for vendor to dispatch order",
           nextAction: null,
           nextStatus: null,

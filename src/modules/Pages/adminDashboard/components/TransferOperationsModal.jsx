@@ -61,7 +61,7 @@ const TransferOperationsModal = ({
   const getDescription = () => {
     switch (operation) {
       case "initiate":
-        return `Are you sure you want to initiate transfer for withdrawal ID: WTH${withdrawal?.id}?`;
+        return `Are you sure you want to initiate transfer for withdrawal ID: ${withdrawal?.id?.replace(/-/g, "")?.slice(0, 12)?.toUpperCase()}?`;
       case "finalize":
         return "Please enter the OTP received to finalize the transfer. The system will automatically verify the transfer after finalization.";
       default:
@@ -98,7 +98,7 @@ const TransferOperationsModal = ({
                 <span className="font-medium text-gray-600">
                   Withdrawal ID:
                 </span>
-                <p className="text-gray-900">WTH{withdrawal.id}</p>
+                <p className="text-gray-900">{withdrawal.id?.replace(/-/g, "")?.slice(0, 12)?.toUpperCase()}</p>
               </div>
               <div>
                 <span className="font-medium text-gray-600">Amount:</span>

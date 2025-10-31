@@ -1146,7 +1146,7 @@ export default function ViewOrderLogistics() {
                           <p className="mb-1 text-purple-900 text-sm font-medium">
                             {isFirstLeg && hasStyleItems()
                               ? "TAILOR'S NAME:"
-                              : "CUSTOMER'S NAME:"}
+                              : ""}
                           </p>
                         </div>
                         <div className="bg-white p-2 rounded">
@@ -1154,7 +1154,7 @@ export default function ViewOrderLogistics() {
                             {isFirstLeg && hasStyleItems()
                               ? order_data?.order_items?.[1]?.product?.creator
                                   ?.name || "N/A"
-                              : order_data?.user?.profile?.name || order_data?.user?.email}
+                              : ""}
                           </p>
                         </div>
                       </div>

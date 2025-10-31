@@ -31,14 +31,21 @@ export default function StatsCard() {
       {
         image:
           "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741980408/AoStyle/Group_386385_avoje8.png",
-        value: `${isLoading || isPending ? "Loading..." : formatNumberWithCommas(customerExpensesStat?.data?.fabricExpenses + customerExpensesStat?.data?.styleExpenses)}`,
+        value: `${
+          expensePending || expenseLoading
+            ? "Loading..."
+            : formatNumberWithCommas(
+                customerExpensesStat?.data?.fabricExpenses +
+                  customerExpensesStat?.data?.styleExpenses
+              )
+        }`,
         label: "Total Spent",
       },
     ],
     [data?.data]
   );
 
-  if (isPending || expensePending || expenseLoading) {
+  if (isPending || expensePending || expenseLoading || isLoading) {
     return (
       <div className="m-auto flex h-[80vh] items-center justify-center">
         <Loader />

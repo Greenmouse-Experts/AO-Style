@@ -591,15 +591,15 @@ const OrderRequests = () => {
         </div>
       ),
     },
-    {
-      key: "items",
-      label: "Items",
-      render: (_, item) => (
-        <div className="text-center">
-          <span className="badge badge-outline">{item.order_items.length}</span>
-        </div>
-      ),
-    },
+    // {
+    //   key: "items",
+    //   label: "Items",
+    //   render: (_, item) => (
+    //     <div className="text-center">
+    //       <span className="badge badge-outline">{item.order_items.length}</span>
+    //     </div>
+    //   ),
+    // },
     {
       key: "created_at",
       label: "Date Created",

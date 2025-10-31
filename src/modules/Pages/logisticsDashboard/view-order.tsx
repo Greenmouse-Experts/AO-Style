@@ -1136,7 +1136,7 @@ export default function ViewOrderLogistics() {
                 </div>
               )}
               {/* Order Summary */}
-              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+              {/* <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
                 <h3 className="text-lg font-semibold mb-4 flex items-center">
                   <DollarSign className="w-5 h-5 mr-2 text-purple-600" />
                   Order Summary
@@ -1157,7 +1157,7 @@ export default function ViewOrderLogistics() {
                     <p className="text-xs text-gray-500 mt-1">Order Status</p>
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

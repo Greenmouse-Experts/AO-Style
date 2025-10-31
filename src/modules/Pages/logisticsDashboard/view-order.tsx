@@ -990,9 +990,12 @@ export default function ViewOrderLogistics() {
                         </div>
                         <div className="bg-white p-2 rounded">
                           <p className="text-gray-700 text-sm font-semibold">
-                            {/* First leg: fabric vendor for style orders, vendor for fabric-only */}
+                            {/* First leg: fabric vendor. Second leg: tailor (for style orders) or fabric vendor (for fabric-only) */}
                             {isFirstLeg && hasStyleItems()
                               ? order_data?.order_items?.[0]?.product?.creator
+                                  ?.profile?.address
+                              : hasStyleItems()
+                              ? order_data?.order_items?.[1]?.product?.creator
                                   ?.profile?.address
                               : order_data?.order_items?.[0]?.product?.creator
                                   ?.profile?.address}
@@ -1006,13 +1009,21 @@ export default function ViewOrderLogistics() {
                           <p className="mb-1 text-purple-900 text-sm font-medium">
                             {isFirstLeg && hasStyleItems()
                               ? "FABRIC VENDOR CONTACT:"
+                              : hasStyleItems()
+                              ? "TAILOR'S CONTACT:"
                               : "VENDOR CONTACT:"}
                           </p>
                         </div>
                         <div className="bg-white p-2 rounded">
                           <p className="text-gray-700 text-sm font-semibold">
-                            {order_data?.order_items?.[0]?.product?.creator
-                              ?.phone || "000 000 000"}
+                            {isFirstLeg && hasStyleItems()
+                              ? order_data?.order_items?.[0]?.product?.creator
+                                  ?.phone || "000 000 000"
+                              : hasStyleItems()
+                              ? order_data?.order_items?.[1]?.product?.creator
+                                  ?.phone || "000 000 000"
+                              : order_data?.order_items?.[0]?.product?.creator
+                                  ?.phone || "000 000 000"}
                           </p>
                         </div>
                       </div>
@@ -1036,24 +1047,43 @@ export default function ViewOrderLogistics() {
                                 : order_data?.order_items?.[0];
                               if (orderItem) {
                                 // For first leg, destination is tailor. For second leg, destination is customer.
-                                const destinationData = isFirstLeg && hasStyleItems()
-                                  ? {
-                                      address: order_data?.order_items?.[1]?.product?.creator?.profile?.address || "",
-                                      phone: order_data?.order_items?.[1]?.product?.creator?.phone,
-                                      name: order_data?.order_items?.[1]?.product?.creator?.profile?.name,
-                                      email: order_data?.order_items?.[1]?.product?.creator?.email,
-                                      profile_picture: order_data?.order_items?.[1]?.product?.creator?.profile?.profile_picture,
-                                      coordinates: order_data?.order_items?.[1]?.product?.creator?.profile?.coordinates || undefined,
-                                    }
-                                  : {
-                                      address: order_data?.user?.profile?.address || "",
-                                      phone: order_data?.user?.phone,
-                                      name: order_data?.user?.profile?.name,
-                                      email: order_data?.user?.email,
-                                      profile_picture: order_data?.user?.profile?.profile_picture,
-                                      coordinates: order_data?.user?.profile?.coordinates || undefined,
-                                    };
-                                
+                                const destinationData =
+                                  isFirstLeg && hasStyleItems()
+                                    ? {
+                                        address:
+                                          order_data?.order_items?.[1]?.product
+                                            ?.creator?.profile?.address || "",
+                                        phone:
+                                          order_data?.order_items?.[1]?.product
+                                            ?.creator?.phone,
+                                        name: order_data?.order_items?.[1]
+                                          ?.product?.creator?.profile?.name,
+                                        email:
+                                          order_data?.order_items?.[1]?.product
+                                            ?.creator?.email,
+                                        profile_picture:
+                                          order_data?.order_items?.[1]?.product
+                                            ?.creator?.profile?.profile_picture,
+                                        coordinates:
+                                          order_data?.order_items?.[1]?.product
+                                            ?.creator?.profile?.coordinates ||
+                                          undefined,
+                                      }
+                                    : {
+                                        address:
+                                          order_data?.user?.profile?.address ||
+                                          "",
+                                        phone: order_data?.user?.phone,
+                                        name: order_data?.user?.profile?.name,
+                                        email: order_data?.user?.email,
+                                        profile_picture:
+                                          order_data?.user?.profile
+                                            ?.profile_picture,
+                                        coordinates:
+                                          order_data?.user?.profile
+                                            ?.coordinates || undefined,
+                                      };
+
                                 setItem({
                                   ...orderItem,
                                   isCustomer: destinationData,
@@ -1074,7 +1104,8 @@ export default function ViewOrderLogistics() {
                         <div className="bg-white p-2 rounded">
                           <p className="text-gray-700 text-sm font-semibold">
                             {/* First leg: tailor address for style orders, customer for fabric-only */}
-                            {isFirstLeg || currentStatus === "DELIVERED" && hasStyleItems()
+                            {isFirstLeg ||
+                            (currentStatus === "DELIVERED" && hasStyleItems())
                               ? order_data?.order_items?.[1]?.product?.creator
                                   ?.profile?.address
                               : order_data?.user?.profile?.address}
@@ -1311,7 +1342,7 @@ export default function ViewOrderLogistics() {
                 )}
                 <div className="mt-3 text-center text-gray-700 text-sm">
                   Pick-up Fabric Image
-                </div> 
+                </div>
               </div>
             </div>
           </dialog>

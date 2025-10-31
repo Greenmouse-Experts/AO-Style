@@ -376,7 +376,7 @@ export default function ViewTransaction() {
 
           {transactions.map((transaction) => (
             <div
-              key={transaction.id}
+              key={transaction?.id?.replace(/-/g, "").slice(0, 12).toUpperCase()}
               className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
             >
               {/* Header */}
@@ -385,7 +385,7 @@ export default function ViewTransaction() {
                   <div>
                     <h2 className="text-xl font-semibold">
                       {String(
-                        transaction.transaction_id || transaction.id || "",
+                        transaction?.transaction_id?.replace(/-/g, "").slice(0, 12) || transaction?.id?.replace(/-/g, "")?.slice(0, 12) || "",
                       ).toUpperCase()}
                     </h2>
                     <p className="text-gray-300 text-sm">

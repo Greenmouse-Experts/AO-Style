@@ -1461,7 +1461,22 @@ const AddProduct = () => {
                       createAdminIsPending ||
                       updateAdminIsPending
                     }
-                    className="w-full cursor-pointer py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-md hover:opacity-90"
+                    className={
+                      "w-full cursor-pointer py-3 rounded-md " +
+                      (
+                        isPending ||
+                        uploadVideoIsPending ||
+                        updateIsPending ||
+                        closeUpViewIsPending ||
+                        spreadOutViewIsPending ||
+                        manufacturersIsPending ||
+                        fabricIsPending ||
+                        createAdminIsPending ||
+                        updateAdminIsPending
+                          ? "bg-gradient-to-r from-gray-300 to-gray-400 text-gray-400 opacity-70 cursor-not-allowed"
+                          : "bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90"
+                      )
+                    }
                   >
                     {isPending ||
                     updateIsPending ||

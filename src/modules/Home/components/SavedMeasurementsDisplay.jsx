@@ -74,14 +74,14 @@ export default function SavedMeasurementsDisplay({
                     },
                   },
                 },
-                id,
+                id
               );
 
               // Store style and measurement data for fabric selection
               localStorage.setItem("selected_style", JSON.stringify(styleInfo));
               localStorage.setItem(
                 "measurement_data",
-                JSON.stringify(measurementArr),
+                JSON.stringify(measurementArr)
               );
 
               // Navigate directly to fabric selection
@@ -138,15 +138,17 @@ export default function SavedMeasurementsDisplay({
                   Upper Body
                 </h4>
                 <div className="space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
-                    <span className="text-gray-800 text-sm">
-                      Bust Circumference [female]:
-                    </span>
-                    <span className="font-medium text-sm">
-                      {measurement?.upper_body?.bust_circumference}{" "}
-                      {measurement?.upper_body?.bust_circumference_unit}
-                    </span>
-                  </div>
+                  {measurement?.upper_body?.bust_circumference && (
+                    <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
+                      <span className="text-gray-800 text-sm">
+                        Bust Circumference [female]:
+                      </span>
+                      <span className="font-medium text-sm">
+                        {measurement?.upper_body?.bust_circumference}{" "}
+                        {measurement?.upper_body?.bust_circumference_unit}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
                     <span className="text-gray-800 text-sm">
                       Shoulder Width:
@@ -366,9 +368,7 @@ export default function SavedMeasurementsDisplay({
                 className="bg-gradient text-white px-4 py-2"
                 onClick={() => {
                   setMeasurements((prev) =>
-                    prev.map((m) =>
-                      m.id === currentEdit.id ? currentEdit : m,
-                    ),
+                    prev.map((m) => (m.id === currentEdit.id ? currentEdit : m))
                   );
                   closeEditModal();
                 }}

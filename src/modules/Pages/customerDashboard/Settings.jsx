@@ -151,8 +151,10 @@ const Settings = () => {
           phone: val.phone,
           measurement: {
             upper_body: {
-              bust_circumference: val?.bust_circumference,
-              bust_circumference_unit: val?.bust_circumference_unit,
+              ...(val?.bust_circumference && {
+                bust_circumference: val?.bust_circumference,
+                bust_circumference_unit: val?.bust_circumference_unit,
+              }),
               shoulder_width: val?.shoulder_width,
               shoulder_width_unit: val?.bust_circumference_unit,
               armhole_circumference: val?.armhole_circumference,

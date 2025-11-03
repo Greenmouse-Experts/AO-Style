@@ -252,6 +252,12 @@ export default function AnkaraGownPage() {
     waist_circumference_lower_unit: markReceivedChecked
       ? userMeasurement?.lower_body?.waist_circumference_unit
       : (currMeasurement?.lower_body?.waist_circumference_unit ?? "cm"),
+      wrist_circumference: markReceivedChecked
+    ? userMeasurement?.upper_body?.wrist_circumference
+    : (currMeasurement?.upper_body?.wrist_circumference ?? ""),
+  wrist_circumference_unit: markReceivedChecked
+    ? userMeasurement?.upper_body?.wrist_circumference_unit
+    : (currMeasurement?.upper_body?.wrist_circumference_unit ?? "cm"),
     hip_circumference: markReceivedChecked
       ? userMeasurement?.lower_body?.hip_circumference
       : (currMeasurement?.lower_body?.hip_circumference ?? ""),
@@ -339,6 +345,8 @@ export default function AnkaraGownPage() {
             bicep_circumference_unit: val?.bust_circumference_unit,
             waist_circumference: val?.waist_circumference_upper,
             waist_circumference_unit: val?.bust_circumference_unit,
+            wrist_circumference: val?.wrist_circumference,  // ← ADD THIS
+            wrist_circumference_unit: val?.wrist_circumference_unit,  // ← ADD THIS
           },
           lower_body: {
             waist_circumference: val?.waist_circumference_lower,
@@ -1277,9 +1285,9 @@ export default function AnkaraGownPage() {
                                     placeholder={
                                       "Enter the circumference of your wrist"
                                     }
-                                    name={"waist_circumference_upper"}
+                                    name={"wrist_circumference"}
                                     required
-                                    value={values.waist_circumference_upper}
+                                    value={values.wrist_circumference}
                                     onChange={handleChange}
                                     className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
                                   />

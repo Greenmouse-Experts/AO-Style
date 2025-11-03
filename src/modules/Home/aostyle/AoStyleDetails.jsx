@@ -1105,7 +1105,7 @@ export default function AnkaraGownPage() {
                                       "Enter the circumference of your bust"
                                     }
                                     name={"bust_circumference"}
-                                    required
+                                    // required
                                     value={values.bust_circumference}
                                     onChange={handleChange}
                                     className="flex-1 w-full appearance-none p-4 border border-[#CCCCCC] outline-none rounded-l-md"

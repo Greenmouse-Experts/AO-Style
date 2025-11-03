@@ -590,7 +590,7 @@ const Settings = () => {
                       >
                         <div>
                           <label className="block text-gray-700 mb-4">
-                            {"Bust Circumference"}
+                            {"Bust Circumference [optional]"}
                           </label>
                           <div className="flex">
                             <input

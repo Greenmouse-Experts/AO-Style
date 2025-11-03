@@ -140,7 +140,7 @@ export default function SavedMeasurementsDisplay({
                 <div className="space-y-3">
                   <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
                     <span className="text-gray-800 text-sm">
-                      Bust Circumference [optional]:
+                      Bust Circumference [female]:
                     </span>
                     <span className="font-medium text-sm">
                       {measurement?.upper_body?.bust_circumference}{" "}

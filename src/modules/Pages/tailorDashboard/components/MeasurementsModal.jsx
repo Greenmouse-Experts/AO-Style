@@ -121,7 +121,7 @@ const MeasurementsModal = ({
               <ul className="space-y-3">
                 <li className="flex justify-between items-center text-sm min-h-[1.25rem]">
                   <span className="text-gray-700 pr-2 flex-shrink-0">
-                    Bust Circumference [optional]
+                    Bust Circumference [female]
                   </span>
                   <span className="font-semibold text-purple-700 text-right">
                     {currentMeasurement?.upper_body?.bust_circumference ?? "--"}{" "}

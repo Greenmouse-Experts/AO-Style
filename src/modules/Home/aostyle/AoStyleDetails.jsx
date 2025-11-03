@@ -1094,7 +1094,7 @@ export default function AnkaraGownPage() {
                             <div className="grid mt-6 grid-cols-1 sm:grid-cols-2 gap-4">
                               <div className="mb-4">
                                 <label className="block text-gray-700 mb-4">
-                                  {"Bust Circumference [optional]"}
+                                  {"Bust Circumference [female]"}
                                 </label>
                                 <div className="flex">
                                   <input

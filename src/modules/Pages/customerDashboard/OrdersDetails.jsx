@@ -8,6 +8,8 @@ import {
   FileText,
   X,
   Truck,
+  XCircle,
+  AlertTriangle,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import useGetCustomerSingleOrder from "../../../hooks/order/useGetCustomerSingleOrder";
@@ -15,15 +17,136 @@ import Loader from "../../../components/ui/Loader";
 import ReviewForm from "../../../components/reviews/ReviewForm";
 import StarRating from "../../../components/reviews/StarRating";
 import { useJsApiLoader } from "@react-google-maps/api";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import CustomBackbtn from "../../../components/CustomBackBtn";
-// import ReviewRating from "./components/ReviewSubmission";
 import ReviewSubmission from "./components/ReviewSubmission";
+import axios from "axios";
+import CaryBinApi from "../../../services/CarybinBaseUrl";
+
+// Cancel Order Modal Component
+const CancelOrderModal = ({ isOpen, onClose, onConfirm, isLoading }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 bg-opacity-50 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden transform transition-all">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-red-500 to-red-600 p-6">
+          <div className="flex items-center gap-3">
+            <div className="bg-white bg-opacity-20 p-3 rounded-full">
+              <AlertTriangle className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="text-xl font-bold text-white">Cancel Order</h3>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-6">
+          <p className="text-gray-700 mb-4">
+            Are you sure you want to cancel this order? This action cannot be
+            undone.
+          </p>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-sm text-red-800">
+              <strong>Note:</strong> Once cancelled, you'll need to place a new
+              order if you change your mind.
+            </p>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="bg-gray-50 px-6 py-4 flex gap-3 justify-end">
+          <button
+            onClick={onClose}
+            disabled={isLoading}
+            className="cursor-pointer px-6 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            No, Keep Order
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isLoading}
+            className="cursor-pointer px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {isLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Cancelling...
+              </>
+            ) : (
+              <>
+                <XCircle className="w-4 h-4" />
+                Yes, Cancel Order
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Success/Error Toast Component
+const Toast = ({ type, message, onClose }) => {
+  const isSuccess = type === "success";
+
+  React.useEffect(() => {
+    const timer = setTimeout(onClose, 5000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className="fixed top-4 right-4 z-50 animate-slide-in-right">
+      <div
+        className={`rounded-lg shadow-lg p-4 flex items-center gap-3 ${
+          isSuccess
+            ? "bg-green-50 border border-green-200"
+            : "bg-red-50 border border-red-200"
+        }`}
+      >
+        <div
+          className={`rounded-full p-2 ${
+            isSuccess ? "bg-green-100" : "bg-red-100"
+          }`}
+        >
+          {isSuccess ? (
+            <CheckCircle className="w-5 h-5 text-green-600" />
+          ) : (
+            <XCircle className="w-5 h-5 text-red-600" />
+          )}
+        </div>
+        <div className="flex-1">
+          <p
+            className={`font-medium ${
+              isSuccess ? "text-green-800" : "text-red-800"
+            }`}
+          >
+            {isSuccess ? "Success!" : "Error"}
+          </p>
+          <p
+            className={`text-sm ${
+              isSuccess ? "text-green-600" : "text-red-600"
+            }`}
+          >
+            {message}
+          </p>
+        </div>
+        <button
+          onClick={onClose}
+          className={`p-1 rounded-full hover:bg-opacity-20 ${
+            isSuccess ? "hover:bg-green-600" : "hover:bg-red-600"
+          }`}
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+};
 
 // Dynamic order steps based on order type
 const getOrderSteps = (hasStyleItems) => {
   if (hasStyleItems) {
-    // Orders with style items: Vendor → Tailor → Customer
     return [
       "Order Placed",
       "Processing",
@@ -33,7 +156,6 @@ const getOrderSteps = (hasStyleItems) => {
       "Delivered",
     ];
   } else {
-    // Fabric-only orders: Vendor → Customer
     return [
       "Order Placed",
       "Processing",
@@ -56,10 +178,8 @@ const statusMessages = {
   Delivered: "Your order has been delivered successfully!",
 };
 
-// Google Maps API configuration
 const GOOGLE_MAPS_API_KEY = "AIzaSyBstumBKZoQNTHm3Y865tWEHkkFnNiHGGE";
 
-// Warehouse coordinates (Lagos, Nigeria - update this to your actual warehouse location)
 const WAREHOUSE_COORDINATES = {
   latitude: 6.5244,
   longitude: 3.3792,
@@ -70,8 +190,11 @@ const OrderDetails = () => {
   const [activeTab, setActiveTab] = useState("style");
   const [activeReviewProduct, setActiveReviewProduct] = useState(null);
   const [reviewTab, setReviewTab] = useState("style");
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [toast, setToast] = useState(null);
 
   const { id: orderId } = useParams();
+  const queryClient = useQueryClient();
 
   const {
     isPending: getUserIsPending,
@@ -80,55 +203,66 @@ const OrderDetails = () => {
     error,
   } = useGetCustomerSingleOrder(orderId);
 
-  // Enhanced debugging
-  console.log("=== CUSTOMER ORDER DETAILS DEBUG ===");
-  console.log("orderId from URL:", orderId);
-  console.log("isPending:", getUserIsPending);
-  console.log("isError:", isError);
-  console.log("error:", error);
-  console.log("Raw API response data:", data);
-  console.log("Order details (data?.data):", data?.data);
-  console.log("Payment object:", data?.data?.payment);
-  console.log("Purchase object:", data?.data?.payment?.purchase);
-  console.log("Purchase items:", data?.data?.payment?.purchase?.items);
-  console.log("Order status:", data?.data?.status);
-  console.log("User coordinates:", data?.data?.user?.profile?.coordinates);
-  console.log("=====================================");
+  // Cancel Order Mutation
+  const cancelOrderMutation = useMutation({
+    mutationFn: async (orderId) => {
+      console.log(orderId)
+      const response = await CaryBinApi.patch(`/orders/${orderId}/cancel`, {
+        status: "CANCELLED",
+      });
+      console.log("This is the cancel order response", response)
+      return response.data;
+    },
+    onSuccess: (data) => {
+      // Invalidate and refetch order details
+      queryClient.invalidateQueries(["customer-single-order", orderId]);
 
-  // Always call these hooks to maintain consistent hook order
+      setShowCancelModal(false);
+      setToast({
+        type: "success",
+        message: data.message || "Order cancelled successfully!",
+      });
+    },
+    onError: (error) => {
+      setShowCancelModal(false);
+      setToast({
+        type: "error",
+        message:
+          error.response?.data?.message ||
+          "Failed to cancel order. Please try again.",
+      });
+    },
+  });
+
+  const handleCancelOrder = () => {
+    cancelOrderMutation.mutate(orderId);
+  };
+
   const orderDetails = data?.data;
   const orderPurchase = data?.data?.order_items;
   const metaData = data?.data?.payment?.metadata;
 
-  // Check if order has style items to determine progress flow
   const hasStyleItems =
     orderPurchase?.some((item) => item.purchase_type === "STYLE") || false;
   const orderSteps = getOrderSteps(hasStyleItems);
-
-  // Check if order is delivered and show review section automatically
   const isDelivered = orderDetails?.status === "DELIVERED";
 
-  console.log("=== PROCESSED DATA DEBUG ===");
-  console.log("isDelivered:", isDelivered);
-  console.log("orderPurchase items count:", orderPurchase?.length);
-  console.log(
-    "Style items:",
-    orderPurchase?.filter((item) => item.purchase_type === "STYLE")
-  );
-  console.log(
-    "Fabric items:",
-    orderPurchase?.filter((item) => item.purchase_type === "FABRIC")
-  );
-  console.log("hasStyleItems:", hasStyleItems);
-  console.log("orderSteps:", orderSteps);
-  console.log("Order type:", hasStyleItems ? "Fabric + Style" : "Fabric Only");
-  console.log("Current step:", currentStep);
-  console.log("============================");
+  // Check if order can be cancelled (not yet shipped)
+  const canCancelOrder =
+    orderDetails?.status &&
+    ![
+      "SHIPPED",
+      "IN_TRANSIT",
+      "OUT_FOR_DELIVERY",
+      "DELIVERED",
+      "CANCELLED",
+      "SHIPPED_TO_TAILOR",
+      "TAILOR_PROCESSING",
+      "SHIPPED_TO_CUSTOMER",
+    ].includes(orderDetails.status);
 
-  // Update currentStep based on order status
   const getStepFromStatus = (status) => {
     if (hasStyleItems) {
-      // Status mapping for orders with style items (6 steps)
       const statusMap = {
         PROCESSING: 1,
         SHIPPED_TO_TAILOR: 2,
@@ -139,7 +273,6 @@ const OrderDetails = () => {
       };
       return statusMap[status] || 0;
     } else {
-      // Status mapping for fabric-only orders (5 steps)
       const statusMap = {
         PROCESSING: 1,
         SHIPPED: 2,
@@ -152,7 +285,6 @@ const OrderDetails = () => {
     }
   };
 
-  // Custom hook for ETA calculation using Google Maps
   const useOrderETA = (orderDetails) => {
     const shouldFetchETA =
       orderDetails?.status === "SHIPPED" ||
@@ -170,15 +302,8 @@ const OrderDetails = () => {
       queryFn: async () => {
         if (!hasCoordinates) throw new Error("No user coordinates available");
 
-        const origin = `${WAREHOUSE_COORDINATES.latitude},${WAREHOUSE_COORDINATES.longitude}`;
-        const destination = `${userCoordinates.latitude},${userCoordinates.longitude}`;
-
-        console.log("=== ETA CALCULATION DEBUG ===");
-        console.log("Origin (warehouse):", origin);
-        console.log("Destination (user):", destination);
-        console.log("API Key available:", !!GOOGLE_MAPS_API_KEY);
         const calculateDistance = (lat1, lon1, lat2, lon2) => {
-          const R = 6371; // Radius of the Earth in kilometers
+          const R = 6371;
           const dLat = ((lat2 - lat1) * Math.PI) / 180;
           const dLon = ((lon2 - lon1) * Math.PI) / 180;
           const a =
@@ -188,7 +313,7 @@ const OrderDetails = () => {
               Math.sin(dLon / 2) *
               Math.sin(dLon / 2);
           const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-          return R * c; // Distance in kilometers
+          return R * c;
         };
 
         const distanceKm = calculateDistance(
@@ -198,57 +323,35 @@ const OrderDetails = () => {
           userCoordinates.longitude
         );
 
-        console.log("Calculated distance (km):", distanceKm);
-
-        // Estimate delivery time based on distance
-        // Assuming average delivery speed of 30 km/h in urban areas
-        const averageDeliverySpeed = 30; // km/h
+        const averageDeliverySpeed = 30;
         const estimatedHours = distanceKm / averageDeliverySpeed;
         const estimatedMinutes = Math.ceil(estimatedHours * 60);
-
-        // Add buffer time for processing, loading, etc.
         const bufferMinutes = 30;
         const totalMinutes = estimatedMinutes + bufferMinutes;
-
-        console.log("Estimated delivery time (minutes):", totalMinutes);
 
         return {
           distance: {
             text: `${distanceKm.toFixed(1)} km`,
-            value: distanceKm * 1000, // in meters
+            value: distanceKm * 1000,
           },
           duration: {
             text: `${Math.ceil(estimatedHours)} hours`,
-            value: totalMinutes * 60, // in seconds
+            value: totalMinutes * 60,
           },
           duration_in_traffic: {
-            text: `${Math.ceil(estimatedHours + 0.5)} hours`, // Add traffic buffer
-            value: (totalMinutes + 30) * 60, // in seconds with traffic
+            text: `${Math.ceil(estimatedHours + 0.5)} hours`,
+            value: (totalMinutes + 30) * 60,
           },
           status: "OK",
         };
       },
-      // enabled: shouldFetchETA && hasCoordinates,
-      refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
-      staleTime: 2 * 60 * 1000, // Consider data stale after 2 minutes
+      refetchInterval: 5 * 60 * 1000,
+      staleTime: 2 * 60 * 1000,
       retry: 2,
-      onError: (error) => {
-        console.error("ETA calculation error:", error);
-      },
-      onSuccess: (data) => {
-        console.log("ETA calculation successful:", data);
-      },
     });
   };
 
-  // ETA Display Component - Enhanced with better debugging
   const ETADisplay = ({ orderDetails }) => {
-    console.log("=== ETADisplay Component Debug ===");
-    console.log("Order Details passed to ETADisplay:", orderDetails);
-    console.log("Order Status:", orderDetails?.status);
-    console.log("User coordinates:", orderDetails?.user?.profile?.coordinates);
-
-    // Check status first
     const shouldShowForStatus = [
       "SHIPPED",
       "IN_TRANSIT",
@@ -256,33 +359,16 @@ const OrderDetails = () => {
       "PAID",
       "DELIVERED",
     ].includes(orderDetails?.status);
-    console.log("Should show for status:", shouldShowForStatus);
 
     if (!shouldShowForStatus) {
-      console.log(
-        "❌ ETA not shown - status not eligible:",
-        orderDetails?.status
-      );
-      return (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
-          <div className="text-sm text-red-700">
-            ETA not available for status:{" "}
-            <strong>{orderDetails?.status}</strong>
-            <br />
-            ETA is only shown for: SHIPPED, IN_TRANSIT, OUT_FOR_DELIVERY
-          </div>
-        </div>
-      );
+      return null;
     }
 
-    // Check coordinates
     const userCoordinates = orderDetails?.user?.profile?.coordinates;
     const hasCoordinates =
       userCoordinates?.latitude && userCoordinates?.longitude;
-    console.log("Has coordinates:", hasCoordinates);
 
     if (!hasCoordinates) {
-      console.log("❌ ETA not shown - no coordinates available");
       return (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4">
           <div className="flex items-center space-x-2">
@@ -295,18 +381,13 @@ const OrderDetails = () => {
       );
     }
 
-    // Use the ETA hook
-    console.log("✅ Calling useOrderETA hook");
     const {
       data: etaData,
       isLoading: etaLoading,
       error: etaError,
     } = useOrderETA(orderDetails);
 
-    console.log("ETA Hook Results:", { etaData, etaLoading, etaError });
-
     if (etaLoading) {
-      console.log("⏳ ETA is loading...");
       return (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
           <div className="flex items-center space-x-2">
@@ -320,21 +401,10 @@ const OrderDetails = () => {
     }
 
     if (etaError) {
-      console.log("❌ ETA Error:", etaError);
-      return (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
-          <div className="text-sm text-red-700">
-            <strong>ETA calculation error:</strong> {etaError.message}
-            <br />
-            <small>Check console for more details</small>
-          </div>
-        </div>
-      );
+      return null;
     }
 
     if (etaData && etaData.status === "OK") {
-      console.log("✅ ETA Data available:", etaData);
-
       const formatETA = (duration) => {
         const minutes = Math.ceil(duration.value / 60);
         const hours = Math.floor(minutes / 60);
@@ -389,30 +459,16 @@ const OrderDetails = () => {
       );
     }
 
-    console.log("❌ ETA Data not available or invalid");
-    return (
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-4">
-        <div className="text-sm text-gray-600">
-          ETA calculation in progress... Please wait.
-        </div>
-      </div>
-    );
+    return null;
   };
 
-  // Set current step based on order status
   React.useEffect(() => {
-    console.log(
-      "useEffect triggered - orderDetails?.status:",
-      orderDetails?.status
-    );
     if (orderDetails?.status) {
       const step = getStepFromStatus(orderDetails.status);
-      console.log("Setting currentStep to:", step);
       setCurrentStep(step);
     }
   }, [orderDetails?.status]);
 
-  // Enhanced error handling
   if (getUserIsPending) {
     return (
       <div className="m-auto flex h-[80vh] items-center justify-center">
@@ -426,7 +482,6 @@ const OrderDetails = () => {
   }
 
   if (isError) {
-    console.error("❌ Error loading order details:", error);
     return (
       <div className="m-auto flex h-[80vh] items-center justify-center">
         <div className="text-center text-red-600">
@@ -447,7 +502,6 @@ const OrderDetails = () => {
   }
 
   if (!data?.data) {
-    console.warn("⚠️ No order data found for ID:", orderId);
     return (
       <div className="m-auto flex h-[80vh] items-center justify-center">
         <div className="text-center">
@@ -464,68 +518,71 @@ const OrderDetails = () => {
   const totalAmount =
     orderDetails?.total_amount || orderDetails?.payment?.amount || 0;
 
-  // --- SUBTOTAL CALCULATION LOGIC ---
-  // Calculate subtotal by summing (price * quantity) for each product
   let calculatedSubtotal = 0;
   if (orderPurchase && Array.isArray(orderPurchase)) {
     calculatedSubtotal = orderPurchase.reduce((acc, item) => {
-      // Defensive: price and quantity may be string, so parseInt
       const price = parseInt(item.price) || 0;
       const quantity = parseInt(item.quantity) || 0;
       return acc + price * quantity;
     }, 0);
   }
 
-  console.log("=== CUSTOMER TOTAL AMOUNT DEBUG ===");
-  console.log("Calculated totalAmount:", totalAmount);
-  console.log("Order Purchase Array Length:", orderPurchase?.length || 0);
-  console.log("Individual item calculations:");
-  orderPurchase?.forEach((item, index) => {
-    console.log(`Item ${index + 1}:`, {
-      name: item?.name,
-      quantity: item?.quantity,
-      price: item?.price,
-      itemTotal: (parseInt(item.price) || 0) * (parseInt(item.quantity) || 0),
-      subtotal: calculatedSubtotal,
-      purchase_type: item?.purchase_type,
-    });
-  });
-  console.log("Calculated Subtotal:", calculatedSubtotal);
-  console.log("====================================");
-
-  // Additional debug info
-  if (!orderPurchase || orderPurchase.length === 0) {
-    console.warn("⚠️ No purchase items found in order data");
-  }
-
   return (
     <div className="">
+      {toast && (
+        <Toast
+          type={toast.type}
+          message={toast.message}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      <CancelOrderModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={handleCancelOrder}
+        isLoading={cancelOrderMutation.isPending}
+      />
+
       <CustomBackbtn />
 
-      <div className="bg-white px-6 py-4 mb-6">
-        <h1 className="text-lg font-medium mb-3">
-          Orders Details :{" "}
-          <span className="text-gray-600">
-            {orderDetails?.payment?.id
-              .replace(/-/g, "")
-              .slice(0, 12)
-              .toUpperCase()}
-          </span>
-        </h1>
-        <p className="text-gray-500">
-          <Link to="/customer" className="text-blue-500 hover:underline">
-            Dashboard
-          </Link>{" "}
-          &gt; Orders
-        </p>
+      <div className="bg-white px-6 py-4 mb-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-lg font-medium mb-3">
+            Orders Details :{" "}
+            <span className="text-gray-600">
+              {orderDetails?.payment?.id
+                ?.replace(/-/g, "")
+                .slice(0, 12)
+                .toUpperCase()}
+            </span>
+          </h1>
+          <p className="text-gray-500">
+            <Link to="/customer" className="text-blue-500 hover:underline">
+              Dashboard
+            </Link>{" "}
+            &gt; Orders
+          </p>
+        </div>
+
+        {/* Cancel Order Button - Only show if order can be cancelled */}
+        {canCancelOrder && (
+          <button
+            onClick={() => setShowCancelModal(true)}
+            className="cursor-pointer flex items-center gap-2 px-6 py-3 bg-red-50 text-red-600 border-2 border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+          >
+            <XCircle className="w-5 h-5" />
+            Cancel Order
+          </button>
+        )}
       </div>
+
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h5 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
           <Truck className="w-5 h-5 text-purple-600" />
           Order Progress
         </h5>
         <div className="relative px-8">
-          {/* Background line */}
           <div
             className="absolute top-5 h-1 bg-gray-200"
             style={{
@@ -533,7 +590,6 @@ const OrderDetails = () => {
               right: `calc(${100 / (orderSteps.length - 1) / 2}%)`,
             }}
           />
-          {/* Progress line */}
           <div
             className={`absolute top-5 h-1 transition-all duration-500 ${
               orderDetails?.status === "CANCELLED"
@@ -550,7 +606,6 @@ const OrderDetails = () => {
                   : "0%",
             }}
           />
-          {/* Steps */}
           <div className="relative flex items-start justify-between">
             {orderSteps.map((step, index) => (
               <div key={index} className="flex flex-col items-center flex-1">
@@ -593,50 +648,9 @@ const OrderDetails = () => {
           </p>
         </div>
       </div>
-      {/* <div className="p-4 bg-white leading-loose rounded-md mt-2 flex flex-col md:flex-row justify-between items-center text-center md:text-left space-y-4 md:space-y-0">
-        <span>
-          Order Status:{" "}
-          {orderDetails?.status === "CANCELLED"
-            ? "Order has been cancelled"
-            : statusMessages[orderSteps[currentStep]] ||
-              `Order is ${orderDetails?.status?.toLowerCase().replace("_", " ")}`}
-          <span
-            className={`ml-2 px-2 py-1 rounded ${
-              orderDetails?.status === "DELIVERED"
-                ? "text-green-700 bg-green-100"
-                : orderDetails?.status === "CANCELLED"
-                  ? "text-red-700 bg-red-100"
-                  : "text-yellow-700 bg-yellow-100"
-            }`}
-          >
-            {orderDetails?.status === "DELIVERED"
-              ? "Completed"
-              : orderDetails?.status === "CANCELLED"
-                ? "Cancelled"
-                : "Ongoing"}
-          </span>
-        </span>
-        {orderDetails?.status === "DELIVERED" && (
-          <div className="text-sm text-green-600 bg-green-50 p-2 rounded">
-            ✅ Your order has been delivered! You can now add reviews below.
-          </div>
-        )}
-        {orderDetails?.status &&
-          orderDetails?.status !== "DELIVERED" &&
-          orderDetails?.status !== "CANCELLED" && (
-            <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded">
-              📦 Your order is{" "}
-              {orderDetails.status.toLowerCase().replace("_", " ")}. Reviews
-              will be available after delivery.
-            </div>
-          )}
-        {orderDetails?.status === "CANCELLED" && (
-          <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
-            ❌ This order has been cancelled.
-          </div>
-        )}
-      </div>*/}
+
       <ETADisplay orderDetails={orderDetails} />
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
         <div className="bg-white p-6 rounded-md md:col-span-2">
           <h5 className="text-lg font-meduim text-dark border-b border-[#D9D9D9] pb-3 mb-3">
@@ -647,7 +661,6 @@ const OrderDetails = () => {
             <div>
               <div className="bg-white mt-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Order Information */}
                   <div className="space-y-4">
                     <h6 className="font-semibold text-gray-800">
                       Order Information
@@ -683,7 +696,6 @@ const OrderDetails = () => {
                     </div>
                   </div>
 
-                  {/* Payment Information */}
                   <div className="space-y-4">
                     <h6 className="font-semibold text-gray-800">
                       Payment Information
@@ -711,7 +723,6 @@ const OrderDetails = () => {
                   </div>
                 </div>
 
-                {/* Purchase Items */}
                 {orderPurchase && orderPurchase.length > 0 && (
                   <div className="mt-6">
                     <h6 className="font-semibold text-gray-800 mb-4">
@@ -860,6 +871,7 @@ const OrderDetails = () => {
           </div>
         </div>
       </div>
+
       {/* Rate & Review Section - Show for Delivered Orders */}
       {orderDetails?.status === "DELIVERED" && (
         <div className="mt-6 space-y-6">
@@ -889,11 +901,9 @@ const OrderDetails = () => {
               with these products to help other customers.
             </p>
 
-            {/* Toggle Tabs */}
             {orderPurchase && orderPurchase.length > 0 && (
               <div className="mb-6">
                 <div className="flex gap-2 border-b border-gray-200">
-                  {/* Style Tab */}
                   {orderPurchase.some(
                     (item) => item.product?.type === "STYLE"
                   ) && (
@@ -931,7 +941,6 @@ const OrderDetails = () => {
                     </button>
                   )}
 
-                  {/* Fabric Tab */}
                   {orderPurchase.some(
                     (item) => item.product?.type === "FABRIC"
                   ) && (
@@ -972,11 +981,9 @@ const OrderDetails = () => {
               </div>
             )}
 
-            {/* Review Content Based on Active Tab */}
             <div className="space-y-6">
               {orderPurchase && orderPurchase.length > 0 ? (
                 <>
-                  {/* Style Items Review - Show only when style tab is active */}
                   {reviewTab === "style" &&
                     orderPurchase
                       .filter((item) => item.product?.type === "STYLE")
@@ -985,7 +992,6 @@ const OrderDetails = () => {
                           key={`style-${index}`}
                           className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                         >
-                          {/* Product Header */}
                           <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-purple-50 to-purple-100">
                             <img
                               src={
@@ -1013,7 +1019,6 @@ const OrderDetails = () => {
                             </div>
                           </div>
 
-                          {/* Review Form */}
                           <div className="p-4 bg-white">
                             <ReviewSubmission
                               productId={styleItem.product_id || styleItem.id}
@@ -1027,7 +1032,6 @@ const OrderDetails = () => {
                         </div>
                       ))}
 
-                  {/* Fabric Items Review - Show only when fabric tab is active */}
                   {reviewTab === "fabric" &&
                     orderPurchase
                       .filter((item) => item.product?.type === "FABRIC")
@@ -1036,7 +1040,6 @@ const OrderDetails = () => {
                           key={`fabric-${index}`}
                           className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                         >
-                          {/* Product Header */}
                           <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100">
                             <img
                               src={
@@ -1064,7 +1067,6 @@ const OrderDetails = () => {
                             </div>
                           </div>
 
-                          {/* Review Form */}
                           <div className="p-4 bg-white">
                             <ReviewSubmission
                               productId={fabricItem.product_id || fabricItem.id}
@@ -1078,7 +1080,6 @@ const OrderDetails = () => {
                         </div>
                       ))}
 
-                  {/* Empty State for Active Tab */}
                   {reviewTab === "style" &&
                     orderPurchase.filter(
                       (item) => item.product?.type === "STYLE"
@@ -1138,7 +1139,6 @@ const OrderDetails = () => {
                     )}
                 </>
               ) : (
-                /* Fallback for orders without detailed item data */
                 <div className="border border-gray-200 rounded-lg overflow-hidden">
                   <div className="flex items-start gap-4 p-4 bg-gray-50">
                     <img
@@ -1176,8 +1176,6 @@ const OrderDetails = () => {
         </div>
       )}
 
-      {/* Remove or comment out the ReviewForm modal since we're using inline forms now */}
-      {/* {/*  */}
       <ReviewForm
         productId={activeReviewProduct}
         isOpen={!!activeReviewProduct}

@@ -20,10 +20,154 @@ import {
   Clock,
   Download,
   MessageSquare,
+  XCircle,
+  AlertTriangle,
 } from "lucide-react";
 import useGetSingleOrder from "../../../../hooks/order/useGetSingleOrder";
 import Loader from "../../../../components/ui/Loader";
 import { formatOrderId } from "../../../../lib/orderUtils";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import CaryBinApi from "../../../../services/CarybinBaseUrl";
+
+// Cancel Order Modal Component
+const CancelOrderModal = ({ isOpen, onClose, onConfirm, isLoading, orderDetails }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 bg-opacity-50 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden transform transition-all">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-red-500 to-red-600 p-6">
+          <div className="flex items-center gap-3">
+            <div className="bg-white bg-opacity-20 p-3 rounded-full">
+              <AlertTriangle className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-white">Cancel Order</h3>
+              <p className="text-red-100 text-sm mt-1">
+                Order ID: {formatOrderId(orderDetails?.payment?.id)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-6">
+          <p className="text-gray-700 mb-4">
+            Are you sure you want to cancel this order? This action cannot be undone.
+          </p>
+          
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-yellow-900 mb-1">
+                  Important Notice
+                </p>
+                <p className="text-sm text-yellow-800">
+                  The customer will be notified about this cancellation. Please ensure you have a valid reason for cancelling this order.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-sm text-red-800">
+              <strong>Note:</strong> Once cancelled, this order will be marked as CANCELLED and cannot be reactivated. The customer may need to place a new order.
+            </p>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="bg-gray-50 px-6 py-4 flex gap-3 justify-end">
+          <button
+            onClick={onClose}
+            disabled={isLoading}
+            className="cursor-pointer px-6 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            No, Keep Order
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isLoading}
+            className="cursor-pointer px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {isLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Cancelling...
+              </>
+            ) : (
+              <>
+                <XCircle className="w-4 h-4" />
+                Yes, Cancel Order
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Success/Error Toast Component
+const Toast = ({ type, message, onClose }) => {
+  const isSuccess = type === "success";
+  
+  React.useEffect(() => {
+    const timer = setTimeout(onClose, 5000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className="fixed top-4 right-4 z-50 animate-slide-in-right">
+      <div
+        className={`rounded-lg shadow-lg p-4 flex items-center gap-3 min-w-[300px] ${
+          isSuccess
+            ? "bg-green-50 border border-green-200"
+            : "bg-red-50 border border-red-200"
+        }`}
+      >
+        <div
+          className={`rounded-full p-2 ${
+            isSuccess ? "bg-green-100" : "bg-red-100"
+          }`}
+        >
+          {isSuccess ? (
+            <CheckCircle className="w-5 h-5 text-green-600" />
+          ) : (
+            <XCircle className="w-5 h-5 text-red-600" />
+          )}
+        </div>
+        <div className="flex-1">
+          <p
+            className={`font-medium ${
+              isSuccess ? "text-green-800" : "text-red-800"
+            }`}
+          >
+            {isSuccess ? "Success!" : "Error"}
+          </p>
+          <p
+            className={`text-sm ${
+              isSuccess ? "text-green-600" : "text-red-600"
+            }`}
+          >
+            {message}
+          </p>
+        </div>
+        <button
+          onClick={onClose}
+          className={`p-1 rounded-full hover:bg-opacity-20 ${
+            isSuccess ? "hover:bg-green-600" : "hover:bg-red-600"
+          }`}
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const getOrderSteps = (hasStyleItems) => {
   if (hasStyleItems) {
@@ -61,17 +205,59 @@ const OrderDetails = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [showImageModal, setShowImageModal] = useState(false);
   const [modalImageUrl, setModalImageUrl] = useState(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [toast, setToast] = useState(null);
 
   const { id: orderId } = useParams();
+  const queryClient = useQueryClient();
+  
   const { isPending: getUserIsPending, data } = useGetSingleOrder(orderId);
 
   const orderDetails = data?.data;
+
+  // Cancel Order Mutation
+  const cancelOrderMutation = useMutation({
+    mutationFn: async (orderId) => {      
+      const response = await CaryBinApi.patch(
+        `/orders/${orderId}/status`,
+        {
+          status: "CANCELLED",
+        },
+      );
+      return response.data;
+    },
+    onSuccess: (data) => {
+      // Invalidate and refetch order details
+      queryClient.invalidateQueries(['single-order', orderId]);
+      
+      setShowCancelModal(false);
+      setToast({
+        type: "success",
+        message: data.message || "Order cancelled successfully!"
+      });
+    },
+    onError: (error) => {
+      setShowCancelModal(false);
+      setToast({
+        type: "error",
+        message: error.response?.data?.message || "Failed to cancel order. Please try again."
+      });
+    }
+  });
+
+  const handleCancelOrder = () => {
+    cancelOrderMutation.mutate(orderId);
+  };
 
   // Check if order has style items
   const hasStyleItems =
     orderDetails?.order_items?.some((item) => item.purchase_type === "STYLE") ||
     false;
   const orderSteps = getOrderSteps(hasStyleItems);
+
+  // Check if order can be cancelled (not yet shipped)
+  const canCancelOrder = orderDetails?.status && 
+    !["SHIPPED", "IN_TRANSIT", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED", "SHIPPED_TO_TAILOR", "TAILOR_PROCESSING", "SHIPPED_TO_CUSTOMER"].includes(orderDetails.status);
 
   // Update currentStep based on order status
   const getStepFromStatus = React.useCallback(
@@ -158,9 +344,27 @@ const OrderDetails = () => {
   const deliveryFee = parseInt(
     orderDetails?.payment?.purchase?.delivery_fee || 0
   );
-  console.log("this is the order dtails", orderDetails);
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Toast Notifications */}
+      {toast && (
+        <Toast
+          type={toast.type}
+          message={toast.message}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      {/* Cancel Order Modal */}
+      <CancelOrderModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={handleCancelOrder}
+        isLoading={cancelOrderMutation.isPending}
+        orderDetails={orderDetails}
+      />
+
       {/* Image Modal */}
       {showImageModal && (
         <div
@@ -256,6 +460,18 @@ const OrderDetails = () => {
                   Has Reference Image
                 </span>
               )}
+              
+              {/* Cancel Order Button - Only show if order can be cancelled */}
+              {canCancelOrder && (
+                <button
+                  onClick={() => setShowCancelModal(true)}
+                  className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 border-2 border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                >
+                  <XCircle className="w-4 h-4" />
+                  Cancel Order
+                </button>
+              )}
+              
               <div className="text-right">
                 <p className="text-sm text-gray-500 flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
@@ -264,6 +480,25 @@ const OrderDetails = () => {
               </div>
             </div>
           </div>
+
+          {/* Cancelled Order Notice */}
+          {orderDetails?.status === "CANCELLED" && (
+            <div className="mb-6 bg-red-50 border-2 border-red-200 rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                  <XCircle className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-red-900 mb-1">
+                    Order Cancelled
+                  </h4>
+                  <p className="text-sm text-red-700">
+                    This order has been cancelled and is no longer active. The customer has been notified about the cancellation.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Tailor reference images */}
           {orderDetails?.metadata?.tailorReferenceImage1 && (
@@ -585,57 +820,6 @@ const OrderDetails = () => {
               </div>
             </div>
 
-            {/* Reference Image */}
-            {/* {orderDetails?.metadata?.image && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    <Image className="w-5 h-5 text-purple-600" />
-                    Reference Image
-                  </h3>
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center gap-4">
-                    <div className="relative">
-                      <img
-                        src={orderDetails?.metadata?.image}
-                        alt="Customer Reference"
-                        className="w-24 h-24 rounded-lg object-cover border-2 border-gray-200"
-                      />
-                      <div
-                        className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 hover:opacity-100 cursor-pointer"
-                        onClick={() => {
-                          setModalImageUrl(orderDetails?.metadata?.image);
-                          setShowImageModal(true);
-                        }}
-                      >
-                        <Eye className="w-6 h-6 text-white" />
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900 mb-2">
-                        Customer Reference Photo
-                      </h4>
-                      <p className="text-sm text-gray-600 mb-3">
-                        The customer has provided this reference image to help
-                        with their order requirements.
-                      </p>
-                      <button
-                        onClick={() => {
-                          setModalImageUrl(orderDetails?.metadata?.image);
-                          setShowImageModal(true);
-                        }}
-                        className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
-                      >
-                        <Eye className="w-4 h-4" />
-                        View Full Image
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}*/}
-
             {/* Order Items */}
             {orderDetails?.order_items &&
               orderDetails.order_items.length > 0 && (
@@ -822,12 +1006,10 @@ const OrderDetails = () => {
                                 hour12: true,
                                 timeZone: "Africa/Lagos",
                               };
-                              // en-GB gives day/month/year order; remove any comma between date and time
                               return dateObj
                                 .toLocaleString("en-GB", opts)
                                 .replace(",", "");
                             } catch (err) {
-                              // Fallback to existing formatting if something goes wrong
                               return formatDateStr(
                                 orderDetails?.created_at.split(".").shift(),
                                 "D/M/YYYY h:mm A"
@@ -948,7 +1130,6 @@ const OrderDetails = () => {
                     ))}
                   </div>
                 ) : (
-                  /* Fallback to user profile address if no metadata */
                   <div className="space-y-4">
                     <div>
                       <p className="text-sm font-medium text-gray-500 mb-1">
@@ -999,17 +1180,6 @@ const OrderDetails = () => {
                 </h3>
               </div>
               <div className="p-6 space-y-3">
-                {/* <button className="cursor-pointer w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center gap-2">
-                  <Truck className="w-4 h-4" />
-                  Update Status
-                </button>*/}
-                {/* <button
-                  className="cursor-pointer w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
-                >
-                  <Download className="w-4 h-4" />
-                  Print Order
-                </button>*/}
-
                 <button
                   onClick={() => {
                     navigate("/admin/messages");

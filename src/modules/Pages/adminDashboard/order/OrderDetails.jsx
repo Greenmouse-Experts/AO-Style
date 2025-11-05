@@ -218,7 +218,7 @@ const OrderDetails = () => {
   // Cancel Order Mutation
   const cancelOrderMutation = useMutation({
     mutationFn: async (orderId) => {      
-      const response = await CaryBinApi.patch(
+      const response = await CaryBinApi.put(
         `/orders/${orderId}/status`,
         {
           status: "CANCELLED",

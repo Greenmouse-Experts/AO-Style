@@ -102,6 +102,11 @@ const Settings = () => {
     bicep_circumference_unit:
       carybinUser?.profile?.measurement?.upper_body?.bicep_circumference_unit ??
       "",
+    wrist_circumference:
+      carybinUser?.profile?.measurement?.upper_body?.wrist_circumference ?? "",
+    wrist_circumference_unit:
+      carybinUser?.profile?.measurement?.upper_body?.wrist_circumference_unit ??
+      "cm",
     waist_circumference_upper:
       carybinUser?.profile?.measurement?.upper_body?.waist_circumference ?? "",
     waist_circumference_unit_upper:
@@ -133,7 +138,6 @@ const Settings = () => {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      // return console.log(val.phone);
       console.log("Form submission values:", val);
       console.log("Coordinates being sent:", {
         latitude: val.latitude,
@@ -163,6 +167,8 @@ const Settings = () => {
               sleeve_length_unit: val?.bust_circumference_unit,
               bicep_circumference: val?.bicep_circumference,
               bicep_circumference_unit: val?.bust_circumference_unit,
+              wrist_circumference: val?.wrist_circumference, // ← ADD THIS
+              wrist_circumference_unit: val?.wrist_circumference_unit, // ← ADD THIS
               waist_circumference: val?.waist_circumference_upper,
               waist_circumference_unit: val?.bust_circumference_unit,
             },
@@ -195,14 +201,8 @@ const Settings = () => {
             // Auto-navigate to next body measurement tab
             if (bodyTab === "upperBody") {
               setBodyTab("lowerBody");
-              // toastSuccess(
-              //   "Upper body measurements updated! Now update lower body.",
-              // );
             } else if (bodyTab === "lowerBody") {
               setBodyTab("fullBody");
-              // toastSuccess(
-              //   "Lower body measurements updated! Now update full body.",
-              // );
             } else if (bodyTab === "fullBody") {
               toastSuccess("Full body measurements updated successfully!");
             } else {
@@ -210,7 +210,7 @@ const Settings = () => {
               console.log("Profile updated successfully!");
             }
           },
-        },
+        }
       );
     },
   });
@@ -238,7 +238,7 @@ const Settings = () => {
                 setProfileIsLoading(false);
                 toastSuccess("Profile picture updated successfully!");
               },
-            },
+            }
           );
         },
       });
@@ -768,17 +768,17 @@ const Settings = () => {
                               placeholder={
                                 "Enter the circumference of your wrist"
                               }
-                              name={"waist_circumference_upper"}
+                              name={"wrist_circumference"} // ← CHANGED
                               required
-                              value={values.waist_circumference_upper}
+                              value={values.wrist_circumference} // ← CHANGED
                               onChange={handleChange}
                               className="flex-1 w-full p-4 border border-[#CCCCCC] outline-none rounded-l-md"
                             />
                             <div className="relative">
                               <select
                                 className="appearance-none w-full p-4 border text-gray-500 border-[#CCCCCC] outline-none border-l-0 rounded-r-md pr-8"
-                                name={"bust_circumference_unit"}
-                                value={values.bust_circumference_unit}
+                                name={"wrist_circumference_unit"} // ← CHANGED
+                                value={values.wrist_circumference_unit} // ← CHANGED
                                 onChange={handleChange}
                               >
                                 <option value="cm">cm</option>

@@ -15,6 +15,7 @@ import ConfirmationModal from "../../../../components/ui/ConfirmationModal";
 import useDeleteUser from "../../../../hooks/user/useDeleteUser";
 import useToast from "../../../../hooks/useToast";
 import AddMarketModal from "./AddMarketModal";
+import ViewDetailsModal from "./Viewdetailsmodal";
 import * as XLSX from "xlsx";
 import { CSVLink } from "react-csv";
 import CustomTable from "../../../../components/CustomTable";
@@ -30,6 +31,8 @@ const NewlyAddedUsers = () => {
   const dropdownRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewDetailsModalOpen, setViewDetailsModalOpen] = useState(false);
+  const [selectedItemForView, setSelectedItemForView] = useState(null);
 
   const { isPending: approoveIsPending, approveMarketRepMutate } =
     useApproveMarketRep();
@@ -197,55 +200,53 @@ const NewlyAddedUsers = () => {
 
   const totalPageCount = totalPages;
 
-  const actions = [
-    {
-      key: "view-details",
-      label: "View Market Rep",
-      action: (item) => {
-        return nav(`/admin/sales-rep/view-sales/${item.id}`);
+  // Handler for viewing details in modal
+  const handleViewDetails = (item) => {
+    setSelectedItemForView(item);
+    setViewDetailsModalOpen(true);
+    setOpenDropdown(null);
+  };
+
+  // Modified actions based on currView
+  const actions = useMemo(() => {
+    // For pending, invites, and rejected: only show "View Details" (opens modal)
+    if (currView === "pending" || currView === "invites" || currView === "rejected") {
+      return [
+        {
+          key: "view-details",
+          label: "View Details",
+          action: handleViewDetails,
+        },
+      ];
+    }
+
+    // For approved: show full actions including navigation to view page
+    return [
+      {
+        key: "view-details",
+        label: "View Market Rep",
+        action: (item) => {
+          return nav(`/admin/sales-rep/view-sales/${item.id}`);
+        },
       },
-    },
-    ...(currView === "invites" ||
-    currView === "pending" ||
-    currView === "rejected"
-      ? [
-          {
-            key: "edit-user",
-            label: "Edit User",
-            action: (item) => {
-              // Add your edit logic here
-              console.log("Edit user:", item);
-            },
-          },
-          {
-            key: "remove-user",
-            label: "Remove User",
-            action: (item) => {
-              // Add your remove logic here
-              console.log("Remove user:", item);
-            },
-          },
-        ]
-      : [
-          {
-            key: "suspend-vendor",
-            label:
-              currView === "approved" ? "Suspend Vendor" : "Unsuspend Vendor",
-            action: (item) => {
-              setSuspendModalOpen(true);
-              setNewCategory(item);
-              setOpenDropdown(null);
-            },
-          },
-          {
-            key: "delete-vendor",
-            label: "Delete Market Rep",
-            action: (item) => {
-              handleDeleteUser(item);
-            },
-          },
-        ]),
-  ];
+      {
+        key: "suspend-vendor",
+        label: currView === "approved" ? "Suspend Vendor" : "Unsuspend Vendor",
+        action: (item) => {
+          setSuspendModalOpen(true);
+          setNewCategory(item);
+          setOpenDropdown(null);
+        },
+      },
+      {
+        key: "delete-vendor",
+        label: "Delete Market Rep",
+        action: (item) => {
+          handleDeleteUser(item);
+        },
+      },
+    ];
+  }, [currView, nav]);
 
   const MarketRepData = useMemo(
     () =>
@@ -476,6 +477,18 @@ const NewlyAddedUsers = () => {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
         />
+        
+        {/* View Details Modal */}
+        <ViewDetailsModal
+          isOpen={viewDetailsModalOpen}
+          onClose={() => {
+            setViewDetailsModalOpen(false);
+            setSelectedItemForView(null);
+          }}
+          data={selectedItemForView}
+          dataType={currView}
+        />
+
         <CustomTable
           actions={actions}
           loading={isLoading}

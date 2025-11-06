@@ -46,7 +46,7 @@ export default function AnkaraGownPage() {
   const correctProductId = styleInfo?.product_id || styleInfo?.id;
   console.log(
     "🎯 AoStyleDetails: USING CORRECT PRODUCT ID FOR REVIEWS:",
-    correctProductId
+    correctProductId,
   );
 
   // Check for pending fabric data on component mount
@@ -115,7 +115,7 @@ export default function AnkaraGownPage() {
 
   const upperBodyMeasurements = [
     {
-      name: "Bust Circumference",
+      name: "A - Bust Circumference",
       placeholder: "Enter the circumference of your bust",
     },
     { name: "Shoulder Width", placeholder: "Enter the width of your shoulder" },
@@ -123,7 +123,10 @@ export default function AnkaraGownPage() {
       name: "Armhole Circumference",
       placeholder: "Enter the circumference of your armhole",
     },
-    { name: "Sleeve Length", placeholder: "Enter the length of your sleeve" },
+    {
+      name: "H - Sleeve Length",
+      placeholder: "Enter the length of your sleeve",
+    },
     {
       name: "Bicep Circumference",
       placeholder: "Enter the circumference of your bicep",
@@ -136,17 +139,20 @@ export default function AnkaraGownPage() {
 
   const lowerBodyMeasurements = [
     {
-      name: "Waist Circumference",
+      name: "B - Waist Circumference",
       placeholder: "Enter your waist measurement",
     },
-    { name: "Hip Circumference", placeholder: "Enter your hip measurement" },
+    {
+      name: "C - Hip Circumference",
+      placeholder: "Enter your hip measurement",
+    },
     {
       name: "Thigh Circumference",
       placeholder: "Enter your thigh measurement",
     },
     { name: "Knee Circumference", placeholder: "Enter your knee measurement" },
     {
-      name: "Trouser Length (Waist to Ankle)",
+      name: "J - Trouser Length (Waist to Ankle)",
       placeholder: "Enter your trouser length",
     },
   ];
@@ -205,106 +211,106 @@ export default function AnkaraGownPage() {
   const initialValues = {
     customer_name: markReceivedChecked
       ? carybinUser?.name
-      : currMeasurement?.customer_name ?? "",
+      : (currMeasurement?.customer_name ?? ""),
     bust_circumference: markReceivedChecked
       ? userMeasurement?.upper_body?.bust_circumference
-      : currMeasurement?.upper_body?.bust_circumference ?? "",
+      : (currMeasurement?.upper_body?.bust_circumference ?? ""),
     bust_circumference_unit: markReceivedChecked
       ? userMeasurement?.upper_body?.bust_circumference_unit
-      : currMeasurement?.upper_body?.bust_circumference_unit ?? "cm",
+      : (currMeasurement?.upper_body?.bust_circumference_unit ?? "cm"),
     shoulder_width: markReceivedChecked
       ? userMeasurement?.upper_body?.shoulder_width
-      : currMeasurement?.upper_body?.shoulder_width ?? "",
+      : (currMeasurement?.upper_body?.shoulder_width ?? ""),
     shoulder_width_unit: markReceivedChecked
       ? userMeasurement?.upper_body?.shoulder_width_unit
-      : currMeasurement?.upper_body?.shoulder_width_unit ?? "cm",
+      : (currMeasurement?.upper_body?.shoulder_width_unit ?? "cm"),
     armhole_circumference: markReceivedChecked
       ? userMeasurement?.upper_body?.armhole_circumference
-      : currMeasurement?.upper_body?.armhole_circumference ?? "",
+      : (currMeasurement?.upper_body?.armhole_circumference ?? ""),
     armhole_circumference_unit: markReceivedChecked
       ? userMeasurement?.upper_body?.armhole_circumference_unit
-      : currMeasurement?.upper_body?.armhole_circumference_unit ?? "cm",
+      : (currMeasurement?.upper_body?.armhole_circumference_unit ?? "cm"),
     sleeve_length: markReceivedChecked
       ? userMeasurement?.upper_body?.sleeve_length
-      : currMeasurement?.upper_body?.sleeve_length ?? "",
+      : (currMeasurement?.upper_body?.sleeve_length ?? ""),
 
     sleeve_length_unit: markReceivedChecked
       ? userMeasurement?.upper_body?.sleeve_length_unit
-      : currMeasurement?.upper_body?.sleeve_length_unit ?? "cm",
+      : (currMeasurement?.upper_body?.sleeve_length_unit ?? "cm"),
     bicep_circumference: markReceivedChecked
       ? userMeasurement?.upper_body?.bicep_circumference
-      : currMeasurement?.upper_body?.bicep_circumference ?? "",
+      : (currMeasurement?.upper_body?.bicep_circumference ?? ""),
 
     bicep_circumference_unit: markReceivedChecked
       ? userMeasurement?.upper_body?.bicep_circumference_unit
-      : currMeasurement?.upper_body?.bicep_circumference_unit ?? "cm",
+      : (currMeasurement?.upper_body?.bicep_circumference_unit ?? "cm"),
     waist_circumference_upper: markReceivedChecked
       ? userMeasurement?.upper_body?.waist_circumference
-      : currMeasurement?.upper_body?.waist_circumference ?? "",
+      : (currMeasurement?.upper_body?.waist_circumference ?? ""),
 
     waist_circumference_unit_upper: markReceivedChecked
       ? userMeasurement?.upper_body?.waist_circumference_unit
-      : currMeasurement?.upper_body?.waist_circumference_unit ?? "cm",
+      : (currMeasurement?.upper_body?.waist_circumference_unit ?? "cm"),
     waist_circumference_lower: markReceivedChecked
       ? userMeasurement?.lower_body?.waist_circumference
-      : currMeasurement?.lower_body?.waist_circumference ?? "",
+      : (currMeasurement?.lower_body?.waist_circumference ?? ""),
 
     waist_circumference_lower_unit: markReceivedChecked
       ? userMeasurement?.lower_body?.waist_circumference_unit
-      : currMeasurement?.lower_body?.waist_circumference_unit ?? "cm",
+      : (currMeasurement?.lower_body?.waist_circumference_unit ?? "cm"),
     wrist_circumference: markReceivedChecked
       ? userMeasurement?.upper_body?.wrist_circumference
-      : currMeasurement?.upper_body?.wrist_circumference ?? "",
+      : (currMeasurement?.upper_body?.wrist_circumference ?? ""),
     wrist_circumference_unit: markReceivedChecked
       ? userMeasurement?.upper_body?.wrist_circumference_unit
-      : currMeasurement?.upper_body?.wrist_circumference_unit ?? "cm",
+      : (currMeasurement?.upper_body?.wrist_circumference_unit ?? "cm"),
     hip_circumference: markReceivedChecked
       ? userMeasurement?.lower_body?.hip_circumference
-      : currMeasurement?.lower_body?.hip_circumference ?? "",
+      : (currMeasurement?.lower_body?.hip_circumference ?? ""),
 
     hip_circumference_unit: markReceivedChecked
       ? userMeasurement?.lower_body?.hip_circumference_unit
-      : currMeasurement?.lower_body?.hip_circumference_unit ?? "cm",
+      : (currMeasurement?.lower_body?.hip_circumference_unit ?? "cm"),
 
     thigh_circumference: markReceivedChecked
       ? userMeasurement?.lower_body?.thigh_circumference
-      : currMeasurement?.lower_body?.thigh_circumference ?? "",
+      : (currMeasurement?.lower_body?.thigh_circumference ?? ""),
 
     thigh_circumference_unit: markReceivedChecked
       ? userMeasurement?.lower_body?.thigh_circumference_unit
-      : currMeasurement?.lower_body?.thigh_circumference_unit ?? "cm",
+      : (currMeasurement?.lower_body?.thigh_circumference_unit ?? "cm"),
 
     knee_circumference: markReceivedChecked
       ? userMeasurement?.lower_body?.knee_circumference
-      : currMeasurement?.lower_body?.knee_circumference ?? "",
+      : (currMeasurement?.lower_body?.knee_circumference ?? ""),
 
     knee_circumference_unit: markReceivedChecked
       ? userMeasurement?.lower_body?.knee_circumference_unit
-      : currMeasurement?.lower_body?.knee_circumference_unit ?? "cm",
+      : (currMeasurement?.lower_body?.knee_circumference_unit ?? "cm"),
 
     trouser_length: markReceivedChecked
       ? userMeasurement?.lower_body?.trouser_length
-      : currMeasurement?.lower_body?.trouser_length ?? "",
+      : (currMeasurement?.lower_body?.trouser_length ?? ""),
 
     trouser_length_unit: markReceivedChecked
       ? userMeasurement?.lower_body?.trouser_length_unit
-      : currMeasurement?.lower_body?.trouser_length_unit ?? "cm",
+      : (currMeasurement?.lower_body?.trouser_length_unit ?? "cm"),
 
     height: markReceivedChecked
       ? userMeasurement?.full_body?.height
-      : currMeasurement?.full_body?.height ?? "",
+      : (currMeasurement?.full_body?.height ?? ""),
 
     height_unit: markReceivedChecked
       ? userMeasurement?.full_body?.height_unit
-      : currMeasurement?.full_body?.height_unit ?? "cm",
+      : (currMeasurement?.full_body?.height_unit ?? "cm"),
 
     dress_length: markReceivedChecked
       ? userMeasurement?.full_body?.dress_length
-      : currMeasurement?.full_body?.dress_length ?? "",
+      : (currMeasurement?.full_body?.dress_length ?? ""),
 
     dress_length_unit: markReceivedChecked
       ? userMeasurement?.full_body?.dress_length_unit
-      : currMeasurement?.full_body?.dress_length_unit ?? "cm",
+      : (currMeasurement?.full_body?.dress_length_unit ?? "cm"),
   };
 
   const {
@@ -343,7 +349,7 @@ export default function AnkaraGownPage() {
             sleeve_length_unit: val?.bust_circumference_unit,
             bicep_circumference: val?.bicep_circumference,
             bicep_circumference_unit: val?.bust_circumference_unit,
-            waist_circumference: val?.waist_circumference_upper,
+            waist_circumference: val?.waist_circumference_lower,
             waist_circumference_unit: val?.bust_circumference_unit,
             wrist_circumference: val?.wrist_circumference, // ← ADD THIS
             wrist_circumference_unit: val?.wrist_circumference_unit, // ← ADD THIS
@@ -371,7 +377,7 @@ export default function AnkaraGownPage() {
         setMeasurementArr((prev) => {
           if (currMeasurement?.id) {
             return prev.map((item) =>
-              item.id === currMeasurement?.id ? updateVal : item
+              item.id === currMeasurement?.id ? updateVal : item,
             );
           } else {
             return [...prev, updateVal];
@@ -818,7 +824,7 @@ export default function AnkaraGownPage() {
                             // );
                             console.log(
                               "This is a pending fabric we want to see rn",
-                              pendingFabric
+                              pendingFabric,
                             );
                             navigate("/shop-details/" + pendingFabric?.id);
                           }}
@@ -1104,7 +1110,7 @@ export default function AnkaraGownPage() {
                             <div className="grid mt-6 grid-cols-1 sm:grid-cols-2 gap-4">
                               <div className="mb-4">
                                 <label className="block text-gray-700 mb-4">
-                                  {"Bust Circumference [female]"}
+                                  {"A - Bust Circumference [female]"}
                                 </label>
                                 <div className="flex">
                                   <input
@@ -1206,7 +1212,7 @@ export default function AnkaraGownPage() {
                               </div>
                               <div className="mb-4">
                                 <label className="block text-gray-700 mb-4">
-                                  {"Sleeve Length"}
+                                  {"H - Sleeve Length"}
                                 </label>
                                 <div className="flex">
                                   <input
@@ -1315,7 +1321,7 @@ export default function AnkaraGownPage() {
                             <div className="grid mt-6 grid-cols-1 sm:grid-cols-2 gap-4">
                               <div className="mb-4">
                                 <label className="block text-gray-700 mb-4">
-                                  {"Waist Circumference"}
+                                  {"B - Waist Circumference"}
                                 </label>
                                 <div className="flex">
                                   <input
@@ -1346,7 +1352,7 @@ export default function AnkaraGownPage() {
                               </div>
                               <div className="mb-4">
                                 <label className="block text-gray-700 mb-4">
-                                  {"Hip Circumference"}
+                                  {"C - Hip Circumference"}
                                 </label>
                                 <div className="flex">
                                   <input
@@ -1556,10 +1562,10 @@ export default function AnkaraGownPage() {
                             {selectedTab === "Upper Body"
                               ? "Proceed to Lower Body"
                               : selectedTab === "Lower Body"
-                              ? "Proceed to Full Body"
-                              : pendingFabric
-                              ? "Complete & Review Order" // Changed text to be clearer
-                              : "Submit Measurements"}
+                                ? "Proceed to Full Body"
+                                : pendingFabric
+                                  ? "Complete & Review Order" // Changed text to be clearer
+                                  : "Submit Measurements"}
                           </button>
                           {measurementsSubmitted && (
                             <button

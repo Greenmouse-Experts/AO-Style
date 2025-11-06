@@ -27,6 +27,7 @@ const SEARCH_FIELDS = [
 
 const OrderPage = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const dropdownRef = useRef(null);
   const [searchField, setSearchField] = useState("orderId");
   const [searchTerm, setSearchTerm] = useState("");
@@ -113,43 +114,33 @@ const OrderPage = () => {
         label: "Action",
         key: "action",
         render: (_, row, index) => (
-          <div
-            className="relative"
-            ref={openDropdown === row.id ? dropdownRef : null}
-          >
+          <div className="relative">
             <button
-              onClick={() => {
-                setOpenDropdown(openDropdown === row.id ? null : row.id);
+              onClick={(e) => {
+                if (openDropdown === row.id) {
+                  setOpenDropdown(null);
+                } else {
+                  const rect = e.target.getBoundingClientRect();
+                  const shouldShowAbove =
+                    (index >= filteredOrderData.length - 2 &&
+                      filteredOrderData.length > 2) ||
+                    filteredOrderData.length === 1;
+                  setDropdownPosition({
+                    top: shouldShowAbove ? rect.top - 100 : rect.bottom + 5,
+                    left: rect.right - 160,
+                  });
+                  setOpenDropdown(row.id);
+                }
               }}
               className="px-2 py-1 cursor-pointer rounded-md hover:bg-gray-100"
             >
               •••
             </button>
-            {openDropdown === row.id && (
-              <div
-                className={`absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md z-[9999] border border-gray-200 ${
-                  // Check if this is one of the last 2 rows, then position dropdown above
-                  index >= filteredOrderData.length - 2 &&
-                  filteredOrderData.length > 2
-                    ? "bottom-full mb-2"
-                    : ""
-                }`}
-              >
-                <Link to={`/customer/orders/orders-details/${row.id}`}>
-                  <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">
-                    View Details
-                  </button>
-                </Link>
-                <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm border-t border-gray-100">
-                  Cancel Order
-                </button>
-              </div>
-            )}
           </div>
         ),
       },
     ],
-    [openDropdown]
+    [openDropdown],
   );
 
   const customersOrderData = useMemo(
@@ -205,7 +196,7 @@ const OrderPage = () => {
             };
           })
         : [],
-    [orderData]
+    [orderData],
   );
 
   const [filter, setFilter] = useState("all");
@@ -234,13 +225,13 @@ const OrderPage = () => {
   }, [customersOrderData, searchField, searchTerm]);
 
   // Count: Prefer .count from object if exists, or fallback to array length
-  let totalItems = (orderDataRaw && typeof orderDataRaw.count === "number")
-    ? orderDataRaw.count
-    : filteredOrderData?.length || 0;
+  let totalItems =
+    orderDataRaw && typeof orderDataRaw.count === "number"
+      ? orderDataRaw.count
+      : filteredOrderData?.length || 0;
 
   const totalPages = Math.ceil(
-    totalItems /
-      (queryParams["pagination[limit]"] ?? 10),
+    totalItems / (queryParams["pagination[limit]"] ?? 10),
   );
 
   const handleExport = (e) => {
@@ -379,7 +370,9 @@ const OrderPage = () => {
         {isLoading || isPending ? (
           <div className="flex flex-col items-center justify-center py-10">
             <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#A14DF6] mb-4"></div>
-            <div className="text-[#A14DF6] text-base font-medium">Loading orders...</div>
+            <div className="text-[#A14DF6] text-base font-medium">
+              Loading orders...
+            </div>
           </div>
         ) : (
           <>
@@ -420,7 +413,8 @@ const OrderPage = () => {
                   <button
                     onClick={() => {
                       updateQueryParams({
-                        "pagination[page]": +queryParams["pagination[page]"] - 1,
+                        "pagination[page]":
+                          +queryParams["pagination[page]"] - 1,
                       });
                     }}
                     disabled={(queryParams["pagination[page]"] ?? 1) === 1}
@@ -431,7 +425,8 @@ const OrderPage = () => {
                   <button
                     onClick={() => {
                       updateQueryParams({
-                        "pagination[page]": +queryParams["pagination[page]"] + 1,
+                        "pagination[page]":
+                          +queryParams["pagination[page]"] + 1,
                       });
                     }}
                     disabled={
@@ -446,6 +441,28 @@ const OrderPage = () => {
               </div>
             )}
           </>
+        )}
+
+        {/* Dropdown rendered outside table */}
+        {openDropdown && (
+          <div
+            style={{
+              position: "fixed",
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+              zIndex: 9999,
+            }}
+            className="w-40 bg-white shadow-lg rounded-md border border-gray-200"
+          >
+            <Link to={`/customer/orders/orders-details/${openDropdown}`}>
+              <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">
+                View Details
+              </button>
+            </Link>
+            <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm border-t border-gray-100">
+              Cancel Order
+            </button>
+          </div>
         )}
       </div>
     </div>

@@ -71,18 +71,110 @@ const CartPage = () => {
   const [pendingFabricSent, setPendingFabricSent] = useState(false);
 
   useEffect(() => {
-    // Only run if user is logged in, cart is loaded, and we haven't sent yet
+    console.log("🔍 CartPage useEffect triggered:", {
+      token: !!token,
+      pendingFabricSent,
+      cartLoading,
+      cartResponse: !!cartResponse,
+      cartResponseData: cartResponse?.data,
+      cartItems: cartResponse?.data?.items,
+      cartItemsLength: cartResponse?.data?.items?.length,
+      hasLocalStorage: !!localStorage.getItem("pending_fabric_data"),
+    });
+
+    // Only run if user is logged in, cart response is received, and we haven't sent yet
+    // Handle both existing users (cart has items array) and new users (cart might be empty/null)
     if (
       token &&
       !pendingFabricSent &&
       !cartLoading &&
       cartResponse &&
-      Array.isArray(cartResponse.data.items)
+      (Array.isArray(cartResponse.data?.items) ||
+        cartResponse.data?.items === null ||
+        !cartResponse.data?.items)
     ) {
       const pendingData = localStorage.getItem("pending_fabric_data");
       if (pendingData) {
-        console.log("this is the pending cart data ", JSON.parse(pendingData));
-        addMultipleCartMutate(pendingData, {
+        console.log("🔍 RAW localStorage data:", pendingData);
+        const parsedData = JSON.parse(pendingData);
+        console.log("🔍 PARSED localStorage data:", parsedData);
+
+        // Log detailed structure of each item
+        if (parsedData.items) {
+          parsedData.items.forEach((item, index) => {
+            console.log(`📦 ITEM ${index}:`, {
+              product_id: item.product_id,
+              product_type: item.product_type,
+              quantity: item.quantity,
+              customer_name: item.customer_name,
+              color: item.color,
+              style_product_id: item.style_product_id,
+              style_price: item.style_price,
+              has_measurement: !!item.measurement,
+              has_measurements: !!item.measurements,
+              measurement_count: item.measurement?.length || 0,
+              measurements_count: item.measurements?.length || 0,
+            });
+
+            // Log measurement structure if it exists
+            if (item.measurement && Array.isArray(item.measurement)) {
+              item.measurement.forEach((measurement, mIndex) => {
+                console.log(`📏 MEASUREMENT ${index}.${mIndex}:`, {
+                  customer_name: measurement.customer_name,
+                  id: measurement.id,
+                  has_upper_body: !!measurement.upper_body,
+                  has_lower_body: !!measurement.lower_body,
+                  has_full_body: !!measurement.full_body,
+                });
+
+                if (measurement.upper_body) {
+                  console.log(`📏 UPPER_BODY ${index}.${mIndex}:`, {
+                    bust_circumference:
+                      measurement.upper_body.bust_circumference,
+                    waist_circumference:
+                      measurement.upper_body.waist_circumference,
+                    waist_circumference_type:
+                      typeof measurement.upper_body.waist_circumference,
+                    shoulder_width: measurement.upper_body.shoulder_width,
+                    armhole_circumference:
+                      measurement.upper_body.armhole_circumference,
+                    sleeve_length: measurement.upper_body.sleeve_length,
+                    bicep_circumference:
+                      measurement.upper_body.bicep_circumference,
+                    wrist_circumference:
+                      measurement.upper_body.wrist_circumference,
+                  });
+                }
+
+                if (measurement.lower_body) {
+                  console.log(`📏 LOWER_BODY ${index}.${mIndex}:`, {
+                    waist_circumference:
+                      measurement.lower_body.waist_circumference,
+                    waist_circumference_type:
+                      typeof measurement.lower_body.waist_circumference,
+                    hip_circumference: measurement.lower_body.hip_circumference,
+                    thigh_circumference:
+                      measurement.lower_body.thigh_circumference,
+                    knee_circumference:
+                      measurement.lower_body.knee_circumference,
+                    trouser_length: measurement.lower_body.trouser_length,
+                  });
+                }
+              });
+            }
+
+            // Log measurements (plural) if it exists
+            if (item.measurements && Array.isArray(item.measurements)) {
+              console.log(
+                `📏 MEASUREMENTS (plural) for item ${index}:`,
+                item.measurements,
+              );
+            }
+          });
+        }
+
+        console.log("🚀 SENDING TO API - Final payload:", parsedData);
+        addMultipleCartMutate(parsedData, {
           onSuccess: (data) => {
             toastSuccess("Added to cart successfully");
             console.log("Added to cart successfully:", data);

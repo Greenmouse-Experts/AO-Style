@@ -2,13 +2,13 @@ import Loader from "../../../../components/ui/Loader";
 
 const ReusableTable = ({ columns, data, loading }) => {
   return (
-    <div className="bg-white overflow-x-visible">
+    <div className="bg-white overflow-visible">
       {loading ? (
         <div className=" flex !w-full items-center justify-center">
           <Loader />
         </div>
       ) : (
-        <table className="w-full  border-collapse rounded-lg hidden  sm:table">
+        <table className="w-full border-collapse rounded-lg hidden sm:table relative">
           {/* Table Header */}
           <thead>
             <tr className="text-left text-gray-600">
@@ -36,7 +36,7 @@ const ReusableTable = ({ columns, data, loading }) => {
                 {columns.map((col, colIndex) => (
                   <td
                     key={`${row.id || rowIndex}-${col.key || colIndex}`}
-                    className="py-5 px-4 font-light"
+                    className="py-5 px-4 font-light relative overflow-visible"
                   >
                     {col.render ? col.render(row[col.key], row) : row[col.key]}
                   </td>

@@ -157,6 +157,46 @@ const addMultipleToCart = async (payload) => {
       items: payload.items,
     });
 
+    // Detailed logging for API debugging
+    console.log(
+      "🔍 API SERVICE - Exact payload being sent to /cart/add-multiple:",
+    );
+    console.log("📦 Payload structure:", JSON.stringify(payload, null, 2));
+
+    if (payload.items) {
+      payload.items.forEach((item, index) => {
+        console.log(`🔍 API SERVICE - Item ${index}:`, {
+          product_id: item.product_id,
+          product_type: item.product_type,
+          quantity: item.quantity,
+          style_product_id: item.style_product_id,
+          has_measurement: !!item.measurement,
+          has_measurements: !!item.measurements,
+        });
+
+        // Log measurement details
+        if (item.measurement && Array.isArray(item.measurement)) {
+          item.measurement.forEach((m, mIndex) => {
+            console.log(`🔍 API SERVICE - Measurement ${index}.${mIndex}:`, {
+              customer_name: m.customer_name,
+              upper_body_waist: m.upper_body?.waist_circumference,
+              upper_body_waist_type: typeof m.upper_body?.waist_circumference,
+              lower_body_waist: m.lower_body?.waist_circumference,
+              lower_body_waist_type: typeof m.lower_body?.waist_circumference,
+              full_measurement: m,
+            });
+          });
+        }
+
+        if (item.measurements && Array.isArray(item.measurements)) {
+          console.log(
+            `🔍 API SERVICE - Item ${index} has measurements (plural):`,
+            item.measurements,
+          );
+        }
+      });
+    }
+
     const response = await CaryBinApi.post(`/cart/add-multiple`, payload);
     console.log("✅ Multiple items added to cart successfully:", response.data);
     return response;
@@ -164,6 +204,10 @@ const addMultipleToCart = async (payload) => {
     console.error(
       "❌ Error adding multiple items to cart:",
       error.response?.data || error.message,
+    );
+    console.error(
+      "❌ Failed payload that caused the error:",
+      JSON.stringify(payload, null, 2),
     );
     throw error;
   }

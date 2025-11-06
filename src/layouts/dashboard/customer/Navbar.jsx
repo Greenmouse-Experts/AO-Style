@@ -177,7 +177,7 @@ export default function Navbar({ toggleSidebar }) {
           </span>
           <span className="inline md:hidden">
             {token
-              ? "Your Dashboard"
+              ? "Customer Dashboard"
               : "Welcome to Carybin"}
           </span>
         </h1>

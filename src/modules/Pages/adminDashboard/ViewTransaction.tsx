@@ -204,7 +204,11 @@ export default function ViewTransaction() {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div>
                     <h2 className="text-xl font-semibold">
-                     ID: {withdrawal.id.replace(/-/g, "")?.slice(0, 12)?.toUpperCase()}
+                      ID:{" "}
+                      {withdrawal.id
+                        .replace(/-/g, "")
+                        ?.slice(0, 12)
+                        ?.toUpperCase()}
                     </h2>
                     <p className="text-gray-300 text-sm">
                       {new Date(withdrawal.created_at).toLocaleDateString()} at{" "}
@@ -299,7 +303,9 @@ export default function ViewTransaction() {
                     )}
                     {withdrawal.processed_by && (
                       <div>
-                        <dt className="text-sm text-gray-600">Processed By (ID)</dt>
+                        <dt className="text-sm text-gray-600">
+                          Processed By (ID)
+                        </dt>
                         <dd className="font-mono text-sm bg-gray-100 px-2 py-1 rounded mt-1">
                           {withdrawal.processed_by
                             .replace(/-/g, "")
@@ -310,10 +316,11 @@ export default function ViewTransaction() {
                     )}
                     {withdrawal.processed_by_details && (
                       <div>
-                        <dt className="text-sm text-gray-600">Processed By (E-MAIL)</dt>
+                        <dt className="text-sm text-gray-600">
+                          Processed By (E-MAIL)
+                        </dt>
                         <dd className="font-mono text-sm bg-gray-100 px-2 py-1 rounded mt-1">
-                          {withdrawal.processed_by_details?.email
-  }
+                          {withdrawal.processed_by_details?.email}
                         </dd>
                       </div>
                     )}
@@ -376,7 +383,10 @@ export default function ViewTransaction() {
 
           {transactions.map((transaction) => (
             <div
-              key={transaction?.id?.replace(/-/g, "").slice(0, 12).toUpperCase()}
+              key={transaction?.id
+                ?.replace(/-/g, "")
+                .slice(0, 12)
+                .toUpperCase()}
               className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
             >
               {/* Header */}
@@ -385,7 +395,11 @@ export default function ViewTransaction() {
                   <div>
                     <h2 className="text-xl font-semibold">
                       {String(
-                        transaction?.transaction_id?.replace(/-/g, "").slice(0, 12) || transaction?.id?.replace(/-/g, "")?.slice(0, 12) || "",
+                        transaction?.transaction_id
+                          ?.replace(/-/g, "")
+                          .slice(0, 12) ||
+                          transaction?.id?.replace(/-/g, "")?.slice(0, 12) ||
+                          "",
                       ).toUpperCase()}
                     </h2>
                     <p className="text-gray-300 text-sm">
@@ -673,7 +687,7 @@ export default function ViewTransaction() {
                                       {item.purchase_type}
                                     </span>
                                   </td>
-
+                                  {/*hi*/}
                                   <td className="px-4 py-3 align-top text-sm text-gray-500">
                                     <div className="text-sm">{vendorText}</div>
                                   </td>

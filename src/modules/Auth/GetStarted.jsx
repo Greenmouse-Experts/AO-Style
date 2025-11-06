@@ -27,7 +27,7 @@ export default function GetStarted() {
         {[
           {
             title: "Customer",
-            description: "For clients who want to patronize tailoring services",
+            description: "For clients who wants to purchase fabrics and tailoring services",
             image:
               "https://res.cloudinary.com/greenmouse-tech/image/upload/v1741609872/AoStyle/image_k5w7sy.png",
             link: "/sign-in-as-customer",

@@ -169,10 +169,17 @@ export default function Navbar({ toggleSidebar }) {
         </button>
 
         {/* Page Title */}
-        <h1 className="text-xl font-bold text-gray-700 lg:ml-4">
-          {token
-            ? "Welcome to Your Customer Dashboard – Manage Orders, Track Deliveries, and View Notifications"
-            : "Welcome to Carybin – Browse Products and Add to Cart"}
+        <h1 className="text-lg font-bold text-gray-700 lg:text-xl lg:ml-4">
+          <span className="hidden md:inline">
+            {token
+              ? "Welcome to Your Customer Dashboard – Manage Orders, Track Deliveries, and View Notifications"
+              : "Welcome to Carybin – Browse Products and Add to Cart"}
+          </span>
+          <span className="inline md:hidden">
+            {token
+              ? "Your Dashboard"
+              : "Welcome to Carybin"}
+          </span>
         </h1>
 
         {/* Right: Cart, Announcements, Notifications & Profile */}

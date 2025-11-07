@@ -484,7 +484,7 @@ const OrderDetails = () => {
         <div className="mt-4 flex items-start gap-2 text-xs text-gray-600 bg-white bg-opacity-60 backdrop-blur-sm p-3 rounded-lg">
           <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
           <p>
-            Delivery times are estimates and may vary based on tailor availability, 
+            Delivery times are estimates and may vary based on considerable factors i.e traffic, 
             order complexity, and logistics. You'll receive updates as your order progresses.
           </p>
         </div>

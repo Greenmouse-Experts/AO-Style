@@ -373,9 +373,9 @@ const OrderDetails = () => {
     const daysRemaining = Math.ceil(etaData.totalHours / 24);
 
     return (
-      <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-xl border-2 border-blue-200 p-6 mt-6 shadow-lg">
+      <div className="bg-gradient-to-br from-purple-50 via-indigo-50 to-purple-50 rounded-xl border-2 border-purple-200 p-6 mt-6 shadow-lg">
         <div className="flex items-center gap-3 mb-6">
-          <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-3 rounded-xl shadow-md">
+          <div className="bg-indigo-600 p-3 rounded-xl shadow-md">
             <Clock className="w-6 h-6 text-white" />
           </div>
           <div>
@@ -455,7 +455,7 @@ const OrderDetails = () => {
         </div>
 
         {/* Total Estimate */}
-        <div className="bg-indigo-600 rounded-xl p-5 shadow-lg">
+        <div className="bg-violet-500 rounded-xl p-5 shadow-lg">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className="bg-white bg-opacity-20 p-2 rounded-lg backdrop-blur-sm">

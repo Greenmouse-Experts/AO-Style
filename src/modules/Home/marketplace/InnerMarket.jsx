@@ -44,7 +44,7 @@ export default function MarketplacePage() {
 
   const isShowMoreBtn =
     getMarketPlaceFabricData?.data?.length == getMarketPlaceFabricData?.count;
-
+console.log("This is the market place fabric data", getMarketPlaceFabricData)
   return (
     <>
       <Breadcrumb
@@ -145,7 +145,7 @@ export default function MarketplacePage() {
             <LoaderComponent />
           ) : getMarketPlaceFabricData?.data?.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-              {getMarketPlaceFabricData?.data?.map((product, index) => (
+              {getMarketPlaceFabricData?.data?.filter(product => product?.quantity > 15)?.map((product, index) => (
                 <Link to={`/shop-details/${product?.id}`} key={product.id}>
                   <motion.div
                     className="text-center"

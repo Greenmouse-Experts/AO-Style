@@ -114,32 +114,6 @@ export default function MarketplaceSection() {
     setProducts((prev) => [...prev, ...moreProducts]);
   };
 
-  // Filter by search term, category, and price range
-  const filteredProducts = products.filter((product) => {
-    const productPrice = parseInt(
-      product.price.replace("₦", "").replace(",", ""),
-    );
-    return (
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (selectedCategory === "All Styles" ||
-        product.category === selectedCategory) &&
-      productPrice >= priceRange[0] &&
-      productPrice <= priceRange[1]
-    );
-  });
-
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    if (sortBy === "Price: Low to High")
-      return (
-        parseInt(a.price.replace("₦", "")) - parseInt(b.price.replace("₦", ""))
-      );
-    if (sortBy === "Price: High to Low")
-      return (
-        parseInt(b.price.replace("₦", "")) - parseInt(a.price.replace("₦", ""))
-      );
-    return 0;
-  });
-
   const [page, setPage] = useState(10);
 
   const [queryString, setQueryString] = useState("");
@@ -182,6 +156,35 @@ export default function MarketplaceSection() {
     const numPrice = parseFloat(price || 0);
     return `₦${numPrice.toLocaleString()}`;
   };
+
+  // Sort products from API data
+  const getSortedProducts = () => {
+    if (!getStyleProductData?.data || getStyleProductData.data.length === 0) {
+      return [];
+    }
+
+    const productsToSort = [...getStyleProductData.data];
+
+    if (sortBy === "Price: Low to High") {
+      return productsToSort.sort((a, b) => {
+        const priceA = parseFloat(a.price || 0);
+        const priceB = parseFloat(b.price || 0);
+        return priceA - priceB;
+      });
+    }
+
+    if (sortBy === "Price: High to Low") {
+      return productsToSort.sort((a, b) => {
+        const priceA = parseFloat(a.price || 0);
+        const priceB = parseFloat(b.price || 0);
+        return priceB - priceA;
+      });
+    }
+
+    return productsToSort; // Default sorting
+  };
+
+  const sortedProducts = getSortedProducts();
 
   return (
     <>
@@ -256,6 +259,7 @@ export default function MarketplaceSection() {
             <select
               onChange={(e) => setSortBy(e.target.value)}
               className="border border-gray-300 text-[#8A8A8A] p-2 rounded"
+              value={sortBy}
             >
               <option value="Default">
                 <SortDesc size={16} /> Sort By
@@ -303,9 +307,9 @@ export default function MarketplaceSection() {
         {/* Product Grid */}
         {productIsPending ? (
           <LoaderComponent />
-        ) : getStyleProductData?.data?.length > 0 ? (
+        ) : sortedProducts.length > 0 ? (
           <div className="grid mt-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4">
-            {getStyleProductData?.data?.map((product) => (
+            {sortedProducts.map((product) => (
               <Link
                 to={`/aostyle-details`}
                 state={{ info: product }}
@@ -318,7 +322,8 @@ export default function MarketplaceSection() {
                 <img
                   src={product?.style?.photos[0]}
                   alt={product.name}
-                  className="w-full h-[200px] object-cover rounded-md"
+                  className="w-full h-[200px] object-contain rounded-md bg-white"
+                  style={{ backgroundColor: "#fff" }}
                 />
                 <h3 className="font-medium text-left uppercase mt-4 mb-3">
                   {product?.name?.length > 20
@@ -343,7 +348,7 @@ export default function MarketplaceSection() {
 
         {/* Load More Button */}
 
-        {getStyleProductData?.data?.length ? (
+        {sortedProducts.length ? (
           isShowMoreBtn ? (
             <></>
           ) : (

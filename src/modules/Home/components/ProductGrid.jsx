@@ -66,7 +66,7 @@ export default function ProductGrid() {
   const { data: getTrendingData, isPending } = useGetTrendingProduct({});
 
   const trendingProducts = getTrendingData?.data || [];
-
+console.log("These are he trending products", trendingProducts)
   // Format price with commas
   const formatPrice = (price) => {
     const numPrice = parseFloat(price || 0);
@@ -83,7 +83,7 @@ export default function ProductGrid() {
         </>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {trendingProducts?.map((product, index) => (
+          {trendingProducts?.filter(product => product?.fabric?.quantity > 15).map((product, index) => (
             <Link to={`/shop-details/${product?.fabric?.id}`} key={product.id}>
               <motion.div
                 className="text-center"

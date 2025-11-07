@@ -46,7 +46,7 @@ export default function AnkaraGownPage() {
   const correctProductId = styleInfo?.product_id || styleInfo?.id;
   console.log(
     "🎯 AoStyleDetails: USING CORRECT PRODUCT ID FOR REVIEWS:",
-    correctProductId,
+    correctProductId
   );
 
   // Check for pending fabric data on component mount
@@ -211,106 +211,106 @@ export default function AnkaraGownPage() {
   const initialValues = {
     customer_name: markReceivedChecked
       ? carybinUser?.name
-      : (currMeasurement?.customer_name ?? ""),
+      : currMeasurement?.customer_name ?? "",
     bust_circumference: markReceivedChecked
       ? userMeasurement?.upper_body?.bust_circumference
-      : (currMeasurement?.upper_body?.bust_circumference ?? ""),
+      : currMeasurement?.upper_body?.bust_circumference ?? "",
     bust_circumference_unit: markReceivedChecked
       ? userMeasurement?.upper_body?.bust_circumference_unit
-      : (currMeasurement?.upper_body?.bust_circumference_unit ?? "cm"),
+      : currMeasurement?.upper_body?.bust_circumference_unit ?? "cm",
     shoulder_width: markReceivedChecked
       ? userMeasurement?.upper_body?.shoulder_width
-      : (currMeasurement?.upper_body?.shoulder_width ?? ""),
+      : currMeasurement?.upper_body?.shoulder_width ?? "",
     shoulder_width_unit: markReceivedChecked
       ? userMeasurement?.upper_body?.shoulder_width_unit
-      : (currMeasurement?.upper_body?.shoulder_width_unit ?? "cm"),
+      : currMeasurement?.upper_body?.shoulder_width_unit ?? "cm",
     armhole_circumference: markReceivedChecked
       ? userMeasurement?.upper_body?.armhole_circumference
-      : (currMeasurement?.upper_body?.armhole_circumference ?? ""),
+      : currMeasurement?.upper_body?.armhole_circumference ?? "",
     armhole_circumference_unit: markReceivedChecked
       ? userMeasurement?.upper_body?.armhole_circumference_unit
-      : (currMeasurement?.upper_body?.armhole_circumference_unit ?? "cm"),
+      : currMeasurement?.upper_body?.armhole_circumference_unit ?? "cm",
     sleeve_length: markReceivedChecked
       ? userMeasurement?.upper_body?.sleeve_length
-      : (currMeasurement?.upper_body?.sleeve_length ?? ""),
+      : currMeasurement?.upper_body?.sleeve_length ?? "",
 
     sleeve_length_unit: markReceivedChecked
       ? userMeasurement?.upper_body?.sleeve_length_unit
-      : (currMeasurement?.upper_body?.sleeve_length_unit ?? "cm"),
+      : currMeasurement?.upper_body?.sleeve_length_unit ?? "cm",
     bicep_circumference: markReceivedChecked
       ? userMeasurement?.upper_body?.bicep_circumference
-      : (currMeasurement?.upper_body?.bicep_circumference ?? ""),
+      : currMeasurement?.upper_body?.bicep_circumference ?? "",
 
     bicep_circumference_unit: markReceivedChecked
       ? userMeasurement?.upper_body?.bicep_circumference_unit
-      : (currMeasurement?.upper_body?.bicep_circumference_unit ?? "cm"),
+      : currMeasurement?.upper_body?.bicep_circumference_unit ?? "cm",
     waist_circumference_upper: markReceivedChecked
       ? userMeasurement?.upper_body?.waist_circumference
-      : (currMeasurement?.upper_body?.waist_circumference ?? ""),
+      : currMeasurement?.upper_body?.waist_circumference ?? "",
 
     waist_circumference_unit_upper: markReceivedChecked
       ? userMeasurement?.upper_body?.waist_circumference_unit
-      : (currMeasurement?.upper_body?.waist_circumference_unit ?? "cm"),
+      : currMeasurement?.upper_body?.waist_circumference_unit ?? "cm",
     waist_circumference_lower: markReceivedChecked
       ? userMeasurement?.lower_body?.waist_circumference
-      : (currMeasurement?.lower_body?.waist_circumference ?? ""),
+      : currMeasurement?.lower_body?.waist_circumference ?? "",
 
     waist_circumference_lower_unit: markReceivedChecked
       ? userMeasurement?.lower_body?.waist_circumference_unit
-      : (currMeasurement?.lower_body?.waist_circumference_unit ?? "cm"),
+      : currMeasurement?.lower_body?.waist_circumference_unit ?? "cm",
     wrist_circumference: markReceivedChecked
       ? userMeasurement?.upper_body?.wrist_circumference
-      : (currMeasurement?.upper_body?.wrist_circumference ?? ""),
+      : currMeasurement?.upper_body?.wrist_circumference ?? "",
     wrist_circumference_unit: markReceivedChecked
       ? userMeasurement?.upper_body?.wrist_circumference_unit
-      : (currMeasurement?.upper_body?.wrist_circumference_unit ?? "cm"),
+      : currMeasurement?.upper_body?.wrist_circumference_unit ?? "cm",
     hip_circumference: markReceivedChecked
       ? userMeasurement?.lower_body?.hip_circumference
-      : (currMeasurement?.lower_body?.hip_circumference ?? ""),
+      : currMeasurement?.lower_body?.hip_circumference ?? "",
 
     hip_circumference_unit: markReceivedChecked
       ? userMeasurement?.lower_body?.hip_circumference_unit
-      : (currMeasurement?.lower_body?.hip_circumference_unit ?? "cm"),
+      : currMeasurement?.lower_body?.hip_circumference_unit ?? "cm",
 
     thigh_circumference: markReceivedChecked
       ? userMeasurement?.lower_body?.thigh_circumference
-      : (currMeasurement?.lower_body?.thigh_circumference ?? ""),
+      : currMeasurement?.lower_body?.thigh_circumference ?? "",
 
     thigh_circumference_unit: markReceivedChecked
       ? userMeasurement?.lower_body?.thigh_circumference_unit
-      : (currMeasurement?.lower_body?.thigh_circumference_unit ?? "cm"),
+      : currMeasurement?.lower_body?.thigh_circumference_unit ?? "cm",
 
     knee_circumference: markReceivedChecked
       ? userMeasurement?.lower_body?.knee_circumference
-      : (currMeasurement?.lower_body?.knee_circumference ?? ""),
+      : currMeasurement?.lower_body?.knee_circumference ?? "",
 
     knee_circumference_unit: markReceivedChecked
       ? userMeasurement?.lower_body?.knee_circumference_unit
-      : (currMeasurement?.lower_body?.knee_circumference_unit ?? "cm"),
+      : currMeasurement?.lower_body?.knee_circumference_unit ?? "cm",
 
     trouser_length: markReceivedChecked
       ? userMeasurement?.lower_body?.trouser_length
-      : (currMeasurement?.lower_body?.trouser_length ?? ""),
+      : currMeasurement?.lower_body?.trouser_length ?? "",
 
     trouser_length_unit: markReceivedChecked
       ? userMeasurement?.lower_body?.trouser_length_unit
-      : (currMeasurement?.lower_body?.trouser_length_unit ?? "cm"),
+      : currMeasurement?.lower_body?.trouser_length_unit ?? "cm",
 
     height: markReceivedChecked
       ? userMeasurement?.full_body?.height
-      : (currMeasurement?.full_body?.height ?? ""),
+      : currMeasurement?.full_body?.height ?? "",
 
     height_unit: markReceivedChecked
       ? userMeasurement?.full_body?.height_unit
-      : (currMeasurement?.full_body?.height_unit ?? "cm"),
+      : currMeasurement?.full_body?.height_unit ?? "cm",
 
     dress_length: markReceivedChecked
       ? userMeasurement?.full_body?.dress_length
-      : (currMeasurement?.full_body?.dress_length ?? ""),
+      : currMeasurement?.full_body?.dress_length ?? "",
 
     dress_length_unit: markReceivedChecked
       ? userMeasurement?.full_body?.dress_length_unit
-      : (currMeasurement?.full_body?.dress_length_unit ?? "cm"),
+      : currMeasurement?.full_body?.dress_length_unit ?? "cm",
   };
 
   const {
@@ -377,7 +377,7 @@ export default function AnkaraGownPage() {
         setMeasurementArr((prev) => {
           if (currMeasurement?.id) {
             return prev.map((item) =>
-              item.id === currMeasurement?.id ? updateVal : item,
+              item.id === currMeasurement?.id ? updateVal : item
             );
           } else {
             return [...prev, updateVal];
@@ -483,6 +483,25 @@ export default function AnkaraGownPage() {
 
   const removeMeasurementById = (idToRemove) => {
     setMeasurementArr((prev) => prev.filter((m) => m.id !== idToRemove));
+  };
+  // Add this helper function at the top of your component
+  const extractDays = (timeString) => {
+    if (!timeString) return 0;
+
+    // Try different patterns
+    // Pattern 1: "1970-01-01 01:00:00.005 day" -> extract milliseconds as days
+    let match = timeString.match(/\.(\d+)/);
+    if (match) return parseInt(match[1]);
+
+    // Pattern 2: Look for any number before "day"
+    match = timeString.match(/(\d+)\s*day/);
+    if (match) return parseInt(match[1]);
+
+    // Pattern 3: Just extract any number from the string
+    match = timeString.match(/(\d+)/);
+    if (match) return parseInt(match[1]);
+
+    return 0;
   };
 
   return (
@@ -720,8 +739,12 @@ export default function AnkaraGownPage() {
                         Estimated Sewing Time:
                       </span>
                       <span className="text-sm font-medium text-gray-900">
-                        {styleInfo.style.estimated_sewing_time} day
-                        {styleInfo.style.estimated_sewing_time > 1 ? "s" : ""}
+                        {(() => {
+                          const days = extractDays(
+                            styleInfo.style.estimated_sewing_time
+                          );
+                          return `${days} day${days !== 1 ? "s" : ""}`;
+                        })()}
                       </span>
                     </div>
                   )}
@@ -824,7 +847,7 @@ export default function AnkaraGownPage() {
                             // );
                             console.log(
                               "This is a pending fabric we want to see rn",
-                              pendingFabric,
+                              pendingFabric
                             );
                             navigate("/shop-details/" + pendingFabric?.id);
                           }}
@@ -1562,10 +1585,10 @@ export default function AnkaraGownPage() {
                             {selectedTab === "Upper Body"
                               ? "Proceed to Lower Body"
                               : selectedTab === "Lower Body"
-                                ? "Proceed to Full Body"
-                                : pendingFabric
-                                  ? "Complete & Review Order" // Changed text to be clearer
-                                  : "Submit Measurements"}
+                              ? "Proceed to Full Body"
+                              : pendingFabric
+                              ? "Complete & Review Order" // Changed text to be clearer
+                              : "Submit Measurements"}
                           </button>
                           {measurementsSubmitted && (
                             <button

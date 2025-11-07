@@ -416,11 +416,13 @@ export default function MarketplaceSection() {
                 key={product.id}
                 className=""
               >
-                <img
-                  src={product?.style?.photos[0]}
-                  alt={product.name}
-                  className="w-full h-[200px] object-cover rounded-md"
-                />
+                <div className="w-full h-[260px] flex items-center justify-center overflow-hidden rounded-md bg-gray-50">
+                  <img
+                    src={product?.style?.photos[0]}
+                    alt={product.name}
+                    className="object-contain w-full h-full"
+                  />
+                </div>
                 <h3 className="font-medium text-left uppercase mt-4 mb-3">
                   {product?.name?.length > 20
                     ? product.name.slice(0, 20) + "..."

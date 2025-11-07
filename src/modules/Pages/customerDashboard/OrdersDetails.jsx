@@ -455,7 +455,7 @@ const OrderDetails = () => {
         </div>
 
         {/* Total Estimate */}
-        <div className="bg-violet-500 rounded-xl p-5 shadow-lg">
+        <div className="bg-purple-500 rounded-xl p-5 shadow-lg">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className="bg-white bg-opacity-20 p-2 rounded-lg backdrop-blur-sm">

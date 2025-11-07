@@ -428,7 +428,7 @@ export default function ShopMaterials() {
             </div>
           ) : (
             <div className="grid grid-cols-2 mt-20 mb-5 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {getProductData?.data?.map((product, index) => (
+              {getProductData?.data?.filter(product => product?.fabric?.quantity > 15).map((product, index) => (
                 <Link
                   to={`/shop-details/${product?.fabric?.id}`}
                   key={product.id}

@@ -265,9 +265,10 @@ export default function OrderRequests() {
 
   // Helper function to determine if order is in second leg
   const isSecondLeg = (item: Order) => {
-    return item?.status === "OUT_FOR_DELIVERY" || 
-           (item?.status === "IN_TRANSIT" && item?.logistics_agent_id);
+    return item?.status === "OUT_FOR_DELIVERY" && item?.order_items?.length >= 2 || 
+           (item?.status === "IN_TRANSIT" && item?.logistics_agent_id && item?.order_items?.length >= 2);
   };
+
 
   // Helper function to get pickup contact info
   const getPickupContact = (item: Order) => {

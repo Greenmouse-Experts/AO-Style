@@ -161,9 +161,9 @@ const ActionMenu = ({ row }) => {
           <button className="block px-4 py-2 text-sm hover:bg-gray-100 w-full">
             View Details
           </button>
-          <button className="block px-4 py-2 text-sm hover:bg-gray-100 w-full">
+          {/* <button className="block px-4 py-2 text-sm hover:bg-gray-100 w-full">
             Cancel Order
-          </button>
+          </button> */}
         </div>
       )}
     </div>

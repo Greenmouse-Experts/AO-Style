@@ -35,8 +35,12 @@ const getVendorRecentOrders = () => {
 const getVendorTopProduct = () => {
   return CaryBinApi.get(`/vendor-analytics/top-products`);
 };
+const getVendorTopSellingProducts = () => {
+  return CaryBinApi.get(`/orders/top-selling-products`);
+};
 
 const AnalyticsService = {
+  getVendorTopSellingProducts,
   getVendorTopProduct,
   getDashboardStat,
   getCustomerOrderAnalyticsStat,

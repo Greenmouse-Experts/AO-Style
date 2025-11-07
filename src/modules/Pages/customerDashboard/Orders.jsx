@@ -459,9 +459,9 @@ const OrderPage = () => {
                 View Details
               </button>
             </Link>
-            <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm border-t border-gray-100">
+            {/* <button className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm border-t border-gray-100">
               Cancel Order
-            </button>
+            </button> */}
           </div>
         )}
       </div>

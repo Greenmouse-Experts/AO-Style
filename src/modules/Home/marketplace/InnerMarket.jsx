@@ -141,74 +141,68 @@ console.log("This is the market place fabric data", getMarketPlaceFabricData)
         </div>
 
         <section>
-  {isPending ? (
-    <LoaderComponent />
-  ) : getMarketPlaceFabricData?.data?.length > 0 ? (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-      {getMarketPlaceFabricData?.data?.map((product, index) => {
-        const isOutOfStock = product?.quantity <= 15;
-        const ProductWrapper = isOutOfStock ? 'div' : Link;
-        const wrapperProps = isOutOfStock 
-          ? { className: "cursor-not-allowed" } 
-          : { to: `/shop-details/${product?.id}` };
-
-        return (
-          <ProductWrapper {...wrapperProps} key={product.id}>
-            <motion.div
-              className="text-center relative"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-            >
-              <div className="relative">
-                <motion.img
-                  src={product?.photos[0]}
-                  alt={product.name}
-                  className={`w-full h-66 object-cover rounded-md ${
-                    isOutOfStock ? 'blur-sm grayscale opacity-60' : ''
-                  }`}
-                  whileHover={isOutOfStock ? {} : { scale: 1.05 }}
-                  transition={{ duration: 0.3 }}
-                />
-                {isOutOfStock && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm bg-opacity-40 rounded-md">
-                    <div className="text-center">
-                      <div className="bg-red-400 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg">
-                        OUT OF STOCK
-                      </div>
-                      <p className="text-white text-xs mt-2 font-medium">
-                        Currently Unavailable
-                      </p>
+        {isPending ? (
+  <LoaderComponent />
+) : getMarketPlaceFabricData?.data?.length > 0 ? (
+  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+    {getMarketPlaceFabricData?.data?.map((product, index) => {
+      const isOutOfStock = product?.quantity <= 15;
+      const ProductWrapper = isOutOfStock ? 'div' : Link;
+      const wrapperProps = isOutOfStock 
+        ? { className: "cursor-not-allowed" } 
+        : { to: `/shop-details/${product?.id}` };
+      return (
+        <ProductWrapper {...wrapperProps} key={product.id}>
+          <motion.div
+            className="text-center relative"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+          >
+            <div className="relative">
+              <motion.img
+                src={product?.photos[0]}
+                alt={product.name}
+                className={`w-full h-66 object-cover rounded-md ${
+                  isOutOfStock ? 'opacity-70' : ''
+                }`}
+                whileHover={isOutOfStock ? {} : { scale: 1.05 }}
+                transition={{ duration: 0.3 }}
+              />
+              {isOutOfStock && (
+                <div className="absolute inset-0 flex items-center justify-center backdrop-blur-[2px] bg-black/20 rounded-md">
+                  <div className="text-center">
+                    <div className="bg-red-500 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg">
+                      OUT OF STOCK
                     </div>
+                    <p className="text-white text-xs mt-2 font-medium">
+                      Currently Unavailable
+                    </p>
                   </div>
-                )}
-              </div>
-              <h3 className={`font-medium text-left mt-4 mb-2 text-sm ${
-                isOutOfStock ? 'text-gray-400' : ''
-              }`}>
-                {product?.product?.name}
-              </h3>
-              <p className={`text-left text-sm ${
-                isOutOfStock ? 'text-gray-400' : 'text-[#2B21E5]'
-              }`}>
-                ₦{product?.product?.price.toLocaleString()}{" "}
-                <span className="text-gray-500">per yard</span>
-              </p>
-              {/* {isOutOfStock && (
-                <span className="inline-block mt-2 text-xs text-red-600 font-semibold bg-red-50 px-2 py-1 rounded">
-                  Only {product?.quantity} yards left
-                </span>
-              )} */}
-            </motion.div>
-          </ProductWrapper>
-        );
-      })}
-    </div>
-  ) : (
-    <div className="text-center py-20">
-      <p className="text-gray-500">No products match your filters.</p>
-    </div>
-  )}
+                </div>
+              )}
+            </div>
+            <h3 className={`font-medium text-left mt-4 mb-2 text-sm ${
+              isOutOfStock ? 'text-gray-400' : ''
+            }`}>
+              {product?.product?.name}
+            </h3>
+            <p className={`text-left text-sm ${
+              isOutOfStock ? 'text-gray-400' : 'text-[#2B21E5]'
+            }`}>
+              ₦{product?.product?.price.toLocaleString()}{" "}
+              <span className="text-gray-500">per yard</span>
+            </p>
+          </motion.div>
+        </ProductWrapper>
+      );
+    })}
+  </div>
+) : (
+  <div className="text-center py-20">
+    <p className="text-gray-500">No products match your filters.</p>
+  </div>
+)}
   {getMarketPlaceFabricData?.data?.length ? (
     isShowMoreBtn ? (
       <></>

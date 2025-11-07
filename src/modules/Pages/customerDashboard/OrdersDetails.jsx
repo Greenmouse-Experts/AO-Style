@@ -10,6 +10,9 @@ import {
   Truck,
   XCircle,
   AlertTriangle,
+  Clock,
+  Package,
+  Scissors,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import useGetCustomerSingleOrder from "../../../hooks/order/useGetCustomerSingleOrder";
@@ -242,8 +245,11 @@ const OrderDetails = () => {
   const orderPurchase = data?.data?.order_items;
   const metaData = data?.data?.payment?.metadata;
 
-  const hasStyleItems =
-    orderPurchase?.some((item) => item.purchase_type === "STYLE") || false;
+  console.log("This is the order setaikls ofr the testing of the ETA", orderPurchase)
+
+  // Check if order has style items based on order_items length
+  // If order_items has 2 items, the second one is the style
+  const hasStyleItems = orderPurchase?.length === 2 || false;
   const orderSteps = getOrderSteps(hasStyleItems);
   const isDelivered = orderDetails?.status === "DELIVERED";
 
@@ -285,181 +291,205 @@ const OrderDetails = () => {
     }
   };
 
-  const useOrderETA = (orderDetails) => {
-    const shouldFetchETA =
-      orderDetails?.status === "SHIPPED" ||
-      orderDetails?.status === "IN_TRANSIT" ||
-      orderDetails?.status === "OUT_FOR_DELIVERY" ||
-      orderDetails?.status === "PAID" ||
-      orderDetails?.status === "DELIVERED";
+  // Simple ETA calculation function - no API needed
+  const calculateOrderETA = (orderItems) => {
+    if (!orderItems || orderItems.length === 0) {
+      return null;
+    }
 
-    const userCoordinates = orderDetails?.user?.profile?.coordinates;
-    const hasCoordinates =
-      userCoordinates?.latitude && userCoordinates?.longitude;
+    // If order_items has only 1 item, it's fabric only
+    // If order_items has 2 items, the second one is the style
+    const hasStyleItems = orderItems.length === 2;
 
-    return useQuery({
-      queryKey: ["order-eta", orderDetails?.id, userCoordinates],
-      queryFn: async () => {
-        if (!hasCoordinates) throw new Error("No user coordinates available");
+    let totalHours = 0;
+    let estimatedSewingTimeDays = 0;
+    let deliveryTime = 0;
 
-        const calculateDistance = (lat1, lon1, lat2, lon2) => {
-          const R = 6371;
-          const dLat = ((lat2 - lat1) * Math.PI) / 180;
-          const dLon = ((lon2 - lon1) * Math.PI) / 180;
-          const a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos((lat1 * Math.PI) / 180) *
-              Math.cos((lat2 * Math.PI) / 180) *
-              Math.sin(dLon / 2) *
-              Math.sin(dLon / 2);
-          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-          return R * c;
-        };
+    if (hasStyleItems) {
+      // For style orders: 72 hours base + sewing time from API
+      deliveryTime = 72; // 3 days for processing and delivery
+      
+      // Get the style item (second item in the array)
+      const styleItem = orderItems[1];
+      
+      // Get estimated_sewing_time from product > style > estimated_sewing_time (in days)
+      estimatedSewingTimeDays = styleItem?.product?.style?.estimated_sewing_time || 0;
+      
+      // Convert days to hours
+      const estimatedSewingTimeHours = estimatedSewingTimeDays * 24;
+      
+      totalHours = deliveryTime + estimatedSewingTimeHours;
+    } else {
+      // For fabric-only orders: 48 hours
+      totalHours = 48;
+      deliveryTime = 48;
+    }
 
-        const distanceKm = calculateDistance(
-          WAREHOUSE_COORDINATES.latitude,
-          WAREHOUSE_COORDINATES.longitude,
-          userCoordinates.latitude,
-          userCoordinates.longitude
-        );
+    const estimatedArrivalDate = new Date(Date.now() + totalHours * 60 * 60 * 1000);
 
-        const averageDeliverySpeed = 30;
-        const estimatedHours = distanceKm / averageDeliverySpeed;
-        const estimatedMinutes = Math.ceil(estimatedHours * 60);
-        const bufferMinutes = 30;
-        const totalMinutes = estimatedMinutes + bufferMinutes;
-
-        return {
-          distance: {
-            text: `${distanceKm.toFixed(1)} km`,
-            value: distanceKm * 1000,
-          },
-          duration: {
-            text: `${Math.ceil(estimatedHours)} hours`,
-            value: totalMinutes * 60,
-          },
-          duration_in_traffic: {
-            text: `${Math.ceil(estimatedHours + 0.5)} hours`,
-            value: (totalMinutes + 30) * 60,
-          },
-          status: "OK",
-        };
-      },
-      refetchInterval: 5 * 60 * 1000,
-      staleTime: 2 * 60 * 1000,
-      retry: 2,
-    });
+    return {
+      hasStyleItems,
+      deliveryTime,
+      sewingTimeDays: estimatedSewingTimeDays,
+      sewingTimeHours: estimatedSewingTimeDays * 24,
+      totalHours,
+      estimatedArrival: estimatedArrivalDate,
+    };
   };
 
   const ETADisplay = ({ orderDetails }) => {
     const shouldShowForStatus = [
+      "PROCESSING",
       "SHIPPED",
       "IN_TRANSIT",
       "OUT_FOR_DELIVERY",
-      "PAID",
-      "DELIVERED",
+      "SHIPPED_TO_TAILOR",
+      "TAILOR_PROCESSING",
+      "SHIPPED_TO_CUSTOMER",
+      "PAID"
     ].includes(orderDetails?.status);
 
     if (!shouldShowForStatus) {
       return null;
     }
 
-    const userCoordinates = orderDetails?.user?.profile?.coordinates;
-    const hasCoordinates =
-      userCoordinates?.latitude && userCoordinates?.longitude;
+    // Calculate ETA directly - no API call needed
+    const etaData = calculateOrderETA(orderPurchase);
 
-    if (!hasCoordinates) {
-      return (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4">
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-            <span className="text-sm text-yellow-700">
-              Location not available for ETA calculation
-            </span>
-          </div>
-        </div>
-      );
-    }
-
-    const {
-      data: etaData,
-      isLoading: etaLoading,
-      error: etaError,
-    } = useOrderETA(orderDetails);
-
-    if (etaLoading) {
-      return (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-          <div className="flex items-center space-x-2">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-            <span className="text-sm text-blue-700">
-              Calculating delivery ETA...
-            </span>
-          </div>
-        </div>
-      );
-    }
-
-    if (etaError) {
+    // If no ETA data, don't show anything
+    if (!etaData) {
       return null;
     }
 
-    if (etaData && etaData.status === "OK") {
-      const formatETA = (duration) => {
-        const minutes = Math.ceil(duration.value / 60);
-        const hours = Math.floor(minutes / 60);
-        const remainingMinutes = minutes % 60;
+    const formatDate = (date) => {
+      return date.toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    };
 
-        if (hours > 0) {
-          return `${hours}h ${remainingMinutes}m`;
-        }
-        return `${minutes} minutes`;
-      };
+    const daysRemaining = Math.ceil(etaData.totalHours / 24);
 
-      const estimatedArrival = new Date(
-        Date.now() + etaData.duration_in_traffic.value * 1000
-      );
-
-      return (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-green-800">
-                🚚 Estimated Delivery Time
-              </span>
-              <span className="text-sm text-green-600 bg-green-100 px-2 py-1 rounded">
-                {formatETA(etaData.duration_in_traffic)}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-green-700">Expected Arrival:</span>
-              <span className="font-medium text-green-800">
-                {estimatedArrival.toLocaleDateString("en-US", {
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-green-700">Distance:</span>
-              <span className="text-green-800">{etaData.distance.text}</span>
-            </div>
-
-            <div className="text-xs text-green-600 mt-2">
-              * ETA calculated based on distance and traffic conditions, updates
-              every 5 minutes
-            </div>
+    return (
+      <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-xl border-2 border-blue-200 p-6 mt-6 shadow-lg">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-3 rounded-xl shadow-md">
+            <Clock className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-gray-900">
+              Estimated Delivery Time
+            </h3>
+            <p className="text-sm text-gray-600">
+              {etaData.hasStyleItems
+                ? "Custom order with tailoring"
+                : "Standard fabric order"}
+            </p>
           </div>
         </div>
-      );
-    }
 
-    return null;
+        {/* Timeline Breakdown */}
+        <div className="space-y-4 mb-6">
+          {etaData.hasStyleItems ? (
+            <>
+              <div className="flex items-start gap-4 p-4 bg-white rounded-lg shadow-sm border border-blue-100">
+                <div className="bg-blue-100 p-2 rounded-lg">
+                  <Package className="w-5 h-5 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="font-semibold text-gray-800">
+                      Processing & Delivery
+                    </span>
+                    <span className="text-sm font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                      {Math.ceil(etaData.deliveryTime / 24)} days
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Order processing and shipment to tailor
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 p-4 bg-white rounded-lg shadow-sm border border-purple-100">
+                <div className="bg-purple-100 p-2 rounded-lg">
+                  <Scissors className="w-5 h-5 text-purple-600" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="font-semibold text-gray-800">
+                      Tailoring Time
+                    </span>
+                    <span className="text-sm font-bold text-purple-600 bg-purple-50 px-3 py-1 rounded-full">
+                      {etaData.sewingTimeDays} {etaData.sewingTimeDays === 1 ? 'day' : 'days'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Custom sewing for your style
+                  </p>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-start gap-4 p-4 bg-white rounded-lg shadow-sm border border-green-100">
+              <div className="bg-green-100 p-2 rounded-lg">
+                <Truck className="w-5 h-5 text-green-600" />
+              </div>
+              <div className="flex-1">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="font-semibold text-gray-800">
+                    Standard Delivery
+                  </span>
+                  <span className="text-sm font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full">
+                    {Math.ceil(etaData.deliveryTime / 24)} days
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600">
+                  Processing and direct delivery to your location
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Total Estimate */}
+        <div className="bg-indigo-600 rounded-xl p-5 shadow-lg">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="bg-white bg-opacity-20 p-2 rounded-lg backdrop-blur-sm">
+                <CheckCircle className="w-5 h-5 text-purple-500" />
+              </div>
+              <span className="text-white font-semibold text-lg">
+                Expected Arrival
+              </span>
+            </div>
+            <div className="bg-white bg-opacity-20 backdrop-blur-sm px-4 py-2 rounded-full">
+              <span className="text-gray-800 font-bold text-lg">
+                {daysRemaining} {daysRemaining === 1 ? "Day" : "Days"}
+              </span>
+            </div>
+          </div>
+          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-3">
+            <p className="text-gray-800 text-sm font-medium">
+              {formatDate(etaData.estimatedArrival)}
+            </p>
+          </div>
+        </div>
+
+        {/* Info Footer */}
+        <div className="mt-4 flex items-start gap-2 text-xs text-gray-600 bg-white bg-opacity-60 backdrop-blur-sm p-3 rounded-lg">
+          <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+          <p>
+            Delivery times are estimates and may vary based on tailor availability, 
+            order complexity, and logistics. You'll receive updates as your order progresses.
+          </p>
+        </div>
+      </div>
+    );
   };
 
   React.useEffect(() => {

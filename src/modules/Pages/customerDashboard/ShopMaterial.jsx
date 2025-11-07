@@ -423,45 +423,77 @@ export default function ShopMaterials() {
 
           {/* Filtered Products */}
           {productIsPending ? (
-            <div className="mt-20">
-              <LoaderComponent />
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 mt-20 mb-5 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {getProductData?.data?.filter(product => product?.fabric?.quantity > 15).map((product, index) => (
-                <Link
-                  to={`/shop-details/${product?.fabric?.id}`}
-                  key={product.id}
-                >
-                  <motion.div
-                    className="text-center"
-                    initial={{ opacity: 0, y: 50 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                  >
-                    <motion.img
-                      src={product?.fabric?.photos[0]}
-                      alt={product.name}
-                      className="w-full h-56 object-cover rounded-md"
-                      whileHover={{ scale: 1.05 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                    <h3 className="font-medium text-left uppercase mt-4 mb-3">
-                      {product?.name?.length > 20
-                        ? product.name.slice(0, 20) + "..."
-                        : product?.name}
-                    </h3>
-                    <p className="text-[#2B21E5] text-left font-bold">
-                      ₦{product.price}{" "}
-                      <span className="text-[#8A8A8A] font-medium">
-                        per yard
-                      </span>
+  <div className="mt-20">
+    <LoaderComponent />
+  </div>
+) : (
+  <div className="grid grid-cols-2 mt-20 mb-5 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    {getProductData?.data?.map((product, index) => {
+      const isOutOfStock = product?.fabric?.quantity <= 15;
+      const ProductWrapper = isOutOfStock ? 'div' : Link;
+      const wrapperProps = isOutOfStock 
+        ? { className: "cursor-not-allowed" } 
+        : { to: `/shop-details/${product?.fabric?.id}` };
+
+      return (
+        <ProductWrapper {...wrapperProps} key={product.id}>
+          <motion.div
+            className="text-center relative"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+          >
+            <div className="relative">
+              <motion.img
+                src={product?.fabric?.photos[0]}
+                alt={product.name}
+                className={`w-full h-56 object-cover rounded-md ${
+                  isOutOfStock ? 'blur-sm grayscale opacity-60' : ''
+                }`}
+                whileHover={isOutOfStock ? {} : { scale: 1.05 }}
+                transition={{ duration: 0.3 }}
+              />
+              {isOutOfStock && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm bg-opacity-40 rounded-md">
+                  <div className="text-center">
+                    <div className="bg-red-400 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg">
+                      OUT OF STOCK
+                    </div>
+                    <p className="text-white text-xs mt-2 font-medium">
+                      Currently Unavailable
                     </p>
-                  </motion.div>
-                </Link>
-              ))}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+            <h3 className={`font-medium text-left uppercase mt-4 mb-3 ${
+              isOutOfStock ? 'text-gray-400' : ''
+            }`}>
+              {product?.name?.length > 20
+                ? product.name.slice(0, 20) + "..."
+                : product?.name}
+            </h3>
+            <p className={`text-left font-bold ${
+              isOutOfStock ? 'text-gray-400' : 'text-[#2B21E5]'
+            }`}>
+              ₦{product.price}{" "}
+              <span className={`font-medium ${
+                isOutOfStock ? 'text-gray-400' : 'text-[#8A8A8A]'
+              }`}>
+                per yard
+              </span>
+            </p>
+            {/* {isOutOfStock && (
+              <span className="inline-block mt-2 text-xs text-red-600 font-semibold bg-red-50 px-2 py-1 rounded">
+                Only {product?.fabric?.quantity} yards left
+              </span>
+            )} */}
+          </motion.div>
+        </ProductWrapper>
+      );
+    })}
+  </div>
+)}
 
           {!productIsPending && !getProductData?.data?.length ? (
             <div classNamee="flex items-center justify-center w-full border-2 border-red-800 border-solid">

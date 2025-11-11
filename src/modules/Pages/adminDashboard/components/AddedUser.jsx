@@ -1,10 +1,8 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import ReusableTable from "../components/ReusableTable";
 import { FaEllipsisH } from "react-icons/fa";
-import { Link, data, useNavigate } from "react-router-dom";
-import useGetAllMarketRep from "../../../../hooks/marketRep/useGetMarketRep";
+import { Link, useNavigate } from "react-router-dom";
 import useQueryParams from "../../../../hooks/useQueryParams";
-import useGetBusinessDetails from "../../../../hooks/settings/useGetBusinessDetails";
 import { useMemo } from "react";
 import { formatDateStr } from "../../../../lib/helper";
 import useGetAllUsersByRole from "../../../../hooks/admin/useGetAllUserByRole";
@@ -17,19 +15,18 @@ import useToast from "../../../../hooks/useToast";
 import AddMarketModal from "./AddMarketModal";
 import ViewDetailsModal from "./Viewdetailsmodal";
 import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
 import CustomTable from "../../../../components/CustomTable";
 import { useQuery } from "@tanstack/react-query";
 import CaryBinApi from "../../../../services/CarybinBaseUrl";
+import DateFilter from "../../../../components/shared/DateFilter";
+import ActiveFilters from "../../../../components/shared/ActiveFilters";
+import useDateFilter from "../../../../hooks/useDateFilter";
 
 const NewlyAddedUsers = () => {
   const [currView, setCurrView] = useState("approved");
 
-  const [val, setVal] = useState("pending");
-
-  const [openDropdown, setOpenDropdown] = useState(null);
-  const dropdownRef = useRef(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewDetailsModalOpen, setViewDetailsModalOpen] = useState(false);
   const [selectedItemForView, setSelectedItemForView] = useState(null);
@@ -49,6 +46,15 @@ const NewlyAddedUsers = () => {
   const nav = useNavigate();
   const [newCategory, setNewCategory] = useState();
 
+  // Date filter functionality
+  const {
+    activeFilters,
+    matchesDateFilter,
+    handleFiltersChange,
+    removeFilter,
+    clearAllFilters: clearDateFilters,
+  } = useDateFilter();
+
   // const { data: businessData } = useGetBusinessDetails();
 
   const { data: businessData } = useQuery({
@@ -61,7 +67,7 @@ const NewlyAddedUsers = () => {
     },
   });
 
-  const { queryParams, updateQueryParams, clearAllFilters } = useQueryParams({
+  const { queryParams, updateQueryParams } = useQueryParams({
     approved: true,
     "pagination[page]": 1,
     "pagination[limit]": 10,
@@ -77,7 +83,7 @@ const NewlyAddedUsers = () => {
     updateQueryParams({
       approved: true,
     });
-  }, []);
+  }, [updateQueryParams]);
 
   // Query for pending market reps (uses contact/invites endpoint with status=pending)
   const { data: getPendingInviteData, isPending: pendingInviteIsPending } =
@@ -195,7 +201,7 @@ const NewlyAddedUsers = () => {
   ]);
 
   const totalPages = Math.ceil(
-    currentData?.count / (queryParams["pagination[limit]"] ?? 10)
+    currentData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
 
   const totalPageCount = totalPages;
@@ -204,13 +210,16 @@ const NewlyAddedUsers = () => {
   const handleViewDetails = (item) => {
     setSelectedItemForView(item);
     setViewDetailsModalOpen(true);
-    setOpenDropdown(null);
   };
 
   // Modified actions based on currView
   const actions = useMemo(() => {
     // For pending, invites, and rejected: only show "View Details" (opens modal)
-    if (currView === "pending" || currView === "invites" || currView === "rejected") {
+    if (
+      currView === "pending" ||
+      currView === "invites" ||
+      currView === "rejected"
+    ) {
       return [
         {
           key: "view-details",
@@ -235,7 +244,6 @@ const NewlyAddedUsers = () => {
         action: (item) => {
           setSuspendModalOpen(true);
           setNewCategory(item);
-          setOpenDropdown(null);
         },
       },
       {
@@ -248,29 +256,34 @@ const NewlyAddedUsers = () => {
     ];
   }, [currView, nav]);
 
-  const MarketRepData = useMemo(
-    () =>
-      getAllMarketRepData?.data
-        ? getAllMarketRepData?.data.map((details) => {
-            return {
-              ...details,
-              name: `${details?.name}`,
-              userType: `${details?.role?.name ?? ""}`,
-              created_at: `${
-                details?.created_at
-                  ? formatDateStr(details?.created_at.split(".").shift())
-                  : ""
-              }`,
-            };
-          })
-        : [],
-    [getAllMarketRepData?.data]
-  );
+  const MarketRepData = useMemo(() => {
+    if (!getAllMarketRepData?.data) return [];
+
+    const mappedData = getAllMarketRepData.data.map((details) => {
+      return {
+        ...details,
+        name: `${details?.name}`,
+        phone: `${details?.phone ?? ""}`,
+        email: `${details?.email ?? ""}`,
+        location: `${details?.profile?.address ?? ""}`,
+        dateJoined: `${
+          details?.created_at
+            ? formatDateStr(details?.created_at.split(".").shift())
+            : ""
+        }`,
+        rawDate: details?.created_at,
+      };
+    });
+
+    // Apply date filters
+    return mappedData.filter((marketRep) =>
+      matchesDateFilter(marketRep.rawDate),
+    );
+  }, [getAllMarketRepData?.data, matchesDateFilter]);
 
   const handleDeleteUser = (user) => {
     setUserToDelete(user);
     setDeleteModalOpen(true);
-    setOpenDropdown(null);
   };
 
   const confirmDeleteUser = () => {
@@ -287,30 +300,27 @@ const NewlyAddedUsers = () => {
     }
   };
 
-  const InviteData = useMemo(
-    () =>
-      currentData?.data
-        ? currentData?.data.map((details) => {
-            return {
-              ...details,
-              name: `${details?.name}`,
-              email: `${details?.email ?? ""}`,
-              userType: `${details?.role?.name ?? ""}`,
-              created_at: `${
-                details?.created_at
-                  ? formatDateStr(details?.created_at.split(".").shift())
-                  : ""
-              }`,
-            };
-          })
-        : [],
-    [currentData?.data]
-  );
+  const InviteData = useMemo(() => {
+    if (!currentData?.data) return [];
 
-  // Toggle dropdown function
-  const toggleDropdown = useCallback((rowId) => {
-    setOpenDropdown((prev) => (prev === rowId ? null : rowId));
-  }, []);
+    const mappedData = currentData.data.map((details) => {
+      return {
+        ...details,
+        name: `${details?.name}`,
+        email: `${details?.email ?? ""}`,
+        userType: `${details?.role?.name ?? ""}`,
+        created_at: `${
+          details?.created_at
+            ? formatDateStr(details?.created_at.split(".").shift())
+            : ""
+        }`,
+        rawDate: details?.created_at,
+      };
+    });
+
+    // Apply date filters
+    return mappedData.filter((invite) => matchesDateFilter(invite.rawDate));
+  }, [currentData?.data, matchesDateFilter]);
 
   // Table Columns for approved market reps
   const columns = useMemo(
@@ -327,20 +337,20 @@ const NewlyAddedUsers = () => {
               row.profile?.approved_by_admin
                 ? "bg-green-100 text-green-600"
                 : row.profile?.approved_by_admin == null
-                ? "bg-yellow-100 text-yellow-600"
-                : "bg-red-100 text-red-600"
+                  ? "bg-yellow-100 text-yellow-600"
+                  : "bg-red-100 text-red-600"
             }`}
           >
             {row.profile?.approved_by_admin == null
               ? "Pending"
               : row.profile?.approved_by_admin
-              ? "Approved"
-              : "Expired"}
+                ? "Approved"
+                : "Expired"}
           </span>
         ),
       },
     ],
-    [toggleDropdown, openDropdown]
+    [],
   );
 
   // Table columns for invites/pending/rejected (from contact/invites endpoint)
@@ -358,34 +368,23 @@ const NewlyAddedUsers = () => {
               row?.status == "active"
                 ? "bg-green-100 text-green-600"
                 : row?.status == "pending"
-                ? "bg-yellow-100 text-yellow-600"
-                : "bg-red-100 text-red-600"
+                  ? "bg-yellow-100 text-yellow-600"
+                  : "bg-red-100 text-red-600"
             }`}
           >
             {row?.status == "pending"
               ? "Pending"
               : row?.status == "active"
-              ? "Active"
-              : row?.status == "expired"
-              ? "Expired"
-              : "Rejected"}
+                ? "Active"
+                : row?.status == "expired"
+                  ? "Expired"
+                  : "Rejected"}
           </span>
         ),
       },
     ],
-    []
+    [],
   );
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenDropdown(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const handleExport = (e) => {
     const value = e.target.value;
@@ -395,7 +394,7 @@ const NewlyAddedUsers = () => {
 
   const exportToExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(
-      currView === "approved" ? MarketRepData : InviteData
+      currView === "approved" ? MarketRepData : InviteData,
     );
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
@@ -422,6 +421,11 @@ const NewlyAddedUsers = () => {
               setQueryString(evt.target.value ? evt.target.value : undefined)
             }
             className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
+          />
+          <DateFilter
+            onFiltersChange={handleFiltersChange}
+            activeFilters={activeFilters}
+            onClearAll={clearDateFilters}
           />
           <select
             onChange={handleExport}
@@ -464,6 +468,14 @@ const NewlyAddedUsers = () => {
           ))}
         </div>
       </div>
+
+      {/* Active Filters Display */}
+      <ActiveFilters
+        activeFilters={activeFilters}
+        onRemoveFilter={removeFilter}
+        onClearAll={clearDateFilters}
+      />
+
       <CSVLink
         id="csvDownload"
         data={currView === "approved" ? MarketRepData : InviteData}
@@ -477,7 +489,7 @@ const NewlyAddedUsers = () => {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
         />
-        
+
         {/* View Details Modal */}
         <ViewDetailsModal
           isOpen={viewDetailsModalOpen}
@@ -575,7 +587,7 @@ const NewlyAddedUsers = () => {
               onSubmit={(e) => {
                 if (!navigator.onLine) {
                   toastError(
-                    "No internet connection. Please check your network."
+                    "No internet connection. Please check your network.",
                   );
                   return;
                 }
@@ -594,7 +606,7 @@ const NewlyAddedUsers = () => {
                       setNewCategory(null);
                       setReason("");
                     },
-                  }
+                  },
                 );
               }}
             >
@@ -624,8 +636,8 @@ const NewlyAddedUsers = () => {
                 {approoveIsPending
                   ? "Please wait..."
                   : newCategory?.profile?.approved_by_admin
-                  ? "Suspend"
-                  : "Unsuspend"}
+                    ? "Suspend"
+                    : "Unsuspend"}
               </button>
             </form>
           </div>

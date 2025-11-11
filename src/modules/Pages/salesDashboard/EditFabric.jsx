@@ -14,6 +14,7 @@ import { Edit } from "lucide-react";
 import useGetMarketRepFabricById from "../../../hooks/marketRep/useGetFabricDetails";
 import { useLocation } from "react-router-dom";
 import useEditMarketRepFabric from "../../../hooks/marketRep/useEditMarketRepFabric";
+import ColorSelector from "../../../components/shared/ColorSelector";
 
 const EditFabric = () => {
   const navigate = useNavigate();
@@ -790,154 +791,32 @@ const EditFabric = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 mt-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-4">
-                  Available Colors *
-                </label>
+            <div className="mt-6">
+              <ColorSelector
+                numberOfColors={numberOfColors}
+                setNumberOfColors={setNumberOfColors}
+                selectedColors={selectedColors}
+                setSelectedColors={setSelectedColors}
+                onColorsChange={(colors) => {
+                  formik.setFieldValue("available_colors", colors.join(", "));
+                }}
+                maxColors={10}
+                label="Available Colors"
+                required={true}
+                error={
+                  formik.touched.available_colors &&
+                  formik.errors.available_colors
+                    ? formik.errors.available_colors
+                    : null
+                }
+              />
 
-                {/* Number of Colors Input */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-600 mb-2">
-                    How many colors do you want to add?
-                  </label>
-                  <div className="flex items-center space-x-4">
-                    <input
-                      type="number"
-                      min="1"
-                      max="10"
-                      value={numberOfColors}
-                      onChange={(e) => {
-                        const count = Math.max(
-                          1,
-                          Math.min(10, parseInt(e.target.value) || 1),
-                        );
-                        setNumberOfColors(count);
-
-                        // Update selectedColors array
-                        const newColors = Array(count)
-                          .fill(null)
-                          .map(
-                            (_, index) => selectedColors[index] || "#000000",
-                          );
-                        setSelectedColors(newColors);
-
-                        // Update formik value
-                        formik.setFieldValue(
-                          "available_colors",
-                          newColors.join(", "),
-                        );
-                      }}
-                      className="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    />
-                    <span className="text-sm text-gray-500">
-                      (Maximum 10 colors)
-                    </span>
-                  </div>
-                </div>
-
-                {/* Color Picker Grid */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-600 mb-3">
-                    Click on each box to select colors:
-                  </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                    {Array(numberOfColors)
-                      .fill(null)
-                      .map((_, index) => (
-                        <div
-                          key={index}
-                          className="flex flex-col items-center space-y-2"
-                        >
-                          <div className="relative group">
-                            <input
-                              type="color"
-                              value={selectedColors[index] || "#000000"}
-                              onChange={(e) => {
-                                const newColors = [...selectedColors];
-                                newColors[index] = e.target.value;
-                                setSelectedColors(newColors);
-                                formik.setFieldValue(
-                                  "available_colors",
-                                  newColors.join(", "),
-                                );
-                              }}
-                              className="w-16 h-16 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-purple-400 transition-colors shadow-sm"
-                              title={`Select color ${index + 1}`}
-                            />
-                            <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-lg border border-gray-200">
-                              <span className="text-xs font-medium text-gray-600">
-                                {index + 1}
-                              </span>
-                            </div>
-                          </div>
-                          <span className="text-xs text-gray-500 text-center">
-                            Color {index + 1}
-                          </span>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-
-                {/* Color Preview */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-600 mb-2">
-                    Selected Colors Preview:
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedColors.map((color, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center space-x-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200"
-                      >
-                        <div
-                          className="w-6 h-6 rounded-full border border-gray-300 shadow-sm"
-                          style={{ backgroundColor: color }}
-                        ></div>
-                        <span className="text-sm font-medium text-gray-700">
-                          {color.toUpperCase()}
-                        </span>
-                        <button
-                          type="button"
-                          className="text-red-500 hover:text-red-700 text-sm font-bold"
-                          onClick={() => {
-                            if (numberOfColors > 1) {
-                              const newCount = numberOfColors - 1;
-                              setNumberOfColors(newCount);
-
-                              const newColors = selectedColors.filter(
-                                (_, i) => i !== index,
-                              );
-                              setSelectedColors(newColors);
-                              formik.setFieldValue(
-                                "available_colors",
-                                newColors.join(", "),
-                              );
-                            }
-                          }}
-                          title="Remove this color"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Hidden input for form validation */}
-                <input
-                  type="hidden"
-                  {...formik.getFieldProps("available_colors")}
-                  value={selectedColors.join(", ")}
-                />
-
-                {formik.touched.available_colors &&
-                  formik.errors.available_colors && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {formik.errors.available_colors}
-                    </p>
-                  )}
-              </div>
+              {/* Hidden input for form validation */}
+              <input
+                type="hidden"
+                {...formik.getFieldProps("available_colors")}
+                value={selectedColors.join(", ")}
+              />
             </div>
           </div>
 

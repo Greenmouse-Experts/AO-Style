@@ -6,12 +6,20 @@ import {
   UsersIcon,
   ArrowRightIcon,
 } from "@heroicons/react/24/outline";
+import Cookies from "js-cookie";
+import { useCarybinUserStore } from "../../store/carybinUserStore";
 
 export default function Navbar() {
   const [careersOpen, setCareersOpen] = useState(false);
   const [productOpen, setProductOpen] = useState(false);
   const careersRef = useRef(null);
   const productRef = useRef(null);
+
+  // Authentication check
+  const { carybinUser } = useCarybinUserStore();
+  const token = Cookies.get("token");
+  const currUrl = Cookies.get("currUserUrl");
+  const isLoggedIn = token && currUrl && carybinUser;
 
   // Handle click outside dropdowns to close them
   useEffect(() => {
@@ -93,13 +101,15 @@ export default function Navbar() {
           </button>
           {careersOpen && (
             <div className="absolute top-full left-0 bg-white p-4 rounded-md w-66 z-20">
-              <Link
-                to="/sign-in-as-market-rep"
-                className="flex items-center px-4 py-4 text-gray-800 hover:bg-gray-100 rounded-lg"
-              >
-                <BriefcaseIcon className="h-6 w-6 text-purple-600 mr-4" />
-                Become A Market Rep
-              </Link>
+              {!isLoggedIn && (
+                <Link
+                  to="/sign-in-as-market-rep"
+                  className="flex items-center px-4 py-4 text-gray-800 hover:bg-gray-100 rounded-lg"
+                >
+                  <BriefcaseIcon className="h-6 w-6 text-purple-600 mr-4" />
+                  Become A Market Rep
+                </Link>
+              )}
 
               <Link
                 to="/jobs"

@@ -4,10 +4,10 @@ import * as Yup from "yup";
 import { FaUpload, FaTrash, FaSpinner, FaArrowLeft } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
 import useToast from "../../../hooks/useToast";
-import imageUpload from "../../../utils/imageUpload";
 import useGetProductCategories from "../../../hooks/useGetProductCategories";
 import useGetMarkets from "../../../hooks/useGetMarkets";
 import useUploadVideo from "../../../hooks/multimedia/useUploadVideo";
+import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 import useGetAllMarketRepVendor from "../../../hooks/marketRep/useGetAllReps";
 import Autocomplete from "react-google-autocomplete";
 import { Edit } from "lucide-react";
@@ -24,12 +24,20 @@ const EditFabric = () => {
   const { toastSuccess, toastError } = useToast();
 
   // State for images and video
-  const [_photoFiles, setPhotoFiles] = useState([]);
-  const [photoUrls, setPhotoUrls] = useState([]);
-  const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const [photoUrls, setPhotoUrls] = useState(["", "", "", ""]);
+  const [isUploadingImages, setIsUploadingImages] = useState([
+    false,
+    false,
+    false,
+    false,
+  ]);
   const [_videoFile, setVideoFile] = useState(null);
   const [videoUrl, setVideoUrl] = useState("");
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+
+  // Color selection state
+  const [numberOfColors, setNumberOfColors] = useState(1);
+  const [selectedColors, setSelectedColors] = useState(["#000000"]);
 
   // Fetch product categories
   const { categories, isLoading: categoriesLoading } =
@@ -49,6 +57,9 @@ const EditFabric = () => {
     error: errorGotten,
   } = useGetMarketRepFabricById(itemId);
   console.log("Fetched fabric data:", getFabricDataById, errorGotten);
+  // Image upload hook
+  const { uploadImageMutate } = useUploadImage();
+
   // Video upload hook
   const { uploadVideoMutate } = useUploadVideo();
 
@@ -81,18 +92,34 @@ const EditFabric = () => {
         available_colors: Array.isArray(fabric.available_colors)
           ? fabric.available_colors.join(", ")
           : fabric.available_colors || "",
-        fabric_colors: Array.isArray(fabric.fabric_colors)
-          ? fabric.fabric_colors.join(", ")
-          : fabric.fabric_colors || "",
+
         tags: Array.isArray(fabric.product?.tags)
           ? fabric.product.tags.join(", ")
           : fabric.product?.tags || "",
         video_url: fabric.video_url || "",
       });
 
+      // Set color selection state
+      if (fabric.available_colors) {
+        const colors = Array.isArray(fabric.available_colors)
+          ? fabric.available_colors
+          : fabric.available_colors
+              .split(",")
+              .map((c) => c.trim())
+              .filter(Boolean);
+        setNumberOfColors(colors.length || 1);
+        setSelectedColors(colors.length > 0 ? colors : ["#000000"]);
+      }
+
       // Set images and video
       if (Array.isArray(fabric.photos)) {
-        setPhotoUrls(fabric.photos);
+        const newPhotoUrls = ["", "", "", ""];
+        fabric.photos.forEach((photo, index) => {
+          if (index < 4 && photo) {
+            newPhotoUrls[index] = photo;
+          }
+        });
+        setPhotoUrls(newPhotoUrls);
       }
       if (fabric.video_url) {
         setVideoUrl(fabric.video_url);
@@ -120,7 +147,6 @@ const EditFabric = () => {
       .min(1, "Quantity must be greater than 0"),
     minimum_yards: Yup.string().required("Minimum yards is required"),
     available_colors: Yup.string().required("Available colors is required"),
-    fabric_colors: Yup.string().required("Fabric colors is required"),
   });
 
   const formik = useFormik({
@@ -142,14 +168,16 @@ const EditFabric = () => {
       fabric_texture: "",
       feel_a_like: "",
       minimum_yards: "1",
-      available_colors: "",
-      fabric_colors: "",
+      available_colors: "#000000",
       tags: "",
       video_url: "",
     },
     validationSchema,
     onSubmit: (values) => {
-      if (photoUrls.length === 0) {
+      const uploadedPhotos = photoUrls.filter(
+        (url) => url && url.trim() !== "",
+      );
+      if (uploadedPhotos.length === 0) {
         toastError("Please upload at least one photo");
         return;
       }
@@ -180,8 +208,8 @@ const EditFabric = () => {
           quantity: parseInt(values.quantity),
           minimum_yards: values.minimum_yards.toString(),
           available_colors: values.available_colors,
-          fabric_colors: values.fabric_colors,
-          photos: photoUrls,
+
+          photos: photoUrls.filter((url) => url && url.trim() !== ""),
           video_url: values.video_url,
         },
       };
@@ -253,76 +281,96 @@ const EditFabric = () => {
     formik.setFieldValue("video_url", "");
   };
 
-  // --- handleImageUpload to show previews immediately ---
-  const handleImageUpload = async (event) => {
-    const files = Array.from(event.target.files);
-    if (files.length === 0) return;
+  const handleImageUpload = async (event, index) => {
+    const file = event.target.files[0];
+    if (!file) return;
 
-    // Validate files before upload
-    const invalidFiles = files.filter(
-      (file) => !imageUpload.isValidImageFile(file),
-    );
-    if (invalidFiles.length > 0) {
-      toastError(
-        `Invalid files: ${invalidFiles.map((f) => f.name).join(", ")}. Please use PNG, JPG, or JPEG files under 5MB.`,
-      );
+    // Validate file type
+    const validImageTypes = ["image/png", "image/jpeg", "image/jpg"];
+    if (!validImageTypes.includes(file.type)) {
+      toastError("Please upload a valid image file (PNG, JPG, or JPEG)");
       return;
     }
 
-    // Show previews immediately
-    const previewUrls = files.map((file) => URL.createObjectURL(file));
-    setPhotoFiles((prev) => [...prev, ...files]);
-    setPhotoUrls((prev) => [...prev, ...previewUrls]);
-    setIsUploadingImages(true);
-
-    try {
-      const result = await imageUpload.uploadImagesWithProgress(files, () => {
-        // Optionally show progress
-      });
-
-      if (result.success && result.results.length > 0) {
-        // Replace preview URLs with real URLs after upload
-        const uploadedUrls = result.results
-          .filter((r) => r.url)
-          .map((r) => r.url);
-        setPhotoUrls((prev) => {
-          // Remove the preview URLs we just added, and append the uploaded URLs
-          const prevWithoutPreviews = prev.slice(
-            0,
-            prev.length - previewUrls.length,
-          );
-          return [...prevWithoutPreviews, ...uploadedUrls];
-        });
-
-        if (result.failed > 0) {
-          toastError(
-            `${result.uploaded} images uploaded successfully, ${result.failed} failed.`,
-          );
-        } else {
-          toastSuccess(`${result.uploaded} images uploaded successfully!`);
-        }
-      } else {
-        toastError("Failed to upload images. Please try again.");
-        // Remove previews if upload failed
-        setPhotoUrls((prev) => prev.slice(0, prev.length - previewUrls.length));
-        setPhotoFiles((prev) =>
-          prev.slice(0, prev.length - previewUrls.length),
-        );
-      }
-    } catch {
-      toastError("Failed to upload images. Please try again.");
-      setPhotoUrls((prev) => prev.slice(0, prev.length - previewUrls.length));
-      setPhotoFiles((prev) => prev.slice(0, prev.length - previewUrls.length));
-    } finally {
-      setIsUploadingImages(false);
-      // Clean up object URLs after upload (optional, but recommended)
-      previewUrls.forEach((url) => URL.revokeObjectURL(url));
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toastError("Image file must be less than 5MB");
+      return;
     }
+
+    // Set loading state for this specific box
+    setIsUploadingImages((prev) => {
+      const newState = [...prev];
+      newState[index] = true;
+      return newState;
+    });
+
+    // Create preview immediately
+    const previewUrl = URL.createObjectURL(file);
+    setPhotoUrls((prev) => {
+      const newUrls = [...prev];
+      newUrls[index] = previewUrl;
+      return newUrls;
+    });
+
+    // Prepare FormData for upload
+    const formData = new FormData();
+    formData.append("image", file);
+
+    uploadImageMutate(formData, {
+      onSuccess: (response) => {
+        console.log("📸 Image upload response:", response);
+        const imageUrl =
+          response?.data?.data?.url ||
+          response?.data?.url ||
+          response?.data?.image_url;
+
+        if (imageUrl) {
+          // Revoke the preview URL and set the actual URL
+          URL.revokeObjectURL(previewUrl);
+          setPhotoUrls((prev) => {
+            const newUrls = [...prev];
+            newUrls[index] = imageUrl;
+            return newUrls;
+          });
+          toastSuccess(`Image ${index + 1} uploaded successfully!`);
+        } else {
+          toastError("Image uploaded but URL not received");
+          // Keep the preview if URL not received
+        }
+
+        setIsUploadingImages((prev) => {
+          const newState = [...prev];
+          newState[index] = false;
+          return newState;
+        });
+      },
+      onError: (error) => {
+        console.error("📸 Image upload error:", error);
+        // Revert to empty on error
+        URL.revokeObjectURL(previewUrl);
+        setPhotoUrls((prev) => {
+          const newUrls = [...prev];
+          newUrls[index] = "";
+          return newUrls;
+        });
+        toastError(`Failed to upload image ${index + 1}. Please try again.`);
+        setIsUploadingImages((prev) => {
+          const newState = [...prev];
+          newState[index] = false;
+          return newState;
+        });
+      },
+    });
   };
 
   const removeImage = (index) => {
-    setPhotoUrls((prev) => prev.filter((_, i) => i !== index));
-    setPhotoFiles((prev) => prev.filter((_, i) => i !== index));
+    setPhotoUrls((prev) => {
+      const newUrls = [...prev];
+      newUrls[index] = "";
+      return newUrls;
+    });
   };
 
   return (
@@ -742,209 +790,151 @@ const EditFabric = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+            <div className="grid grid-cols-1 gap-6 mt-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-4">
                   Available Colors *
                 </label>
-                <div className="flex items-center space-x-2 mb-2">
-                  <input
-                    type="color"
-                    id="color-picker"
-                    className="w-10 h-10 border border-gray-300 rounded"
-                    value={(() => {
-                      // Show last color or default to #000000
-                      const colors = formik.values.available_colors
-                        .split(",")
-                        .map((c) => c.trim())
-                        .filter(Boolean);
-                      if (colors.length === 0) return "#000000";
-                      // If last is a hex, use it, else default
-                      const last = colors[colors.length - 1];
-                      // If it's a valid hex color, use it
-                      if (/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(last)) {
-                        return last;
-                      }
-                      return "#000000";
-                    })()}
-                    onChange={(e) => {
-                      const color = e.target.value;
-                      let current = formik.values.available_colors
-                        .split(",")
-                        .map((c) => c.trim())
-                        .filter(Boolean);
-                      // Prevent duplicate colors
-                      if (!current.includes(color)) {
-                        current.push(color);
+
+                {/* Number of Colors Input */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-600 mb-2">
+                    How many colors do you want to add?
+                  </label>
+                  <div className="flex items-center space-x-4">
+                    <input
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={numberOfColors}
+                      onChange={(e) => {
+                        const count = Math.max(
+                          1,
+                          Math.min(10, parseInt(e.target.value) || 1),
+                        );
+                        setNumberOfColors(count);
+
+                        // Update selectedColors array
+                        const newColors = Array(count)
+                          .fill(null)
+                          .map(
+                            (_, index) => selectedColors[index] || "#000000",
+                          );
+                        setSelectedColors(newColors);
+
+                        // Update formik value
                         formik.setFieldValue(
                           "available_colors",
-                          current.join(", "),
+                          newColors.join(", "),
                         );
-                      }
-                    }}
-                    title="Pick a color to add"
-                  />
-                  <span className="text-xs text-gray-500">
-                    Pick a color, it will be added to the list below
-                  </span>
+                      }}
+                      className="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                    <span className="text-sm text-gray-500">
+                      (Maximum 10 colors)
+                    </span>
+                  </div>
                 </div>
-                <input
-                  type="text"
-                  {...formik.getFieldProps("available_colors")}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Red, Blue, #ff0000"
-                  onChange={(e) => {
-                    // Allow manual editing as well
-                    formik.setFieldValue("available_colors", e.target.value);
-                  }}
-                />
-                {/* Show color chips for selected colors */}
-                <div className="flex flex-wrap mt-2 gap-2">
-                  {formik.values.available_colors
-                    .split(",")
-                    .map((c) => c.trim())
-                    .filter(Boolean)
-                    .map((color, idx) => (
-                      <span
-                        key={idx}
-                        className="flex items-center space-x-1 bg-gray-100 px-2 py-1 rounded text-xs"
+
+                {/* Color Picker Grid */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-600 mb-3">
+                    Click on each box to select colors:
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                    {Array(numberOfColors)
+                      .fill(null)
+                      .map((_, index) => (
+                        <div
+                          key={index}
+                          className="flex flex-col items-center space-y-2"
+                        >
+                          <div className="relative group">
+                            <input
+                              type="color"
+                              value={selectedColors[index] || "#000000"}
+                              onChange={(e) => {
+                                const newColors = [...selectedColors];
+                                newColors[index] = e.target.value;
+                                setSelectedColors(newColors);
+                                formik.setFieldValue(
+                                  "available_colors",
+                                  newColors.join(", "),
+                                );
+                              }}
+                              className="w-16 h-16 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-purple-400 transition-colors shadow-sm"
+                              title={`Select color ${index + 1}`}
+                            />
+                            <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-lg border border-gray-200">
+                              <span className="text-xs font-medium text-gray-600">
+                                {index + 1}
+                              </span>
+                            </div>
+                          </div>
+                          <span className="text-xs text-gray-500 text-center">
+                            Color {index + 1}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+
+                {/* Color Preview */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-600 mb-2">
+                    Selected Colors Preview:
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedColors.map((color, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center space-x-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200"
                       >
-                        {/* Show color swatch if hex, else just text */}
-                        {/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(color) ? (
-                          <span
-                            className="inline-block w-4 h-4 rounded-full border border-gray-300 mr-1"
-                            style={{ backgroundColor: color }}
-                          ></span>
-                        ) : null}
-                        <span>{color}</span>
+                        <div
+                          className="w-6 h-6 rounded-full border border-gray-300 shadow-sm"
+                          style={{ backgroundColor: color }}
+                        ></div>
+                        <span className="text-sm font-medium text-gray-700">
+                          {color.toUpperCase()}
+                        </span>
                         <button
                           type="button"
-                          className="ml-1 text-red-500 hover:text-red-700"
+                          className="text-red-500 hover:text-red-700 text-sm font-bold"
                           onClick={() => {
-                            const colors = formik.values.available_colors
-                              .split(",")
-                              .map((c) => c.trim())
-                              .filter(Boolean)
-                              .filter((_, i) => i !== idx);
-                            formik.setFieldValue(
-                              "available_colors",
-                              colors.join(", "),
-                            );
+                            if (numberOfColors > 1) {
+                              const newCount = numberOfColors - 1;
+                              setNumberOfColors(newCount);
+
+                              const newColors = selectedColors.filter(
+                                (_, i) => i !== index,
+                              );
+                              setSelectedColors(newColors);
+                              formik.setFieldValue(
+                                "available_colors",
+                                newColors.join(", "),
+                              );
+                            }
                           }}
-                          title="Remove color"
+                          title="Remove this color"
                         >
-                          &times;
+                          ×
                         </button>
-                      </span>
+                      </div>
                     ))}
+                  </div>
                 </div>
+
+                {/* Hidden input for form validation */}
+                <input
+                  type="hidden"
+                  {...formik.getFieldProps("available_colors")}
+                  value={selectedColors.join(", ")}
+                />
+
                 {formik.touched.available_colors &&
                   formik.errors.available_colors && (
                     <p className="text-red-500 text-sm mt-1">
                       {formik.errors.available_colors}
-                    </p>
-                  )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Fabric Colors *
-                </label>
-                <div className="flex items-center space-x-2 mb-2">
-                  <input
-                    type="color"
-                    id="fabric-color-picker"
-                    className="w-10 h-10 border border-gray-300 rounded"
-                    value={(() => {
-                      // Show last color or default to #000000
-                      const colors = formik.values.fabric_colors
-                        .split(",")
-                        .map((c) => c.trim())
-                        .filter(Boolean);
-                      if (colors.length === 0) return "#000000";
-                      // If last is a hex, use it, else default
-                      const last = colors[colors.length - 1];
-                      // If it's a valid hex color, use it
-                      if (/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(last)) {
-                        return last;
-                      }
-                      return "#000000";
-                    })()}
-                    onChange={(e) => {
-                      const color = e.target.value;
-                      let current = formik.values.fabric_colors
-                        .split(",")
-                        .map((c) => c.trim())
-                        .filter(Boolean);
-                      // Prevent duplicate colors
-                      if (!current.includes(color)) {
-                        current.push(color);
-                        formik.setFieldValue(
-                          "fabric_colors",
-                          current.join(", "),
-                        );
-                      }
-                    }}
-                    title="Pick a color to add"
-                  />
-                  <span className="text-xs text-gray-500">
-                    Pick a color, it will be added to the list below
-                  </span>
-                </div>
-                <input
-                  type="text"
-                  {...formik.getFieldProps("fabric_colors")}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Primary fabric colors"
-                  onChange={(e) => {
-                    // Allow manual editing as well
-                    formik.setFieldValue("fabric_colors", e.target.value);
-                  }}
-                />
-                {/* Show color chips for selected colors */}
-                <div className="flex flex-wrap mt-2 gap-2">
-                  {formik.values.fabric_colors
-                    .split(",")
-                    .map((c) => c.trim())
-                    .filter(Boolean)
-                    .map((color, idx) => (
-                      <span
-                        key={idx}
-                        className="flex items-center space-x-1 bg-gray-100 px-2 py-1 rounded text-xs"
-                      >
-                        {/* Show color swatch if hex, else just text */}
-                        {/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(color) ? (
-                          <span
-                            className="inline-block w-4 h-4 rounded-full border border-gray-300 mr-1"
-                            style={{ backgroundColor: color }}
-                          ></span>
-                        ) : null}
-                        <span>{color}</span>
-                        <button
-                          type="button"
-                          className="ml-1 text-red-500 hover:text-red-700"
-                          onClick={() => {
-                            const colors = formik.values.fabric_colors
-                              .split(",")
-                              .map((c) => c.trim())
-                              .filter(Boolean)
-                              .filter((_, i) => i !== idx);
-                            formik.setFieldValue(
-                              "fabric_colors",
-                              colors.join(", "),
-                            );
-                          }}
-                          title="Remove color"
-                        >
-                          &times;
-                        </button>
-                      </span>
-                    ))}
-                </div>
-                {formik.touched.fabric_colors &&
-                  formik.errors.fabric_colors && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {formik.errors.fabric_colors}
                     </p>
                   )}
               </div>
@@ -954,60 +944,88 @@ const EditFabric = () => {
           {/* Image Upload Section */}
           <div className="border-t pt-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Product Images
+              Product Images *
             </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Upload at least one image. The images should show different angles
+              of the fabric.
+            </p>
 
-            <div className="mb-4">
-              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <FaUpload className="w-8 h-8 mb-2 text-gray-500" />
-                  <p className="mb-2 text-sm text-gray-500">
-                    <span className="font-semibold">Click to upload</span>{" "}
-                    fabric images
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    PNG, JPG or JPEG (MAX. 5MB each)
-                  </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[0, 1, 2, 3].map((index) => (
+                <div key={index} className="relative">
+                  {!photoUrls[index] ? (
+                    <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                      <div className="flex flex-col items-center justify-center py-4">
+                        {isUploadingImages[index] ? (
+                          <>
+                            <FaSpinner className="w-8 h-8 mb-2 text-gray-500 animate-spin" />
+                            <p className="text-xs text-gray-500">
+                              Uploading...
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <FaUpload className="w-6 h-6 mb-2 text-gray-500" />
+                            <p className="text-sm font-semibold text-gray-500 text-center px-2">
+                              <span className="font-normal">
+                                Click to upload
+                              </span>
+                              <br />
+                              {index === 0 && "Close-up view"}
+                              {index === 1 && "Spread-out view"}
+                              {index === 2 && "Manufacturer's label"}
+                              {index === 3 && "Fabric's name"}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              PNG, JPG (MAX. 5MB)
+                            </p>
+                          </>
+                        )}
+                      </div>
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, index)}
+                        disabled={isUploadingImages[index]}
+                      />
+                    </label>
+                  ) : (
+                    <div className="relative w-full h-40">
+                      <img
+                        src={photoUrls[index]}
+                        alt={`Fabric ${index + 1}`}
+                        className="w-full h-full object-cover rounded-lg border border-gray-200"
+                      />
+                      {isUploadingImages[index] && (
+                        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
+                          <FaSpinner className="w-8 h-8 text-white animate-spin" />
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        disabled={isUploadingImages[index]}
+                        className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors shadow-lg disabled:opacity-50"
+                      >
+                        <FaTrash className="w-3 h-3" />
+                      </button>
+                      <label className="absolute bottom-2 right-2 bg-blue-500 text-white p-1.5 rounded-full hover:bg-blue-600 transition-colors shadow-lg cursor-pointer">
+                        <FaUpload className="w-3 h-3" />
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, index)}
+                          disabled={isUploadingImages[index]}
+                        />
+                      </label>
+                    </div>
+                  )}
                 </div>
-                <input
-                  type="file"
-                  className="hidden"
-                  multiple
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  disabled={isUploadingImages}
-                />
-              </label>
+              ))}
             </div>
-
-            {/* Display uploaded images */}
-            {photoUrls.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {photoUrls.map((url, index) => (
-                  <div key={index} className="relative">
-                    <img
-                      src={url}
-                      alt={`Fabric ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-lg border border-gray-200"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
-                    >
-                      <FaTrash className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {isUploadingImages && (
-              <div className="flex items-center justify-center py-4">
-                <FaSpinner className="animate-spin mr-2" />
-                <span>Uploading images...</span>
-              </div>
-            )}
           </div>
 
           {/* Submit Buttons */}
@@ -1021,7 +1039,11 @@ const EditFabric = () => {
             </button>
             <button
               type="submit"
-              disabled={isEditing || isUploadingImages || isUploadingVideo}
+              disabled={
+                isEditing ||
+                isUploadingImages.some((uploading) => uploading) ||
+                isUploadingVideo
+              }
               className="px-6 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-md hover:from-purple-600 hover:to-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
             >
               {isEditing ? (

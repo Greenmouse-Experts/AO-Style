@@ -4,10 +4,10 @@ import { FaEllipsisH, FaBars, FaTh, FaPhone, FaEnvelope } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { BsFilter } from "react-icons/bs";
 import useQueryParams from "../../../../hooks/useQueryParams";
-import useGetAllUsersByRole from "../../../../hooks/admin/useGetAllUserByRole";
+
 import { formatDateStr } from "../../../../lib/helper";
 import useDebounce from "../../../../hooks/useDebounce";
-import useUpdatedEffect from "../../../../hooks/useUpdatedEffect";
+
 import Loader from "../../../../components/ui/Loader";
 import useApproveMarketRep from "../../../../hooks/marketRep/useApproveMarketRep";
 import ConfirmationModal from "../../../../components/ui/ConfirmationModal";
@@ -17,11 +17,24 @@ import AddNewTailorModal from "./AddNewTailorModal";
 import CustomTable from "../../../../components/CustomTable";
 import { useQuery } from "@tanstack/react-query";
 import CaryBinApi from "../../../../services/CarybinBaseUrl";
+import DateFilter from "../../../../components/shared/DateFilter";
+import ActiveFilters from "../../../../components/shared/ActiveFilters";
+import useDateFilter from "../../../../hooks/useDateFilter";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [activeTab, setActiveTab] = useState("table");
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Date filter functionality
+  const {
+    activeFilters,
+    dateFilters,
+    matchesDateFilter,
+    handleFiltersChange,
+    removeFilter,
+    clearAllFilters,
+  } = useDateFilter();
 
   const { toastError } = useToast();
 
@@ -82,7 +95,7 @@ const CustomersTable = () => {
       (item, index, self) => index === self.findIndex((t) => t.id === item.id),
     );
 
-    return uniqueTailors.map((details) => {
+    const mappedData = uniqueTailors.map((details) => {
       return {
         ...details,
         name: `${details?.name}`,
@@ -94,9 +107,13 @@ const CustomersTable = () => {
             ? formatDateStr(details?.created_at.split(".").shift())
             : ""
         }`,
+        rawDate: details?.created_at,
       };
     });
-  }, [getAllTailorRepData?.data]);
+
+    // Apply date filters
+    return mappedData.filter((tailor) => matchesDateFilter(tailor.rawDate));
+  }, [getAllTailorRepData?.data, matchesDateFilter]);
 
   const handleDropdownToggle = (id) => {
     setOpenDropdown(openDropdown === id ? null : id);
@@ -216,7 +233,7 @@ const CustomersTable = () => {
       //   ),
       // },
     ],
-    [openDropdown],
+    [],
   );
 
   const actions = [
@@ -232,7 +249,7 @@ const CustomersTable = () => {
       label: "Suspend Tailor",
       action: (item) => {
         setSuspendModalOpen(true);
-        setNewCategory(row);
+        setNewCategory(item);
         setOpenDropdown(null);
       },
     },
@@ -244,10 +261,6 @@ const CustomersTable = () => {
       },
     },
   ];
-
-  const toggleDropdown = (rowId) => {
-    setOpenDropdown(openDropdown === rowId ? null : rowId);
-  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -315,9 +328,11 @@ const CustomersTable = () => {
             }
             className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
           />
-          <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-            Filter <BsFilter size={14} className="inline ml-1" />
-          </button>
+          <DateFilter
+            onFiltersChange={handleFiltersChange}
+            activeFilters={activeFilters}
+            onClearAll={clearAllFilters}
+          />
 
           {/* <Link to="/admin/tailors/add-tailor"> */}
           <button
@@ -329,6 +344,13 @@ const CustomersTable = () => {
           {/* </Link> */}
         </div>
       </div>
+
+      {/* Active Filters Display */}
+      <ActiveFilters
+        activeFilters={activeFilters}
+        onRemoveFilter={removeFilter}
+        onClearAll={clearAllFilters}
+      />
 
       <AddNewTailorModal
         isOpen={isModalOpen}

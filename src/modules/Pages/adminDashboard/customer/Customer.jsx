@@ -738,7 +738,7 @@ const CustomersTable = () => {
             {activeFilters.map((filter, index) => (
               <span
                 key={index}
-                className="inline-flex items-center gap-1 bg-[#9847FE] bg-opacity-10 text-[#9847FE] px-3 py-1 rounded-full text-sm"
+                className="inline-flex items-center gap-1 bg-[#9847FE] bg-opacity-10 text-white px-3 py-1 rounded-full text-sm"
               >
                 {filter.label}
                 <button

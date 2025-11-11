@@ -34,6 +34,10 @@ const AddFabric = () => {
   const [searchParams] = useSearchParams();
   const vendorIdFromUrl = searchParams.get("vendor_id");
 
+  // Color selection state
+  const [numberOfColors, setNumberOfColors] = useState(1);
+  const [selectedColors, setSelectedColors] = useState(["#000000"]);
+
   const DRAFT_KEY = "fabric_form_draft";
   const AUTOSAVE_DELAY = 2000; // 2 seconds
 
@@ -57,7 +61,7 @@ const AddFabric = () => {
     useGetAllMarketRepVendor({}, "fabric-vendor");
 
   // Image upload hook
-  const { uploadImageMutate, isPending: isUploadingImage } = useUploadImage();
+  const { uploadImageMutate } = useUploadImage();
 
   // Video upload hook
   const { uploadVideoMutate } = useUploadVideo();
@@ -74,26 +78,31 @@ const AddFabric = () => {
     Array.isArray(getAllFabVendorData?.data),
   );
 
-  const saveDraft = useCallback((values, photoUrls, videoUrl) => {
-    try {
-      const draft = {
-        formValues: values,
-        photoUrls: photoUrls,
-        videoUrl: videoUrl,
-        timestamp: new Date().toISOString(),
-      };
+  const saveDraft = useCallback(
+    (values, photoUrls, videoUrl, numColors, colors) => {
+      try {
+        const draft = {
+          formValues: values,
+          photoUrls: photoUrls,
+          videoUrl: videoUrl,
+          numberOfColors: numColors,
+          selectedColors: colors,
+          timestamp: new Date().toISOString(),
+        };
 
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-      setIsDraftSaved(true);
-      setLastSavedTime(new Date());
-      setShowAutosaveIndicator(true);
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        setIsDraftSaved(true);
+        setLastSavedTime(new Date());
+        setShowAutosaveIndicator(true);
 
-      setTimeout(() => setShowAutosaveIndicator(false), 2000);
-      console.log("📝 Draft saved to localStorage");
-    } catch (error) {
-      console.error("Failed to save draft:", error);
-    }
-  }, []);
+        setTimeout(() => setShowAutosaveIndicator(false), 2000);
+        console.log("📝 Draft saved to localStorage");
+      } catch (error) {
+        console.error("Failed to save draft:", error);
+      }
+    },
+    [],
+  );
 
   const loadDraft = useCallback(() => {
     try {
@@ -159,7 +168,7 @@ const AddFabric = () => {
       fabric_texture: "",
       feel_a_like: "",
       minimum_yards: "1",
-      available_colors: "",
+      available_colors: "#000000",
       tags: "",
       video_url: "",
       enable_increment: false,
@@ -244,7 +253,13 @@ const AddFabric = () => {
 
     // Immediately save draft with updated value
     setTimeout(() => {
-      saveDraft({ ...formik.values, [name]: fieldValue }, photoUrls, videoUrl);
+      saveDraft(
+        { ...formik.values, [name]: fieldValue },
+        photoUrls,
+        videoUrl,
+        numberOfColors,
+        selectedColors,
+      );
     }, 0);
   };
 
@@ -268,6 +283,12 @@ const AddFabric = () => {
         if (savedDraft.videoUrl) {
           setVideoUrl(savedDraft.videoUrl);
           formik.setFieldValue("video_url", savedDraft.videoUrl);
+        }
+        if (savedDraft.numberOfColors) {
+          setNumberOfColors(savedDraft.numberOfColors);
+        }
+        if (savedDraft.selectedColors?.length > 0) {
+          setSelectedColors(savedDraft.selectedColors);
         }
 
         setLastSavedTime(new Date(savedDraft.timestamp));
@@ -295,6 +316,12 @@ const AddFabric = () => {
           setVideoUrl(savedDraft.videoUrl);
           formik.setFieldValue("video_url", savedDraft.videoUrl);
         }
+        if (savedDraft.numberOfColors) {
+          setNumberOfColors(savedDraft.numberOfColors);
+        }
+        if (savedDraft.selectedColors?.length > 0) {
+          setSelectedColors(savedDraft.selectedColors);
+        }
 
         setLastSavedTime(new Date(savedDraft.timestamp));
         setIsDraftSaved(true);
@@ -318,12 +345,26 @@ const AddFabric = () => {
         photoUrls.some((url) => url !== "");
 
       if (hasContent) {
-        saveDraft(formik.values, photoUrls, videoUrl);
+        saveDraft(
+          formik.values,
+          photoUrls,
+          videoUrl,
+          numberOfColors,
+          selectedColors,
+        );
       }
     }, AUTOSAVE_DELAY);
 
     return () => clearTimeout(timeoutId);
-  }, [formik.values, photoUrls, videoUrl, isLoadingDraft, saveDraft]);
+  }, [
+    formik.values,
+    photoUrls,
+    videoUrl,
+    numberOfColors,
+    selectedColors,
+    isLoadingDraft,
+    saveDraft,
+  ]);
 
   const handleVideoUpload = async (event) => {
     const file = event.target.files[0];
@@ -474,16 +515,6 @@ const AddFabric = () => {
       newUrls[index] = "";
       return newUrls;
     });
-  };
-
-  const isFormValid = () => {
-    const uploadedPhotos = photoUrls.filter((url) => url !== "");
-    return (
-      formik.isValid &&
-      uploadedPhotos.length > 0 &&
-      !isUploadingImages.some((uploading) => uploading) &&
-      !isUploadingVideo
-    );
   };
 
   const AutosaveIndicator = () => (
@@ -851,11 +882,12 @@ const AddFabric = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="Enter fabric texture"
               />
-              {formik.touched.fabric_texture && formik.errors.fabric_texture && (
-                <p className="text-red-500 text-sm mt-1">
-                  {formik.errors.fabric_texture}
-                </p>
-              )}
+              {formik.touched.fabric_texture &&
+                formik.errors.fabric_texture && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {formik.errors.fabric_texture}
+                  </p>
+                )}
             </div>
           </div>
 
@@ -923,93 +955,143 @@ const AddFabric = () => {
 
           <div className="grid grid-cols-1 gap-6 mt-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-4">
                 Available Colors *
               </label>
-              <div className="flex items-center space-x-2 mb-2">
-                <input
-                  type="color"
-                  id="color-picker"
-                  className="w-10 h-10 border border-gray-300 rounded"
-                  value={(() => {
-                    const colors = formik.values.available_colors
-                      .split(",")
-                      .map((c) => c.trim())
-                      .filter(Boolean);
-                    if (colors.length === 0) return "#000000";
-                    const last = colors[colors.length - 1];
-                    if (/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(last)) {
-                      return last;
-                    }
-                    return "#000000";
-                  })()}
-                  onChange={(e) => {
-                    const color = e.target.value;
-                    let current = formik.values.available_colors
-                      .split(",")
-                      .map((c) => c.trim())
-                      .filter(Boolean);
-                    if (!current.includes(color)) {
-                      current.push(color);
+
+              {/* Number of Colors Input */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-600 mb-2">
+                  How many colors do you want to add?
+                </label>
+                <div className="flex items-center space-x-4">
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={numberOfColors}
+                    onChange={(e) => {
+                      const count = Math.max(
+                        1,
+                        Math.min(10, parseInt(e.target.value) || 1),
+                      );
+                      setNumberOfColors(count);
+
+                      // Update selectedColors array
+                      const newColors = Array(count)
+                        .fill(null)
+                        .map((_, index) => selectedColors[index] || "#000000");
+                      setSelectedColors(newColors);
+
+                      // Update formik value
                       formik.setFieldValue(
                         "available_colors",
-                        current.join(", "),
+                        newColors.join(", "),
                       );
-                    }
-                  }}
-                  title="Pick a color to add"
-                />
-                <span className="text-xs text-gray-500">
-                  Pick a color, it will be added to the list below
-                </span>
+                    }}
+                    className="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                  <span className="text-sm text-gray-500">
+                    (Maximum 10 colors)
+                  </span>
+                </div>
               </div>
-              <input
-                type="text"
-                {...formik.getFieldProps("available_colors")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="Red, Blue, #ff0000"
-                onChange={(e) => {
-                  formik.setFieldValue("available_colors", e.target.value);
-                }}
-              />
-              <div className="flex flex-wrap mt-2 gap-2">
-                {formik.values.available_colors
-                  .split(",")
-                  .map((c) => c.trim())
-                  .filter(Boolean)
-                  .map((color, idx) => (
-                    <span
-                      key={idx}
-                      className="flex items-center space-x-1 bg-gray-100 px-2 py-1 rounded text-xs"
+
+              {/* Color Picker Grid */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-600 mb-3">
+                  Click on each box to select colors:
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                  {Array(numberOfColors)
+                    .fill(null)
+                    .map((_, index) => (
+                      <div
+                        key={index}
+                        className="flex flex-col items-center space-y-2"
+                      >
+                        <div className="relative group">
+                          <input
+                            type="color"
+                            value={selectedColors[index] || "#000000"}
+                            onChange={(e) => {
+                              const newColors = [...selectedColors];
+                              newColors[index] = e.target.value;
+                              setSelectedColors(newColors);
+                              formik.setFieldValue(
+                                "available_colors",
+                                newColors.join(", "),
+                              );
+                            }}
+                            className="w-16 h-16 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-purple-400 transition-colors shadow-sm"
+                            title={`Select color ${index + 1}`}
+                          />
+                          <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-lg border border-gray-200">
+                            <span className="text-xs font-medium text-gray-600">
+                              {index + 1}
+                            </span>
+                          </div>
+                        </div>
+                        <span className="text-xs text-gray-500 text-center">
+                          Color {index + 1}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              {/* Color Preview */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-600 mb-2">
+                  Selected Colors Preview:
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {selectedColors.map((color, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center space-x-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200"
                     >
-                      {/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(color) ? (
-                        <span
-                          className="inline-block w-4 h-4 rounded-full border border-gray-300 mr-1"
-                          style={{ backgroundColor: color }}
-                        ></span>
-                      ) : null}
-                      <span>{color}</span>
+                      <div
+                        className="w-6 h-6 rounded-full border border-gray-300 shadow-sm"
+                        style={{ backgroundColor: color }}
+                      ></div>
+                      <span className="text-sm font-medium text-gray-700">
+                        {color.toUpperCase()}
+                      </span>
                       <button
                         type="button"
-                        className="ml-1 text-red-500 hover:text-red-700"
+                        className="text-red-500 hover:text-red-700 text-sm font-bold"
                         onClick={() => {
-                          const colors = formik.values.available_colors
-                            .split(",")
-                            .map((c) => c.trim())
-                            .filter(Boolean)
-                            .filter((_, i) => i !== idx);
-                          formik.setFieldValue(
-                            "available_colors",
-                            colors.join(", "),
-                          );
+                          if (numberOfColors > 1) {
+                            const newCount = numberOfColors - 1;
+                            setNumberOfColors(newCount);
+
+                            const newColors = selectedColors.filter(
+                              (_, i) => i !== index,
+                            );
+                            setSelectedColors(newColors);
+                            formik.setFieldValue(
+                              "available_colors",
+                              newColors.join(", "),
+                            );
+                          }
                         }}
-                        title="Remove color"
+                        title="Remove this color"
                       >
-                        &times;
+                        ×
                       </button>
-                    </span>
+                    </div>
                   ))}
+                </div>
               </div>
+
+              {/* Hidden input for form validation */}
+              <input
+                type="hidden"
+                {...formik.getFieldProps("available_colors")}
+                value={selectedColors.join(", ")}
+              />
+
               {formik.touched.available_colors &&
                 formik.errors.available_colors && (
                   <p className="text-red-500 text-sm mt-1">
@@ -1184,7 +1266,11 @@ const AddFabric = () => {
           </button>
           <button
             type="submit"
-            disabled={isCreating || isUploadingImages.some((uploading) => uploading) || isUploadingVideo}
+            disabled={
+              isCreating ||
+              isUploadingImages.some((uploading) => uploading) ||
+              isUploadingVideo
+            }
             className="cursor-pointer px-6 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-md hover:from-purple-600 hover:to-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
           >
             {isCreating ? (

@@ -396,13 +396,15 @@ export default function Navbar() {
                       className="bg-white rounded-md mt-2"
                       onClick={() => setIsOpen(false)}
                     >
-                      <Link
-                        to="/sign-in-as-market-rep"
-                        className="flex items-center px-4 py-4 text-gray-800 hover:bg-gray-100"
-                      >
-                        <BriefcaseIcon className="h-6 w-6 text-purple-600 mr-4" />
-                        Become A Market Rep
-                      </Link>
+                      {!(token && currUrl && carybinUser) && (
+                        <Link
+                          to="/sign-in-as-market-rep"
+                          className="flex items-center px-4 py-4 text-gray-800 hover:bg-gray-100"
+                        >
+                          <BriefcaseIcon className="h-6 w-6 text-purple-600 mr-4" />
+                          Become A Market Rep
+                        </Link>
+                      )}
                       <Link
                         to="/jobs"
                         className="flex items-center px-4 py-4 text-gray-800 hover:bg-gray-100"

@@ -359,11 +359,11 @@ export default function SignInAsCustomer() {
             </Link>
           </p>
 
-          <div className="flex items-center mt-4">
+          {/* <div className="flex items-center mt-4">
             <hr className="flex-grow border-gray-300" />
             <span className="px-3 text-gray-500">Or</span>
             <hr className="flex-grow border-gray-300" />
-          </div>
+          </div> */}
 
           {/* <button className="w-full mt-4 flex items-center justify-center border border-[#CCCCCC] hover:bg-gradient-to-r from-purple-500 to-pink-50 hover:text-white p-4 rounded-lg">
             <img

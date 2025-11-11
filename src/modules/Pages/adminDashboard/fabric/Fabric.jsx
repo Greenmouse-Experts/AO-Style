@@ -21,19 +21,30 @@ import { useTempStore } from "../../../../store/useTempStore";
 import AddFabricModal from "../components/AddFabricModal";
 import CustomTabs from "../../../../components/CustomTabs";
 import CustomTable from "../../../../components/CustomTable";
+import DateFilter from "../../../../components/shared/DateFilter";
+import ActiveFilters from "../../../../components/shared/ActiveFilters";
+import useDateFilter from "../../../../hooks/useDateFilter";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(7); // Default items per page
+
   const [activeTab, setActiveTab] = useState("table");
   const [reason, setReason] = useState("");
   const [suspendModalOpen, setSuspendModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+
+  // Date filter functionality
+  const {
+    activeFilters,
+    dateFilters,
+    matchesDateFilter,
+    handleFiltersChange,
+    removeFilter,
+    clearAllFilters,
+  } = useDateFilter();
 
   const { isPending: approoveIsPending, approveMarketRepMutate } =
     useApproveMarketRep();
@@ -90,7 +101,7 @@ const CustomersTable = () => {
       (item, index, self) => index === self.findIndex((t) => t.id === item.id),
     );
 
-    return uniqueVendors.map((details) => {
+    const mappedData = uniqueVendors.map((details) => {
       return {
         ...details,
         name: `${details?.name}`,
@@ -102,10 +113,13 @@ const CustomersTable = () => {
             ? formatDateStr(details?.created_at.split(".").shift())
             : ""
         }`,
+        rawDate: details?.created_at,
       };
     });
-  }, [getAllFabricRepData?.data]);
-  let setUser = useTempStore((state) => state.setUser);
+
+    // Apply date filters
+    return mappedData.filter((vendor) => matchesDateFilter(vendor.rawDate));
+  }, [getAllFabricRepData?.data, matchesDateFilter]);
   // Table Columns
   const nav = useNavigate();
   const columns = useMemo(
@@ -136,7 +150,7 @@ const CustomersTable = () => {
       { label: "Location", key: "location" },
       { label: "Date Joined", key: "dateJoined" },
     ],
-    [openDropdown],
+    [],
   );
   const actions = [
     {
@@ -151,7 +165,7 @@ const CustomersTable = () => {
       label: "Suspend Vendor",
       action: (item) => {
         setSuspendModalOpen(true);
-        setNewCategory(row);
+        setNewCategory(item);
         setOpenDropdown(null);
       },
     },
@@ -181,10 +195,6 @@ const CustomersTable = () => {
         },
       });
     }
-  };
-
-  const toggleDropdown = (rowId) => {
-    setOpenDropdown(openDropdown === rowId ? null : rowId);
   };
 
   useEffect(() => {
@@ -285,6 +295,11 @@ const CustomersTable = () => {
             }
             className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
           />
+          <DateFilter
+            onFiltersChange={handleFiltersChange}
+            activeFilters={activeFilters}
+            onClearAll={clearAllFilters}
+          />
           <select
             onChange={handleExport}
             className="bg-gray-100 outline-none text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
@@ -321,6 +336,14 @@ const CustomersTable = () => {
           {/* </Link> */}
         </div>
       </div>
+
+      {/* Active Filters Display */}
+      <ActiveFilters
+        activeFilters={activeFilters}
+        onRemoveFilter={removeFilter}
+        onClearAll={clearAllFilters}
+      />
+
       {/*
       <AddFabricModal
         isOpen={isModalOpen}

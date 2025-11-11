@@ -25,16 +25,25 @@ import { CSVLink } from "react-csv";
 import ConfirmationModal from "../../../../components/ui/ConfirmationModal";
 import useDeleteUser from "../../../../hooks/user/useDeleteUser";
 import useToast from "../../../../hooks/useToast";
+import DateFilter from "../../../../components/shared/DateFilter";
+import ActiveFilters from "../../../../components/shared/ActiveFilters";
+import useDateFilter from "../../../../hooks/useDateFilter";
 
 const MarketsTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
   const dropdownRef = useRef(null);
-  const [currentPage, setCurrentPage] = useState(1);
 
   const [newCategory, setNewCategory] = useState();
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState(null);
+
+  // Date filter functionality
+  const {
+    activeFilters,
+    dateFilters,
+    matchesDateFilter,
+    handleFiltersChange,
+    removeFilter,
+    clearAllFilters,
+  } = useDateFilter();
 
   const [type, setType] = useState("Add");
 
@@ -45,7 +54,6 @@ const MarketsTable = () => {
   };
 
   const { isPending: createIsPending, createMarketMutate } = useCreateMarket();
-  const { isPending: deleteUserIsPending, deleteUserMutate } = useDeleteUser();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
@@ -124,11 +132,7 @@ const MarketsTable = () => {
     });
   }, [debouncedSearchTerm]);
 
-  const {
-    isPending: uploadFrontIsPending,
-    uploadImageMutate: uploadFrontMutate,
-  } = useUploadImage();
-
+  const { isPending: uploadFrontIsPending } = useUploadImage();
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -139,24 +143,26 @@ const MarketsTable = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const MarketData = useMemo(
-    () =>
-      data?.data
-        ? data?.data.map((details) => {
-            return {
-              ...details,
-              name: `${details?.name}`,
-              location: `${details?.state}`,
-              dateAdded: `${
-                details?.created_at
-                  ? formatDateStr(details?.created_at.split(".").shift())
-                  : ""
-              }`,
-            };
-          })
-        : [],
-    [data?.data],
-  );
+  const MarketData = useMemo(() => {
+    if (!data?.data) return [];
+
+    const mappedData = data.data.map((details) => {
+      return {
+        ...details,
+        name: `${details?.name}`,
+        location: `${details?.state}`,
+        dateAdded: `${
+          details?.created_at
+            ? formatDateStr(details?.created_at.split(".").shift())
+            : ""
+        }`,
+        rawDate: details?.created_at,
+      };
+    });
+
+    // Apply date filters
+    return mappedData.filter((market) => matchesDateFilter(market.rawDate));
+  }, [data?.data, matchesDateFilter]);
 
   const columns = useMemo(
     () => [
@@ -293,10 +299,6 @@ const MarketsTable = () => {
     },
   });
 
-  const handleButtonClick = () => {
-    fileInputRef.current?.click();
-  };
-
   const actionText = `${type}  Marketplace`;
 
   const totalPages = Math.ceil(
@@ -379,12 +381,17 @@ const MarketsTable = () => {
           </div>
           <input
             type="text"
-            placeholder="Search market..."
+            placeholder="Search markets..."
             value={queryString}
             onChange={(evt) =>
               setQueryString(evt.target.value ? evt.target.value : undefined)
             }
             className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
+          />
+          <DateFilter
+            onFiltersChange={handleFiltersChange}
+            activeFilters={activeFilters}
+            onClearAll={clearAllFilters}
           />
           <select
             onChange={handleExport}
@@ -420,6 +427,13 @@ const MarketsTable = () => {
           </button>
         </div>
       </div>
+
+      {/* Active Filters Display */}
+      <ActiveFilters
+        activeFilters={activeFilters}
+        onRemoveFilter={removeFilter}
+        onClearAll={clearAllFilters}
+      />
 
       {activeTab === "table" ? (
         <>

@@ -94,7 +94,7 @@ export default function MarketplaceSection() {
           <div className="relative w-full md:max-w-auto lg:max-w-md">
             <input
               type="text"
-              placeholder="Search by keyword"
+              placeholder="Search marketplaces"
               className="w-full border border-gray-300 rounded-full pl-4 pr-10 py-2 focus:outline-none"
               value={queryString}
               onChange={(evt) =>

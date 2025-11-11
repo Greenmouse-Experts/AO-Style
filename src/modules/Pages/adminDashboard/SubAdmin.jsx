@@ -4,7 +4,7 @@ import SubAdminModal from "./components/SubAdminModal";
 import { FaEllipsisH, FaBars, FaTh, FaPhone, FaEnvelope } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import useQueryParams from "../../../hooks/useQueryParams";
-import useGetAdminRoles from "../../../hooks/admin/useGetAdminRoles";
+
 import useGetAllUsersByRole from "../../../hooks/admin/useGetAllUserByRole";
 import useDebounce from "../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
@@ -21,19 +21,31 @@ import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
 import ConfirmationModal from "../../../components/ui/ConfirmationModal";
 import useToast from "../../../hooks/useToast";
+import DateFilter from "../../../components/shared/DateFilter";
+import ActiveFilters from "../../../components/shared/ActiveFilters";
+import useDateFilter from "../../../hooks/useDateFilter";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const dropdownRef = useRef(null);
   const [reason, setReason] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   const [activeTab, setActiveTab] = useState("table");
 
   const [suspendModalOpen, setSuspendModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+
+  // Date filter functionality
+  const {
+    activeFilters,
+    dateFilters,
+    matchesDateFilter,
+    handleFiltersChange,
+    removeFilter,
+    clearAllFilters,
+  } = useDateFilter();
 
   const handleDropdownToggle = (id) => {
     setOpenDropdown(openDropdown === id ? null : id);
@@ -61,30 +73,32 @@ const CustomersTable = () => {
     });
   }, [debouncedSearchTerm]);
 
-  const SubAdminData = useMemo(
-    () =>
-      getAllAdminData?.data
-        ? getAllAdminData?.data.map((details) => {
-            return {
-              ...details,
-              name: `${details?.name}`,
-              phone: `${details?.phone ?? ""}`,
-              email: `${details?.email ?? ""}`,
-              location: `${details?.profile?.address ?? ""}`,
-              dateJoined: `${
-                details?.created_at
-                  ? formatDateStr(details?.created_at.split(".").shift())
-                  : ""
-              }`,
-            };
-          })
-        : [],
-    [getAllAdminData?.data],
-  );
+  const SubAdminData = useMemo(() => {
+    if (!getAllAdminData?.data) return [];
+
+    const mappedData = getAllAdminData.data.map((details) => {
+      return {
+        ...details,
+        name: `${details?.name}`,
+        phone: `${details?.phone ?? ""}`,
+        email: `${details?.email ?? ""}`,
+        location: `${details?.profile?.address ?? ""}`,
+        dateJoined: `${
+          details?.created_at
+            ? formatDateStr(details?.created_at.split(".").shift())
+            : ""
+        }`,
+        rawDate: details?.created_at,
+      };
+    });
+
+    // Apply date filters
+    return mappedData.filter((admin) => matchesDateFilter(admin.rawDate));
+  }, [getAllAdminData?.data, matchesDateFilter]);
 
   const [newCategory, setNewCategory] = useState();
 
-  const { isPending: suspendIsPending, suspendOwnerMutate } = useSuspendOwner();
+  const { isPending: suspendIsPending } = useSuspendOwner();
 
   const { isPending: approoveIsPending, approveMarketRepMutate } =
     useApproveMarketRep();
@@ -244,7 +258,7 @@ const CustomersTable = () => {
   const { isPending: deleteIsPending, deleteSubAdminMutate } =
     useDeleteSubAdmin();
 
-  const { data: businessDetails } = useGetBusinessDetails();
+  useGetBusinessDetails();
 
   const handleExport = (e) => {
     const value = e.target.value;
@@ -319,12 +333,17 @@ const CustomersTable = () => {
             </div>
             <input
               type="text"
-              placeholder="Search subadmin..."
+              placeholder="Search sub-admins..."
               value={queryString}
               onChange={(evt) =>
                 setQueryString(evt.target.value ? evt.target.value : undefined)
               }
               className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
+            />
+            <DateFilter
+              onFiltersChange={handleFiltersChange}
+              activeFilters={activeFilters}
+              onClearAll={clearAllFilters}
             />
             <select
               onChange={handleExport}
@@ -372,6 +391,13 @@ const CustomersTable = () => {
             setIsModalOpen(false);
             setNewCategory(null);
           }}
+        />
+
+        {/* Active Filters Display */}
+        <ActiveFilters
+          activeFilters={activeFilters}
+          onRemoveFilter={removeFilter}
+          onClearAll={clearAllFilters}
         />
 
         {activeTab === "table" ? (

@@ -101,6 +101,13 @@ const useSignIn = (email, resendCodeMutate) => {
         }
         if (data?.data?.data?.role === "user") {
           const pendingCartData = localStorage.getItem("pending_fabric_data");
+          const justVerified = localStorage.getItem("just_verified");
+
+          // Clear the verification flag if it exists
+          if (justVerified) {
+            localStorage.removeItem("just_verified");
+          }
+
           if (pendingCartData) {
             navigate("/view-cart", {
               state: { info: parsedProduct },

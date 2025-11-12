@@ -14,6 +14,11 @@ const useVerifyEmail = () => {
     onSuccess(data) {
       toastSuccess(data?.data?.message);
       localStorage.removeItem("verifyemail");
+
+      // Set a flag to indicate user just completed signup verification
+      // This will be used by the login flow to check for cart data
+      localStorage.setItem("just_verified", "true");
+
       navigate("/login");
     },
     onError: (error) => {

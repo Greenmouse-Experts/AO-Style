@@ -17,10 +17,10 @@ import CustomBackbtn from "../../../components/CustomBackBtn";
 import { useLoadScript } from "@react-google-maps/api";
 
 /**
- * If the user navigates between tabs (steps), previously entered address/location fields are now *retained* and Google Autocomplete remains functional. 
+ * If the user navigates between tabs (steps), previously entered address/location fields are now *retained* and Google Autocomplete remains functional.
  * Uses input refs and manual value management for Google Autocomplete fields.
  * Address/Location state is kept within Formik values, and input values are always *controlled* from Formik's state.
- * 
+ *
  * Google Autocomplete ref is managed with useRef for stability on input re-mount.
  */
 
@@ -58,6 +58,13 @@ const initialValues = {
   city: "",
   country: "",
   state: "",
+  latitude: "",
+  longitude: "",
+  business_country: "",
+  business_state: "",
+  business_city: "",
+  business_latitude: "",
+  business_longitude: "",
   doc_front: "",
   doc_back: "",
   utility_doc: "",
@@ -72,7 +79,7 @@ export default function AddFabricVendorPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const libraries = ["places"]
+  const libraries = ["places"];
 
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: "AIzaSyBstumBKZoQNTHm3Y865tWEHkkFnNiHGGE", // Replace with your API key
@@ -110,7 +117,7 @@ export default function AddFabricVendorPage() {
 
   const isExact = currentPath === "/sales/add-fashion-designers";
 
-  // KEEP text input refs for Google Autocomplete (so re-mount doesn't break autocomplete); 
+  // KEEP text input refs for Google Autocomplete (so re-mount doesn't break autocomplete);
   // These refs are just for wiring Google Autocomplete to a controlled input.
   const addressInputRef = useRef(null);
 
@@ -120,10 +127,13 @@ export default function AddFabricVendorPage() {
     // Prevent double-initialization
     if (inputRef.current.__autocomplete) return;
     // eslint-disable-next-line no-undef
-    const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
-      componentRestrictions: { country: "ng" },
-      types: [],
-    });
+    const autocomplete = new window.google.maps.places.Autocomplete(
+      inputRef.current,
+      {
+        componentRestrictions: { country: "ng" },
+        types: [],
+      },
+    );
     autocomplete.addListener("place_changed", () => {
       const place = autocomplete.getPlace();
       cb(place);
@@ -139,12 +149,7 @@ export default function AddFabricVendorPage() {
   }
 
   // Formik
-  const {
-    handleSubmit,
-    setFieldValue,
-    values,
-    handleChange,
-  } = useFormik({
+  const { handleSubmit, setFieldValue, values, handleChange } = useFormik({
     initialValues: initialValues,
     validateOnChange: false,
     validateOnBlur: false,
@@ -163,44 +168,122 @@ export default function AddFabricVendorPage() {
       }
       if (step === 2) setStep(3);
       if (step === 3) {
-        addMarketRepFabricVendorMutate(
-          {
-            role: isExact ? "fashion-designer" : "fabric-vendor",
-            profile: {
-              name: val?.name,
-              email: val?.email,
-              password: val?.password,
-              phone: phoneno,
-              profile_picture: val?.profile_picture,
-              bio: "",
-              date_of_birth: "",
-              gender: val?.gender,
-              address: val.address,
-            },
-            business: {
-              business_name: val?.business_name,
-              business_type: val?.business_type,
-              location: val?.location,
-              country: val?.country,
-              state: val?.state,
-            },
-            kyc: {
-              doc_front: val?.doc_front,
-              doc_back: val?.doc_back,
-              utility_doc: val?.utility_doc,
-              location: val?.location,
-              state: val?.state,
-              city: val?.city,
-              country: val?.country,
-              id_type: val?.id_type,
+        const payload = {
+          role: isExact ? "fashion-designer" : "fabric-vendor",
+          profile: {
+            name: val?.name,
+            email: val?.email,
+            password: val?.password,
+            phone: phoneno,
+            profile_picture: val?.profile_picture,
+            bio: "",
+            date_of_birth: "",
+            gender: val?.gender,
+            address: val.address,
+          },
+          business: {
+            business_name: val?.business_name,
+            business_type: val?.business_type,
+            location: val?.location,
+            country: val?.business_country || val?.country,
+            state: val?.business_state || val?.state,
+            coordinates: {
+              latitude: val?.business_latitude || val?.latitude || "",
+              longitude: val?.business_longitude || val?.longitude || "",
             },
           },
-          {
-            onSuccess: () => {
-              navigate(-1);
-            },
+          kyc: {
+            doc_front: val?.doc_front,
+            doc_back: val?.doc_back,
+            utility_doc: val?.utility_doc,
+            location: val?.location,
+            state: val?.state,
+            city: val?.city,
+            country: val?.country,
+            id_type: val?.id_type,
           },
+        };
+
+        console.log("=".repeat(80));
+        console.log("🚀 FABRIC VENDOR SUBMISSION - FULL PAYLOAD");
+        console.log("=".repeat(80));
+        console.log("📋 COMPLETE PAYLOAD STRUCTURE:");
+        console.log(JSON.stringify(payload, null, 2));
+        console.log("=".repeat(80));
+
+        console.log("👤 PROFILE SECTION:");
+        console.log("  - Name:", payload.profile.name);
+        console.log("  - Email:", payload.profile.email);
+        console.log("  - Phone:", payload.profile.phone);
+        console.log("  - Gender:", payload.profile.gender);
+        console.log("  - Personal Address:", payload.profile.address);
+        console.log(
+          "  - Profile Picture:",
+          payload.profile.profile_picture ? "✅ Uploaded" : "❌ Not uploaded",
         );
+
+        console.log("🏢 BUSINESS SECTION:");
+        console.log("  - Business Name:", payload.business.business_name);
+        console.log("  - Business Type:", payload.business.business_type);
+        console.log("  - Business Location:", payload.business.location);
+        console.log("  - Business Country:", payload.business.country);
+        console.log("  - Business State:", payload.business.state);
+        console.log("  - Business Coordinates:", payload.business.coordinates);
+
+        console.log("📄 KYC SECTION:");
+        console.log("  - ID Type:", payload.kyc.id_type);
+        console.log("  - KYC Location:", payload.kyc.location);
+        console.log("  - KYC State:", payload.kyc.state);
+        console.log("  - KYC City:", payload.kyc.city);
+        console.log("  - KYC Country:", payload.kyc.country);
+        console.log(
+          "  - Front Document:",
+          payload.kyc.doc_front ? "✅ Uploaded" : "❌ Not uploaded",
+        );
+        console.log(
+          "  - Back Document:",
+          payload.kyc.doc_back ? "✅ Uploaded" : "❌ Not uploaded",
+        );
+        console.log(
+          "  - Utility Document:",
+          payload.kyc.utility_doc ? "✅ Uploaded" : "❌ Not uploaded",
+        );
+
+        console.log("📍 COORDINATES SUMMARY:");
+        console.log(
+          "  - Personal Coordinates:",
+          val?.latitude && val?.longitude
+            ? `${val.latitude}, ${val.longitude}`
+            : "❌ Not captured",
+        );
+        console.log(
+          "  - Business Coordinates:",
+          val?.business_latitude && val?.business_longitude
+            ? `${val.business_latitude}, ${val.business_longitude}`
+            : "❌ Not captured",
+        );
+        console.log(
+          "  - Final Coordinates Sent:",
+          payload.business.coordinates,
+        );
+
+        console.log("🏛️ STATE/LOCATION SUMMARY:");
+        console.log("  - Personal State:", val?.state || "❌ Not captured");
+        console.log(
+          "  - Business State:",
+          val?.business_state || "❌ Not captured",
+        );
+        console.log("  - Final State Sent:", payload.business.state);
+
+        console.log("=".repeat(80));
+        console.log("🚀 SUBMITTING TO BACKEND...");
+        console.log("=".repeat(80));
+
+        addMarketRepFabricVendorMutate(payload, {
+          onSuccess: () => {
+            navigate(-1);
+          },
+        });
       }
     },
   });
@@ -209,13 +292,45 @@ export default function AddFabricVendorPage() {
   // Use effect on mount & value change to re-sync Formik and input/UI
   useEffect(() => {
     if (!isLoaded || !addressInputRef.current) return;
-    
+
     if (step === 1) {
       applyGoogleAutocomplete(addressInputRef, (place) => {
         const components = place.address_components || [];
+        console.log("🗺️ Google Place selected:", place);
+
+        // Set formatted address
         setFieldValue("address", place.formatted_address || "");
+
+        // Extract and set coordinates
+        if (place.geometry && place.geometry.location) {
+          const lat = place.geometry.location.lat();
+          const lng = place.geometry.location.lng();
+          console.log("📍 Coordinates extracted:", { lat, lng });
+          setFieldValue("latitude", lat.toString());
+          setFieldValue("longitude", lng.toString());
+        }
+
+        // Extract and set address components
+        const state = getAddressComponent(
+          components,
+          "administrative_area_level_1",
+        );
+        const city =
+          getAddressComponent(components, "locality") ||
+          getAddressComponent(components, "administrative_area_level_2");
+        const country = getAddressComponent(components, "country");
+
+        console.log("🏘️ Address components extracted:", {
+          state,
+          city,
+          country,
+        });
+
+        if (state) setFieldValue("state", state);
+        if (city) setFieldValue("city", city);
+        if (country) setFieldValue("country", country);
       });
-      
+
       if (addressInputRef.current) {
         addressInputRef.current.value = values.address || "";
       }
@@ -225,12 +340,14 @@ export default function AddFabricVendorPage() {
   if (loadError) return <div>Error loading maps</div>;
   if (!isLoaded) {
     return (
-      <div style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "60vh"
-      }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "60vh",
+        }}
+      >
         <svg
           className="animate-spin h-10 w-10 text-[#A14DF6]"
           xmlns="http://www.w3.org/2000/svg"
@@ -416,9 +533,7 @@ export default function AddFabricVendorPage() {
                   />
                   <button
                     type="button"
-                    onClick={() =>
-                      setShowConfirmPassword(!showConfirmPassword)
-                    }
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 top-10 text-gray-400"
                   >
                     {showConfirmPassword ? (
@@ -446,6 +561,30 @@ export default function AddFabricVendorPage() {
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
                   autoComplete="off"
                 />
+
+                {/* Debug display for coordinates and state */}
+                {(values.latitude || values.longitude || values.state) && (
+                  <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-800 font-medium mb-1">
+                      🗺️ Captured Location Data:
+                    </p>
+                    {values.state && (
+                      <p className="text-xs text-blue-700">
+                        State: {values.state}
+                      </p>
+                    )}
+                    {values.city && (
+                      <p className="text-xs text-blue-700">
+                        City: {values.city}
+                      </p>
+                    )}
+                    {values.latitude && values.longitude && (
+                      <p className="text-xs text-blue-700">
+                        Coordinates: {values.latitude}, {values.longitude}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
               <button
                 disabled={uploadPictureIsPending}
@@ -551,6 +690,34 @@ export default function AddFabricVendorPage() {
                     setFieldValue={setFieldValue}
                     value={values.location}
                   />
+
+                  {/* Debug display for business coordinates */}
+                  {(values.business_latitude ||
+                    values.business_longitude ||
+                    values.business_state) && (
+                    <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <p className="text-sm text-green-800 font-medium mb-1">
+                        🏢 Business Location Data:
+                      </p>
+                      {values.business_state && (
+                        <p className="text-xs text-green-700">
+                          Business State: {values.business_state}
+                        </p>
+                      )}
+                      {values.business_city && (
+                        <p className="text-xs text-green-700">
+                          Business City: {values.business_city}
+                        </p>
+                      )}
+                      {values.business_latitude &&
+                        values.business_longitude && (
+                          <p className="text-xs text-green-700">
+                            Business Coordinates: {values.business_latitude},{" "}
+                            {values.business_longitude}
+                          </p>
+                        )}
+                    </div>
+                  )}
                 </div>
               </div>
               {/* City & State Dropdowns */}
@@ -573,8 +740,10 @@ export default function AddFabricVendorPage() {
                     styles={{
                       control: (base) => ({
                         ...base,
-                        border: "none", boxShadow: "none",
-                        outline: "none", backgroundColor: "#fff",
+                        border: "none",
+                        boxShadow: "none",
+                        outline: "none",
+                        backgroundColor: "#fff",
                         "&:hover": { border: "none" },
                       }),
                       indicatorSeparator: () => ({ display: "none" }),
@@ -598,8 +767,10 @@ export default function AddFabricVendorPage() {
                     styles={{
                       control: (base) => ({
                         ...base,
-                        border: "none", boxShadow: "none",
-                        outline: "none", backgroundColor: "#fff",
+                        border: "none",
+                        boxShadow: "none",
+                        outline: "none",
+                        backgroundColor: "#fff",
                         "&:hover": { border: "none" },
                       }),
                       indicatorSeparator: () => ({ display: "none" }),

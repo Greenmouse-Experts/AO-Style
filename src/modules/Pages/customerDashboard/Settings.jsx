@@ -508,7 +508,7 @@ const Settings = () => {
                     </div>
 
                     {/* Mobile responsive grid - single column on mobile */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-gray-700 mb-4">
                           Phone Number
@@ -613,7 +613,7 @@ const Settings = () => {
                           value={values.address}
                         />
                       </div>
-                    </div>
+                    </div>*/}
 
                     {/* Coordinates Display - Improved overflow handling */}
                     {(values.latitude || values.longitude) && (

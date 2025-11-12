@@ -66,134 +66,58 @@ const CartPage = () => {
 
   const { addMultipleCartMutate } = useAddMultipleCart();
 
-  // --- REWRITE: Only send pending_fabric_data if token exists and cart is not yet loaded ---
-  // We'll use a flag to ensure we only send once, and only if cart is empty (to avoid double add)
+  // --- REWRITE: Only send pending_fabric_data if token exists ---
   const [pendingFabricSent, setPendingFabricSent] = useState(false);
+  const [isSyncingLocalStorage, setIsSyncingLocalStorage] = useState(false);
+
+  // Immediate sync when component mounts if user is authenticated and has pending data
+  useEffect(() => {
+    if (token && !pendingFabricSent) {
+      const pendingData = localStorage.getItem("pending_fabric_data");
+      if (pendingData) {
+        setIsSyncingLocalStorage(true);
+
+        try {
+          const parsedData = JSON.parse(pendingData);
+          console.log("🚀 IMMEDIATELY SYNCING localStorage data:", parsedData);
+
+          addMultipleCartMutate(parsedData, {
+            onSuccess: (data) => {
+              toastSuccess("Cart synced successfully");
+              console.log("Cart synced successfully:", data);
+              localStorage.removeItem("pending_fabric_data");
+              setPendingFabricSent(true);
+              setIsSyncingLocalStorage(false);
+              refetchCart();
+            },
+            onError: (error) => {
+              console.error("Failed to sync cart from localStorage:", error);
+              setIsSyncingLocalStorage(false);
+            },
+          });
+        } catch (error) {
+          console.error("Failed to parse pending cart data:", error);
+          setIsSyncingLocalStorage(false);
+        }
+      }
+    }
+  }, [token, pendingFabricSent, addMultipleCartMutate, refetchCart]);
 
   useEffect(() => {
-    console.log("🔍 CartPage useEffect triggered:", {
+    // This effect is kept for any additional cart monitoring if needed
+    console.log("🔍 Cart status:", {
       token: !!token,
       pendingFabricSent,
       cartLoading,
       cartResponse: !!cartResponse,
-      cartResponseData: cartResponse?.data,
-      cartItems: cartResponse?.data?.items,
-      cartItemsLength: cartResponse?.data?.items?.length,
-      hasLocalStorage: !!localStorage.getItem("pending_fabric_data"),
+      isSyncingLocalStorage,
     });
-
-    // Only run if user is logged in, cart response is received, and we haven't sent yet
-    // Handle both existing users (cart has items array) and new users (cart might be empty/null)
-    if (
-      token &&
-      !pendingFabricSent &&
-      !cartLoading &&
-      cartResponse &&
-      (Array.isArray(cartResponse.data?.items) ||
-        cartResponse.data?.items === null ||
-        !cartResponse.data?.items)
-    ) {
-      const pendingData = localStorage.getItem("pending_fabric_data");
-      if (pendingData) {
-        console.log("🔍 RAW localStorage data:", pendingData);
-        const parsedData = JSON.parse(pendingData);
-        console.log("🔍 PARSED localStorage data:", parsedData);
-
-        // Log detailed structure of each item
-        if (parsedData.items) {
-          parsedData.items.forEach((item, index) => {
-            console.log(`📦 ITEM ${index}:`, {
-              product_id: item.product_id,
-              product_type: item.product_type,
-              quantity: item.quantity,
-              customer_name: item.customer_name,
-              color: item.color,
-              style_product_id: item.style_product_id,
-              style_price: item.style_price,
-              has_measurement: !!item.measurement,
-              has_measurements: !!item.measurements,
-              measurement_count: item.measurement?.length || 0,
-              measurements_count: item.measurements?.length || 0,
-            });
-
-            // Log measurement structure if it exists
-            if (item.measurement && Array.isArray(item.measurement)) {
-              item.measurement.forEach((measurement, mIndex) => {
-                console.log(`📏 MEASUREMENT ${index}.${mIndex}:`, {
-                  customer_name: measurement.customer_name,
-                  id: measurement.id,
-                  has_upper_body: !!measurement.upper_body,
-                  has_lower_body: !!measurement.lower_body,
-                  has_full_body: !!measurement.full_body,
-                });
-
-                if (measurement.upper_body) {
-                  console.log(`📏 UPPER_BODY ${index}.${mIndex}:`, {
-                    bust_circumference:
-                      measurement.upper_body.bust_circumference,
-                    waist_circumference:
-                      measurement.upper_body.waist_circumference,
-                    waist_circumference_type:
-                      typeof measurement.upper_body.waist_circumference,
-                    shoulder_width: measurement.upper_body.shoulder_width,
-                    armhole_circumference:
-                      measurement.upper_body.armhole_circumference,
-                    sleeve_length: measurement.upper_body.sleeve_length,
-                    bicep_circumference:
-                      measurement.upper_body.bicep_circumference,
-                    wrist_circumference:
-                      measurement.upper_body.wrist_circumference,
-                  });
-                }
-
-                if (measurement.lower_body) {
-                  console.log(`📏 LOWER_BODY ${index}.${mIndex}:`, {
-                    waist_circumference:
-                      measurement.lower_body.waist_circumference,
-                    waist_circumference_type:
-                      typeof measurement.lower_body.waist_circumference,
-                    hip_circumference: measurement.lower_body.hip_circumference,
-                    thigh_circumference:
-                      measurement.lower_body.thigh_circumference,
-                    knee_circumference:
-                      measurement.lower_body.knee_circumference,
-                    trouser_length: measurement.lower_body.trouser_length,
-                  });
-                }
-              });
-            }
-
-            // Log measurements (plural) if it exists
-            if (item.measurements && Array.isArray(item.measurements)) {
-              console.log(
-                `📏 MEASUREMENTS (plural) for item ${index}:`,
-                item.measurements,
-              );
-            }
-          });
-        }
-
-        console.log("🚀 SENDING TO API - Final payload:", parsedData);
-        addMultipleCartMutate(parsedData, {
-          onSuccess: (data) => {
-            toastSuccess("Added to cart successfully");
-            console.log("Added to cart successfully:", data);
-            localStorage.removeItem("pending_fabric_data");
-            setPendingFabricSent(true);
-            refetchCart();
-          },
-        });
-      }
-    }
   }, [
     token,
     pendingFabricSent,
     cartLoading,
     cartResponse,
-    addMultipleCartMutate,
-    refetchCart,
-    // toastSuccess is a stable callback from useToast
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    isSyncingLocalStorage,
   ]);
 
   // --- END REWRITE ---
@@ -1036,7 +960,18 @@ const CartPage = () => {
         backgroundImage="https://res.cloudinary.com/greenmouse-tech/image/upload/v1744104104/AoStyle/image_1_xxie9w.jpg"
       />
 
-      {!items || items.length === 0 ? (
+      {cartLoading || isSyncingLocalStorage ? (
+        <div className="px-4 py-16">
+          <div className="max-w-md mx-auto text-center">
+            <LoaderComponent />
+            <p className="text-gray-600 mt-4">
+              {isSyncingLocalStorage
+                ? "Syncing your cart..."
+                : "Loading cart..."}
+            </p>
+          </div>
+        </div>
+      ) : !items || items.length === 0 ? (
         <div className="px-4 py-16">
           <div className="max-w-md mx-auto text-center">
             <div className="bg-gray-50 rounded-full w-32 h-32 flex items-center justify-center mx-auto mb-8">

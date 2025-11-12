@@ -197,7 +197,16 @@ export default function SignInAsCustomer() {
           // Add small delay to ensure cookies are set before navigation
           setTimeout(() => {
             console.log("🔄 Redirecting to customer dashboard");
-            const targetPath = redirectPath ?? "/customer";
+
+            // Check for pending cart data and redirect appropriately
+            const pendingCartData = localStorage.getItem("pending_fabric_data");
+            let targetPath;
+            if (pendingCartData) {
+              targetPath = "/view-cart";
+              console.log("🛒 Found pending cart data, redirecting to cart");
+            } else {
+              targetPath = redirectPath ?? "/customer";
+            }
 
             navigate(targetPath, {
               state: { info: parsedProduct },

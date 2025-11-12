@@ -507,315 +507,146 @@ const Settings = () => {
                       </div>
                     </div>
 
-                        {/* Mobile responsive grid - single column on mobile */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-gray-700 mb-4">
-                              Phone Number
-                            </label>
-                            <PhoneInput
-                              country={"ng"}
-                              value={values.phone}
-                              inputProps={{
-                                name: "phone",
-                                required: true,
-                              }}
-                              onChange={(value, data) => {
-                                // Ensure Nigeria always uses +234
-                                if (data.countryCode === "ng") {
-                                  // If user is typing after +234, keep their input
-                                  if (value && value.startsWith("+234")) {
-                                    setFieldValue("phone", value);
-                                  } else {
-                                    // Default to +234 for Nigeria
-                                    setFieldValue("phone", value);
-                                  }
-                                } else {
-                                  // For other countries, handle normally
-                                  const formattedValue = value.startsWith("+")
-                                    ? value
-                                    : "+" + value;
-                                  setFieldValue("phone", formattedValue);
-                                }
-                              }}
-                              onCountryChange={(countryCode) => {
-                                // Force +234 when Nigeria is selected
-                                if (countryCode === "ng") {
-                                  setFieldValue("phone", "+234");
-                                }
-                              }}
-                              defaultCountry="ng"
-                              onlyCountries={["ng"]}
-                              containerClass="w-full disabled:bg-gray-100"
-                              dropdownClass="flex flex-col gap-2 text-black disabled:bg-gray-100"
-                              buttonClass="bg-gray-100 !border !border-gray-100 hover:!bg-gray-100 disabled:bg-gray-100"
-                              inputClass="!w-full px-4 font-sans disabled:bg-gray-100 !h-[54px] !py-4 border border-gray-300 !rounded-md focus:outline-none"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-gray-700 mb-4">
-                              Email
-                            </label>
-                            <input
-                              type="email"
-                              className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                              placeholder="Enter your email address"
-                              required
-                              name={"email"}
-                              value={values.email}
-                              onChange={handleChange}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-gray-700 mb-4">
-                              Alternate Phone Number
-                            </label>
-                            <PhoneInput
-                              country={"ng"}
-                              value={values.alternative_phone}
-                              inputProps={{
-                                name: "alternative_phone",
-                                required: true,
-                              }}
-                              onChange={(value) => {
-                                // Ensure `+` is included and validate
-                                if (!value.startsWith("+")) {
-                                  value = "+" + value;
-                                }
-                                setFieldValue("alternative_phone", value);
-                              }}
-                              containerClass="w-full disabled:bg-gray-100"
-                              dropdownClass="flex flex-col gap-2 text-black disabled:bg-gray-100"
-                              buttonClass="bg-gray-100 !border !border-gray-100 hover:!bg-gray-100 disabled:bg-gray-100"
-                              inputClass="!w-full px-4 font-sans disabled:bg-gray-100  !h-[54px] !py-4 border border-gray-300 !rounded-md focus:outline-none"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-gray-700 mb-4">
-                              Address
-                            </label>
-                            <input
-                              type="text"
-                              ref={ref}
-                              className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                              placeholder="Enter full detailed address"
-                              required
-                              name="address"
-                              maxLength={150}
-                              onChange={(e) => {
-                                setFieldValue("address", e.currentTarget.value);
-                                setFieldValue("latitude", "");
-                                setFieldValue("longitude", "");
-                              }}
-                              value={values.address}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Additional Profile Information */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-gray-700 mb-4">
-                              Date of Birth
-                            </label>
-                            <input
-                              type="date"
-                              className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                              name="date_of_birth"
-                              value={values.date_of_birth}
-                              onChange={handleChange}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-gray-700 mb-4">
-                              Occupation
-                            </label>
-                            <input
-                              type="text"
-                              className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                              placeholder="Enter your occupation"
-                              name="occupation"
-                              value={values.occupation}
-                              onChange={handleChange}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-gray-700 mb-4">
-                              Employer
-                            </label>
-                            <input
-                              type="text"
-                              className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                              placeholder="Enter your employer"
-                              name="employer"
-                              value={values.employer}
-                              onChange={handleChange}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-gray-700 mb-4">
-                              Monthly Income (₦)
-                            </label>
-                            <input
-                              type="number"
-                              className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                              placeholder="Enter your monthly income"
-                              name="monthly_income"
-                              value={values.monthly_income}
-                              onChange={handleChange}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Student Information Section */}
-                        <div className="mt-8 p-6 border border-gray-200 rounded-lg bg-gray-50">
-                          <h3 className="text-lg font-medium text-gray-900 mb-4">
-                            Student Information
-                          </h3>
-                          <div className="flex items-start space-x-3">
-                            <input
-                              type="checkbox"
-                              id="isStudent"
-                              name="isStudent"
-                              checked={values.isStudent}
-                              onChange={(e) =>
-                                setFieldValue("isStudent", e.target.checked)
+                    {/* Mobile responsive grid - single column on mobile */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-gray-700 mb-4">
+                          Phone Number
+                        </label>
+                        <PhoneInput
+                          country={"ng"}
+                          value={values.phone}
+                          inputProps={{
+                            name: "phone",
+                            required: true,
+                          }}
+                          onChange={(value, data) => {
+                            // Ensure Nigeria always uses +234
+                            if (data.countryCode === "ng") {
+                              // If user is typing after +234, keep their input
+                              if (value && value.startsWith("+234")) {
+                                setFieldValue("phone", value);
+                              } else {
+                                // Default to +234 for Nigeria
+                                setFieldValue("phone", value);
                               }
-                              className="mt-1 h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                            />
-                            <div>
-                              <label
-                                htmlFor="isStudent"
-                                className="text-sm font-medium text-gray-900 cursor-pointer"
-                              >
-                                I am a student
-                              </label>
-                              <p className="text-sm text-blue-600 mt-1">
-                                Check this box if you're currently a student to
-                                see university-specific apartments
-                              </p>
-                            </div>
-                          </div>
+                            } else {
+                              // For other countries, handle normally
+                              const formattedValue = value.startsWith("+")
+                                ? value
+                                : "+" + value;
+                              setFieldValue("phone", formattedValue);
+                            }
+                          }}
+                          onCountryChange={(countryCode) => {
+                            // Force +234 when Nigeria is selected
+                            if (countryCode === "ng") {
+                              setFieldValue("phone", "+234");
+                            }
+                          }}
+                          defaultCountry="ng"
+                          onlyCountries={["ng"]}
+                          containerClass="w-full disabled:bg-gray-100"
+                          dropdownClass="flex flex-col gap-2 text-black disabled:bg-gray-100"
+                          buttonClass="bg-gray-100 !border !border-gray-100 hover:!bg-gray-100 disabled:bg-gray-100"
+                          inputClass="!w-full px-4 font-sans disabled:bg-gray-100 !h-[54px] !py-4 border border-gray-300 !rounded-md focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 mb-4">
+                          Email
+                        </label>
+                        <input
+                          type="email"
+                          className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                          placeholder="Enter your email address"
+                          required
+                          name={"email"}
+                          value={values.email}
+                          onChange={handleChange}
+                        />
+                      </div>
+                    </div>
 
-                          {values.isStudent && (
-                            <div className="mt-4">
-                              <label className="block text-gray-700 mb-2">
-                                School ID
-                              </label>
-                              <input
-                                type="text"
-                                className="w-full p-3 border border-[#CCCCCC] outline-none rounded-lg"
-                                placeholder="Enter your school ID"
-                                name="schoolId"
-                                value={values.schoolId}
-                                onChange={handleChange}
-                              />
-                            </div>
-                          )}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-gray-700 mb-4">
+                          Alternate Phone Number
+                        </label>
+                        <PhoneInput
+                          country={"ng"}
+                          value={values.alternative_phone}
+                          inputProps={{
+                            name: "alternative_phone",
+                            required: true,
+                          }}
+                          onChange={(value) => {
+                            // Ensure `+` is included and validate
+                            if (!value.startsWith("+")) {
+                              value = "+" + value;
+                            }
+                            setFieldValue("alternative_phone", value);
+                          }}
+                          containerClass="w-full disabled:bg-gray-100"
+                          dropdownClass="flex flex-col gap-2 text-black disabled:bg-gray-100"
+                          buttonClass="bg-gray-100 !border !border-gray-100 hover:!bg-gray-100 disabled:bg-gray-100"
+                          inputClass="!w-full px-4 font-sans disabled:bg-gray-100  !h-[54px] !py-4 border border-gray-300 !rounded-md focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 mb-4">
+                          Address
+                        </label>
+                        <input
+                          type="text"
+                          ref={ref}
+                          className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                          placeholder="Enter full detailed address"
+                          required
+                          name="address"
+                          maxLength={150}
+                          onChange={(e) => {
+                            setFieldValue("address", e.currentTarget.value);
+                            setFieldValue("latitude", "");
+                            setFieldValue("longitude", "");
+                          }}
+                          value={values.address}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Coordinates Display - Improved overflow handling */}
+                    {(values.latitude || values.longitude) && (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg">
+                        <div>
+                          <label className="block text-gray-700 mb-2 text-sm font-medium">
+                            Latitude
+                          </label>
+                          <div className="w-full p-3 bg-white border border-blue-200 rounded-lg text-sm text-gray-600 overflow-hidden">
+                            <span className="break-all">
+                              {values.latitude || "Not set"}
+                            </span>
+                          </div>
                         </div>
-
-                        {/* Emergency Contact Section */}
-                        <div className="mt-8 p-6 border border-gray-200 rounded-lg">
-                          <h3 className="text-lg font-medium text-gray-900 mb-4">
-                            Emergency Contact
-                          </h3>
-                          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                            <div>
-                              <label className="block text-gray-700 mb-2">
-                                Full Name
-                              </label>
-                              <input
-                                type="text"
-                                className="w-full p-3 border border-[#CCCCCC] outline-none rounded-lg"
-                                placeholder="Enter full name"
-                                name="emergency_contact_name"
-                                value={values.emergency_contact_name}
-                                onChange={handleChange}
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-gray-700 mb-2">
-                                Relationship
-                              </label>
-                              <select
-                                className="w-full p-3 border border-[#CCCCCC] outline-none rounded-lg"
-                                name="emergency_contact_relationship"
-                                value={values.emergency_contact_relationship}
-                                onChange={handleChange}
-                              >
-                                <option value="">Select relationship</option>
-                                <option value="Parent">Parent</option>
-                                <option value="Sibling">Sibling</option>
-                                <option value="Spouse">Spouse</option>
-                                <option value="Friend">Friend</option>
-                                <option value="Guardian">Guardian</option>
-                                <option value="Other">Other</option>
-                              </select>
-                            </div>
-                            <div>
-                              <label className="block text-gray-700 mb-2">
-                                Phone Number
-                              </label>
-                              <PhoneInput
-                                country={"ng"}
-                                value={values.emergency_contact_phone}
-                                inputProps={{
-                                  name: "emergency_contact_phone",
-                                }}
-                                onChange={(value) => {
-                                  if (!value.startsWith("+")) {
-                                    value = "+" + value;
-                                  }
-                                  setFieldValue(
-                                    "emergency_contact_phone",
-                                    value,
-                                  );
-                                }}
-                                containerClass="w-full"
-                                inputClass="!w-full px-4 font-sans !h-[48px] !py-3 border border-gray-300 !rounded-md focus:outline-none"
-                              />
-                            </div>
+                        <div>
+                          <label className="block text-gray-700 mb-2 text-sm font-medium">
+                            Longitude
+                          </label>
+                          <div className="w-full p-3 bg-white border border-blue-200 rounded-lg text-sm text-gray-600 overflow-hidden">
+                            <span className="break-all">
+                              {values.longitude || "Not set"}
+                            </span>
                           </div>
                         </div>
-
-                        {/* Coordinates Display - Improved overflow handling */}
-                        {(values.latitude || values.longitude) && (
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg">
-                            <div>
-                              <label className="block text-gray-700 mb-2 text-sm font-medium">
-                                Latitude
-                              </label>
-                              <div className="w-full p-3 bg-white border border-blue-200 rounded-lg text-sm text-gray-600 overflow-hidden">
-                                <span className="break-all">
-                                  {values.latitude || "Not set"}
-                                </span>
-                              </div>
-                            </div>
-                            <div>
-                              <label className="block text-gray-700 mb-2 text-sm font-medium">
-                                Longitude
-                              </label>
-                              <div className="w-full p-3 bg-white border border-blue-200 rounded-lg text-sm text-gray-600 overflow-hidden">
-                                <span className="break-all">
-                                  {values.longitude || "Not set"}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="col-span-1 lg:col-span-2">
-                              <p className="text-xs text-blue-600">
-                                📍 These coordinates are automatically set when
-                                you select an address using Google Places
-                                autocomplete above.
-                              </p>
-                            </div>
-                          </div>
-                        )}
+                        <div className="col-span-1 lg:col-span-2">
+                          <p className="text-xs text-blue-600">
+                            📍 These coordinates are automatically set when you
+                            select an address using Google Places autocomplete
+                            above.
+                          </p>
+                        </div>
+                      </div>
+                    )}
 
                     <button
                       disabled={updateIsPending}

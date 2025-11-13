@@ -972,87 +972,244 @@ export default function ShopDetails() {
                 </div>
               )}
               {/* Additional Product Details */}
-              <div className="grid grid-cols-2 gap-4 p-4 bg-white rounded-lg border border-gray-200 mt-4">
-                {/* Gender Suitability */}
-                {productVal?.gender_suitability && (
-                  <div className="space-y-1">
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                      Gender Suitability
-                    </span>
-                    <p className="text-sm font-medium text-gray-900 capitalize">
-                      {productVal.gender_suitability}
-                    </p>
-                  </div>
-                )}
+              <div className="mt-6 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl p-5 border border-gray-200/60 shadow-sm">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <svg
+                    className="w-4 h-4 text-purple-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  Product Specifications
+                </h3>
 
-                {/* Weight per yard */}
-                {productVal?.weight_per_unit && (
-                  <div className="space-y-1">
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                      Weight per Yard(g)
-                    </span>
-                    <p className="text-sm font-medium text-gray-900">
-                      {productVal.weight_per_unit} g
-                    </p>
-                  </div>
-                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {/* Gender Suitability */}
+                  {productVal?.gender_suitability && (
+                    <div className="group relative bg-white rounded-lg p-3 border border-gray-200/80 hover:border-purple-300 hover:shadow-md transition-all duration-200">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
+                          <svg
+                            className="w-3.5 h-3.5 text-purple-600"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                            />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block">
+                            Gender Suitability
+                          </span>
+                          <p className="text-sm font-semibold text-gray-900 capitalize truncate">
+                            {productVal.gender_suitability}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
-                {/* Local Name */}
-                {productVal?.local_name && (
-                  <div className="space-y-1">
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                      Local Name
-                    </span>
-                    <p className="text-sm font-medium text-gray-900 capitalize">
-                      {productVal.local_name}
-                    </p>
-                  </div>
-                )}
-                {productVal?.product?.gender && (
-                  <div className="space-y-1">
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                      Gender Suitability
-                    </span>
-                    <p className="text-sm font-medium text-gray-900 capitalize">
-                      {productVal?.product?.gender}
-                    </p>
-                  </div>
-                )}
-                {/* Manufacturer's Name */}
-                {productVal?.manufacturer_name && (
-                  <div className="space-y-1">
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                      Manufacturer
-                    </span>
-                    <p className="text-sm font-medium text-gray-900">
-                      {productVal.manufacturer_name}
-                    </p>
-                  </div>
-                )}
+                  {/* Weight per yard */}
+                  {productVal?.weight_per_unit && (
+                    <div className="group relative bg-white rounded-lg p-3 border border-gray-200/80 hover:border-purple-300 hover:shadow-md transition-all duration-200">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                          <svg
+                            className="w-3.5 h-3.5 text-blue-600"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"
+                            />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block">
+                            Weight per Yard
+                          </span>
+                          <p className="text-sm font-semibold text-gray-900">
+                            {productVal.weight_per_unit}{" "}
+                            <span className="text-xs text-gray-500">grams</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
-                {/* Fabric Texture */}
-                {productVal?.fabric_texture && (
-                  <div className="space-y-1 col-span-2">
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                      Fabric Texture
-                    </span>
-                    <p className="text-sm font-medium text-gray-900">
-                      {productVal.fabric_texture}
-                    </p>
-                  </div>
-                )}
+                  {/* Local Name */}
+                  {productVal?.local_name && (
+                    <div className="group relative bg-white rounded-lg p-3 border border-gray-200/80 hover:border-purple-300 hover:shadow-md transition-all duration-200">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                          <svg
+                            className="w-3.5 h-3.5 text-green-600"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                            />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block">
+                            Local Name
+                          </span>
+                          <p className="text-sm font-semibold text-gray-900 capitalize truncate">
+                            {productVal.local_name}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
-                {/* Quantity */}
-                {typeof productVal?.quantity !== "undefined" && (
-                  <div className="space-y-1">
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                      Quantity Available
-                    </span>
-                    <p className="text-sm font-medium text-gray-900">
-                      {productVal.quantity}
-                    </p>
-                  </div>
-                )}
+                  {/* Product Gender (alternative) */}
+                  {productVal?.product?.gender && (
+                    <div className="group relative bg-white rounded-lg p-3 border border-gray-200/80 hover:border-purple-300 hover:shadow-md transition-all duration-200">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
+                          <svg
+                            className="w-3.5 h-3.5 text-purple-600"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                            />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block">
+                            Gender Suitability
+                          </span>
+                          <p className="text-sm font-semibold text-gray-900 capitalize truncate">
+                            {productVal?.product?.gender}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Manufacturer's Name */}
+                  {productVal?.manufacturer_name && (
+                    <div className="group relative bg-white rounded-lg p-3 border border-gray-200/80 hover:border-purple-300 hover:shadow-md transition-all duration-200">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                          <svg
+                            className="w-3.5 h-3.5 text-amber-600"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                            />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block">
+                            Manufacturer
+                          </span>
+                          <p className="text-sm font-semibold text-gray-900 truncate">
+                            {productVal.manufacturer_name}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Quantity */}
+                  {typeof productVal?.quantity !== "undefined" && (
+                    <div className="group relative bg-white rounded-lg p-3 border border-gray-200/80 hover:border-purple-300 hover:shadow-md transition-all duration-200">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                          <svg
+                            className="w-3.5 h-3.5 text-indigo-600"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                            />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block">
+                            Available
+                          </span>
+                          <p className="text-sm font-semibold text-gray-900">
+                            {productVal.quantity}{" "}
+                            <span className="text-xs text-gray-500">units</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Fabric Texture - Full Width */}
+                  {productVal?.fabric_texture && (
+                    <div className="md:col-span-2 group relative bg-white rounded-lg p-3 border border-gray-200/80 hover:border-purple-300 hover:shadow-md transition-all duration-200">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-rose-100 flex items-center justify-center flex-shrink-0">
+                          <svg
+                            className="w-3.5 h-3.5 text-rose-600"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
+                            />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block">
+                            Fabric Texture
+                          </span>
+                          <p className="text-sm font-semibold text-gray-900">
+                            {productVal.fabric_texture}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
               <div>
                 {productVal?.product?.creator?.profile?.state &&

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import SecuritySettings from "./components/SecuritySettings";
 import BankDetails from "./components/BankDetails";
@@ -27,6 +27,12 @@ const Settings = () => {
   const [activeTab, setActiveTab] = useState("personalDetails");
   const [bodyTab, setBodyTab] = useState("upperBody");
   const [activeSection, setActiveSection] = useState(q ?? "Profile");
+
+  // Track field states: 'backend' (from profile), 'google' (from Places), 'manual' (user typing)
+  const [fieldStates, setFieldStates] = useState({
+    country: "empty",
+    state: "empty",
+  });
   const { data: countries, isLoading: loadingCountries } = useCountries();
 
   const countriesOptions =
@@ -34,7 +40,29 @@ const Settings = () => {
 
   const { carybinUser } = useCarybinUserStore();
 
+  // Update field states when carybinUser data is loaded
+  useEffect(() => {
+    if (carybinUser?.profile) {
+      setFieldStates({
+        country: carybinUser?.profile?.country ? "backend" : "empty",
+        state: carybinUser?.profile?.state ? "backend" : "empty",
+      });
+    }
+  }, [carybinUser]);
+
   console.log(carybinUser);
+
+  // Add loading guard to prevent rendering before data is loaded
+  if (!carybinUser) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   const initialValues = {
     name: carybinUser?.name ?? "",
@@ -144,6 +172,12 @@ const Settings = () => {
         longitude: val.longitude,
         hasCoordinates: !!(val.latitude && val.longitude),
       });
+      console.log("Country and State being sent:", {
+        country: val.country,
+        state: val.state,
+        address: val.address,
+      });
+      console.log("Field states:", fieldStates);
       if (!navigator.onLine) {
         toastError("No internet connection. Please check your network.");
         return;
@@ -262,25 +296,45 @@ const Settings = () => {
       let state = "";
       let country = "";
 
+      console.log("🔍 Available address components:", place.address_components);
+
       if (place.address_components) {
         place.address_components.forEach((component) => {
           const types = component.types;
+          console.log("🏷️ Component:", component.long_name, "Types:", types);
+
           if (types.includes("administrative_area_level_1")) {
             state = component.long_name;
+            console.log("✅ State found:", state);
           }
           if (types.includes("country")) {
             country = component.long_name;
+            console.log("✅ Country found:", country);
           }
         });
       }
 
-      console.log("🌍 Extracted location data:", { state, country });
+      console.log("🌍 Final extracted location data:", {
+        state: state || "❌ Not found",
+        country: country || "❌ Not found",
+      });
+
+      console.log("🔄 Setting field states based on Google Places data:", {
+        country: country ? "google" : "manual",
+        state: state ? "google" : "manual",
+      });
 
       setFieldValue("address", place.formatted_address);
       setFieldValue("latitude", lat ? lat.toString() : "");
       setFieldValue("longitude", lng ? lng.toString() : "");
       setFieldValue("state", state);
       setFieldValue("country", country);
+
+      // Track field states based on what Google provided
+      setFieldStates({
+        country: country ? "google" : "manual",
+        state: state ? "google" : "manual",
+      });
     },
     options: {
       componentRestrictions: { country: "ng" },
@@ -501,6 +555,13 @@ const Settings = () => {
                             setFieldValue("address", e.currentTarget.value);
                             setFieldValue("latitude", "");
                             setFieldValue("longitude", "");
+                            setFieldValue("country", "");
+                            setFieldValue("state", "");
+                            // Reset field states when manually editing address
+                            setFieldStates({
+                              country: "empty",
+                              state: "empty",
+                            });
                           }}
                           value={values.address}
                         />
@@ -647,6 +708,163 @@ const Settings = () => {
                         </div>
                       </div>
                     )}
+
+                    {/* Country and State Fields */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-gray-700 mb-4">
+                          Country
+                        </label>
+                        <input
+                          type="text"
+                          className={`w-full p-4 border outline-none rounded-lg ${
+                            fieldStates.country === "backend" ||
+                            fieldStates.country === "google"
+                              ? "border-gray-300 bg-gray-50 cursor-not-allowed"
+                              : "border-[#CCCCCC]"
+                          }`}
+                          placeholder={
+                            fieldStates.country === "backend"
+                              ? "From your profile"
+                              : fieldStates.country === "google"
+                                ? "Auto-filled from Google Places"
+                                : fieldStates.country === "manual"
+                                  ? "Enter country manually"
+                                  : "Will auto-fill when you select an address above"
+                          }
+                          name="country"
+                          value={values.country}
+                          onChange={(e) => {
+                            handleChange(e);
+                            // Set to manual state when user types (only if field is editable)
+                            if (
+                              fieldStates.country === "empty" ||
+                              fieldStates.country === "manual"
+                            ) {
+                              setFieldStates((prev) => ({
+                                ...prev,
+                                country: "manual",
+                              }));
+                            }
+                          }}
+                          readOnly={
+                            fieldStates.country === "backend" ||
+                            fieldStates.country === "google"
+                          }
+                          disabled={
+                            fieldStates.country === "backend" ||
+                            fieldStates.country === "google"
+                          }
+                        />
+                        {fieldStates.country === "backend" ? (
+                          <p className="text-xs text-gray-600 mt-1">
+                            🔒 From your profile (read-only)
+                          </p>
+                        ) : fieldStates.country === "google" ? (
+                          <p className="text-xs text-green-600 mt-1">
+                            🔒 Auto-filled from Google Places (read-only)
+                          </p>
+                        ) : fieldStates.country === "empty" ? (
+                          <p className="text-xs text-gray-500 mt-1">
+                            📝 Will auto-fill from Google Places or enter
+                            manually
+                          </p>
+                        ) : (
+                          <p className="text-xs text-blue-600 mt-1">
+                            ✏️ Manually entered (editable)
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 mb-4">
+                          State
+                        </label>
+                        <input
+                          type="text"
+                          className={`w-full p-4 border outline-none rounded-lg ${
+                            fieldStates.state === "backend" ||
+                            fieldStates.state === "google"
+                              ? "border-gray-300 bg-gray-50 cursor-not-allowed"
+                              : "border-[#CCCCCC]"
+                          }`}
+                          placeholder={
+                            fieldStates.state === "backend"
+                              ? "From your profile"
+                              : fieldStates.state === "google"
+                                ? "Auto-filled from Google Places"
+                                : fieldStates.state === "manual"
+                                  ? "Enter state manually"
+                                  : "Will auto-fill when you select an address above"
+                          }
+                          name="state"
+                          value={values.state}
+                          onChange={(e) => {
+                            handleChange(e);
+                            // Set to manual state when user types (only if field is editable)
+                            if (
+                              fieldStates.state === "empty" ||
+                              fieldStates.state === "manual"
+                            ) {
+                              setFieldStates((prev) => ({
+                                ...prev,
+                                state: "manual",
+                              }));
+                            }
+                          }}
+                          readOnly={
+                            fieldStates.state === "backend" ||
+                            fieldStates.state === "google"
+                          }
+                          disabled={
+                            fieldStates.state === "backend" ||
+                            fieldStates.state === "google"
+                          }
+                        />
+                        {fieldStates.state === "backend" ? (
+                          <p className="text-xs text-gray-600 mt-1">
+                            🔒 From your profile (read-only)
+                          </p>
+                        ) : fieldStates.state === "google" ? (
+                          <p className="text-xs text-green-600 mt-1">
+                            🔒 Auto-filled from Google Places (read-only)
+                          </p>
+                        ) : fieldStates.state === "empty" ? (
+                          <p className="text-xs text-gray-500 mt-1">
+                            📝 Will auto-fill from Google Places or enter
+                            manually
+                          </p>
+                        ) : (
+                          <p className="text-xs text-blue-600 mt-1">
+                            ✏️ Manually entered (editable)
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Display notice for field states */}
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-xs text-blue-600">
+                        {fieldStates.country === "backend" ||
+                        fieldStates.state === "backend" ? (
+                          <>
+                            🏠 Fields from your profile are read-only. Clear the
+                            address field to reset and enable editing.
+                          </>
+                        ) : fieldStates.country === "google" ||
+                          fieldStates.state === "google" ? (
+                          <>
+                            🌍 Google auto-filled fields are read-only. Clear
+                            the address field to reset and enable manual entry.
+                          </>
+                        ) : (
+                          <>
+                            📝 Country and State will auto-fill when you select
+                            an address. If Google Places doesn't provide them,
+                            you can type them manually.
+                          </>
+                        )}
+                      </p>
+                    </div>
 
                     <button
                       disabled={updateIsPending}

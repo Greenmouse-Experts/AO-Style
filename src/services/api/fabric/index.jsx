@@ -89,9 +89,10 @@ const updateAdminFabricProduct = (payload) => {
 };
 
 const deleteFabricProduct = (payload) => {
+  console.log("This is the delete payload", payload);
   return CaryBinApi.delete(`/fabric/${payload.id}`, {
     headers: {
-      "Business-id": payload.business_id,
+      "Business-Id": payload.businessId,
     },
     data: payload,
   });

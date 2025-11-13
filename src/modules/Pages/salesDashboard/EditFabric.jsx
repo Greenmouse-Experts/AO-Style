@@ -188,6 +188,7 @@ const EditFabric = () => {
         vendor_id: values.vendor_id,
         product: {
           type: "FABRIC",
+          status: "PUBLISHED",
           name: values.name,
           category_id: values.category_id,
           description: values.description,

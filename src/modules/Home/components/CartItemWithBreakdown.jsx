@@ -204,8 +204,20 @@ const CartItemWithBreakdown = ({
                   item?.pendingFabricData?.pendingFabric?.name ||
                   "Fabric"}
               </button>
-              <p className="text-sm text-gray-600">
-                Color: {item.color || "Red"}
+              <p className="text-sm text-gray-600 flex items-center gap-2">
+                Color:
+                {item.color ? (
+                  <>
+                    <span
+                      className="inline-block w-4 h-4 rounded-full border border-gray-300 align-middle"
+                      style={{ backgroundColor: item.color }}
+                      title={item.color}
+                    ></span>
+                    <span className="text-xs text-gray-500">{item.color}</span>
+                  </>
+                ) : (
+                  "Red"
+                )}
               </p>
             </div>
 

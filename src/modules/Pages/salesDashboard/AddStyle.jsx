@@ -141,6 +141,7 @@ const AddStyle = () => {
         vendor_id: values.vendor_id,
         product: {
           type: "STYLE",
+          status: "PUBLISHED",
           name: values.name,
           category_id: values.category_id,
           description: values.description,

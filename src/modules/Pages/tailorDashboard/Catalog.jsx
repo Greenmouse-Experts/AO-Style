@@ -92,7 +92,7 @@ export default function StylesTable() {
   const totalPages = Math.ceil(
     updatedData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
-
+  console.log("hsi is the updated data", updatedData);
   const dataRes =
     currProd === "all"
       ? updatedData?.data
@@ -192,6 +192,30 @@ export default function StylesTable() {
               }`}
             >
               {status}
+            </span>
+          </div>
+        ),
+      },
+      {
+        label: "Admin Status",
+        key: "admin-status",
+        width: "200px",
+        render: (_, row) => (
+          <div className="flex flex-col items-center min-w-[200px] gap-1">
+            {/* Product Status */}
+            <span
+              className={`inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full border-2 whitespace-nowrap ${
+                row.approval_status === "PUBLISHED"
+                  ? "bg-green-50 text-green-700 border-green-200"
+                  : row.approval_status === "DRAFT"
+                    ? "bg-yellow-50 text-yellow-700 border-yellow-200"
+                    : row.approval_status === "ARCHIVED"
+                      ? "bg-red-50 text-red-700 border-red-200"
+                      : "bg-gray-50 text-gray-700 border-gray-200"
+              }`}
+              title="Product Status"
+            >
+              {row.approval_status}
             </span>
           </div>
         ),
@@ -546,12 +570,12 @@ export default function StylesTable() {
                     <>
                       <button
                         onClick={async () => {
-                          const businessId = businessDetails?.data?.id;
+                          // const businessId = businessDetails?.data?.id;
                           toast.promise(
                             async () => {
-                              console.log(row)
+                              console.log(row);
                               const resp = await CaryBinApi.patch(
-                                "/manage-style/" + row.style.id,
+                                "/manage-style/" + row.id,
                                 {
                                   product: {
                                     status:
@@ -563,7 +587,7 @@ export default function StylesTable() {
                                 },
                                 {
                                   headers: {
-                                    "Business-Id": businessId,
+                                    "Business-Id": row?.business_info?.id,
                                   },
                                 },
                               );
@@ -584,14 +608,17 @@ export default function StylesTable() {
                         {row.status === "PUBLISHED" ? "Unpublish" : "Publish"}
                       </button>
 
-                      <Link
-                        to="/admin/style/edit-product"
-                        state={{ info: row }}
-                        className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 transition-colors text-gray-700"
-                        onClick={() => setOpenDropdown(null)}
-                      >
-                        <Edit3 className="w-4 h-4" />
-                      </Link>
+                      {currProd === "my" && (
+                        <Link
+                          to="/admin/style/edit-product"
+                          state={{ info: row }}
+                          className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 transition-colors text-gray-700"
+                          onClick={() => setOpenDropdown(null)}
+                        >
+                          <Edit3 className="w-4 h-4" />
+                          Edit
+                        </Link>
+                      )}
                     </>
                   )}
 

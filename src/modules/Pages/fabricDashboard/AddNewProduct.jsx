@@ -103,11 +103,34 @@ const AddProduct = () => {
   const isAdminAddFabricRoute =
     location.pathname === "/admin/fabric/add-product";
 
-  const isAdminEditFabricRoute =
-    location.pathname === "/admin/fabric/edit-product";
+  const isAdminEditFabricRoute = location.pathname.includes(
+    "/admin/fabric/edit-product",
+  );
 
   const productInfo = location?.state?.info;
   const isEditMode = !!productInfo;
+
+  // Console log for debugging category autofill
+  console.log("🔧 FABRIC EDIT DEBUG - productInfo:", productInfo);
+  console.log(
+    "🔧 FABRIC CATEGORY DEBUG - Raw category data:",
+    productInfo?.category,
+  );
+  console.log(
+    "🔧 FABRIC CATEGORY DEBUG - category_id:",
+    productInfo?.category_id,
+  );
+  console.log(
+    "🔧 FABRIC CATEGORY DEBUG - category?.id:",
+    productInfo?.category?.id,
+  );
+  console.log("🔧 FABRIC CATEGORY DEBUG - All category fields:", {
+    category: productInfo?.category,
+    category_id: productInfo?.category_id,
+    categoryId: productInfo?.categoryId,
+    "category.id": productInfo?.category?.id,
+    "category.name": productInfo?.category?.name,
+  });
 
   const initialValues = {
     type: "FABRIC",
@@ -185,6 +208,28 @@ const AddProduct = () => {
     "pagination[limit]": 10000,
     type: "fabric",
   });
+
+  // Console log for debugging categories structure
+  console.log(
+    "🔧 FABRIC CATEGORIES DEBUG - fabCategory response:",
+    fabCategory,
+  );
+  console.log(
+    "🔧 FABRIC CATEGORIES DEBUG - fabCategory.data:",
+    fabCategory?.data,
+  );
+  if (fabCategory?.data) {
+    console.log(
+      "🔧 FABRIC CATEGORIES DEBUG - First category sample:",
+      fabCategory.data[0],
+    );
+    console.log("🔧 FABRIC CATEGORIES DEBUG - Category structure:", {
+      id: fabCategory.data[0]?.id,
+      name: fabCategory.data[0]?.name,
+      uuid: fabCategory.data[0]?.uuid,
+      category_id: fabCategory.data[0]?.category_id,
+    });
+  }
 
   const marketList = data?.data
     ? data?.data?.map((c) => ({
@@ -1438,71 +1483,64 @@ const AddProduct = () => {
             </div>
 
             {/* Submit Button */}
-            {isAdminEditFabricRoute ? (
-              <></>
-            ) : (
-              <>
-                {" "}
-                <div className="flex gap-4 mt-6">
-                  <button
-                    type="submit"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleSubmit();
-                    }}
-                    disabled={
-                      isPending ||
-                      uploadVideoIsPending ||
-                      updateIsPending ||
-                      closeUpViewIsPending ||
-                      spreadOutViewIsPending ||
-                      manufacturersIsPending ||
-                      fabricIsPending ||
-                      createAdminIsPending ||
-                      updateAdminIsPending
-                    }
-                    className={
-                      "w-full cursor-pointer py-3 rounded-md " +
-                      (
-                        isPending ||
-                        uploadVideoIsPending ||
-                        updateIsPending ||
-                        closeUpViewIsPending ||
-                        spreadOutViewIsPending ||
-                        manufacturersIsPending ||
-                        fabricIsPending ||
-                        createAdminIsPending ||
-                        updateAdminIsPending
-                          ? "bg-gradient-to-r from-gray-300 to-gray-400 text-gray-400 opacity-70 cursor-not-allowed"
-                          : "bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90"
-                      )
-                    }
-                  >
-                    {isPending ||
-                    updateIsPending ||
-                    closeUpViewIsPending ||
-                    spreadOutViewIsPending ||
-                    manufacturersIsPending ||
-                    fabricIsPending ||
-                    createAdminIsPending ||
-                    updateAdminIsPending
-                      ? "Please wait..."
-                      : productInfo
-                        ? "Update Fabric"
-                        : "Upload Fabric"}
-                  </button>
-                  {hasSavedData && !isEditMode && (
-                    <button
-                      type="button"
-                      onClick={handleClearSavedData}
-                      className="border border-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-50"
-                    >
-                      Clear Saved Data
-                    </button>
-                  )}
-                </div>
-              </>
-            )}
+            <div className="flex gap-4 mt-6">
+              <button
+                type="submit"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleSubmit();
+                }}
+                disabled={
+                  isPending ||
+                  uploadVideoIsPending ||
+                  updateIsPending ||
+                  closeUpViewIsPending ||
+                  spreadOutViewIsPending ||
+                  manufacturersIsPending ||
+                  fabricIsPending ||
+                  createAdminIsPending ||
+                  updateAdminIsPending
+                }
+                className={
+                  "w-full cursor-pointer py-3 rounded-md " +
+                  (isPending ||
+                  uploadVideoIsPending ||
+                  updateIsPending ||
+                  closeUpViewIsPending ||
+                  spreadOutViewIsPending ||
+                  manufacturersIsPending ||
+                  fabricIsPending ||
+                  createAdminIsPending ||
+                  updateAdminIsPending
+                    ? "bg-gradient-to-r from-gray-300 to-gray-400 text-gray-400 opacity-70 cursor-not-allowed"
+                    : "bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90")
+                }
+              >
+                {isPending ||
+                updateIsPending ||
+                closeUpViewIsPending ||
+                spreadOutViewIsPending ||
+                manufacturersIsPending ||
+                fabricIsPending ||
+                createAdminIsPending ||
+                updateAdminIsPending
+                  ? "Please wait..."
+                  : productInfo
+                    ? "Update Fabric"
+                    : isAdminAddFabricRoute
+                      ? "Create Fabric"
+                      : "Upload Fabric"}
+              </button>
+              {hasSavedData && !isEditMode && (
+                <button
+                  type="button"
+                  onClick={handleClearSavedData}
+                  className="border border-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-50"
+                >
+                  Clear Saved Data
+                </button>
+              )}
+            </div>
             {!isEditMode && (
               <div className="mt-4 text-xs text-gray-500 flex items-center">
                 <span className="mr-1">💾</span>

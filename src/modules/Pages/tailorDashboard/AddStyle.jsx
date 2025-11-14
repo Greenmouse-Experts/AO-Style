@@ -262,9 +262,10 @@ export default function StyleForm() {
         clearSavedData(); // Clear saved data on successful submission
         resetForm();
         navigate(
-          isAdminEditRoute
-            ? "/tailor/catalog?pagination[page]=1&pagination[limit]=10"
-            : -1,
+          -1,
+          // isAdminEditRoute
+          //   ? "/tailor/catalog?pagination[page]=1&pagination[limit]=10"
+          //   : -1,
         );
       };
 
@@ -1028,44 +1029,44 @@ export default function StyleForm() {
               onClose={() => setIsModalOpen(false)}
             />
 
-            {isAdminEditRoute ? null : (
-              <div className="flex gap-4 mt-6">
-                <button
-                  disabled={
-                    isPending ||
-                    uploadVideoIsPending ||
-                    uploadFrontIsPending ||
-                    uploadBackIsPending ||
-                    uploadRightIsPending ||
-                    uploadLeftIsPending ||
-                    updateIsPending ||
-                    updateAdminIsPending ||
-                    createIsPending
-                  }
-                  type="submit"
-                  className="bg-gradient text-white px-6 py-2 rounded w-full md:w-fit cursor-pointer disabled:opacity-50"
-                >
-                  {isPending ||
+            <div className="flex gap-4 mt-6">
+              <button
+                disabled={
+                  isPending ||
+                  uploadVideoIsPending ||
+                  uploadFrontIsPending ||
+                  uploadBackIsPending ||
+                  uploadRightIsPending ||
+                  uploadLeftIsPending ||
                   updateIsPending ||
                   updateAdminIsPending ||
                   createIsPending
-                    ? "Please wait..."
-                    : styleInfo
-                      ? "Edit Style"
+                }
+                type="submit"
+                className="bg-gradient text-white px-6 py-2 rounded w-full md:w-fit cursor-pointer disabled:opacity-50"
+              >
+                {isPending ||
+                updateIsPending ||
+                updateAdminIsPending ||
+                createIsPending
+                  ? "Please wait..."
+                  : styleInfo
+                    ? "Update Style"
+                    : isAdminAddRoute
+                      ? "Create Style"
                       : "Submit Style"}
-                </button>
+              </button>
 
-                {hasSavedData && !isEditMode && (
-                  <button
-                    type="button"
-                    onClick={handleClearSavedData}
-                    className="border border-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-50"
-                  >
-                    Clear Saved Data
-                  </button>
-                )}
-              </div>
-            )}
+              {hasSavedData && !isEditMode && (
+                <button
+                  type="button"
+                  onClick={handleClearSavedData}
+                  className="border border-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-50"
+                >
+                  Clear Saved Data
+                </button>
+              )}
+            </div>
           </form>
         </div>
 

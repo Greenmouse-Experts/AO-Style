@@ -428,6 +428,35 @@ const ProductPage = () => {
         ),
       },
       {
+        label: "Admin Status",
+        key: "admin-status",
+        width: "120px",
+        render: (_, row) => (
+          <div className="flex justify-center min-w-[120px]">
+            <span
+              className={`inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full border-2 whitespace-nowrap ${
+                row?.approval_status === "PUBLISHED"
+                  ? "bg-green-50 text-green-700 border-green-200"
+                  : status === "Cancelled"
+                    ? "bg-red-50 text-red-700 border-red-200"
+                    : "bg-yellow-50 text-yellow-700 border-yellow-200"
+              }`}
+            >
+              <span
+                className={`w-2 h-2 rounded-full mr-2 flex-shrink-0 ${
+                  row?.approval_status === "PUBLISHED"
+                    ? "bg-green-400"
+                    : row?.approval_status === "Cancelled"
+                      ? "bg-red-400"
+                      : "bg-yellow-400"
+                }`}
+              ></span>
+              {row?.approval_status}
+            </span>
+          </div>
+        ),
+      },
+      {
         label: "Actions",
         key: "action",
         width: "100px",
@@ -1187,36 +1216,38 @@ const ProductPage = () => {
                     View {productType === "STYLE" ? "Style" : "Fabric"}
                   </Link>
 
-                  <Link
-                    state={{ info: row?.original || row }}
-                    to={
-                      isAdminRoute
-                        ? isAdminStyleRoute
-                          ? "/admin/style/edit-product"
-                          : "/admin/fabric/edit-product"
-                        : "/fabric/product/edit-product"
-                    }
-                    className="flex items-center w-full px-4 py-3 text-sm text-indigo-700 hover:bg-indigo-50 transition-colors duration-150"
-                    onClick={() => {
-                      console.log("✏️ Editing product:", row);
-                      setOpenDropdown(null);
-                    }}
-                  >
-                    <svg
-                      className="w-4 h-4 mr-3"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                  {currProd === "my" && (
+                    <Link
+                      state={{ info: row?.original || row }}
+                      to={
+                        isAdminRoute
+                          ? isAdminStyleRoute
+                            ? "/admin/style/edit-product"
+                            : "/admin/fabric/edit-product"
+                          : "/fabric/product/edit-product"
+                      }
+                      className="flex items-center w-full px-4 py-3 text-sm text-indigo-700 hover:bg-indigo-50 transition-colors duration-150"
+                      onClick={() => {
+                        console.log("✏️ Editing product:", row);
+                        setOpenDropdown(null);
+                      }}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                      />
-                    </svg>
-                    Edit {productType === "STYLE" ? "Style" : "Fabric"}
-                  </Link>
+                      <svg
+                        className="w-4 h-4 mr-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
+                      </svg>
+                      Edit {productType === "STYLE" ? "Style" : "Fabric"}
+                    </Link>
+                  )}
 
                   <button
                     onClick={() => {

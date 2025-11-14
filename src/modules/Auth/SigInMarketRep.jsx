@@ -10,7 +10,7 @@ import Select from "react-select";
 import useToast from "../../hooks/useToast";
 import PhoneInput from "react-phone-input-2";
 import { usePlacesWidget } from "react-google-autocomplete";
-import { InfoTooltip } from "../../components/ui/Tooltip";
+import { AttentionTooltip } from "../../components/ui/Tooltip";
 
 const initialValues = {
   name: "",
@@ -225,9 +225,9 @@ export default function SignInAsCustomer() {
 
             <label className="flex items-center gap-2 text-black">
               Pick Address from Google Suggestions
-              <InfoTooltip
-                content="Please select your address from the Google dropdown suggestions that appear as you type. This ensures accurate location data for delivery."
-                position="right"
+              <AttentionTooltip
+                content="Select from Google dropdown"
+                position="top"
               />
             </label>
             <input

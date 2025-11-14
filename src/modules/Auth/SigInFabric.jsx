@@ -18,7 +18,7 @@ import { countryCodes } from "../../constant";
 import Select from "react-select";
 import PhoneInput from "react-phone-input-2";
 import Autocomplete from "react-google-autocomplete";
-import { InfoTooltip } from "../../components/ui/Tooltip";
+import { AttentionTooltip } from "../../components/ui/Tooltip";
 
 // import agreementPdf from "./Agreement between Carybin and Fabric Vendors.pdf";
 
@@ -584,9 +584,9 @@ export default function SignInAsCustomer() {
                   </select>
                   <label className="flex items-center gap-2 text-gray-700">
                     Pick Business Address from Google Suggestions
-                    <InfoTooltip
-                      content="Please select your business address from the Google dropdown suggestions that appear as you type. This ensures accurate location data for delivery."
-                      position="right"
+                    <AttentionTooltip
+                      content="Select from Google dropdown"
+                      position="top"
                     />
                   </label>
                   <Autocomplete

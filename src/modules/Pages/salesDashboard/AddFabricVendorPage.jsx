@@ -180,6 +180,7 @@ export default function AddFabricVendorPage() {
             date_of_birth: "",
             gender: val?.gender,
             address: val.address,
+            state: val.state,
           },
           business: {
             business_name: val?.business_name,
@@ -203,82 +204,10 @@ export default function AddFabricVendorPage() {
             id_type: val?.id_type,
           },
         };
-
-        console.log("=".repeat(80));
-        console.log("🚀 FABRIC VENDOR SUBMISSION - FULL PAYLOAD");
-        console.log("=".repeat(80));
-        console.log("📋 COMPLETE PAYLOAD STRUCTURE:");
-        console.log(JSON.stringify(payload, null, 2));
-        console.log("=".repeat(80));
-
-        console.log("👤 PROFILE SECTION:");
-        console.log("  - Name:", payload.profile.name);
-        console.log("  - Email:", payload.profile.email);
-        console.log("  - Phone:", payload.profile.phone);
-        console.log("  - Gender:", payload.profile.gender);
-        console.log("  - Personal Address:", payload.profile.address);
         console.log(
-          "  - Profile Picture:",
-          payload.profile.profile_picture ? "✅ Uploaded" : "❌ Not uploaded",
+          "Here is the uload payload for market rep adding dabroc vendor",
+          payload,
         );
-
-        console.log("🏢 BUSINESS SECTION:");
-        console.log("  - Business Name:", payload.business.business_name);
-        console.log("  - Business Type:", payload.business.business_type);
-        console.log("  - Business Location:", payload.business.location);
-        console.log("  - Business Country:", payload.business.country);
-        console.log("  - Business State:", payload.business.state);
-        console.log("  - Business Coordinates:", payload.business.coordinates);
-
-        console.log("📄 KYC SECTION:");
-        console.log("  - ID Type:", payload.kyc.id_type);
-        console.log("  - KYC Location:", payload.kyc.location);
-        console.log("  - KYC State:", payload.kyc.state);
-        console.log("  - KYC City:", payload.kyc.city);
-        console.log("  - KYC Country:", payload.kyc.country);
-        console.log(
-          "  - Front Document:",
-          payload.kyc.doc_front ? "✅ Uploaded" : "❌ Not uploaded",
-        );
-        console.log(
-          "  - Back Document:",
-          payload.kyc.doc_back ? "✅ Uploaded" : "❌ Not uploaded",
-        );
-        console.log(
-          "  - Utility Document:",
-          payload.kyc.utility_doc ? "✅ Uploaded" : "❌ Not uploaded",
-        );
-
-        console.log("📍 COORDINATES SUMMARY:");
-        console.log(
-          "  - Personal Coordinates:",
-          val?.latitude && val?.longitude
-            ? `${val.latitude}, ${val.longitude}`
-            : "❌ Not captured",
-        );
-        console.log(
-          "  - Business Coordinates:",
-          val?.business_latitude && val?.business_longitude
-            ? `${val.business_latitude}, ${val.business_longitude}`
-            : "❌ Not captured",
-        );
-        console.log(
-          "  - Final Coordinates Sent:",
-          payload.business.coordinates,
-        );
-
-        console.log("🏛️ STATE/LOCATION SUMMARY:");
-        console.log("  - Personal State:", val?.state || "❌ Not captured");
-        console.log(
-          "  - Business State:",
-          val?.business_state || "❌ Not captured",
-        );
-        console.log("  - Final State Sent:", payload.business.state);
-
-        console.log("=".repeat(80));
-        console.log("🚀 SUBMITTING TO BACKEND...");
-        console.log("=".repeat(80));
-
         addMarketRepFabricVendorMutate(payload, {
           onSuccess: () => {
             navigate(-1);

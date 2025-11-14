@@ -209,7 +209,7 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                   console.log(
                     "🔘 ViewWithdrawalsModal - Status filter changed to: completed",
                   );
-                  setStatusFilter("SHIPPED");
+                  setStatusFilter("APPROVED");
                 }}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out transform  active:scale-95 ${
                   statusFilter === "SHIPPED"
@@ -224,7 +224,7 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                   console.log(
                     "🔘 ViewWithdrawalsModal - Status filter changed to: failed",
                   );
-                  setStatusFilter("FAILED");
+                  setStatusFilter("REJECTED");
                 }}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out transform  active:scale-95 ${
                   statusFilter === "FAILED"

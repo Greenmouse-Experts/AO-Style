@@ -190,6 +190,7 @@ const AddFabric = () => {
         product: {
           type: "FABRIC",
           status: "PUBLISHED",
+          approval_status: "DRAFT",
           name: values.name,
           category_id: values.category_id,
           description: values.description,

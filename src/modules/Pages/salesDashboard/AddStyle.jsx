@@ -142,6 +142,7 @@ const AddStyle = () => {
         product: {
           type: "STYLE",
           status: "PUBLISHED",
+          approval_status: "DRAFT",
           name: values.name,
           category_id: values.category_id,
           description: values.description,

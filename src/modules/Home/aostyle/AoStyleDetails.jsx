@@ -1477,7 +1477,7 @@ export default function AnkaraGownPage() {
                             <div className="grid mt-6 grid-cols-1 sm:grid-cols-2 gap-4">
                               <div className="mb-4">
                                 <label className="block text-gray-700 mb-4">
-                                  {"Trouser Length (Waist to Ankle)"}
+                                  {"J - Trouser Length (Waist to Ankle)"}
                                 </label>
                                 <div className="flex">
                                   <input
@@ -1515,7 +1515,7 @@ export default function AnkaraGownPage() {
                             <div className="grid mt-6 grid-cols-1 sm:grid-cols-2 gap-4">
                               <div className="mb-4">
                                 <label className="block text-gray-700 mb-4">
-                                  {"Height"}
+                                  {"(E + J) - Height"}
                                 </label>
                                 <div className="flex">
                                   <input
@@ -1546,7 +1546,7 @@ export default function AnkaraGownPage() {
                               </div>
                               <div className="mb-4">
                                 <label className="block text-gray-700 mb-4">
-                                  {"Dress/Gown Length"}
+                                  {"(E + I) - Dress/Gown Length"}
                                 </label>
                                 <div className="flex">
                                   <input

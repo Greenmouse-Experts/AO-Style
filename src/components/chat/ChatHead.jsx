@@ -252,6 +252,34 @@ const ChatHead = () => {
     socketInstance.on("chatsRetrieved", (data) => {
       if (data?.status === "success" && data?.data?.result) {
         setChats(data.data.result);
+
+        // Check for pending chat selection from recentChatRetrieved
+        if (socketInstance.pendingChatSelection) {
+          const { chatId, chatBuddyId } = socketInstance.pendingChatSelection;
+          const chatToSelect = data.data.result.find(
+            (chat) => chat.id === chatId || chat.chat_buddy?.id === chatBuddyId,
+          );
+
+          if (chatToSelect) {
+            console.log(
+              "🎯 Chat Head: Auto-selecting chat from recent update:",
+              chatToSelect,
+            );
+            setSelectedChat(chatToSelect);
+
+            // Fetch messages for the selected chat
+            if (chatToSelect.chat_buddy?.id) {
+              socketInstance.emit("retrieveMessages", {
+                token: userToken || adminToken,
+                chatBuddy: chatToSelect.chat_buddy.id,
+              });
+            }
+          }
+
+          // Clear the pending selection
+          delete socketInstance.pendingChatSelection;
+        }
+
         const totalUnread = data.data.result.reduce(
           (sum, chat) => sum + (chat.unread || 0),
           0,
@@ -266,6 +294,35 @@ const ChatHead = () => {
       socketInstance.on(`chatsRetrieved:${currentUserId}`, (data) => {
         if (data?.status === "success" && data?.data?.result) {
           setChats(data.data.result);
+
+          // Check for pending chat selection from recentChatRetrieved
+          if (socketInstance.pendingChatSelection) {
+            const { chatId, chatBuddyId } = socketInstance.pendingChatSelection;
+            const chatToSelect = data.data.result.find(
+              (chat) =>
+                chat.id === chatId || chat.chat_buddy?.id === chatBuddyId,
+            );
+
+            if (chatToSelect) {
+              console.log(
+                "🎯 Chat Head: Auto-selecting chat from user-specific update:",
+                chatToSelect,
+              );
+              setSelectedChat(chatToSelect);
+
+              // Fetch messages for the selected chat
+              if (chatToSelect.chat_buddy?.id) {
+                socketInstance.emit("retrieveMessages", {
+                  token: userToken || adminToken,
+                  chatBuddy: chatToSelect.chat_buddy.id,
+                });
+              }
+            }
+
+            // Clear the pending selection
+            delete socketInstance.pendingChatSelection;
+          }
+
           const totalUnread = data.data.result.reduce(
             (sum, chat) => sum + (chat.unread || 0),
             0,
@@ -295,6 +352,73 @@ const ChatHead = () => {
         toastSuccess(data?.message || "Message sent successfully");
       });
 
+      // Listen for user-specific admin responses - this is the key missing piece
+      socketInstance.on(`recentChatRetrieved:${currentUserId}`, (data) => {
+        console.log(
+          `=== CHAT HEAD: ADMIN RESPONSE RECEIVED (${currentUserId}) ===`,
+        );
+        console.log("Chat data:", JSON.stringify(data, null, 2));
+        console.log(
+          "=========================================================",
+        );
+
+        if (data?.data) {
+          // Trigger full chat refresh to get updated chat list
+          console.log(
+            "🔄 Chat Head: Triggering chat refresh after admin response (user-specific)",
+          );
+          socketInstance.emit("retrieveChats", {
+            token: userToken || adminToken,
+          });
+
+          // Store the chat info to select after chats are loaded
+          const newChatId = data.data.id;
+          const newChatBuddyId = data.data.chat_buddy?.id;
+
+          // Set a flag to select this chat when chats are refreshed
+          socketInstance.pendingChatSelection = {
+            chatId: newChatId,
+            chatBuddyId: newChatBuddyId,
+          };
+
+          // Update unread count immediately
+          setUnreadCount((prev) => prev + 1);
+        }
+      });
+
+      // Listen for admin messages sent to this user
+      socketInstance.on(`messageToAdminSent:${currentUserId}`, (data) => {
+        console.log(
+          `=== CHAT HEAD: MESSAGE TO ADMIN SENT (${currentUserId}) ===`,
+        );
+        console.log("Message data:", data);
+        toastSuccess(data?.message || "Message delivered successfully");
+      });
+
+      // Listen for user-specific messages retrieved (when chat is selected)
+      socketInstance.on(`messagesRetrieved:${currentUserId}`, (data) => {
+        console.log(
+          `=== CHAT HEAD: USER-SPECIFIC MESSAGES RETRIEVED (${currentUserId}) ===`,
+        );
+        if (data?.status === "success" && data?.data?.result) {
+          const formattedMessages = data.data.result.map((msg) => ({
+            id: msg.id,
+            text: msg.message,
+            time: new Date(msg.created_at).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            }),
+            type:
+              msg.initiator_id === selectedChat?.chat_buddy?.id
+                ? "received"
+                : "sent",
+            sender: msg.initiator?.name || "User",
+          }));
+          setMessages(formattedMessages);
+        }
+      });
+
       // DEBUG: Listen for ALL chatsRetrieved events to see what's actually being fired
       const originalEmit = socketInstance.emit;
       const originalOn = socketInstance.on;
@@ -307,8 +431,10 @@ const ChatHead = () => {
       };
     }
 
-    // Listen for new messages
+    // Listen for new messages - general messageReceived
     socketInstance.on("messageReceived", (data) => {
+      console.log("=== CHAT HEAD: MESSAGE RECEIVED (GENERAL) ===");
+      console.log("Message data:", data);
       if (data?.data) {
         // Update unread count
         setUnreadCount((prev) => prev + 1);
@@ -342,6 +468,64 @@ const ChatHead = () => {
           );
           return updatedChats;
         });
+      }
+    });
+
+    // Listen for general recentChatRetrieved (admin responses)
+    socketInstance.on("recentChatRetrieved", (data) => {
+      console.log("=== CHAT HEAD: RECENT CHAT RETRIEVED (GENERAL) ===");
+      console.log("Chat data:", JSON.stringify(data, null, 2));
+
+      if (data?.data) {
+        // Trigger full chat refresh
+        console.log(
+          "🔄 Chat Head: Triggering chat refresh after admin response (general)",
+        );
+        socketInstance.emit("retrieveChats", {
+          token: userToken || adminToken,
+        });
+
+        // Store the chat info to select after chats are loaded
+        const newChatId = data.data.id;
+        const newChatBuddyId = data.data.chat_buddy?.id;
+
+        socketInstance.pendingChatSelection = {
+          chatId: newChatId,
+          chatBuddyId: newChatBuddyId,
+        };
+
+        // Update unread count immediately
+        setUnreadCount((prev) => prev + 1);
+      }
+    });
+
+    // Listen for general messages retrieved (when selecting a chat)
+    socketInstance.on("messagesRetrieved", (data) => {
+      console.log("=== CHAT HEAD: MESSAGES RETRIEVED (GENERAL) ===");
+      console.log("Messages data:", data);
+      if (data?.status === "success" && data?.data?.result) {
+        const formattedMessages = data.data.result.map((msg) => ({
+          id: msg.id,
+          text: msg.message,
+          time: new Date(msg.created_at).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          }),
+          timestamp: msg.created_at,
+          type:
+            msg.initiator_id === selectedChat?.chat_buddy?.id
+              ? "received"
+              : "sent",
+          sender: msg.initiator?.name || "User",
+          read: msg.read,
+        }));
+
+        // Sort messages by timestamp (oldest first)
+        const sortedMessages = formattedMessages.sort(
+          (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
+        );
+        setMessages(sortedMessages);
       }
     });
 
@@ -499,71 +683,23 @@ const ChatHead = () => {
     setSelectedChat(chat);
     setCurrentView("chat");
 
-    if (socket) {
+    // Clear messages first
+    setMessages([]);
+
+    // Emit retrieveMessages - match inbox pattern exactly
+    if (socket && (userToken || adminToken)) {
+      console.log("=== CHAT HEAD: Fetching messages for chat ===");
+      console.log("Chat:", chat);
+      console.log("Chat buddy ID:", chat.chat_buddy?.id);
+
       socket.emit("retrieveMessages", {
         token: isAdmin ? adminToken : userToken,
         chatBuddy: chat.chat_buddy?.id || chat.id,
       });
     }
 
-    // Listen for messages for this chat - match fabric vendor implementation
-    if (socket && currentUserId) {
-      // Remove existing listeners to avoid duplicates
-      socket.off("messagesRetrieved");
-      socket.off(`messagesRetrieved:${currentUserId}`);
-
-      // Listen for general messages retrieved events (like fabric vendor)
-      socket.on("messagesRetrieved", (data) => {
-        if (data?.status === "success" && data?.data?.result) {
-          const formattedMessages = data.data.result.map((msg) => ({
-            id: msg.id,
-            text: msg.message,
-            time: new Date(msg.created_at).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: true,
-            }),
-            timestamp: msg.created_at,
-            type:
-              msg.initiator_id === chat.chat_buddy?.id ? "received" : "sent",
-            sender: msg.initiator?.name || "User",
-            read: msg.read,
-          }));
-
-          // Sort messages by timestamp (oldest first)
-          const sortedMessages = formattedMessages.sort(
-            (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
-          );
-          setMessages(sortedMessages);
-        }
-      });
-
-      // Also listen for user-specific event
-      socket.on(`messagesRetrieved:${currentUserId}`, (data) => {
-        if (data?.status === "success" && data?.data?.result) {
-          const formattedMessages = data.data.result.map((msg) => ({
-            id: msg.id,
-            text: msg.message,
-            time: new Date(msg.created_at).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: true,
-            }),
-            timestamp: msg.created_at,
-            type:
-              msg.initiator_id === chat.chat_buddy?.id ? "received" : "sent",
-            sender: msg.initiator?.name || "User",
-            read: msg.read,
-          }));
-
-          // Sort messages by timestamp (oldest first)
-          const sortedMessages = formattedMessages.sort(
-            (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
-          );
-          setMessages(sortedMessages);
-        }
-      });
-    }
+    // The message listeners are already set up in the socket initialization
+    // No need to add duplicate listeners here - they're handled globally
   };
 
   // Auto scroll to bottom
@@ -695,7 +831,13 @@ const ChatHead = () => {
                           }}
                           className="text-purple-600 hover:text-purple-700 text-sm font-medium"
                         >
-                          {isAdmin && adminProfile?.role?.role_id ==="owner-super-administrator" ? "New Message" : !isAdmin ? "Message Admin" : ""}
+                          {isAdmin &&
+                          adminProfile?.role?.role_id ===
+                            "owner-super-administrator"
+                            ? "New Message"
+                            : !isAdmin
+                              ? "Message Admin"
+                              : ""}
                         </button>
                       </div>
                     </div>

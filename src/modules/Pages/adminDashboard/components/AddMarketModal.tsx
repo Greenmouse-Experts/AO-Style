@@ -15,7 +15,7 @@ export default function AddMarketModal({ isOpen, onClose }: any) {
       );
 
       const businessId = busiRes.data.data[0]?.id;
-      console.log("This is the business id", businessId)
+      console.log("This is the business id", businessId);
       if (!businessId) {
         throw new Error("No business found");
       }
@@ -59,7 +59,7 @@ export default function AddMarketModal({ isOpen, onClose }: any) {
 
   return (
     isOpen && (
-      <div className="fixed bg-black/80  shadow inset-0 flex justify-center items-center z-50 backdrop-blur-sm">
+      <div className="fixed bg-black/80  shadow inset-0 flex justify-center items-center z-[999] backdrop-blur-sm">
         <div className="bg-white m-4 shadow-2xl rounded-lg p-6 w-full max-h-[80vh] overflow-y-auto max-w-3xl relative">
           {/* Header */}
 

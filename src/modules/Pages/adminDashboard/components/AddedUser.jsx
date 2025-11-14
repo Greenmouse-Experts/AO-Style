@@ -326,7 +326,7 @@ const NewlyAddedUsers = () => {
   const columns = useMemo(
     () => [
       { label: "Name", key: "name" },
-      { label: "User Type", key: "userType" },
+      // { label: "User Type", key: "userType" },
       { label: "Date Added", key: "created_at" },
       {
         label: "Status",

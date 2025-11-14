@@ -18,6 +18,7 @@ import {
 } from "../../../hooks/location/useGetCountries";
 import useToast from "../../../hooks/useToast";
 import { usePlacesWidget } from "react-google-autocomplete";
+import { InfoTooltip } from "../../../components/ui/Tooltip";
 
 const Settings = () => {
   const query = new URLSearchParams(useLocation().search);
@@ -540,17 +541,22 @@ const Settings = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-gray-700 mb-4">
-                          Address
+                        <label className="flex items-center gap-2 text-gray-700 mb-4">
+                          Pick Address from Google Suggestions
+                          <InfoTooltip
+                            content="Please select your address from the Google dropdown suggestions that appear as you type. This ensures accurate location data for delivery."
+                            position="right"
+                          />
                         </label>
                         <input
                           type="text"
                           ref={ref}
                           className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                          placeholder="Enter full detailed address"
+                          placeholder="Start typing your address and select from Google suggestions..."
                           required
                           name="address"
                           maxLength={150}
+                          title="Start typing your address and select from the Google dropdown suggestions for accurate location"
                           onChange={(e) => {
                             setFieldValue("address", e.currentTarget.value);
                             setFieldValue("latitude", "");
@@ -655,17 +661,22 @@ const Settings = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-gray-700 mb-4">
-                          Address
+                        <label className="flex items-center gap-2 text-gray-700 mb-4">
+                          Pick Address from Google Suggestions
+                          <InfoTooltip
+                            content="Please select your address from the Google dropdown suggestions that appear as you type. This ensures accurate location data for delivery."
+                            position="right"
+                          />
                         </label>
                         <input
                           type="text"
                           ref={ref}
                           className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                          placeholder="Enter full detailed address"
+                          placeholder="Start typing your address and select from Google suggestions..."
                           required
                           name="address"
                           maxLength={150}
+                          title="Start typing your address and select from the Google dropdown suggestions for accurate location"
                           onChange={(e) => {
                             setFieldValue("address", e.currentTarget.value);
                             setFieldValue("latitude", "");

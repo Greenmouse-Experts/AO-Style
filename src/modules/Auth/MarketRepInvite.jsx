@@ -14,6 +14,7 @@ import { countryCodes } from "../../constant";
 import Select from "react-select";
 import useToast from "../../hooks/useToast";
 import { usePlacesWidget } from "react-google-autocomplete";
+import { InfoTooltip } from "../../components/ui/Tooltip";
 
 export default function MarketRepInvite() {
   const { toastError } = useToast();
@@ -310,12 +311,19 @@ export default function MarketRepInvite() {
             />
 
             <div>
-              <label className="block text-black mb-1">Address</label>
+              <label className="flex items-center gap-2 text-black mb-1">
+                Pick Address from Google Suggestions
+                <InfoTooltip
+                  content="Please select your address from the Google dropdown suggestions that appear as you type. This ensures accurate location data for delivery."
+                  position="right"
+                />
+              </label>
               <input
                 type="text"
                 ref={ref}
                 className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                placeholder="Enter full detailed address"
+                placeholder="Start typing your address and select from Google suggestions..."
+                title="Start typing your address and select from the Google dropdown suggestions for accurate location"
                 required
                 name="location"
                 onChange={(e) => {

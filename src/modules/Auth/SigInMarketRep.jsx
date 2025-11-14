@@ -10,6 +10,7 @@ import Select from "react-select";
 import useToast from "../../hooks/useToast";
 import PhoneInput from "react-phone-input-2";
 import { usePlacesWidget } from "react-google-autocomplete";
+import { InfoTooltip } from "../../components/ui/Tooltip";
 
 const initialValues = {
   name: "",
@@ -222,7 +223,13 @@ export default function SignInAsCustomer() {
               className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
             />
 
-            <label className="block text-black">Address</label>
+            <label className="flex items-center gap-2 text-black">
+              Pick Address from Google Suggestions
+              <InfoTooltip
+                content="Please select your address from the Google dropdown suggestions that appear as you type. This ensures accurate location data for delivery."
+                position="right"
+              />
+            </label>
             <input
               type="text"
               name={"location"}
@@ -234,7 +241,8 @@ export default function SignInAsCustomer() {
                 setFieldValue("latitude", "");
                 setFieldValue("longitude", "");
               }}
-              placeholder="Enter your home address"
+              placeholder="Start typing your address and select from Google suggestions..."
+              title="Start typing your address and select from the Google dropdown suggestions for accurate location"
               className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
               required
             />

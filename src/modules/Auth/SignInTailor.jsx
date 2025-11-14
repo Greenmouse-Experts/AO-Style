@@ -17,6 +17,7 @@ import { countryCodes } from "../../constant";
 import Select from "react-select";
 import PhoneInput from "react-phone-input-2";
 import Autocomplete from "react-google-autocomplete";
+import { InfoTooltip } from "../../components/ui/Tooltip";
 
 const initialValues = {
   name: "",
@@ -581,12 +582,19 @@ export default function SignInAsCustomer() {
                   <option value="franchise">Franchise</option>
                 </select>
 
-                <label className="block text-gray-700">Business Address</label>
+                <label className="flex items-center gap-2 text-gray-700">
+                  Pick Business Address from Google Suggestions
+                  <InfoTooltip
+                    content="Please select your business address from the Google dropdown suggestions that appear as you type. This ensures accurate location data for delivery."
+                    position="right"
+                  />
+                </label>
                 <Autocomplete
                   apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY}
                   className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                  placeholder="Enter full detailed address"
+                  placeholder="Start typing your business address and select from Google suggestions..."
                   name="location"
+                  title="Start typing your business address and select from the Google dropdown suggestions for accurate location"
                   value={values.location}
                   onChange={(e) => {
                     console.log(

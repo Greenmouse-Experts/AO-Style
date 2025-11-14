@@ -16,6 +16,7 @@ import {
 } from "../../../hooks/location/useGetCountries";
 import useToast from "../../../hooks/useToast";
 import { usePlacesWidget } from "react-google-autocomplete";
+import { InfoTooltip } from "../../../components/ui/Tooltip";
 
 const Settings = () => {
   const query = new URLSearchParams(useLocation().search);
@@ -38,6 +39,8 @@ const Settings = () => {
     country: carybinUser?.profile?.country ?? "",
     state: carybinUser?.profile?.state ?? "",
     phone: carybinUser?.phone ?? "",
+    latitude: carybinUser?.profile?.coordinates?.latitude ?? "",
+    longitude: carybinUser?.profile?.coordinates?.longitude ?? "",
   };
 
   const { isPending, uploadImageMutate } = useUploadImage();
@@ -53,7 +56,16 @@ const Settings = () => {
       validateOnBlur: false,
       enableReinitialize: true,
       onSubmit: (val) => {
-        console.log(val);
+        console.log("🚚 Logistics Settings - Form submission data:", val);
+        console.log("🌍 Logistics Settings - State and Country being sent:", {
+          state: val.state,
+          country: val.country,
+          address: val.address,
+          coordinates: {
+            latitude: val.latitude,
+            longitude: val.longitude,
+          },
+        });
         if (!navigator.onLine) {
           toastError("No internet connection. Please check your network.");
           return;
@@ -112,9 +124,40 @@ const Settings = () => {
   const { ref } = usePlacesWidget({
     apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
     onPlaceSelected: (place) => {
+      console.log("🗺️ Logistics - Google Place Selected:", place);
+      const lat = place.geometry?.location?.lat();
+      const lng = place.geometry?.location?.lng();
+      console.log("📍 Logistics - Setting coordinates from Google Places:", {
+        lat,
+        lng,
+      });
+
+      // Extract state and country from address components
+      let state = "";
+      let country = "";
+
+      if (place.address_components) {
+        place.address_components.forEach((component) => {
+          const types = component.types;
+          if (types.includes("administrative_area_level_1")) {
+            state = component.long_name;
+          }
+          if (types.includes("country")) {
+            country = component.long_name;
+          }
+        });
+      }
+
+      console.log("🌍 Logistics - Extracted location data:", {
+        state,
+        country,
+      });
+
       setFieldValue("address", place.formatted_address);
-      setFieldValue("latitude", place.geometry?.location?.lat().toString());
-      setFieldValue("longitude", place.geometry?.location?.lng().toString());
+      setFieldValue("latitude", lat ? lat.toString() : "");
+      setFieldValue("longitude", lng ? lng.toString() : "");
+      setFieldValue("state", state);
+      setFieldValue("country", country);
     },
     options: {
       componentRestrictions: { country: "ng" },
@@ -288,26 +331,66 @@ const Settings = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-gray-700 mb-4">
-                          Address
+                        <label className="flex items-center gap-2 text-gray-700 mb-4">
+                          Pick Address from Google Suggestions
+                          <InfoTooltip
+                            content="Please select your address from the Google dropdown suggestions that appear as you type. This ensures accurate location data for delivery."
+                            position="right"
+                          />
                         </label>
                         <input
                           type="text"
                           ref={ref}
                           className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                          placeholder="Enter full detailed address"
+                          placeholder="Start typing your address and select from Google suggestions..."
                           required
                           name="address"
                           maxLength={150}
+                          title="Start typing your address and select from the Google dropdown suggestions for accurate location"
                           onChange={(e) => {
                             setFieldValue("address", e.currentTarget.value);
                             setFieldValue("latitude", "");
                             setFieldValue("longitude", "");
+                            setFieldValue("state", "");
+                            setFieldValue("country", "");
                           }}
                           value={values.address}
                         />
                       </div>
                     </div>
+
+                    {/* Coordinates Display - Show when coordinates are available */}
+                    {(values.latitude || values.longitude) && (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg">
+                        <div>
+                          <label className="block text-gray-700 mb-2 text-sm font-medium">
+                            Latitude
+                          </label>
+                          <div className="w-full p-3 bg-white border border-blue-200 rounded-lg text-sm text-gray-600 overflow-hidden">
+                            <span className="break-all">
+                              {values.latitude || "Not set"}
+                            </span>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-gray-700 mb-2 text-sm font-medium">
+                            Longitude
+                          </label>
+                          <div className="w-full p-3 bg-white border border-blue-200 rounded-lg text-sm text-gray-600 overflow-hidden">
+                            <span className="break-all">
+                              {values.longitude || "Not set"}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="col-span-1 lg:col-span-2">
+                          <p className="text-xs text-blue-600">
+                            📍 These coordinates are automatically set when you
+                            select an address using Google Places autocomplete
+                            above.
+                          </p>
+                        </div>
+                      </div>
+                    )}
 
                     <button
                       disabled={updateIsPending}

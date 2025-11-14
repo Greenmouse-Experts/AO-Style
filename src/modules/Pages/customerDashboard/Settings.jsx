@@ -41,30 +41,7 @@ const Settings = () => {
 
   const { carybinUser } = useCarybinUserStore();
 
-  // Update field states when carybinUser data is loaded
-  useEffect(() => {
-    if (carybinUser?.profile) {
-      setFieldStates({
-        country: carybinUser?.profile?.country ? "backend" : "empty",
-        state: carybinUser?.profile?.state ? "backend" : "empty",
-      });
-    }
-  }, [carybinUser]);
-
-  console.log(carybinUser);
-
-  // Add loading guard to prevent rendering before data is loaded
-  if (!carybinUser) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading profile...</p>
-        </div>
-      </div>
-    );
-  }
-
+  // Initialize all variables with fallbacks
   const initialValues = {
     name: carybinUser?.name ?? "",
     email: carybinUser?.email ?? "",
@@ -153,6 +130,15 @@ const Settings = () => {
     useUpdateProfile();
 
   const { toastError, toastSuccess } = useToast();
+
+  const { data: states, isLoading: loadingStates } = useStates(
+    initialValues.country,
+  );
+
+  const statesOptions =
+    states?.map((c) => ({ label: c.name, value: c.name })) || [];
+
+  const fileInputRef = useRef(null);
 
   const {
     handleSubmit,
@@ -250,41 +236,6 @@ const Settings = () => {
     },
   });
 
-  const { data: states, isLoading: loadingStates } = useStates(values.country);
-
-  const statesOptions =
-    states?.map((c) => ({ label: c.name, value: c.name })) || [];
-
-  const fileInputRef = useRef(null);
-
-  const uploadImage = (e) => {
-    if (e.target.files) {
-      const file = e.target.files[0];
-
-      const formData = new FormData();
-      formData.append("image", file);
-      uploadImageMutate(formData, {
-        onSuccess: (data) => {
-          setProfileIsLoading(true);
-          updatePersonalMutate(
-            { ...values, profile_picture: data?.data?.data?.url },
-            {
-              onSuccess: () => {
-                setProfileIsLoading(false);
-                toastSuccess("Profile picture updated successfully!");
-              },
-            },
-          );
-        },
-      });
-      e.target.value = "";
-    }
-  };
-
-  const handleButtonClick = () => {
-    fileInputRef.current?.click();
-  };
-
   const { ref } = usePlacesWidget({
     apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
     onPlaceSelected: (place) => {
@@ -342,6 +293,58 @@ const Settings = () => {
       types: [],
     },
   });
+
+  // Update field states when carybinUser data is loaded
+  useEffect(() => {
+    if (carybinUser?.profile) {
+      setFieldStates({
+        country: carybinUser?.profile?.country ? "backend" : "empty",
+        state: carybinUser?.profile?.state ? "backend" : "empty",
+      });
+    }
+  }, [carybinUser]);
+
+  console.log(carybinUser);
+
+  // Add loading guard to prevent rendering before data is loaded
+  if (!carybinUser) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const uploadImage = (e) => {
+    if (e.target.files) {
+      const file = e.target.files[0];
+
+      const formData = new FormData();
+      formData.append("image", file);
+      uploadImageMutate(formData, {
+        onSuccess: (data) => {
+          setProfileIsLoading(true);
+          updatePersonalMutate(
+            { ...values, profile_picture: data?.data?.data?.url },
+            {
+              onSuccess: () => {
+                setProfileIsLoading(false);
+                toastSuccess("Profile picture updated successfully!");
+              },
+            },
+          );
+        },
+      });
+      e.target.value = "";
+    }
+  };
+
+  const handleButtonClick = () => {
+    fileInputRef.current?.click();
+  };
 
   return (
     <>

@@ -142,14 +142,18 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
           isOpen
             ? "scale-100 translate-y-0 opacity-100"
             : "scale-90 translate-y-8 opacity-0"
-        } flex flex-col`}
+        }`}
         onClick={(e) => e.stopPropagation()}
         style={{
           animation: isOpen ? "modalSlideIn 0.3s ease-out" : "none",
+          display: "flex",
+          flexDirection: "column",
+          position: "relative",
+          height: "90vh",
         }}
       >
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-gray-200">
+        <div className="flex justify-between items-center p-6 border-b border-gray-200 flex-shrink-0">
           <div>
             <h2 className="text-2xl font-semibold text-gray-800">
               All Withdrawal Requests
@@ -167,7 +171,7 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* Filters and Search */}
-        <div className="p-6 border-b border-gray-200 bg-gray-50">
+        <div className="p-6 border-b border-gray-200 bg-gray-50 flex-shrink-0">
           <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
             <div className="flex flex-wrap gap-2">
               <button
@@ -254,13 +258,13 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* Content - Make scrollable, not the footer */}
+        {/* Content (Scrollable) */}
         <div
-          className="flex-1 overflow-y-auto p-6"
+          className="p-6 overflow-y-auto flex-1"
           style={{
-            // Leave space at the bottom for the fixed footer
-            maxHeight: `calc(90vh - 80px - 76px - 72px)`, // 80: footer, 76: header, 72: filters, adjust as needed
+            // The flex-1 will take all available space
             minHeight: 0,
+            maxHeight: "calc(90vh - 160px)", // fallback if flex doesn't work, but flex-1 is best for this
           }}
         >
           {isLoading ? (
@@ -309,7 +313,10 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                             Request ID
                           </p>
                           <p className="font-mono text-sm">
-                            {withdrawal.id?.replace(/-/g, "").slice(0, 2).toUpperCase() || `WR${index + 1}`}
+                            {withdrawal.id
+                              ?.replace(/-/g, "")
+                              .slice(0, 2)
+                              .toUpperCase() || `WR${index + 1}`}
                           </p>
                         </div>
                         <span
@@ -347,7 +354,10 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
                     {/* Desktop Layout */}
                     <div className="hidden lg:contents">
                       <div className="font-mono text-sm text-gray-700">
-                        {withdrawal.id?.replace(/-/g, "").slice(0, 2).toUpperCase() || `WR${index + 1}`}
+                        {withdrawal.id
+                          ?.replace(/-/g, "")
+                          .slice(0, 2)
+                          .toUpperCase() || `WR${index + 1}`}
                       </div>
                       <div className="text-lg font-semibold text-gray-800">
                         ₦{formatNumberWithCommas(withdrawal.amount || 0)}
@@ -436,17 +446,8 @@ const ViewWithdrawalsModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* Fixed Footer */}
-        <div
-          className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50"
-          style={{
-            position: "sticky",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            zIndex: 20,
-            background: "inherit"
-          }}
-        >
+        {/* Footer */}
+        <div className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0">
           <div className="text-sm text-gray-600">
             {filteredWithdrawals.length > 0 && (
               <>

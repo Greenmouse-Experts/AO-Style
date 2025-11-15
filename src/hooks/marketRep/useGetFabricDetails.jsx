@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import MarketRepService from "../../services/api/marketrep";
 
-function useGetMarketRepFabricById(id) {
+function useGetMarketRepFabricById(id, businessId) {
   const { isLoading, isFetching, data, isError, refetch, isPending } = useQuery(
     {
-      queryKey: [id, "get-market-rep-fabric-by-id"],
-      queryFn: () => MarketRepService.getMarketRepFabricById(id),
+      queryKey: [id, businessId, "get-market-rep-fabric-by-id"],
+      queryFn: () => MarketRepService.getMarketRepFabricById(id, businessId),
+      enabled: !!id && !!businessId,
     },
   );
 

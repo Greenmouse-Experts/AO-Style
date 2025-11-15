@@ -11,8 +11,8 @@ const useEditMarketRepStyle = () => {
     mutate: editMarketRepStyleMutate,
     error,
   } = useMutation({
-    mutationFn: ({ id, payload, vendorId }) =>
-      MarketRepService.updateMarketRepStyle(id, payload, vendorId),
+    mutationFn: ({ id, payload, vendorId, businessId }) =>
+      MarketRepService.updateMarketRepStyle(id, payload, vendorId, businessId),
     mutationKey: ["edit-marketrep-style"],
     onSuccess(data) {
       toastSuccess(data?.data?.message || "Style updated successfully!");

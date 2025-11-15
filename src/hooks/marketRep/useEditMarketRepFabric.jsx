@@ -11,8 +11,8 @@ const useEditMarketRepFabric = () => {
     mutate: createMarketRepFabricMutate,
     error,
   } = useMutation({
-    mutationFn: ({ id, payload, vendorId }) =>
-      MarketRepService.updateMarketRepFabric(id, payload, vendorId),
+    mutationFn: ({ id, payload, vendorId, businessId }) =>
+      MarketRepService.updateMarketRepFabric(id, payload, vendorId, businessId),
     mutationKey: ["edit-marketrep-fabric"],
     onSuccess(data) {
       toastSuccess(data?.data?.message || "Fabric updated successfully!");

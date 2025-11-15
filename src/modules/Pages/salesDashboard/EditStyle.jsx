@@ -2,18 +2,20 @@ import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { FaUpload, FaTrash, FaSpinner, FaArrowLeft } from "react-icons/fa";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import useToast from "../../../hooks/useToast";
 import imageUpload from "../../../utils/imageUpload";
 import useGetProductCategories from "../../../hooks/useGetProductCategories";
 import useUploadVideo from "../../../hooks/multimedia/useUploadVideo";
 import useGetAllMarketRepVendor from "../../../hooks/marketRep/useGetAllReps";
-import useGetMarketRepStyleById from "../../../hooks/marketRep/useGetStyleDetails";
+
 import useEditMarketRepStyle from "../../../hooks/marketRep/useEditMarketRepStyle";
 
 const EditStyle = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { id: itemId } = useParams();
+  const { selectedVendor: _selectedVendor, product } = location.state || {};
   const { toastSuccess, toastError } = useToast();
 
   // State for images and video
@@ -32,13 +34,31 @@ const EditStyle = () => {
   const { data: getAllTailorData, isLoading: tailorsLoading } =
     useGetAllMarketRepVendor({}, "fashion-designer");
 
-  // Fetch style details by ID
-  const {
-    data: getStyleDataById,
-    isLoading: isStyleLoading,
-    error: errorGotten,
-  } = useGetMarketRepStyleById(itemId);
-  console.log("Fetched style data:", getStyleDataById, errorGotten);
+  // Get business ID from selected vendor
+  const businessId = _selectedVendor?.business_info?.id;
+
+  // Fetch style details by ID - Commented out since we have product data from state
+  // const {
+  //   data: getStyleDataById,
+  //   isLoading: isStyleLoading,
+  //   error: errorGotten,
+  // } = useGetMarketRepStyleById(itemId, businessId);
+
+  // Console log for debugging business ID
+  console.log("🔧 MARKET REP STYLE DEBUG - Selected vendor:", _selectedVendor);
+  console.log(
+    "🔧 MARKET REP STYLE DEBUG - Vendor ID (top level):",
+    _selectedVendor?.id,
+  );
+  console.log(
+    "🔧 MARKET REP STYLE DEBUG - Business info:",
+    _selectedVendor?.business_info,
+  );
+  console.log(
+    "🔧 MARKET REP STYLE DEBUG - Using business ID for GET:",
+    businessId,
+  );
+  console.log("🔧 MARKET REP STYLE DEBUG - Product from state:", product);
 
   // Video upload hook
   const { uploadVideoMutate } = useUploadVideo();
@@ -49,19 +69,22 @@ const EditStyle = () => {
 
   // Populate form with fetched style data
   useEffect(() => {
-    if (getStyleDataById?.data) {
-      const style = getStyleDataById.data;
+    if (product?.style) {
+      const style = product.style;
+      console.log("🔧 STYLE DEBUG - Product data:", product);
+      console.log("🔧 STYLE DEBUG - Product category_id:", product.category_id);
+      console.log("🔧 STYLE DEBUG - Available categories:", categories);
       // Set form fields
       formik.setValues({
         vendor_id: style.vendor_id || "",
-        name: style.product?.name || "",
-        category_id: style.product?.category_id || "",
-        description: style.product?.description || "",
-        gender: style.product?.gender || "",
-        price: style.product?.price || "",
-        tags: Array.isArray(style.product?.tags)
-          ? style.product.tags.join(", ")
-          : style.product?.tags || "",
+        name: product.name || "",
+        category_id: product.category_id || "",
+        description: product.description || "",
+        gender: product.gender || "",
+        price: product.price || "",
+        tags: Array.isArray(product.tags)
+          ? product.tags.join(", ")
+          : product.tags || "",
         estimated_sewing_time: style.estimated_sewing_time || 1,
         minimum_fabric_qty: style.minimum_fabric_qty || 0,
         video_url: style.video_url || "",
@@ -76,7 +99,7 @@ const EditStyle = () => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getStyleDataById]);
+  }, [product, categories]);
 
   const validationSchema = Yup.object({
     vendor_id: Yup.string().required("Please select a tailor"),
@@ -139,8 +162,22 @@ const EditStyle = () => {
         },
       };
 
+      // Use the same business ID from selectedVendor for consistency
+      const updateBusinessId =
+        businessId ||
+        product?.business_info?.id ||
+        product?.vendor?.business_id ||
+        product?.business_id;
+
+      console.log("🔧 USING BUSINESS ID FOR STYLE UPDATE:", updateBusinessId);
+
       editMarketRepStyleMutate(
-        { id: itemId, payload, vendorId: values.vendor_id },
+        {
+          id: itemId,
+          payload,
+          vendorId: values.vendor_id,
+          businessId: updateBusinessId,
+        },
         {
           onSuccess: () => {
             toastSuccess("Style updated successfully!");
@@ -287,359 +324,342 @@ const EditStyle = () => {
         >
           <FaArrowLeft className="text-gray-600" />
         </button>
-        <h1 className="text-2xl font-bold text-gray-800">
-          {isStyleLoading ? "Loading Style..." : "Edit Style"}
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-800">Edit Style</h1>
       </div>
-
-      {isStyleLoading && (
-        <div className="flex items-center justify-center py-8">
-          <FaSpinner className="animate-spin mr-2 text-purple-500" />
-          <span className="text-gray-600">Loading style details...</span>
-        </div>
-      )}
-
-      {!isStyleLoading && (
-        <form onSubmit={formik.handleSubmit} className="space-y-6">
-          {/* Tailor Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select Tailor *
-            </label>
-            {tailorsLoading ? (
-              <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 flex items-center">
-                <FaSpinner className="animate-spin mr-2" />
-                Loading tailors...
-              </div>
-            ) : (
-              <select
-                {...formik.getFieldProps("vendor_id")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="">Select a tailor</option>
-                {getAllTailorData?.data?.map((tailor) => (
-                  <option key={tailor.id} value={tailor.id}>
-                    {tailor.name} ({tailor.business_name || tailor.email})
-                  </option>
-                ))}
-              </select>
-            )}
-            {formik.touched.vendor_id && formik.errors.vendor_id && (
-              <p className="text-red-500 text-sm mt-1">
-                {formik.errors.vendor_id}
-              </p>
-            )}
-          </div>
-
-          {/* Basic Product Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Style Name *
-              </label>
-              <input
-                type="text"
-                {...formik.getFieldProps("name")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="Enter style name"
-              />
-              {formik.touched.name && formik.errors.name && (
-                <p className="text-red-500 text-sm mt-1">
-                  {formik.errors.name}
-                </p>
-              )}
+      {/* Removed loading state since we use product data from location.state */}
+      <form onSubmit={formik.handleSubmit} className="space-y-6">
+        {/* Tailor Selection */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Select Tailor *
+          </label>
+          {tailorsLoading ? (
+            <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 flex items-center">
+              <FaSpinner className="animate-spin mr-2" />
+              Loading tailors...
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Product Category *
-              </label>
-              {categoriesLoading ? (
-                <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 flex items-center">
-                  <FaSpinner className="animate-spin mr-2" />
-                  Loading categories...
-                </div>
-              ) : (
-                <select
-                  {...formik.getFieldProps("category_id")}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="">Select a category</option>
-                  {categories
-                    .filter((category) => category.type === "style")
-                    .map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                </select>
-              )}
-              {formik.touched.category_id && formik.errors.category_id && (
-                <p className="text-red-500 text-sm mt-1">
-                  {formik.errors.category_id}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description *
-            </label>
-            <textarea
-              {...formik.getFieldProps("description")}
-              rows={4}
+          ) : (
+            <select
+              {...formik.getFieldProps("vendor_id")}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="Enter style description"
-            />
-            {formik.touched.description && formik.errors.description && (
-              <p className="text-red-500 text-sm mt-1">
-                {formik.errors.description}
-              </p>
-            )}
-          </div>
+            >
+              <option value="">Select a tailor</option>
+              {getAllTailorData?.data?.map((tailor) => (
+                <option key={tailor.id} value={tailor.id}>
+                  {tailor.name} ({tailor.business_name || tailor.email})
+                </option>
+              ))}
+            </select>
+          )}
+          {formik.touched.vendor_id && formik.errors.vendor_id && (
+            <p className="text-red-500 text-sm mt-1">
+              {formik.errors.vendor_id}
+            </p>
+          )}
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Gender *
-              </label>
-              <select
-                {...formik.getFieldProps("gender")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="">Select gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="unisex">Unisex</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Price *
-              </label>
-              <input
-                type="number"
-                {...formik.getFieldProps("price")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="Enter price"
-              />
-              {formik.touched.price && formik.errors.price && (
-                <p className="text-red-500 text-sm mt-1">
-                  {formik.errors.price}
-                </p>
-              )}
-            </div>
-          </div>
-
+        {/* Basic Product Information */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tags (comma separated)
+              Style Name *
             </label>
             <input
               type="text"
-              {...formik.getFieldProps("tags")}
+              {...formik.getFieldProps("name")}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="elegant, formal, casual"
+              placeholder="Enter style name"
             />
-          </div>
-
-          {/* Style Specific Information */}
-          <div className="border-t pt-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Style Details
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Estimated Sewing Time (days) *
-                </label>
-                <input
-                  type="number"
-                  {...formik.getFieldProps("estimated_sewing_time")}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Enter hours"
-                  min="1"
-                />
-                {formik.touched.estimated_sewing_time &&
-                  formik.errors.estimated_sewing_time && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {formik.errors.estimated_sewing_time}
-                    </p>
-                  )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Minimum Fabric Quantity (yards) *
-                </label>
-                <input
-                  type="number"
-                  {...formik.getFieldProps("minimum_fabric_qty")}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Enter minimum yards"
-                  min="0"
-                />
-                {formik.touched.minimum_fabric_qty &&
-                  formik.errors.minimum_fabric_qty && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {formik.errors.minimum_fabric_qty}
-                    </p>
-                  )}
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Video Upload
-              </label>
-
-              {!videoUrl ? (
-                <div>
-                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      {isUploadingVideo ? (
-                        <>
-                          <FaSpinner className="w-8 h-8 mb-2 text-gray-500 animate-spin" />
-                          <p className="text-sm text-gray-500">
-                            Uploading video...
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <FaUpload className="w-8 h-8 mb-2 text-gray-500" />
-                          <p className="mb-2 text-sm text-gray-500">
-                            <span className="font-semibold">
-                              Click to upload
-                            </span>{" "}
-                            style video
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            MP4, AVI, MOV, WMV (MAX. 50MB)
-                          </p>
-                        </>
-                      )}
-                    </div>
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept="video/*"
-                      onChange={handleVideoUpload}
-                      disabled={isUploadingVideo}
-                    />
-                  </label>
-                </div>
-              ) : (
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        Video uploaded successfully
-                      </p>
-                      <p className="text-xs text-gray-500 break-all">
-                        {videoUrl}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={removeVideo}
-                      className="ml-2 p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors"
-                    >
-                      <FaTrash className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Image Upload Section */}
-          <div className="border-t pt-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Style Images
-            </h3>
-
-            <div className="mb-4">
-              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <FaUpload className="w-8 h-8 mb-2 text-gray-500" />
-                  <p className="mb-2 text-sm text-gray-500">
-                    <span className="font-semibold">Click to upload</span> style
-                    images
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    PNG, JPG or JPEG (MAX. 5MB each)
-                  </p>
-                </div>
-                <input
-                  type="file"
-                  className="hidden"
-                  multiple
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  disabled={isUploadingImages}
-                />
-              </label>
-            </div>
-
-            {/* Display uploaded images */}
-            {photoUrls.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {photoUrls.map((url, index) => (
-                  <div key={index} className="relative">
-                    <img
-                      src={url}
-                      alt={`Style ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-lg border border-gray-200"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
-                    >
-                      <FaTrash className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
+            {formik.touched.name && formik.errors.name && (
+              <p className="text-red-500 text-sm mt-1">{formik.errors.name}</p>
             )}
+          </div>
 
-            {isUploadingImages && (
-              <div className="flex items-center justify-center py-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Product Category *
+            </label>
+            {categoriesLoading ? (
+              <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 flex items-center">
                 <FaSpinner className="animate-spin mr-2" />
-                <span>Uploading images...</span>
+                Loading categories...
+              </div>
+            ) : (
+              <select
+                {...formik.getFieldProps("category_id")}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                <option value="">Select a category</option>
+                {categories
+                  .filter((category) => category.type === "style")
+                  .map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+              </select>
+            )}
+            {formik.touched.category_id && formik.errors.category_id && (
+              <p className="text-red-500 text-sm mt-1">
+                {formik.errors.category_id}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Description *
+          </label>
+          <textarea
+            {...formik.getFieldProps("description")}
+            rows={4}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="Enter style description"
+          />
+          {formik.touched.description && formik.errors.description && (
+            <p className="text-red-500 text-sm mt-1">
+              {formik.errors.description}
+            </p>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Gender *
+            </label>
+            <select
+              {...formik.getFieldProps("gender")}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="">Select gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="unisex">Unisex</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Price *
+            </label>
+            <input
+              type="number"
+              {...formik.getFieldProps("price")}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="Enter price"
+            />
+            {formik.touched.price && formik.errors.price && (
+              <p className="text-red-500 text-sm mt-1">{formik.errors.price}</p>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Tags (comma separated)
+          </label>
+          <input
+            type="text"
+            {...formik.getFieldProps("tags")}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="elegant, formal, casual"
+          />
+        </div>
+
+        {/* Style Specific Information */}
+        <div className="border-t pt-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Style Details
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Estimated Sewing Time (days) *
+              </label>
+              <input
+                type="number"
+                {...formik.getFieldProps("estimated_sewing_time")}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                placeholder="Enter hours"
+                min="1"
+              />
+              {formik.touched.estimated_sewing_time &&
+                formik.errors.estimated_sewing_time && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {formik.errors.estimated_sewing_time}
+                  </p>
+                )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Minimum Fabric Quantity (yards) *
+              </label>
+              <input
+                type="number"
+                {...formik.getFieldProps("minimum_fabric_qty")}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                placeholder="Enter minimum yards"
+                min="0"
+              />
+              {formik.touched.minimum_fabric_qty &&
+                formik.errors.minimum_fabric_qty && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {formik.errors.minimum_fabric_qty}
+                  </p>
+                )}
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Video Upload
+            </label>
+
+            {!videoUrl ? (
+              <div>
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    {isUploadingVideo ? (
+                      <>
+                        <FaSpinner className="w-8 h-8 mb-2 text-gray-500 animate-spin" />
+                        <p className="text-sm text-gray-500">
+                          Uploading video...
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <FaUpload className="w-8 h-8 mb-2 text-gray-500" />
+                        <p className="mb-2 text-sm text-gray-500">
+                          <span className="font-semibold">Click to upload</span>{" "}
+                          style video
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          MP4, AVI, MOV, WMV (MAX. 50MB)
+                        </p>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="video/*"
+                    onChange={handleVideoUpload}
+                    disabled={isUploadingVideo}
+                  />
+                </label>
+              </div>
+            ) : (
+              <div className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      Video uploaded successfully
+                    </p>
+                    <p className="text-xs text-gray-500 break-all">
+                      {videoUrl}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={removeVideo}
+                    className="ml-2 p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors"
+                  >
+                    <FaTrash className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             )}
           </div>
+        </div>
 
-          {/* Submit Buttons */}
-          <div className="flex justify-end space-x-4 pt-6 border-t">
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isEditing || isUploadingImages || isUploadingVideo}
-              className="px-6 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-md hover:from-purple-600 hover:to-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-            >
-              {isEditing ? (
-                <>
-                  <FaSpinner className="animate-spin mr-2" />
-                  Updating...
-                </>
-              ) : (
-                "Update Style"
-              )}
-            </button>
+        {/* Image Upload Section */}
+        <div className="border-t pt-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Style Images
+          </h3>
+
+          <div className="mb-4">
+            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+              <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                <FaUpload className="w-8 h-8 mb-2 text-gray-500" />
+                <p className="mb-2 text-sm text-gray-500">
+                  <span className="font-semibold">Click to upload</span> style
+                  images
+                </p>
+                <p className="text-xs text-gray-500">
+                  PNG, JPG or JPEG (MAX. 5MB each)
+                </p>
+              </div>
+              <input
+                type="file"
+                className="hidden"
+                multiple
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={isUploadingImages}
+              />
+            </label>
           </div>
-        </form>
-      )}
+
+          {/* Display uploaded images */}
+          {photoUrls.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {photoUrls.map((url, index) => (
+                <div key={index} className="relative">
+                  <img
+                    src={url}
+                    alt={`Style ${index + 1}`}
+                    className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                  >
+                    <FaTrash className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {isUploadingImages && (
+            <div className="flex items-center justify-center py-4">
+              <FaSpinner className="animate-spin mr-2" />
+              <span>Uploading images...</span>
+            </div>
+          )}
+        </div>
+
+        {/* Submit Buttons */}
+        <div className="flex justify-end space-x-4 pt-6 border-t">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isEditing || isUploadingImages || isUploadingVideo}
+            className="px-6 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-md hover:from-purple-600 hover:to-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+          >
+            {isEditing ? (
+              <>
+                <FaSpinner className="animate-spin mr-2" />
+                Updating...
+              </>
+            ) : (
+              "Update Style"
+            )}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

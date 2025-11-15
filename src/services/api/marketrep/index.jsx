@@ -37,12 +37,20 @@ const createMarketRepStyle = (payload) => {
   return CaryBinApi.post(`/market-rep-style/create`, payload);
 };
 
-const getMarketRepFabricById = (id) => {
-  return CaryBinApi.get(`/market-rep-fabric/${id}`);
+const getMarketRepFabricById = (id, businessId) => {
+  return CaryBinApi.get(`/market-rep-fabric/${id}`, {
+    headers: {
+      "Business-Id": businessId,
+    },
+  });
 };
 
-const getMarketRepStyleById = (id) => {
-  return CaryBinApi.get(`/market-rep-style/${id}`);
+const getMarketRepStyleById = (id, businessId) => {
+  return CaryBinApi.get(`/market-rep-style/${id}`, {
+    headers: {
+      "Business-Id": businessId,
+    },
+  });
 };
 
 const getMarketRepProducts = (params) => {
@@ -68,9 +76,12 @@ const getPaymentDetails = (paymentId) => {
 };
 
 // Product update and delete endpoints
-const updateMarketRepFabric = (id, payload, vendorId) => {
+const updateMarketRepFabric = (id, payload, vendorId, businessId) => {
   return CaryBinApi.patch(`/market-rep-fabric/${id}`, payload, {
     params: { vendor_id: vendorId },
+    headers: {
+      "Business-Id": businessId,
+    },
   })
     .then((response) => {
       console.log("🔧 FABRIC UPDATE SUCCESS:", response);
@@ -88,15 +99,20 @@ const deleteMarketRepFabric = (id) => {
   return CaryBinApi.delete(`/fabric/${id}`);
 };
 
-const updateMarketRepStyle = (id, payload, vendorId) => {
+const updateMarketRepStyle = (id, payload, vendorId, businessId) => {
   console.log("🔧 API STYLE UPDATE:");
   console.log("  - endpoint: /market-rep-style/" + id);
   console.log("  - payload:", payload);
   console.log("  - vendorId:", vendorId);
+  console.log("  - businessId:", businessId);
   console.log("  - params:", { vendor_id: vendorId });
+  console.log("  - headers:", { "Business-Id": businessId });
 
   return CaryBinApi.patch(`/market-rep-style/${id}`, payload, {
     params: { vendor_id: vendorId },
+    headers: {
+      "Business-Id": businessId,
+    },
   })
     .then((response) => {
       console.log("🔧 STYLE UPDATE SUCCESS:", response);

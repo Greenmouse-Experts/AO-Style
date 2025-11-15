@@ -289,7 +289,7 @@ export default function StylesTable() {
                 </h1>
                 <p className="text-gray-600 mt-1">
                   <Link
-                    to="/tailor"
+                    to={isAdminStyleRoute ? "/admin" : "/tailor"}
                     className="text-purple-600 hover:text-purple-800 transition-colors"
                   >
                     Dashboard

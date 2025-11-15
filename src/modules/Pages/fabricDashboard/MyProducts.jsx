@@ -545,7 +545,7 @@ const ProductPage = () => {
             </h1>
             <p className="text-gray-600 flex items-center">
               <Link
-                to="/fabric"
+                to={isAdminFabricRoute ? "/admin" : "/fabric"}
                 className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
               >
                 Dashboard

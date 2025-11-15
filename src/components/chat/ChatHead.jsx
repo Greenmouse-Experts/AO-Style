@@ -401,20 +401,33 @@ const ChatHead = () => {
           `=== CHAT HEAD: USER-SPECIFIC MESSAGES RETRIEVED (${currentUserId}) ===`,
         );
         if (data?.status === "success" && data?.data?.result) {
-          const formattedMessages = data.data.result.map((msg) => ({
-            id: msg.id,
-            text: msg.message,
-            time: new Date(msg.created_at).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: true,
-            }),
-            type:
-              msg.initiator_id === selectedChat?.chat_buddy?.id
-                ? "received"
-                : "sent",
-            sender: msg.initiator?.name || "User",
-          }));
+          console.log("🔧 DEBUG - Selected chat:", selectedChat);
+          console.log(
+            "🔧 DEBUG - Chat buddy ID:",
+            selectedChat?.chat_buddy?.id,
+          );
+          console.log("🔧 DEBUG - Current user ID:", currentUserId);
+          console.log("🔧 DEBUG - Messages data:", data.data.result);
+
+          const formattedMessages = data.data.result.map((msg) => {
+            const messageType =
+              msg.initiator_id === currentUserId ? "sent" : "received";
+            console.log(
+              `🔧 DEBUG - Message ${msg.id}: initiator_id=${msg.initiator_id}, currentUserId=${currentUserId}, type=${messageType}`,
+            );
+
+            return {
+              id: msg.id,
+              text: msg.message,
+              time: new Date(msg.created_at).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              }),
+              type: messageType,
+              sender: msg.initiator?.name || "User",
+            };
+          });
           setMessages(formattedMessages);
         }
       });
@@ -449,7 +462,8 @@ const ChatHead = () => {
               minute: "2-digit",
               hour12: true,
             }),
-            type: "received",
+            type:
+              data.data.initiator_id === currentUserId ? "sent" : "received",
             sender: data.data.initiator?.name || "User",
           };
           setMessages((prev) => [...prev, newMsg]);
@@ -504,22 +518,29 @@ const ChatHead = () => {
       console.log("=== CHAT HEAD: MESSAGES RETRIEVED (GENERAL) ===");
       console.log("Messages data:", data);
       if (data?.status === "success" && data?.data?.result) {
-        const formattedMessages = data.data.result.map((msg) => ({
-          id: msg.id,
-          text: msg.message,
-          time: new Date(msg.created_at).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
-          }),
-          timestamp: msg.created_at,
-          type:
-            msg.initiator_id === selectedChat?.chat_buddy?.id
-              ? "received"
-              : "sent",
-          sender: msg.initiator?.name || "User",
-          read: msg.read,
-        }));
+        console.log("🔧 DEBUG - Socket message data:", data.data.result);
+
+        const formattedMessages = data.data.result.map((msg) => {
+          const messageType =
+            msg.initiator_id === currentUserId ? "sent" : "received";
+          console.log(
+            `🔧 DEBUG - Socket Message ${msg.id}: initiator_id=${msg.initiator_id}, currentUserId=${currentUserId}, type=${messageType}`,
+          );
+
+          return {
+            id: msg.id,
+            text: msg.message,
+            time: new Date(msg.created_at).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            }),
+            timestamp: msg.created_at,
+            type: messageType,
+            sender: msg.initiator?.name || "User",
+            read: msg.read,
+          };
+        });
 
         // Sort messages by timestamp (oldest first)
         const sortedMessages = formattedMessages.sort(

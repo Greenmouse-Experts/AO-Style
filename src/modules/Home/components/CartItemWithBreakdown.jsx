@@ -23,7 +23,7 @@ const CartItemWithBreakdown = ({
   const measurementCount = getMeasurementCount
     ? getMeasurementCount(item.measurement || item?.measurements)
     : Array.isArray(item.measurement)
-      ? item.measurement.length
+      ? item.measurement?.length
       : item.measurement
         ? 1
         : 0;

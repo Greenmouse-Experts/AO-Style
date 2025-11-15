@@ -22,9 +22,7 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
   } = useQuery({
     queryKey: ["logistics-sum"],
     queryFn: async () => {
-      let resp = await CaryBinApi.get(
-        `/vendor-analytics/logistics-summary`,
-      );
+      let resp = await CaryBinApi.get(`/vendor-analytics/logistics-summary`);
       console.log("This is the summary for tailor", resp.data);
       return resp.data?.data;
     },
@@ -42,7 +40,7 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
   console.log("📈 WalletPage - Total Income Calculated:", totalIncome);
 
   // Calculate total withdrawals from withdrawal data
-  const totalWithdrawals = vendorSummary?.data?.totalWithdrawals
+  const totalWithdrawals = vendorSummary?.data?.totalWithdrawals;
   console.log(
     "💸 WalletPage - Total Withdrawals Calculated:",
     totalWithdrawals,
@@ -129,8 +127,28 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
         {recentTransaction ? (
           <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg mt-2 hover:bg-gray-100 transition-all duration-300 ease-in-out card-hover-scale animate-slide-up">
             <div className="flex items-center gap-2">
-              <div className="bg-red-100 p-4 rounded-full animate-pulse-scale">
-                <FaArrowDown className="text-red-500" />
+              <div
+                className={`p-4 rounded-full animate-pulse-scale ${
+                  recentTransaction.status === "APPROVED" ||
+                  recentTransaction.status === "approved"
+                    ? "bg-green-100"
+                    : recentTransaction.status === "PENDING" ||
+                        recentTransaction.status === "pending"
+                      ? "bg-yellow-100"
+                      : "bg-red-100"
+                }`}
+              >
+                <FaArrowDown
+                  className={`${
+                    recentTransaction.status === "APPROVED" ||
+                    recentTransaction.status === "approved"
+                      ? "text-green-500"
+                      : recentTransaction.status === "PENDING" ||
+                          recentTransaction.status === "pending"
+                        ? "text-yellow-500"
+                        : "text-red-500"
+                  }`}
+                />
               </div>
               <div>
                 <p className="text-sm">Withdrawal Request</p>
@@ -149,13 +167,23 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
               </div>
             </div>
             <div className="text-right">
-              <p className="font-semibold text-red-600">
+              <p
+                className={`font-semibold ${
+                  recentTransaction.status === "APPROVED" ||
+                  recentTransaction.status === "approved"
+                    ? "text-green-600"
+                    : recentTransaction.status === "PENDING" ||
+                        recentTransaction.status === "pending"
+                      ? "text-yellow-600"
+                      : "text-red-600"
+                }`}
+              >
                 - ₦ {formatNumberWithCommas(recentTransaction.amount || 0)}
               </p>
               <p
                 className={`text-xs ${
-                  recentTransaction.status === "COMPLETED" ||
-                  recentTransaction.status === "completed"
+                  recentTransaction.status === "APPROVED" ||
+                  recentTransaction.status === "approved"
                     ? "text-green-500"
                     : recentTransaction.status === "PENDING" ||
                         recentTransaction.status === "pending"
@@ -166,8 +194,8 @@ const WalletPage = ({ onWithdrawClick, onViewAllClick }) => {
                 {recentTransaction.status === "PENDING" ||
                 recentTransaction.status === "pending"
                   ? "Pending"
-                  : recentTransaction.status === "COMPLETED" ||
-                      recentTransaction.status === "completed"
+                  : recentTransaction.status === "APPROVED" ||
+                      recentTransaction.status === "approved"
                     ? "Completed"
                     : "Failed"}
               </p>

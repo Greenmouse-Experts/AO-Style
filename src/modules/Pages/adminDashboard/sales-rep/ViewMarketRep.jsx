@@ -6,7 +6,8 @@ import { useModalState } from "../../../../hooks/useModalState";
 import RejectKycModal from "../tailor/RejectTailorKyc";
 import { nigeriaStates } from "../../../../constant";
 import PhoneInput from "react-phone-input-2";
-
+import { toast } from "react-toastify";
+import CaryBinApi from "../../../../services/CarybinBaseUrl";
 import {
   useCountries,
   useStates,
@@ -19,6 +20,9 @@ const ViewMarketDetails = () => {
 
   const { isOpen, closeModal, openModal } = useModalState();
 
+  const [suspendLoading, setSuspendLoading] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
+
   const { data: countries, isLoading: loadingCountries } = useCountries();
 
   const countriesOptions =
@@ -26,9 +30,16 @@ const ViewMarketDetails = () => {
 
   const location = useLocation();
 
-  const tailorInfo = location?.state?.info;
+  const tailorInfo = userInfo || location?.state?.info;
 
-  console.log(tailorInfo);
+  console.log("This is the tailr inso", tailorInfo);
+
+  // Initialize user info state
+  useEffect(() => {
+    if (location?.state?.info && !userInfo) {
+      setUserInfo(location.state.info);
+    }
+  }, [location?.state?.info, userInfo]);
 
   const queryParams = new URLSearchParams(location.search);
   const initialTab = queryParams.get("tab") || "personal";
@@ -47,7 +58,7 @@ const ViewMarketDetails = () => {
       // Handle KYC approval logic here
       approveKycMutate(
         {
-          business_id: tailorInfo?.kyc?.id,
+          business_id: tailorInfo?.id,
           is_approved: true,
         },
         {
@@ -63,6 +74,39 @@ const ViewMarketDetails = () => {
 
   const handleBack = () => {
     if (activeTab === "kyc") setActiveTab("personal");
+  };
+
+  const handleSuspendToggle = async () => {
+    if (!tailorInfo?.id) return;
+
+    setSuspendLoading(true);
+
+    try {
+      const response = await CaryBinApi.patch(
+        `/admin/users/${tailorInfo.id}/suspend`,
+        {
+          is_suspended: !tailorInfo.is_suspended,
+          suspension_reason: tailorInfo.is_suspended ? null : "Admin action",
+        },
+      );
+
+      // Update local user info state
+      setUserInfo((prev) => ({
+        ...prev,
+        is_suspended: !prev.is_suspended,
+      }));
+
+      toast.success(
+        tailorInfo.is_suspended
+          ? "User has been unsuspended successfully"
+          : "User has been suspended successfully",
+      );
+    } catch (error) {
+      console.error("Error toggling user suspension:", error);
+      toast.error("Failed to update user suspension status");
+    } finally {
+      setSuspendLoading(false);
+    }
   };
 
   const urlContainsTailors = location.pathname.includes("tailors");
@@ -579,49 +623,68 @@ const ViewMarketDetails = () => {
               Proceed to KYC
             </button>
           )}
-          {activeTab === "kyc" && tailorInfo?.kyc?.is_approved ? (
-            <button className="bg-gradient text-white cursor-not-allowed py-3 px-6 rounded-md hover:opacity-90">
-              Approved{" "}
-            </button>
-          ) : activeTab === "kyc" &&
-            tailorInfo?.kyc?.is_approved == false &&
-            tailorInfo?.kyc?.reviewed_by ? (
-            <button
-              // onClick={handleProceed}
-              className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
-            >
-              Rejected{" "}
-            </button>
-          ) : activeTab == "kyc" && tailorInfo?.kyc == null ? (
-            <>
-              <button className="bg-gradient text-white cursor-not-allowed py-3 px-6 rounded-md hover:opacity-90">
-                Awaiting Submission{" "}
+          <div className="flex space-x-4">
+            {/* KYC Status Buttons */}
+            {activeTab === "kyc" && tailorInfo?.is_approved === true ? (
+              <div className="flex space-x-4">
+                <button className="bg-green-600 text-white cursor-not-allowed py-3 px-6 rounded-md">
+                  ✓ KYC Approved
+                </button>
+                {/* {tailorInfo?.is_suspended ? (
+                  <button
+                    onClick={handleSuspendToggle}
+                    disabled={suspendLoading}
+                    className="bg-orange-600 text-white cursor-pointer py-3 px-6 rounded-md hover:bg-orange-700 disabled:opacity-50"
+                  >
+                    {suspendLoading ? "Processing..." : "Unsuspend User"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleSuspendToggle}
+                    disabled={suspendLoading}
+                    className="bg-yellow-600 text-white cursor-pointer py-3 px-6 rounded-md hover:bg-yellow-700 disabled:opacity-50"
+                  >
+                    {suspendLoading ? "Processing..." : "Suspend User"}
+                  </button>
+                )}*/}
+              </div>
+            ) : activeTab === "kyc" &&
+              (tailorInfo?.kyc == null ||
+                (!tailorInfo?.kyc?.doc_front && !tailorInfo?.kyc?.doc_back)) ? (
+              <button className="bg-gray-400 text-white cursor-not-allowed py-3 px-6 rounded-md">
+                ⏳ Awaiting KYC Submission
               </button>
-            </>
-          ) : activeTab == "kyc" &&
-            (tailorInfo?.kyc?.reviewed_by == null ||
-              !tailorInfo?.kyc?.is_approved) ? (
-            <div className="flex space-x-4">
-              <button
-                disabled={isPending}
-                onClick={handleProceed}
-                className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
-              >
-                {isPending ? "Please wait..." : "Approve"}
+            ) : activeTab === "kyc" &&
+              tailorInfo?.is_approved === false &&
+              tailorInfo?.kyc?.reviewed_by &&
+              tailorInfo?.kyc?.disapproval_reason ? (
+              <button className="bg-red-500 text-white cursor-not-allowed py-3 px-6 rounded-md">
+                ✗ KYC Rejected
               </button>
+            ) : activeTab === "kyc" &&
+              tailorInfo?.is_approved === false &&
+              tailorInfo?.kyc?.doc_front &&
+              tailorInfo?.kyc?.doc_back ? (
+              <div className="flex space-x-4">
+                <button
+                  disabled={isPending}
+                  onClick={handleProceed}
+                  className="bg-green-600 text-white cursor-pointer py-3 px-6 rounded-md hover:bg-green-700 disabled:opacity-50"
+                >
+                  {isPending ? "Processing..." : "✓ Approve KYC"}
+                </button>
 
-              <button
-                onClick={() => {
-                  openModal();
-                }}
-                className="bg-gradient text-white cursor-pointer py-3 px-6 rounded-md hover:opacity-90"
-              >
-                {"Reject"}
-              </button>
-            </div>
-          ) : (
-            <></>
-          )}
+                <button
+                  onClick={() => {
+                    openModal();
+                  }}
+                  className="bg-red-600 text-white cursor-pointer py-3 px-6 rounded-md hover:bg-red-700"
+                >
+                  ✗ Reject KYC
+                </button>
+              </div>
+            ) : null}
+          </div>
         </div>
 
         {/* Navigation Buttons */}

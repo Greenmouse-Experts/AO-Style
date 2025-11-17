@@ -174,28 +174,7 @@ export default function StylesTable() {
           </div>
         ),
       },
-      {
-        label: "Status",
-        key: "status",
-        width: "140px",
-        render: (status) => (
-          <div className="flex justify-center min-w-[140px]">
-            <span
-              className={`inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full border-2 whitespace-nowrap ${
-                status === "PUBLISHED"
-                  ? "bg-green-50 text-green-700 border-green-200"
-                  : status === "DRAFT"
-                    ? "bg-yellow-50 text-yellow-700 border-yellow-200"
-                    : status === "ARCHIVED"
-                      ? "bg-red-50 text-red-700 border-red-200"
-                      : "bg-gray-50 text-gray-700 border-gray-200"
-              }`}
-            >
-              {status}
-            </span>
-          </div>
-        ),
-      },
+
       {
         label: "Admin Status",
         key: "admin-status",
@@ -579,7 +558,11 @@ export default function StylesTable() {
                                 {
                                   product: {
                                     status:
-                                      row.status === "PUBLISHED"
+                                      row.approval_status === "PUBLISHED"
+                                        ? "DRAFT"
+                                        : "PUBLISHED",
+                                    approval_status:
+                                      row.approval_status === "PUBLISHED"
                                         ? "DRAFT"
                                         : "PUBLISHED",
                                   },
@@ -605,7 +588,9 @@ export default function StylesTable() {
                         className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 transition-colors w-full text-left text-gray-700"
                       >
                         <Eye className="w-4 h-4" />
-                        {row.status === "PUBLISHED" ? "Unpublish" : "Publish"}
+                        {row.approval_status === "PUBLISHED"
+                          ? "Unpublish"
+                          : "Publish"}
                       </button>
 
                       {currProd === "my" && (

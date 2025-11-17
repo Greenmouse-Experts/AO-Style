@@ -157,6 +157,16 @@ export default function TransactionPage() {
 
       <div className="bg-white p-4 rounded-lg">
         <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <div className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded">
+              Search: Order ID • Transaction ID • Amount
+            </div>
+            {queryString && (
+              <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                Searching for "{queryString}"
+              </div>
+            )}
+          </div>
           <div className="flex flex-wrap space-x-6 text-gray-600 text-sm font-medium">
             <button
               onClick={() => {
@@ -231,15 +241,20 @@ export default function TransactionPage() {
               />
               <input
                 type="text"
-                placeholder="Search"
-                className="pl-10 pr-4 py-2 border border-gray-200 rounded-md outline-none"
-                value={queryString}
-                onChange={(evt) =>
-                  setQueryString(
-                    evt.target.value ? evt.target.value : undefined,
-                  )
-                }
+                placeholder="Search by Order ID or Transaction ID..."
+                className="pl-10 pr-16 py-2 border border-gray-200 rounded-md outline-none w-full sm:w-64"
+                value={queryString || ""}
+                onChange={(evt) => setQueryString(evt.target.value)}
               />
+              {queryString && (
+                <button
+                  onClick={() => setQueryString("")}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                  title="Clear search"
+                >
+                  ×
+                </button>
+              )}
             </div>
             <select
               onChange={handleExport}

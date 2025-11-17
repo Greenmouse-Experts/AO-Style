@@ -10,11 +10,13 @@ import { useQuery } from "@tanstack/react-query";
 import CaryBinApi from "../../../../services/CarybinBaseUrl";
 import CustomTable from "../../../../components/CustomTable";
 import { MenuIcon } from "lucide-react";
+import useDebounce from "../../../../hooks/useDebounce";
 
 const OrdersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const dropdownRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [activeReviewModal, setActiveReviewModal] = useState(null);
@@ -122,11 +124,11 @@ const OrdersTable = () => {
 
   // Use React Query to fetch orders, passing `q` as the search term
   const order_query = useQuery({
-    queryKey: ["order_data", { q: searchTerm }],
+    queryKey: ["order_data", { q: debouncedSearchTerm }],
     queryFn: async () => {
       // Always pass q, even if empty
       let resp = await CaryBinApi.get("/orders/fetch", {
-        params: { q: searchTerm },
+        params: { q: debouncedSearchTerm },
       });
       console.log("This is the data gotten from orders fetch", resp);
       return resp.data;
@@ -134,11 +136,11 @@ const OrdersTable = () => {
     keepPreviousData: true,
   });
 
-  // Refetch orders when searchTerm changes
+  // Refetch orders when debounced search term changes
   useEffect(() => {
-    console.log("This is the search term", searchTerm);
+    console.log("This is the search term", debouncedSearchTerm);
     order_query.refetch();
-  }, [searchTerm]);
+  }, [debouncedSearchTerm]);
 
   useEffect(() => {
     if (order_query.data) {
@@ -231,21 +233,46 @@ const OrdersTable = () => {
         <div className="flex flex-wrap justify-between items-center pb-3 gap-4">
           <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
             <h2 className="text-lg font-semibold">Customer Orders</h2>
+            <div className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded">
+              Search: Order ID • Email • Product • Transaction ID
+            </div>
+            {searchTerm && (
+              <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                {filteredData.length} result
+                {filteredData.length !== 1 ? "s" : ""} for "{searchTerm}"
+              </div>
+            )}
           </div>
           <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search by Order ID, Email, or Product..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="py-2 px-3 pr-16 border border-gray-200 rounded-md outline-none text-sm w-full sm:w-64"
+              />
+              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+                {order_query.isFetching && searchTerm && (
+                  <div className="animate-spin h-4 w-4 border-2 border-purple-500 border-t-transparent rounded-full"></div>
+                )}
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="text-gray-400 hover:text-gray-600 p-1"
+                    title="Clear search"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            </div>
             <select className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-auto">
               <option>Filter</option>
             </select>
           </div>
         </div>
-        {order_query.isFetching ? (
+        {order_query.isFetching && !searchTerm ? (
           <div className="p-2 text-lg ">loading orders...</div>
         ) : (
           <>

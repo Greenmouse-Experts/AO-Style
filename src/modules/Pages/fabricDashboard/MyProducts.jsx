@@ -398,35 +398,7 @@ const ProductPage = () => {
           </div>
         ),
       },
-      {
-        label: "Status",
-        key: "status",
-        width: "120px",
-        render: (status) => (
-          <div className="flex justify-center min-w-[120px]">
-            <span
-              className={`inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full border-2 whitespace-nowrap ${
-                status === "PUBLISHED"
-                  ? "bg-green-50 text-green-700 border-green-200"
-                  : status === "Cancelled"
-                    ? "bg-red-50 text-red-700 border-red-200"
-                    : "bg-yellow-50 text-yellow-700 border-yellow-200"
-              }`}
-            >
-              <span
-                className={`w-2 h-2 rounded-full mr-2 flex-shrink-0 ${
-                  status === "PUBLISHED"
-                    ? "bg-green-400"
-                    : status === "Cancelled"
-                      ? "bg-red-400"
-                      : "bg-yellow-400"
-                }`}
-              ></span>
-              {status}
-            </span>
-          </div>
-        ),
-      },
+
       {
         label: "Admin Status",
         key: "admin-status",
@@ -1028,7 +1000,7 @@ const ProductPage = () => {
 
               return (
                 <>
-                  {isAdminRoute && row?.status === "DRAFT" ? (
+                  {isAdminRoute && row?.approval_status === "DRAFT" ? (
                     <button
                       onClick={() => {
                         console.log("🚀 Publishing product:", row);
@@ -1102,7 +1074,7 @@ const ProductPage = () => {
                     </button>
                   ) : null}
 
-                  {isAdminRoute && row?.status === "PUBLISHED" ? (
+                  {isAdminRoute && row?.approval_status === "PUBLISHED" ? (
                     <button
                       onClick={() => {
                         console.log("📝 Unpublishing product:", row);

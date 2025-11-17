@@ -67,18 +67,6 @@ const AddFabric = () => {
   // Video upload hook
   const { uploadVideoMutate } = useUploadVideo();
 
-  // Debug logging
-  console.log("🔧 ADDFABRIC: getAllFabVendorData:", getAllFabVendorData);
-  console.log(
-    "🔧 ADDFABRIC: getAllFabVendorData?.data:",
-    getAllFabVendorData?.data,
-  );
-  console.log("🔧 ADDFABRIC: vendorsLoading:", vendorsLoading);
-  console.log(
-    "🔧 ADDFABRIC: Is data an array?",
-    Array.isArray(getAllFabVendorData?.data),
-  );
-
   const saveDraft = useCallback(
     (values, photoUrls, videoUrl, numColors, colors) => {
       try {

@@ -12,6 +12,7 @@ import { formatDateStr, formatNumberWithCommas } from "../../../lib/helper";
 import useDeleteStyle from "../../../hooks/style/useDeleteFabric";
 import useGetAdminFabricProduct from "../../../hooks/fabric/useGetAdminFabricProduct";
 import useDeleteAdminStyle from "../../../hooks/style/useDeleteAdminStyle";
+import useUpdateAdminStyle from "../../../hooks/style/useUpdateAdminStyle";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
 import { toast } from "react-toastify";
 
@@ -59,6 +60,8 @@ export default function StylesTable() {
   const { isPending: deleteIsPending, deleteStyleMutate } = useDeleteStyle();
   const { isPending: deleteAdminIsPending, deleteAdminStyleMutate } =
     useDeleteAdminStyle();
+  const { isPending: updateAdminIsPending, updateAdminStyleMutate } =
+    useUpdateAdminStyle();
 
   const [queryString, setQueryString] = useState(queryParams.q);
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
@@ -548,49 +551,41 @@ export default function StylesTable() {
                   {isAdminStyleRoute && (
                     <>
                       <button
-                        onClick={async () => {
-                          // const businessId = businessDetails?.data?.id;
-                          toast.promise(
-                            async () => {
-                              console.log(row);
-                              const resp = await CaryBinApi.patch(
-                                "/manage-style/" + row.id,
-                                {
-                                  product: {
-                                    status:
-                                      row.approval_status === "PUBLISHED"
-                                        ? "DRAFT"
-                                        : "PUBLISHED",
-                                    approval_status:
-                                      row.approval_status === "PUBLISHED"
-                                        ? "DRAFT"
-                                        : "PUBLISHED",
-                                  },
-                                  style: {},
-                                },
-                                {
-                                  headers: {
-                                    "Business-Id": row?.business_info?.id,
-                                  },
-                                },
-                              );
-                              refetch();
-                              setOpenDropdown(null);
-                              return resp.data;
+                        onClick={() => {
+                          const newStatus =
+                            row.approval_status === "PUBLISHED"
+                              ? "DRAFT"
+                              : "PUBLISHED";
+
+                          updateAdminStyleMutate(
+                            {
+                              id: row.id,
+                              product: {
+                                status: newStatus,
+                                approval_status: newStatus,
+                              },
+                              style: {},
                             },
                             {
-                              pending: "Updating status...",
-                              success: "Status updated successfully!",
-                              error: "Failed to update status",
+                              onSuccess: () => {
+                                setOpenDropdown(null);
+                                refetch();
+                              },
+                              onError: (error) => {
+                                console.error("Status update failed:", error);
+                              },
                             },
                           );
                         }}
-                        className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 transition-colors w-full text-left text-gray-700"
+                        disabled={updateAdminIsPending}
+                        className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 transition-colors w-full text-left text-gray-700 disabled:opacity-50"
                       >
                         <Eye className="w-4 h-4" />
-                        {row.approval_status === "PUBLISHED"
-                          ? "Unpublish"
-                          : "Publish"}
+                        {updateAdminIsPending
+                          ? "Updating..."
+                          : row.approval_status === "PUBLISHED"
+                            ? "Unpublish"
+                            : "Publish"}
                       </button>
 
                       {currProd === "my" && (

@@ -452,7 +452,13 @@ export default function ViewFabricProduct() {
             {/* Action Button */}
             <div className="flex justify-center">
               <button
-                onClick={() => navigate("/fabric/products")}
+                onClick={() => {
+                  if (window.location.pathname.includes("/admin")) {
+                    navigate("/admin/fabrics-products?pagination[page]=1&pagination[limit]=10");
+                  } else {
+                    navigate("/fabric/products");
+                  }
+                }}
                 className="flex items-center justify-center space-x-2 bg-gray-100 text-gray-700 px-8 py-3 rounded-xl hover:bg-gray-200 transition-colors font-medium"
               >
                 <ShoppingBag className="w-5 h-5" />

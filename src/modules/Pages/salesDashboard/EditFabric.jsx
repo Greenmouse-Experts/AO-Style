@@ -81,17 +81,50 @@ const EditFabric = () => {
   useEffect(() => {
     if (product?.fabric) {
       const fabric = product.fabric;
+      console.log("=== PREFILL DEBUG ===");
       console.log("🔧 FABRIC DEBUG - Product data:", product);
+      console.log("🔧 FABRIC DEBUG - Fabric data:", fabric);
+
+      // Find vendor ID by business name
+      console.log("--- VENDOR PREFILLING ---");
+      console.log("Business info:", product.business_info);
       console.log(
-        "🔧 FABRIC DEBUG - Product category_id:",
-        product.category_id,
+        "Available vendors:",
+        getAllFabVendorData?.data?.map((v) => ({
+          id: v.id,
+          name: v.name,
+          business_name: v.business_name,
+        })),
       );
-      console.log("🔧 FABRIC DEBUG - Available categories:", categories);
+
+      const vendorId =
+        getAllFabVendorData?.data?.find(
+          (vendor) =>
+            vendor.business_name === product.business_info?.business_name ||
+            vendor.name === product.business_info?.business_name,
+        )?.id || "";
+
+      console.log("Found vendor ID:", vendorId);
+
+      // Find category ID
+      console.log("--- CATEGORY PREFILLING ---");
+      console.log("Product category:", product.category);
+      console.log(
+        "Available categories:",
+        categories
+          ?.filter((c) => c.type === "fabric")
+          ?.map((c) => ({ id: c.id, name: c.name })),
+      );
+
+      const categoryId = product.category?.id || product.category_id || "";
+
+      console.log("Found category ID:", categoryId);
+
       // Set form fields
       formik.setValues({
-        vendor_id: fabric.vendor_id || "",
+        vendor_id: vendorId,
         name: product.name || "",
-        category_id: product.category_id || "",
+        category_id: categoryId,
         description: product.description || "",
         gender: product.gender || "",
         price: product.price || "",
@@ -114,6 +147,8 @@ const EditFabric = () => {
           : product.tags || "",
         video_url: fabric.video_url || "",
       });
+
+      console.log("=== PREFILL COMPLETE ===");
 
       // Set color selection state
       if (fabric.available_colors) {

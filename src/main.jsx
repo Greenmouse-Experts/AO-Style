@@ -11,7 +11,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ToastContainer } from "react-toastify";
 import AppWrapper from "./AppWrapper.jsx";
 import GlobalErrorBoundary from "./components/ErrorBoundary/GlobalErrorBoundary.jsx";
-
+import ErrorBoundary from "./components/ErrorBoundary";
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker
     .register("/firebase-messaging-sw.js")
@@ -24,7 +24,7 @@ const router = createBrowserRouter(routes);
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <GlobalErrorBoundary>
+    <ErrorBoundary>
       <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_LOGIN}>
         <QueryProvider>
           <RouterProvider router={router} />
@@ -43,6 +43,6 @@ createRoot(document.getElementById("root")).render(
           />
         </QueryProvider>
       </GoogleOAuthProvider>
-    </GlobalErrorBoundary>
+    </ErrorBoundary>
   </StrictMode>,
 );

@@ -103,7 +103,7 @@ export default function SignInCustomer() {
                     onSuccess: () => {
                       triggerResend();
                     },
-                  }
+                  },
                 );
               }}
             >

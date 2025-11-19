@@ -105,14 +105,59 @@ export default function StyleForm() {
   const styleInfo = location?.state?.info;
   const isEditMode = !!styleInfo;
 
+  // Console log the prefilled data when in edit mode
+  if (isEditMode && styleInfo) {
+    console.log("=== PREFILLED DATA IN EDIT MODE ===");
+    console.log("Complete styleInfo object:", styleInfo);
+    console.log("Style name:", styleInfo?.name);
+    console.log("Style category:", styleInfo?.category);
+    console.log("Style description:", styleInfo?.description);
+    console.log("Style gender:", styleInfo?.gender);
+    console.log("Style tags:", styleInfo?.tags);
+    console.log("Style price:", styleInfo?.price);
+    console.log(
+      "Style minimum_fabric_qty:",
+      styleInfo?.style?.minimum_fabric_qty,
+    );
+    console.log("Style video_url:", styleInfo?.style?.video_url);
+    console.log(
+      "Style estimated_sewing_time:",
+      styleInfo?.style?.estimated_sewing_time,
+    );
+    console.log("Style photos:", styleInfo?.style?.photos);
+    console.log("--- FIXED FIELD MAPPINGS ---");
+    console.log("Category (original):", styleInfo?.category);
+    console.log("Price (original_price):", styleInfo?.original_price);
+    console.log("Price type:", typeof styleInfo?.original_price);
+
+    // Parse price from formatted string
+    const parsedPrice = styleInfo?.original_price
+      ? parseFloat(styleInfo.original_price.replace(/[₦,]/g, ""))
+      : null;
+    console.log("Price (parsed numeric):", parsedPrice);
+    console.log(
+      "Estimated sewing time (raw):",
+      styleInfo?.style?.estimated_sewing_time,
+    );
+    if (styleInfo?.style?.estimated_sewing_time) {
+      const timeValue =
+        new Date(styleInfo.style.estimated_sewing_time).getHours() +
+        new Date(styleInfo.style.estimated_sewing_time).getMinutes() / 60;
+      console.log("Estimated sewing time (converted):", timeValue);
+    }
+    console.log("====================================");
+  }
+
   const baseInitialValues = {
     type: "STYLE",
     name: styleInfo?.name ?? "",
-    category_id: styleInfo?.category?.id ?? "",
+    category_id: "",
     description: styleInfo?.description ?? "",
     gender: styleInfo?.gender ?? "",
     tags: styleInfo?.tags ?? [],
-    price: styleInfo?.price ?? "",
+    price: styleInfo?.price
+      ? parseFloat(styleInfo.price.replace(/[₦,]/g, ""))
+      : "",
     weight_per_unit: "",
     local_name: "",
     manufacturer_name: "",
@@ -130,7 +175,10 @@ export default function StyleForm() {
     original_price: "",
     // sku: styleInfo?.sku ?? "",
     multimedia_url: "",
-    estimated_sewing_time: styleInfo?.style?.estimated_sewing_time ?? "",
+    estimated_sewing_time: styleInfo?.style?.estimated_sewing_time
+      ? new Date(styleInfo.style.estimated_sewing_time).getHours() +
+        new Date(styleInfo.style.estimated_sewing_time).getMinutes() / 60
+      : "",
     front_url: styleInfo?.style?.photos[0] ?? "",
     back_url: styleInfo?.style?.photos[1] ?? "",
     right_url: styleInfo?.style?.photos[2] ?? "",
@@ -140,6 +188,14 @@ export default function StyleForm() {
   // Auto-save functionality
   const { saveFormData, clearSavedData, getInitialValues, hasSavedData } =
     useFormAutoSave("style_form", baseInitialValues, isEditMode);
+
+  // Console log the initial values being used by the form
+  if (isEditMode) {
+    console.log("=== FORM INITIAL VALUES ===");
+    console.log("baseInitialValues:", baseInitialValues);
+    console.log("getInitialValues():", getInitialValues());
+    console.log("===========================");
+  }
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tags, setTags] = useState([]);
@@ -321,6 +377,15 @@ export default function StyleForm() {
     }
   }, [hasSavedData, isEditMode]);
 
+  // Log form values changes in edit mode
+  useEffect(() => {
+    if (isEditMode && values) {
+      console.log("=== FORM VALUES CHANGED ===");
+      console.log("Current form values:", values);
+      console.log("===========================");
+    }
+  }, [values, isEditMode]);
+
   // Update tags state when values change
   useEffect(() => {
     setTags(values.tags || []);
@@ -367,6 +432,42 @@ export default function StyleForm() {
         value: c.id,
       }))
     : [];
+
+  // Set category_id and price when categoryList is available in edit mode
+  useEffect(() => {
+    if (
+      isEditMode &&
+      styleInfo &&
+      categoryList.length > 0 &&
+      !values.category_id
+    ) {
+      const foundCategory = categoryList.find(
+        (cat) => cat.label.toLowerCase() === styleInfo?.category?.toLowerCase(),
+      );
+
+      if (foundCategory) {
+        console.log("=== CATEGORY MAPPING DEBUG ===");
+        console.log("Available categoryList:", categoryList);
+        console.log("Looking for category:", styleInfo?.category);
+        console.log("Found matching category:", foundCategory);
+
+        console.log("=== SETTING CATEGORY ID AND PRICE ===");
+        console.log("Found category:", foundCategory);
+        console.log("Setting category_id to:", foundCategory.value);
+        setFieldValue("category_id", foundCategory.value);
+
+        if (styleInfo?.original_price) {
+          const priceValue = parseFloat(
+            styleInfo.original_price.replace(/[₦,]/g, ""),
+          );
+          console.log("Setting price to:", priceValue);
+          setFieldValue("price", priceValue);
+        }
+
+        console.log("===============================");
+      }
+    }
+  }, [categoryList, styleInfo, isEditMode, values.category_id, setFieldValue]);
 
   const { ref } = usePlacesWidget({
     apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,

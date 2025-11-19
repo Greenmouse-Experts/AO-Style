@@ -102,7 +102,7 @@ export default function StylesTable() {
       : updatedData?.data?.filter(
           (item) => item.creator_id === businessDetails?.data?.user_id,
         );
-
+  console.log("This is the styles data", dataRes);
   const filteredData = useMemo(() => {
     if (!dataRes) return [];
     return dataRes.map((style) => ({
@@ -524,6 +524,7 @@ export default function StylesTable() {
           >
             {(() => {
               const row = filteredData.find((item) => item.id === openDropdown);
+              console.log("This is the row", row);
               if (!row) return null;
 
               return (

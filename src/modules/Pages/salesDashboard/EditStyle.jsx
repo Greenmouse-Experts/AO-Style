@@ -110,6 +110,25 @@ const EditStyle = () => {
 
       console.log("Found category ID:", categoryId);
 
+      // Parse estimated sewing time from timestamp
+      console.log("--- ESTIMATED SEWING TIME PREFILLING ---");
+      console.log("Raw estimated_sewing_time:", style.estimated_sewing_time);
+
+      let parsedSewingTime = 1; // Default value
+      if (style.estimated_sewing_time) {
+        try {
+          const timeValue =
+            new Date(style.estimated_sewing_time).getHours() +
+            new Date(style.estimated_sewing_time).getMinutes() / 60;
+          parsedSewingTime = timeValue || 1;
+        } catch (error) {
+          console.log("Error parsing sewing time, using default:", error);
+          parsedSewingTime = 1;
+        }
+      }
+
+      console.log("Parsed sewing time:", parsedSewingTime);
+
       // Set form fields
       formik.setValues({
         vendor_id: tailorId,
@@ -121,7 +140,7 @@ const EditStyle = () => {
         tags: Array.isArray(product.tags)
           ? product.tags.join(", ")
           : product.tags || "",
-        estimated_sewing_time: style.estimated_sewing_time || 1,
+        estimated_sewing_time: parsedSewingTime,
         minimum_fabric_qty: style.minimum_fabric_qty || 0,
         video_url: style.video_url || "",
       });

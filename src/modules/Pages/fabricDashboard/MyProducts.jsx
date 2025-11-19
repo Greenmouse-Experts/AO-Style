@@ -680,21 +680,21 @@ const ProductPage = () => {
                   if (tab === "all") {
                     updateQueryParams({
                       ...queryParams,
-                      status: undefined,
+                      approval_status: undefined,
                     });
                   }
 
                   if (tab == "published") {
                     updateQueryParams({
                       ...queryParams,
-                      status: "PUBLISHED",
+                      approval_status: "PUBLISHED",
                     });
                   }
 
                   if (tab == "unpublished") {
                     updateQueryParams({
                       ...queryParams,
-                      status: "DRAFT",
+                      approval_status: "DRAFT",
                     });
                   }
                 }}

@@ -780,6 +780,10 @@ const OrderDetails = () => {
               delivered_to_tailor_at={orderDetails?.delivered_to_tailor_at}
               delivered_at={orderDetails?.delivered_at}
               status={orderDetails?.status}
+              first_leg_logistics_agent_id={
+                orderDetails?.first_leg_logistics_agent_id
+              }
+              logistics_agent_id={orderDetails?.logistics_agent_id}
             />
             {/* Order Information */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200">

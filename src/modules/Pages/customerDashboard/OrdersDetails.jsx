@@ -209,11 +209,14 @@ const OrderDetails = () => {
   // Cancel Order Mutation
   const cancelOrderMutation = useMutation({
     mutationFn: async (orderId) => {
-      console.log(orderId)
-      const response = await CaryBinApi.patch(`/orders/${orderId}/cancel-order`, {
-        status: "CANCELLED",
-      });
-      console.log("This is the cancel order response", response)
+      console.log(orderId);
+      const response = await CaryBinApi.patch(
+        `/orders/${orderId}/cancel-order`,
+        {
+          status: "CANCELLED",
+        },
+      );
+      console.log("This is the cancel order response", response);
       return response.data;
     },
     onSuccess: (data) => {
@@ -245,7 +248,10 @@ const OrderDetails = () => {
   const orderPurchase = data?.data?.order_items;
   const metaData = data?.data?.payment?.metadata;
 
-  console.log("This is the order setaikls ofr the testing of the ETA", orderPurchase)
+  console.log(
+    "This is the order details for the testing of the ETA",
+    orderPurchase,
+  );
 
   // Check if order has style items based on order_items length
   // If order_items has 2 items, the second one is the style
@@ -291,49 +297,77 @@ const OrderDetails = () => {
     }
   };
 
-  // Simple ETA calculation function - no API needed
-  const calculateOrderETA = (orderItems) => {
-    if (!orderItems || orderItems.length === 0) {
+  // Professional ETA calculation based on order creation date
+  const calculateOrderETA = (orderItems, orderCreatedAt) => {
+    if (!orderItems || orderItems.length === 0 || !orderCreatedAt) {
       return null;
     }
 
-    // If order_items has only 1 item, it's fabric only
-    // If order_items has 2 items, the second one is the style
+    // Parse the order creation date
+    const orderDate = new Date(orderCreatedAt);
+
+    // Validate the date
+    if (isNaN(orderDate.getTime())) {
+      console.error("Invalid order creation date:", orderCreatedAt);
+      return null;
+    }
+
+    // Determine if order has style items
     const hasStyleItems = orderItems.length === 2;
 
     let totalHours = 0;
     let estimatedSewingTimeDays = 0;
-    let deliveryTime = 0;
+    let deliveryTimeHours = 0;
 
     if (hasStyleItems) {
       // For style orders: 72 hours base + sewing time from API
-      deliveryTime = 72; // 3 days for processing and delivery
-      
+      deliveryTimeHours = 72; // 3 days for processing and delivery
+
       // Get the style item (second item in the array)
       const styleItem = orderItems[1];
-      
+
       // Get estimated_sewing_time from product > style > estimated_sewing_time (in days)
-      estimatedSewingTimeDays = styleItem?.product?.style?.estimated_sewing_time || 0;
-      
+      estimatedSewingTimeDays =
+        styleItem?.product?.style?.estimated_sewing_time || 0;
+
       // Convert days to hours
       const estimatedSewingTimeHours = estimatedSewingTimeDays * 24;
-      
-      totalHours = deliveryTime + estimatedSewingTimeHours;
+
+      totalHours = deliveryTimeHours + estimatedSewingTimeHours;
     } else {
       // For fabric-only orders: 48 hours
       totalHours = 48;
-      deliveryTime = 48;
+      deliveryTimeHours = 48;
     }
 
-    const estimatedArrivalDate = new Date(Date.now() + totalHours * 60 * 60 * 1000);
+    // Calculate estimated arrival date from order creation date
+    const estimatedArrivalDate = new Date(
+      orderDate.getTime() + totalHours * 60 * 60 * 1000,
+    );
+
+    // Calculate days remaining from current time
+    const now = new Date();
+    const timeRemainingMs = estimatedArrivalDate.getTime() - now.getTime();
+
+    // Calculate days remaining (can be negative if past due)
+    const daysRemaining = Math.ceil(timeRemainingMs / (1000 * 60 * 60 * 24));
+
+    // Calculate hours remaining for more precise display
+    const hoursRemaining = Math.ceil(timeRemainingMs / (1000 * 60 * 60));
 
     return {
       hasStyleItems,
-      deliveryTime,
+      deliveryTimeHours,
+      deliveryTimeDays: Math.ceil(deliveryTimeHours / 24),
       sewingTimeDays: estimatedSewingTimeDays,
       sewingTimeHours: estimatedSewingTimeDays * 24,
       totalHours,
+      totalDays: Math.ceil(totalHours / 24),
+      orderCreatedAt: orderDate,
       estimatedArrival: estimatedArrivalDate,
+      daysRemaining,
+      hoursRemaining,
+      isPastDue: daysRemaining < 0,
     };
   };
 
@@ -346,15 +380,15 @@ const OrderDetails = () => {
       "SHIPPED_TO_TAILOR",
       "TAILOR_PROCESSING",
       "SHIPPED_TO_CUSTOMER",
-      "PAID"
+      "PAID",
     ].includes(orderDetails?.status);
 
     if (!shouldShowForStatus) {
       return null;
     }
 
-    // Calculate ETA directly - no API call needed
-    const etaData = calculateOrderETA(orderPurchase);
+    // Calculate ETA using order's created_at timestamp
+    const etaData = calculateOrderETA(orderPurchase, orderDetails?.created_at);
 
     // If no ETA data, don't show anything
     if (!etaData) {
@@ -370,7 +404,60 @@ const OrderDetails = () => {
       });
     };
 
-    const daysRemaining = Math.ceil(etaData.totalHours / 24);
+    const formatDateTime = (date) => {
+      return date.toLocaleString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    };
+
+    // Display logic for remaining time
+    const getTimeRemainingDisplay = () => {
+      if (etaData.isPastDue) {
+        const overdueDays = Math.abs(etaData.daysRemaining);
+        return {
+          text: `${overdueDays} ${overdueDays === 1 ? "Day" : "Days"} Overdue`,
+          color: "text-red-600",
+          bgColor: "bg-red-50",
+          borderColor: "border-red-200",
+        };
+      } else if (etaData.daysRemaining === 0) {
+        if (etaData.hoursRemaining <= 0) {
+          return {
+            text: "Arriving Today",
+            color: "text-orange-600",
+            bgColor: "bg-orange-50",
+            borderColor: "border-orange-200",
+          };
+        }
+        return {
+          text: `${etaData.hoursRemaining} ${etaData.hoursRemaining === 1 ? "Hour" : "Hours"} Left`,
+          color: "text-orange-600",
+          bgColor: "bg-orange-50",
+          borderColor: "border-orange-200",
+        };
+      } else if (etaData.daysRemaining === 1) {
+        return {
+          text: "Tomorrow",
+          color: "text-green-600",
+          bgColor: "bg-green-50",
+          borderColor: "border-green-200",
+        };
+      } else {
+        return {
+          text: `${etaData.daysRemaining} Days`,
+          color: "text-blue-600",
+          bgColor: "bg-blue-50",
+          borderColor: "border-blue-200",
+        };
+      }
+    };
+
+    const timeDisplay = getTimeRemainingDisplay();
 
     return (
       <div className="bg-gradient-to-br from-purple-50 via-indigo-50 to-purple-50 rounded-xl border-2 border-purple-200 p-6 mt-6 shadow-lg">
@@ -390,6 +477,25 @@ const OrderDetails = () => {
           </div>
         </div>
 
+        {/* Order Timeline Info */}
+        <div className="bg-white bg-opacity-60 backdrop-blur-sm rounded-lg p-4 mb-4">
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-gray-600 mb-1">Order Placed:</p>
+              <p className="font-semibold text-gray-900">
+                {formatDateTime(etaData.orderCreatedAt)}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-600 mb-1">Estimated Total Time:</p>
+              <p className="font-semibold text-gray-900">
+                {etaData.totalDays} {etaData.totalDays === 1 ? "Day" : "Days"} (
+                {etaData.totalHours} hours)
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Timeline Breakdown */}
         <div className="space-y-4 mb-6">
           {etaData.hasStyleItems ? (
@@ -404,7 +510,8 @@ const OrderDetails = () => {
                       Processing & Delivery
                     </span>
                     <span className="text-sm font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
-                      {Math.ceil(etaData.deliveryTime / 24)} days
+                      {etaData.deliveryTimeDays}{" "}
+                      {etaData.deliveryTimeDays === 1 ? "day" : "days"}
                     </span>
                   </div>
                   <p className="text-sm text-gray-600">
@@ -423,7 +530,8 @@ const OrderDetails = () => {
                       Tailoring Time
                     </span>
                     <span className="text-sm font-bold text-purple-600 bg-purple-50 px-3 py-1 rounded-full">
-                      {etaData.sewingTimeDays} {etaData.sewingTimeDays === 1 ? 'day' : 'days'}
+                      {etaData.sewingTimeDays}{" "}
+                      {etaData.sewingTimeDays === 1 ? "day" : "days"}
                     </span>
                   </div>
                   <p className="text-sm text-gray-600">
@@ -443,7 +551,8 @@ const OrderDetails = () => {
                     Standard Delivery
                   </span>
                   <span className="text-sm font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full">
-                    {Math.ceil(etaData.deliveryTime / 24)} days
+                    {etaData.deliveryTimeDays}{" "}
+                    {etaData.deliveryTimeDays === 1 ? "day" : "days"}
                   </span>
                 </div>
                 <p className="text-sm text-gray-600">
@@ -454,36 +563,103 @@ const OrderDetails = () => {
           )}
         </div>
 
-        {/* Total Estimate */}
-        <div className="bg-purple-500 rounded-xl p-5 shadow-lg">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="bg-white bg-opacity-20 p-2 rounded-lg backdrop-blur-sm">
-                <CheckCircle className="w-5 h-5 text-purple-500" />
+        {/* Total Estimate with Dynamic Time Remaining */}
+        {etaData.isPastDue ? (
+          // Overdue - Professional Apology Message
+          <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50 rounded-xl border-2 border-amber-200 p-6 shadow-lg">
+            <div className="flex items-start gap-4 mb-4">
+              <div className="bg-amber-100 p-3 rounded-full flex-shrink-0">
+                <Clock className="w-6 h-6 text-amber-600" />
               </div>
-              <span className="text-white font-semibold text-lg">
-                Expected Arrival
-              </span>
+              <div className="flex-1">
+                <h4 className="text-lg font-bold text-gray-900 mb-2">
+                  Taking a Bit Longer Than Expected
+                </h4>
+                <p className="text-gray-700 text-sm leading-relaxed mb-3">
+                  We sincerely apologize for the delay. Your order is taking
+                  longer than our initial estimate due to unforeseen
+                  circumstances.
+                </p>
+                <div className="bg-white rounded-lg p-4 border border-amber-200 mb-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Package className="w-4 h-4 text-amber-600" />
+                    <span className="text-sm font-semibold text-gray-800">
+                      Original Estimated Arrival
+                    </span>
+                  </div>
+                  <p className="text-gray-700 text-sm font-medium">
+                    {formatDate(etaData.estimatedArrival)}
+                  </p>
+                  {/* <p className="text-gray-600 text-xs mt-1">
+                    {etaData.estimatedArrival.toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>*/}
+                </div>
+                <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-blue-900 mb-1">
+                      We're On It!
+                    </p>
+                    <p className="text-xs text-blue-700 leading-relaxed">
+                      Our team is working diligently to get your order to you as
+                      soon as possible. You'll receive updates as we progress.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="bg-white bg-opacity-20 backdrop-blur-sm px-4 py-2 rounded-full">
-              <span className="text-gray-800 font-bold text-lg">
-                {daysRemaining} {daysRemaining === 1 ? "Day" : "Days"}
-              </span>
+
+            <div className="bg-gradient-to-r from-amber-400 to-orange-400 rounded-lg p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Truck className="w-5 h-5" />
+                  <span className="font-semibold">Expected Arrival:</span>
+                </div>
+                <span className="font-bold text-lg">Very Soon</span>
+              </div>
+              <p className="text-xs mt-2 text-white opacity-90">
+                We appreciate your patience and understanding during this time.
+              </p>
             </div>
           </div>
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-3">
-            <p className="text-gray-800 text-sm font-medium">
-              {formatDate(etaData.estimatedArrival)}
-            </p>
+        ) : (
+          // Normal - Expected Arrival
+          <div className="bg-indigo-600 rounded-xl p-5 shadow-lg">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="bg-white bg-opacity-20 p-2 rounded-lg backdrop-blur-sm">
+                  <CheckCircle className="w-5 h-5 text-purple-500" />
+                </div>
+                <span className="text-white font-semibold text-lg">
+                  Expected Arrival
+                </span>
+              </div>
+              <div
+                className={`${timeDisplay.bgColor} ${timeDisplay.borderColor} border-2 backdrop-blur-sm px-4 py-2 rounded-full`}
+              >
+                <span className={`${timeDisplay.color} font-bold text-lg`}>
+                  {timeDisplay.text}
+                </span>
+              </div>
+            </div>
+            <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-3">
+              <p className="text-black text-sm font-medium mb-1">
+                {formatDate(etaData.estimatedArrival)}
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Info Footer */}
         <div className="mt-4 flex items-start gap-2 text-xs text-gray-600 bg-white bg-opacity-60 backdrop-blur-sm p-3 rounded-lg">
           <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
           <p>
-            Delivery times are estimates and may vary based on considerable factors i.e traffic, 
-            order complexity, and logistics. You'll receive updates as your order progresses.
+            Delivery times are estimates and may vary based on considerable
+            factors i.e traffic, order complexity, and logistics. You'll receive
+            updates as your order progresses.
           </p>
         </div>
       </div>
@@ -642,8 +818,8 @@ const OrderDetails = () => {
                     orderDetails?.status === "CANCELLED"
                       ? "bg-red-500 text-white shadow-lg ring-4 ring-red-100"
                       : index <= currentStep
-                      ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg ring-4 ring-purple-100"
-                      : "bg-white border-2 border-gray-300 text-gray-400"
+                        ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg ring-4 ring-purple-100"
+                        : "bg-white border-2 border-gray-300 text-gray-400"
                   }`}
                 >
                   {orderDetails?.status === "CANCELLED" ? (
@@ -659,8 +835,8 @@ const OrderDetails = () => {
                     orderDetails?.status === "CANCELLED"
                       ? "text-red-600"
                       : index <= currentStep
-                      ? "text-purple-600"
-                      : "text-gray-500"
+                        ? "text-purple-600"
+                        : "text-gray-500"
                   }`}
                 >
                   {step}
@@ -678,7 +854,6 @@ const OrderDetails = () => {
       </div>
 
       <ETADisplay orderDetails={orderDetails} />
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
         <div className="bg-white p-6 rounded-md md:col-span-2">
           <h5 className="text-lg font-meduim text-dark border-b border-[#D9D9D9] pb-3 mb-3">
@@ -864,7 +1039,7 @@ const OrderDetails = () => {
                     <span className="font-semibold">
                       ₦{" "}
                       {parseInt(
-                        orderDetails?.payment?.discount_applied || 0
+                        orderDetails?.payment?.discount_applied || 0,
                       ).toLocaleString()}
                     </span>
                   </div>
@@ -881,12 +1056,12 @@ const OrderDetails = () => {
                           orderDetails?.status === "DELIVERED"
                             ? "bg-green-100 text-green-600"
                             : orderDetails?.status === "CANCELLED"
-                            ? "bg-red-100 text-red-600"
-                            : orderDetails?.status === "SHIPPED" ||
-                              orderDetails?.status === "IN_TRANSIT" ||
-                              orderDetails?.status === "OUT_FOR_DELIVERY"
-                            ? "bg-yellow-100 text-yellow-600"
-                            : "bg-blue-100 text-blue-600"
+                              ? "bg-red-100 text-red-600"
+                              : orderDetails?.status === "SHIPPED" ||
+                                  orderDetails?.status === "IN_TRANSIT" ||
+                                  orderDetails?.status === "OUT_FOR_DELIVERY"
+                                ? "bg-yellow-100 text-yellow-600"
+                                : "bg-blue-100 text-blue-600"
                         }`}
                       >
                         {orderDetails?.status}
@@ -933,7 +1108,7 @@ const OrderDetails = () => {
               <div className="mb-6">
                 <div className="flex gap-2 border-b border-gray-200">
                   {orderPurchase.some(
-                    (item) => item.product?.type === "STYLE"
+                    (item) => item.product?.type === "STYLE",
                   ) && (
                     <button
                       onClick={() => setReviewTab("style")}
@@ -961,7 +1136,7 @@ const OrderDetails = () => {
                         <span className="ml-1 px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded-full">
                           {
                             orderPurchase.filter(
-                              (item) => item.product?.type === "STYLE"
+                              (item) => item.product?.type === "STYLE",
                             ).length
                           }
                         </span>
@@ -970,7 +1145,7 @@ const OrderDetails = () => {
                   )}
 
                   {orderPurchase.some(
-                    (item) => item.product?.type === "FABRIC"
+                    (item) => item.product?.type === "FABRIC",
                   ) && (
                     <button
                       onClick={() => setReviewTab("fabric")}
@@ -998,7 +1173,7 @@ const OrderDetails = () => {
                         <span className="ml-1 px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">
                           {
                             orderPurchase.filter(
-                              (item) => item.product?.type === "FABRIC"
+                              (item) => item.product?.type === "FABRIC",
                             ).length
                           }
                         </span>
@@ -1110,7 +1285,7 @@ const OrderDetails = () => {
 
                   {reviewTab === "style" &&
                     orderPurchase.filter(
-                      (item) => item.product?.type === "STYLE"
+                      (item) => item.product?.type === "STYLE",
                     ).length === 0 && (
                       <div className="text-center py-12">
                         <div className="text-gray-400 mb-4">
@@ -1139,7 +1314,7 @@ const OrderDetails = () => {
 
                   {reviewTab === "fabric" &&
                     orderPurchase.filter(
-                      (item) => item.product?.type === "FABRIC"
+                      (item) => item.product?.type === "FABRIC",
                     ).length === 0 && (
                       <div className="text-center py-12">
                         <div className="text-gray-400 mb-4">

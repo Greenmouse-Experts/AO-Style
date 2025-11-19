@@ -345,7 +345,7 @@ export default function StylesTable() {
                         setFilter(tab.key);
                         updateQueryParams({
                           ...queryParams,
-                          status: tab.status,
+                          approval_status: tab.status,
                           "pagination[page]": 1,
                         });
                       }}

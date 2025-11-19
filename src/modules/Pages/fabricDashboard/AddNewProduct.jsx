@@ -112,6 +112,11 @@ const AddProduct = () => {
 
   // Console log for debugging category autofill
   console.log("🔧 FABRIC EDIT DEBUG - productInfo:", productInfo);
+  console.log("🔧 FABRIC EDIT DEBUG - isEditMode:", isEditMode);
+  console.log(
+    "🔧 FABRIC EDIT DEBUG - isAdminEditFabricRoute:",
+    isAdminEditFabricRoute,
+  );
   console.log(
     "🔧 FABRIC CATEGORY DEBUG - Raw category data:",
     productInfo?.category,
@@ -131,11 +136,12 @@ const AddProduct = () => {
     "category.id": productInfo?.category?.id,
     "category.name": productInfo?.category?.name,
   });
+  console.log("🔧 FABRIC DEBUG - Full fabric object:", productInfo?.fabric);
 
   const initialValues = {
     type: "FABRIC",
     name: productInfo?.name ?? "",
-    category_id: productInfo?.category_id ?? "",
+    category_id: productInfo?.category_id || productInfo?.category?.id || "",
     description: productInfo?.description ?? "",
     gender: productInfo?.gender ?? "",
     tags: productInfo?.tags ?? [],
@@ -231,6 +237,10 @@ const AddProduct = () => {
     });
   }
 
+  // Debug market data
+  console.log("🔧 MARKET DEBUG - market data:", data);
+  console.log("🔧 MARKET DEBUG - market data.data:", data?.data);
+
   const marketList = data?.data
     ? data?.data?.map((c) => ({
         label: c.name,
@@ -244,6 +254,10 @@ const AddProduct = () => {
         value: c.id,
       }))
     : [];
+
+  // Debug the generated lists
+  console.log("🔧 LISTS DEBUG - categoryList:", categoryList);
+  console.log("🔧 LISTS DEBUG - marketList:", marketList);
 
   const { isPending: updateIsPending, updateFabricMutate } = useUpdateFabric();
 
@@ -293,7 +307,7 @@ const AddProduct = () => {
     initialValues: initialValues, // always use initialValues here
     validateOnChange: false,
     validateOnBlur: false,
-    enableReinitialize: false, // don't reinitialize on prop change
+    enableReinitialize: true, // Enable reinitialize to react to productInfo changes
     onSubmit: (val) => {
       if (!navigator.onLine) {
         toastError("No internet connection. Please check your network.");
@@ -517,6 +531,118 @@ const AddProduct = () => {
     }
     // eslint-disable-next-line
   }, [isEditMode, getInitialValues, setValues, didSetInitial]);
+
+  // Handle edit mode initialization - populate form fields with productInfo
+  useEffect(() => {
+    if (isEditMode && productInfo && !didSetInitial) {
+      console.log("🔧 EDIT MODE INITIALIZATION - Starting form population");
+      console.log("🔧 EDIT MODE DEBUG - productInfo received:", productInfo);
+      console.log("🔧 EDIT MODE DEBUG - categoryList available:", categoryList);
+      console.log("🔧 EDIT MODE DEBUG - marketList available:", marketList);
+
+      // Create the properly populated values
+      const editModeValues = {
+        type: "FABRIC",
+        name: productInfo?.name || "",
+        category_id:
+          productInfo?.category_id || productInfo?.category?.id || "",
+        description: productInfo?.description || "",
+        gender: productInfo?.gender || "",
+        tags: productInfo?.tags || [],
+        price: productInfo?.price || "",
+        weight_per_unit: productInfo?.fabric?.weight_per_unit || "",
+        local_name: productInfo?.fabric?.local_name || "",
+        manufacturer_name: productInfo?.fabric?.manufacturer_name || "",
+        material_type: productInfo?.fabric?.material_type || "",
+        alternative_names: productInfo?.fabric?.alternative_names || "",
+        fabric_texture: productInfo?.fabric?.fabric_texture || "",
+        feel_a_like: productInfo?.fabric?.feel_a_like || "",
+        quantity: productInfo?.fabric?.quantity || "",
+        minimum_yards: productInfo?.fabric?.minimum_yards || "",
+        available_colors: productInfo?.fabric?.available_colors || "",
+        fabric_colors: productInfo?.fabric?.fabric_colors
+          ? productInfo?.fabric?.fabric_colors
+              ?.split(",")
+              ?.map((color) => color.trim())
+          : [""],
+        video_url: productInfo?.fabric?.video_url || "",
+        original_price: "",
+        sku: productInfo?.sku || "",
+        market_id: productInfo?.fabric?.market_id || "",
+        multimedia_url: "",
+        closeup_url: productInfo?.fabric?.photos?.[0] || "",
+        spreadout_url: productInfo?.fabric?.photos?.[1] || "",
+        manufacturers_url: productInfo?.fabric?.photos?.[2] || "",
+        fabric_url: productInfo?.fabric?.photos?.[3] || "",
+        enable_increment:
+          Boolean(productInfo?.fabric?.enable_increment) || false,
+      };
+
+      console.log("🔧 EDIT MODE DEBUG - Populated values:", editModeValues);
+      console.log(
+        "🔧 EDIT MODE DEBUG - Category ID being set:",
+        editModeValues.category_id,
+      );
+      console.log(
+        "🔧 EDIT MODE DEBUG - Market ID being set:",
+        editModeValues.market_id,
+      );
+      console.log(
+        "🔧 EDIT MODE DEBUG - Fabric colors:",
+        editModeValues.fabric_colors,
+      );
+
+      // Set the form values
+      setValues(editModeValues);
+
+      // Set tags state separately
+      setTags(productInfo?.tags || []);
+
+      // Set color count
+      const colorCount = Number(productInfo?.fabric?.available_colors) || 1;
+      setColorCount(colorCount);
+
+      setDidSetInitial(true);
+
+      console.log("🔧 EDIT MODE INITIALIZATION - Form population completed");
+    }
+  }, [
+    isEditMode,
+    productInfo,
+    categoryList,
+    marketList,
+    setValues,
+    didSetInitial,
+  ]);
+
+  // Debug form values whenever they change
+  useEffect(() => {
+    console.log("🔧 FORM VALUES DEBUG - Current form values:", values);
+    console.log("🔧 FORM VALUES DEBUG - category_id:", values.category_id);
+    console.log("🔧 FORM VALUES DEBUG - market_id:", values.market_id);
+    console.log("🔧 FORM VALUES DEBUG - name:", values.name);
+    console.log("🔧 FORM VALUES DEBUG - fabric_colors:", values.fabric_colors);
+    console.log(
+      "🔧 FORM VALUES DEBUG - available_colors:",
+      values.available_colors,
+    );
+  }, [values]);
+
+  // Debug when category and market data changes
+  useEffect(() => {
+    console.log(
+      "🔧 DATA CHANGE DEBUG - categoryList updated:",
+      categoryList.length,
+      "items",
+    );
+    console.log(
+      "🔧 DATA CHANGE DEBUG - marketList updated:",
+      marketList.length,
+      "items",
+    );
+    console.log("🔧 DATA CHANGE DEBUG - isEditMode:", isEditMode);
+    console.log("🔧 DATA CHANGE DEBUG - productInfo available:", !!productInfo);
+  }, [categoryList, marketList, isEditMode, productInfo]);
 
   // Enhanced handleChange with auto-save
   const handleChangeWithAutoSave = (e) => {
@@ -747,10 +873,22 @@ const AddProduct = () => {
                 <Select
                   options={marketList}
                   name="market_id"
-                  value={marketList?.find(
-                    (opt) => opt.value === values.market_id,
-                  )}
+                  value={marketList?.find((opt) => {
+                    console.log(
+                      "🔧 MARKET SELECT DEBUG - Comparing:",
+                      opt.value,
+                      "===",
+                      values.market_id,
+                      "Result:",
+                      String(opt.value) === String(values.market_id),
+                    );
+                    return String(opt.value) === String(values.market_id);
+                  })}
                   onChange={(selectedOption) => {
+                    console.log(
+                      "🔧 MARKET SELECT DEBUG - Selected:",
+                      selectedOption,
+                    );
                     setFieldValueWithAutoSave(
                       "market_id",
                       selectedOption.value,
@@ -1135,10 +1273,27 @@ const AddProduct = () => {
                 <Select
                   options={categoryList}
                   name="category_id"
-                  value={categoryList?.find(
-                    (opt) => opt.value === values.category_id,
-                  )}
+                  value={categoryList?.find((opt) => {
+                    console.log(
+                      "🔧 CATEGORY SELECT DEBUG - Comparing:",
+                      opt.value,
+                      "===",
+                      values.category_id,
+                      "Result:",
+                      String(opt.value) === String(values.category_id),
+                    );
+                    console.log(
+                      "🔧 CATEGORY SELECT DEBUG - Types:",
+                      typeof opt.value,
+                      typeof values.category_id,
+                    );
+                    return String(opt.value) === String(values.category_id);
+                  })}
                   onChange={(selectedOption) => {
+                    console.log(
+                      "🔧 CATEGORY SELECT DEBUG - Selected:",
+                      selectedOption,
+                    );
                     setFieldValueWithAutoSave(
                       "category_id",
                       selectedOption.value,

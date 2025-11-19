@@ -71,14 +71,50 @@ const EditStyle = () => {
   useEffect(() => {
     if (product?.style) {
       const style = product.style;
+      console.log("=== STYLE PREFILL DEBUG ===");
       console.log("🔧 STYLE DEBUG - Product data:", product);
-      console.log("🔧 STYLE DEBUG - Product category_id:", product.category_id);
-      console.log("🔧 STYLE DEBUG - Available categories:", categories);
+      console.log("🔧 STYLE DEBUG - Style data:", style);
+
+      // Find tailor ID by business name
+      console.log("--- TAILOR PREFILLING ---");
+      console.log("Business info:", product.business_info);
+      console.log(
+        "Available tailors:",
+        getAllTailorData?.data?.map((t) => ({
+          id: t.id,
+          name: t.name,
+          business_name: t.business_name,
+        })),
+      );
+
+      const tailorId =
+        getAllTailorData?.data?.find(
+          (tailor) =>
+            tailor.business_name === product.business_info?.business_name ||
+            tailor.name === product.business_info?.business_name,
+        )?.id || "";
+
+      console.log("Found tailor ID:", tailorId);
+
+      // Find category ID
+      console.log("--- CATEGORY PREFILLING ---");
+      console.log("Product category:", product.category);
+      console.log(
+        "Available categories:",
+        categories
+          ?.filter((c) => c.type === "style")
+          ?.map((c) => ({ id: c.id, name: c.name })),
+      );
+
+      const categoryId = product.category?.id || product.category_id || "";
+
+      console.log("Found category ID:", categoryId);
+
       // Set form fields
       formik.setValues({
-        vendor_id: style.vendor_id || "",
+        vendor_id: tailorId,
         name: product.name || "",
-        category_id: product.category_id || "",
+        category_id: categoryId,
         description: product.description || "",
         gender: product.gender || "",
         price: product.price || "",
@@ -90,6 +126,8 @@ const EditStyle = () => {
         video_url: style.video_url || "",
       });
 
+      console.log("=== STYLE PREFILL COMPLETE ===");
+
       // Set images and video
       if (Array.isArray(style.photos)) {
         setPhotoUrls(style.photos);
@@ -99,7 +137,7 @@ const EditStyle = () => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [product, categories]);
+  }, [product, categories, getAllTailorData]);
 
   const validationSchema = Yup.object({
     vendor_id: Yup.string().required("Please select a tailor"),

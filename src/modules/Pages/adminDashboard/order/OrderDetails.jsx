@@ -29,9 +29,16 @@ import { formatOrderId } from "../../../../lib/orderUtils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import CaryBinApi from "../../../../services/CarybinBaseUrl";
+import OrderTimelineCard from "../../../../components/logistics/OrderTimelineCard";
 
 // Cancel Order Modal Component
-const CancelOrderModal = ({ isOpen, onClose, onConfirm, isLoading, orderDetails }) => {
+const CancelOrderModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  isLoading,
+  orderDetails,
+}) => {
   if (!isOpen) return null;
 
   return (
@@ -55,9 +62,10 @@ const CancelOrderModal = ({ isOpen, onClose, onConfirm, isLoading, orderDetails 
         {/* Content */}
         <div className="p-6">
           <p className="text-gray-700 mb-4">
-            Are you sure you want to cancel this order? This action cannot be undone.
+            Are you sure you want to cancel this order? This action cannot be
+            undone.
           </p>
-          
+
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
             <div className="flex items-start gap-3">
               <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
@@ -66,7 +74,8 @@ const CancelOrderModal = ({ isOpen, onClose, onConfirm, isLoading, orderDetails 
                   Important Notice
                 </p>
                 <p className="text-sm text-yellow-800">
-                  The customer will be notified about this cancellation. Please ensure you have a valid reason for cancelling this order.
+                  The customer will be notified about this cancellation. Please
+                  ensure you have a valid reason for cancelling this order.
                 </p>
               </div>
             </div>
@@ -74,7 +83,9 @@ const CancelOrderModal = ({ isOpen, onClose, onConfirm, isLoading, orderDetails 
 
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <p className="text-sm text-red-800">
-              <strong>Note:</strong> Once cancelled, this order will be marked as CANCELLED and cannot be reactivated. The customer may need to place a new order.
+              <strong>Note:</strong> Once cancelled, this order will be marked
+              as CANCELLED and cannot be reactivated. The customer may need to
+              place a new order.
             </p>
           </div>
         </div>
@@ -114,7 +125,7 @@ const CancelOrderModal = ({ isOpen, onClose, onConfirm, isLoading, orderDetails 
 // Success/Error Toast Component
 const Toast = ({ type, message, onClose }) => {
   const isSuccess = type === "success";
-  
+
   React.useEffect(() => {
     const timer = setTimeout(onClose, 5000);
     return () => clearTimeout(timer);
@@ -210,39 +221,38 @@ const OrderDetails = () => {
 
   const { id: orderId } = useParams();
   const queryClient = useQueryClient();
-  
+
   const { isPending: getUserIsPending, data } = useGetSingleOrder(orderId);
 
   const orderDetails = data?.data;
 
   // Cancel Order Mutation
   const cancelOrderMutation = useMutation({
-    mutationFn: async (orderId) => {      
-      const response = await CaryBinApi.put(
-        `/orders/${orderId}/status`,
-        {
-          status: "CANCELLED",
-        },
-      );
+    mutationFn: async (orderId) => {
+      const response = await CaryBinApi.put(`/orders/${orderId}/status`, {
+        status: "CANCELLED",
+      });
       return response.data;
     },
     onSuccess: (data) => {
       // Invalidate and refetch order details
-      queryClient.invalidateQueries(['single-order', orderId]);
-      
+      queryClient.invalidateQueries(["single-order", orderId]);
+
       setShowCancelModal(false);
       setToast({
         type: "success",
-        message: data.message || "Order cancelled successfully!"
+        message: data.message || "Order cancelled successfully!",
       });
     },
     onError: (error) => {
       setShowCancelModal(false);
       setToast({
         type: "error",
-        message: error.response?.data?.message || "Failed to cancel order. Please try again."
+        message:
+          error.response?.data?.message ||
+          "Failed to cancel order. Please try again.",
       });
-    }
+    },
   });
 
   const handleCancelOrder = () => {
@@ -256,8 +266,18 @@ const OrderDetails = () => {
   const orderSteps = getOrderSteps(hasStyleItems);
 
   // Check if order can be cancelled (not yet shipped)
-  const canCancelOrder = orderDetails?.status && 
-    !["SHIPPED", "IN_TRANSIT", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED", "SHIPPED_TO_TAILOR", "TAILOR_PROCESSING", "SHIPPED_TO_CUSTOMER"].includes(orderDetails.status);
+  const canCancelOrder =
+    orderDetails?.status &&
+    ![
+      "SHIPPED",
+      "IN_TRANSIT",
+      "OUT_FOR_DELIVERY",
+      "DELIVERED",
+      "CANCELLED",
+      "SHIPPED_TO_TAILOR",
+      "TAILOR_PROCESSING",
+      "SHIPPED_TO_CUSTOMER",
+    ].includes(orderDetails.status);
 
   // Update currentStep based on order status
   const getStepFromStatus = React.useCallback(
@@ -285,7 +305,7 @@ const OrderDetails = () => {
         return statusMap[status] || 0;
       }
     },
-    [hasStyleItems]
+    [hasStyleItems],
   );
 
   React.useEffect(() => {
@@ -342,7 +362,7 @@ const OrderDetails = () => {
   const totalAmount =
     orderDetails?.total_amount || orderDetails?.payment?.amount || 0;
   const deliveryFee = parseInt(
-    orderDetails?.payment?.purchase?.delivery_fee || 0
+    orderDetails?.payment?.purchase?.delivery_fee || 0,
   );
 
   return (
@@ -368,7 +388,7 @@ const OrderDetails = () => {
       {/* Image Modal */}
       {showImageModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/40"
+          className="fixed inset-0 z-[9999] flex items-center justify-center backdrop-blur-sm bg-black/40"
           onClick={() => setShowImageModal(false)}
         >
           <div
@@ -449,7 +469,7 @@ const OrderDetails = () => {
             <div className="flex items-center gap-4">
               <span
                 className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(
-                  orderDetails?.status
+                  orderDetails?.status,
                 )}`}
               >
                 {orderDetails?.status || "Unknown"}
@@ -460,7 +480,7 @@ const OrderDetails = () => {
                   Has Reference Image
                 </span>
               )}
-              
+
               {/* Cancel Order Button - Only show if order can be cancelled */}
               {canCancelOrder && (
                 <button
@@ -471,7 +491,7 @@ const OrderDetails = () => {
                   Cancel Order
                 </button>
               )}
-              
+
               <div className="text-right">
                 <p className="text-sm text-gray-500 flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
@@ -493,7 +513,8 @@ const OrderDetails = () => {
                     Order Cancelled
                   </h4>
                   <p className="text-sm text-red-700">
-                    This order has been cancelled and is no longer active. The customer has been notified about the cancellation.
+                    This order has been cancelled and is no longer active. The
+                    customer has been notified about the cancellation.
                   </p>
                 </div>
               </div>
@@ -513,7 +534,8 @@ const OrderDetails = () => {
                       Tailor reference Image 1
                     </h3>
                     <p className="text-sm text-gray-600">
-                      Reference image provided by fashion designer when processing the fabric
+                      Reference image provided by fashion designer when
+                      processing the fabric
                     </p>
                   </div>
                 </div>
@@ -521,7 +543,7 @@ const OrderDetails = () => {
                   <button
                     onClick={() => {
                       setModalImageUrl(
-                        orderDetails?.metadata?.tailorReferenceImage1
+                        orderDetails?.metadata?.tailorReferenceImage1,
                       );
                       setShowImageModal(true);
                     }}
@@ -547,7 +569,8 @@ const OrderDetails = () => {
                       Tailor reference Image 2
                     </h3>
                     <p className="text-sm text-gray-600">
-                      Reference image provided by fashion designer when sent out for delivery
+                      Reference image provided by fashion designer when sent out
+                      for delivery
                     </p>
                   </div>
                 </div>
@@ -555,7 +578,7 @@ const OrderDetails = () => {
                   <button
                     onClick={() => {
                       setModalImageUrl(
-                        orderDetails?.metadata?.tailorReferenceImage
+                        orderDetails?.metadata?.tailorReferenceImage,
                       );
                       setShowImageModal(true);
                     }}
@@ -590,7 +613,7 @@ const OrderDetails = () => {
                   <button
                     onClick={() => {
                       setModalImageUrl(
-                        orderDetails?.metadata?.vendorReferenceImage
+                        orderDetails?.metadata?.vendorReferenceImage,
                       );
                       setShowImageModal(true);
                     }}
@@ -705,8 +728,8 @@ const OrderDetails = () => {
                         orderDetails?.status === "CANCELLED"
                           ? "bg-red-500 text-white shadow-lg ring-4 ring-red-100"
                           : index <= currentStep
-                          ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg ring-4 ring-purple-100"
-                          : "bg-white border-2 border-gray-300 text-gray-400"
+                            ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg ring-4 ring-purple-100"
+                            : "bg-white border-2 border-gray-300 text-gray-400"
                       }`}
                     >
                       {orderDetails?.status === "CANCELLED" ? (
@@ -722,8 +745,8 @@ const OrderDetails = () => {
                         orderDetails?.status === "CANCELLED"
                           ? "text-red-600"
                           : index <= currentStep
-                          ? "text-purple-600"
-                          : "text-gray-500"
+                            ? "text-purple-600"
+                            : "text-gray-500"
                       }`}
                     >
                       {step}
@@ -748,6 +771,16 @@ const OrderDetails = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Order Details */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Order Timeline */}
+            <OrderTimelineCard
+              created_at={orderDetails?.created_at}
+              dispatched_to_agent_at={orderDetails?.dispatched_to_agent_at}
+              in_transit_at={orderDetails?.in_transit_at}
+              out_for_delivery_at={orderDetails?.out_for_delivery_at}
+              delivered_to_tailor_at={orderDetails?.delivered_to_tailor_at}
+              delivered_at={orderDetails?.delivered_at}
+              status={orderDetails?.status}
+            />
             {/* Order Information */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200">
               <div className="px-6 py-4 border-b border-gray-200">
@@ -881,7 +914,7 @@ const OrderDetails = () => {
                                   ₦
                                   {item?.product?.price
                                     ? parseInt(
-                                        item?.product?.price
+                                        item?.product?.price,
                                       ).toLocaleString()
                                     : "0"}
                                 </p>
@@ -1012,7 +1045,7 @@ const OrderDetails = () => {
                             } catch (err) {
                               return formatDateStr(
                                 orderDetails?.created_at.split(".").shift(),
-                                "D/M/YYYY h:mm A"
+                                "D/M/YYYY h:mm A",
                               );
                             }
                           })()
@@ -1068,8 +1101,8 @@ const OrderDetails = () => {
                                 {hasStyleItems && index === 0
                                   ? "Tailor Address"
                                   : hasStyleItems && index === 1
-                                  ? "Customer Address"
-                                  : "Delivery Address"}
+                                    ? "Customer Address"
+                                    : "Delivery Address"}
                               </h4>
                             </div>
                             <div className="bg-gray-50 rounded-lg p-4">

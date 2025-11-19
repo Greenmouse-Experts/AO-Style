@@ -588,17 +588,15 @@ export default function StylesTable() {
                             : "Publish"}
                       </button>
 
-                      {currProd === "my" && (
-                        <Link
-                          to="/admin/style/edit-product"
-                          state={{ info: row }}
-                          className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 transition-colors text-gray-700"
-                          onClick={() => setOpenDropdown(null)}
-                        >
-                          <Edit3 className="w-4 h-4" />
-                          Edit
-                        </Link>
-                      )}
+                      <Link
+                        to="/admin/style/edit-product"
+                        state={{ info: row }}
+                        className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 transition-colors text-gray-700"
+                        onClick={() => setOpenDropdown(null)}
+                      >
+                        <Edit3 className="w-4 h-4" />
+                        Edit
+                      </Link>
                     </>
                   )}
 

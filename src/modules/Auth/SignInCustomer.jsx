@@ -29,6 +29,10 @@ const initialValues = {
   password_confirmation: "",
   referral_source: "",
   phoneCode: "+234",
+  location: "",
+  latitude: "",
+  longitude: "",
+  state: "",
 };
 
 export default function SignInAsCustomer() {
@@ -73,8 +77,6 @@ export default function SignInAsCustomer() {
     validateOnBlur: false,
     enableReinitialize: true,
     onSubmit: (val) => {
-      // const phoneno = `${val.phone}`;
-      // return console.log(phoneno);
       if (!navigator.onLine) {
         toastError("No internet connection. Please check your network.");
         return;
@@ -86,6 +88,7 @@ export default function SignInAsCustomer() {
       if (values.password_confirmation !== values.password) {
         return toastError("Password must match");
       }
+
       registerMutate({
         ...val,
         role: "user",
@@ -93,6 +96,7 @@ export default function SignInAsCustomer() {
         alternative_phone: val?.alternative_phone === "" ? undefined : altno,
         allowOtp: true,
         location: val.location,
+        state: val.state,
         coordinates: {
           longitude: val.longitude,
           latitude: val.latitude,
@@ -234,6 +238,14 @@ export default function SignInAsCustomer() {
       setFieldValue("location", place.formatted_address);
       setFieldValue("latitude", place.geometry?.location?.lat().toString());
       setFieldValue("longitude", place.geometry?.location?.lng().toString());
+
+      // Extract state from address_components
+      const addressComponents = place.address_components || [];
+      const stateComponent = addressComponents.find((component) =>
+        component.types.includes("administrative_area_level_1"),
+      );
+
+      setFieldValue("state", stateComponent?.long_name || "");
     },
     options: {
       componentRestrictions: { country: "ng" },
@@ -305,36 +317,6 @@ export default function SignInAsCustomer() {
               <label className="block text-black mb-2">Phone Number</label>
 
               <div className="flex flex-col md:flex-row md:items-center gap-2 ">
-                {/* Country Code Dropdown */}
-                {/* <Select
-                  options={options}
-                  name="phoneCode"
-                  value={options.find((opt) => opt.value === values.phoneCode)}
-                  onChange={(selectedOption) =>
-                    setFieldValue("phoneCode", selectedOption.value)
-                  }
-                  placeholder="Select"
-                  className="p-2 md:w-28 border border-[#CCCCCC] outline-none rounded-lg text-gray-500"
-                  styles={{
-                    control: (base, state) => ({
-                      ...base,
-                      border: "none",
-                      boxShadow: "none",
-                      outline: "none",
-                      backgroundColor: "#fff",
-                      "&:hover": {
-                        border: "none",
-                      },
-                    }),
-                    indicatorSeparator: () => ({
-                      display: "none",
-                    }),
-                    menu: (base) => ({
-                      ...base,
-                      zIndex: 9999,
-                    }),
-                  }}
-                /> */}
                 <PhoneInput
                   country={"ng"}
                   value={values.phone}
@@ -354,23 +336,8 @@ export default function SignInAsCustomer() {
                   buttonClass="bg-gray-100 !border !border-gray-100 hover:!bg-gray-100 disabled:bg-gray-100"
                   inputClass="!w-full px-4 font-sans disabled:bg-gray-100  !h-[54px] !py-4 border border-gray-300 !rounded-md focus:outline-none"
                 />
-                {/* Phone Input */}
-                {/* <input
-                  type="tel"
-                  name="phone"
-                  placeholder="Phone Number"
-                  className="flex-1 p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                  value={values.phone}
-                  onChange={handleChange}
-                  required
-                /> */}
               </div>
             </div>
-            {/* <select
-                options={options}
-                value={value}
-                onChange={changeHandler}
-              /> */}
 
             <div className="mb-3">
               <label className="block text-black mb-2">
@@ -379,50 +346,12 @@ export default function SignInAsCustomer() {
               </label>
 
               <div className="flex flex-col md:flex-row md:items-center gap-2 ">
-                {/* Country Code Dropdown */}
-                {/* <Select
-                  options={options}
-                  name="altCode"
-                  value={options.find((opt) => opt.value === values.altCode)}
-                  onChange={(selectedOption) =>
-                    setFieldValue("altCode", selectedOption.value)
-                  }
-                  placeholder="Select"
-                  className="p-2 md:w-34 border border-[#CCCCCC] outline-none rounded-lg text-gray-500"
-                  styles={{
-                    control: (base, state) => ({
-                      ...base,
-                      border: "none",
-                      boxShadow: "none",
-                      outline: "none",
-                      backgroundColor: "#fff",
-                      "&:hover": {
-                        border: "none",
-                      },
-                    }),
-                    indicatorSeparator: () => ({
-                      display: "none",
-                    }),
-                    menu: (base) => ({
-                      ...base,
-                      zIndex: 9999,
-                    }),
-                  }}
-                /> */}
-                {/* <input
-                  type="tel"
-                  name={"alternative_phone"}
-                  value={values.alternative_phone}
-                  onChange={handleChange}
-                  placeholder="Alternative Phone Number"
-                  className="w-full p-4 border border-[#CCCCCC] outline-none  rounded-lg"
-                /> */}
                 <PhoneInput
                   country={"ng"}
                   value={values.alternative_phone}
                   inputProps={{
                     name: "alternative_phone",
-                    required: true,
+                    required: false,
                   }}
                   onChange={(value) => {
                     // Ensure `+` is included and validate
@@ -459,6 +388,7 @@ export default function SignInAsCustomer() {
                   setFieldValue("location", e.currentTarget.value);
                   setFieldValue("latitude", "");
                   setFieldValue("longitude", "");
+                  setFieldValue("state", "");
                 }}
                 value={values.location}
               />
@@ -510,7 +440,6 @@ export default function SignInAsCustomer() {
                 )}
               </button>
             </div>
-            {/* <HowDidYouHearAboutUs /> */}
             <label className="block text-gray-700 mb-3">
               {" "}
               How did you hear about us?
@@ -521,7 +450,7 @@ export default function SignInAsCustomer() {
               onChange={handleChange}
               className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg text-gray-500"
             >
-              <option value="" disabled selected>
+              <option value="" disabled>
                 Select option
               </option>
               <option value="Social Media">Social Media</option>
@@ -531,12 +460,6 @@ export default function SignInAsCustomer() {
               <option value="Just got here">Just got here</option>
               <option value="Other">Other</option>
             </select>
-            {/* <ReCAPTCHA sitekey="Your client site key" onChange={onChange} /> */}
-            {/* {handleRecaptch === "" && (
-              <p className="text-red-500 text-sm">
-                Please verify that you are not a robot.
-              </p>
-            )} */}
 
             {/* Terms and Policies Agreement */}
             <div className="flex items-center mt-2 mb-2">

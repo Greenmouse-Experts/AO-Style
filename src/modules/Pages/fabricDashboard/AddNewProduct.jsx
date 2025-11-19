@@ -170,7 +170,7 @@ const AddProduct = () => {
     spreadout_url: productInfo?.fabric?.photos?.[1] ?? "",
     manufacturers_url: productInfo?.fabric?.photos?.[2] ?? "",
     fabric_url: productInfo?.fabric?.photos?.[3] ?? "",
-    enable_increment: Boolean(productInfo?.fabric?.enable_increment) || false,
+    enable_increment: Boolean(productInfo?.enable_increment) || false,
   };
 
   // Auto-save functionality
@@ -322,14 +322,9 @@ const AddProduct = () => {
         toastError("Please upload all required images.");
         return;
       }
-      const onSuccessCallback = () => {
-        clearSavedData();
-        resetForm();
-        navigate(-1);
-      };
+
       if (productInfo) {
-        // --- CHECK: Are we sending enable_increment as part of the body? ---
-        // Yes, in both updateAdminFabricMutate and updateFabricMutate, enable_increment is included in the "product" object.
+        // Update operations
         if (isAdminEditFabricRoute) {
           console.log(
             "Updating admin fabric with enable_increment:",
@@ -348,7 +343,7 @@ const AddProduct = () => {
                 tags: val.tags,
                 price: val.price?.toString(),
                 original_price: val.price?.toString(),
-                enable_increment: val.enable_increment, // <--- SENT HERE
+                enable_increment: val.enable_increment,
                 status: productInfo?.status,
               },
               fabric: {
@@ -374,7 +369,19 @@ const AddProduct = () => {
               },
             },
             {
-              onSuccess: onSuccessCallback,
+              onSuccess: (data) => {
+                console.log("✅ Admin fabric update successful", data);
+                clearSavedData();
+                resetForm();
+                // Add a small delay to ensure state updates complete
+                setTimeout(() => {
+                  navigate(-1);
+                }, 100);
+              },
+              onError: (error) => {
+                console.error("❌ Admin fabric update failed", error);
+                toastError("Failed to update fabric. Please try again.");
+              },
             },
           );
         } else {
@@ -397,7 +404,7 @@ const AddProduct = () => {
                 price: val.price?.toString(),
                 original_price: val.price?.toString(),
                 status: productInfo?.status,
-                enable_increment: val.enable_increment, // <--- SENT HERE
+                enable_increment: val.enable_increment,
               },
               fabric: {
                 market_id: val.market_id,
@@ -422,11 +429,32 @@ const AddProduct = () => {
               },
             },
             {
-              onSuccess: onSuccessCallback,
+              onSuccess: (data) => {
+                console.log("✅ Fabric update successful", data);
+                clearSavedData();
+                resetForm();
+                // Add a small delay to ensure state updates complete
+                setTimeout(() => {
+                  navigate(-1);
+                }, 100);
+              },
+              onError: (error) => {
+                console.error("❌ Fabric update failed", error);
+                toastError("Failed to update fabric. Please try again.");
+              },
             },
           );
         }
       } else {
+        // Create operations
+        const onSuccessCallback = () => {
+          clearSavedData();
+          resetForm();
+          setTimeout(() => {
+            navigate(-1);
+          }, 100);
+        };
+
         if (isAdminAddFabricRoute) {
           console.log(
             "Creating admin fabric with enable_increment:",
@@ -574,8 +602,7 @@ const AddProduct = () => {
         spreadout_url: productInfo?.fabric?.photos?.[1] || "",
         manufacturers_url: productInfo?.fabric?.photos?.[2] || "",
         fabric_url: productInfo?.fabric?.photos?.[3] || "",
-        enable_increment:
-          Boolean(productInfo?.fabric?.enable_increment) || false,
+        enable_increment: Boolean(productInfo?.enable_increment) || false,
       };
 
       console.log("🔧 EDIT MODE DEBUG - Populated values:", editModeValues);
@@ -777,6 +804,34 @@ const AddProduct = () => {
     const newTags = tags.filter((tag) => tag !== tagToRemove);
     setTags(newTags);
     setFieldValueWithAutoSave("tags", newTags);
+  };
+
+  // Validate all required fields (except alternative_names and feel_a_like)
+  const isFormValid = () => {
+    const requiredFields = [
+      "name",
+      "market_id",
+      "category_id",
+      "gender",
+      "weight_per_unit",
+      "local_name",
+      "manufacturer_name",
+      "material_type",
+      "fabric_texture",
+      "quantity",
+      "minimum_yards",
+      "available_colors",
+      "price",
+      "description",
+    ];
+
+    return requiredFields.every((field) => {
+      const value = values[field];
+      if (typeof value === "string") {
+        return value.trim() !== "";
+      }
+      return value !== null && value !== undefined && value !== "";
+    });
   };
 
   // Clear saved data function for manual clearing
@@ -1038,7 +1093,6 @@ const AddProduct = () => {
                 <input
                   type="text"
                   name={"alternative_names"}
-                  required
                   value={values.alternative_names}
                   onChange={handleChangeWithAutoSave}
                   placeholder="Enter the name it is called in other locations"
@@ -1161,6 +1215,7 @@ const AddProduct = () => {
                   <input
                     type="number"
                     name={"available_colors"}
+                    required
                     value={values.available_colors}
                     onChange={handleChangeWithAutoSave}
                     className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
@@ -1654,7 +1709,8 @@ const AddProduct = () => {
                   manufacturersIsPending ||
                   fabricIsPending ||
                   createAdminIsPending ||
-                  updateAdminIsPending
+                  updateAdminIsPending ||
+                  !isFormValid()
                 }
                 className={
                   "w-full cursor-pointer py-3 rounded-md " +
@@ -1666,7 +1722,8 @@ const AddProduct = () => {
                   manufacturersIsPending ||
                   fabricIsPending ||
                   createAdminIsPending ||
-                  updateAdminIsPending
+                  updateAdminIsPending ||
+                  !isFormValid()
                     ? "bg-gradient-to-r from-gray-300 to-gray-400 text-gray-400 opacity-70 cursor-not-allowed"
                     : "bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90")
                 }

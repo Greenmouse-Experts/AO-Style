@@ -71,21 +71,6 @@ const EditStyle = () => {
   useEffect(() => {
     if (product?.style) {
       const style = product.style;
-      console.log("=== STYLE PREFILL DEBUG ===");
-      console.log("🔧 STYLE DEBUG - Product data:", product);
-      console.log("🔧 STYLE DEBUG - Style data:", style);
-
-      // Find tailor ID by business name
-      console.log("--- TAILOR PREFILLING ---");
-      console.log("Business info:", product.business_info);
-      console.log(
-        "Available tailors:",
-        getAllTailorData?.data?.map((t) => ({
-          id: t.id,
-          name: t.name,
-          business_name: t.business_name,
-        })),
-      );
 
       const tailorId =
         getAllTailorData?.data?.find(
@@ -94,33 +79,18 @@ const EditStyle = () => {
             tailor.name === product.business_info?.business_name,
         )?.id || "";
 
-      console.log("Found tailor ID:", tailorId);
-
-      // Find category ID
-      console.log("--- CATEGORY PREFILLING ---");
-      console.log("Product category:", product.category);
-      console.log(
-        "Available categories:",
-        categories
-          ?.filter((c) => c.type === "style")
-          ?.map((c) => ({ id: c.id, name: c.name })),
-      );
-
       const categoryId = product.category?.id || product.category_id || "";
-
-      console.log("Found category ID:", categoryId);
-
-      // Parse estimated sewing time from timestamp
-      console.log("--- ESTIMATED SEWING TIME PREFILLING ---");
-      console.log("Raw estimated_sewing_time:", style.estimated_sewing_time);
 
       let parsedSewingTime = 1; // Default value
       if (style.estimated_sewing_time) {
         try {
-          const timeValue =
-            new Date(style.estimated_sewing_time).getHours() +
-            new Date(style.estimated_sewing_time).getMinutes() / 60;
-          parsedSewingTime = timeValue || 1;
+          // Extract the integer after the decimal point from timestamp
+          // e.g. "1970-01-01 01:00:00.006" -> extract 6
+          const timestampParts = style.estimated_sewing_time.split(".");
+          if (timestampParts.length > 1) {
+            const decimalPart = timestampParts[1]; // "006"
+            parsedSewingTime = parseInt(decimalPart, 10) || 1; // Convert "006" to 6
+          }
         } catch (error) {
           console.log("Error parsing sewing time, using default:", error);
           parsedSewingTime = 1;

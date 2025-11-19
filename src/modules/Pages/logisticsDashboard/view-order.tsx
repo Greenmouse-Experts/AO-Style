@@ -35,8 +35,50 @@ import { formatOrderId } from "../../../lib/orderUtils";
 import "react-toastify/dist/ReactToastify.css";
 import Item from "antd/es/list/Item";
 import { FaRoad } from "react-icons/fa";
+import OrderTimelineCard from "../../../components/logistics/OrderTimelineCard";
 
-// ... [All interfaces unchanged] ...
+interface OrderItem {
+  id: string;
+  order_id: string;
+  product_id: string;
+  style_product_id: string | null;
+  quantity: number;
+  price: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  product: any;
+  metadata?: any;
+  isCustomer?: any;
+}
+
+interface OrderLogisticsData {
+  statusCode: number;
+  data: {
+    id: string;
+    user_id: string;
+    status: string;
+    total_amount: string;
+    payment_id: string;
+    metadata: any;
+    logistics_agent_id: string | null;
+    first_leg_logistics_agent_id?: string | null;
+    first_leg_status?: string;
+    second_leg_status?: string;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+    dispatched_to_agent_at?: string | null;
+    delivered_to_tailor_at?: string | null;
+    delivered_at?: string | null;
+    in_transit_at?: string | null;
+    out_for_delivery_at?: string | null;
+    payment?: any;
+    user?: any;
+    order_items: OrderItem[];
+    logistics_agent?: any;
+  };
+}
 
 export default function ViewOrderLogistics() {
   const { id } = useParams();
@@ -54,7 +96,7 @@ export default function ViewOrderLogistics() {
 
   // NEW: Modal state for viewing pickup fabric image (for "View pick-up item" button in Second Leg Locations)
   const [pickupItemImageUrl, setPickupItemImageUrl] = useState<string | null>(
-    null
+    null,
   );
 
   const query = useQuery<OrderLogisticsData>({
@@ -174,8 +216,8 @@ export default function ViewOrderLogistics() {
   // Helper function to check if order has style items
   const hasStyleItems = () => {
     return (
-      order_data?.order_items?.some((item) =>
-        item?.product?.type?.toLowerCase().includes("style")
+      order_data?.order_items?.some((item: any) =>
+        item?.product?.type?.toLowerCase().includes("style"),
       ) || false
     );
   };
@@ -396,10 +438,10 @@ export default function ViewOrderLogistics() {
                       isDelivered
                         ? "bg-green-500"
                         : isInTransit
-                        ? "bg-purple-500 animate-pulse"
-                        : isFirstLeg || isSecondLeg
-                        ? "bg-orange-500"
-                        : "bg-gray-400"
+                          ? "bg-purple-500 animate-pulse"
+                          : isFirstLeg || isSecondLeg
+                            ? "bg-orange-500"
+                            : "bg-gray-400"
                     }`}
                   ></div>
                   <span className="text-sm font-medium text-gray-600">
@@ -427,12 +469,12 @@ export default function ViewOrderLogistics() {
                       statusInfo.color === "green"
                         ? "bg-green-100 text-green-800"
                         : statusInfo.color === "purple"
-                        ? "bg-purple-100 text-purple-800"
-                        : statusInfo.color === "orange"
-                        ? "bg-orange-100 text-orange-800"
-                        : statusInfo.color === "blue"
-                        ? "bg-blue-100 text-blue-800"
-                        : "bg-gray-100 text-gray-800"
+                          ? "bg-purple-100 text-purple-800"
+                          : statusInfo.color === "orange"
+                            ? "bg-orange-100 text-orange-800"
+                            : statusInfo.color === "blue"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-gray-100 text-gray-800"
                     }`}
                   >
                     <statusInfo.icon className="w-4 h-4 mr-2" />
@@ -542,8 +584,8 @@ export default function ViewOrderLogistics() {
                               statusInfo.color === "blue"
                                 ? "bg-blue-600 hover:bg-blue-700 text-white"
                                 : statusInfo.color === "purple"
-                                ? "bg-purple-600 hover:bg-purple-700 text-white"
-                                : "bg-green-600 hover:bg-green-700 text-white"
+                                  ? "bg-purple-600 hover:bg-purple-700 text-white"
+                                  : "bg-green-600 hover:bg-green-700 text-white"
                             }`}
                           >
                             {order_mutation.isPending ? (
@@ -619,8 +661,8 @@ export default function ViewOrderLogistics() {
                               ].includes(currentStatus || "")
                                 ? "bg-green-100 text-green-600"
                                 : currentStatus === "DISPATCHED_TO_AGENT"
-                                ? "bg-blue-100 text-blue-600"
-                                : "bg-gray-100 text-gray-400"
+                                  ? "bg-blue-100 text-blue-600"
+                                  : "bg-gray-100 text-gray-400"
                             }`}
                           >
                             {[
@@ -658,12 +700,12 @@ export default function ViewOrderLogistics() {
                                   currentStatus === "DELIVERED"
                                     ? "bg-green-100 text-green-600"
                                     : [
-                                        "OUT_FOR_DELIVERY",
-                                        "SHIPPED",
-                                        "IN_TRANSIT",
-                                      ].includes(currentStatus || "")
-                                    ? "bg-purple-100 text-purple-600"
-                                    : "bg-gray-100 text-gray-400"
+                                          "OUT_FOR_DELIVERY",
+                                          "SHIPPED",
+                                          "IN_TRANSIT",
+                                        ].includes(currentStatus || "")
+                                      ? "bg-purple-100 text-purple-600"
+                                      : "bg-gray-100 text-gray-400"
                                 }`}
                               >
                                 {currentStatus === "DELIVERED" ? (
@@ -697,8 +739,8 @@ export default function ViewOrderLogistics() {
                               ].includes(currentStatus || "")
                                 ? "bg-green-100 text-green-600"
                                 : currentStatus === "DISPATCHED_TO_AGENT"
-                                ? "bg-blue-100 text-blue-600"
-                                : "bg-gray-100 text-gray-400"
+                                  ? "bg-blue-100 text-blue-600"
+                                  : "bg-gray-100 text-gray-400"
                             }`}
                           >
                             {[
@@ -759,6 +801,17 @@ export default function ViewOrderLogistics() {
                   </button>
                 </div>
               </div>
+
+              {/* Order Timeline */}
+              <OrderTimelineCard
+                dispatched_to_agent_at={order_data?.dispatched_to_agent_at}
+                delivered_to_tailor_at={order_data?.delivered_to_tailor_at}
+                delivered_at={order_data?.delivered_at}
+                in_transit_at={order_data?.in_transit_at}
+                out_for_delivery_at={order_data?.out_for_delivery_at}
+                created_at={order_data?.created_at}
+                status={order_data?.status}
+              />
             </div>
 
             {/* Right Column - Order Details */}
@@ -850,9 +903,13 @@ export default function ViewOrderLogistics() {
                                       <button
                                         className="cursor-pointer px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors"
                                         onClick={() => {
-                                          setItem(item);
+                                          setItem({
+                                            ...item,
+                                            style_product_id:
+                                              item.style_product_id || null,
+                                          });
                                           nav(
-                                            `/logistics/orders/item/${item.id}/map`
+                                            `/logistics/orders/item/${item.id}/map`,
                                           );
                                         }}
                                       >
@@ -923,9 +980,13 @@ export default function ViewOrderLogistics() {
                                     <button
                                       className="cursor-pointer px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors"
                                       onClick={() => {
-                                        setItem(item);
+                                        setItem({
+                                          ...item,
+                                          style_product_id:
+                                            item.style_product_id || null,
+                                        });
                                         nav(
-                                          `/logistics/orders/item/${item.id}/map`
+                                          `/logistics/orders/item/${item.id}/map`,
                                         );
                                       }}
                                     >
@@ -995,10 +1056,10 @@ export default function ViewOrderLogistics() {
                               ? order_data?.order_items?.[0]?.product?.creator
                                   ?.profile?.address
                               : hasStyleItems()
-                              ? order_data?.order_items?.[1]?.product?.creator
-                                  ?.profile?.address
-                              : order_data?.order_items?.[0]?.product?.creator
-                                  ?.profile?.address}
+                                ? order_data?.order_items?.[1]?.product?.creator
+                                    ?.profile?.address
+                                : order_data?.order_items?.[0]?.product?.creator
+                                    ?.profile?.address}
                           </p>
                         </div>
                       </div>
@@ -1011,8 +1072,8 @@ export default function ViewOrderLogistics() {
                             {isFirstLeg && hasStyleItems()
                               ? "FABRIC VENDOR NAME:"
                               : hasStyleItems()
-                              ? "TAILOR'S NAME:"
-                              : "VENDOR NAME:"}
+                                ? "TAILOR'S NAME:"
+                                : "VENDOR NAME:"}
                           </p>
                         </div>
                         <div className="bg-white p-2 rounded">
@@ -1021,10 +1082,10 @@ export default function ViewOrderLogistics() {
                               ? order_data?.order_items?.[0]?.product?.creator
                                   ?.name || "N/A"
                               : hasStyleItems()
-                              ? order_data?.order_items?.[1]?.product?.creator
-                                  ?.name || "N/A"
-                              : order_data?.order_items?.[0]?.product?.creator
-                                  ?.name || "N/A"}
+                                ? order_data?.order_items?.[1]?.product?.creator
+                                    ?.name || "N/A"
+                                : order_data?.order_items?.[0]?.product?.creator
+                                    ?.name || "N/A"}
                           </p>
                         </div>
                       </div>
@@ -1036,8 +1097,8 @@ export default function ViewOrderLogistics() {
                             {isFirstLeg && hasStyleItems()
                               ? "FABRIC VENDOR CONTACT:"
                               : hasStyleItems()
-                              ? "TAILOR'S CONTACT:"
-                              : "VENDOR CONTACT:"}
+                                ? "TAILOR'S CONTACT:"
+                                : "VENDOR CONTACT:"}
                           </p>
                         </div>
                         <div className="bg-white p-2 rounded">
@@ -1046,10 +1107,10 @@ export default function ViewOrderLogistics() {
                               ? order_data?.order_items?.[0]?.product?.creator
                                   ?.phone || "000 000 000"
                               : hasStyleItems()
-                              ? order_data?.order_items?.[1]?.product?.creator
-                                  ?.phone || "000 000 000"
-                              : order_data?.order_items?.[0]?.product?.creator
-                                  ?.phone || "000 000 000"}
+                                ? order_data?.order_items?.[1]?.product?.creator
+                                    ?.phone || "000 000 000"
+                                : order_data?.order_items?.[0]?.product?.creator
+                                    ?.phone || "000 000 000"}
                           </p>
                         </div>
                       </div>
@@ -1112,10 +1173,12 @@ export default function ViewOrderLogistics() {
 
                                 setItem({
                                   ...orderItem,
+                                  style_product_id:
+                                    orderItem.style_product_id || null,
                                   isCustomer: destinationData,
                                 });
                                 nav(
-                                  `/logistics/orders/item/${orderItem.id}/map`
+                                  `/logistics/orders/item/${orderItem.id}/map`,
                                 );
                               } else {
                                 toast.error("Order item not found");
@@ -1140,7 +1203,7 @@ export default function ViewOrderLogistics() {
                       </div>
 
                       {/* NEW: Add Name Field for Destination */}
-                      {(isFirstLeg && hasStyleItems()) ? (
+                      {isFirstLeg && hasStyleItems() ? (
                         <div className="mt-3">
                           <div className="flex items-center gap-1">
                             <User className="text-purple-900 h-5 mb-1" />
@@ -1150,11 +1213,13 @@ export default function ViewOrderLogistics() {
                           </div>
                           <div className="bg-white p-2 rounded">
                             <p className="text-gray-700 text-sm font-semibold">
-                              {order_data?.order_items?.[1]?.product?.creator?.name || "N/A"}
+                              {order_data?.order_items?.[1]?.product?.creator
+                                ?.name || "N/A"}
                             </p>
                           </div>
                         </div>
-                      ) : order_data?.user?.profile?.name || order_data?.user?.email ? (
+                      ) : order_data?.user?.profile?.name ||
+                        order_data?.user?.email ? (
                         <div className="mt-3">
                           <div className="flex items-center gap-1">
                             <User className="text-purple-900 h-5 mb-1" />
@@ -1164,7 +1229,8 @@ export default function ViewOrderLogistics() {
                           </div>
                           <div className="bg-white p-2 rounded">
                             <p className="text-gray-700 text-sm font-semibold">
-                              {order_data?.user?.profile?.name || order_data?.user?.email}
+                              {order_data?.user?.profile?.name ||
+                                order_data?.user?.email}
                             </p>
                           </div>
                         </div>

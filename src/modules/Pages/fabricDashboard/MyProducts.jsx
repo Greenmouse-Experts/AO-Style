@@ -152,7 +152,7 @@ const ProductPage = () => {
     useUpdateAdminFabric();
 
   const { isPending: updateAdminStyleIsPending, updateAdminStyleMutate } =
-    useUpdateAdminStyle();
+    useUpdateAdminStyle(businessDetails?.data?.id);
 
   const { isPending: deleteAdminStyleIsPending, deleteAdminStyleMutate } =
     useDeleteAdminStyle();

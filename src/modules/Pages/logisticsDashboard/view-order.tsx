@@ -811,6 +811,13 @@ export default function ViewOrderLogistics() {
                 out_for_delivery_at={order_data?.out_for_delivery_at}
                 created_at={order_data?.created_at}
                 status={order_data?.status}
+                first_leg_order_received_at={
+                  order_data?.first_leg_order_received_at
+                }
+                second_leg_order_received_at={
+                  order_data?.second_leg_order_received_at
+                }
+                userType="logistics"
               />
             </div>
 

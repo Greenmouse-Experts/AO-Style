@@ -19,6 +19,9 @@ interface OrderTimelineProps {
   status?: string;
   first_leg_logistics_agent_id?: string | null;
   logistics_agent_id?: string | null;
+  first_leg_order_received_at?: string | null;
+  second_leg_order_received_at?: string | null;
+  userType?: "admin" | "logistics" | null;
 }
 
 interface TimelineEvent {
@@ -41,6 +44,9 @@ const OrderTimelineCard: React.FC<OrderTimelineProps> = ({
   status = "",
   first_leg_logistics_agent_id,
   logistics_agent_id,
+  first_leg_order_received_at,
+  second_leg_order_received_at,
+  userType = null,
 }) => {
   const formatDateTime = (timestamp: string | null | undefined) => {
     if (!timestamp) return null;
@@ -90,27 +96,63 @@ const OrderTimelineCard: React.FC<OrderTimelineProps> = ({
   // Determine if we should show legs based on logistics agent data
   const shouldShowLegs = first_leg_logistics_agent_id || logistics_agent_id;
 
-  // First Leg Events
-  const firstLegEvents: TimelineEvent[] = [
-    {
-      id: "created",
-      title: "Order Created",
-      description: "Order has been placed successfully",
-      timestamp: created_at,
-      icon: <Package className="w-4 h-4" />,
-      status: created_at ? "completed" : "pending",
-      color: "text-green-600 bg-green-100",
-    },
-    {
-      id: "dispatched",
-      title: "Dispatched to Agent",
-      description: "Order assigned to first leg logistics agent",
-      timestamp: dispatched_to_agent_at,
-      icon: <User className="w-4 h-4" />,
-      status: getEventStatus(dispatched_to_agent_at, "DISPATCHED_TO_AGENT"),
-      color: "text-blue-600 bg-blue-100",
-    },
-  ];
+  // First Leg Events - Different flow for logistics vs admin
+  const getFirstLegEvents = (): TimelineEvent[] => {
+    const events: TimelineEvent[] = [];
+
+    if (userType === "logistics") {
+      // For logistics agents: Start with order received, skip created and dispatched
+      if (first_leg_order_received_at) {
+        events.push({
+          id: "first_leg_received",
+          title: "Order Received",
+          description: "Order accepted by logistics agent",
+          timestamp: first_leg_order_received_at,
+          icon: <CheckCircle className="w-4 h-4" />,
+          status: "completed",
+          color: "text-green-600 bg-green-100",
+        });
+      }
+    } else {
+      // For admins: Show full timeline including created and dispatched
+      events.push({
+        id: "created",
+        title: "Order Created",
+        description: "Order has been placed successfully",
+        timestamp: created_at,
+        icon: <Package className="w-4 h-4" />,
+        status: created_at ? "completed" : "pending",
+        color: "text-green-600 bg-green-100",
+      });
+
+      events.push({
+        id: "dispatched",
+        title: "Dispatched to Agent",
+        description: "Order assigned to first leg logistics agent",
+        timestamp: dispatched_to_agent_at,
+        icon: <User className="w-4 h-4" />,
+        status: getEventStatus(dispatched_to_agent_at, "DISPATCHED_TO_AGENT"),
+        color: "text-blue-600 bg-blue-100",
+      });
+
+      // For admins: Add first_leg_order_received_at after dispatched or out_for_delivery
+      if (first_leg_order_received_at) {
+        events.push({
+          id: "first_leg_received",
+          title: "Order Accepted by Agent",
+          description: "First leg logistics agent accepted the order",
+          timestamp: first_leg_order_received_at,
+          icon: <CheckCircle className="w-4 h-4" />,
+          status: "completed",
+          color: "text-green-600 bg-green-100",
+        });
+      }
+    }
+
+    return events;
+  };
+
+  const firstLegEvents: TimelineEvent[] = getFirstLegEvents();
 
   // Add delivered to tailor if it exists (end of first leg)
   if (delivered_to_tailor_at) {
@@ -125,9 +167,11 @@ const OrderTimelineCard: React.FC<OrderTimelineProps> = ({
     });
   }
 
-  // Second Leg Events
-  const secondLegEvents: TimelineEvent[] = [
-    {
+  // Second Leg Events - Include second_leg_order_received_at
+  const getSecondLegEvents = (): TimelineEvent[] => {
+    const events: TimelineEvent[] = [];
+
+    events.push({
       id: "in_transit",
       title: "In Transit from Tailor",
       description: "Package picked up from tailor and in transit",
@@ -135,8 +179,22 @@ const OrderTimelineCard: React.FC<OrderTimelineProps> = ({
       icon: <Truck className="w-4 h-4" />,
       status: getEventStatus(in_transit_at, "IN_TRANSIT"),
       color: "text-orange-600 bg-orange-100",
-    },
-    {
+    });
+
+    // Add second_leg_order_received_at for both admin and logistics
+    if (second_leg_order_received_at) {
+      events.push({
+        id: "second_leg_received",
+        title: "Order Accepted for Second Leg",
+        description: "Second leg logistics agent accepted the order",
+        timestamp: second_leg_order_received_at,
+        icon: <CheckCircle className="w-4 h-4" />,
+        status: "completed",
+        color: "text-blue-600 bg-blue-100",
+      });
+    }
+
+    events.push({
       id: "out_for_delivery",
       title: "Out for Delivery",
       description: "Package is out for final delivery",
@@ -144,8 +202,12 @@ const OrderTimelineCard: React.FC<OrderTimelineProps> = ({
       icon: <Truck className="w-4 h-4" />,
       status: getEventStatus(out_for_delivery_at, "OUT_FOR_DELIVERY"),
       color: "text-yellow-600 bg-yellow-100",
-    },
-  ];
+    });
+
+    return events;
+  };
+
+  const secondLegEvents: TimelineEvent[] = getSecondLegEvents();
 
   // Add final delivery if it exists
   if (delivered_at) {
@@ -160,27 +222,60 @@ const OrderTimelineCard: React.FC<OrderTimelineProps> = ({
     });
   }
 
-  // Fallback to single timeline if no leg data
-  const singleTimelineEvents: TimelineEvent[] = [
-    {
-      id: "created",
-      title: "Order Created",
-      description: "Order has been placed successfully",
-      timestamp: created_at,
-      icon: <Package className="w-4 h-4" />,
-      status: created_at ? "completed" : "pending",
-      color: "text-green-600 bg-green-100",
-    },
-    {
-      id: "dispatched",
-      title: "Dispatched to Agent",
-      description: "Order assigned to logistics agent",
-      timestamp: dispatched_to_agent_at,
-      icon: <User className="w-4 h-4" />,
-      status: getEventStatus(dispatched_to_agent_at, "DISPATCHED_TO_AGENT"),
-      color: "text-blue-600 bg-blue-100",
-    },
-    {
+  // Fallback to single timeline if no leg data - Different for logistics vs admin
+  const getSingleTimelineEvents = (): TimelineEvent[] => {
+    const events: TimelineEvent[] = [];
+
+    if (userType === "logistics") {
+      // For logistics: Start with order received if available
+      if (first_leg_order_received_at) {
+        events.push({
+          id: "first_leg_received",
+          title: "Order Received",
+          description: "Order accepted by logistics agent",
+          timestamp: first_leg_order_received_at,
+          icon: <CheckCircle className="w-4 h-4" />,
+          status: "completed",
+          color: "text-green-600 bg-green-100",
+        });
+      }
+    } else {
+      // For admins: Show created and dispatched
+      events.push({
+        id: "created",
+        title: "Order Created",
+        description: "Order has been placed successfully",
+        timestamp: created_at,
+        icon: <Package className="w-4 h-4" />,
+        status: created_at ? "completed" : "pending",
+        color: "text-green-600 bg-green-100",
+      });
+
+      events.push({
+        id: "dispatched",
+        title: "Dispatched to Agent",
+        description: "Order assigned to logistics agent",
+        timestamp: dispatched_to_agent_at,
+        icon: <User className="w-4 h-4" />,
+        status: getEventStatus(dispatched_to_agent_at, "DISPATCHED_TO_AGENT"),
+        color: "text-blue-600 bg-blue-100",
+      });
+
+      // Add first_leg_order_received_at for admins
+      if (first_leg_order_received_at) {
+        events.push({
+          id: "first_leg_received",
+          title: "Order Accepted by Agent",
+          description: "Logistics agent accepted the order",
+          timestamp: first_leg_order_received_at,
+          icon: <CheckCircle className="w-4 h-4" />,
+          status: "completed",
+          color: "text-green-600 bg-green-100",
+        });
+      }
+    }
+
+    events.push({
       id: "in_transit",
       title: "In Transit",
       description: "Package is on the way",
@@ -188,8 +283,22 @@ const OrderTimelineCard: React.FC<OrderTimelineProps> = ({
       icon: <Truck className="w-4 h-4" />,
       status: getEventStatus(in_transit_at, "IN_TRANSIT"),
       color: "text-orange-600 bg-orange-100",
-    },
-    {
+    });
+
+    // Add second_leg_order_received_at if available
+    if (second_leg_order_received_at) {
+      events.push({
+        id: "second_leg_received",
+        title: "Order Accepted for Second Leg",
+        description: "Second leg logistics agent accepted the order",
+        timestamp: second_leg_order_received_at,
+        icon: <CheckCircle className="w-4 h-4" />,
+        status: "completed",
+        color: "text-blue-600 bg-blue-100",
+      });
+    }
+
+    events.push({
       id: "out_for_delivery",
       title: "Out for Delivery",
       description: "Package is out for delivery",
@@ -197,8 +306,12 @@ const OrderTimelineCard: React.FC<OrderTimelineProps> = ({
       icon: <Truck className="w-4 h-4" />,
       status: getEventStatus(out_for_delivery_at, "OUT_FOR_DELIVERY"),
       color: "text-yellow-600 bg-yellow-100",
-    },
-  ];
+    });
+
+    return events;
+  };
+
+  const singleTimelineEvents: TimelineEvent[] = getSingleTimelineEvents();
 
   // Add conditional events for single timeline
   if (delivered_to_tailor_at) {

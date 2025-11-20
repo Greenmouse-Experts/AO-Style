@@ -13,7 +13,6 @@ import useDeleteStyle from "../../../hooks/style/useDeleteFabric";
 import useGetAdminFabricProduct from "../../../hooks/fabric/useGetAdminFabricProduct";
 import useDeleteAdminStyle from "../../../hooks/style/useDeleteAdminStyle";
 import useUpdateAdminStyle from "../../../hooks/style/useUpdateAdminStyle";
-import CaryBinApi from "../../../services/CarybinBaseUrl";
 import { toast } from "react-toastify";
 
 import jsPDF from "jspdf";
@@ -50,18 +49,24 @@ export default function StylesTable() {
     ...queryParams,
   });
 
-  const { data: getAllAdminStylesData, isPending: adminProductIsPending } =
-    useGetAdminFabricProduct({
-      type: "STYLE",
-      id: businessDetails?.data?.id,
-      ...queryParams,
-    });
-
+  // Fixed: Pass business_id for "My Styles" tab, no business_id for "All Styles"
+  const {
+    data: getAllAdminStylesData,
+    isPending: adminProductIsPending,
+    refetch: refetchAdmin,
+  } = useGetAdminFabricProduct({
+    type: "STYLE",
+    ...(currProd === "my" && businessDetails?.data?.id
+      ? { business_id: businessDetails?.data?.id }
+      : {}),
+    ...queryParams,
+  });
+  console.log("This is the admin business details", businessDetails);
   const { isPending: deleteIsPending, deleteStyleMutate } = useDeleteStyle();
   const { isPending: deleteAdminIsPending, deleteAdminStyleMutate } =
     useDeleteAdminStyle();
   const { isPending: updateAdminIsPending, updateAdminStyleMutate } =
-    useUpdateAdminStyle();
+    useUpdateAdminStyle(businessDetails?.data?.id);
 
   const [queryString, setQueryString] = useState(queryParams.q);
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
@@ -92,17 +97,16 @@ export default function StylesTable() {
   const updatedData = isAdminStyleRoute
     ? getAllAdminStylesData
     : getAllStylesData;
+
   const totalPages = Math.ceil(
     updatedData?.count / (queryParams["pagination[limit]"] ?? 10),
   );
-  console.log("hsi is the updated data", updatedData);
-  const dataRes =
-    currProd === "all"
-      ? updatedData?.data
-      : updatedData?.data?.filter(
-          (item) => item.creator_id === businessDetails?.data?.user_id,
-        );
+
+  // Fixed: Remove client-side filtering since API now handles it
+  const dataRes = updatedData?.data;
+
   console.log("This is the styles data", dataRes);
+
   const filteredData = useMemo(() => {
     if (!dataRes) return [];
     return dataRes.map((style) => ({
@@ -246,7 +250,11 @@ export default function StylesTable() {
     const doc = new jsPDF();
     autoTable(doc, {
       head: [["Style Name", "Price", "Status"]],
-      body: filteredData?.map((row) => [row.name, row.price, row.status]),
+      body: filteredData?.map((row) => [
+        row.name,
+        row.price,
+        row.approval_status,
+      ]),
       headStyles: {
         fillColor: [147, 51, 234],
         textColor: [255, 255, 255],
@@ -256,6 +264,15 @@ export default function StylesTable() {
       },
     });
     doc.save("StylesCatalog.pdf");
+  };
+
+  // Fixed: Handle refetch based on current route
+  const handleRefetch = () => {
+    if (isAdminStyleRoute) {
+      refetchAdmin();
+    } else {
+      refetch();
+    }
   };
 
   return (
@@ -303,7 +320,13 @@ export default function StylesTable() {
                 {["all", "my"].map((tab) => (
                   <button
                     key={tab}
-                    onClick={() => setCurrProd(tab)}
+                    onClick={() => {
+                      setCurrProd(tab);
+                      // Reset to page 1 when switching tabs
+                      updateQueryParams({
+                        "pagination[page]": 1,
+                      });
+                    }}
                     className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                       currProd === tab
                         ? "border-purple-600 text-purple-600"
@@ -394,7 +417,7 @@ export default function StylesTable() {
                       filteredData?.map((row) => ({
                         Style: row.name,
                         Price: row.price,
-                        Status: row.status,
+                        Status: row.approval_status,
                         Category: row.category,
                         Created: row.created_date,
                       })) || []
@@ -486,7 +509,9 @@ export default function StylesTable() {
                       ? "No published styles available"
                       : filter === "unpublished"
                         ? "No unpublished styles found"
-                        : "Create your first style to get started"}
+                        : currProd === "my"
+                          ? "You haven't created any styles yet"
+                          : "Create your first style to get started"}
                   </p>
                   {(!isAdminStyleRoute || currProd !== "all") && (
                     <Link
@@ -570,10 +595,14 @@ export default function StylesTable() {
                             {
                               onSuccess: () => {
                                 setOpenDropdown(null);
-                                refetch();
+                                handleRefetch();
+                                toast.success(
+                                  `Style ${newStatus === "PUBLISHED" ? "published" : "unpublished"} successfully`,
+                                );
                               },
                               onError: (error) => {
                                 console.error("Status update failed:", error);
+                                toast.error("Failed to update status");
                               },
                             },
                           );
@@ -648,7 +677,12 @@ export default function StylesTable() {
                       onSuccess: () => {
                         setIsAddModalOpen(false);
                         setNewCategory(null);
-                        refetch();
+                        handleRefetch();
+                        toast.success("Style deleted successfully");
+                      },
+                      onError: (error) => {
+                        console.error("Delete failed:", error);
+                        toast.error("Failed to delete style");
                       },
                     });
                   } else {
@@ -661,7 +695,12 @@ export default function StylesTable() {
                         onSuccess: () => {
                           setIsAddModalOpen(false);
                           setNewCategory(null);
-                          refetch();
+                          handleRefetch();
+                          toast.success("Style deleted successfully");
+                        },
+                        onError: (error) => {
+                          console.error("Delete failed:", error);
+                          toast.error("Failed to delete style");
                         },
                       },
                     );

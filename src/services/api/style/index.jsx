@@ -8,8 +8,12 @@ const createStyleProduct = (payload, business_id) => {
   });
 };
 
-const createAdminStyleProduct = (payload) => {
-  return CaryBinApi.post(`/manage-style/create`, payload, {});
+const createAdminStyleProduct = (payload, business_id) => {
+  return CaryBinApi.post(`/manage-style/create`, payload, {
+    headers: {
+      "Business-Id": business_id,
+    },
+  });
 };
 
 const updateStyleProduct = (payload) => {
@@ -21,7 +25,11 @@ const updateStyleProduct = (payload) => {
 };
 
 const updateAdminStyleProduct = (payload) => {
-  return CaryBinApi.patch(`/manage-style/${payload.id}`, payload, {});
+  return CaryBinApi.patch(`/manage-style/${payload.id}`, payload, {
+    headers: {
+      "Business-Id": payload.business_id,
+    },
+  });
 };
 
 const deleteStyleProduct = (payload) => {

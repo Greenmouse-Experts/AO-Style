@@ -214,7 +214,7 @@ export default function StyleForm() {
   );
 
   const { isPending: createIsPending, createAdminStyleProductMutate } =
-    useCreateAdminStyle();
+    useCreateAdminStyle(businessDetails?.data?.id);
 
   const { isPending: uploadVideoIsPending, uploadVideoMutate } =
     useUploadVideo();
@@ -242,7 +242,7 @@ export default function StyleForm() {
   const { isPending: updateIsPending, updateStyleMutate } = useUpdateStyle();
 
   const { isPending: updateAdminIsPending, updateAdminStyleMutate } =
-    useUpdateAdminStyle();
+    useUpdateAdminStyle(businessDetails?.data?.id);
 
   // Auto-save function with debouncing
   const autoSave = (formValues) => {

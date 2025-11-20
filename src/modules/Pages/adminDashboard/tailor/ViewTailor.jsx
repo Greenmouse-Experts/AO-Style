@@ -135,7 +135,7 @@ const ViewCustomer = () => {
   const [queryOrderString, setQueryOrderString] = useState("");
 
   const { isPending: updateAdminIsPending, updateAdminStyleMutate } =
-    useUpdateAdminStyle();
+    useUpdateAdminStyle(businessData?.id);
 
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
 

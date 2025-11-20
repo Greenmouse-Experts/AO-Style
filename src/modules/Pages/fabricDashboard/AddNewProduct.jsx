@@ -557,7 +557,7 @@ const AddProduct = () => {
       setValues(merged);
       setDidSetInitial(true);
     }
-    // eslint-disable-next-line
+     
   }, [isEditMode, getInitialValues, setValues, didSetInitial]);
 
   // Handle edit mode initialization - populate form fields with productInfo
@@ -1180,9 +1180,9 @@ const AddProduct = () => {
                     </p>
                     <div className="mt-2">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${Boolean(values.enable_increment) ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${values.enable_increment ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}
                       >
-                        {Boolean(values.enable_increment)
+                        {values.enable_increment
                           ? "✓ Enabled"
                           : "✕ Disabled"}
                       </span>

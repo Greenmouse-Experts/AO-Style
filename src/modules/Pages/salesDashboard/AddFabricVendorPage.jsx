@@ -126,7 +126,7 @@ export default function AddFabricVendorPage() {
     if (!window.google || !inputRef?.current) return;
     // Prevent double-initialization
     if (inputRef.current.__autocomplete) return;
-    // eslint-disable-next-line no-undef
+     
     const autocomplete = new window.google.maps.places.Autocomplete(
       inputRef.current,
       {

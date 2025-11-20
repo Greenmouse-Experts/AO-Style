@@ -784,6 +784,13 @@ const OrderDetails = () => {
                 orderDetails?.first_leg_logistics_agent_id
               }
               logistics_agent_id={orderDetails?.logistics_agent_id}
+              first_leg_order_received_at={
+                orderDetails?.first_leg_order_received_at
+              }
+              second_leg_order_received_at={
+                orderDetails?.second_leg_order_received_at
+              }
+              userType="admin"
             />
             {/* Order Information */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200">

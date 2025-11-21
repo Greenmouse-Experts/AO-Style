@@ -170,10 +170,12 @@ const AddStyle = () => {
           navigate("/sales/my-products");
         },
         onError: (error) => {
+          console.log(error)
           const errorMessage =
             error?.response?.data?.data?.message ||
             error?.response?.data?.message ||
             error?.message ||
+            error?.data?.message
             "Failed to create style. Please try again.";
 
           toastError(errorMessage);

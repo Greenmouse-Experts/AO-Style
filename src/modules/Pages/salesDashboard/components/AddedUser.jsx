@@ -11,6 +11,8 @@ const NewlyAddedUsers = () => {
   // Fetch all vendors data from API (fabric vendors + fashion designers)
   const { data: vendorsData, isLoading, isError } = useGetAllMarketRepVendors();
 
+  console.log("This is the newly added users", vendorsData)
+
   // Transform API data to match table structure
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -52,49 +54,21 @@ const NewlyAddedUsers = () => {
     { label: "Name", key: "name" },
     { label: "User Type", key: "userType" },
     { label: "Date Added", key: "dateAdded" },
-    {
-      label: "Status",
-      key: "status",
-      render: (_, row) => (
-        <span
-          className={`px-3 py-1 text-sm rounded-md ${
-            row.status === "Approved"
-              ? "bg-green-100 text-green-600"
-              : row.status === "Pending"
-                ? "bg-yellow-100 text-yellow-600"
-                : "bg-red-100 text-red-600"
-          }`}
-        >
-          {row.status}
-        </span>
-      ),
-    },
     // {
-    //   label: "Action",
-    //   key: "action",
+    //   label: "Status",
+    //   key: "status",
     //   render: (_, row) => (
-    //     <div className="relative" ref={dropdownRef}>
-    //       <button
-    //         className="bg-gray-100 text-gray-500 px-3 py-1 rounded-md"
-    //         onClick={() => toggleDropdown(row.id)}
-    //       >
-    //         <FaEllipsisH />
-    //       </button>
-
-    //       {openDropdown === row.id && (
-    //         <div className="absolute right-0 mt-2 w-40 bg-white rounded-md z-10">
-    //           <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
-    //             View Details
-    //           </button>
-    //           <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
-    //             Edit User
-    //           </button>
-    //           <button className="block px-4 py-2 text-red-500 hover:bg-red-100 w-full">
-    //             Remove User
-    //           </button>
-    //         </div>
-    //       )}
-    //     </div>
+    //     <span
+    //       className={`px-3 py-1 text-sm rounded-md ${
+    //         row.status === "Approved"
+    //           ? "bg-green-100 text-green-600"
+    //           : row.status === "Pending"
+    //             ? "bg-yellow-100 text-yellow-600"
+    //             : "bg-red-100 text-red-600"
+    //       }`}
+    //     >
+    //       {row.status}
+    //     </span>
     //   ),
     // },
   ];

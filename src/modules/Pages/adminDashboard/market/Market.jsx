@@ -132,7 +132,6 @@ const MarketsTable = () => {
     });
   }, [debouncedSearchTerm]);
 
-  const { isPending: uploadFrontIsPending } = useUploadImage();
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -243,6 +242,10 @@ const MarketsTable = () => {
     onSubmit: (val) => {
       if (!navigator.onLine) {
         toastError("No internet connection. Please check your network.");
+        return;
+      }
+      if (type !== "Remove" && !val.multimedia_url) {
+        toastError("Please upload a market image");
         return;
       }
       if (type == "Edit") {
@@ -627,7 +630,7 @@ const MarketsTable = () => {
                             const file = e.target.files[0];
                             const formData = new FormData();
                             formData.append("image", file);
-                            uploadFrontMutate(formData, {
+                            uploadImageMutate(formData, {
                               onSuccess: (data) => {
                                 setFieldValue(
                                   "multimedia_url",
@@ -642,23 +645,26 @@ const MarketsTable = () => {
                         id="multimedia_url"
                       />
 
-                      {uploadFrontIsPending ? (
+                      {uploadIsPending ? (
                         <p className="cursor-pointer text-gray-400">
                           please wait...{" "}
                         </p>
                       ) : values.multimedia_url ? (
-                        <a
-                          onClick={(e) => e.stopPropagation()}
-                          href={values.multimedia_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-purple-600 flex justify-center cursor-pointer hover:underline"
-                        >
-                          View file upload
-                        </a>
-                      ) : (
-                        <></>
-                      )}
+                        <div className="mt-2 flex flex-col items-center">
+                          <img
+                            src={values.multimedia_url}
+                            alt="Market preview"
+                            className="max-w-full max-h-32 rounded-lg object-cover"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.open(values.multimedia_url, "_blank");
+                            }}
+                          />
+                          <p className="text-xs text-gray-500 mt-1">
+                            Image uploaded successfully
+                          </p>
+                        </div>
+                      ) : null}
                     </div>
 
                     {/* <div

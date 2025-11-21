@@ -304,7 +304,9 @@ export default function StyleForm() {
           tags: val.tags,
           price: val.price?.toString(),
           original_price: val.price?.toString(),
-          status: styleInfo?.status,
+          // status: styleInfo?.status,
+          status: "PUBLISHED",
+        ...(!isAdminAddRoute ? { approval_status: 'DRAFT' } : {}),
         },
         style: {
           estimated_sewing_time: val.estimated_sewing_time,

@@ -518,6 +518,8 @@ const AddProduct = () => {
                 price: val.price?.toString(),
                 original_price: val.price?.toString(),
                 enable_increment: val.enable_increment,
+                status: "PUBLISHED",
+                approval_status: "DRAFT"
               },
               fabric: {
                 market_id: val.market_id,

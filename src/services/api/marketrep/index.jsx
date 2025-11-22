@@ -99,6 +99,10 @@ const deleteMarketRepFabric = (id) => {
   return CaryBinApi.delete(`/fabric/${id}`);
 };
 
+const deleteMarketRepFabricOriginal = (id) => {
+  return CaryBinApi.delete(`/market-rep-fabric/${id}`);
+};
+
 const updateMarketRepStyle = (id, payload, vendorId, businessId) => {
   console.log("🔧 API STYLE UPDATE:");
   console.log("  - endpoint: /market-rep-style/" + id);
@@ -129,11 +133,16 @@ const updateMarketRepStyle = (id, payload, vendorId, businessId) => {
 const deleteMarketRepStyle = (id) => {
   return CaryBinApi.delete(`/style/${id}`);
 };
+const deleteMarketRepStyleOriginal = (id) => {
+  return CaryBinApi.delete(`/market-rep-style/${id}`);
+};
 
 const MarketRepService = {
   GetMarketRep,
   addMarketRep,
   getInviteInfo,
+  deleteMarketRepFabricOriginal,
+  deleteMarketRepStyleOriginal,
   approveMarketRep,
   addMarketRepFabric,
   GetMarketRepVendor,

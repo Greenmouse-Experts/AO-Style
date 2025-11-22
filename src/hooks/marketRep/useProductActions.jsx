@@ -24,7 +24,7 @@ export const useDeleteFabric = () => {
   const { toastSuccess, toastError } = useToast();
 
   return useMutation({
-    mutationFn: (id) => MarketRepService.deleteMarketRepFabric(id),
+    mutationFn: (id) => MarketRepService.deleteMarketRepFabricOriginal(id),
     onSuccess: () => {
       toastSuccess("Fabric deleted successfully!");
     },
@@ -57,7 +57,7 @@ export const useDeleteStyle = () => {
   const { toastSuccess, toastError } = useToast();
 
   return useMutation({
-    mutationFn: (id) => MarketRepService.deleteMarketRepStyle(id),
+    mutationFn: (id) => MarketRepService.deleteMarketRepStyleOriginal(id),
     onSuccess: () => {
       toastSuccess("Style deleted successfully!");
     },

@@ -181,6 +181,10 @@ export default function AddFabricVendorPage() {
             gender: val?.gender,
             address: val.address,
             state: val.state,
+            coordinates: {
+              latitude: val?.business_latitude || val?.latitude || "",
+              longitude: val?.business_longitude || val?.longitude || "",
+            },
           },
           business: {
             business_name: val?.business_name,
@@ -188,10 +192,10 @@ export default function AddFabricVendorPage() {
             location: val?.location,
             country: val?.business_country || val?.country,
             state: val?.business_state || val?.state,
-            coordinates: {
-              latitude: val?.business_latitude || val?.latitude || "",
-              longitude: val?.business_longitude || val?.longitude || "",
-            },
+            // coordinates: {
+            //   latitude: val?.business_latitude || val?.latitude || "",
+            //   longitude: val?.business_longitude || val?.longitude || "",
+            // },
           },
           kyc: {
             doc_front: val?.doc_front,

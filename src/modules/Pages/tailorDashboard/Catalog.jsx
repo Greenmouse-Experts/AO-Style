@@ -64,7 +64,7 @@ export default function StylesTable() {
   console.log("This is the admin business details", businessDetails);
   const { isPending: deleteIsPending, deleteStyleMutate } = useDeleteStyle();
   const { isPending: deleteAdminIsPending, deleteAdminStyleMutate } =
-    useDeleteAdminStyle();
+    useDeleteAdminStyle(newCategory);
   const { isPending: updateAdminIsPending, updateAdminStyleMutate } =
     useUpdateAdminStyle();
 
@@ -675,7 +675,8 @@ export default function StylesTable() {
               <button
                 onClick={() => {
                   if (isAdminStyleRoute) {
-                    deleteAdminStyleMutate(newCategory?.id, {
+                    console.log("This is the new category", newCategory)
+                    deleteAdminStyleMutate(newCategory, {
                       onSuccess: () => {
                         setIsAddModalOpen(false);
                         setNewCategory(null);

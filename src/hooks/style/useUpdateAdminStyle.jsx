@@ -3,17 +3,14 @@ import FabricService from "../../services/api/fabric";
 import useToast from "../useToast";
 import StyleService from "../../services/api/style";
 
-const useUpdateAdminStyle = (business_id) => {
+const useUpdateAdminStyle = () => {
   const queryClient = useQueryClient();
 
   const { toastError, toastSuccess } = useToast();
 
   const { isPending, mutate: updateAdminStyleMutate } = useMutation({
     mutationFn: (payload) =>
-      StyleService.updateAdminStyleProduct({
-        ...payload,
-        business_id,
-      }),
+      StyleService.updateAdminStyleProduct(payload),
     mutationKey: ["update-adminstyle-product"],
     onSuccess(data) {
       toastSuccess(data?.data?.message);

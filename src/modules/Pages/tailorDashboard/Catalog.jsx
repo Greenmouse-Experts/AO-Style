@@ -66,7 +66,7 @@ export default function StylesTable() {
   const { isPending: deleteAdminIsPending, deleteAdminStyleMutate } =
     useDeleteAdminStyle();
   const { isPending: updateAdminIsPending, updateAdminStyleMutate } =
-    useUpdateAdminStyle(businessDetails?.data?.id);
+    useUpdateAdminStyle();
 
   const [queryString, setQueryString] = useState(queryParams.q);
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
@@ -578,6 +578,7 @@ export default function StylesTable() {
                     <>
                       <button
                         onClick={() => {
+                          console.log(row)
                           const newStatus =
                             row.approval_status === "PUBLISHED"
                               ? "DRAFT"
@@ -586,6 +587,7 @@ export default function StylesTable() {
                           updateAdminStyleMutate(
                             {
                               id: row.id,
+                              business_id: row.business_info.id,
                               product: {
                                 status: newStatus,
                                 approval_status: newStatus,

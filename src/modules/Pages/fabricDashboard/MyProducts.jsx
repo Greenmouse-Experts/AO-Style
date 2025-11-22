@@ -3,7 +3,6 @@ import ReusableTable from "../adminDashboard/components/ReusableTable";
 import { Search } from "lucide-react";
 import { FaEllipsisH } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
-import useGetBusinessDetails from "../../../hooks/settings/useGetBusinessDetails";
 
 import useQueryParams from "../../../hooks/useQueryParams";
 
@@ -26,7 +25,6 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
-import useGetAdminManageFabricProduct from "../../../hooks/fabric/useGetManageFabric";
 import useGetAdminManageStyleProduct from "../../../hooks/style/useGetManageStyle";
 import useToast from "../../../hooks/useToast";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
@@ -152,7 +150,7 @@ const ProductPage = () => {
     useUpdateAdminFabric();
 
   const { isPending: updateAdminStyleIsPending, updateAdminStyleMutate } =
-    useUpdateAdminStyle(businessDetails?.data?.id);
+    useUpdateAdminStyle();
 
   const { isPending: deleteAdminStyleIsPending, deleteAdminStyleMutate } =
     useDeleteAdminStyle();
@@ -1004,8 +1002,24 @@ const ProductPage = () => {
                     <button
                       onClick={() => {
                         console.log("🚀 Publishing product:", row);
+                        // Extract business_id from product owner (fabric vendor or tailor)
+                        const productBusinessId =
+                          row?.original?.business_info?.id ||
+                          row?.original?.business_info?.Object?.id ||
+                          row?.original?.business_id ||
+                          row?.original?.vendor?.business_id;
+                        
+                        console.log("🔧 Product Owner Business ID:", productBusinessId);
+                        console.log("🔧 Available business_id sources:", {
+                          "business_info.id": row?.original?.business_info?.id,
+                          "business_info.Object.id": row?.original?.business_info?.Object?.id,
+                          "business_id": row?.original?.business_id,
+                          "vendor.business_id": row?.original?.vendor?.business_id,
+                        });
+
                         const updateData = {
                           id: row?.id,
+                          business_id: productBusinessId, // Product owner's business_id for header
                           product: {
                             name: row?.name,
                             sku: row?.sku,
@@ -1078,8 +1092,24 @@ const ProductPage = () => {
                     <button
                       onClick={() => {
                         console.log("📝 Unpublishing product:", row);
+                        // Extract business_id from product owner (fabric vendor or tailor)
+                        const productBusinessId =
+                          row?.original?.business_info?.id ||
+                          row?.original?.business_info?.Object?.id ||
+                          row?.original?.business_id ||
+                          row?.original?.vendor?.business_id;
+                        
+                        console.log("🔧 Product Owner Business ID:", productBusinessId);
+                        console.log("🔧 Available business_id sources:", {
+                          "business_info.id": row?.original?.business_info?.id,
+                          "business_info.Object.id": row?.original?.business_info?.Object?.id,
+                          "business_id": row?.original?.business_id,
+                          "vendor.business_id": row?.original?.vendor?.business_id,
+                        });
+
                         const updateData = {
                           id: row?.id,
+                          business_id: productBusinessId, // Product owner's business_id for header
                           product: {
                             name: row?.name,
                             sku: row?.sku,

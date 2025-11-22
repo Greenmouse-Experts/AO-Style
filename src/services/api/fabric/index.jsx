@@ -83,7 +83,7 @@ const updateFabricProduct = (payload) => {
 const updateAdminFabricProduct = (payload) => {
   return CaryBinApi.patch(`/manage-fabric/${payload.id}`, payload, {
     headers: {
-      "Business-id": payload.business_id,
+      "Business-Id": payload.business_id,
     },
   });
 };

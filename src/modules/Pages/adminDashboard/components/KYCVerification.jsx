@@ -364,7 +364,7 @@ const KYCVerificationUpdate = () => {
           </div>
         </div>
         <div className="flex *:w-full">
-          <div>
+          {/* <div>
             <label className="block text-gray-700 mb-2">Country</label>
             <Select
               options={countriesOptions}
@@ -397,7 +397,7 @@ const KYCVerificationUpdate = () => {
                 }),
               }}
             />{" "}
-          </div>
+          </div> */}
         </div>
         <div className="flex flex-col w-full  ">
           <label className="block text-gray-700 mb-2">Business Address</label>

@@ -29,6 +29,7 @@ const initialValues = {
   referral_source: "",
   business_name: "",
   business_type: "",
+  state: "",
   location: "",
   latitude: "",
   longitude: "",
@@ -106,6 +107,7 @@ export default function SignInAsCustomer() {
         alternative_phone: val?.alternative_phone === "" ? undefined : altno,
         allowOtp: true,
         location: val.location,
+        state: val.state,
         coordinates: {
           longitude: val.longitude,
           latitude: val.latitude,
@@ -154,15 +156,15 @@ export default function SignInAsCustomer() {
   useEffect(() => {
     console.log(
       "🔑 Tailor - Google Maps API Key:",
-      import.meta.env.VITE_GOOGLE_MAP_API_KEY ? "Available" : "Missing",
+      import.meta.env.VITE_GOOGLE_MAP_API_KEY ? "Available" : "Missing"
     );
     console.log(
       "🌐 Tailor - Google object available:",
-      typeof window.google !== "undefined",
+      typeof window.google !== "undefined"
     );
     console.log(
       "📍 Tailor - Places library:",
-      typeof window.google?.maps?.places !== "undefined",
+      typeof window.google?.maps?.places !== "undefined"
     );
 
     if (typeof window.google === "undefined") {
@@ -599,7 +601,7 @@ export default function SignInAsCustomer() {
                   onChange={(e) => {
                     console.log(
                       "📝 Tailor - Address input changed:",
-                      e.target.value,
+                      e.target.value
                     );
                     setFieldValue("location", e.target.value);
                   }}
@@ -607,6 +609,17 @@ export default function SignInAsCustomer() {
                     console.log("🗺️ Tailor - Google Place Selected:", place);
                     const lat = place.geometry?.location?.lat();
                     const lng = place.geometry?.location?.lng();
+                    let state = "";
+                    if (place.address_components) {
+                      const stateComponent = place.address_components.find(
+                        (component) =>
+                          component.types.includes(
+                            "administrative_area_level_1"
+                          )
+                      );
+                      state = stateComponent ? stateComponent.long_name : "";
+                    }
+
                     console.log("📍 Tailor - Setting coordinates:", {
                       lat,
                       lng,
@@ -615,6 +628,7 @@ export default function SignInAsCustomer() {
                     setFieldValue("location", place.formatted_address);
                     setFieldValue("latitude", lat ? lat.toString() : "");
                     setFieldValue("longitude", lng ? lng.toString() : "");
+                    setFieldValue("state", state);
                   }}
                   options={{
                     componentRestrictions: { country: "ng" },
@@ -628,6 +642,11 @@ export default function SignInAsCustomer() {
                   }
                   style={{ zIndex: 1 }}
                 />
+                {values.state && (
+                  <div className="text-xs text-green-600 mt-1">
+                    ✅ State detected: {values.state}
+                  </div>
+                )}
                 {/* {values.latitude && values.longitude && (
                   <div className="text-xs text-green-600 mt-1">
                     ✅ Location coordinates set: {values.latitude},{" "}

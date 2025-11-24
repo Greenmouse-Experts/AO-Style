@@ -35,6 +35,7 @@ const initialValues = {
   location: "",
   latitude: "",
   longitude: "",
+  state: "",
   phoneCode: "+234",
   fabricVendorAgreement: false,
   checked: false,
@@ -110,6 +111,7 @@ export default function SignInAsCustomer() {
         alternative_phone: val?.alternative_phone === "" ? undefined : altno,
         allowOtp: true,
         location: val.location,
+        state: val.state,
         coordinates: {
           longitude: val.longitude,
           latitude: val.latitude,
@@ -271,48 +273,6 @@ export default function SignInAsCustomer() {
                     </label>
 
                     <div className="flex flex-col md:flex-row md:items-center gap-2 ">
-                      {/* Country Code Dropdown */}
-                      {/* <Select
-                        options={options}
-                        name="phoneCode"
-                        value={options?.find(
-                          (opt) => opt.value === values.phoneCode
-                        )}
-                        onChange={(selectedOption) =>
-                          setFieldValue("phoneCode", selectedOption.value)
-                        }
-                        placeholder="Select"
-                        className="p-2 md:w-28 border border-[#CCCCCC] outline-none rounded-lg text-gray-500"
-                        styles={{
-                          control: (base, state) => ({
-                            ...base,
-                            border: "none",
-                            boxShadow: "none",
-                            outline: "none",
-                            backgroundColor: "#fff",
-                            "&:hover": {
-                              border: "none",
-                            },
-                          }),
-                          indicatorSeparator: () => ({
-                            display: "none",
-                          }),
-                          menu: (base) => ({
-                            ...base,
-                            zIndex: 9999,
-                          }),
-                        }}
-                      /> */}
-                      {/* Phone Input */}
-                      {/* <input
-                        type="tel"
-                        name="phone"
-                        placeholder="Phone Number"
-                        className="flex-1 p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                        value={values.phone}
-                        onChange={handleChange}
-                        required
-                      /> */}
                       <PhoneInput
                         country={"ng"}
                         value={values.phone}
@@ -341,46 +301,6 @@ export default function SignInAsCustomer() {
                     </label>
 
                     <div className="flex flex-col md:flex-row md:items-center gap-2 ">
-                      {/* Country Code Dropdown */}
-                      {/* <Select
-                        options={options}
-                        name="altCode"
-                        value={options.find(
-                          (opt) => opt.value === values.altCode
-                        )}
-                        onChange={(selectedOption) =>
-                          setFieldValue("altCode", selectedOption.value)
-                        }
-                        placeholder="Select"
-                        className="p-2 md:w-34 border border-[#CCCCCC] outline-none rounded-lg text-gray-500"
-                        styles={{
-                          control: (base, state) => ({
-                            ...base,
-                            border: "none",
-                            boxShadow: "none",
-                            outline: "none",
-                            backgroundColor: "#fff",
-                            "&:hover": {
-                              border: "none",
-                            },
-                          }),
-                          indicatorSeparator: () => ({
-                            display: "none",
-                          }),
-                          menu: (base) => ({
-                            ...base,
-                            zIndex: 9999,
-                          }),
-                        }}
-                      /> */}
-                      {/* <input
-                        type="tel"
-                        name={"alternative_phone"}
-                        value={values.alternative_phone}
-                        onChange={handleChange}
-                        placeholder="Alternative Phone Number"
-                        className="w-full p-4 border border-[#CCCCCC] outline-none  rounded-lg"
-                      /> */}
                       <PhoneInput
                         country={"ng"}
                         value={values.alternative_phone}
@@ -608,16 +528,31 @@ export default function SignInAsCustomer() {
                         "🗺️ Fabric Vendor - Google Place Selected:",
                         place,
                       );
+                      
                       const lat = place.geometry?.location?.lat();
                       const lng = place.geometry?.location?.lng();
-                      console.log("📍 Fabric Vendor - Setting coordinates:", {
+                      
+                      // Extract state from address_components
+                      let state = "";
+                      if (place.address_components) {
+                        const stateComponent = place.address_components.find(
+                          (component) =>
+                            component.types.includes("administrative_area_level_1")
+                        );
+                        state = stateComponent ? stateComponent.long_name : "";
+                      }
+                      
+                      console.log("📍 Fabric Vendor - Extracted data:", {
                         lat,
                         lng,
+                        state,
+                        formatted_address: place.formatted_address,
                       });
 
                       setFieldValue("location", place.formatted_address);
                       setFieldValue("latitude", lat ? lat.toString() : "");
                       setFieldValue("longitude", lng ? lng.toString() : "");
+                      setFieldValue("state", state);
                     }}
                     options={{
                       componentRestrictions: { country: "ng" },
@@ -631,12 +566,11 @@ export default function SignInAsCustomer() {
                     }
                     style={{ zIndex: 1 }}
                   />
-                  {/* {values.latitude && values.longitude && (
+                  {values.state && (
                     <div className="text-xs text-green-600 mt-1">
-                      ✅ Location coordinates set: {values.latitude},{" "}
-                      {values.longitude}
+                      ✅ State detected: {values.state}
                     </div>
-                  )}*/}
+                  )}
                   <label className="block text-gray-700">
                     Business Registration Number (Optional)
                   </label>

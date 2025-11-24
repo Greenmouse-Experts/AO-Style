@@ -21,6 +21,9 @@ const initialValues = {
   business_name: "",
   business_type: "",
   location: "",
+  latitude: "",
+  longitude: "",
+  state: "",
   phoneCode: "+234",
 };
 
@@ -70,6 +73,7 @@ export default function SignUpAsLogisticsAgent() {
                 val?.alternative_phone === "" ? undefined : altno,
               allowOtp: true,
               location: val.location,
+              state: val.state,
               coordinates: {
                 longitude: val.longitude,
                 latitude: val.latitude,
@@ -83,6 +87,7 @@ export default function SignUpAsLogisticsAgent() {
                 val?.alternative_phone === "" ? undefined : altno,
               allowOtp: true,
               location: val.location,
+              state: val.state,
               coordinates: {
                 longitude: val.longitude,
                 latitude: val.latitude,
@@ -102,9 +107,32 @@ export default function SignUpAsLogisticsAgent() {
   const { ref } = usePlacesWidget({
     apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
     onPlaceSelected: (place) => {
+      console.log("🗺️ Logistics Agent - Google Place Selected:", place);
+      
+      const lat = place.geometry?.location?.lat();
+      const lng = place.geometry?.location?.lng();
+      
+      // Extract state from address_components
+      let state = "";
+      if (place.address_components) {
+        const stateComponent = place.address_components.find(
+          (component) =>
+            component.types.includes("administrative_area_level_1")
+        );
+        state = stateComponent ? stateComponent.long_name : "";
+      }
+      
+      console.log("📍 Logistics Agent - Extracted data:", {
+        lat,
+        lng,
+        state,
+        formatted_address: place.formatted_address,
+      });
+
       setFieldValue("location", place.formatted_address);
-      setFieldValue("latitude", place.geometry?.location?.lat().toString());
-      setFieldValue("longitude", place.geometry?.location?.lng().toString());
+      setFieldValue("latitude", lat ? lat.toString() : "");
+      setFieldValue("longitude", lng ? lng.toString() : "");
+      setFieldValue("state", state);
     },
     options: {
       componentRestrictions: { country: "ng" },
@@ -343,9 +371,15 @@ export default function SignUpAsLogisticsAgent() {
                   setFieldValue("location", e.currentTarget.value);
                   setFieldValue("latitude", "");
                   setFieldValue("longitude", "");
+                  setFieldValue("state", "");
                 }}
                 value={values.location}
               />
+              {values.state && (
+                <div className="text-xs text-green-600 mt-1">
+                  ✅ State detected: {values.state}
+                </div>
+              )}
             </div>
 
             {agentType === "organization" && (

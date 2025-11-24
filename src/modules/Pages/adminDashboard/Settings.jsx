@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import SecuritySettings from "./components/SecuritySettings";
 import BankDetails from "./components/BankDetails";
@@ -191,15 +191,66 @@ const Settings = () => {
     }
   };
 
-  const { data: countries, isLoading: loadingCountries } = useCountries();
+  const { data: countries, isLoading: loadingCountries, isError: countriesError } = useCountries();
 
-  const countriesOptions =
-    countries?.map((c) => ({ label: c.name, value: c.name })) || [];
+  // Store Google Places values separately
+  const [googleCountry, setGoogleCountry] = useState("");
+  const [googleState, setGoogleState] = useState("");
 
-  const { data: states, isLoading: loadingStates } = useStates(values.country);
+  // Merge API countries with Google Places country if it exists
+  const countriesOptions = useMemo(() => {
+    const apiCountries = countries?.map((c) => ({ label: c.name, value: c.name })) || [];
+    
+    // If we have a Google Places country that's not in the API list, add it
+    if (googleCountry && !apiCountries.find(c => c.value.toLowerCase() === googleCountry.toLowerCase())) {
+      return [...apiCountries, { label: googleCountry, value: googleCountry }];
+    }
+    
+    return apiCountries;
+  }, [countries, googleCountry]);
 
-  const statesOptions =
-    states?.map((c) => ({ label: c.name, value: c.name })) || [];
+  const { data: states, isLoading: loadingStates, isError: statesError } = useStates(values.country);
+
+  // Merge API states with Google Places state if it exists
+  const statesOptions = useMemo(() => {
+    const apiStates = states?.map((c) => ({ label: c.name, value: c.name })) || [];
+    
+    // If we have a Google Places state that's not in the API list, add it
+    if (googleState && !apiStates.find(s => s.value.toLowerCase() === googleState.toLowerCase())) {
+      return [...apiStates, { label: googleState, value: googleState }];
+    }
+    
+    return apiStates;
+  }, [states, googleState]);
+
+  // Helper function to find matching option (case-insensitive, handles variations)
+  const findMatchingOption = (options, searchValue) => {
+    if (!searchValue || !options || options.length === 0) {
+      return null;
+    }
+    
+    const normalizedSearch = searchValue.toLowerCase().trim();
+    
+    // Try exact match first
+    let match = options.find(
+      (option) =>
+        option.value?.toLowerCase().trim() === normalizedSearch ||
+        option.label?.toLowerCase().trim() === normalizedSearch
+    );
+    
+    // If no exact match, try partial match (contains)
+    if (!match) {
+      match = options.find(
+        (option) =>
+          option.value?.toLowerCase().includes(normalizedSearch) ||
+          option.label?.toLowerCase().includes(normalizedSearch) ||
+          normalizedSearch.includes(option.value?.toLowerCase()) ||
+          normalizedSearch.includes(option.label?.toLowerCase())
+      );
+    }
+    
+    return match || null;
+  };
 
   const handleButtonClick = () => {
     fileInputRef.current?.click();
@@ -216,6 +267,41 @@ const Settings = () => {
       setDelivery(undefined);
     }
   }, [data?.data?.data?.price_per_km]);
+
+  // Match country value when countries are loaded (for Google Places autofill)
+  useEffect(() => {
+    if (values.country && countriesOptions.length > 0) {
+      const matchedCountry = findMatchingOption(countriesOptions, values.country);
+      if (matchedCountry) {
+        if (matchedCountry.value !== values.country) {
+          console.log("🔄 Matching country value:", values.country, "->", matchedCountry.value);
+          setFieldValue("country", matchedCountry.value);
+        } else {
+          console.log("✅ Country already correctly set:", values.country);
+        }
+      } else {
+        console.warn("⚠️ Country not found in options. Value:", values.country, "Available options:", countriesOptions.slice(0, 5).map(c => c.value));
+      }
+    }
+  }, [countriesOptions, values.country, setFieldValue]);
+
+  // Match state value when states are loaded (for Google Places autofill)
+  useEffect(() => {
+    if (values.state && statesOptions.length > 0 && values.country) {
+      const matchedState = findMatchingOption(statesOptions, values.state);
+      if (matchedState) {
+        // Update if the matched value is different from current value
+        if (matchedState.value !== values.state) {
+          console.log("🔄 Matching state value:", values.state, "->", matchedState.value);
+          setFieldValue("state", matchedState.value);
+        } else {
+          console.log("✅ State already matched:", values.state);
+        }
+      } else {
+        console.warn("⚠️ State not found in options:", values.state, "Available:", statesOptions.map(s => s.value));
+      }
+    }
+  }, [statesOptions, values.state, values.country, setFieldValue]);
 
   const { isPending: deliveryIsPending, addDeliveryMutate } = useAddDelivery();
 
@@ -246,13 +332,25 @@ const Settings = () => {
         });
       }
 
-      console.log("🌍 Extracted location data:", { state, country });
+      console.log("🌍 Extracted location data from Google:", { state, country });
 
+      // Store Google Places values for dropdown options
+      if (country) {
+        setGoogleCountry(country);
+        setFieldValue("country", country);
+        console.log("📍 Setting country from Google:", country);
+      }
+      
+      if (state) {
+        setGoogleState(state);
+        setFieldValue("state", state);
+        console.log("📍 Setting state from Google:", state);
+      }
+
+      // Set address and coordinates
       setFieldValue("address", place.formatted_address);
       setFieldValue("latitude", lat ? lat.toString() : "");
       setFieldValue("longitude", lng ? lng.toString() : "");
-      setFieldValue("state", state);
-      setFieldValue("country", country);
     },
     options: {
       componentRestrictions: { country: "ng" },
@@ -445,6 +543,13 @@ const Settings = () => {
                             setFieldValue("address", e.currentTarget.value);
                             setFieldValue("latitude", "");
                             setFieldValue("longitude", "");
+                            // Clear Google values when address is manually edited
+                            if (!e.currentTarget.value || e.currentTarget.value !== values.address) {
+                              setGoogleCountry("");
+                              setGoogleState("");
+                              setFieldValue("country", "");
+                              setFieldValue("state", "");
+                            }
                           }}
                           value={values.address}
                         />
@@ -457,18 +562,63 @@ const Settings = () => {
                         </label>
                         <Select
                           options={countriesOptions}
-                          value={countriesOptions.find(
-                            (option) => option.value === values.country,
-                          )}
-                          onChange={(selectedOption) =>
-                            setFieldValue(
-                              "country",
-                              selectedOption?.value || "",
-                            )
-                          }
+                          value={(() => {
+                            if (!values.country) return null;
+                            const matched = findMatchingOption(countriesOptions, values.country);
+                            if (!matched && values.country) {
+                              // If no match but we have a value, create an option for it
+                              console.log("🔍 Country dropdown - Creating option for:", values.country);
+                              return { label: values.country, value: values.country };
+                            }
+                            return matched;
+                          })()}
+                          onChange={(selectedOption) => {
+                            setFieldValue("country", selectedOption?.value || "");
+                            // Clear Google values when manually changed
+                            if (selectedOption?.value !== googleCountry) {
+                              setGoogleCountry("");
+                            }
+                            // Clear state when country changes
+                            if (selectedOption?.value !== values.country) {
+                              setFieldValue("state", "");
+                              setGoogleState("");
+                            }
+                          }}
                           placeholder="Select Country"
                           className="w-full"
                           isLoading={loadingCountries}
+                          isDisabled={true}
+                          noOptionsMessage={() => countriesError ? "Error loading countries" : "No countries found"}
+                          styles={{
+                            control: (base) => ({
+                              ...base,
+                              border: "1px solid #CCCCCC",
+                              boxShadow: "none",
+                              outline: "none",
+                              backgroundColor: "#fff",
+                              minHeight: "54px",
+                              padding: "0 4px",
+                              "&:hover": {
+                                border: "1px solid #CCCCCC",
+                              },
+                            }),
+                            valueContainer: (base) => ({
+                              ...base,
+                              padding: "0 12px",
+                            }),
+                            input: (base) => ({
+                              ...base,
+                              margin: "0",
+                              padding: "0",
+                            }),
+                            indicatorSeparator: () => ({
+                              display: "none",
+                            }),
+                            menu: (base) => ({
+                              ...base,
+                              zIndex: 9999,
+                            }),
+                          }}
                         />
                       </div>
                       <div>
@@ -477,18 +627,69 @@ const Settings = () => {
                         </label>
                         <Select
                           options={statesOptions}
-                          value={statesOptions.find(
-                            (option) => option.value === values.state,
-                          )}
-                          onChange={(selectedOption) =>
-                            setFieldValue("state", selectedOption?.value || "")
-                          }
+                          value={(() => {
+                            if (!values.state) return null;
+                            const matched = findMatchingOption(statesOptions, values.state);
+                            if (!matched && values.state) {
+                              // If no match but we have a value, create an option for it
+                              console.log("🔍 State dropdown - Creating option for:", values.state);
+                              return { label: values.state, value: values.state };
+                            }
+                            return matched;
+                          })()}
+                          onChange={(selectedOption) => {
+                            setFieldValue("state", selectedOption?.value || "");
+                            // Clear Google value when manually changed
+                            if (selectedOption?.value !== googleState) {
+                              setGoogleState("");
+                            }
+                          }}
                           placeholder="Select State"
                           className="w-full"
                           isLoading={loadingStates}
-                          isDisabled={!values.country}
+                          isDisabled={true}
+                          noOptionsMessage={() => {
+                            if (!values.country) return "Please select a country first";
+                            if (statesError) return "Error loading states";
+                            return "No states found";
+                          }}
+                          styles={{
+                            control: (base) => ({
+                              ...base,
+                              border: "1px solid #CCCCCC",
+                              boxShadow: "none",
+                              outline: "none",
+                              backgroundColor: "#fff",
+                              minHeight: "54px",
+                              padding: "0 4px",
+                              "&:hover": {
+                                border: "1px solid #CCCCCC",
+                              },
+                            }),
+                            valueContainer: (base) => ({
+                              ...base,
+                              padding: "0 12px",
+                            }),
+                            input: (base) => ({
+                              ...base,
+                              margin: "0",
+                              padding: "0",
+                            }),
+                            indicatorSeparator: () => ({
+                              display: "none",
+                            }),
+                            menu: (base) => ({
+                              ...base,
+                              zIndex: 9999,
+                            }),
+                          }}
                         />
                       </div>
+                    </div>
+                    <div className="mt-2 mb-4">
+                      <p className="text-sm text-gray-500">
+                        💡 To update Country or State, please update the address field above.
+                      </p>
                     </div>
 
                     {/* Coordinates Display */}

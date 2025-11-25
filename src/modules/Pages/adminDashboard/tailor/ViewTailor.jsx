@@ -129,7 +129,7 @@ const ViewCustomer = () => {
   const navigate = useNavigate();
 
   const [status, setStatus] = useState(undefined);
-
+  const [approval_status, setApprovalStatus] = useState(status)
   const [queryString, setQueryString] = useState("");
 
   const [queryOrderString, setQueryOrderString] = useState("");
@@ -146,7 +146,7 @@ const ViewCustomer = () => {
       business_id: businessData?.id,
       "pagination[page]": currentPage,
       "pagination[limit]": pageSize,
-      status,
+      approval_status: status,
       q: debouncedSearchTerm.trim() || undefined,
     });
 
@@ -661,14 +661,14 @@ const ViewCustomer = () => {
                         <td>
                           <span
                             className={`px-3 py-1 text-xs md:text-sm rounded-md ${
-                              style.status === "PUBLISHED"
+                              style.approval_status === "PUBLISHED"
                                 ? "bg-green-100 text-green-600"
-                                : style.status === "DRAFT"
+                                : style.approval_status === "DRAFT"
                                   ? "bg-yellow-100 text-yellow-700"
                                   : "bg-red-100 text-red-600"
                             }`}
                           >
-                            {style.status}
+                            {style.approval_status}
                           </span>
                         </td>
                         {/* <td className="hidden md:table-cell">{style.rating}</td>

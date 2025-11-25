@@ -473,7 +473,11 @@ const NewlyAddedUsers = () => {
                   : "text-gray-500"
               }`}
             >
-              {tab === "rejected" ? "Expired" : tab}
+              {tab === "rejected"
+                ? "Expired"
+                : tab === "pending"
+                ? "pending invite"
+                : tab}
             </button>
           ))}
         </div>

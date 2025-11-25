@@ -241,9 +241,9 @@ export default function SalesRepUsers() {
             onClick={() => handleTabChange(tab.value)}
           >
             {tab.label}
-            {query.data?.count !== undefined && (
+            {/* {query.data?.count !== undefined && (
               <span className="badge badge-sm ml-2">{query.data.count}</span>
-            )}
+            )} */}
           </button>
         ))}
       </div>

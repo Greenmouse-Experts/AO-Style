@@ -4,31 +4,44 @@ import { useState } from "react";
 import HowDidYouHearAboutUs from "../Auth/components/HowDidYouHearAboutUs";
 import { useFormik } from "formik";
 import useRegister from "./hooks/useSignUpMutate";
+import useAcceptInvite from "./hooks/useAcceptInvite";
+import useGetInviteInfo from "../../hooks/invitation/useGetInviteInfo";
 import useToast from "../../hooks/useToast";
 import { countryCodes } from "../../constant";
 import Select from "react-select";
 import PhoneInput from "react-phone-input-2";
 import { usePlacesWidget } from "react-google-autocomplete";
-
-const initialValues = {
-  name: "",
-  email: "",
-  phone: "",
-  alternative_phone: "",
-  password: "",
-  password_confirmation: "",
-  referral_source: "",
-  business_name: "",
-  business_type: "",
-  location: "",
-  latitude: "",
-  longitude: "",
-  state: "",
-  phoneCode: "+234",
-};
+import NotFoundPage from "../../components/ui/NotFoundPage";
 
 export default function SignUpAsLogisticsAgent() {
   const { toastError } = useToast();
+  
+  // Check for invitation token
+  const token = new URLSearchParams(window.location.search).get("token");
+  
+  const {
+    data: inviteData,
+    isPending: inviteInfoIsPending,
+    error: inviteError,
+    isError: inviteIsError,
+  } = useGetInviteInfo(token);
+
+  const initialValues = {
+    name: inviteData?.name ?? "",
+    email: inviteData?.email ?? "",
+    phone: "",
+    alternative_phone: "",
+    password: "",
+    password_confirmation: "",
+    referral_source: "",
+    business_name: "",
+    business_type: "",
+    location: "",
+    latitude: "",
+    longitude: "",
+    state: "",
+    phoneCode: "+234",
+  };
 
   const options = countryCodes.map((code) => ({
     label: code,
@@ -63,44 +76,52 @@ export default function SignUpAsLogisticsAgent() {
       if (values.password_confirmation !== values.password) {
         return toastError("Password must match");
       }
-      registerMutate(
-        agentType === "individual"
-          ? {
-              ...val,
-              role: "logistics-agent",
-              phone: phoneno,
-              alternative_phone:
-                val?.alternative_phone === "" ? undefined : altno,
-              allowOtp: true,
-              location: val.location,
-              state: val.state,
-              coordinates: {
-                longitude: val.longitude,
-                latitude: val.latitude,
-              },
-            }
-          : {
-              ...val,
-              role: "logistics-agent",
-              phone: phoneno,
-              alternative_phone:
-                val?.alternative_phone === "" ? undefined : altno,
-              allowOtp: true,
-              location: val.location,
-              state: val.state,
-              coordinates: {
-                longitude: val.longitude,
-                latitude: val.latitude,
-              },
-
-              business: {
-                business_name: val.business_name,
-                business_type: val.business_type,
-                business_registration_number: val.business_registration_number,
-                location: val.location,
-              },
+      const payload = agentType === "individual"
+        ? {
+            ...val,
+            role: "logistics-agent",
+            phone: phoneno,
+            alternative_phone:
+              val?.alternative_phone === "" ? undefined : altno,
+            location: val.location,
+            state: val.state,
+            coordinates: {
+              longitude: val.longitude,
+              latitude: val.latitude,
             },
-      );
+          }
+        : {
+            ...val,
+            role: "logistics-agent",
+            phone: phoneno,
+            alternative_phone:
+              val?.alternative_phone === "" ? undefined : altno,
+            location: val.location,
+            state: val.state,
+            coordinates: {
+              longitude: val.longitude,
+              latitude: val.latitude,
+            },
+            business: {
+              business_name: val.business_name,
+              business_type: val.business_type,
+              business_registration_number: val.business_registration_number,
+              location: val.location,
+            },
+          };
+
+      // If there's a token, use acceptInvite, otherwise use register
+      if (token) {
+        acceptInviteMutate({
+          ...payload,
+          token,
+        });
+      } else {
+        registerMutate({
+          ...payload,
+          allowOtp: true,
+        });
+      }
     },
   });
 
@@ -141,6 +162,12 @@ export default function SignUpAsLogisticsAgent() {
   });
 
   const { isPending, registerMutate } = useRegister(values.email);
+  const { isPending: acceptInviteIsPending, acceptInviteMutate } = useAcceptInvite();
+  
+  // Show error if invite token is invalid
+  if (token && inviteIsError) {
+    return <NotFoundPage />;
+  }
 
   return (
     <div className="flex flex-col md:flex-row h-screen">
@@ -566,10 +593,10 @@ export default function SignUpAsLogisticsAgent() {
 
             <button
               type="submit"
-              disabled={isPending}
+              disabled={isPending || acceptInviteIsPending}
               className="w-full bg-gradient cursor-pointer text-white py-3 rounded-lg font-medium mt-8 transition-colors"
             >
-              {isPending ? "Please wait..." : "Sign Up As A Logistics Agent"}
+              {(isPending || acceptInviteIsPending) ? "Please wait..." : "Sign Up As A Logistics Agent"}
             </button>
           </form>
         </div>

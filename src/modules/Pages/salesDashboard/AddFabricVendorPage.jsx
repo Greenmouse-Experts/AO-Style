@@ -654,9 +654,16 @@ export default function AddFabricVendorPage() {
                 </div>
               </div>
               {/* City & State Dropdowns */}
+              <div className="mt-2 mb-4">
+                <p className="text-sm text-gray-500">
+                  💡 To update Country or State, please update the Business Address field above.
+                </p>
+              </div>
               <div className="flex flex-col sm:flex-row gap-4 mt-4 w-full">
                 <div className="w-full">
-                  <label className="block text-gray-700 mb-2">Country</label>
+                  <label className="block text-gray-700 mb-2">
+                    Country
+                  </label>
                   <Select
                     options={[{ value: "Nigeria", label: "Nigeria" }]}
                     name="country"
@@ -670,6 +677,7 @@ export default function AddFabricVendorPage() {
                     }
                     placeholder="Select"
                     className="p-2 w-full mb-6 border border-[#CCCCCC] outline-none rounded-lg"
+                    isDisabled={true}
                     styles={{
                       control: (base) => ({
                         ...base,
@@ -685,18 +693,41 @@ export default function AddFabricVendorPage() {
                   />{" "}
                 </div>
                 <div className="w-full">
-                  <label className="block text-gray-700 mb-2">State</label>
+                  <label className="block text-gray-700 mb-2">
+                    State
+                  </label>
                   <Select
                     options={nigeriaStates}
                     name="state"
-                    value={nigeriaStates?.find(
-                      (opt) => opt.value === values.state,
-                    )}
+                    value={(() => {
+                      // Try exact match first
+                      let match = nigeriaStates?.find(
+                        (opt) => opt.value === values.state,
+                      );
+                      
+                      // If no exact match, try case-insensitive match
+                      if (!match && values.state) {
+                        match = nigeriaStates?.find(
+                          (opt) => opt.value.toLowerCase() === values.state.toLowerCase() ||
+                                   opt.label.toLowerCase() === values.state.toLowerCase() ||
+                                   opt.value.toLowerCase().includes(values.state.toLowerCase()) ||
+                                   values.state.toLowerCase().includes(opt.value.toLowerCase().replace(" state", ""))
+                        );
+                      }
+                      
+                      // If still no match but we have a value, create an option for it
+                      if (!match && values.state) {
+                        return { label: values.state, value: values.state };
+                      }
+                      
+                      return match || null;
+                    })()}
                     onChange={(selectedOption) =>
                       setFieldValue("state", selectedOption.value)
                     }
                     placeholder="Select"
                     className="p-2 w-full mb-6 border border-[#CCCCCC] outline-none rounded-lg"
+                    isDisabled={true}
                     styles={{
                       control: (base) => ({
                         ...base,

@@ -157,7 +157,7 @@ export default function SalesRevenueChart() {
     <div className="bg-white p-6 rounded-lg">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-medium text-gray-800">
-          Sales Revenue <span className="text-green-500 text-sm">24.1%</span>
+          Sales Revenue
         </h3>
         <select className="border border-gray-300 rounded-md p-2 text-sm text-gray-600">
           <option>Jan 2025 - Dec 2025</option>

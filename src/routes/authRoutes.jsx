@@ -10,6 +10,7 @@ import VerifyEmail from "../modules/Auth/VerifyEmail";
 import AdminLogin from "../modules/Auth/AdminLogin";
 import ChangePassword from "../modules/Auth/ChangePassword";
 import MarketRepInvite from "../modules/Auth/MarketRepInvite";
+import InvitationJoin from "../modules/Auth/InvitationJoin";
 import AuthErrorBoundary from "../components/AuthErrorBoundary";
 export const authRoutes = [
   {
@@ -48,7 +49,7 @@ export const authRoutes = [
     path: "/invitation/join",
     element: (
       <AuthErrorBoundary>
-        <MarketRepInvite />
+        <InvitationJoin />
       </AuthErrorBoundary>
     ),
   },

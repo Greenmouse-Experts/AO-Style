@@ -617,10 +617,15 @@ const Subscriptions = () => {
                   Started
                 </p>
                 <p className="text-sm font-semibold text-base-content">
-                  {formatDateStr(
-                    plan?.created_at?.split(".")[0],
-                    "D/M/YYYY h:mm A",
-                  )}
+                  {is_free
+                    ? formatDateStr(
+                        free_plan?.created_at?.split(".")[0],
+                        "D/M/YYYY h:mm A"
+                      )
+                    : formatDateStr(
+                        plan?.created_at?.split(".")[0],
+                        "D/M/YYYY h:mm A"
+                      )}
                 </p>
               </div>
             </div>

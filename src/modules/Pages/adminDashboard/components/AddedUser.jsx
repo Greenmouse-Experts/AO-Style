@@ -25,7 +25,7 @@ import ActiveFilters from "../../../../components/shared/ActiveFilters";
 import useDateFilter from "../../../../hooks/useDateFilter";
 
 const NewlyAddedUsers = () => {
-  const [currView, setCurrView] = useState("approved");
+  const [currView, setCurrView] = useState("registered");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewDetailsModalOpen, setViewDetailsModalOpen] = useState(false);
@@ -66,14 +66,24 @@ const NewlyAddedUsers = () => {
       return response.data;
     },
   });
+  const { data: registeredUsers } = useQuery({
+    queryKey: ["get-registerd-users"],
+    queryFn: async () => {
+      const url = `/auth/users/market-representative`;
+      const response = await CaryBinApi.get(url);
+      console.log("This are the registered users", response);
+      return response.data;
+    },
+  });
+  console.log("These are the registered users", registeredUsers)
 
   const { queryParams, updateQueryParams } = useQueryParams({
-    approved: true,
+    registered: true,
     "pagination[page]": 1,
     "pagination[limit]": 10,
   });
 
-  // Query for approved market reps (uses the original endpoint)
+  // Query for registered market reps (uses the registeredUsers endpoint)
   const { data: getAllMarketRepData, isPending } = useGetAllUsersByRole({
     ...queryParams,
     role: "market-representative",
@@ -81,7 +91,7 @@ const NewlyAddedUsers = () => {
 
   useEffect(() => {
     updateQueryParams({
-      approved: true,
+      registered: true,
     });
   }, [updateQueryParams]);
 
@@ -167,16 +177,16 @@ const NewlyAddedUsers = () => {
         return getRejectedInviteData;
       case "invites":
         return getAllInviteData;
-      case "approved":
+      case "registered":
       default:
-        return getAllMarketRepData;
+        return registeredUsers;
     }
   }, [
     currView,
     getPendingInviteData,
     getRejectedInviteData,
     getAllInviteData,
-    getAllMarketRepData,
+    registeredUsers,
   ]);
 
   // Determine loading state based on currView
@@ -188,7 +198,7 @@ const NewlyAddedUsers = () => {
         return rejectedInviteIsPending;
       case "invites":
         return allInviteIsPending;
-      case "approved":
+      case "registered":
       default:
         return isPending;
     }
@@ -229,7 +239,7 @@ const NewlyAddedUsers = () => {
       ];
     }
 
-    // For approved: show full actions including navigation to view page
+    // For registered: show full actions including navigation to view page
     return [
       {
         key: "view-details",
@@ -240,7 +250,7 @@ const NewlyAddedUsers = () => {
       },
       {
         key: "suspend-vendor",
-        label: currView === "approved" ? "Suspend Vendor" : "Unsuspend Vendor",
+        label: currView === "registered" ? "Suspend Vendor" : "Unsuspend Vendor",
         action: (item) => {
           setSuspendModalOpen(true);
           setNewCategory(item);
@@ -257,9 +267,9 @@ const NewlyAddedUsers = () => {
   }, [currView, nav]);
 
   const MarketRepData = useMemo(() => {
-    if (!getAllMarketRepData?.data) return [];
+    if (!registeredUsers?.data) return [];
 
-    const mappedData = getAllMarketRepData.data.map((details) => {
+    const mappedData = registeredUsers.data.map((details) => {
       return {
         ...details,
         name: `${details?.name}`,
@@ -279,7 +289,7 @@ const NewlyAddedUsers = () => {
     return mappedData.filter((marketRep) =>
       matchesDateFilter(marketRep.rawDate),
     );
-  }, [getAllMarketRepData?.data, matchesDateFilter]);
+  }, [registeredUsers?.data, matchesDateFilter]);
 
   const handleDeleteUser = (user) => {
     setUserToDelete(user);
@@ -322,14 +332,14 @@ const NewlyAddedUsers = () => {
     return mappedData.filter((invite) => matchesDateFilter(invite.rawDate));
   }, [currentData?.data, matchesDateFilter]);
 
-  // Table Columns for approved market reps
+  // Table Columns for registered market reps
   const columns = useMemo(
     () => [
       { label: "Name", key: "name" },
       // { label: "User Type", key: "userType" },
       { label: "Date Added", key: "created_at" },
       {
-        label: "Status",
+        label: "Onboarding Status",
         key: "status",
         render: (_, row) => (
           <span
@@ -394,7 +404,7 @@ const NewlyAddedUsers = () => {
 
   const exportToExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(
-      currView === "approved" ? MarketRepData : InviteData,
+      currView === "registered" ? MarketRepData : InviteData,
     );
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
@@ -448,7 +458,7 @@ const NewlyAddedUsers = () => {
       </div>
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pb-3 mb-4 gap-4">
         <div className="flex flex-wrap justify-center sm:justify-start gap-3 text-gray-600 text-sm font-medium">
-          {["approved", "pending", "rejected", "invites"].map((tab) => (
+          {["registered", "pending", "rejected", "invites"].map((tab) => (
             <button
               key={tab}
               onClick={() => {
@@ -478,7 +488,7 @@ const NewlyAddedUsers = () => {
 
       <CSVLink
         id="csvDownload"
-        data={currView === "approved" ? MarketRepData : InviteData}
+        data={currView === "registered" ? MarketRepData : InviteData}
         filename="MyProducts.csv"
         className="hidden"
       />
@@ -504,8 +514,8 @@ const NewlyAddedUsers = () => {
         <CustomTable
           actions={actions}
           loading={isLoading}
-          columns={currView === "approved" ? columns : inviteRepColumn}
-          data={currView === "approved" ? MarketRepData : InviteData}
+          columns={currView === "registered" ? columns : inviteRepColumn}
+          data={currView === "registered" ? MarketRepData : InviteData}
         />
         <div className="flex justify-between items-center mt-4">
           <div className="flex items-center">

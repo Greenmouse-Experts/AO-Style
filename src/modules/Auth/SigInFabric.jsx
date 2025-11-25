@@ -13,36 +13,49 @@ import { useState, useEffect } from "react";
 import HowDidYouHearAboutUs from "../Auth/components/HowDidYouHearAboutUs";
 import { useFormik } from "formik";
 import useRegister from "./hooks/useSignUpMutate";
+import useAcceptInvite from "./hooks/useAcceptInvite";
+import useGetInviteInfo from "../../hooks/invitation/useGetInviteInfo";
 import useToast from "../../hooks/useToast";
 import { countryCodes } from "../../constant";
 import Select from "react-select";
 import PhoneInput from "react-phone-input-2";
 import Autocomplete from "react-google-autocomplete";
 import { AttentionTooltip } from "../../components/ui/Tooltip";
+import NotFoundPage from "../../components/ui/NotFoundPage";
 
 // import agreementPdf from "./Agreement between Carybin and Fabric Vendors.pdf";
 
-const initialValues = {
-  name: "",
-  email: "",
-  phone: "",
-  alternative_phone: "",
-  password: "",
-  password_confirmation: "",
-  referral_source: "",
-  business_name: "",
-  business_type: "",
-  location: "",
-  latitude: "",
-  longitude: "",
-  state: "",
-  phoneCode: "+234",
-  fabricVendorAgreement: false,
-  checked: false,
-};
-
 export default function SignInAsCustomer() {
   const { toastError } = useToast();
+  
+  // Check for invitation token
+  const token = new URLSearchParams(window.location.search).get("token");
+  
+  const {
+    data: inviteData,
+    isPending: inviteInfoIsPending,
+    error: inviteError,
+    isError: inviteIsError,
+  } = useGetInviteInfo(token);
+
+  const initialValues = {
+    name: inviteData?.name ?? "",
+    email: inviteData?.email ?? "",
+    phone: "",
+    alternative_phone: "",
+    password: "",
+    password_confirmation: "",
+    referral_source: "",
+    business_name: "",
+    business_type: "",
+    location: "",
+    latitude: "",
+    longitude: "",
+    state: "",
+    phoneCode: "+234",
+    fabricVendorAgreement: false,
+    checked: false,
+  };
 
   const options = countryCodes.map((code) => ({
     label: code,
@@ -104,29 +117,58 @@ export default function SignInAsCustomer() {
         setStep(2);
         return;
       }
-      registerMutate({
-        ...val,
-        role: "fabric-vendor",
-        phone: phoneno,
-        alternative_phone: val?.alternative_phone === "" ? undefined : altno,
-        allowOtp: true,
-        location: val.location,
-        state: val.state,
-        coordinates: {
-          longitude: val.longitude,
-          latitude: val.latitude,
-        },
-        business: {
-          business_name: val.business_name,
-          business_type: val.business_type,
-          business_registration_number: val.business_registration_number,
+      // If there's a token, use acceptInvite, otherwise use register
+      if (token) {
+        acceptInviteMutate({
+          ...val,
+          token,
+          role: "fabric-vendor",
+          phone: phoneno,
+          alternative_phone: val?.alternative_phone === "" ? undefined : altno,
           location: val.location,
-        },
-      });
+          state: val.state,
+          coordinates: {
+            longitude: val.longitude,
+            latitude: val.latitude,
+          },
+          business: {
+            business_name: val.business_name,
+            business_type: val.business_type,
+            business_registration_number: val.business_registration_number,
+            location: val.location,
+          },
+        });
+      } else {
+        registerMutate({
+          ...val,
+          role: "fabric-vendor",
+          phone: phoneno,
+          alternative_phone: val?.alternative_phone === "" ? undefined : altno,
+          allowOtp: true,
+          location: val.location,
+          state: val.state,
+          coordinates: {
+            longitude: val.longitude,
+            latitude: val.latitude,
+          },
+          business: {
+            business_name: val.business_name,
+            business_type: val.business_type,
+            business_registration_number: val.business_registration_number,
+            location: val.location,
+          },
+        });
+      }
     },
   });
 
   const { isPending, registerMutate } = useRegister(values.email);
+  const { isPending: acceptInviteIsPending, acceptInviteMutate } = useAcceptInvite();
+  
+  // Show error if invite token is invalid
+  if (token && inviteIsError) {
+    return <NotFoundPage />;
+  }
 
   // Validation for Step 1
   const isStep1Valid = () => {
@@ -590,15 +632,15 @@ export default function SignInAsCustomer() {
                     Back
                   </button>
                   <button
-                    disabled={isPending || !isStep2Valid()}
+                    disabled={(isPending || acceptInviteIsPending) || !isStep2Valid()}
                     type="submit"
                     className={`w-full py-4 rounded-lg font-medium transition-all duration-200 ${
-                      !isPending && isStep2Valid()
+                      !(isPending || acceptInviteIsPending) && isStep2Valid()
                         ? "bg-gradient text-white cursor-pointer hover:opacity-90"
                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
                     }`}
                   >
-                    {isPending
+                    {(isPending || acceptInviteIsPending)
                       ? "Please wait..."
                       : "Sign Up As A Fabric Vendor"}
                   </button>

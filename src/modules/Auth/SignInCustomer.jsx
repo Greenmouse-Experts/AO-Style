@@ -4,6 +4,8 @@ import { useMemo, useState, useEffect } from "react";
 import HowDidYouHearAboutUs from "../Auth/components/HowDidYouHearAboutUs";
 import { useFormik } from "formik";
 import useRegister from "./hooks/useSignUpMutate";
+import useAcceptInvite from "./hooks/useAcceptInvite";
+import useGetInviteInfo from "../../hooks/invitation/useGetInviteInfo";
 import ReCAPTCHA from "react-google-recaptcha";
 import useToast from "../../hooks/useToast";
 import PhoneInput from "react-phone-input-2";
@@ -19,24 +21,35 @@ import { usePlacesWidget } from "react-google-autocomplete";
 import { AttentionTooltip } from "../../components/ui/Tooltip";
 import { useQueryClient } from "@tanstack/react-query";
 import useSessionManager from "../../hooks/useSessionManager";
-
-const initialValues = {
-  name: "",
-  email: "",
-  phone: "",
-  alternative_phone: "",
-  password: "",
-  password_confirmation: "",
-  referral_source: "",
-  phoneCode: "+234",
-  location: "",
-  latitude: "",
-  longitude: "",
-  state: "",
-};
+import NotFoundPage from "../../components/ui/NotFoundPage";
 
 export default function SignInAsCustomer() {
   const { toastError } = useToast();
+  
+  // Check for invitation token
+  const token = new URLSearchParams(window.location.search).get("token");
+  
+  const {
+    data: inviteData,
+    isPending: inviteInfoIsPending,
+    error: inviteError,
+    isError: inviteIsError,
+  } = useGetInviteInfo(token);
+
+  const initialValues = {
+    name: inviteData?.name ?? "",
+    email: inviteData?.email ?? "",
+    phone: "",
+    alternative_phone: "",
+    password: "",
+    password_confirmation: "",
+    referral_source: "",
+    phoneCode: "+234",
+    location: "",
+    latitude: "",
+    longitude: "",
+    state: "",
+  };
   const redirectPath = new URLSearchParams(location.search).get("redirect");
   const pendingProduct = localStorage.getItem("pendingProduct");
 
@@ -89,23 +102,46 @@ export default function SignInAsCustomer() {
         return toastError("Password must match");
       }
 
-      registerMutate({
-        ...val,
-        role: "user",
-        phone: phoneno,
-        alternative_phone: val?.alternative_phone === "" ? undefined : altno,
-        allowOtp: true,
-        location: val.location,
-        state: val.state,
-        coordinates: {
-          longitude: val.longitude,
-          latitude: val.latitude,
-        },
-      });
+      // If there's a token, use acceptInvite, otherwise use register
+      if (token) {
+        acceptInviteMutate({
+          ...val,
+          token,
+          role: "user",
+          phone: phoneno,
+          alternative_phone: val?.alternative_phone === "" ? undefined : altno,
+          location: val.location,
+          state: val.state,
+          coordinates: {
+            longitude: val.longitude,
+            latitude: val.latitude,
+          },
+        });
+      } else {
+        registerMutate({
+          ...val,
+          role: "user",
+          phone: phoneno,
+          alternative_phone: val?.alternative_phone === "" ? undefined : altno,
+          allowOtp: true,
+          location: val.location,
+          state: val.state,
+          coordinates: {
+            longitude: val.longitude,
+            latitude: val.latitude,
+          },
+        });
+      }
     },
   });
 
   const { isPending, registerMutate } = useRegister(values.email);
+  const { isPending: acceptInviteIsPending, acceptInviteMutate } = useAcceptInvite();
+  
+  // Show error if invite token is invalid
+  if (token && inviteIsError) {
+    return <NotFoundPage />;
+  }
 
   const onChange = (val) => {
     // Handle reCAPTCHA verification here
@@ -496,11 +532,11 @@ export default function SignInAsCustomer() {
 
             <div className="flex flex-col text-sm md:mt-8"></div>
             <button
-              disabled={isPending}
+              disabled={isPending || acceptInviteIsPending}
               className="w-full bg-gradient cursor-pointer text-white py-4 rounded-lg font-normal mt-4"
               type="submit"
             >
-              {isPending ? "Please wait..." : "Sign Up As A Customer"}
+              {(isPending || acceptInviteIsPending) ? "Please wait..." : "Sign Up As A Customer"}
             </button>
           </form>
           <p className="text-center text-gray-600 text-sm mt-4">

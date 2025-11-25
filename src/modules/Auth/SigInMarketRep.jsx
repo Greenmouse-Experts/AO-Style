@@ -124,7 +124,7 @@ export default function SignInAsCustomer() {
             Become a Market Rep
           </h2>
           <p className="text-gray-500 lg:text-left md:text-center text-sm mt-1">
-            Fill the form become a Market rep on Carybin
+            Fill the form become a Market rep on 
           </p>
 
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>

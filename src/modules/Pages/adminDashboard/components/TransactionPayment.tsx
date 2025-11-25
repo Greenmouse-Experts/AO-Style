@@ -49,6 +49,7 @@ export default function AnalyticsCards() {
       return resp.data;
     },
   });
+  console.log("This is the analytics data", data)
 
   // Extract and compute revenue values
   const totalProductRevenue = parseCurrency(data?.data.total_revenue);
@@ -80,7 +81,7 @@ export default function AnalyticsCards() {
     {
       icon: "https://img.icons8.com/ios-filled/32/800080/organization.png",
       value: isLoading ? "Loading..." : isError ? "Error" : totalOrganisations,
-      label: "Total Organizations",
+      label: "Total users",
       // subtext: "This Month",
       bgColor: "bg-[#F4EFFF]",
     },

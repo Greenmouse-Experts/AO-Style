@@ -138,9 +138,12 @@ const EditFabric = () => {
         fabric_texture: fabric.fabric_texture || "",
         feel_a_like: fabric.feel_a_like || "",
         minimum_yards: fabric.minimum_yards || "1",
-        available_colors: Array.isArray(fabric.available_colors)
-          ? fabric.available_colors.join(", ")
-          : fabric.available_colors || "",
+        available_colors: fabric.available_colors?.toString() || "1",
+        fabric_colors: Array.isArray(fabric.fabric_colors)
+          ? fabric.fabric_colors
+          : fabric.fabric_colors
+            ? fabric.fabric_colors.split(",").map((c) => c.trim()).filter(Boolean)
+            : ["#000000"],
 
         tags: Array.isArray(product.tags)
           ? product.tags.join(", ")
@@ -150,14 +153,22 @@ const EditFabric = () => {
 
       console.log("=== PREFILL COMPLETE ===");
 
-      // Set color selection state
-      if (fabric.available_colors) {
-        const colors = Array.isArray(fabric.available_colors)
-          ? fabric.available_colors
-          : fabric.available_colors
+      // Set color selection state - use fabric_colors if available, otherwise fallback to available_colors
+      if (fabric.fabric_colors) {
+        const colors = Array.isArray(fabric.fabric_colors)
+          ? fabric.fabric_colors
+          : fabric.fabric_colors
               .split(",")
               .map((c) => c.trim())
               .filter(Boolean);
+        setNumberOfColors(colors.length || 1);
+        setSelectedColors(colors.length > 0 ? colors : ["#000000"]);
+      } else if (fabric.available_colors && typeof fabric.available_colors === 'string') {
+        // Fallback: if fabric_colors doesn't exist, try to parse available_colors as colors
+        const colors = fabric.available_colors
+          .split(",")
+          .map((c) => c.trim())
+          .filter(Boolean);
         setNumberOfColors(colors.length || 1);
         setSelectedColors(colors.length > 0 ? colors : ["#000000"]);
       }
@@ -198,6 +209,9 @@ const EditFabric = () => {
       .min(1, "Quantity must be greater than 0"),
     minimum_yards: Yup.string().required("Minimum yards is required"),
     available_colors: Yup.string().required("Available colors is required"),
+    fabric_colors: Yup.array()
+      .min(1, "At least one color is required")
+      .required("Fabric colors is required"),
   });
 
   const formik = useFormik({
@@ -219,7 +233,8 @@ const EditFabric = () => {
       fabric_texture: "",
       feel_a_like: "",
       minimum_yards: "1",
-      available_colors: "#000000",
+      available_colors: "1",
+      fabric_colors: ["#000000"],
       tags: "",
       video_url: "",
     },
@@ -259,7 +274,8 @@ const EditFabric = () => {
           feel_a_like: values.feel_a_like,
           quantity: parseInt(values.quantity),
           minimum_yards: values.minimum_yards.toString(),
-          available_colors: values.available_colors,
+          available_colors: selectedColors.length.toString(), // Count of colors as string
+          fabric_colors: selectedColors.join(","), // Actual color values
 
           photos: photoUrls.filter((url) => url && url.trim() !== ""),
           video_url: values.video_url,
@@ -847,24 +863,30 @@ const EditFabric = () => {
               selectedColors={selectedColors}
               setSelectedColors={setSelectedColors}
               onColorsChange={(colors) => {
-                formik.setFieldValue("available_colors", colors.join(", "));
+                formik.setFieldValue("fabric_colors", colors);
+                formik.setFieldValue("available_colors", colors.length.toString());
               }}
               maxColors={10}
               label="Available Colors"
               required={true}
               error={
-                formik.touched.available_colors &&
-                formik.errors.available_colors
-                  ? formik.errors.available_colors
+                (formik.touched.fabric_colors && formik.errors.fabric_colors) ||
+                (formik.touched.available_colors && formik.errors.available_colors)
+                  ? formik.errors.fabric_colors || formik.errors.available_colors
                   : null
               }
             />
 
-            {/* Hidden input for form validation */}
+            {/* Hidden inputs for form validation */}
             <input
               type="hidden"
               {...formik.getFieldProps("available_colors")}
-              value={selectedColors.join(", ")}
+              value={selectedColors.length.toString()}
+            />
+            <input
+              type="hidden"
+              name="fabric_colors"
+              value={JSON.stringify(selectedColors)}
             />
           </div>
         </div>

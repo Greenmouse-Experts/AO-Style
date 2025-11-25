@@ -101,14 +101,36 @@ const NewlyAddedUsers = () => {
     return (
       <div className="bg-white p-6 rounded-xl">
         <h2 className="text-lg font-semibold mb-4">Newly Added Users</h2>
-        <div className="text-center py-8">
-          <p className="text-red-600">Failed to load users data</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-2 text-blue-600 hover:underline"
-          >
-            Try again
-          </button>
+        <div className="text-center py-12">
+          <div className="flex flex-col items-center justify-center">
+            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-4">
+              <svg
+                className="w-10 h-10 text-red-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Unable to Load Users
+            </h3>
+            <p className="text-gray-500 mb-6 max-w-md">
+              We encountered an issue while loading your users. Please check your connection and try again.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-2 bg-gradient text-white rounded-md hover:opacity-90 transition-opacity"
+            >
+              Try Again
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -144,8 +166,48 @@ const NewlyAddedUsers = () => {
 
       {/* Empty State */}
       {!isLoading && filteredData.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-gray-500">No users found</p>
+        <div className="text-center py-12">
+          <div className="flex flex-col items-center justify-center">
+            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <svg
+                className="w-10 h-10 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {searchTerm ? "No Users Match Your Search" : "No Users Added Yet"}
+            </h3>
+            <p className="text-gray-500 mb-6 max-w-md">
+              {searchTerm
+                ? "Try adjusting your search terms or clear the search to see all users."
+                : "Start by adding fabric vendors or fashion designers to see them listed here."}
+            </p>
+            {!searchTerm && (
+              <div className="flex gap-3">
+                <a
+                  href="/sales/add-fabric-vendors"
+                  className="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors"
+                >
+                  Add Fabric Vendor
+                </a>
+                <a
+                  href="/sales/add-fashion-designers"
+                  className="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors"
+                >
+                  Add Fashion Designer
+                </a>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

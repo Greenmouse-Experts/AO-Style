@@ -483,15 +483,65 @@ const MyProducts = () => {
   // Error state
   if (vendorsError && !selectedVendor) {
     return (
-      <div className="bg-white p-6 rounded-xl">
-        <div className="text-center py-8">
-          <p className="text-red-500 mb-4">Failed to load vendors</p>
-          <button
-            onClick={() => refetchVendors()}
-            className="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors"
-          >
-            Try Again
-          </button>
+      <div className="space-y-6">
+        {/* Breadcrumb */}
+        <div className="bg-white p-4 rounded-xl">
+          <Breadcrumb
+            items={[
+              {
+                label: "View/Add Products",
+              },
+            ]}
+          />
+        </div>
+
+        {/* Header */}
+        <div className="bg-white p-6 rounded-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800">
+                View/Add Products
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Select a vendor to view and manage their products
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Error State */}
+        <div className="bg-white p-6 rounded-xl">
+          <div className="text-center py-12">
+            <div className="flex flex-col items-center justify-center">
+              <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                <svg
+                  className="w-10 h-10 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Unable to Load Vendors
+              </h3>
+              <p className="text-gray-500 mb-6 max-w-md">
+                We encountered an issue while loading your vendors. Please check your connection and try again.
+              </p>
+              <button
+                onClick={() => refetchVendors()}
+                className="px-6 py-2 bg-gradient text-white rounded-md hover:opacity-90 transition-opacity"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -612,51 +662,91 @@ const MyProducts = () => {
             </div>
           ) : vendors.length === 0 ? (
             <div className="text-center py-12">
-              <div className="text-gray-400 text-6xl mb-4">
-                {vendorSearchTerm
-                  ? "🔍"
-                  : vendorType === "fabric-vendor"
-                    ? "🏪"
-                    : "✂️"}
+              <div className="flex flex-col items-center justify-center">
+                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  {vendorSearchTerm ? (
+                    <svg
+                      className="w-10 h-10 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                  ) : vendorType === "fabric-vendor" ? (
+                    <svg
+                      className="w-10 h-10 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="w-10 h-10 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                  )}
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  {vendorSearchTerm ? (
+                    "No vendors match your search"
+                  ) : (
+                    <>
+                      No{" "}
+                      {vendorType === "fabric-vendor"
+                        ? "fabric vendors"
+                        : "fashion designers"}{" "}
+                      found
+                    </>
+                  )}
+                </h3>
+                <p className="text-gray-500 mb-6 max-w-md">
+                  {vendorSearchTerm ? (
+                    "Try adjusting your search term or browse all vendors"
+                  ) : (
+                    <>
+                      You haven't added any{" "}
+                      {vendorType === "fabric-vendor"
+                        ? "fabric vendors"
+                        : "fashion designers"}{" "}
+                      yet. Start by adding your first vendor to get started.
+                    </>
+                  )}
+                </p>
+                {!vendorSearchTerm && (
+                  <Link
+                    to={`/sales/add-${vendorType === "fabric-vendor" ? "fabric-vendors" : "fashion-designers"}`}
+                    className="inline-flex items-center px-6 py-2 bg-gradient text-white rounded-md hover:opacity-90 transition-opacity"
+                  >
+                    <FaPlus className="mr-2" />
+                    Add{" "}
+                    {vendorType === "fabric-vendor"
+                      ? "Fabric Vendor"
+                      : "Fashion Designer"}
+                  </Link>
+                )}
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {vendorSearchTerm ? (
-                  "No vendors match your search"
-                ) : (
-                  <>
-                    No{" "}
-                    {vendorType === "fabric-vendor"
-                      ? "fabric vendors"
-                      : "fashion designers"}{" "}
-                    found
-                  </>
-                )}
-              </h3>
-              <p className="text-gray-500 mb-6">
-                {vendorSearchTerm ? (
-                  <>Try adjusting your search term or browse all vendors</>
-                ) : (
-                  <>
-                    You haven't added any{" "}
-                    {vendorType === "fabric-vendor"
-                      ? "fabric vendors"
-                      : "fashion designers"}{" "}
-                    yet.
-                  </>
-                )}
-              </p>
-              {!vendorSearchTerm && (
-                <Link
-                  to={`/sales/add-${vendorType === "fabric-vendor" ? "fabric-vendors" : "fashion-designers"}`}
-                  className="inline-flex items-center px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors"
-                >
-                  <FaPlus className="mr-2" />
-                  Add{" "}
-                  {vendorType === "fabric-vendor"
-                    ? "Fabric Vendor"
-                    : "Fashion Designer"}
-                </Link>
-              )}
             </div>
           ) : (
             <div className="p-6">

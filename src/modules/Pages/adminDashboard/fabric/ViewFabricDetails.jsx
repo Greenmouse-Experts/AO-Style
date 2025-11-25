@@ -592,7 +592,7 @@ const ViewFabricDetails = () => {
                             />
                         </div> */}
             </div>
-            <div className="">
+            {/* <div className="">
               <div className="w-full">
                 <label className="block text-gray-700 mb-2">Country</label>
                 <Select
@@ -625,7 +625,7 @@ const ViewFabricDetails = () => {
                   }}
                 />{" "}
               </div>
-            </div>
+            </div> */}
             <div className="">
               <div className="w-full">
                 <label className="block text-gray-700 mb-2">Address</label>

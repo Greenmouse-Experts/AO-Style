@@ -401,12 +401,12 @@ const MyProducts = () => {
       render: (value, item) => (
         <span
           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-            item.status === "PUBLISHED"
+            item.approval_status === "PUBLISHED"
               ? "bg-green-100 text-green-800"
               : "bg-yellow-100 text-yellow-800"
           }`}
         >
-          {item.status || "Draft"}
+          {item.approval_status || "Draft"}
         </span>
       ),
     },

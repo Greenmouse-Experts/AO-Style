@@ -23,6 +23,11 @@ const initialValues = {
   location: "",
   years_of_experience: "",
   phoneCode: "+234",
+  state: "",
+  city: "",
+  country: "",
+  latitude: "",
+  longitude: "",
 };
 
 export default function SignInAsCustomer() {
@@ -35,12 +40,57 @@ export default function SignInAsCustomer() {
     label: code,
     value: code,
   }));
+
+  // Helper function to extract address components from Google Places
+  const getAddressComponent = (components, type) => {
+    if (!Array.isArray(components)) return "";
+    const component = components.find((c) => c.types.includes(type));
+    return component?.long_name || "";
+  };
+
   const { ref } = usePlacesWidget({
     apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
     onPlaceSelected: (place) => {
+      console.log("🗺️ Google Place selected:", place);
+      
+      // Set formatted address
       setFieldValue("location", place.formatted_address);
+      
+      // Set coordinates
       setFieldValue("latitude", place.geometry?.location?.lat().toString());
       setFieldValue("longitude", place.geometry?.location?.lng().toString());
+
+      // Extract and set address components
+      const components = place.address_components || [];
+      
+      const state = getAddressComponent(
+        components,
+        "administrative_area_level_1"
+      );
+      const city =
+        getAddressComponent(components, "locality") ||
+        getAddressComponent(components, "administrative_area_level_2");
+      const country = getAddressComponent(components, "country");
+
+      console.log("🏘️ Address components extracted:", {
+        state,
+        city,
+        country,
+      });
+
+      // Update form values with extracted data
+      if (state) {
+        setFieldValue("state", state);
+        console.log("✅ State set to:", state);
+      }
+      if (city) {
+        setFieldValue("city", city);
+        console.log("✅ City set to:", city);
+      }
+      if (country) {
+        setFieldValue("country", country);
+        console.log("✅ Country set to:", country);
+      }
     },
     options: {
       componentRestrictions: { country: "ng" },
@@ -67,6 +117,14 @@ export default function SignInAsCustomer() {
       if (values.password_confirmation !== values.password) {
         return toastError("Password must match");
       }
+
+      console.log("📤 Submitting registration data:", {
+        ...val,
+        role: "market-representative",
+        phone: phoneno,
+        alternative_phone: val?.alternative_phone === "" ? undefined : altno,
+        allowOtp: true,
+      });
 
       registerMutate(
         {
@@ -238,14 +296,47 @@ export default function SignInAsCustomer() {
               onChange={(e) => {
                 handleChange(e);
                 setFieldValue("location", e.currentTarget.value);
+                // Clear location data when manually typing (not selecting from Google)
                 setFieldValue("latitude", "");
                 setFieldValue("longitude", "");
+                setFieldValue("state", "");
+                setFieldValue("city", "");
+                setFieldValue("country", "");
               }}
               placeholder="Start typing your address and select from Google suggestions..."
               title="Start typing your address and select from the Google dropdown suggestions for accurate location"
               className="w-full p-4 border border-[#CCCCCC] outline-none mb-3 rounded-lg"
               required
             />
+
+            {/* Debug display for captured location data */}
+            {(values.latitude || values.longitude || values.state || values.country) && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg mb-3">
+                <p className="text-sm text-blue-800 font-medium mb-1">
+                  🗺️ Captured Location Data:
+                </p>
+                {values.country && (
+                  <p className="text-xs text-blue-700">
+                    Country: {values.country}
+                  </p>
+                )}
+                {values.state && (
+                  <p className="text-xs text-blue-700">
+                    State: {values.state}
+                  </p>
+                )}
+                {values.city && (
+                  <p className="text-xs text-blue-700">
+                    City: {values.city}
+                  </p>
+                )}
+                {values.latitude && values.longitude && (
+                  <p className="text-xs text-blue-700">
+                    Coordinates: {values.latitude}, {values.longitude}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* <div>
               <HowDidYouHearAboutUs />

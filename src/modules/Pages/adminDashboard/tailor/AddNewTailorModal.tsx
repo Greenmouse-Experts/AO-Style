@@ -9,7 +9,32 @@ export default function AddNewTailorModal({ isOpen, onClose }: any) {
   const [addAddress, setAddAddress] = useState(false);
   const mutate = useMutation({
     mutationFn: async (data: any) => {
-      let resp = await CaryBinApi.post("/contact/invite", { ...data });
+      // Map role to q parameter
+      const roleToQParam: Record<string, string> = {
+        "logistics-agent": "logistics-agent",
+        "user": "user",
+        "market-representative": "market-representative",
+        "fabric-vendor": "fabric-vendor",
+        "fashion-designer": "fashion-designer",
+      };
+      
+      const qParam = roleToQParam[data.role] || "fashion-designer";
+      
+      // First request to get the businesses using the correct q parameter
+      const busiRes = await CaryBinApi.get(
+        `/onboard/fetch-businesses?q=${qParam}`,
+      );
+
+      const businessId = busiRes.data.data[0]?.id;
+      if (!businessId) {
+        throw new Error("No business found");
+      }
+
+      // Second request using the businessId
+      const resp = await CaryBinApi.post("/contact/invite", {
+        ...data,
+        business_id: businessId,
+      });
       return resp.data;
     },
     onSuccess: () => {
@@ -26,9 +51,7 @@ export default function AddNewTailorModal({ isOpen, onClose }: any) {
   });
   const onsubmit = (e) => {
     e.preventDefault();
-    let business_id = userData?.data?.id;
     const data = {
-      business_id: business_id,
       email: e.target.email.value,
       name: e.target.name.value,
       role: e.target.role.value,

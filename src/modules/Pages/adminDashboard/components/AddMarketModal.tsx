@@ -9,9 +9,21 @@ export default function AddMarketModal({ isOpen, onClose }: any) {
   const [addAddress, setAddAddress] = useState(false);
   const mutate = useMutation({
     mutationFn: async (data: any) => {
-      // First request to get the businesses
+      // Map role to q parameter
+      const roleToQParam: Record<string, string> = {
+        "logistics-agent": "logistics-agent",
+        "user": "user",
+        "market-representative": "market-representative",
+        "fabric-vendor": "fabric-vendor",
+        "fashion-designer": "fashion-designer",
+      };
+      
+      const role = data.role || "market-representative";
+      const qParam = roleToQParam[role] || "market-representative";
+      
+      // First request to get the businesses using the correct q parameter
       const busiRes = await CaryBinApi.get(
-        "/onboard/fetch-businesses?q=market-representative",
+        `/onboard/fetch-businesses?q=${qParam}`,
       );
 
       const businessId = busiRes.data.data[0]?.id;
@@ -23,7 +35,7 @@ export default function AddMarketModal({ isOpen, onClose }: any) {
       // Second request using the businessId
       const resp = await CaryBinApi.post("/contact/invite", {
         ...data,
-        role: "market-representative",
+        role: role,
         business_id: businessId,
       });
 

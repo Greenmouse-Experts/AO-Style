@@ -9,7 +9,19 @@ export default function AddNewCustomerModal({ isOpen, onClose }: any) {
   const [addAddress, setAddAddress] = useState(false);
   const mutate = useMutation({
     mutationFn: async (data: any) => {
-      const busiRes = await CaryBinApi.get("/onboard/fetch-businesses?q=user");
+      // Map role to q parameter
+      const roleToQParam: Record<string, string> = {
+        "logistics-agent": "logistics-agent",
+        "user": "user",
+        "market-representative": "market-representative",
+        "fabric-vendor": "fabric-vendor",
+        "fashion-designer": "fashion-designer",
+      };
+      
+      const qParam = roleToQParam[data.role] || "user";
+      
+      // First request to get the businesses using the correct q parameter
+      const busiRes = await CaryBinApi.get(`/onboard/fetch-businesses?q=${qParam}`);
 
       const businessId = busiRes.data.data[0]?.id;
       if (!businessId) {
@@ -102,7 +114,7 @@ export default function AddNewCustomerModal({ isOpen, onClose }: any) {
                 placeholder="carybin Logic 009"
               />
             </fieldset>
-            <fieldset className="form-control w-full mb-4">
+            <fieldset className="form-control w-full mb-4" disabled>
               <label htmlFor="role" className="label mb-1">
                 <span className="label-text">Role</span>
               </label>

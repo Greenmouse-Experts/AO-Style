@@ -58,6 +58,7 @@ const initialValues = {
   city: "",
   country: "",
   state: "",
+  state_raw: "", // Raw Google value for personal address
   latitude: "",
   longitude: "",
   business_country: "",
@@ -180,7 +181,7 @@ export default function AddFabricVendorPage() {
             date_of_birth: "",
             gender: val?.gender,
             address: val.address,
-            state: val.state,
+            state: val?.state_raw || val?.state, // Use raw Google value
             coordinates: {
               latitude: val?.business_latitude || val?.latitude || "",
               longitude: val?.business_longitude || val?.longitude || "",
@@ -191,7 +192,7 @@ export default function AddFabricVendorPage() {
             business_type: val?.business_type,
             location: val?.location,
             country: val?.business_country || val?.country,
-            state: val?.business_state || val?.state,
+            state: val?.business_state || val?.state_raw || val?.state, // Use raw Google value
             // coordinates: {
             //   latitude: val?.business_latitude || val?.latitude || "",
             //   longitude: val?.business_longitude || val?.longitude || "",
@@ -202,9 +203,9 @@ export default function AddFabricVendorPage() {
             doc_back: val?.doc_back,
             utility_doc: val?.utility_doc,
             location: val?.location,
-            state: val?.state,
-            city: val?.city,
-            country: val?.country,
+            state: val?.business_state || val?.state_raw || val?.state, // Use raw Google value
+            city: val?.business_city || val?.city,
+            country: val?.business_country || val?.country,
             id_type: val?.id_type,
           },
         };
@@ -243,8 +244,8 @@ export default function AddFabricVendorPage() {
           setFieldValue("longitude", lng.toString());
         }
 
-        // Extract and set address components
-        const state = getAddressComponent(
+        // Extract and set address components (store raw Google values)
+        const stateRaw = getAddressComponent(
           components,
           "administrative_area_level_1",
         );
@@ -254,12 +255,16 @@ export default function AddFabricVendorPage() {
         const country = getAddressComponent(components, "country");
 
         console.log("🏘️ Address components extracted:", {
-          state,
+          stateRaw,
           city,
           country,
         });
 
-        if (state) setFieldValue("state", state);
+        // Store raw Google values
+        if (stateRaw) {
+          setFieldValue("state_raw", stateRaw);
+          setFieldValue("state", stateRaw); // Also set state for dropdown display
+        }
         if (city) setFieldValue("city", city);
         if (country) setFieldValue("country", country);
       });

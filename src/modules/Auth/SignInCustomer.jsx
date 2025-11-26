@@ -102,6 +102,8 @@ export default function SignInAsCustomer() {
         return toastError("Password must match");
       }
 
+      console.log("📤 Customer - Submitting with state:", val.state);
+
       // If there's a token, use acceptInvite, otherwise use register
       if (token) {
         acceptInviteMutate({
@@ -111,7 +113,7 @@ export default function SignInAsCustomer() {
           phone: phoneno,
           alternative_phone: val?.alternative_phone === "" ? undefined : altno,
           location: val.location,
-          state: val.state,
+          state: val.state || "",
           coordinates: {
             longitude: val.longitude,
             latitude: val.latitude,
@@ -125,7 +127,7 @@ export default function SignInAsCustomer() {
           alternative_phone: val?.alternative_phone === "" ? undefined : altno,
           allowOtp: true,
           location: val.location,
-          state: val.state,
+          state: val.state || "",
           coordinates: {
             longitude: val.longitude,
             latitude: val.latitude,
@@ -428,6 +430,11 @@ export default function SignInAsCustomer() {
                 }}
                 value={values.location}
               />
+              {values.state && (
+                <div className="text-xs text-green-600 mt-1">
+                  ✅ State detected: {values.state}
+                </div>
+              )}
             </div>
 
             <label className="block text-black">Password</label>

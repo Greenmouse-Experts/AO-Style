@@ -556,41 +556,6 @@ const ViewMarketDetails = () => {
             </div>
             <div className="">
               <div className="w-full">
-                <label className="block text-gray-700 mb-2">Country</label>
-                <Select
-                  options={countriesOptions}
-                  name="country"
-                  value={countriesOptions?.find(
-                    (opt) => opt.value === tailorInfo?.kyc?.country,
-                  )}
-                  onChange={(selectedOption) => {}}
-                  placeholder="Select"
-                  className="p-2 w-full mb-6 border border-[#CCCCCC] outline-none rounded-lg"
-                  styles={{
-                    control: (base, state) => ({
-                      ...base,
-                      border: "none",
-                      boxShadow: "none",
-                      outline: "none",
-                      backgroundColor: "#fff",
-                      "&:hover": {
-                        border: "none",
-                      },
-                    }),
-                    indicatorSeparator: () => ({
-                      display: "none",
-                    }),
-                    menu: (base) => ({
-                      ...base,
-                      zIndex: 9999,
-                    }),
-                  }}
-                />{" "}
-              </div>
-            </div>
-
-            <div className="">
-              <div className="w-full">
                 <label className="block text-gray-700 mb-2">Address</label>
                 <input
                   readOnly

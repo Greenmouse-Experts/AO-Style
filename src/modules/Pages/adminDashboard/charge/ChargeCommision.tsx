@@ -12,7 +12,7 @@ export default function ChargeCommision() {
     "commision",
     "vendor charges",
     "delivery",
-    "order",
+    // "order",
   ];
 
   return (

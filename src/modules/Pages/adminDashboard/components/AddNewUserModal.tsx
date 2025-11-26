@@ -44,7 +44,7 @@ const AddNewUser = ({ isOpen, onClose }: any) => {
       business_id: business_id,
       email: e.target.email.value,
       name: e.target.name.value,
-      role: e.target.role.value,
+      role: "logistics-agent",                                                  
     };
     mutate.mutateAsync(data);
     setAddAddress(false);
@@ -103,7 +103,7 @@ const AddNewUser = ({ isOpen, onClose }: any) => {
                 placeholder="carybin Logic 009"
               />
             </fieldset>
-            <fieldset className="form-control w-full mb-4">
+            <fieldset className="form-control w-full mb-4" disabled>
               <label htmlFor="role" className="label mb-1">
                 <span className="label-text">Role</span>
               </label>

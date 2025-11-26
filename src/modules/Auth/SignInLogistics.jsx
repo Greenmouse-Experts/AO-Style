@@ -76,6 +76,8 @@ export default function SignUpAsLogisticsAgent() {
       if (values.password_confirmation !== values.password) {
         return toastError("Password must match");
       }
+      console.log("📤 Logistics Agent - Submitting with state:", val.state);
+      
       const payload = agentType === "individual"
         ? {
             ...val,
@@ -84,7 +86,7 @@ export default function SignUpAsLogisticsAgent() {
             alternative_phone:
               val?.alternative_phone === "" ? undefined : altno,
             location: val.location,
-            state: val.state,
+            state: val.state || "",
             coordinates: {
               longitude: val.longitude,
               latitude: val.latitude,
@@ -97,7 +99,7 @@ export default function SignUpAsLogisticsAgent() {
             alternative_phone:
               val?.alternative_phone === "" ? undefined : altno,
             location: val.location,
-            state: val.state,
+            state: val.state || "",
             coordinates: {
               longitude: val.longitude,
               latitude: val.latitude,
@@ -107,6 +109,7 @@ export default function SignUpAsLogisticsAgent() {
               business_type: val.business_type,
               business_registration_number: val.business_registration_number,
               location: val.location,
+              state: val.state || "",
             },
           };
 

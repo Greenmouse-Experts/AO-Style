@@ -310,9 +310,30 @@ export default function ImprovedInboxPage() {
       // });
       socketInstance.on(`messagesRetrievedToAdmin:${adminId}`, (data) => {
         const result = data?.data?.result || [];
+        setRoleConversations(result);
 
         // 1. Calculate and update the Count for the specific role
         if (result.length > 0) {
+          const currentSelectedChat = selectedChatRef.current;
+          setCurrentSelectedChatMessages(currentSelectedChat);
+
+          const formattedMessages = data.data.result.map((msg) => ({
+            id: msg.id,
+            sender: msg.initiator?.name || "Unknown",
+            text: msg.message,
+            time: new Date(msg.created_at).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            }),
+            type:
+              msg.initiator_id === currentSelectedChat?.chat_buddy?.id
+                ? "received"
+                : "sent",
+            read: msg.read,
+          }));
+
+          setMessageList(formattedMessages);
           // We look at the first item to determine which role this data belongs to
           // Assumes result[0].role holds values like 'user', 'fashion-designer' etc.
           const firstItemRole = result[0].role || result[0].initiator?.role;
@@ -674,6 +695,8 @@ export default function ImprovedInboxPage() {
 
     if (socket && isConnected) {
       let messageData = {};
+      
+      // Determine message data based on admin role
       if (adminProfile?.role?.role_id === "owner-super-administrator") {
         messageData = {
           token: adminToken,
@@ -693,6 +716,7 @@ export default function ImprovedInboxPage() {
 
       socket.emit("sendMessage", messageData);
 
+      // Add message to UI immediately
       const newMsg = {
         id: Date.now(),
         sender: "You",
@@ -707,11 +731,31 @@ export default function ImprovedInboxPage() {
       setMessageList((prev) => [...prev, newMsg]);
       setNewMessage("");
       toastSuccess("Message sent successfully!");
-      if (currentView === "all") {
-        return;
-      } else {
+
+      // --- FIX STARTS HERE ---
+      // If we are currently inside a specific Role Tab (e.g., "Tailor")
+      if (currentView === "role" && selectedRoleTab) {
+        
+        // 1. Manually decrease the count for this specific tab
+        setRoleCounts((prev) => ({
+          ...prev,
+          [selectedRoleTab]: Math.max(0, (prev[selectedRoleTab] || 0) - 1),
+        }));
+
+        // 2. Remove this chat from the current role list so it doesn't reappear 
+        // if we switch back without fetching
+        setRoleConversations((prev) => 
+          prev.filter((chat) => chat.id !== selectedChat.id)
+        );
+
+        // 3. Switch view to "All Inbox" as per your logic
         setCurrentView("all");
         setSelectedChat(null);
+      } 
+      // --- FIX ENDS HERE ---
+      
+      else if (currentView === "all") {
+        return;
       }
     }
   };

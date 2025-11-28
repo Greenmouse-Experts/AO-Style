@@ -25,6 +25,7 @@
     "chart.js": "^4.5.0",
     "daisyui": "^5.0.54",
     "dayjs": "^1.11.18",
+    "decimal.js": "^10.6.0",
     "deps": "^1.0.0",
     "emoji-picker-react": "^4.13.2",
     "file-saver": "^2.0.5",

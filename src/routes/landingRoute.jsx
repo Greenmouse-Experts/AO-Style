@@ -18,6 +18,7 @@ import CookiePolicy from "../modules/Home/CookiePolicy";
 import RefundPolicy from "../modules/Home/RefundPolicy";
 import Jobs from "../modules/Home/Jobs";
 import CartPage from "../modules/Home/CartPage";
+import SearchResults from "../modules/Home/search/SearchResults";
 
 export const landingRooutes = [
   {
@@ -99,6 +100,10 @@ export const landingRooutes = [
       {
         path: "view-cart",
         element: <CartPage />,
+      },
+      {
+        path: "search",
+        element: <SearchResults />,
       },
     ],
   },

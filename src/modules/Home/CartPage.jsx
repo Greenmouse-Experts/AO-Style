@@ -29,6 +29,8 @@ import {
   User,
   Calendar,
   Package,
+  Truck,
+  ArrowRight,
   Tag,
 } from "lucide-react";
 import { formatNumberWithCommas } from "../../lib/helper";
@@ -37,6 +39,7 @@ import CartItemStyleDesktop from "./components/CartItemStyleDesktop";
 import CartItemWithBreakdown from "./components/CartItemWithBreakdown";
 import CustomBackbtn from "../../components/CustomBackBtn";
 import useAddMultipleCart from "../../hooks/cart/useAddMultipleCart";
+import Decimal from "decimal.js";
 const initialValues = {
   address: "",
   city: "",
@@ -147,7 +150,7 @@ const CartPage = () => {
         cartData = null;
         console.error(
           "Failed to parse pending_fabric_data from localStorage:",
-          e,
+          e
         );
       }
     } else {
@@ -258,7 +261,9 @@ const CartPage = () => {
           }
         });
 
-        const errorMessage = `Duplicate items found in cart: ${duplicateMessages.join(", ")}. Please remove duplicates before proceeding.`;
+        const errorMessage = `Duplicate items found in cart: ${duplicateMessages.join(
+          ", "
+        )}. Please remove duplicates before proceeding.`;
         setDuplicateError(errorMessage);
 
         console.log("❌ Duplicate error set:", errorMessage);
@@ -303,10 +308,12 @@ const CartPage = () => {
     // If no token and not loading, redirect to login with cart redirect
     if (!token && !userProfileLoading) {
       console.log(
-        "❌ CartPage: No authentication token found, redirecting to login",
+        "❌ CartPage: No authentication token found, redirecting to login"
       );
       navigate(
-        `/login?redirect=${encodeURIComponent(location.pathname + location.search)}`,
+        `/login?redirect=${encodeURIComponent(
+          location.pathname + location.search
+        )}`
       );
       return;
     }
@@ -314,11 +321,13 @@ const CartPage = () => {
     // If token exists but no user data after loading is complete, there might be an issue
     if (token && !userProfileLoading && !carybinUser && !userProfile) {
       console.log(
-        "⚠️ CartPage: Token exists but no user data - possible authentication issue",
+        "⚠️ CartPage: Token exists but no user data - possible authentication issue"
       );
       toastError("Authentication issue detected. Please login again.");
       navigate(
-        `/login?redirect=${encodeURIComponent(location.pathname + location.search)}`,
+        `/login?redirect=${encodeURIComponent(
+          location.pathname + location.search
+        )}`
       );
       return;
     }
@@ -349,10 +358,10 @@ const CartPage = () => {
           item.product?.price ||
           item?.price ||
           item.pendingFabricData?.pendingFabric?.price ||
-          0,
+          0
       );
       const stylePrice = parseFloat(
-        item.style_product?.price || item?.style_price || 0,
+        item.style_product?.price || item?.style_price || 0
       );
       const measurementCount = item?.measurement?.length || 0;
       const quantity = parseInt(item.quantity || 1);
@@ -388,7 +397,7 @@ const CartPage = () => {
   const fabricTotals = items.reduce(
     (acc, item) => {
       const fabricPrice = parseFloat(
-        item.price_at_time || item.product?.price || 0,
+        item.price_at_time || item.product?.price || 0
       );
       const quantity = parseInt(item.quantity || 1);
       const fabricTotal = fabricPrice * quantity;
@@ -399,7 +408,7 @@ const CartPage = () => {
         itemCount: acc.itemCount + 1,
       };
     },
-    { totalAmount: 0, totalYards: 0, itemCount: 0 },
+    { totalAmount: 0, totalYards: 0, itemCount: 0 }
   );
 
   const styleTotals = items.reduce(
@@ -414,7 +423,7 @@ const CartPage = () => {
       }
       return acc;
     },
-    { totalAmount: 0, itemCount: 0 },
+    { totalAmount: 0, itemCount: 0 }
   );
 
   const delivery_fee = deliveryData?.data?.data?.delivery_fee ?? 0;
@@ -422,8 +431,12 @@ const CartPage = () => {
   const charges = totals.subtotal * 0.015;
   const discountAmount = appliedCoupon?.discount || 0;
 
-  const finalTotal =
-    totals.subtotal + delivery_fee + estimatedVat - discountAmount;
+  const finalTotal = new Decimal(totals.subtotal)
+    .plus(delivery_fee)
+    .plus(estimatedVat)
+    .minus(discountAmount)
+    .toNearest(0.01);
+  // totals.subtotal + delivery_fee + estimatedVat - discountAmount;
 
   // Handle agreement click
   const handleAgreementClick = (e) => {
@@ -458,14 +471,14 @@ const CartPage = () => {
             setAppliedCoupon(null);
             setCoupon("");
             console.log(
-              "🧹 Cleared coupon and stale states after item deletion",
+              "🧹 Cleared coupon and stale states after item deletion"
             );
           },
           onError: (error) => {
             toastError("Failed to remove item");
             console.error("Delete error:", error);
           },
-        },
+        }
       );
     } else {
       // No token: Remove from localStorage "pending_fabric_data"
@@ -477,7 +490,7 @@ const CartPage = () => {
           if (Array.isArray(cartObj.items)) {
             // Step 1: Find the item with matching ID
             const itemIndex = cartObj.items.findIndex(
-              (item) => String(item.id) === String(itemId),
+              (item) => String(item.id) === String(itemId)
             );
 
             if (itemIndex !== -1) {
@@ -487,7 +500,7 @@ const CartPage = () => {
               // Step 3: Store the new data in localStorage
               localStorage.setItem(
                 "pending_fabric_data",
-                JSON.stringify(cartObj),
+                JSON.stringify(cartObj)
               );
 
               // Clean up UI state
@@ -599,7 +612,7 @@ const CartPage = () => {
               toastError("Payment verification failed");
               console.error("Payment verification error:", error);
             },
-          },
+          }
         );
       },
       onClose: function () {
@@ -686,11 +699,11 @@ const CartPage = () => {
           console.log("🔄 Items length:", items.length);
           console.log(
             "🔍 Items with styles:",
-            items.filter((item) => item.style_product?.id),
+            items.filter((item) => item.style_product?.id)
           );
           console.log(
             "🔍 Style items count:",
-            items.filter((item) => item.style_product?.id).length,
+            items.filter((item) => item.style_product?.id).length
           );
 
           // Debug: Check for potential duplicate styles
@@ -703,7 +716,7 @@ const CartPage = () => {
             uniqueStyleIds: Array.from(uniqueStyleIds),
             potentialDuplicates: styleIds.length !== uniqueStyleIds.size,
             duplicateStyleIds: styleIds.filter(
-              (id, index) => styleIds.indexOf(id) !== index,
+              (id, index) => styleIds.indexOf(id) !== index
             ),
           });
 
@@ -799,7 +812,7 @@ const CartPage = () => {
                 final_total: finalTotal,
                 coupon_code: appliedCoupon?.code || null,
                 total_style_items: items.filter(
-                  (item) => item.style_product?.id,
+                  (item) => item.style_product?.id
                 ).length,
                 total_fabric_items: items.length,
                 delivery_address: addressInfo.address,
@@ -843,11 +856,11 @@ const CartPage = () => {
             console.error("❌ Duplicate purchase IDs detected:", {
               allIds: purchaseIds,
               duplicates: purchaseIds.filter(
-                (id, index) => purchaseIds.indexOf(id) !== index,
+                (id, index) => purchaseIds.indexOf(id) !== index
               ),
             });
             toastError(
-              "Error: Duplicate items detected in cart. Please refresh and try again.",
+              "Error: Duplicate items detected in cart. Please refresh and try again."
             );
             return;
           }
@@ -871,7 +884,7 @@ const CartPage = () => {
           console.log("🛍️ Payment purchases breakdown:", {
             totalPurchases: purchases.length,
             fabricPurchases: purchases.filter(
-              (p) => p.purchase_type === "FABRIC",
+              (p) => p.purchase_type === "FABRIC"
             ).length,
             stylePurchases: purchases.filter((p) => p.purchase_type === "STYLE")
               .length,
@@ -899,15 +912,15 @@ const CartPage = () => {
               });
 
               payWithPaystack({
-                amount: finalTotal,
-                payment_id: paymentResponse?.data?.data?.payment_id,
+                amount: finalTotal.toNumber(),
+                payment_id: paymentResponse?.data?.payment_id,
               });
             },
             onError: (error) => {
               console.error("❌ Payment creation failed:", error);
               toastError(
                 "Failed to create payment - " +
-                  (error?.data?.message || "Unknown error"),
+                  (error?.data?.message || "Unknown error")
               );
             },
           });
@@ -916,7 +929,7 @@ const CartPage = () => {
           console.error("❌ Billing creation failed:", error);
           toastError(
             "Failed to create billing - " +
-              (error?.data?.message || "Unknown error"),
+              (error?.data?.message || "Unknown error")
           );
         },
       });
@@ -1160,7 +1173,7 @@ const CartPage = () => {
                                     <div className="text-sm text-green-600">
                                       You saved ₦
                                       {formatNumberWithCommas(
-                                        appliedCoupon.discount,
+                                        appliedCoupon.discount
                                       )}
                                     </div>
                                   </div>
@@ -1219,19 +1232,218 @@ const CartPage = () => {
                         </span>
                       </div>
                       {token && (
-                        <div className="flex justify-between text-sm text-gray-600">
-                          <span>Delivery Fee</span>
-                          <span className="text-green-600 font-semibold">
-                            {deliveryLoading ? (
-                              <span className="text-gray-400">Loading...</span>
-                            ) : deliveryError ? (
-                              <span className="text-red-500">
-                                UPDATE ADDRESS
-                              </span>
-                            ) : (
-                              formatPrice(delivery_fee)
+                        <div className="space-y-3">
+                          <div className="flex justify-between text-sm text-gray-600">
+                            <span>Delivery Fee</span>
+                            <span className="text-green-600 font-semibold">
+                              {deliveryLoading ? (
+                                <span className="text-gray-400">
+                                  Loading...
+                                </span>
+                              ) : deliveryError ? (
+                                <span className="text-red-500">
+                                  UPDATE ADDRESS
+                                </span>
+                              ) : (
+                                formatPrice(delivery_fee)
+                              )}
+                            </span>
+                          </div>
+
+                          {/* Delivery Provider Info */}
+                          {/* Delivery Provider Info */}
+                          {!deliveryLoading &&
+                            !deliveryError &&
+                            deliveryData?.data?.data && (
+                              <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 rounded-lg p-3 sm:p-4 border-2 border-purple-200 shadow-sm">
+                                <div className="flex items-start gap-2">
+                                  <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="text-xs sm:text-sm font-bold text-purple-900 mb-2 sm:mb-3">
+                                      Delivery Flow
+                                    </h4>
+
+                                    {deliveryData.data.data
+                                      .purchasedFabricAndStyle ? (
+                                      // Two-phase delivery (Fabric → Tailor → Customer)
+                                      <div className="space-y-2 sm:space-y-3">
+                                        {/* Phase 1: Fabric to Tailor */}
+                                        <div className="bg-white/80 backdrop-blur-sm rounded-lg p-2 sm:p-3 border border-purple-100 shadow-sm">
+                                          <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+                                            <span className="bg-purple-100 text-purple-700 w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0">
+                                              1
+                                            </span>
+                                            <span className="text-xs font-semibold text-gray-700 truncate">
+                                              Fabric → Tailor
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center justify-between gap-2">
+                                            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                                              <Package className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" />
+                                              <span className="text-xs text-gray-600 whitespace-nowrap">
+                                                Delivery by:
+                                              </span>
+                                            </div>
+                                            <span
+                                              className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-bold flex items-center gap-1 flex-shrink-0 ${
+                                                deliveryData.data.data
+                                                  .gigLogisticsForFabricToTailor
+                                                  ? "bg-blue-100 text-blue-700 border border-blue-300"
+                                                  : "bg-purple-100 text-purple-700 border border-purple-300"
+                                              }`}
+                                            >
+                                              {deliveryData.data.data
+                                                .gigLogisticsForFabricToTailor ? (
+                                                <>
+                                                  <Truck className="w-3 h-3 flex-shrink-0" />
+                                                  <span className="hidden xs:inline">
+                                                    GIG Logistics
+                                                  </span>
+                                                  <span className="xs:hidden">
+                                                    GIG
+                                                  </span>
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <Package className="w-3 h-3 flex-shrink-0" />
+                                                  <span className="hidden xs:inline">
+                                                    Carybin
+                                                  </span>
+                                                  <span className="xs:hidden">
+                                                    Carybin
+                                                  </span>
+                                                </>
+                                              )}
+                                            </span>
+                                          </div>
+                                        </div>
+
+                                        {/* Arrow Connector */}
+                                        <div className="flex justify-center py-0.5">
+                                          <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
+                                        </div>
+
+                                        {/* Phase 2: Tailor to Customer */}
+                                        <div className="bg-white/80 backdrop-blur-sm rounded-lg p-2 sm:p-3 border border-purple-100 shadow-sm">
+                                          <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+                                            <span className="bg-purple-100 text-purple-700 w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0">
+                                              2
+                                            </span>
+                                            <span className="text-xs font-semibold text-gray-700 truncate">
+                                              Tailor → You
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center justify-between gap-2">
+                                            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                                              <Package className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" />
+                                              <span className="text-xs text-gray-600 whitespace-nowrap">
+                                                Delivery by:
+                                              </span>
+                                            </div>
+                                            <span
+                                              className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-bold flex items-center gap-1 flex-shrink-0 ${
+                                                deliveryData.data.data
+                                                  .gigLogisticsForTailorToCustomer
+                                                  ? "bg-blue-100 text-blue-700 border border-blue-300"
+                                                  : "bg-purple-100 text-purple-700 border border-purple-300"
+                                              }`}
+                                            >
+                                              {deliveryData.data.data
+                                                .gigLogisticsForTailorToCustomer ? (
+                                                <>
+                                                  <Truck className="w-3 h-3 flex-shrink-0" />
+                                                  <span className="hidden xs:inline">
+                                                    GIG Logistics
+                                                  </span>
+                                                  <span className="xs:hidden">
+                                                    GIG
+                                                  </span>
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <Package className="w-3 h-3 flex-shrink-0" />
+                                                  <span className="hidden xs:inline">
+                                                    Carybin
+                                                  </span>
+                                                  <span className="xs:hidden">
+                                                    Carybin
+                                                  </span>
+                                                </>
+                                              )}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      // Single-phase delivery (Fabric → Customer directly)
+                                      <div className="bg-white/80 backdrop-blur-sm rounded-lg p-2 sm:p-3 border border-purple-100 shadow-sm">
+                                        <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+                                          <span className="bg-purple-100 text-purple-700 w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0">
+                                            ✓
+                                          </span>
+                                          <span className="text-xs font-semibold text-gray-700">
+                                            Direct Delivery to You
+                                          </span>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-2">
+                                          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                                            <Package className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" />
+                                            <span className="text-xs text-gray-600 whitespace-nowrap">
+                                              Delivery by:
+                                            </span>
+                                          </div>
+                                          <span
+                                            className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-bold flex items-center gap-1 flex-shrink-0 ${
+                                              deliveryData.data.data
+                                                .gigLogisticsForFabricToCustomerOnly
+                                                ? "bg-blue-100 text-blue-700 border border-blue-300"
+                                                : "bg-purple-100 text-purple-700 border border-purple-300"
+                                            }`}
+                                          >
+                                            {deliveryData.data.data
+                                              .gigLogisticsForFabricToCustomerOnly ? (
+                                              <>
+                                                <Truck className="w-3 h-3 flex-shrink-0" />
+                                                <span className="hidden xs:inline">
+                                                  GIG Logistics
+                                                </span>
+                                                <span className="xs:hidden">
+                                                  GIG
+                                                </span>
+                                              </>
+                                            ) : (
+                                              <>
+                                                <Package className="w-3 h-3 flex-shrink-0" />
+                                                <span className="hidden xs:inline">
+                                                  Carybin
+                                                </span>
+                                                <span className="xs:hidden">
+                                                  Carybin
+                                                </span>
+                                              </>
+                                            )}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Info Footer */}
+                                    <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-purple-200">
+                                      <p className="text-xs text-gray-600 flex items-start gap-1.5">
+                                        <span className="text-purple-600 mt-0.5 flex-shrink-0">
+                                          ℹ️
+                                        </span>
+                                        <span className="leading-relaxed">
+                                          Your items will be carefully handled
+                                          and delivered by our trusted logistics
+                                          partners
+                                        </span>
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
                             )}
-                          </span>
                         </div>
                       )}
                       <div className="flex justify-between text-sm text-gray-600">
@@ -1485,7 +1697,7 @@ const CartPage = () => {
                         <p>
                           <strong>Member Since:</strong>{" "}
                           {new Date(
-                            carybinUser?.created_at,
+                            carybinUser?.created_at
                           ).toLocaleDateString()}
                         </p>
                       </div>
@@ -1497,7 +1709,7 @@ const CartPage = () => {
                           <button
                             onClick={() => {
                               console.log(
-                                "📝 User wants to update profile address",
+                                "📝 User wants to update profile address"
                               );
                               window.open(`${currentUrl}/settings`);
                             }}
@@ -1551,7 +1763,7 @@ const CartPage = () => {
                                 item.product?.price ||
                                 item.price ||
                                 item.pendingFabricData?.pendingFabric?.price ||
-                                0,
+                                0
                             )}
                             {/* Show style price if style exists */}
                             {item?.style_product?.price ||
@@ -1562,7 +1774,7 @@ const CartPage = () => {
                                   {formatNumberWithCommas(
                                     item?.style_product?.price ||
                                       item?.style_price *
-                                        item.measurement.length,
+                                        item.measurement.length
                                   )}
                                 </span>
                               ))}
@@ -1584,14 +1796,14 @@ const CartPage = () => {
                                   item.price ||
                                   item.pendingFabricData?.pendingFabric
                                     ?.price ||
-                                  0,
+                                  0
                               ) *
                                 parseInt(item.quantity || 1) +
                                 parseFloat(
                                   item.style_product?.price ||
                                     item?.style_price ||
-                                    0,
-                                ),
+                                    0
+                                )
                             )}
                           </p>
                         </div>
@@ -1769,8 +1981,8 @@ function CheckoutPolicyModal({ isOpen, onClose, agreementType = "checkout" }) {
             {isCheckout
               ? "Checkout Agreement"
               : isTailor
-                ? "Service Level Agreement (SLA) - Tailors"
-                : "Service Level Agreement (SLA) - Fabric Vendors"}
+              ? "Service Level Agreement (SLA) - Tailors"
+              : "Service Level Agreement (SLA) - Fabric Vendors"}
           </h2>
           <button
             onClick={onClose}

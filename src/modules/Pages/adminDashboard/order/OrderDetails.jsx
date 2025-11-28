@@ -22,6 +22,7 @@ import {
   MessageSquare,
   XCircle,
   AlertTriangle,
+  Loader2,
 } from "lucide-react";
 import useGetSingleOrder from "../../../../hooks/order/useGetSingleOrder";
 import Loader from "../../../../components/ui/Loader";
@@ -219,12 +220,118 @@ const OrderDetails = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [toast, setToast] = useState(null);
 
+  // GIG Logistics state
+  const [showShipmentDetailsModal, setShowShipmentDetailsModal] =
+    useState(false);
+  const [showTrackOrderModal, setShowTrackOrderModal] = useState(false);
+  const [shipmentDetails, setShipmentDetails] = useState(null);
+  const [trackingDetails, setTrackingDetails] = useState(null);
+  const [isLoadingShipment, setIsLoadingShipment] = useState(false);
+  const [isLoadingTracking, setIsLoadingTracking] = useState(false);
+
   const { id: orderId } = useParams();
   const queryClient = useQueryClient();
 
   const { isPending: getUserIsPending, data } = useGetSingleOrder(orderId);
 
   const orderDetails = data?.data;
+
+  // Check if order uses GIG logistics
+  const isGigLogistics = () => {
+    const firstLegType = orderDetails?.first_leg_logistics_type;
+    const secondLegType = orderDetails?.second_leg_logistics_type;
+    return firstLegType === "GIG" || secondLegType === "GIG";
+  };
+
+  // Get the external logistics tracking ID for GIG
+  const getGigTrackingId = () => {
+    const firstLegType = orderDetails?.first_leg_logistics_type;
+    const secondLegType = orderDetails?.second_leg_logistics_type;
+    const firstLegTrackingId =
+      orderDetails?.first_leg_external_logistics_tracking_id;
+    const secondLegTrackingId =
+      orderDetails?.second_leg_external_logistics_tracking_id;
+
+    // Check first leg
+    if (firstLegType === "GIG" && firstLegTrackingId) {
+      return firstLegTrackingId;
+    }
+
+    // Check second leg
+    if (secondLegType === "GIG" && secondLegTrackingId) {
+      return secondLegTrackingId;
+    }
+
+    return null;
+  };
+
+  // Fetch shipment details
+  const fetchShipmentDetails = async () => {
+    const trackingId = getGigTrackingId();
+    if (!trackingId) {
+      setToast({
+        type: "error",
+        message: "No tracking ID available",
+      });
+      return;
+    }
+
+    setIsLoadingShipment(true);
+    try {
+      const response = await CaryBinApi.get(`/orders/external-logistics/shipment-details/${trackingId}`
+      );
+      setShipmentDetails(response.data);
+      setShowShipmentDetailsModal(true);
+    } catch (error) {
+      console.error("Error fetching shipment details:", error);
+      setToast({
+        type: "error",
+        message: "Failed to load shipment details",
+      });
+    } finally {
+      setIsLoadingShipment(false);
+    }
+  };
+
+  // Track order
+  const fetchTrackingDetails = async () => {
+    const trackingId = getGigTrackingId();
+    if (!trackingId) {
+      setToast({
+        type: "error",
+        message: "No tracking ID available",
+      });
+      return;
+    }
+
+    setIsLoadingTracking(true);
+    try {
+      const response = await CaryBinApi.get(
+        `/orders/external-logistics/track/${trackingId}`
+      );
+      setTrackingDetails(response.data);
+      setShowTrackOrderModal(true);
+    } catch (error) {
+      console.error("Error fetching tracking details:", error);
+      setToast({
+        type: "error",
+        message: "Failed to load tracking details",
+      });
+    } finally {
+      setIsLoadingTracking(false);
+    }
+  };
+
+  // GIG Logistics Modal functions
+  const handleCloseShipmentDetailsModal = () => {
+    setShowShipmentDetailsModal(false);
+    setShipmentDetails(null);
+  };
+
+  const handleCloseTrackOrderModal = () => {
+    setShowTrackOrderModal(false);
+    setTrackingDetails(null);
+  };
 
   // Cancel Order Mutation
   const cancelOrderMutation = useMutation({
@@ -305,7 +412,7 @@ const OrderDetails = () => {
         return statusMap[status] || 0;
       }
     },
-    [hasStyleItems],
+    [hasStyleItems]
   );
 
   React.useEffect(() => {
@@ -362,7 +469,7 @@ const OrderDetails = () => {
   const totalAmount =
     orderDetails?.total_amount || orderDetails?.payment?.amount || 0;
   const deliveryFee = parseInt(
-    orderDetails?.payment?.purchase?.delivery_fee || 0,
+    orderDetails?.payment?.purchase?.delivery_fee || 0
   );
 
   return (
@@ -384,8 +491,383 @@ const OrderDetails = () => {
         isLoading={cancelOrderMutation.isPending}
         orderDetails={orderDetails}
       />
+      {isGigLogistics() && (
+        <div className="bg-white rounded-xl shadow-sm px-6 py-4 mb-6">
+          <div className="flex gap-4 justify-end">
+            <button
+              onClick={fetchShipmentDetails}
+              disabled={isLoadingShipment}
+              className="cursor-pointer inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isLoadingShipment ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                <>
+                  <Package className="w-5 h-5" />
+                  View Shipment Details
+                </>
+              )}
+            </button>
+            <button
+              onClick={fetchTrackingDetails}
+              disabled={isLoadingTracking}
+              className="cursor-pointer inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isLoadingTracking ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                <>
+                  <Truck className="w-5 h-5" />
+                  Track Order
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
 
-      {/* Image Modal */}
+
+      {/* Shipment Details Modal - Similar to other implementations */}
+      {showShipmentDetailsModal && shipmentDetails && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b bg-purple-50">
+              <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                <Package className="w-7 h-7 text-purple-600" />
+                Shipment Details
+              </h3>
+              <button
+                onClick={handleCloseShipmentDetailsModal}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+              {shipmentDetails.data && shipmentDetails.data.length > 0 ? (
+                (() => {
+                  const shipment = shipmentDetails.data[0];
+                  return (
+                    <div className="space-y-6">
+                      {/* Main Shipment Info */}
+                      <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-100">
+                        <div className="grid grid-cols-2 gap-6">
+                          <div>
+                            <p className="text-sm font-medium text-gray-500 mb-1">Waybill Number</p>
+                            <p className="text-lg font-mono font-semibold text-gray-900">
+                              {shipment.Waybill}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-500 mb-1">Status</p>
+                            <span className={`inline-block px-4 py-1.5 rounded-full text-sm font-semibold ${
+                              shipment.IsDelivered
+                                ? "bg-green-100 text-green-700" 
+                                : "bg-yellow-100 text-yellow-700"
+                            }`}>
+                              {shipment.shipmentstatus}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-500 mb-1">Vehicle Type</p>
+                            <p className="text-base font-semibold text-purple-700">
+                              {shipment.VehicleType}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-500 mb-1">Delivery Type</p>
+                            <p className="text-base font-medium text-gray-900">
+                              {shipment.IsHomeDelivery ? "Home Delivery" : "Pickup"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Sender & Receiver Details */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-white border border-gray-200 rounded-xl p-5">
+                          <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                            <User className="w-5 h-5 text-blue-600" />
+                            Sender Information
+                          </h4>
+                          <div className="space-y-2 text-sm">
+                            <div>
+                              <p className="text-gray-500 text-xs">Name</p>
+                              <p className="font-medium text-gray-900">{shipment.SenderName}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500 text-xs">Phone</p>
+                              <p className="font-medium text-gray-900">{shipment.SenderPhoneNumber}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500 text-xs">Address</p>
+                              <p className="text-gray-700 text-xs leading-relaxed">{shipment.SenderAddress}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-white border border-gray-200 rounded-xl p-5">
+                          <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                            <MapPin className="w-5 h-5 text-green-600" />
+                            Receiver Information
+                          </h4>
+                          <div className="space-y-2 text-sm">
+                            <div>
+                              <p className="text-gray-500 text-xs">Name</p>
+                              <p className="font-medium text-gray-900">{shipment.ReceiverName}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500 text-xs">Phone</p>
+                              <p className="font-medium text-gray-900">{shipment.ReceiverPhoneNumber}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500 text-xs">Address</p>
+                              <p className="text-gray-700 text-xs leading-relaxed">{shipment.ReceiverAddress}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Pricing Information */}
+                      <div className="bg-white border border-gray-200 rounded-xl p-5">
+                        <h4 className="font-semibold text-gray-700 mb-4">Pricing Details</h4>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">Delivery Price</p>
+                            <p className="text-lg font-bold text-gray-900">₦{shipment.DeliveryPrice.toLocaleString()}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">Insurance</p>
+                            <p className="text-lg font-bold text-gray-900">₦{shipment.InsuranceValue.toLocaleString()}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">Grand Total</p>
+                            <p className="text-lg font-bold text-purple-600">₦{shipment.GrandTotal.toLocaleString()}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Dates */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Calendar className="w-5 h-5 text-blue-600" />
+                            <h4 className="font-semibold text-blue-900">Created</h4>
+                          </div>
+                          <p className="text-sm text-blue-800">
+                            {new Date(shipment.DateCreated).toLocaleString()}
+                          </p>
+                        </div>
+                        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Clock className="w-5 h-5 text-green-600" />
+                            <h4 className="font-semibold text-green-900">Last Modified</h4>
+                          </div>
+                          <p className="text-sm text-green-800">
+                            {new Date(shipment.DateModified).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Waybill Image */}
+                      {shipment.WaybillImageUrl && (
+                        <div className="bg-white border border-gray-200 rounded-xl p-5">
+                          <h4 className="font-semibold text-gray-700 mb-3">Waybill Image</h4>
+                          <img 
+                            src={shipment.WaybillImageUrl} 
+                            alt="Waybill" 
+                            className="w-full rounded-lg border border-gray-300"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()
+              ) : (
+                <div className="text-center py-12">
+                  <AlertTriangle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">No shipment details available</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Track Order Modal */}
+      {showTrackOrderModal && trackingDetails && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b bg-blue-50">
+              <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                <Truck className="w-7 h-7 text-blue-600" />
+                Track Order
+              </h3>
+              <button
+                onClick={handleCloseTrackOrderModal}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+              {trackingDetails.data && trackingDetails.data.length > 0 ? (
+                (() => {
+                  const shipment = trackingDetails.data[0];
+                  const trackings = shipment.MobileShipmentTrackings || [];
+                  
+                  return (
+                    <div className="space-y-6">
+                      {/* Shipment Summary */}
+                      <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-100">
+                        <div className="grid grid-cols-3 gap-4">
+                          <div>
+                            <p className="text-sm font-medium text-gray-500 mb-1">Waybill</p>
+                            <p className="text-lg font-mono font-semibold text-gray-900">
+                              {shipment.Waybill}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-500 mb-1">Amount</p>
+                            <p className="text-lg font-bold text-blue-600">
+                              ₦{shipment.Amount?.toLocaleString()}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-500 mb-1">Pickup Option</p>
+                            <p className="text-base font-medium text-gray-900">
+                            {shipment.MobileShipmentTrackings[0]?.PickupOptions || "N/A"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Timeline Events */}
+                      {trackings.length > 0 ? (
+                        <div className="relative">
+                          <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+                          
+                          <div className="space-y-6">
+                            {trackings.map((tracking, index) => {
+                              const isLatest = index === 0;
+                              return (
+                                <div key={index} className="relative flex gap-4 items-start">
+                                  <div className="relative z-10 flex-shrink-0">
+                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                                      isLatest
+                                        ? "bg-green-100 border-4 border-green-500" 
+                                        : "bg-gray-100 border-4 border-gray-300"
+                                    }`}>
+                                      {isLatest ? (
+                                        <CheckCircle className="w-6 h-6 text-green-600" />
+                                      ) : (
+                                        <Clock className="w-6 h-6 text-gray-500" />
+                                      )}
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex-1 bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                                    <div className="flex justify-between items-start mb-3">
+                                      <div className="flex-1">
+                                        <h4 className="font-semibold text-gray-900 text-lg mb-1">
+                                          {tracking.Status}
+                                        </h4>
+                                        {tracking.ScanStatusIncident && (
+                                          <p className="text-sm text-blue-600 font-medium">
+                                            {tracking.ScanStatusIncident}
+                                          </p>
+                                        )}
+                                      </div>
+                                      {tracking.DateTime && (
+                                        <span className="text-sm text-gray-500 flex items-center gap-1 ml-3">
+                                          <Calendar className="w-4 h-4" />
+                                          {(() => {
+                                              let dateStr = tracking.DateTime?.replace(" WAT", "");
+                                              let dateObj = dateStr ? new Date(dateStr.replace(/-/g, '/')) : null;
+                                              return dateObj && !isNaN(dateObj)
+                                                ? dateObj.toLocaleString(undefined, {
+                                                    year: 'numeric',
+                                                    month: 'short',
+                                                    day: '2-digit',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit',
+                                                  })
+                                                : tracking.DateTime || "N/A";
+                                            })()}
+                                        </span>
+                                      )}
+                                    </div>
+                                    
+                                    <div className="space-y-2">
+                                      {tracking.ScanStatusReason && (
+                                        <p className="text-sm text-gray-600">
+                                          <span className="font-medium">Reason:</span> {tracking.ScanStatusReason}
+                                        </p>
+                                      )}
+                                      
+                                      {tracking.ScanStatusComment && (
+                                        <p className="text-sm text-gray-600">
+                                          <span className="font-medium">Comment:</span> {tracking.ScanStatusComment}
+                                        </p>
+                                      )}
+                                      
+                                      {tracking.DepartureServiceCentre?.Name && (
+                                        <p className="text-sm text-gray-500 flex items-center gap-1 mt-2">
+                                          <MapPin className="w-4 h-4" />
+                                          {tracking.DepartureServiceCentre.Name}
+                                        </p>
+                                      )}
+                                    </div>
+
+                                    {/* Additional Info */}
+                                    <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-3">
+                                      {tracking.ServiceCentreId && (
+                                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                                          Service Centre: {tracking.ServiceCentreId}
+                                        </span>
+                                      )}
+                                      {tracking.TrackingType !== undefined && (
+                                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                                          Tracking Type: {tracking.TrackingType}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center py-12">
+                          <Clock className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                          <p className="text-gray-500">No tracking events available yet</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()
+              ) : (
+                <div className="text-center py-12">
+                  <AlertTriangle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">No tracking details available</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {/* The complete Admin OrderDetails continues with GIG logistics modals in the next file part... */}
       {showImageModal && (
         <div
           className="fixed inset-0 z-[9999] flex items-center justify-center backdrop-blur-sm bg-black/40"
@@ -469,7 +951,7 @@ const OrderDetails = () => {
             <div className="flex items-center gap-4">
               <span
                 className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(
-                  orderDetails?.status,
+                  orderDetails?.status
                 )}`}
               >
                 {orderDetails?.status || "Unknown"}
@@ -543,7 +1025,7 @@ const OrderDetails = () => {
                   <button
                     onClick={() => {
                       setModalImageUrl(
-                        orderDetails?.metadata?.tailorReferenceImage1,
+                        orderDetails?.metadata?.tailorReferenceImage1
                       );
                       setShowImageModal(true);
                     }}
@@ -578,7 +1060,7 @@ const OrderDetails = () => {
                   <button
                     onClick={() => {
                       setModalImageUrl(
-                        orderDetails?.metadata?.tailorReferenceImage,
+                        orderDetails?.metadata?.tailorReferenceImage
                       );
                       setShowImageModal(true);
                     }}
@@ -613,7 +1095,7 @@ const OrderDetails = () => {
                   <button
                     onClick={() => {
                       setModalImageUrl(
-                        orderDetails?.metadata?.vendorReferenceImage,
+                        orderDetails?.metadata?.vendorReferenceImage
                       );
                       setShowImageModal(true);
                     }}
@@ -728,8 +1210,8 @@ const OrderDetails = () => {
                         orderDetails?.status === "CANCELLED"
                           ? "bg-red-500 text-white shadow-lg ring-4 ring-red-100"
                           : index <= currentStep
-                            ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg ring-4 ring-purple-100"
-                            : "bg-white border-2 border-gray-300 text-gray-400"
+                          ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg ring-4 ring-purple-100"
+                          : "bg-white border-2 border-gray-300 text-gray-400"
                       }`}
                     >
                       {orderDetails?.status === "CANCELLED" ? (
@@ -745,8 +1227,8 @@ const OrderDetails = () => {
                         orderDetails?.status === "CANCELLED"
                           ? "text-red-600"
                           : index <= currentStep
-                            ? "text-purple-600"
-                            : "text-gray-500"
+                          ? "text-purple-600"
+                          : "text-gray-500"
                       }`}
                     >
                       {step}
@@ -925,7 +1407,7 @@ const OrderDetails = () => {
                                   ₦
                                   {item?.product?.price
                                     ? parseInt(
-                                        item?.product?.price,
+                                        item?.product?.price
                                       ).toLocaleString()
                                     : "0"}
                                 </p>
@@ -1056,7 +1538,7 @@ const OrderDetails = () => {
                             } catch (err) {
                               return formatDateStr(
                                 orderDetails?.created_at.split(".").shift(),
-                                "D/M/YYYY h:mm A",
+                                "D/M/YYYY h:mm A"
                               );
                             }
                           })()
@@ -1112,8 +1594,8 @@ const OrderDetails = () => {
                                 {hasStyleItems && index === 0
                                   ? "Tailor Address"
                                   : hasStyleItems && index === 1
-                                    ? "Customer Address"
-                                    : "Delivery Address"}
+                                  ? "Customer Address"
+                                  : "Delivery Address"}
                               </h4>
                             </div>
                             <div className="bg-gray-50 rounded-lg p-4">

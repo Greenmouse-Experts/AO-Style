@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Search, Package, MapPin, User, Tag, DollarSign } from "lucide-react";
+import { Search, Package, MapPin, User, Tag, DollarSign, Gem } from "lucide-react";
 import MarketplaceService from "../../../services/api/marketplace";
 import LoaderComponent from "../../../components/BeatLoader";
 import useToast from "../../../hooks/useToast";
@@ -55,11 +55,35 @@ export default function SearchResults() {
     };
 
     fetchSearchResults();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, category, color, price]);
 
   const handleProductClick = (product) => {
-    // Navigate to shop-details page with product ID
-    navigate(`/shop-details/${product.id}`);
+    // Determine the correct fabric ID for navigation
+    // The ShopDetails component expects a fabric ID
+    // Search API might return different structures, so check multiple possibilities
+    let fabricId = null;
+    
+    // First, check if there's a fabric object with an id
+    if (product.fabric?.id) {
+      fabricId = product.fabric.id;
+    } 
+    // If product.id exists and there's no fabric object, it might be the fabric ID directly
+    // (similar to how marketplace products work)
+    else if (product.id) {
+      fabricId = product.id;
+    }
+    // Check for alternative ID fields
+    else if (product.fabric_id) {
+      fabricId = product.fabric_id;
+    }
+    
+    if (fabricId) {
+      navigate(`/shop-details/${fabricId}`);
+    } else {
+      console.error("No valid fabric ID found for product:", product);
+      toastError("Unable to navigate to product details");
+    }
   };
 
   const formatPrice = (price) => {
@@ -71,14 +95,14 @@ export default function SearchResults() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex items-center justify-center min-h-[60vh] pt-24">
         <LoaderComponent />
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 mt-20">
+    <div className="max-w-7xl mx-auto px-4 py-8 pt-24">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Search Results</h1>
@@ -107,26 +131,34 @@ export default function SearchResults() {
             >
               {/* Product Image */}
               <div className="relative h-48 bg-gray-100 overflow-hidden">
-                {product.fabric?.photos?.[0] || product.style?.photos?.[0] ? (
+                {product.fabric?.photos?.[0] || 
+                 product.style?.photos?.[0] || 
+                 product.photos?.[0] || 
+                 product.image ? (
                   <img
-                    src={product.fabric?.photos?.[0] || product.style?.photos?.[0]}
+                    src={
+                      product.fabric?.photos?.[0] || 
+                      product.style?.photos?.[0] || 
+                      product.photos?.[0] || 
+                      product.image
+                    }
                     alt={product.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <Package className="w-16 h-16 text-gray-400" />
                   </div>
                 )}
-                {product.status && (
+                {(product.status || product.fabric?.approval_status || product.approval_status) && (
                   <span
                     className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-semibold ${
-                      product.status === "PUBLISHED"
+                      (product.status || product.fabric?.approval_status || product.approval_status) === "PUBLISHED"
                         ? "bg-green-100 text-green-800"
                         : "bg-yellow-100 text-yellow-800"
                     }`}
                   >
-                    {product.status}
+                    {product.status || product.fabric?.approval_status || product.approval_status}
                   </span>
                 )}
               </div>
@@ -137,35 +169,45 @@ export default function SearchResults() {
                   {product.name}
                 </h3>
 
-                {product.description && (
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                    {product.description}
-                  </p>
-                )}
-
                 {/* Product Details */}
                 <div className="space-y-2 mb-3">
+                  {/* Material Type / Fabric Type */}
+                  {(product.fabric?.material_type || product.material_type) && (
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Gem className="w-4 h-4 mr-2 text-purple-500" />
+                      <span className="capitalize">
+                        {product.fabric?.material_type || product.material_type}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Category */}
                   {product.category && (
                     <div className="flex items-center text-sm text-gray-600">
-                      <Tag className="w-4 h-4 mr-2" />
+                      <Tag className="w-4 h-4 mr-2 text-purple-500" />
                       <span>{product.category.name}</span>
                     </div>
                   )}
 
+                  {/* Market Place / Location */}
                   {product.fabric?.market_place && (
                     <div className="flex items-center text-sm text-gray-600">
-                      <MapPin className="w-4 h-4 mr-2" />
+                      <MapPin className="w-4 h-4 mr-2 text-purple-500" />
                       <span>{product.fabric.market_place.name}</span>
                     </div>
                   )}
 
-                  {product.creator && (
+                  {/* Creator / Seller */}
+                  {(product.creator || product.fabric?.creator) && (
                     <div className="flex items-center text-sm text-gray-600">
-                      <User className="w-4 h-4 mr-2" />
-                      <span>{product.creator.name}</span>
+                      <User className="w-4 h-4 mr-2 text-purple-500" />
+                      <span>
+                        {product.creator?.name || product.fabric?.creator?.name || "Unknown"}
+                      </span>
                     </div>
                   )}
 
+                  {/* Price */}
                   {product.price && (
                     <div className="flex items-center text-sm font-semibold text-purple-600">
                       <DollarSign className="w-4 h-4 mr-2" />
@@ -178,6 +220,21 @@ export default function SearchResults() {
                     </div>
                   )}
                 </div>
+
+                {/* Tags */}
+                {(product.tags || product.product?.tags) && 
+                 (product.tags?.length > 0 || product.product?.tags?.length > 0) && (
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {(product.tags || product.product?.tags || []).map((tag, index) => (
+                      <span
+                        key={index}
+                        className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full border border-gray-200"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 {/* SKU */}
                 {product.sku && (

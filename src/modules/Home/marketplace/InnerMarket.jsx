@@ -39,17 +39,20 @@ export default function MarketplacePage() {
     setPage(1);
   }, [debouncedSearchTerm]);
 
-  const { data: getMarketPlaceFabricData, isPending } = useGetMarketFabric({
-    "pagination[limit]": page,
+  // Build query params object, only including gender_suitability if a gender is selected
+  const queryParams = {
+    "pagination[limit]": 10,
     "pagination[page]": 1,
     id: marketDetails?.id,
-    material_type: typeFilter,
-    price: priceFilter,
-    color: colorFilter,
-    gender_suitability: genderFilter.toLocaleLowerCase(),
-    category_id: categoryFilter,
-    q: debounceSearch,
-  });
+    ...(typeFilter && { material_type: typeFilter }),
+    ...(priceFilter && { price: priceFilter }),
+    ...(colorFilter && { color: colorFilter }),
+    ...(genderFilter && { gender_suitability: genderFilter.toLocaleLowerCase() }),
+    ...(categoryFilter && { category_id: categoryFilter }),
+    ...(debounceSearch && { q: debounceSearch }),
+  };
+
+  const { data: getMarketPlaceFabricData, isPending } = useGetMarketFabric(queryParams);
 
   const isShowMoreBtn =
     getMarketPlaceFabricData?.data?.length == getMarketPlaceFabricData?.count;

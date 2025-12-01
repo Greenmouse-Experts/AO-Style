@@ -579,11 +579,14 @@ const CartPage = () => {
 
   // Payment with Paystack
   const payWithPaystack = ({ amount, payment_id }) => {
+    console.log("This is the amount", amount * 100);
+    console.log("💳 Payment ID for verification:", payment_id);
+    
     const handler = window.PaystackPop.setup({
       key: import.meta.env.VITE_PAYSTACK_API_KEY,
       email: carybinUser?.email,
       id: payment_id,
-      amount: amount * 100,
+      amount: new Decimal(amount).mul(100).toNumber(),
       currency: "NGN",
       reference: payment_id,
       ref: payment_id,
@@ -598,9 +601,13 @@ const CartPage = () => {
       },
       callback: function (response) {
         console.log("💳 Payment callback:", response);
+        console.log("💳 Using payment_id for verification:", payment_id);
+        console.log("💳 Paystack reference:", response?.reference);
+        
+        // Use the original payment_id from backend instead of Paystack's reference
         verifyPaymentMutate(
           {
-            id: response?.reference,
+            id: payment_id, // Use the original payment_id from backend, not Paystack's reference
           },
           {
             onSuccess: () => {
@@ -609,8 +616,10 @@ const CartPage = () => {
               toastSuccess("Payment successful!");
             },
             onError: (error) => {
-              toastError("Payment verification failed");
               console.error("Payment verification error:", error);
+              console.error("Payment ID used:", payment_id);
+              console.error("Error details:", error?.response?.data || error?.data);
+              toastError("Payment verification failed");
             },
           }
         );
@@ -906,14 +915,27 @@ const CartPage = () => {
               setShowConfirmationModal(false);
               setCoupon("");
 
+              // Get payment_id from the correct path in response
+              const paymentId = 
+                paymentResponse?.data?.data?.payment_id || 
+                paymentResponse?.data?.payment_id ||
+                paymentResponse?.payment_id;
+
               console.log("🚀 Launching Paystack with:", {
-                amount: finalTotal,
-                payment_id: paymentResponse?.data?.data?.payment_id,
+                amount: finalTotal.toNumber(),
+                payment_id: paymentId,
+                response_structure: paymentResponse?.data,
               });
+
+              if (!paymentId) {
+                console.error("❌ No payment_id found in response:", paymentResponse);
+                toastError("Failed to get payment ID. Please try again.");
+                return;
+              }
 
               payWithPaystack({
                 amount: finalTotal.toNumber(),
-                payment_id: paymentResponse?.data?.payment_id,
+                payment_id: paymentId,
               });
             },
             onError: (error) => {

@@ -73,6 +73,9 @@ const OrderDetails = () => {
   // Extract order information from API response
   const orderInfo = data?.data || {};
   const orderPurchase = data?.data?.order_items || [];
+  
+  // Extract customer email from order info
+  const customerEmail = orderInfo?.user?.email || "N/A";
 
   // Get attached image from metadata (first found)
   const attachedOrderImage =
@@ -1354,9 +1357,9 @@ const OrderDetails = () => {
           <h3 className="text-lg font-semibold mb-6">Customer & Vendor</h3>
           <div className="grid grid-cols-3 gap-8">
             <div>
-              <p className="text-sm text-gray-500 mb-2">CUSTOMER NAME</p>
+              <p className="text-sm text-gray-500 mb-2">CUSTOMER EMAIL</p>
               <p className="text-gray-900">
-                {orderInfo?.payment?.metadata[0]?.customer_name || "N/A"}
+                {customerEmail}
               </p>
             </div>
             <div>

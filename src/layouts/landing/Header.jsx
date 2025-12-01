@@ -5,7 +5,6 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   Bars3Icon,
   XMarkIcon,
-  MagnifyingGlassIcon,
   ShoppingCartIcon,
   UserIcon,
   ChevronDownIcon,
@@ -21,11 +20,8 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [mobileCareersOpen, setMobileCareersOpen] = useState(false);
   const [mobileProductOpen, setMobileProductOpen] = useState(false);
-  const searchRef = useRef(null);
   const menuRef = useRef(null);
   const navigate = useNavigate();
 
@@ -125,14 +121,6 @@ export default function Navbar() {
     localStorage.setItem("logout", Date.now().toString());
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery("");
-      setSearchOpen(false);
-    }
-  };
 
   return (
     <div>
@@ -170,36 +158,6 @@ export default function Navbar() {
 
             {/* Right Icons */}
             <div className="hidden lg:flex items-center space-x-4 lg:space-x-6">
-              {/* Search Bar */}
-              <div className="relative" ref={searchRef}>
-                {searchOpen ? (
-                  <form onSubmit={handleSearch} className="flex items-center">
-                    <input
-                      type="text"
-                      className="border border-gray-300 rounded-lg px-4 py-2 pr-10 w-64 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
-                      placeholder="Search products..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      autoFocus
-                      onBlur={() => {
-                        // Close search after a short delay to allow click events
-                        setTimeout(() => setSearchOpen(false), 200);
-                      }}
-                    />
-                    <button
-                      type="submit"
-                      className="absolute right-2 p-1 text-purple-600 hover:text-purple-700"
-                    >
-                      <MagnifyingGlassIcon className="h-5 w-5" />
-                    </button>
-                  </form>
-                ) : (
-                  <MagnifyingGlassIcon
-                    className="h-5 w-5 text-gray-800 cursor-pointer hover:text-purple-500 transition"
-                    onClick={() => setSearchOpen(true)}
-                  />
-                )}
-              </div>
               <Link to={`/view-cart`} className="transition relative">
                 <ShoppingCartIcon className="h-5 w-5 text-gray-800 cursor-pointer" />
                 {cartCount > 0 ? (
@@ -446,24 +404,6 @@ export default function Navbar() {
               {/* Bottom Buttons */}
               <div className="flex flex-col space-y-6 mt-6">
                 <div className="flex justify-start space-x-4">
-                  {/* Mobile Search */}
-                  <form onSubmit={handleSearch} className="flex-1">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        placeholder="Search products..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                      />
-                      <button
-                        type="submit"
-                        className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-purple-600"
-                      >
-                        <MagnifyingGlassIcon className="h-5 w-5" />
-                      </button>
-                    </div>
-                  </form>
                   <Link to={`/view-cart`} className="transition relative">
                     <ShoppingCartIcon className="h-5 w-5 text-[#545252] cursor-pointer" />
                     {cartCount > 0 ? (

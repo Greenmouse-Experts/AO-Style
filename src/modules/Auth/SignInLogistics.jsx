@@ -128,6 +128,32 @@ export default function SignUpAsLogisticsAgent() {
     },
   });
 
+  // Get user's current location automatically when signing up via invite
+  useEffect(() => {
+    if (token && navigator.geolocation) {
+      // Only get location if coordinates are not already set
+      if (!values.latitude || !values.longitude) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            console.log("📍 Auto-detected coordinates for invite signup:", { latitude, longitude });
+            setFieldValue("latitude", latitude.toString());
+            setFieldValue("longitude", longitude.toString());
+          },
+          (error) => {
+            console.warn("⚠️ Could not get user location:", error.message);
+            // Don't show error to user, they can still fill location manually
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0,
+          }
+        );
+      }
+    }
+  }, [token, setFieldValue, values.latitude, values.longitude]);
+
   const { ref } = usePlacesWidget({
     apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
     onPlaceSelected: (place) => {

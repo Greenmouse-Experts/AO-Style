@@ -198,14 +198,14 @@ export default function SearchResults() {
                   )}
 
                   {/* Creator / Seller */}
-                  {(product.creator || product.fabric?.creator) && (
+                  {/* {(product.creator || product.fabric?.creator) && (
                     <div className="flex items-center text-sm text-gray-600">
                       <User className="w-4 h-4 mr-2 text-purple-500" />
                       <span>
                         {product.creator?.name || product.fabric?.creator?.name || "Unknown"}
                       </span>
                     </div>
-                  )}
+                  )} */}
 
                   {/* Price */}
                   {product.price && (

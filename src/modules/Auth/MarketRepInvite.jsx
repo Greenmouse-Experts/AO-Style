@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import HowDidYouHearAboutUs from "../Auth/components/HowDidYouHearAboutUs";
 import useRegister from "./hooks/useSignUpMutate";
 import useGetInviteInfo from "../../hooks/marketRep/useGetInviteInfo";
@@ -102,6 +102,32 @@ export default function MarketRepInvite() {
       );
     },
   });
+
+  // Get user's current location automatically when signing up via invite
+  useEffect(() => {
+    if (token && navigator.geolocation) {
+      // Only get location if coordinates are not already set
+      if (!values.latitude || !values.longitude) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            console.log("📍 Auto-detected coordinates for invite signup:", { latitude, longitude });
+            setFieldValue("latitude", latitude.toString());
+            setFieldValue("longitude", longitude.toString());
+          },
+          (error) => {
+            console.warn("⚠️ Could not get user location:", error.message);
+            // Don't show error to user, they can still fill location manually
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0,
+          }
+        );
+      }
+    }
+  }, [token, setFieldValue, values.latitude, values.longitude]);
 
   // Google Places Autocomplete setup
   const { ref } = usePlacesWidget({

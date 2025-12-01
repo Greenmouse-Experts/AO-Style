@@ -172,6 +172,7 @@ export default function StylesTable() {
         label: "Price",
         key: "price",
         width: "120px",
+        align: "right",
         render: (price) => (
           <div className="text-right min-w-[120px]">
             <div className="text-lg font-bold text-purple-700 whitespace-nowrap">
@@ -186,6 +187,7 @@ export default function StylesTable() {
         label: "Admin Status",
         key: "admin-status",
         width: "200px",
+        align: "center",
         render: (_, row) => (
           <div className="flex flex-col items-center min-w-[200px] gap-1">
             {/* Product Status */}
@@ -210,6 +212,7 @@ export default function StylesTable() {
         label: "Actions",
         key: "action",
         width: "100px",
+        align: "center",
         render: (_, row) => (
           <div className="min-w-[100px] flex justify-center">
             <button

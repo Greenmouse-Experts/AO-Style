@@ -12,14 +12,26 @@ const ReusableTable = ({ columns, data, loading }) => {
           {/* Table Header */}
           <thead>
             <tr className="text-left text-gray-600">
-              {columns.map((col, index) => (
-                <th
-                  key={`header-${col.key || index}`}
-                  className="py-6 px-4 font-medium"
-                >
-                  {col.label}
-                </th>
-              ))}
+              {columns.map((col, index) => {
+                const alignClass = col.align === "right" 
+                  ? "text-right" 
+                  : col.align === "center" 
+                    ? "text-center" 
+                    : "text-left";
+                return (
+                  <th
+                    key={`header-${col.key || index}`}
+                    className={`py-6 px-4 font-medium ${alignClass}`}
+                    style={{ 
+                      width: col.width || "auto",
+                      minWidth: col.width || "auto",
+                      maxWidth: col.width || "none"
+                    }}
+                  >
+                    {col.label}
+                  </th>
+                );
+              })}
             </tr>
           </thead>
 
@@ -33,14 +45,25 @@ const ReusableTable = ({ columns, data, loading }) => {
                   rowIndex % 2 === 0 ? "bg-gray-50" : "bg-white"
                 } hover:bg-gray-100`}
               >
-                {columns.map((col, colIndex) => (
-                  <td
-                    key={`${row.id || rowIndex}-${col.key || colIndex}`}
-                    className="py-5 px-4 font-light relative overflow-visible"
-                  >
-                    {col.render ? col.render(row[col.key], row) : row[col.key]}
-                  </td>
-                ))}
+                {columns.map((col, colIndex) => {
+                  const alignClass = col.align === "right" 
+                    ? "text-right" 
+                    : col.align === "center" 
+                      ? "text-center" 
+                      : "text-left";
+                  return (
+                    <td
+                      key={`${row.id || rowIndex}-${col.key || colIndex}`}
+                      className={`py-5 px-4 font-light relative overflow-visible align-top ${alignClass}`}
+                      style={{ 
+                        width: col.width || "auto",
+                        minWidth: col.width || "auto"
+                      }}
+                    >
+                      {col.render ? col.render(row[col.key], row) : row[col.key]}
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>

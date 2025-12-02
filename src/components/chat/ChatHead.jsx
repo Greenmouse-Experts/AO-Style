@@ -253,6 +253,19 @@ const ChatHead = () => {
       if (data?.status === "success" && data?.data?.result) {
         setChats(data.data.result);
 
+        // Update selectedChat if it still exists in the refreshed list
+        setSelectedChat((prevSelectedChat) => {
+          if (prevSelectedChat) {
+            const updatedChat = data.data.result.find(
+              (chat) =>
+                chat.id === prevSelectedChat.id ||
+                chat.chat_buddy?.id === prevSelectedChat.chat_buddy?.id,
+            );
+            return updatedChat || prevSelectedChat;
+          }
+          return prevSelectedChat;
+        });
+
         // Check for pending chat selection from recentChatRetrieved
         if (socketInstance.pendingChatSelection) {
           const { chatId, chatBuddyId } = socketInstance.pendingChatSelection;
@@ -280,6 +293,7 @@ const ChatHead = () => {
           delete socketInstance.pendingChatSelection;
         }
 
+        // Calculate total unread count from server data (most accurate)
         const totalUnread = data.data.result.reduce(
           (sum, chat) => sum + (chat.unread || 0),
           0,
@@ -294,6 +308,19 @@ const ChatHead = () => {
       socketInstance.on(`chatsRetrieved:${currentUserId}`, (data) => {
         if (data?.status === "success" && data?.data?.result) {
           setChats(data.data.result);
+
+          // Update selectedChat if it still exists in the refreshed list
+          setSelectedChat((prevSelectedChat) => {
+            if (prevSelectedChat) {
+              const updatedChat = data.data.result.find(
+                (chat) =>
+                  chat.id === prevSelectedChat.id ||
+                  chat.chat_buddy?.id === prevSelectedChat.chat_buddy?.id,
+              );
+              return updatedChat || prevSelectedChat;
+            }
+            return prevSelectedChat;
+          });
 
           // Check for pending chat selection from recentChatRetrieved
           if (socketInstance.pendingChatSelection) {
@@ -323,6 +350,7 @@ const ChatHead = () => {
             delete socketInstance.pendingChatSelection;
           }
 
+          // Calculate total unread count from server data (most accurate)
           const totalUnread = data.data.result.reduce(
             (sum, chat) => sum + (chat.unread || 0),
             0,
@@ -429,6 +457,24 @@ const ChatHead = () => {
             };
           });
           setMessages(formattedMessages);
+          
+          // Ensure unread count is updated when messages are viewed
+          // Use functional update to get current state
+          setChats((prevChats) => {
+            const currentSelectedChat = prevChats.find((chat) => 
+              selectedChat && (chat.id === selectedChat.id || chat.chat_buddy?.id === selectedChat.chat_buddy?.id)
+            );
+            
+            if (currentSelectedChat && currentSelectedChat.unread > 0) {
+              const unreadToSubtract = currentSelectedChat.unread;
+              setUnreadCount((prev) => Math.max(0, prev - unreadToSubtract));
+              
+              return prevChats.map((chat) =>
+                chat.id === currentSelectedChat.id ? { ...chat, unread: 0 } : chat
+              );
+            }
+            return prevChats;
+          });
         }
       });
 
@@ -449,11 +495,15 @@ const ChatHead = () => {
       console.log("=== CHAT HEAD: MESSAGE RECEIVED (GENERAL) ===");
       console.log("Message data:", data);
       if (data?.data) {
-        // Update unread count
-        setUnreadCount((prev) => prev + 1);
+        const isCurrentlyViewing = selectedChat && data.data.chat_id === selectedChat.id;
+        
+        // Only update unread count if user is NOT currently viewing this chat
+        if (!isCurrentlyViewing) {
+          setUnreadCount((prev) => prev + 1);
+        }
 
         // If chat is selected, add message to current view
-        if (selectedChat && data.data.chat_id === selectedChat.id) {
+        if (isCurrentlyViewing) {
           const newMsg = {
             id: data.data.id,
             text: data.data.message,
@@ -476,7 +526,8 @@ const ChatHead = () => {
               ? {
                   ...chat,
                   last_message: data.data.message,
-                  unread: (chat.unread || 0) + 1,
+                  // Don't increment unread if user is currently viewing this chat
+                  unread: isCurrentlyViewing ? 0 : (chat.unread || 0) + 1,
                 }
               : chat,
           );
@@ -547,6 +598,24 @@ const ChatHead = () => {
           (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
         );
         setMessages(sortedMessages);
+        
+        // Ensure unread count is updated when messages are viewed
+        // Use functional update to get current state
+        setChats((prevChats) => {
+          const currentSelectedChat = prevChats.find((chat) => 
+            selectedChat && (chat.id === selectedChat.id || chat.chat_buddy?.id === selectedChat.chat_buddy?.id)
+          );
+          
+          if (currentSelectedChat && currentSelectedChat.unread > 0) {
+            const unreadToSubtract = currentSelectedChat.unread;
+            setUnreadCount((prev) => Math.max(0, prev - unreadToSubtract));
+            
+            return prevChats.map((chat) =>
+              chat.id === currentSelectedChat.id ? { ...chat, unread: 0 } : chat
+            );
+          }
+          return prevChats;
+        });
       }
     });
 
@@ -677,6 +746,15 @@ const ChatHead = () => {
 
     setMessages((prev) => [...prev, newMsg]);
     setNewMessage("");
+
+    // Refresh chats list after sending to get updated unread counts from server
+    setTimeout(() => {
+      if (socket && (userToken || adminToken)) {
+        socket.emit("retrieveChats", {
+          token: isAdmin ? adminToken : userToken,
+        });
+      }
+    }, 500);
   };
 
   // Send new message (admin)
@@ -706,6 +784,20 @@ const ChatHead = () => {
 
     // Clear messages first
     setMessages([]);
+
+    // Immediately update unread count when viewing a chat
+    const chatUnreadCount = chat.unread || 0;
+    if (chatUnreadCount > 0) {
+      // Update the unread count by subtracting this chat's unread count
+      setUnreadCount((prev) => Math.max(0, prev - chatUnreadCount));
+      
+      // Update the chats array to mark this chat as read (0 unread)
+      setChats((prevChats) =>
+        prevChats.map((c) =>
+          c.id === chat.id ? { ...c, unread: 0 } : c
+        )
+      );
+    }
 
     // Emit retrieveMessages - match inbox pattern exactly
     if (socket && (userToken || adminToken)) {

@@ -767,7 +767,7 @@ export default function ShopDetails() {
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                   <div className="flex items-center bg-gray-50 sm:bg-none rounded-lg overflow-hidden">
                     {/* If coming from style, show double -/+ buttons */}
-                    {productVal?.product?.enable_increment ? (
+                    {productVal?.product?.enable_increment && productVal?.minimum_yards > 1 ? (
                       <>
                         {/* -1 Button */}
                         <Tooltip

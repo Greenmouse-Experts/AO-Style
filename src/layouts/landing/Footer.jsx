@@ -169,7 +169,7 @@ const Footer = () => {
 
         {/* Contact Info */}
         <div className="col-span-2">
-          <h4 className="font-medium mb-6 text-lg">Contact Info (Lagos)</h4>
+          <h4 className="font-medium mb-6 text-lg">Contact Info</h4>
           <ul className="space-y-6">
             <p className="flex items-center gap-2 text-[#C5C5C5] font-light">
               <FaPhone /> +234 705 355 9086

@@ -1353,7 +1353,7 @@ const OrderDetails = () => {
         </div>
 
         {/* Customer & Vendor */}
-        <div className="bg-white rounded-lg p-6">
+        {/* <div className="bg-white rounded-lg p-6">
           <h3 className="text-lg font-semibold mb-6">Customer & Vendor</h3>
           <div className="grid grid-cols-3 gap-8">
             <div>
@@ -1379,7 +1379,7 @@ const OrderDetails = () => {
               <p className="text-gray-900">Logistics</p>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Upload Modal */}

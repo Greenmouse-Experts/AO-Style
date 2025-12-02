@@ -11,6 +11,7 @@ import {
   BriefcaseIcon,
   UsersIcon,
   ArrowRightIcon,
+  MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import useGetCart from "../../hooks/cart/useGetCart";
 import { useCarybinUserStore } from "../../store/carybinUserStore";
@@ -19,6 +20,8 @@ import useToast from "../../hooks/useToast";
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const [mobileCareersOpen, setMobileCareersOpen] = useState(false);
   const [mobileProductOpen, setMobileProductOpen] = useState(false);
@@ -121,6 +124,14 @@ export default function Navbar() {
     localStorage.setItem("logout", Date.now().toString());
   };
 
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery("");
+    }
+  };
+
 
   return (
     <div>
@@ -139,7 +150,7 @@ export default function Navbar() {
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden lg:flex flex-grow justify-left space-x-4 lg:space-x-6 xl:space-x-8 cursor-pointer">
+            <div className="hidden lg:flex flex-grow justify-left space-x-4 lg:space-x-6 xl:space-x-8 cursor-pointer items-center">
               {[
                 { name: "Home", link: "/" },
                 { name: "About", link: "/about" },
@@ -154,6 +165,50 @@ export default function Navbar() {
                 </Link>
               ))}
               <Inject />
+              
+              {/* Search Bar */}
+              <form onSubmit={handleSearch} className="flex-1 max-w-md mx-4">
+                <div className={`relative flex items-center bg-white border transition-all duration-300 rounded-full ${
+                  isSearchFocused 
+                    ? "border-purple-500 shadow-lg shadow-purple-200/50 ring-2 ring-purple-200" 
+                    : "border-gray-200 shadow-sm hover:border-purple-300 hover:shadow-md"
+                }`}>
+                  <div className="absolute left-4 flex items-center pointer-events-none">
+                    <MagnifyingGlassIcon className={`h-5 w-5 transition-colors duration-300 ${
+                      isSearchFocused ? "text-purple-600" : "text-gray-400"
+                    }`} />
+                  </div>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => setIsSearchFocused(true)}
+                    onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                    placeholder="Search items"
+                    className="w-full py-3 pl-12 pr-24 bg-transparent text-gray-900 placeholder-gray-400 border-0 rounded-full focus:outline-none focus:ring-0"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-16 p-1 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+                    >
+                      <XMarkIcon className="h-4 w-4" />
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={!searchQuery.trim()}
+                    className={`absolute right-2 px-5 py-2 rounded-full transition-all duration-300 font-medium text-sm ${
+                      searchQuery.trim()
+                        ? "bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
+                        : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    }`}
+                  >
+                    Search
+                  </button>
+                </div>
+              </form>
             </div>
 
             {/* Right Icons */}
@@ -314,6 +369,50 @@ export default function Navbar() {
                 <XMarkIcon className="h-6 w-6 text-gray-800" />
               </button>
               <div className="flex flex-col space-y-6 mt-6">
+                {/* Mobile Search Bar */}
+                <form onSubmit={handleSearch} className="w-full">
+                  <div className={`relative flex items-center bg-white border transition-all duration-300 rounded-full ${
+                    isSearchFocused 
+                      ? "border-purple-500 shadow-lg shadow-purple-200/50 ring-2 ring-purple-200" 
+                      : "border-gray-200 shadow-sm hover:border-purple-300 hover:shadow-md"
+                  }`}>
+                    <div className="absolute left-4 flex items-center pointer-events-none">
+                      <MagnifyingGlassIcon className={`h-5 w-5 transition-colors duration-300 ${
+                        isSearchFocused ? "text-purple-600" : "text-gray-400"
+                      }`} />
+                    </div>
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onFocus={() => setIsSearchFocused(true)}
+                      onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                      placeholder="Search items..."
+                      className="w-full py-3 pl-12 pr-24 bg-transparent text-gray-900 placeholder-gray-400 border-0 rounded-full focus:outline-none focus:ring-0"
+                    />
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery("")}
+                        className="absolute right-16 p-1 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+                      >
+                        <XMarkIcon className="h-4 w-4" />
+                      </button>
+                    )}
+                    <button
+                      type="submit"
+                      disabled={!searchQuery.trim()}
+                      className={`absolute right-2 px-5 py-2 rounded-full transition-all duration-300 font-medium text-sm ${
+                        searchQuery.trim()
+                          ? "bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
+                          : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                      }`}
+                    >
+                      Search
+                    </button>
+                  </div>
+                </form>
+
                 {[
                   { name: "Home", link: "/" },
                   { name: "About", link: "/about" },

@@ -735,12 +735,48 @@ const CartPage = () => {
           const addedStyles = new Set(); // Track added styles to prevent duplicates
 
           items.forEach((item) => {
+            // Get weight_per_unit from product fabric - ensure it's a valid decimal string
+            // For styles, we use the fabric's weight_per_unit since styles are made from fabric
+            const getWeightPerUnit = (item) => {
+              // Priority order: product.fabric.weight_per_unit > fabric.weight_per_unit > others
+              const weight = 
+                item.product?.fabric?.weight_per_unit ||
+                item.fabric?.weight_per_unit ||
+                item.weight_per_unit ||
+                item.product?.weight_per_unit ||
+                null;
+              
+              console.log("⚖️ Weight lookup for item:", {
+                itemId: item.id,
+                productId: item.product_id,
+                weightFromProductFabric: item.product?.fabric?.weight_per_unit,
+                weightFromFabric: item.fabric?.weight_per_unit,
+                weightFromItem: item.weight_per_unit,
+                finalWeight: weight,
+              });
+              
+              // Convert to string and ensure it's a valid decimal
+              if (weight !== null && weight !== undefined) {
+                const weightStr = String(weight).trim();
+                // Validate it's a valid decimal number
+                if (weightStr && !isNaN(parseFloat(weightStr)) && parseFloat(weightStr) >= 0) {
+                  return weightStr;
+                }
+              }
+              // Default to "0" if not found or invalid
+              console.warn("⚠️ No valid weight_per_unit found for item, using default '0':", item.id);
+              return "0";
+            };
+
+            const weightPerUnit = getWeightPerUnit(item);
+
             // Add fabric purchase
             purchases.push({
               purchase_id: item.product_id,
               quantity: Number(item.quantity),
               purchase_type:
                 item.product_type || item.product?.type || "FABRIC",
+              weight_per_unit: weightPerUnit,
             });
             metadata.push({
               ...item.metadata,
@@ -755,10 +791,21 @@ const CartPage = () => {
               item.style_product?.id &&
               !addedStyles.has(item.style_product.id)
             ) {
+              // For style purchases, use the fabric's weight_per_unit (styles are made from fabric)
+              const styleWeightPerUnit = getWeightPerUnit(item);
+              
+              console.log("🎨 Style purchase weight:", {
+                styleId: item.style_product.id,
+                fabricProductId: item.product_id,
+                weightPerUnit: styleWeightPerUnit,
+                source: "fabric_weight",
+              });
+
               purchases.push({
                 purchase_id: item.style_product.id,
                 quantity: item?.measurement?.length,
                 purchase_type: "STYLE",
+                weight_per_unit: styleWeightPerUnit, // Uses fabric's weight_per_unit
               });
               metadata.push({
                 ...item.metadata,
@@ -874,6 +921,18 @@ const CartPage = () => {
             return;
           }
 
+          // Validate all purchases have weight_per_unit before sending
+          const purchasesWithoutWeight = purchases.filter(
+            (p) => !p.weight_per_unit || p.weight_per_unit === ""
+          );
+          if (purchasesWithoutWeight.length > 0) {
+            console.error("❌ Purchases missing weight_per_unit:", purchasesWithoutWeight);
+            toastError(
+              "Error: Some items are missing weight information. Please refresh and try again."
+            );
+            return;
+          }
+
           const paymentData = {
             purchases,
             metadata: metadata,
@@ -897,7 +956,12 @@ const CartPage = () => {
             ).length,
             stylePurchases: purchases.filter((p) => p.purchase_type === "STYLE")
               .length,
-            purchases: purchases,
+            purchases: purchases.map((p) => ({
+              purchase_id: p.purchase_id,
+              purchase_type: p.purchase_type,
+              quantity: p.quantity,
+              weight_per_unit: p.weight_per_unit,
+            })),
             duplicateCheck: {
               allPurchaseIds: purchases.map((p) => p.purchase_id),
               duplicatePurchaseIds: purchases
@@ -906,6 +970,14 @@ const CartPage = () => {
               hasDuplicates:
                 new Set(purchases.map((p) => p.purchase_id)).size !==
                 purchases.length,
+            },
+            weightValidation: {
+              allHaveWeight: purchases.every((p) => p.weight_per_unit && p.weight_per_unit !== ""),
+              weightValues: purchases.map((p) => ({
+                id: p.purchase_id,
+                type: p.purchase_type,
+                weight: p.weight_per_unit,
+              })),
             },
           });
 

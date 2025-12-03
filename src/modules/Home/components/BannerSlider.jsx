@@ -131,7 +131,7 @@ export default function HeroSlider() {
               />
             </div>
             <div className="text-white text-sm font-light">
-              Trusted by 1000+ users
+              Trusted by users
             </div>
           </div>
         </div>

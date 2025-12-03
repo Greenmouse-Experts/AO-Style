@@ -135,7 +135,7 @@ export default function Navbar() {
 
   return (
     <div>
-      <nav className="bg-white fixed w-full z-[95] py-3">
+      <nav className="fixed w-full z-[95] py-3 backdrop-blur-md bg-white/80 border-b border-white/20 shadow-lg shadow-purple-500/5">
         <div className="Resizer">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -150,7 +150,7 @@ export default function Navbar() {
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden lg:flex flex-grow justify-left space-x-4 lg:space-x-6 xl:space-x-8 cursor-pointer items-center">
+            <div className="hidden lg:flex flex-grow justify-left space-x-5 lg:space-x-6 xl:space-x-8 cursor-pointer items-center">
               {[
                 { name: "Home", link: "/" },
                 { name: "About", link: "/about" },
@@ -159,19 +159,20 @@ export default function Navbar() {
                 <Link
                   key={item.name}
                   to={item.link}
-                  className="text-[#545252] text-base font-light hover:text-purple-500 transition"
+                  className="text-[#545252] text-base font-medium hover:text-purple-600 transition-colors duration-200 relative group"
                 >
                   {item.name}
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-purple-600 transition-all duration-300 group-hover:w-full"></span>
                 </Link>
               ))}
               <Inject />
               
               {/* Search Bar */}
               <form onSubmit={handleSearch} className="flex-1 max-w-md mx-4">
-                <div className={`relative flex items-center bg-white border transition-all duration-300 rounded-full ${
+                <div className={`relative flex items-center backdrop-blur-sm bg-white/90 border transition-all duration-300 rounded-full ${
                   isSearchFocused 
-                    ? "border-purple-500 shadow-lg shadow-purple-200/50 ring-2 ring-purple-200" 
-                    : "border-gray-200 shadow-sm hover:border-purple-300 hover:shadow-md"
+                    ? "border-purple-500/80 shadow-lg shadow-purple-200/50 ring-2 ring-purple-200/30" 
+                    : "border-gray-200/50 shadow-sm hover:border-purple-300/60 hover:shadow-md"
                 }`}>
                   <div className="absolute left-4 flex items-center pointer-events-none">
                     <MagnifyingGlassIcon className={`h-5 w-5 transition-colors duration-300 ${
@@ -185,13 +186,13 @@ export default function Navbar() {
                     onFocus={() => setIsSearchFocused(true)}
                     onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
                     placeholder="Search items"
-                    className="w-full py-3 pl-12 pr-24 bg-transparent text-gray-900 placeholder-gray-400 border-0 rounded-full focus:outline-none focus:ring-0"
+                    className="w-full py-3 pl-12 pr-14 bg-transparent text-gray-900 placeholder-gray-400 border-0 rounded-full focus:outline-none focus:ring-0"
                   />
                   {searchQuery && (
                     <button
                       type="button"
                       onClick={() => setSearchQuery("")}
-                      className="absolute right-16 p-1 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+                      className="absolute right-12 p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
                     >
                       <XMarkIcon className="h-4 w-4" />
                     </button>
@@ -199,13 +200,14 @@ export default function Navbar() {
                   <button
                     type="submit"
                     disabled={!searchQuery.trim()}
-                    className={`absolute right-2 px-5 py-2 rounded-full transition-all duration-300 font-medium text-sm ${
+                    className={`absolute right-2 p-2.5 rounded-full transition-all duration-300 ${
                       searchQuery.trim()
-                        ? "bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
+                        ? "bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-md hover:shadow-lg transform hover:scale-110 active:scale-95"
                         : "bg-gray-200 text-gray-400 cursor-not-allowed"
                     }`}
+                    title="Search"
                   >
-                    Search
+                    <MagnifyingGlassIcon className="h-5 w-5" />
                   </button>
                 </div>
               </form>
@@ -244,13 +246,13 @@ export default function Navbar() {
 
                     {/* Enhanced Dropdown */}
                     {isDropdownOpen && (
-                      <div className="absolute right-0 top-12 w-48 bg-white shadow-xl rounded-xl border border-purple-100 z-50 animate-fade-in overflow-hidden">
+                      <div className="absolute right-0 top-14 w-56 bg-white shadow-2xl rounded-xl border border-purple-100 z-50 overflow-hidden transform transition-all duration-300 ease-out opacity-0 animate-[fadeIn_0.3s_ease-out_forwards]">
                         {/* Header */}
-                        <div className="px-4 py-3 bg-gradient-to-r from-purple-50 to-purple-100 border-b border-purple-100">
-                          <p className="text-xs text-purple-600 font-medium">
+                        <div className="px-4 py-3 bg-gradient-to-r from-purple-50 via-purple-50 to-purple-100 border-b border-purple-100">
+                          <p className="text-xs text-purple-600 font-medium uppercase tracking-wide">
                             Welcome back,
                           </p>
-                          <p className="text-sm font-semibold text-purple-800 truncate">
+                          <p className="text-sm font-semibold text-purple-800 truncate mt-0.5">
                             {carybinUser?.name}
                           </p>
                         </div>
@@ -264,8 +266,8 @@ export default function Navbar() {
                             }}
                             to={`/${currUrl}`}
                           >
-                            <div className="flex items-center px-4 py-3 hover:bg-purple-50 cursor-pointer transition-all duration-150 group">
-                              <div className="p-1.5 bg-purple-100 rounded-lg mr-3 group-hover:bg-purple-200 transition-colors">
+                            <div className="flex items-center px-4 py-3 hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100 cursor-pointer transition-all duration-200 group">
+                              <div className="p-2 bg-purple-100 rounded-lg mr-3 group-hover:bg-purple-200 group-hover:scale-110 transition-all duration-200">
                                 <svg
                                   className="h-4 w-4 text-purple-600"
                                   fill="none"
@@ -280,7 +282,7 @@ export default function Navbar() {
                                   />
                                 </svg>
                               </div>
-                              <span className="text-sm font-medium text-gray-700 group-hover:text-purple-700">
+                              <span className="text-sm font-medium text-gray-700 group-hover:text-purple-700 transition-colors">
                                 My Account
                               </span>
                             </div>
@@ -294,9 +296,9 @@ export default function Navbar() {
                               setIsDropdownOpen(false);
                               setIsOpen(false);
                             }}
-                            className="flex items-center w-full px-4 py-3 hover:bg-red-50 cursor-pointer transition-all duration-150 group"
+                            className="flex items-center w-full px-4 py-3 hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 cursor-pointer transition-all duration-200 group"
                           >
-                            <div className="p-1.5 bg-red-100 rounded-lg mr-3 group-hover:bg-red-200 transition-colors">
+                            <div className="p-2 bg-red-100 rounded-lg mr-3 group-hover:bg-red-200 group-hover:scale-110 transition-all duration-200">
                               <svg
                                 className="h-4 w-4 text-red-600"
                                 fill="none"
@@ -311,7 +313,7 @@ export default function Navbar() {
                                 />
                               </svg>
                             </div>
-                            <span className="text-sm font-medium text-red-600">
+                            <span className="text-sm font-medium text-red-600 group-hover:text-red-700 transition-colors">
                               Logout
                             </span>
                           </button>
@@ -330,9 +332,10 @@ export default function Navbar() {
                   </div>
                   <Link
                     to="/sign-up"
-                    className="bg-gradient text-white px-5 lg:px-6 py-2 lg:py-3 hover:bg-purple-600 transition"
+                    className="relative bg-gradient-to-r from-purple-600 to-pink-500 text-white px-6 lg:px-8 py-2.5 lg:py-3 rounded-full font-semibold text-sm shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 transition-all duration-300 hover:scale-105 active:scale-95 overflow-hidden group whitespace-nowrap"
                   >
-                    Get Started
+                    <span className="relative z-10">Get Started</span>
+                    <span className="absolute inset-0 bg-gradient-to-r from-purple-700 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
                   </Link>
                 </>
               )}
@@ -358,7 +361,7 @@ export default function Navbar() {
         {isOpen && (
           <div
             ref={menuRef}
-            className="fixed inset-y-0 right-0 w-74 bg-white transform transition-transform duration-300 ease-in-out translate-x-0"
+            className="fixed inset-y-0 right-0 w-74 backdrop-blur-md bg-white/95 border-l border-white/20 shadow-2xl transform transition-transform duration-300 ease-in-out translate-x-0"
             onMouseLeave={() => setIsOpen(false)}
           >
             <div className="p-6">
@@ -371,10 +374,10 @@ export default function Navbar() {
               <div className="flex flex-col space-y-6 mt-6">
                 {/* Mobile Search Bar */}
                 <form onSubmit={handleSearch} className="w-full">
-                  <div className={`relative flex items-center bg-white border transition-all duration-300 rounded-full ${
+                  <div className={`relative flex items-center backdrop-blur-sm bg-white/90 border transition-all duration-300 rounded-full ${
                     isSearchFocused 
-                      ? "border-purple-500 shadow-lg shadow-purple-200/50 ring-2 ring-purple-200" 
-                      : "border-gray-200 shadow-sm hover:border-purple-300 hover:shadow-md"
+                      ? "border-purple-500/80 shadow-lg shadow-purple-200/50 ring-2 ring-purple-200/30" 
+                      : "border-gray-200/50 shadow-sm hover:border-purple-300/60 hover:shadow-md"
                   }`}>
                     <div className="absolute left-4 flex items-center pointer-events-none">
                       <MagnifyingGlassIcon className={`h-5 w-5 transition-colors duration-300 ${
@@ -388,13 +391,13 @@ export default function Navbar() {
                       onFocus={() => setIsSearchFocused(true)}
                       onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
                       placeholder="Search items..."
-                      className="w-full py-3 pl-12 pr-24 bg-transparent text-gray-900 placeholder-gray-400 border-0 rounded-full focus:outline-none focus:ring-0"
+                      className="w-full py-3 pl-12 pr-14 bg-transparent text-gray-900 placeholder-gray-400 border-0 rounded-full focus:outline-none focus:ring-0"
                     />
                     {searchQuery && (
                       <button
                         type="button"
                         onClick={() => setSearchQuery("")}
-                        className="absolute right-16 p-1 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+                        className="absolute right-12 p-1.5 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
                       >
                         <XMarkIcon className="h-4 w-4" />
                       </button>
@@ -402,13 +405,14 @@ export default function Navbar() {
                     <button
                       type="submit"
                       disabled={!searchQuery.trim()}
-                      className={`absolute right-2 px-5 py-2 rounded-full transition-all duration-300 font-medium text-sm ${
+                      className={`absolute right-2 p-2.5 rounded-full transition-all duration-300 ${
                         searchQuery.trim()
-                          ? "bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
+                          ? "bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-md hover:shadow-lg transform hover:scale-110 active:scale-95"
                           : "bg-gray-200 text-gray-400 cursor-not-allowed"
                       }`}
+                      title="Search"
                     >
-                      Search
+                      <MagnifyingGlassIcon className="h-5 w-5" />
                     </button>
                   </div>
                 </form>
@@ -580,9 +584,10 @@ export default function Navbar() {
                 ) : (
                   <Link
                     to="/sign-up"
-                    className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-6 py-2 rounded-lg font-semibold shadow hover:scale-105 hover:bg-purple-600 transition"
+                    className="relative bg-gradient-to-r from-purple-600 to-pink-500 text-white px-6 py-3 rounded-full font-semibold text-sm shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 transition-all duration-300 hover:scale-105 active:scale-95 overflow-hidden group whitespace-nowrap"
                   >
-                    Get Started
+                    <span className="relative z-10">Get Started</span>
+                    <span className="absolute inset-0 bg-gradient-to-r from-purple-700 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
                   </Link>
                 )}
               </div>

@@ -10,7 +10,7 @@ import ShippingInfo from "./components/ShippingInfo";
 
 export default function NewHome() {
     return (
-        <>
+        <div className="pt-[88px]">
             <BannerSlider />
             <MarketplaceSection />
             <ProductGrid />
@@ -20,6 +20,6 @@ export default function NewHome() {
             <TestimonialSlider />
             < FaqSection/>
             <ShippingInfo />
-        </>
+        </div>
     );
 }

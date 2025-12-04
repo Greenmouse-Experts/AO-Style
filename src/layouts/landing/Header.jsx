@@ -203,7 +203,7 @@ export default function Navbar() {
                     className={`absolute right-2 p-2.5 rounded-full transition-all duration-300 ${
                       searchQuery.trim()
                         ? "bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-md hover:shadow-lg transform hover:scale-110 active:scale-95"
-                        : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        : "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-md hover:shadow-lg cursor-not-allowed"
                     }`}
                     title="Search"
                   >
@@ -361,10 +361,11 @@ export default function Navbar() {
         {isOpen && (
           <div
             ref={menuRef}
-            className="fixed inset-y-0 right-0 w-74 backdrop-blur-md bg-white/95 border-l border-white/20 shadow-2xl transform transition-transform duration-300 ease-in-out translate-x-0"
+            className="fixed inset-y-0 right-0 w-74 bg-white border-l border-gray-200 shadow-2xl transform transition-transform duration-300 ease-in-out translate-x-0 z-[96]"
+            style={{ backgroundColor: '#ffffff' }}
             onMouseLeave={() => setIsOpen(false)}
           >
-            <div className="p-6">
+            <div className="p-6 bg-white">
               <button
                 className="absolute top-4 right-4"
                 onClick={() => setIsOpen(false)}
@@ -408,7 +409,7 @@ export default function Navbar() {
                       className={`absolute right-2 p-2.5 rounded-full transition-all duration-300 ${
                         searchQuery.trim()
                           ? "bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-md hover:shadow-lg transform hover:scale-110 active:scale-95"
-                          : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                          : "bg-gradient-to-r from-purple-500 to-purple-500 text-white hover:from-purple-700 hover:to-purple-800 shadow-md hover:shadow-lg transform hover:scale-110 active:scale-95 cursor-not-allowed"
                       }`}
                       title="Search"
                     >

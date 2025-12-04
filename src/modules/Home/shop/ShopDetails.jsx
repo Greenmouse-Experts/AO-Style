@@ -782,7 +782,7 @@ export default function ShopDetails() {
                             <button
                               onClick={() =>
                                 setQuantity((prev) =>
-                                  +prev > +productVal?.minimum_yards
+                                  +prev > +productVal?.minimum_yardsT
                                     ? +prev - 1
                                     : +productVal?.minimum_yards,
                                 )

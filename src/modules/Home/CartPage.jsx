@@ -818,7 +818,7 @@ const CartPage = () => {
               // Mark this style as added to prevent duplicates
               addedStyles.add(item.style_product.id);
             }
-
+// a comment just to trigger another push
             // Add metadata for ALL style items (even if style purchase already added)
             if (item.style_product?.id) {
               metadata.push({

@@ -167,19 +167,22 @@ const ViewFabric = () => {
       {
         label: "Status",
         key: "status",
-        render: (status) => (
-          <span
-            className={`px-3 py-1 text-sm rounded-full ${
-              status === "PUBLISHED"
-                ? "bg-green-100 text-green-700"
-                : status === "Cancelled"
-                  ? "bg-red-100 text-red-700"
-                  : "bg-yellow-100 text-yellow-700"
-            }`}
-          >
-            {status}
-          </span>
-        ),
+        render: (status, row) => {
+          const approvalStatus = row?.approval_status || status || "DRAFT";
+          return (
+            <span
+              className={`px-3 py-1 text-sm rounded-full ${
+                approvalStatus === "PUBLISHED"
+                  ? "bg-green-100 text-green-700"
+                  : approvalStatus === "Cancelled"
+                    ? "bg-red-100 text-red-700"
+                    : "bg-yellow-100 text-yellow-700"
+              }`}
+            >
+              {approvalStatus}
+            </span>
+          );
+        },
       },
       {
         label: "Action",

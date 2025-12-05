@@ -13,18 +13,19 @@ const useProfilePolling = () => {
   const tokenKey = isAdminRoute ? "adminToken" : "token";
   const token = Cookies.get(tokenKey);
   const hasLoggedOutRef = useRef(false);
+  const logoutInProgressRef = useRef(false);
 
   // Poll user profile every 1 minute (60000ms)
   const { error } = useQuery({
     queryKey: ["profile-polling"],
     queryFn: async () => {
-      if (!token) {
+      if (!token || hasLoggedOutRef.current || logoutInProgressRef.current) {
         return null;
       }
       const response = await AuthService.GetUser();
       return response?.data?.data;
     },
-    enabled: !!token && !hasLoggedOutRef.current, // Only poll if token exists and we haven't logged out
+    enabled: !!token && !hasLoggedOutRef.current && !logoutInProgressRef.current, // Only poll if token exists and we haven't logged out
     refetchInterval: 60000, // Poll every 1 minute (60000ms)
     refetchIntervalInBackground: true, // Continue polling even when tab is in background
     retry: (failureCount, error) => {
@@ -38,18 +39,48 @@ const useProfilePolling = () => {
 
   // Handle 401 errors and logout
   useEffect(() => {
-    if (error?.response?.status === 401 && !hasLoggedOutRef.current) {
+    if (error?.response?.status === 401 && !hasLoggedOutRef.current && !logoutInProgressRef.current) {
       console.log("🚨 Profile Polling: 401 Unauthorized - Account deleted. Logging out...");
       
       // Prevent multiple logout attempts
       hasLoggedOutRef.current = true;
+      logoutInProgressRef.current = true;
 
-      // Perform logout
+      // Perform logout using SessionManager which handles all cleanup and redirect
       try {
         sessionManager.performLogout();
-        console.log("✅ Profile Polling: User logged out successfully");
+        console.log("✅ Profile Polling: Logout initiated, redirect should happen automatically");
       } catch (logoutError) {
         console.error("❌ Profile Polling: Error during logout", logoutError);
+        
+        // Fallback: Manual cleanup and redirect if performLogout fails
+        sessionManager.clearAuthData();
+        
+        // Clear all user stores
+        if (window.zustandStores) {
+          window.zustandStores.forEach((store) => {
+            try {
+              const state = store.getState();
+              if (typeof state.logOut === "function") {
+                state.logOut();
+              } else if (typeof state.clearCart === "function") {
+                state.clearCart();
+              }
+            } catch (error) {
+              console.error("❌ Profile Polling: Error clearing store", error);
+            }
+          });
+        }
+
+        // Determine login path and redirect
+        const currentPath = window.location.pathname;
+        let loginPath = "/login";
+        if (currentPath.includes("/admin")) {
+          loginPath = "/admin/login";
+        }
+        
+        console.log("🔄 Profile Polling: Fallback redirect to", loginPath);
+        window.location.href = loginPath;
       }
     }
   }, [error]);
@@ -58,6 +89,7 @@ const useProfilePolling = () => {
   useEffect(() => {
     if (!token) {
       hasLoggedOutRef.current = false;
+      logoutInProgressRef.current = false;
     }
   }, [token]);
 };

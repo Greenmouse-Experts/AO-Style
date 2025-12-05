@@ -10,6 +10,7 @@ import useSessionManager from "../../../hooks/useSessionManager";
 import SessionExpiryModal from "../../../components/SessionExpiryModal";
 import Loader from "../../../components/ui/Loader";
 import useProfilePolling from "../../../hooks/useProfilePolling";
+import sessionManager from "../../../services/SessionManager";
 
 export default function DashboardLayout() {
   useCrossTabLogout();
@@ -58,9 +59,8 @@ export default function DashboardLayout() {
 
   useEffect(() => {
     if (isError && error?.data?.message === "Unauthorized") {
-      toastError("Unauthorized");
-      logOut();
-      navigate("/login");
+      // Use sessionManager.performLogout() which handles all cleanup and redirect properly
+      sessionManager.performLogout();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [error, isError]);

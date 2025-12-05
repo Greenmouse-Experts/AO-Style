@@ -10,6 +10,7 @@ import { useCarybinAdminUserStore } from "../../../store/carybinAdminUserStore";
 import useSessionManager from "../../../hooks/useSessionManager";
 import SessionExpiryModal from "../../../components/SessionExpiryModal";
 import useProfilePolling from "../../../hooks/useProfilePolling";
+import sessionManager from "../../../services/SessionManager";
 
 export default function DashboardLayout() {
   useProfilePolling(); // Poll user profile every 1 minute and logout on 401
@@ -54,9 +55,8 @@ export default function DashboardLayout() {
 
   useEffect(() => {
     if (isError && error?.data?.message === "Unauthorized") {
-      toastError("Unauthorized");
-      logOut();
-      navigate("/admin/login");
+      // Use sessionManager.performLogout() which handles all cleanup and redirect properly
+      sessionManager.performLogout();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [error, isError]);

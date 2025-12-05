@@ -43,10 +43,12 @@ export default function AddNewTailorModal({ isOpen, onClose }: any) {
       setTimeout(() => onClose(), 800);
     },
     onError: (error: any) => {
-      toast.error(
+      const errorMessage = 
         error?.response?.data?.message ||
-          "An error occurred while sending invite",
-      );
+        error?.data?.message ||
+        error?.message ||
+        "An error occurred while sending invite";
+      toast.error(errorMessage);
     },
   });
   const onsubmit = (e) => {

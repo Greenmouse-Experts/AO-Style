@@ -20,20 +20,23 @@ import CaryBinApi from "../../../../services/CarybinBaseUrl";
 import DateFilter from "../../../../components/shared/DateFilter";
 import ActiveFilters from "../../../../components/shared/ActiveFilters";
 import useDateFilter from "../../../../hooks/useDateFilter";
+import ViewDetailsModal from "../components/Viewdetailsmodal";
 
 const CustomersTable = () => {
+  const [currView, setCurrView] = useState("registered");
   const [openDropdown, setOpenDropdown] = useState(null);
   const [activeTab, setActiveTab] = useState("table");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewDetailsModalOpen, setViewDetailsModalOpen] = useState(false);
+  const [selectedItemForView, setSelectedItemForView] = useState(null);
 
   // Date filter functionality
   const {
     activeFilters,
-    dateFilters,
     matchesDateFilter,
     handleFiltersChange,
     removeFilter,
-    clearAllFilters,
+    clearAllFilters: clearDateFilters,
   } = useDateFilter();
 
   const { toastError } = useToast();
@@ -52,50 +55,161 @@ const CustomersTable = () => {
   const { isPending: deleteIsPending, deleteUserMutate } = useDeleteUser();
 
   const { queryParams, updateQueryParams } = useQueryParams({
-    status: "",
-    // approved: false,
-    "pagination[limit]": 10,
+    registered: true,
     "pagination[page]": 1,
+    "pagination[limit]": 10,
   });
-  const filterTabs = ["All", "Pending", "Invites", "Approved"];
-  const [currTab, setCurrTab] = useState("All");
+
+  // Fetch business data for invites
+  const { data: businessData } = useQuery({
+    queryKey: ["get-business-data-tailor"],
+    queryFn: async () => {
+      const url = `/onboard/fetch-businesses?q=fashion-designer`;
+      const response = await CaryBinApi.get(url);
+      return response.data;
+    },
+  });
+
+  // Query for registered tailors
+  const { data: registeredUsers } = useQuery({
+    queryKey: ["get-registered-tailors"],
+    queryFn: async () => {
+      const url = `/auth/users/fashion-designer`;
+      const response = await CaryBinApi.get(url);
+      return response.data;
+    },
+  });
+
   const [queryString, setQueryString] = useState(queryParams.q);
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
-  const query = useQuery({
-    queryKey: [queryParams, "tailors", debouncedSearchTerm, currTab],
+
+  // Query for registered tailors (uses the registeredUsers endpoint)
+  const { data: getAllTailorRepData, isPending } = useQuery({
+    queryKey: [queryParams, "tailors", debouncedSearchTerm],
     queryFn: async () => {
       let resp = await CaryBinApi.get("/auth/users/fashion-designer", {
         params: {
           ...queryParams,
           q: debouncedSearchTerm,
-          approved: (() => {
-            switch (currTab) {
-              case "All":
-                return undefined;
-              case "Pending":
-                return false;
-              case "Approved":
-                return true;
-              default:
-                return undefined;
-            }
-          })(),
         },
       });
       return resp.data;
     },
   });
-  const getAllTailorRepData = query.data;
-  const isPending = query.isFetching;
+
+  useEffect(() => {
+    updateQueryParams({
+      registered: true,
+    });
+  }, [updateQueryParams]);
+
+  // Query for pending tailors (uses contact/invites endpoint with status=pending)
+  const { data: getPendingInviteData, isPending: pendingInviteIsPending } =
+    useQuery({
+      queryKey: [
+        "get-pending-tailor-invites",
+        businessData?.data?.[0]?.id,
+        queryParams["pagination[page]"],
+        queryParams["pagination[limit]"],
+      ],
+      queryFn: async () => {
+        const page = queryParams["pagination[page]"] ?? 1;
+        const limit = queryParams["pagination[limit]"] ?? 10;
+        const url = `/contact/invites/${businessData?.data?.[0]?.id}?status=pending&role=fashion-designer&pagination[page]=${page}&pagination[limit]=${limit}`;
+        const response = await CaryBinApi.get(url);
+        return response.data;
+      },
+      enabled: !!businessData?.data?.[0]?.id && currView === "pending",
+    });
+
+  // Query for rejected tailors (uses contact/invites endpoint with status=expired)
+  const { data: getRejectedInviteData, isPending: rejectedInviteIsPending } =
+    useQuery({
+      queryKey: [
+        "get-rejected-tailor-invites",
+        businessData?.data?.[0]?.id,
+        queryParams["pagination[page]"],
+        queryParams["pagination[limit]"],
+      ],
+      queryFn: async () => {
+        const page = queryParams["pagination[page]"] ?? 1;
+        const limit = queryParams["pagination[limit]"] ?? 10;
+        const url = `/contact/invites/${businessData?.data?.[0]?.id}?status=expired&role=fashion-designer&pagination[page]=${page}&pagination[limit]=${limit}`;
+        const response = await CaryBinApi.get(url);
+        return response.data;
+      },
+      enabled: !!businessData?.data?.[0]?.id && currView === "rejected",
+    });
+
+  // Query for all invites (uses contact/invites endpoint with no status param)
+  const { data: getAllInviteData, isPending: allInviteIsPending } = useQuery({
+    queryKey: [
+      "get-all-tailor-invites",
+      businessData?.data?.[0]?.id,
+      queryParams["pagination[page]"],
+      queryParams["pagination[limit]"],
+    ],
+    queryFn: async () => {
+      const page = queryParams["pagination[page]"] ?? 1;
+      const limit = queryParams["pagination[limit]"] ?? 10;
+      const url = `/contact/invites/${businessData?.data?.[0]?.id}?role=fashion-designer&pagination[page]=${page}&pagination[limit]=${limit}`;
+      const response = await CaryBinApi.get(url);
+      return response.data;
+    },
+    enabled: !!businessData?.data?.[0]?.id && currView === "invites",
+  });
+  // Determine which data to use based on currView
+  const currentData = useMemo(() => {
+    switch (currView) {
+      case "pending":
+        return getPendingInviteData;
+      case "rejected":
+        return getRejectedInviteData;
+      case "invites":
+        return getAllInviteData;
+      case "registered":
+      default:
+        return registeredUsers;
+    }
+  }, [
+    currView,
+    getPendingInviteData,
+    getRejectedInviteData,
+    getAllInviteData,
+    registeredUsers,
+  ]);
+
+  // Determine loading state based on currView
+  const isLoading = useMemo(() => {
+    switch (currView) {
+      case "pending":
+        return pendingInviteIsPending;
+      case "rejected":
+        return rejectedInviteIsPending;
+      case "invites":
+        return allInviteIsPending;
+      case "registered":
+      default:
+        return isPending;
+    }
+  }, [
+    currView,
+    pendingInviteIsPending,
+    rejectedInviteIsPending,
+    allInviteIsPending,
+    isPending,
+  ]);
+
+  // Handler for viewing details in modal
+  const handleViewDetails = (item) => {
+    setSelectedItemForView(item);
+    setViewDetailsModalOpen(true);
+  };
+
   const TailorData = useMemo(() => {
-    if (!getAllTailorRepData?.data) return [];
+    if (!registeredUsers?.data) return [];
 
-    // Remove duplicates based on unique tailor ID
-    const uniqueTailors = getAllTailorRepData.data.filter(
-      (item, index, self) => index === self.findIndex((t) => t.id === item.id),
-    );
-
-    const mappedData = uniqueTailors.map((details) => {
+    const mappedData = registeredUsers.data.map((details) => {
       return {
         ...details,
         name: `${details?.name}`,
@@ -113,7 +227,29 @@ const CustomersTable = () => {
 
     // Apply date filters
     return mappedData.filter((tailor) => matchesDateFilter(tailor.rawDate));
-  }, [getAllTailorRepData?.data, matchesDateFilter]);
+  }, [registeredUsers?.data, matchesDateFilter]);
+
+  const InviteData = useMemo(() => {
+    if (!currentData?.data) return [];
+
+    const mappedData = currentData.data.map((details) => {
+      return {
+        ...details,
+        name: `${details?.name}`,
+        email: `${details?.email ?? ""}`,
+        userType: `${details?.role?.name ?? ""}`,
+        created_at: `${
+          details?.created_at
+            ? formatDateStr(details?.created_at.split(".").shift())
+            : ""
+        }`,
+        rawDate: details?.created_at,
+      };
+    });
+
+    // Apply date filters
+    return mappedData.filter((invite) => matchesDateFilter(invite.rawDate));
+  }, [currentData?.data, matchesDateFilter]);
 
   const handleDropdownToggle = (id) => {
     setOpenDropdown(openDropdown === id ? null : id);
@@ -236,31 +372,83 @@ const CustomersTable = () => {
     [],
   );
 
-  const actions = [
-    {
-      key: "view-details",
-      label: "View Details",
-      action: (item) => {
-        return nav(`/admin/tailors/view-tailor/${item.id}`);
+  // Modified actions based on currView
+  const actions = useMemo(() => {
+    // For pending, invites, and rejected: only show "View Details" (opens modal)
+    if (
+      currView === "pending" ||
+      currView === "invites" ||
+      currView === "rejected"
+    ) {
+      return [
+        {
+          key: "view-details",
+          label: "View Details",
+          action: handleViewDetails,
+        },
+      ];
+    }
+
+    // For registered: show full actions including navigation to view page
+    return [
+      {
+        key: "view-details",
+        label: "View Details",
+        action: (item) => {
+          return nav(`/admin/tailors/view-tailor/${item.id}`);
+        },
       },
-    },
-    {
-      key: "suspend-tailor",
-      label: "Suspend Tailor",
-      action: (item) => {
-        setSuspendModalOpen(true);
-        setNewCategory(item);
-        setOpenDropdown(null);
+      {
+        key: "suspend-tailor",
+        label: "Suspend Tailor",
+        action: (item) => {
+          setSuspendModalOpen(true);
+          setNewCategory(item);
+          setOpenDropdown(null);
+        },
       },
-    },
-    {
-      key: "delete-tailor",
-      label: "Delete Tailor",
-      action: (item) => {
-        handleDeleteUser(item);
+      {
+        key: "delete-tailor",
+        label: "Delete Tailor",
+        action: (item) => {
+          handleDeleteUser(item);
+        },
       },
-    },
-  ];
+    ];
+  }, [currView, nav]);
+
+  // Table columns for invites/pending/rejected (from contact/invites endpoint)
+  const inviteTailorColumn = useMemo(
+    () => [
+      { label: "Name", key: "name" },
+      { label: "Email", key: "email" },
+      { label: "Date Added", key: "created_at" },
+      {
+        label: "Status",
+        key: "status",
+        render: (_, row) => (
+          <span
+            className={`px-3 py-1 text-sm rounded-md ${
+              row?.status == "active"
+                ? "bg-green-100 text-green-600"
+                : row?.status == "pending"
+                  ? "bg-yellow-100 text-yellow-600"
+                  : "bg-red-100 text-red-600"
+            }`}
+          >
+            {row?.status == "pending"
+              ? "Pending"
+              : row?.status == "active"
+                ? "Active"
+                : row?.status == "expired"
+                  ? "Expired"
+                  : "Rejected"}
+          </span>
+        ),
+      },
+    ],
+    [],
+  );
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -273,7 +461,7 @@ const CustomersTable = () => {
   }, []);
 
   const totalPages = Math.ceil(
-    getAllTailorRepData?.count / (queryParams["pagination[limit]"] ?? 10),
+    (currentData?.count || 0) / (queryParams["pagination[limit]"] ?? 10),
   );
 
   return (
@@ -281,24 +469,6 @@ const CustomersTable = () => {
       <div className="flex flex-wrap justify-between items-center pb-3 mb-4 gap-4">
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <h2 className="text-lg font-semibold">Tailors/Designers</h2>
-        </div>
-        <div id="cus-app" data-theme="nord" className="w-fit overflow-x-scroll">
-          <div className="tabs tabs-lift  min-w-max py-2 *:[--tab-border-color:#9847FE]">
-            {filterTabs.map((item) => {
-              if (item == currTab) {
-                return (
-                  <div className="tab tab-primary tab-lift tab-active">
-                    {item}
-                  </div>
-                );
-              }
-              return (
-                <div className="tab tab-lift" onClick={() => setCurrTab(item)}>
-                  {item}
-                </div>
-              );
-            })}
-          </div>
         </div>
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end">
           <div className="flex items-center space-x-2 border border-gray-200 rounded-md p-1">
@@ -331,7 +501,7 @@ const CustomersTable = () => {
           <DateFilter
             onFiltersChange={handleFiltersChange}
             activeFilters={activeFilters}
-            onClearAll={clearAllFilters}
+            onClearAll={clearDateFilters}
           />
 
           {/* <Link to="/admin/tailors/add-tailor"> */}
@@ -345,23 +515,63 @@ const CustomersTable = () => {
         </div>
       </div>
 
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pb-3 mb-4 gap-4">
+        <div className="flex flex-wrap justify-center sm:justify-start gap-3 text-gray-600 text-sm font-medium">
+          {["registered", "pending", "rejected", "invites"].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => {
+                setCurrView(tab);
+                updateQueryParams({
+                  "pagination[page]": 1,
+                });
+              }}
+              className={`font-medium capitalize px-3 py-1 ${
+                currView === tab
+                  ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
+                  : "text-gray-500"
+              }`}
+            >
+              {tab === "rejected"
+                ? "Expired"
+                : tab === "pending"
+                ? "pending invite"
+                : tab}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Active Filters Display */}
       <ActiveFilters
         activeFilters={activeFilters}
         onRemoveFilter={removeFilter}
-        onClearAll={clearAllFilters}
+        onClearAll={clearDateFilters}
       />
 
       <AddNewTailorModal
+        businessId={businessData?.data?.[0]?.id}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+      />
+
+      {/* View Details Modal */}
+      <ViewDetailsModal
+        isOpen={viewDetailsModalOpen}
+        onClose={() => {
+          setViewDetailsModalOpen(false);
+          setSelectedItemForView(null);
+        }}
+        data={selectedItemForView}
+        dataType={currView}
       />
 
       {activeTab === "table" ? (
         <>
           <CustomTable
-            columns={columns}
-            data={TailorData || []}
+            loading={isLoading}
+            columns={currView === "registered" ? columns : inviteTailorColumn}
+            data={currView === "registered" ? TailorData : InviteData}
             actions={actions}
           />
           {/* <ReusableTable
@@ -369,7 +579,7 @@ const CustomersTable = () => {
             data={TailorData}
             loading={isPending}
           />*/}
-          {TailorData?.length > 0 && (
+          {((currView === "registered" ? TailorData : InviteData)?.length > 0 || isLoading) && (
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center">
                 <p className="text-sm text-gray-600">Items per page: </p>
@@ -493,7 +703,7 @@ const CustomersTable = () => {
 
       {activeTab === "grid" && (
         <>
-          {TailorData?.length > 0 && (
+          {((currView === "registered" ? TailorData : InviteData)?.length > 0 || isLoading) && (
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center">
                 <p className="text-sm text-gray-600">Items per page: </p>

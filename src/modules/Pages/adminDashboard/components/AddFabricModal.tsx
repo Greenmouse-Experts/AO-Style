@@ -42,13 +42,12 @@ export default function AddFabricModal({ isOpen, onClose }: any) {
       toast.success("invite sent successfully");
     },
     onError: (error: any) => {
-      toast.error(
+      const errorMessage = 
         error?.response?.data?.message ||
-          "An error occurred while sending invite",
-      );
-      toast.success("invite sent successfully");
-      setTimeout(() => toast.dismiss(), 600);
-      setTimeout(() => onClose(), 800);
+        error?.data?.message ||
+        error?.message ||
+        "An error occurred while sending invite";
+      toast.error(errorMessage);
     },
   });
   const onsubmit = (e) => {

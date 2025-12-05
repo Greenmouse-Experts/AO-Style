@@ -24,10 +24,16 @@ import CustomTable from "../../../../components/CustomTable";
 import DateFilter from "../../../../components/shared/DateFilter";
 import ActiveFilters from "../../../../components/shared/ActiveFilters";
 import useDateFilter from "../../../../hooks/useDateFilter";
+import { useQuery } from "@tanstack/react-query";
+import CaryBinApi from "../../../../services/CarybinBaseUrl";
+import ViewDetailsModal from "../components/Viewdetailsmodal";
 
 const CustomersTable = () => {
+  const [currView, setCurrView] = useState("registered");
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewDetailsModalOpen, setViewDetailsModalOpen] = useState(false);
+  const [selectedItemForView, setSelectedItemForView] = useState(null);
   const dropdownRef = useRef(null);
 
   const [activeTab, setActiveTab] = useState("table");
@@ -39,11 +45,10 @@ const CustomersTable = () => {
   // Date filter functionality
   const {
     activeFilters,
-    dateFilters,
     matchesDateFilter,
     handleFiltersChange,
     removeFilter,
-    clearAllFilters,
+    clearAllFilters: clearDateFilters,
   } = useDateFilter();
 
   const { isPending: approoveIsPending, approveMarketRepMutate } =
@@ -58,28 +63,97 @@ const CustomersTable = () => {
   };
 
   const { queryParams, updateQueryParams } = useQueryParams({
-    status: "",
-    "pagination[limit]": 10,
+    registered: true,
     "pagination[page]": 1,
+    "pagination[limit]": 10,
   });
 
-  const [currTab, setCurrTab] = useState("All");
+  // Fetch business data for invites
+  const { data: businessData } = useQuery({
+    queryKey: ["get-business-data-fabric"],
+    queryFn: async () => {
+      const url = `/onboard/fetch-businesses?q=fabric-vendor`;
+      const response = await CaryBinApi.get(url);
+      return response.data;
+    },
+  });
 
+  // Query for registered fabric vendors
+  const { data: registeredUsers } = useQuery({
+    queryKey: ["get-registered-fabric-vendors"],
+    queryFn: async () => {
+      const url = `/auth/users/fabric-vendor`;
+      const response = await CaryBinApi.get(url);
+      return response.data;
+    },
+  });
+
+  // Query for registered fabric vendors (uses the registeredUsers endpoint)
   const { data: getAllFabricRepData, isPending } = useGetAllUsersByRole({
     ...queryParams,
-    approved: (() => {
-      switch (currTab) {
-        case "All":
-          return undefined;
-        case "Pending":
-          return false;
-        case "Approved":
-          return true;
-        default:
-          return undefined;
-      }
-    })(),
     role: "fabric-vendor",
+  });
+
+  useEffect(() => {
+    updateQueryParams({
+      registered: true,
+    });
+  }, [updateQueryParams]);
+
+  // Query for pending fabric vendors (uses contact/invites endpoint with status=pending)
+  const { data: getPendingInviteData, isPending: pendingInviteIsPending } =
+    useQuery({
+      queryKey: [
+        "get-pending-fabric-invites",
+        businessData?.data?.[0]?.id,
+        queryParams["pagination[page]"],
+        queryParams["pagination[limit]"],
+      ],
+      queryFn: async () => {
+        const page = queryParams["pagination[page]"] ?? 1;
+        const limit = queryParams["pagination[limit]"] ?? 10;
+        const url = `/contact/invites/${businessData?.data?.[0]?.id}?status=pending&role=fabric-vendor&pagination[page]=${page}&pagination[limit]=${limit}`;
+        const response = await CaryBinApi.get(url);
+        return response.data;
+      },
+      enabled: !!businessData?.data?.[0]?.id && currView === "pending",
+    });
+
+  // Query for rejected fabric vendors (uses contact/invites endpoint with status=expired)
+  const { data: getRejectedInviteData, isPending: rejectedInviteIsPending } =
+    useQuery({
+      queryKey: [
+        "get-rejected-fabric-invites",
+        businessData?.data?.[0]?.id,
+        queryParams["pagination[page]"],
+        queryParams["pagination[limit]"],
+      ],
+      queryFn: async () => {
+        const page = queryParams["pagination[page]"] ?? 1;
+        const limit = queryParams["pagination[limit]"] ?? 10;
+        const url = `/contact/invites/${businessData?.data?.[0]?.id}?status=expired&role=fabric-vendor&pagination[page]=${page}&pagination[limit]=${limit}`;
+        const response = await CaryBinApi.get(url);
+        return response.data;
+      },
+      enabled: !!businessData?.data?.[0]?.id && currView === "rejected",
+    });
+
+  // Query for all invites (uses contact/invites endpoint with no status param)
+  const { data: getAllInviteData, isPending: allInviteIsPending } = useQuery({
+    queryKey: [
+      "get-all-fabric-invites",
+      businessData?.data?.[0]?.id,
+      queryParams["pagination[page]"],
+      queryParams["pagination[limit]"],
+    ],
+    queryFn: async () => {
+      const page = queryParams["pagination[page]"] ?? 1;
+      const limit = queryParams["pagination[limit]"] ?? 10;
+      const url = `/contact/invites/${businessData?.data?.[0]?.id}?role=fabric-vendor&pagination[page]=${page}&pagination[limit]=${limit}`;
+      const response = await CaryBinApi.get(url);
+      return response.data;
+    },
+    enabled: !!businessData?.data?.[0]?.id && currView === "invites",
   });
   const [queryString, setQueryString] = useState(queryParams.q);
 
@@ -93,15 +167,58 @@ const CustomersTable = () => {
     });
   }, [debouncedSearchTerm]);
 
+  // Determine which data to use based on currView
+  const currentData = useMemo(() => {
+    switch (currView) {
+      case "pending":
+        return getPendingInviteData;
+      case "rejected":
+        return getRejectedInviteData;
+      case "invites":
+        return getAllInviteData;
+      case "registered":
+      default:
+        return registeredUsers;
+    }
+  }, [
+    currView,
+    getPendingInviteData,
+    getRejectedInviteData,
+    getAllInviteData,
+    registeredUsers,
+  ]);
+
+  // Determine loading state based on currView
+  const isLoading = useMemo(() => {
+    switch (currView) {
+      case "pending":
+        return pendingInviteIsPending;
+      case "rejected":
+        return rejectedInviteIsPending;
+      case "invites":
+        return allInviteIsPending;
+      case "registered":
+      default:
+        return isPending;
+    }
+  }, [
+    currView,
+    pendingInviteIsPending,
+    rejectedInviteIsPending,
+    allInviteIsPending,
+    isPending,
+  ]);
+
+  // Handler for viewing details in modal
+  const handleViewDetails = (item) => {
+    setSelectedItemForView(item);
+    setViewDetailsModalOpen(true);
+  };
+
   const FabricData = useMemo(() => {
-    if (!getAllFabricRepData?.data) return [];
+    if (!registeredUsers?.data) return [];
 
-    // Remove duplicates based on unique user ID
-    const uniqueVendors = getAllFabricRepData.data.filter(
-      (item, index, self) => index === self.findIndex((t) => t.id === item.id),
-    );
-
-    const mappedData = uniqueVendors.map((details) => {
+    const mappedData = registeredUsers.data.map((details) => {
       return {
         ...details,
         name: `${details?.name}`,
@@ -119,7 +236,29 @@ const CustomersTable = () => {
 
     // Apply date filters
     return mappedData.filter((vendor) => matchesDateFilter(vendor.rawDate));
-  }, [getAllFabricRepData?.data, matchesDateFilter]);
+  }, [registeredUsers?.data, matchesDateFilter]);
+
+  const InviteData = useMemo(() => {
+    if (!currentData?.data) return [];
+
+    const mappedData = currentData.data.map((details) => {
+      return {
+        ...details,
+        name: `${details?.name}`,
+        email: `${details?.email ?? ""}`,
+        userType: `${details?.role?.name ?? ""}`,
+        created_at: `${
+          details?.created_at
+            ? formatDateStr(details?.created_at.split(".").shift())
+            : ""
+        }`,
+        rawDate: details?.created_at,
+      };
+    });
+
+    // Apply date filters
+    return mappedData.filter((invite) => matchesDateFilter(invite.rawDate));
+  }, [currentData?.data, matchesDateFilter]);
   // Table Columns
   const nav = useNavigate();
   const columns = useMemo(
@@ -152,31 +291,83 @@ const CustomersTable = () => {
     ],
     [],
   );
-  const actions = [
-    {
-      key: "view-details",
-      label: "View Details",
-      action: (item) => {
-        return nav(`/admin/fabric-vendor/view/${item.id}`);
+  // Modified actions based on currView
+  const actions = useMemo(() => {
+    // For pending, invites, and rejected: only show "View Details" (opens modal)
+    if (
+      currView === "pending" ||
+      currView === "invites" ||
+      currView === "rejected"
+    ) {
+      return [
+        {
+          key: "view-details",
+          label: "View Details",
+          action: handleViewDetails,
+        },
+      ];
+    }
+
+    // For registered: show full actions including navigation to view page
+    return [
+      {
+        key: "view-details",
+        label: "View Details",
+        action: (item) => {
+          return nav(`/admin/fabric-vendor/view/${item.id}`);
+        },
       },
-    },
-    {
-      key: "suspend-vendor",
-      label: "Suspend Vendor",
-      action: (item) => {
-        setSuspendModalOpen(true);
-        setNewCategory(item);
-        setOpenDropdown(null);
+      {
+        key: "suspend-vendor",
+        label: "Suspend Vendor",
+        action: (item) => {
+          setSuspendModalOpen(true);
+          setNewCategory(item);
+          setOpenDropdown(null);
+        },
       },
-    },
-    {
-      key: "delete-vendor",
-      label: "Delete Vendor",
-      action: (item) => {
-        handleDeleteUser(item);
+      {
+        key: "delete-vendor",
+        label: "Delete Vendor",
+        action: (item) => {
+          handleDeleteUser(item);
+        },
       },
-    },
-  ];
+    ];
+  }, [currView, nav]);
+
+  // Table columns for invites/pending/rejected (from contact/invites endpoint)
+  const inviteFabricColumn = useMemo(
+    () => [
+      { label: "Name", key: "name" },
+      { label: "Email", key: "email" },
+      { label: "Date Added", key: "created_at" },
+      {
+        label: "Status",
+        key: "status",
+        render: (_, row) => (
+          <span
+            className={`px-3 py-1 text-sm rounded-md ${
+              row?.status == "active"
+                ? "bg-green-100 text-green-600"
+                : row?.status == "pending"
+                  ? "bg-yellow-100 text-yellow-600"
+                  : "bg-red-100 text-red-600"
+            }`}
+          >
+            {row?.status == "pending"
+              ? "Pending"
+              : row?.status == "active"
+                ? "Active"
+                : row?.status == "expired"
+                  ? "Expired"
+                  : "Rejected"}
+          </span>
+        ),
+      },
+    ],
+    [],
+  );
   const handleDeleteUser = (user) => {
     setUserToDelete(user);
     setDeleteModalOpen(true);
@@ -210,7 +401,7 @@ const CustomersTable = () => {
   // Pagination Logic
 
   const totalPages = Math.ceil(
-    getAllFabricRepData?.count / (queryParams["pagination[limit]"] ?? 10),
+    (currentData?.count || 0) / (queryParams["pagination[limit]"] ?? 10),
   );
 
   const handleExport = (e) => {
@@ -266,7 +457,6 @@ const CustomersTable = () => {
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <h2 className="text-lg font-semibold">Vendors (Fabric Sellers)</h2>
         </div>
-        <CustomTabs defaultValue={currTab} onChange={setCurrTab} />
         <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
           <div className="flex items-center space-x-2 border border-gray-200 rounded-md p-1">
             <button
@@ -298,7 +488,7 @@ const CustomersTable = () => {
           <DateFilter
             onFiltersChange={handleFiltersChange}
             activeFilters={activeFilters}
-            onClearAll={clearAllFilters}
+            onClearAll={clearDateFilters}
           />
           <select
             onChange={handleExport}
@@ -313,16 +503,10 @@ const CustomersTable = () => {
           </select>
           <CSVLink
             id="csvDownload"
-            data={FabricData?.map((row) => ({
-              Name: row.name,
-              "Phone Number": row.phone,
-              "Email Address": row.email,
-              Location: row.location,
-              "Date Joined": row.dateJoined,
-            }))}
-            filename="vendor(fabric seller).csv"
+            data={currView === "registered" ? FabricData : InviteData}
+            filename="FabricVendors.csv"
             className="hidden"
-          />{" "}
+          />
           {/* <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
             Sort: Newest First ▾
           </button> */}
@@ -337,36 +521,71 @@ const CustomersTable = () => {
         </div>
       </div>
 
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pb-3 mb-4 gap-4">
+        <div className="flex flex-wrap justify-center sm:justify-start gap-3 text-gray-600 text-sm font-medium">
+          {["registered", "pending", "rejected", "invites"].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => {
+                setCurrView(tab);
+                updateQueryParams({
+                  "pagination[page]": 1,
+                });
+              }}
+              className={`font-medium capitalize px-3 py-1 ${
+                currView === tab
+                  ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
+                  : "text-gray-500"
+              }`}
+            >
+              {tab === "rejected"
+                ? "Expired"
+                : tab === "pending"
+                ? "pending invite"
+                : tab}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Active Filters Display */}
       <ActiveFilters
         activeFilters={activeFilters}
         onRemoveFilter={removeFilter}
-        onClearAll={clearAllFilters}
+        onClearAll={clearDateFilters}
       />
 
-      {/*
       <AddFabricModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />*/}
-      <AddFabricModal
+        businessId={businessData?.data?.[0]?.id}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
+
+      {/* View Details Modal */}
+      <ViewDetailsModal
+        isOpen={viewDetailsModalOpen}
+        onClose={() => {
+          setViewDetailsModalOpen(false);
+          setSelectedItemForView(null);
+        }}
+        data={selectedItemForView}
+        dataType={currView}
+      />
+
       {activeTab === "table" ? (
         <>
           <CustomTable
-            loading={isPending}
-            columns={columns}
+            loading={isLoading}
+            columns={currView === "registered" ? columns : inviteFabricColumn}
+            data={currView === "registered" ? FabricData : InviteData}
             actions={actions}
-            data={FabricData || []}
           />
           {/* <ReusableTable
             loading={isPending}
             columns={columns}
             data={FabricData}
           />*/}
-          {FabricData?.length > 0 && (
+          {((currView === "registered" ? FabricData : InviteData)?.length > 0 || isLoading) && (
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center">
                 <p className="text-sm text-gray-600">Items per page: </p>
@@ -500,7 +719,7 @@ const CustomersTable = () => {
       )}
       {activeTab === "grid" && (
         <>
-          {FabricData?.length > 0 && (
+          {((currView === "registered" ? FabricData : InviteData)?.length > 0 || isLoading) && (
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center">
                 <p className="text-sm text-gray-600">Items per page: </p>

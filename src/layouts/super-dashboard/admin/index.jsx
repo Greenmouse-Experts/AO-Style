@@ -9,8 +9,10 @@ import { useNavigate } from "react-router-dom";
 import { useCarybinAdminUserStore } from "../../../store/carybinAdminUserStore";
 import useSessionManager from "../../../hooks/useSessionManager";
 import SessionExpiryModal from "../../../components/SessionExpiryModal";
+import useProfilePolling from "../../../hooks/useProfilePolling";
 
 export default function DashboardLayout() {
+  useProfilePolling(); // Poll user profile every 1 minute and logout on 401
   // Session management
   const {
     isSessionModalOpen,

@@ -175,6 +175,9 @@ const Footer = () => {
               <FaPhone /> +234 705 355 9086
             </p>
             <p className="flex items-center gap-2 text-[#C5C5C5] font-light">
+              <FaPhone /> +234 802 530 7601 [whatsapp]
+            </p>
+            <p className="flex items-center gap-2 text-[#C5C5C5] font-light">
               <FaEnvelope /> info@carybin.com
             </p>
             <p className="flex items-center gap-2 text-[#C5C5C5] font-light">

@@ -25,10 +25,16 @@ import CustomTable from "../../../components/CustomTable";
 import DateFilter from "../../../components/shared/DateFilter";
 import ActiveFilters from "../../../components/shared/ActiveFilters";
 import useDateFilter from "../../../hooks/useDateFilter";
+import { useQuery } from "@tanstack/react-query";
+import CaryBinApi from "../../../services/CarybinBaseUrl";
+import ViewDetailsModal from "./components/Viewdetailsmodal";
 
 const CustomersTable = () => {
+  const [currView, setCurrView] = useState("registered");
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewDetailsModalOpen, setViewDetailsModalOpen] = useState(false);
+  const [selectedItemForView, setSelectedItemForView] = useState(null);
   const dropdownRef = useRef(null);
   const [activeTab, setActiveTab] = useState("table");
   const [suspendModalOpen, setSuspendModalOpen] = useState(false);
@@ -40,11 +46,10 @@ const CustomersTable = () => {
   // Date filter functionality
   const {
     activeFilters,
-    dateFilters,
     matchesDateFilter,
     handleFiltersChange,
     removeFilter,
-    clearAllFilters,
+    clearAllFilters: clearDateFilters,
   } = useDateFilter();
 
   const [newCategory, setNewCategory] = useState();
@@ -53,29 +58,99 @@ const CustomersTable = () => {
     useApproveMarketRep();
 
   const { isPending: deleteIsPending, deleteUserMutate } = useDeleteUser();
-  const [currTab, setCurrTab] = useState("All");
 
   const { queryParams, updateQueryParams } = useQueryParams({
-    status: "",
-    "pagination[limit]": 10,
+    registered: true,
     "pagination[page]": 1,
+    "pagination[limit]": 10,
   });
 
+  // Fetch business data for invites
+  const { data: businessData } = useQuery({
+    queryKey: ["get-business-data-logistics"],
+    queryFn: async () => {
+      const url = `/onboard/fetch-businesses?q=logistics-agent`;
+      const response = await CaryBinApi.get(url);
+      return response.data;
+    },
+  });
+
+  // Query for registered logistics agents
+  const { data: registeredUsers } = useQuery({
+    queryKey: ["get-registered-logistics"],
+    queryFn: async () => {
+      const url = `/auth/users/logistics-agent`;
+      const response = await CaryBinApi.get(url);
+      return response.data;
+    },
+  });
+
+  // Query for registered logistics agents (uses the registeredUsers endpoint)
   const { data: getAllLogisticsRepData, isPending } = useGetAllUsersByRole({
     ...queryParams,
     role: "logistics-agent",
-    approved: (() => {
-      switch (currTab) {
-        case "All":
-          return undefined;
-        case "Pending":
-          return false;
-        case "Approved":
-          return true;
-        default:
-          return undefined;
-      }
-    })(),
+  });
+
+  useEffect(() => {
+    updateQueryParams({
+      registered: true,
+    });
+  }, [updateQueryParams]);
+
+  // Query for pending logistics agents (uses contact/invites endpoint with status=pending)
+  const { data: getPendingInviteData, isPending: pendingInviteIsPending } =
+    useQuery({
+      queryKey: [
+        "get-pending-logistics-invites",
+        businessData?.data?.[0]?.id,
+        queryParams["pagination[page]"],
+        queryParams["pagination[limit]"],
+      ],
+      queryFn: async () => {
+        const page = queryParams["pagination[page]"] ?? 1;
+        const limit = queryParams["pagination[limit]"] ?? 10;
+        const url = `/contact/invites/${businessData?.data?.[0]?.id}?status=pending&role=logistics-agent&pagination[page]=${page}&pagination[limit]=${limit}`;
+        const response = await CaryBinApi.get(url);
+        return response.data;
+      },
+      enabled: !!businessData?.data?.[0]?.id && currView === "pending",
+    });
+
+  // Query for rejected logistics agents (uses contact/invites endpoint with status=expired)
+  const { data: getRejectedInviteData, isPending: rejectedInviteIsPending } =
+    useQuery({
+      queryKey: [
+        "get-rejected-logistics-invites",
+        businessData?.data?.[0]?.id,
+        queryParams["pagination[page]"],
+        queryParams["pagination[limit]"],
+      ],
+      queryFn: async () => {
+        const page = queryParams["pagination[page]"] ?? 1;
+        const limit = queryParams["pagination[limit]"] ?? 10;
+        const url = `/contact/invites/${businessData?.data?.[0]?.id}?status=expired&role=logistics-agent&pagination[page]=${page}&pagination[limit]=${limit}`;
+        const response = await CaryBinApi.get(url);
+        return response.data;
+      },
+      enabled: !!businessData?.data?.[0]?.id && currView === "rejected",
+    });
+
+  // Query for all invites (uses contact/invites endpoint with no status param)
+  const { data: getAllInviteData, isPending: allInviteIsPending } = useQuery({
+    queryKey: [
+      "get-all-logistics-invites",
+      businessData?.data?.[0]?.id,
+      queryParams["pagination[page]"],
+      queryParams["pagination[limit]"],
+    ],
+    queryFn: async () => {
+      const page = queryParams["pagination[page]"] ?? 1;
+      const limit = queryParams["pagination[limit]"] ?? 10;
+      const url = `/contact/invites/${businessData?.data?.[0]?.id}?role=logistics-agent&pagination[page]=${page}&pagination[limit]=${limit}`;
+      const response = await CaryBinApi.get(url);
+      return response.data;
+    },
+    enabled: !!businessData?.data?.[0]?.id && currView === "invites",
   });
 
   const [queryString, setQueryString] = useState(queryParams.q);
@@ -90,15 +165,58 @@ const CustomersTable = () => {
     });
   }, [debouncedSearchTerm]);
 
+  // Determine which data to use based on currView
+  const currentData = useMemo(() => {
+    switch (currView) {
+      case "pending":
+        return getPendingInviteData;
+      case "rejected":
+        return getRejectedInviteData;
+      case "invites":
+        return getAllInviteData;
+      case "registered":
+      default:
+        return registeredUsers;
+    }
+  }, [
+    currView,
+    getPendingInviteData,
+    getRejectedInviteData,
+    getAllInviteData,
+    registeredUsers,
+  ]);
+
+  // Determine loading state based on currView
+  const isLoading = useMemo(() => {
+    switch (currView) {
+      case "pending":
+        return pendingInviteIsPending;
+      case "rejected":
+        return rejectedInviteIsPending;
+      case "invites":
+        return allInviteIsPending;
+      case "registered":
+      default:
+        return isPending;
+    }
+  }, [
+    currView,
+    pendingInviteIsPending,
+    rejectedInviteIsPending,
+    allInviteIsPending,
+    isPending,
+  ]);
+
+  // Handler for viewing details in modal
+  const handleViewDetails = (item) => {
+    setSelectedItemForView(item);
+    setViewDetailsModalOpen(true);
+  };
+
   const LogisticsData = useMemo(() => {
-    if (!getAllLogisticsRepData?.data) return [];
+    if (!registeredUsers?.data) return [];
 
-    // Remove duplicates based on unique user ID
-    const uniqueLogistics = getAllLogisticsRepData.data.filter(
-      (item, index, self) => index === self.findIndex((t) => t.id === item.id),
-    );
-
-    const mappedData = uniqueLogistics.map((details) => {
+    const mappedData = registeredUsers.data.map((details) => {
       return {
         ...details,
         name: `${details?.name}`,
@@ -118,7 +236,29 @@ const CustomersTable = () => {
     return mappedData.filter((logistics) =>
       matchesDateFilter(logistics.rawDate),
     );
-  }, [getAllLogisticsRepData?.data, matchesDateFilter]);
+  }, [registeredUsers?.data, matchesDateFilter]);
+
+  const InviteData = useMemo(() => {
+    if (!currentData?.data) return [];
+
+    const mappedData = currentData.data.map((details) => {
+      return {
+        ...details,
+        name: `${details?.name}`,
+        email: `${details?.email ?? ""}`,
+        userType: `${details?.role?.name ?? ""}`,
+        created_at: `${
+          details?.created_at
+            ? formatDateStr(details?.created_at.split(".").shift())
+            : ""
+        }`,
+        rawDate: details?.created_at,
+      };
+    });
+
+    // Apply date filters
+    return mappedData.filter((invite) => matchesDateFilter(invite.rawDate));
+  }, [currentData?.data, matchesDateFilter]);
 
   const handleDropdownToggle = (id) => {
     setOpenDropdown(openDropdown === id ? null : id);
@@ -221,31 +361,83 @@ const CustomersTable = () => {
     ],
     [],
   );
-  const actions = [
-    {
-      key: "view-details",
-      label: "View Details",
-      action: (item) => {
-        return nav(`/admin/logistics/view/${item.id}`);
+  // Modified actions based on currView
+  const actions = useMemo(() => {
+    // For pending, invites, and rejected: only show "View Details" (opens modal)
+    if (
+      currView === "pending" ||
+      currView === "invites" ||
+      currView === "rejected"
+    ) {
+      return [
+        {
+          key: "view-details",
+          label: "View Details",
+          action: handleViewDetails,
+        },
+      ];
+    }
+
+    // For registered: show full actions including navigation to view page
+    return [
+      {
+        key: "view-details",
+        label: "View Details",
+        action: (item) => {
+          return nav(`/admin/logistics/view/${item.id}`);
+        },
       },
-    },
-    {
-      key: "suspend-vendor",
-      label: "Suspend",
-      action: (item) => {
-        setSuspendModalOpen(true);
-        setNewCategory(item);
-        setOpenDropdown(null);
+      {
+        key: "suspend-vendor",
+        label: "Suspend",
+        action: (item) => {
+          setSuspendModalOpen(true);
+          setNewCategory(item);
+          setOpenDropdown(null);
+        },
       },
-    },
-    {
-      key: "delete-vendor",
-      label: "Delete",
-      action: (item) => {
-        handleDeleteUser(item);
+      {
+        key: "delete-vendor",
+        label: "Delete",
+        action: (item) => {
+          handleDeleteUser(item);
+        },
       },
-    },
-  ];
+    ];
+  }, [currView, nav]);
+
+  // Table columns for invites/pending/rejected (from contact/invites endpoint)
+  const inviteLogisticsColumn = useMemo(
+    () => [
+      { label: "Name", key: "name" },
+      { label: "Email", key: "email" },
+      { label: "Date Added", key: "created_at" },
+      {
+        label: "Status",
+        key: "status",
+        render: (_, row) => (
+          <span
+            className={`px-3 py-1 text-sm rounded-md ${
+              row?.status == "active"
+                ? "bg-green-100 text-green-600"
+                : row?.status == "pending"
+                  ? "bg-yellow-100 text-yellow-600"
+                  : "bg-red-100 text-red-600"
+            }`}
+          >
+            {row?.status == "pending"
+              ? "Pending"
+              : row?.status == "active"
+                ? "Active"
+                : row?.status == "expired"
+                  ? "Expired"
+                  : "Rejected"}
+          </span>
+        ),
+      },
+    ],
+    [],
+  );
   const handleDeleteUser = (user) => {
     setUserToDelete(user);
     setDeleteModalOpen(true);
@@ -277,7 +469,7 @@ const CustomersTable = () => {
   }, []);
 
   const totalPages = Math.ceil(
-    getAllLogisticsRepData?.count / (queryParams["pagination[limit]"] ?? 10),
+    (currentData?.count || 0) / (queryParams["pagination[limit]"] ?? 10),
   );
 
   const handleExport = (e) => {
@@ -333,7 +525,6 @@ const CustomersTable = () => {
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <h2 className="text-lg font-semibold">Logistics</h2>
         </div>
-        <CustomTabs defaultValue={currTab} onChange={setCurrTab} />
         <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
           <div className="flex items-center space-x-2 border border-gray-200 rounded-md p-1">
             <button
@@ -365,7 +556,7 @@ const CustomersTable = () => {
           <DateFilter
             onFiltersChange={handleFiltersChange}
             activeFilters={activeFilters}
-            onClearAll={clearAllFilters}
+            onClearAll={clearDateFilters}
           />
           {/* <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
             Export As ▾
@@ -383,16 +574,10 @@ const CustomersTable = () => {
           </select>
           <CSVLink
             id="csvDownload"
-            data={LogisticsData?.map((row) => ({
-              Name: row.name,
-              "Phone Number": row.phone,
-              "Email Address": row.email,
-              Location: row.location,
-              "Date Joined": row.dateJoined,
-            }))}
+            data={currView === "registered" ? LogisticsData : InviteData}
             filename="Logistics.csv"
             className="hidden"
-          />{" "}
+          />
           {/* <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
             Sort: Newest First ▾
           </button> */}
@@ -405,20 +590,12 @@ const CustomersTable = () => {
         </div>
       </div>
 
-      <AddNewUser isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-
-      {/* Active Filters Display */}
-      <ActiveFilters
-        activeFilters={activeFilters}
-        onRemoveFilter={removeFilter}
-        onClearAll={clearAllFilters}
-      />
-
       {activeTab === "table" ? (
         <>
           <CustomTable
-            columns={columns}
-            data={LogisticsData || []}
+            loading={isLoading}
+            columns={currView === "registered" ? columns : inviteLogisticsColumn}
+            data={currView === "registered" ? LogisticsData : InviteData}
             actions={actions}
           />
           {/* <ReusableTable
@@ -426,7 +603,7 @@ const CustomersTable = () => {
             columns={columns}
             data={LogisticsData}
           />*/}
-          {LogisticsData?.length > 0 && (
+          {((currView === "registered" ? LogisticsData : InviteData)?.length > 0 || isLoading) && (
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center">
                 <p className="text-sm text-gray-600">Items per page: </p>
@@ -474,7 +651,7 @@ const CustomersTable = () => {
             </div>
           )}
         </>
-      ) : isPending ? (
+      ) : isLoading ? (
         <>
           {" "}
           <div className=" flex !w-full items-center justify-center">
@@ -483,7 +660,7 @@ const CustomersTable = () => {
         </>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {LogisticsData?.map((item) => (
+          {(currView === "registered" ? LogisticsData : InviteData)?.map((item) => (
             <div
               key={item.id}
               className="relative bg-white rounded-lg p-4 border border-gray-100 flex justify-between"
@@ -588,7 +765,7 @@ const CustomersTable = () => {
 
       {activeTab === "grid" && (
         <>
-          {LogisticsData?.length > 0 && (
+          {((currView === "registered" ? LogisticsData : InviteData)?.length > 0 || isLoading) && (
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center">
                 <p className="text-sm text-gray-600">Items per page: </p>

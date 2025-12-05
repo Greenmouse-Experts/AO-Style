@@ -122,6 +122,14 @@ const ContactUs = () => {
                   +234 705 355 9086{" "}
                 </p>
               </div>
+              <div>
+                <h6 className="text-dark leading-loose font-light text-base">
+                  WHATSAPP NUMBER
+                </h6>
+                <p className="text-dark font-medium text-lg leading-loose ">
+                +234 802 530 7601{" "}
+                </p>
+              </div>
             </div>
             <div className="flex items-center space-x-4 mt-4">
               <img

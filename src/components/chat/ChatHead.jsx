@@ -294,11 +294,15 @@ const ChatHead = () => {
         }
 
         // Calculate total unread count from server data (most accurate)
-        const totalUnread = data.data.result.reduce(
-          (sum, chat) => sum + (chat.unread || 0),
-          0,
-        );
-        setUnreadCount(totalUnread);
+        // Commented out count calculation - using boolean check for badge display instead
+        // const totalUnread = data.data.result.reduce(
+        //   (sum, chat) => sum + (chat.unread || 0),
+        //   0,
+        // );
+        // setUnreadCount(totalUnread);
+        // Check if there are any unread messages (for badge display)
+        const hasUnread = data.data.result.some((chat) => (chat.unread || 0) > 0);
+        setUnreadCount(hasUnread ? 1 : 0);
       }
     });
 
@@ -351,11 +355,15 @@ const ChatHead = () => {
           }
 
           // Calculate total unread count from server data (most accurate)
-          const totalUnread = data.data.result.reduce(
-            (sum, chat) => sum + (chat.unread || 0),
-            0,
-          );
-          setUnreadCount(totalUnread);
+          // Commented out count calculation - using boolean check for badge display instead
+          // const totalUnread = data.data.result.reduce(
+          //   (sum, chat) => sum + (chat.unread || 0),
+          //   0,
+          // );
+          // setUnreadCount(totalUnread);
+          // Check if there are any unread messages (for badge display)
+          const hasUnread = data.data.result.some((chat) => (chat.unread || 0) > 0);
+          setUnreadCount(hasUnread ? 1 : 0);
         }
       });
 
@@ -366,11 +374,15 @@ const ChatHead = () => {
           if (data?.status === "success" && data?.data?.result) {
             setChats(data.data.result);
             console.log(chats);
-            const totalUnread = data.data.result.reduce(
-              (sum, chat) => sum + (chat.unread || 0),
-              0,
-            );
-            setUnreadCount(totalUnread);
+            // Commented out count calculation - using boolean check for badge display instead
+            // const totalUnread = data.data.result.reduce(
+            //   (sum, chat) => sum + (chat.unread || 0),
+            //   0,
+            // );
+            // setUnreadCount(totalUnread);
+            // Check if there are any unread messages (for badge display)
+            const hasUnread = data.data.result.some((chat) => (chat.unread || 0) > 0);
+            setUnreadCount(hasUnread ? 1 : 0);
           }
         });
       }
@@ -466,8 +478,15 @@ const ChatHead = () => {
             );
             
             if (currentSelectedChat && currentSelectedChat.unread > 0) {
-              const unreadToSubtract = currentSelectedChat.unread;
-              setUnreadCount((prev) => Math.max(0, prev - unreadToSubtract));
+              // Commented out count decrement - check if any other chats have unread messages
+              // const unreadToSubtract = currentSelectedChat.unread;
+              // setUnreadCount((prev) => Math.max(0, prev - unreadToSubtract));
+              
+              // Check if any other chats have unread messages
+              const hasOtherUnread = prevChats.some(
+                (chat) => chat.id !== currentSelectedChat.id && (chat.unread || 0) > 0
+              );
+              setUnreadCount(hasOtherUnread ? 1 : 0);
               
               return prevChats.map((chat) =>
                 chat.id === currentSelectedChat.id ? { ...chat, unread: 0 } : chat
@@ -498,8 +517,10 @@ const ChatHead = () => {
         const isCurrentlyViewing = selectedChat && data.data.chat_id === selectedChat.id;
         
         // Only update unread count if user is NOT currently viewing this chat
+        // Commented out count increment - just set to 1 if there are unread messages
         if (!isCurrentlyViewing) {
-          setUnreadCount((prev) => prev + 1);
+          // setUnreadCount((prev) => prev + 1);
+          setUnreadCount(1);
         }
 
         // If chat is selected, add message to current view
@@ -560,7 +581,9 @@ const ChatHead = () => {
         };
 
         // Update unread count immediately
-        setUnreadCount((prev) => prev + 1);
+        // Commented out count increment - just set to 1 if there are unread messages
+        // setUnreadCount((prev) => prev + 1);
+        setUnreadCount(1);
       }
     });
 
@@ -788,15 +811,22 @@ const ChatHead = () => {
     // Immediately update unread count when viewing a chat
     const chatUnreadCount = chat.unread || 0;
     if (chatUnreadCount > 0) {
+      // Commented out count decrement - check if any other chats have unread messages
       // Update the unread count by subtracting this chat's unread count
-      setUnreadCount((prev) => Math.max(0, prev - chatUnreadCount));
+      // setUnreadCount((prev) => Math.max(0, prev - chatUnreadCount));
       
       // Update the chats array to mark this chat as read (0 unread)
-      setChats((prevChats) =>
-        prevChats.map((c) =>
+      setChats((prevChats) => {
+        const updatedChats = prevChats.map((c) =>
           c.id === chat.id ? { ...c, unread: 0 } : c
-        )
-      );
+        );
+        
+        // Check if any other chats have unread messages
+        const hasOtherUnread = updatedChats.some((c) => c.id !== chat.id && (c.unread || 0) > 0);
+        setUnreadCount(hasOtherUnread ? 1 : 0);
+        
+        return updatedChats;
+      });
     }
 
     // Emit retrieveMessages - match inbox pattern exactly
@@ -877,11 +907,22 @@ const ChatHead = () => {
             style={{ cursor: isDragging ? "grabbing" : "grab" }}
           >
             <MessageCircle size={24} />
+            {/* Show pulsing badge when there are unread messages */}
+            {unreadCount > 0 && (
+              <span className="absolute top-0 right-0 flex items-center justify-center">
+                {/* Outer circle with blink/pulse animation */}
+                <span className="absolute bg-red-500 rounded-full h-4 w-4 animate-blink-pulse"></span>
+                {/* Inner solid circle */}
+                <span className="relative bg-red-500 rounded-full h-3 w-3"></span>
+              </span>
+            )}
+            {/* Commented out count display - showing pulse badge instead
             {unreadCount > 0 && (
               <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-semibold">
                 {unreadCount > 99 ? "99+" : unreadCount}
               </span>
             )}
+            */}
           </button>
         )}
 

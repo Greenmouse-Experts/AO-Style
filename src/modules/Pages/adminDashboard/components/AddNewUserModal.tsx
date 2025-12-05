@@ -42,11 +42,12 @@ const AddNewUser = ({ isOpen, onClose }: any) => {
       setTimeout(() => onClose(), 800);
     },
     onError: (error: any) => {
-      toast.error(
+      const errorMessage = 
+        error?.response?.data?.message ||
         error?.data?.message ||
-          "An error occurred while sending invite",
-      );
-      setTimeout(() => onClose(), 800);
+        error?.message ||
+        "An error occurred while sending invite";
+      toast.error(errorMessage);
     },
   });
   const onsubmit = (e: any) => {

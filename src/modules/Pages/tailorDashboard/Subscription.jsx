@@ -619,7 +619,7 @@ const Subscriptions = () => {
                 <p className="text-sm font-semibold text-base-content">
                   {is_free
                     ? formatDateStr(
-                        free_plan?.created_at?.split(".")[0],
+                        (carybinUser?.created_at || free_plan?.data?.data?.created_at || free_plan?.data?.data?.user?.created_at)?.split(".")[0],
                         "D/M/YYYY h:mm A"
                       )
                     : formatDateStr(
@@ -657,7 +657,7 @@ const Subscriptions = () => {
             </div>
           </div>
 
-          {is_free && (
+          {/* {is_free && (
             <div className="alert alert-primary">
               <svg
                 className="w-5 h-5"
@@ -677,7 +677,7 @@ const Subscriptions = () => {
                 <p className="text-sm opacity-80">{plan_data?.description}</p>
               </div>
             </div>
-          )}
+          )} */}
         </div>
       </div>
 

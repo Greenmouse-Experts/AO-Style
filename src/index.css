@@ -894,3 +894,18 @@ body {
 .animate-smooth-bounce {
     animation: smoothBounce 1s ease-in-out;
 }
+
+@keyframes blink-pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+    50% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+.animate-blink-pulse {
+    animation: blink-pulse 1.5s ease-in-out infinite;
+}

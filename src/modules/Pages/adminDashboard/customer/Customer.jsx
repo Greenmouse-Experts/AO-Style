@@ -10,9 +10,7 @@ import {
 } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import useQueryParams from "../../../../hooks/useQueryParams";
-import useGetAllUsersByRole from "../../../../hooks/admin/useGetAllUserByRole";
 import useDebounce from "../../../../hooks/useDebounce";
-import useUpdatedEffect from "../../../../hooks/useUpdatedEffect";
 import { formatDateStr } from "../../../../lib/helper";
 import Loader from "../../../../components/ui/Loader";
 import ConfirmationModal from "../../../../components/ui/ConfirmationModal";
@@ -79,20 +77,25 @@ const CustomersTable = () => {
     },
   });
 
-  // Query for registered customers (uses the registeredUsers endpoint)
-  const { data: registeredUsers } = useQuery({
-    queryKey: ["get-registered-customers"],
-    queryFn: async () => {
-      const url = `/auth/users/user`;
-      const response = await CaryBinApi.get(url);
-      return response.data;
-    },
-  });
+  const [queryString, setQueryString] = useState(queryParams.q);
+  const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
 
-  // Query for registered customers (uses the registeredUsers endpoint)
-  const { data: getAllCustomerRepData, isPending } = useGetAllUsersByRole({
-    ...queryParams,
-    role: "user",
+  // Query for registered customers (uses the registeredUsers endpoint with search)
+  const { data: registeredUsers, isPending } = useQuery({
+    queryKey: [queryParams, "customers", debouncedSearchTerm],
+    queryFn: async () => {
+      const response = await CaryBinApi.get("/auth/users/user", {
+        params: {
+          ...queryParams,
+          q: debouncedSearchTerm,
+        },
+      });
+      // Return full response object with count for pagination
+      return {
+        data: response.data.data,
+        count: response.data.count,
+      };
+    },
   });
 
   useEffect(() => {
@@ -156,16 +159,6 @@ const CustomersTable = () => {
     },
     enabled: !!businessData?.data?.[0]?.id && currView === "invites",
   });
-
-  const [queryString, setQueryString] = useState(queryParams.q);
-  const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
-
-  useUpdatedEffect(() => {
-    updateQueryParams({
-      q: debouncedSearchTerm.trim() || undefined,
-      "pagination[page]": 1,
-    });
-  }, [debouncedSearchTerm]);
 
   // Determine which data to use based on currView
   const currentData = useMemo(() => {

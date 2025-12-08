@@ -24,7 +24,7 @@ const services = [
         icon: <TruckIcon className="mt-4 h-12 w-12 text-[#EE79AC]" />,
         title: "Logistics Agent",
         description: "Welcome to Carybin Limited, a platform that simplifies tailoring processes; from buying materials to finding a tailor.",
-        link: "/logistics",
+        link: "/sign-in-as-logistics",
     }
 ];
 

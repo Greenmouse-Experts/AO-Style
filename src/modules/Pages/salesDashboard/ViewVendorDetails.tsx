@@ -182,12 +182,12 @@ export default function ViewVendorDetails() {
                   </h4>
                   <dl className="space-y-4">
                     <div className="flex items-center gap-3">
-                      <Mail size={16} className="text-gray-400" />
-                      <div>
+                      <Mail size={16} className="text-gray-400 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
                         <dt className="text-xs text-gray-500 uppercase tracking-wide">
                           Email
                         </dt>
-                        <dd className="font-medium text-gray-800">
+                        <dd className="font-medium text-gray-800 break-words overflow-wrap-anywhere">
                           {vendor_details.email}
                         </dd>
                       </div>

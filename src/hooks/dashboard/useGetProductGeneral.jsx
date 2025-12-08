@@ -28,7 +28,7 @@ function useProductGeneral(params, type) {
   return {
     isLoading,
     isFetching,
-    data: data?.data,
+    data: { data: data?.data?.data, count: data?.data?.count },
     isError,
     isPending,
     refetch,

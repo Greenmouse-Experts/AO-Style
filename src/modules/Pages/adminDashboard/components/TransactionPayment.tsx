@@ -102,7 +102,7 @@ export default function AnalyticsCards() {
         ? "Loading..."
         : isError
           ? "Error"
-          : formatCurrency(totalPayouts),
+          : data?.data?.total_withdrawals || 0,
       label: "Total Withdrawals",
       // subtext: "This Month",
       bgColor: "bg-[#FFE4E1]",

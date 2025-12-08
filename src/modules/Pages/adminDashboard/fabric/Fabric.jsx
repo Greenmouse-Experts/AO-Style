@@ -3,9 +3,7 @@ import ReusableTable from "../components/ReusableTable";
 import { FaEllipsisH, FaBars, FaTh, FaPhone, FaEnvelope } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import useQueryParams from "../../../../hooks/useQueryParams";
-import useGetAllUsersByRole from "../../../../hooks/admin/useGetAllUserByRole";
 import useDebounce from "../../../../hooks/useDebounce";
-import useUpdatedEffect from "../../../../hooks/useUpdatedEffect";
 import { formatDateStr } from "../../../../lib/helper";
 import Loader from "../../../../components/ui/Loader";
 import jsPDF from "jspdf";
@@ -78,20 +76,25 @@ const CustomersTable = () => {
     },
   });
 
-  // Query for registered fabric vendors
-  const { data: registeredUsers } = useQuery({
-    queryKey: ["get-registered-fabric-vendors"],
-    queryFn: async () => {
-      const url = `/auth/users/fabric-vendor`;
-      const response = await CaryBinApi.get(url);
-      return response.data;
-    },
-  });
+  const [queryString, setQueryString] = useState(queryParams.q);
+  const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
 
-  // Query for registered fabric vendors (uses the registeredUsers endpoint)
-  const { data: getAllFabricRepData, isPending } = useGetAllUsersByRole({
-    ...queryParams,
-    role: "fabric-vendor",
+  // Query for registered fabric vendors (uses the registeredUsers endpoint with search)
+  const { data: registeredUsers, isPending } = useQuery({
+    queryKey: [queryParams, "fabric-vendors", debouncedSearchTerm],
+    queryFn: async () => {
+      const response = await CaryBinApi.get("/auth/users/fabric-vendor", {
+        params: {
+          ...queryParams,
+          q: debouncedSearchTerm,
+        },
+      });
+      // Return full response object with count for pagination
+      return {
+        data: response.data.data,
+        count: response.data.count,
+      };
+    },
   });
 
   useEffect(() => {
@@ -155,17 +158,6 @@ const CustomersTable = () => {
     },
     enabled: !!businessData?.data?.[0]?.id && currView === "invites",
   });
-  const [queryString, setQueryString] = useState(queryParams.q);
-
-  const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
-
-  useUpdatedEffect(() => {
-    // update search params with undefined if debouncedSearchTerm is an empty string
-    updateQueryParams({
-      q: debouncedSearchTerm.trim() || undefined,
-      "pagination[page]": 1,
-    });
-  }, [debouncedSearchTerm]);
 
   // Determine which data to use based on currView
   const currentData = useMemo(() => {

@@ -7,6 +7,7 @@ import useProductGeneral from "../../../hooks/dashboard/useGetProductGeneral";
 import LoaderComponent from "../../../components/BeatLoader";
 import useDebounce from "../../../hooks/useDebounce";
 import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
+import useQueryParams from "../../../hooks/useQueryParams";
 
 const categories = ["All Styles", "Male Styles", "Female Styles", "Bubu"];
 
@@ -122,10 +123,17 @@ export default function MarketplaceSection() {
 
   const [debounceSearch, setDebounceSearch] = useState("");
 
+  const { queryParams, updateQueryParams } = useQueryParams({
+    "pagination[limit]": 10,
+    "pagination[page]": 1,
+  });
+
   useUpdatedEffect(() => {
     // update search params with undefined if debouncedSearchTerm is an empty string
     setDebounceSearch(debouncedSearchTerm.trim() || undefined);
-    setPage(1);
+    updateQueryParams({
+      "pagination[page]": 1,
+    });
   }, [debouncedSearchTerm]);
 
   const { data: getStyleProductGeneralData, isPending } =
@@ -138,8 +146,7 @@ export default function MarketplaceSection() {
   const { data: getStyleProductData, isPending: productIsPending } =
     useProductGeneral(
       {
-        "pagination[limit]": 10,
-        "pagination[page]": 1,
+        ...queryParams,
         category_id: selectedCategory == "1" ? undefined : selectedCategory,
         q: debounceSearch,
         status: "PUBLISHED",
@@ -150,6 +157,10 @@ export default function MarketplaceSection() {
   const styleData = getStyleProductGeneralData?.data;
 
   const isShowMoreBtn = styleData?.length == getStyleProductGeneralData?.count;
+
+  const totalPages = Math.ceil(
+    getStyleProductData?.count / (queryParams["pagination[limit]"] ?? 10),
+  );
 
   // Format price with commas
   const formatPrice = (price) => {
@@ -346,25 +357,57 @@ export default function MarketplaceSection() {
           </>
         )}
 
-        {/* Load More Button */}
-
-        {sortedProducts.length ? (
-          isShowMoreBtn ? (
-            <></>
-          ) : (
-            <div className="flex justify-center mt-16">
-              <button
-                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 cursor-pointer"
-                onClick={() => {
-                  setPage((prev) => prev + 10);
-                }}
+        {/* Pagination Controls */}
+        {sortedProducts.length > 0 && (
+          <div className="flex justify-between px-4 items-center mt-10">
+            <div className="flex items-center">
+              <p className="text-sm text-gray-600">Items per page: </p>
+              <select
+                value={queryParams["pagination[limit]"] || 10}
+                onChange={(e) =>
+                  updateQueryParams({
+                    "pagination[limit]": +e.target.value,
+                    "pagination[page]": 1,
+                  })
+                }
+                className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
               >
-                Load More Products
-              </button>
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={20}>20</option>
+              </select>
             </div>
-          )
-        ) : (
-          <></>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-600">
+                Page {queryParams["pagination[page]"] ?? 1} of {totalPages || 1}
+              </span>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => {
+                    updateQueryParams({
+                      "pagination[page]": +queryParams["pagination[page]"] - 1,
+                    });
+                  }}
+                  disabled={(queryParams["pagination[page]"] ?? 1) == 1}
+                  className="px-3 py-1 rounded-md bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  ◀
+                </button>
+                <button
+                  onClick={() => {
+                    updateQueryParams({
+                      "pagination[page]": +queryParams["pagination[page]"] + 1,
+                    });
+                  }}
+                  disabled={(queryParams["pagination[page]"] ?? 1) >= totalPages}
+                  className="px-3 py-1 rounded-md bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  ▶
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </section>
     </>

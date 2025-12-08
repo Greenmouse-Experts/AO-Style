@@ -93,7 +93,11 @@ const CustomersTable = () => {
           q: debouncedSearchTerm,
         },
       });
-      return resp.data;
+      // Return full response object with count for pagination
+      return {
+        data: resp.data.data,
+        count: resp.data.count,
+      };
     },
   });
 
@@ -169,14 +173,14 @@ const CustomersTable = () => {
         return getAllInviteData;
       case "registered":
       default:
-        return registeredUsers;
+        return getAllTailorRepData;
     }
   }, [
     currView,
     getPendingInviteData,
     getRejectedInviteData,
     getAllInviteData,
-    registeredUsers,
+    getAllTailorRepData,
   ]);
 
   // Determine loading state based on currView
@@ -207,9 +211,9 @@ const CustomersTable = () => {
   };
 
   const TailorData = useMemo(() => {
-    if (!registeredUsers?.data) return [];
+    if (!getAllTailorRepData?.data) return [];
 
-    const mappedData = registeredUsers.data.map((details) => {
+    const mappedData = getAllTailorRepData.data.map((details) => {
       return {
         ...details,
         name: `${details?.name}`,
@@ -227,7 +231,7 @@ const CustomersTable = () => {
 
     // Apply date filters
     return mappedData.filter((tailor) => matchesDateFilter(tailor.rawDate));
-  }, [registeredUsers?.data, matchesDateFilter]);
+  }, [getAllTailorRepData?.data, matchesDateFilter]);
 
   const InviteData = useMemo(() => {
     if (!currentData?.data) return [];

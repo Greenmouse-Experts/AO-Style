@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 export default function useQueryParams(initialQueryParams) {
   const [searchParams, setSearchParams] = useSearchParams(initialQueryParams);
 
-  const updateQueryParams = (key, value, replacePrevious) => {
+  const updateQueryParams = (key, value, replacePrevious = true) => {
     setSearchParams(
       (prevParams) => {
         if (typeof key !== "string") {

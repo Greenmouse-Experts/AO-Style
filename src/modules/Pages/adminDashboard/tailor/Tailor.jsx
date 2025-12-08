@@ -21,6 +21,7 @@ import DateFilter from "../../../../components/shared/DateFilter";
 import ActiveFilters from "../../../../components/shared/ActiveFilters";
 import useDateFilter from "../../../../hooks/useDateFilter";
 import ViewDetailsModal from "../components/Viewdetailsmodal";
+import PaginationButton from "../../../../components/PaginationButton";
 
 const CustomersTable = () => {
   const [currView, setCurrView] = useState("registered");
@@ -101,13 +102,7 @@ const CustomersTable = () => {
     },
   });
 
-  useEffect(() => {
-    updateQueryParams({
-      registered: true,
-    });
-  }, [updateQueryParams]);
-
-  // Query for pending tailors (uses contact/invites endpoint with status=pending)
+  // Query for pending tailor invites
   const { data: getPendingInviteData, isPending: pendingInviteIsPending } =
     useQuery({
       queryKey: [
@@ -602,19 +597,18 @@ const CustomersTable = () => {
                   <option value={20}>20</option>
                 </select>
               </div>
-              <div className="flex gap-1">
-                <button
+              <div className="flex gap-2">
+                <PaginationButton
                   onClick={() => {
                     updateQueryParams({
                       "pagination[page]": +queryParams["pagination[page]"] - 1,
                     });
                   }}
                   disabled={(queryParams["pagination[page]"] ?? 1) == 1}
-                  className="px-3 py-1 rounded-md bg-gray-200"
                 >
-                  ◀
-                </button>
-                <button
+                  ◀ Previous
+                </PaginationButton>
+                <PaginationButton
                   onClick={() => {
                     updateQueryParams({
                       "pagination[page]": +queryParams["pagination[page]"] + 1,
@@ -623,10 +617,9 @@ const CustomersTable = () => {
                   disabled={
                     (queryParams["pagination[page]"] ?? 1) == totalPages
                   }
-                  className="px-3 py-1 rounded-md bg-gray-200"
                 >
-                  ▶
-                </button>
+                  Next ▶
+                </PaginationButton>
               </div>
             </div>
           )}
@@ -726,19 +719,18 @@ const CustomersTable = () => {
                   <option value={20}>20</option>
                 </select>
               </div>
-              <div className="flex gap-1">
-                <button
+              <div className="flex gap-2">
+                <PaginationButton
                   onClick={() => {
                     updateQueryParams({
                       "pagination[page]": +queryParams["pagination[page]"] - 1,
                     });
                   }}
                   disabled={(queryParams["pagination[page]"] ?? 1) == 1}
-                  className="px-3 py-1 rounded-md bg-gray-200"
                 >
-                  ◀
-                </button>
-                <button
+                  ◀ Previous
+                </PaginationButton>
+                <PaginationButton
                   onClick={() => {
                     updateQueryParams({
                       "pagination[page]": +queryParams["pagination[page]"] + 1,
@@ -747,10 +739,9 @@ const CustomersTable = () => {
                   disabled={
                     (queryParams["pagination[page]"] ?? 1) == totalPages
                   }
-                  className="px-3 py-1 rounded-md bg-gray-200"
                 >
-                  ▶
-                </button>
+                  Next ▶
+                </PaginationButton>
               </div>
             </div>
           )}

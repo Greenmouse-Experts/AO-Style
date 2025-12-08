@@ -89,12 +89,6 @@ const NewlyAddedUsers = () => {
     role: "market-representative",
   });
 
-  useEffect(() => {
-    updateQueryParams({
-      registered: true,
-    });
-  }, [updateQueryParams]);
-
   // Query for pending market reps (uses contact/invites endpoint with status=pending)
   const { data: getPendingInviteData, isPending: pendingInviteIsPending } =
     useQuery({

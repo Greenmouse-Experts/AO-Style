@@ -824,8 +824,9 @@ export default function ImprovedInboxPage() {
                 >
                   {roleName}
                   {roleCounts[roleName] > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow animate-pulse">
-                      {roleCounts[roleName]}
+                    <span className="absolute -top-1 -right-1 flex items-center justify-center">
+                      <span className="absolute bg-red-500 rounded-full h-5 w-5 animate-ping opacity-75"></span>
+                      <span className="relative bg-red-500 rounded-full h-3 w-3"></span>
                     </span>
                   )}
                 </button>
@@ -1059,8 +1060,9 @@ export default function ImprovedInboxPage() {
                                 {chat.last_message || "No messages yet"}
                               </p>
                               {chat.unread > 0 && (
-                                <span className="inline-block bg-purple-500 text-white text-xs rounded-full px-2 py-0.5 ml-2 flex-shrink-0">
-                                  {chat.unread}
+                                <span className="relative flex items-center justify-center ml-2 flex-shrink-0">
+                                  <span className="absolute bg-red-500 rounded-full h-3 w-3 animate-ping opacity-75"></span>
+                                  <span className="relative bg-red-500 rounded-full h-2 w-2"></span>
                                 </span>
                               )}
                             </div>

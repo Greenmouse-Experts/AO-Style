@@ -1022,8 +1022,11 @@ const ChatHead = () => {
                                 </p>
                               </div>
                               {chat.unread > 0 && (
-                                <span className="bg-purple-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                                  {chat.unread}
+                                <span className="relative flex items-center justify-center">
+                                  {/* Outer pulsing circle */}
+                                  <span className="absolute bg-red-500 rounded-full h-3 w-3 animate-ping opacity-75"></span>
+                                  {/* Inner solid circle */}
+                                  <span className="relative bg-red-500 rounded-full h-2 w-2"></span>
                                 </span>
                               )}
                             </div>

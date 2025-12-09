@@ -529,17 +529,6 @@ export default function Navbar() {
               {/* Bottom Buttons */}
               <div className="flex flex-col space-y-6 mt-6">
                 <div className="flex justify-start space-x-4">
-                  <Link to={`/view-cart`} className="transition relative">
-                    <ShoppingCartIcon className="h-5 w-5 text-[#545252] cursor-pointer" />
-                    {cartCount > 0 ? (
-                      <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                        {cartCount}
-                      </span>
-                    ) : (
-                      <></>
-                    )}
-                  </Link>
-
                   {token && currUrl && carybinUser ? (
                     <></>
                   ) : (

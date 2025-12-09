@@ -799,24 +799,27 @@ export default function InboxPage() {
                           <h4 className="font-medium text-gray-900 truncate">
                             {chat.chat_buddy?.name || "Unknown User"}
                           </h4>
-                          <span className="text-xs text-gray-500 ml-2">
-                            {new Date(
-                              chat.created_at || Date.now(),
-                            ).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: true,
-                            })}
-                          </span>
+                          <div className="flex items-center gap-2 ml-2 flex-shrink-0">
+                            <span className="text-xs text-gray-500">
+                              {new Date(
+                                chat.created_at || Date.now(),
+                              ).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true,
+                              })}
+                            </span>
+                            {chat.unread > 0 && (
+                              <span className="relative flex items-center justify-center">
+                                <span className="absolute bg-red-500 rounded-full h-3 w-3 animate-ping opacity-75"></span>
+                                <span className="relative bg-red-500 rounded-full h-2 w-2"></span>
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <p className="text-sm text-gray-500 truncate mt-1">
                           {chat.last_message || "No messages yet"}
                         </p>
-                        {chat.unread > 0 && (
-                          <span className="inline-flex items-center justify-center w-5 h-5 bg-purple-600 text-white text-xs rounded-full mt-2">
-                            {chat.unread}
-                          </span>
-                        )}
                       </div>
                     </div>
                   </div>

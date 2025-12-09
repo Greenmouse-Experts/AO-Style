@@ -938,14 +938,14 @@ const OrderDetails = () => {
                               <p className="text-gray-500 text-xs">Name</p>
                               <p className="font-medium text-gray-900">{shipment.ReceiverName}</p>
                             </div>
-                            <div>
+                            {/* <div>
                               <p className="text-gray-500 text-xs">Phone</p>
                               <p className="font-medium text-gray-900">{shipment.ReceiverPhoneNumber}</p>
                             </div>
                             <div>
                               <p className="text-gray-500 text-xs">Address</p>
                               <p className="text-gray-700 text-xs leading-relaxed">{shipment.ReceiverAddress}</p>
-                            </div>
+                            </div> */}
                           </div>
                         </div>
                       </div>

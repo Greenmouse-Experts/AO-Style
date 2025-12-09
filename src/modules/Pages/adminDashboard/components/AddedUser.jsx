@@ -66,16 +66,6 @@ const NewlyAddedUsers = () => {
       return response.data;
     },
   });
-  const { data: registeredUsers } = useQuery({
-    queryKey: ["get-registerd-users"],
-    queryFn: async () => {
-      const url = `/auth/users/market-representative`;
-      const response = await CaryBinApi.get(url);
-      console.log("This are the registered users", response);
-      return response.data;
-    },
-  });
-  console.log("These are the registered users", registeredUsers)
 
   const { queryParams, updateQueryParams } = useQueryParams({
     registered: true,
@@ -173,14 +163,14 @@ const NewlyAddedUsers = () => {
         return getAllInviteData;
       case "registered":
       default:
-        return registeredUsers;
+        return getAllMarketRepData;
     }
   }, [
     currView,
     getPendingInviteData,
     getRejectedInviteData,
     getAllInviteData,
-    registeredUsers,
+    getAllMarketRepData,
   ]);
 
   // Determine loading state based on currView
@@ -261,9 +251,9 @@ const NewlyAddedUsers = () => {
   }, [currView, nav]);
 
   const MarketRepData = useMemo(() => {
-    if (!registeredUsers?.data) return [];
+    if (!getAllMarketRepData?.data) return [];
 
-    const mappedData = registeredUsers.data.map((details) => {
+    const mappedData = getAllMarketRepData.data.map((details) => {
       return {
         ...details,
         name: `${details?.name}`,
@@ -283,7 +273,7 @@ const NewlyAddedUsers = () => {
     return mappedData.filter((marketRep) =>
       matchesDateFilter(marketRep.rawDate),
     );
-  }, [registeredUsers?.data, matchesDateFilter]);
+  }, [getAllMarketRepData?.data, matchesDateFilter]);
 
   const handleDeleteUser = (user) => {
     setUserToDelete(user);

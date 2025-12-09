@@ -14,7 +14,7 @@ function useGetAllUsersByRole(params) {
   return {
     isLoading,
     isFetching,
-    data: data?.data,
+    data: { data: data?.data?.data, count: data?.data?.count },
     isError,
     isPending,
     refetch,

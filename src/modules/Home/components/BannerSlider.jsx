@@ -111,7 +111,7 @@ export default function HeroSlider() {
           </Link>
 
           {/* Trusted Users Section */}
-          <div className="flex items-center gap-4">
+          {/* <div className="flex items-center gap-4">
             <div className="flex -space-x-2">
               <img
                 src="https://randomuser.me/api/portraits/women/1.jpg"
@@ -133,7 +133,7 @@ export default function HeroSlider() {
             <div className="text-white text-sm font-light">
               Trusted by users
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
 

@@ -551,7 +551,7 @@ export default function Navbar() {
                         carybinUser?.profile?.profile_picture ||
                         "https://ui-avatars.com/api/?name=User&background=eee&color=888"
                       }
-                      alt="User"
+                      alt={carybinUser?.name?.split(" ")[0] || "User"}
                       className="w-8 h-8 rounded-full border-2 border-purple-400 object-cover"
                     />
                     <div className="flex flex-col">

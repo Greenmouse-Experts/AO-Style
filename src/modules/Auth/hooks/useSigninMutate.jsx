@@ -12,7 +12,9 @@ const useSignIn = (email, resendCodeMutate) => {
   const currentPath = location.pathname;
   const { setAuthData } = useSessionManager();
 
-  const redirectPath = new URLSearchParams(location.search).get("redirect");
+  const redirectPath = 
+    new URLSearchParams(location.search).get("redirect_url") || 
+    new URLSearchParams(location.search).get("redirect");
 
   const pendingProduct = localStorage.getItem("pendingProduct");
 

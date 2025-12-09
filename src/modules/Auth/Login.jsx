@@ -37,7 +37,9 @@ export default function SignInCustomer() {
   }, []);
 
   const [showPassword, setShowPassword] = useState(false);
-  const redirectPath = new URLSearchParams(location.search).get("redirect");
+  const redirectPath = 
+    new URLSearchParams(location.search).get("redirect_url") || 
+    new URLSearchParams(location.search).get("redirect");
 
   const { isPending: resendCodeIsPending, resendCodeMutate } = useResendCode();
   const { toastError } = useToast();

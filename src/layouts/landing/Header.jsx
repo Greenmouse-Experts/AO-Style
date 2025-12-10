@@ -166,18 +166,16 @@ export default function Navbar() {
                 </Link>
               ))}
               <Inject />
-              
+
               {/* Search Bar */}
               <form onSubmit={handleSearch} className="flex-1 max-w-md mx-4">
-                <div className={`relative flex items-center backdrop-blur-sm bg-white/90 border transition-all duration-300 rounded-full ${
-                  isSearchFocused 
-                    ? "border-purple-500/80 shadow-lg shadow-purple-200/50 ring-2 ring-purple-200/30" 
+                <div className={`relative flex items-center backdrop-blur-sm bg-white/90 border transition-all duration-300 rounded-full ${isSearchFocused
+                    ? "border-purple-500/80 shadow-lg shadow-purple-200/50 ring-2 ring-purple-200/30"
                     : "border-gray-200/50 shadow-sm hover:border-purple-300/60 hover:shadow-md"
-                }`}>
+                  }`}>
                   <div className="absolute left-4 flex items-center pointer-events-none">
-                    <MagnifyingGlassIcon className={`h-5 w-5 transition-colors duration-300 ${
-                      isSearchFocused ? "text-purple-600" : "text-gray-400"
-                    }`} />
+                    <MagnifyingGlassIcon className={`h-5 w-5 transition-colors duration-300 ${isSearchFocused ? "text-purple-600" : "text-gray-400"
+                      }`} />
                   </div>
                   <input
                     type="text"
@@ -200,11 +198,10 @@ export default function Navbar() {
                   <button
                     type="submit"
                     disabled={!searchQuery.trim()}
-                    className={`absolute right-2 p-2.5 rounded-full transition-all duration-300 ${
-                      searchQuery.trim()
+                    className={`absolute right-2 p-2.5 rounded-full transition-all duration-300 ${searchQuery.trim()
                         ? "bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-md hover:shadow-lg transform hover:scale-110 active:scale-95"
                         : "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-md hover:shadow-lg cursor-not-allowed"
-                    }`}
+                      }`}
                     title="Search"
                   >
                     <MagnifyingGlassIcon className="h-5 w-5" />
@@ -239,9 +236,8 @@ export default function Navbar() {
                       {carybinUser?.name}
                     </p>
                     <ChevronDownIcon
-                      className={`h-4 w-4 text-purple-500 transition-transform duration-200 ${
-                        isDropdownOpen ? "rotate-180" : ""
-                      }`}
+                      className={`h-4 w-4 text-purple-500 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""
+                        }`}
                     />
 
                     {/* Enhanced Dropdown */}
@@ -350,7 +346,7 @@ export default function Navbar() {
               >
                 <MagnifyingGlassIcon className="h-6 w-6 text-gray-800" />
               </button>
-              
+
               {/* Mobile Cart Icon */}
               <Link to={`/view-cart`} className="relative p-2">
                 <ShoppingCartIcon className="h-6 w-6 text-gray-800" />
@@ -360,7 +356,7 @@ export default function Navbar() {
                   </span>
                 )}
               </Link>
-              
+
               {/* Hamburger Menu Button */}
               <button
                 onClick={() => setIsOpen(!isOpen)}
@@ -404,11 +400,10 @@ export default function Navbar() {
                 <button
                   type="submit"
                   disabled={!searchQuery.trim()}
-                  className={`absolute right-2 p-2.5 rounded-full transition-all duration-300 ${
-                    searchQuery.trim()
+                  className={`absolute right-2 p-2.5 rounded-full transition-all duration-300 ${searchQuery.trim()
                       ? "bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-md"
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  }`}
+                    }`}
                 >
                   <MagnifyingGlassIcon className="h-5 w-5" />
                 </button>
@@ -548,8 +543,7 @@ export default function Navbar() {
                   >
                     <img
                       src={
-                        carybinUser?.profile?.profile_picture ||
-                       (carybinUser?.name?.split(" ")[0] || "User").slice(0, 2).toUpperCase()
+                        carybinUser?.profile?.profile_picture
                       }
                       alt={(carybinUser?.name?.split(" ")[0] || "User").slice(0, 2).toUpperCase()}
                       className="w-8 h-8 rounded-full border-2 border-purple-400 object-cover justify-center items-center flex bg-purple-100 text-purple-600 font-semibold text-sm"
@@ -563,9 +557,8 @@ export default function Navbar() {
                       </span>
                     </div>
                     <ChevronDownIcon
-                      className={`h-4 w-4 text-purple-500 ml-auto transition-transform duration-200 ${
-                        isDropdownOpen ? "rotate-180" : ""
-                      }`}
+                      className={`h-4 w-4 text-purple-500 ml-auto transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""
+                        }`}
                     />
                     {/* Enhanced Dropdown */}
                     {isDropdownOpen && (

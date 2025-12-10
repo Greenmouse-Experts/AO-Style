@@ -578,12 +578,57 @@ const CustomersTable = () => {
 
       {activeTab === "table" ? (
         <>
-          <CustomTable
-            loading={isLoading}
-            columns={currView === "registered" ? columns : inviteLogisticsColumn}
-            data={currView === "registered" ? LogisticsData : InviteData}
-            actions={actions}
-          />
+          {!isLoading && (currView === "registered" ? LogisticsData : InviteData).length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 px-4">
+              <svg
+                className="w-16 h-16 text-gray-300 mb-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+              </svg>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                No Logistics Partners Found
+              </h3>
+              <p className="text-sm text-gray-500 text-center max-w-md">
+                {queryString
+                  ? `No logistics partners match your search "${queryString}"`
+                  : activeFilters.length > 0
+                    ? "No logistics partners match the selected date filters. Try adjusting your filters."
+                    : currView === "registered"
+                      ? "There are no registered logistics partners at the moment."
+                      : currView === "pending"
+                        ? "There are no pending logistics invites."
+                        : currView === "rejected"
+                          ? "There are no expired logistics invites."
+                          : "There are no logistics invites."}
+              </p>
+              {(queryString || activeFilters.length > 0) && (
+                <button
+                  onClick={() => {
+                    setQueryString("");
+                    clearDateFilters();
+                  }}
+                  className="mt-4 px-4 py-2 bg-[#9847FE] text-white rounded-lg text-sm hover:bg-[#8537ee] transition-colors"
+                >
+                  Clear All Filters
+                </button>
+              )}
+            </div>
+          ) : (
+            <CustomTable
+              loading={isLoading}
+              columns={currView === "registered" ? columns : inviteLogisticsColumn}
+              data={currView === "registered" ? LogisticsData : InviteData}
+              actions={actions}
+            />
+          )}
           {/* <ReusableTable
             loading={isPending}
             columns={columns}

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import ReusableTable from "../components/ReusableTable";
 import OrdersSummary from "../components/OrdersSummary";
 import { Link, useNavigate } from "react-router-dom";
@@ -11,6 +11,9 @@ import CaryBinApi from "../../../../services/CarybinBaseUrl";
 import CustomTable from "../../../../components/CustomTable";
 import { MenuIcon } from "lucide-react";
 import useDebounce from "../../../../hooks/useDebounce";
+import DateFilter from "../../../../components/shared/DateFilter";
+import ActiveFilters from "../../../../components/shared/ActiveFilters";
+import useDateFilter from "../../../../hooks/useDateFilter";
 
 const OrdersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -21,6 +24,16 @@ const OrdersTable = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [activeReviewModal, setActiveReviewModal] = useState(null);
   const nav = useNavigate();
+  
+  // Date filter functionality
+  const {
+    activeFilters,
+    matchesDateFilter,
+    handleFiltersChange,
+    removeFilter,
+    clearAllFilters: clearDateFilters,
+  } = useDateFilter();
+  
   // const { isPending: ordersLoading, data: ordersResponse } = useGetOrder(); // Not needed for search
   const columns = [
     {
@@ -150,23 +163,16 @@ const OrdersTable = () => {
 
   const data = order_query?.data?.data || [];
 
-  // Remove local filtering, since API search is used
-  // const filteredData = data.filter((order) => {
-  //   if (!searchTerm) return true;
-  //   const searchLower = searchTerm.toLowerCase();
-  //   return (
-  //     order.id?.toLowerCase().includes(searchLower) ||
-  //     order.payment?.transaction_id?.toLowerCase().includes(searchLower) ||
-  //     order.payment?.user?.email?.toLowerCase().includes(searchLower) ||
-  //     order.payment?.purchase?.items?.[0]?.name
-  //       ?.toLowerCase()
-  //       .includes(searchLower) ||
-  //     order.status?.toLowerCase().includes(searchLower)
-  //   );
-  // });
-
-  // Use data directly from API
-  const filteredData = data;
+  // Apply date filters to the data
+  const filteredData = useMemo(() => {
+    if (!data || !Array.isArray(data)) return [];
+    
+    return data.filter((order) => {
+      // Apply date filter based on order creation date
+      const dateValue = order.created_at || order.payment?.created_at;
+      return matchesDateFilter(dateValue);
+    });
+  }, [data, matchesDateFilter]);
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -244,6 +250,11 @@ const OrdersTable = () => {
             )}
           </div>
           <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
+            <DateFilter
+              onFiltersChange={handleFiltersChange}
+              activeFilters={activeFilters}
+              onClearAll={clearDateFilters}
+            />
             <div className="relative">
               <input
                 type="text"
@@ -264,16 +275,58 @@ const OrdersTable = () => {
                   >
                     ×
                   </button>
-                )}
+                )}>
               </div>
             </div>
-            <select className="py-2 px-3 border border-gray-200 rounded-md outline-none text-sm w-auto">
-              <option>Filter</option>
-            </select>
           </div>
         </div>
+        
+        {/* Active Filters Display */}
+        <ActiveFilters
+          activeFilters={activeFilters}
+          onRemoveFilter={removeFilter}
+          onClearAll={clearDateFilters}
+        />
+        
         {order_query.isFetching && !searchTerm ? (
           <div className="p-2 text-lg ">loading orders...</div>
+        ) : filteredData.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 px-4">
+            <svg
+              className="w-16 h-16 text-gray-300 mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
+            </svg>
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">
+              No Orders Found
+            </h3>
+            <p className="text-sm text-gray-500 text-center max-w-md">
+              {searchTerm
+                ? `No orders match your search "${searchTerm}"`
+                : activeFilters.length > 0
+                  ? "No orders match the selected date filters. Try adjusting your filters."
+                  : "There are no customer orders at the moment."}
+            </p>
+            {(searchTerm || activeFilters.length > 0) && (
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  clearDateFilters();
+                }}
+                className="mt-4 px-4 py-2 bg-[#9847FE] text-white rounded-lg text-sm hover:bg-[#8537ee] transition-colors"
+              >
+                Clear All Filters
+              </button>
+            )}
+          </div>
         ) : (
           <>
             {

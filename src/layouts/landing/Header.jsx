@@ -549,10 +549,10 @@ export default function Navbar() {
                     <img
                       src={
                         carybinUser?.profile?.profile_picture ||
-                        "https://ui-avatars.com/api/?name=User&background=eee&color=888"
+                       (carybinUser?.name?.split(" ")[0] || "User").slice(0, 2).toUpperCase()
                       }
-                      alt={carybinUser?.name?.split(" ")[0] || "User"}
-                      className="w-8 h-8 rounded-full border-2 border-purple-400 object-cover"
+                      alt={(carybinUser?.name?.split(" ")[0] || "User").slice(0, 2).toUpperCase()}
+                      className="w-8 h-8 rounded-full border-2 border-purple-400 object-cover justify-center items-center flex bg-purple-100 text-purple-600 font-semibold text-sm"
                     />
                     <div className="flex flex-col">
                       <span className="text-sm font-semibold text-purple-700">

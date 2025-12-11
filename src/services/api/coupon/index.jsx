@@ -22,8 +22,10 @@ const getAllCoupon = (params) => {
   });
 };
 
-const getAllCouponAdmin = () => {
-  return CaryBinApi.get(`/coupon-management/fetch-all`);
+const getAllCouponAdmin = (params) => {
+  return CaryBinApi.get(`/coupon-management/fetch-all`, {
+    params,
+  });
 };
 
 const getAdminFabricProduct = (params) => {

@@ -53,11 +53,15 @@ const parseNairaToNumber = (nairaStr: string): number => {
 };
 
 export default function SalesRevenueChart() {
+  const [selectedYear, setSelectedYear] = React.useState<number>(
+    new Date().getFullYear()
+  );
+
   const query_data = useQuery<AnalyticsResponse>({
-    queryKey: ["analytics"],
+    queryKey: ["analytics", selectedYear],
     queryFn: async () => {
       const resp = await CaryBinApi.get(
-        "/owner-analytics/fetch-revenue?year=2025",
+        `/owner-analytics/fetch-revenue?year=${selectedYear}`,
       );
       return resp.data;
     },
@@ -159,8 +163,14 @@ export default function SalesRevenueChart() {
         <h3 className="text-lg font-medium text-gray-800">
           Sales Revenue
         </h3>
-        <select className="border border-gray-300 rounded-md p-2 text-sm text-gray-600">
-          <option>Jan 2025 - Dec 2025</option>
+        <select 
+          className="border border-gray-300 rounded-md p-2 text-sm text-gray-600"
+          value={selectedYear}
+          onChange={(e) => setSelectedYear(Number(e.target.value))}
+        >
+          <option value={2024}>Jan 2024 - Dec 2024</option>
+          <option value={2025}>Jan 2025 - Dec 2025</option>
+          <option value={2026}>Jan 2026 - Dec 2026</option>
         </select>
       </div>
       <div className="h-82">

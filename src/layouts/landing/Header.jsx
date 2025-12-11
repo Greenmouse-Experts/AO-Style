@@ -541,13 +541,23 @@ export default function Navbar() {
                     className="flex bg-white shadow-md p-2 rounded-lg items-center gap-3 cursor-pointer hover:bg-purple-50 transition duration-200 relative"
                     title="View profile"
                   >
-                    <img
-                      src={
-                        carybinUser?.profile?.profile_picture
-                      }
-                      alt={(carybinUser?.name?.split(" ")[0] || "User").slice(0, 2).toUpperCase()}
-                      className="w-8 h-8 rounded-full border-2 border-purple-400 object-cover justify-center items-center flex bg-purple-100 text-purple-600 font-semibold text-sm"
-                    />
+                    {carybinUser?.profile?.profile_picture ? (
+                      <img
+                        src={carybinUser.profile.profile_picture}
+                        alt={carybinUser?.name || "User"}
+                        className="w-8 h-8 rounded-full border-2 border-purple-400 object-cover"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <div 
+                      className="w-8 h-8 rounded-full border-2 border-purple-400 bg-purple-100 text-purple-600 font-semibold text-sm flex items-center justify-center"
+                      style={{ display: carybinUser?.profile?.profile_picture ? 'none' : 'flex' }}
+                    >
+                      {(carybinUser?.name?.split(" ").slice(0, 2).map(n => n[0]).join("") || "U").toUpperCase()}
+                    </div>
                     <div className="flex flex-col">
                       <span className="text-sm font-semibold text-purple-700">
                         {carybinUser?.name}

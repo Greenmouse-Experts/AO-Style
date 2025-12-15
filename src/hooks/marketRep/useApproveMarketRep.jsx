@@ -12,8 +12,21 @@ const useApproveMarketRep = () => {
     mutationFn: (payload) => MarketRepService.approveMarketRep(payload),
     mutationKey: ["approve-market-rep"],
     onSuccess(data) {
+      // Invalidate all user management related queries
       queryClient.invalidateQueries({
         queryKey: ["get-all-userby-role"],
+      });
+      // Invalidate specific user type queries
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const queryKey = query.queryKey;
+          // Check if queryKey array contains "tailors", "fabric-vendors", or "logistics-agents"
+          return queryKey.some(key => 
+            key === "tailors" || 
+            key === "fabric-vendors" || 
+            key === "logistics-agents"
+          );
+        }
       });
 
       toastSuccess(data?.data?.message);

@@ -15,7 +15,7 @@ import useDeleteUser from "../../../../hooks/user/useDeleteUser";
 import useToast from "../../../../hooks/useToast";
 import AddNewTailorModal from "./AddNewTailorModal";
 import CustomTable from "../../../../components/CustomTable";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import CaryBinApi from "../../../../services/CarybinBaseUrl";
 import DateFilter from "../../../../components/shared/DateFilter";
 import ActiveFilters from "../../../../components/shared/ActiveFilters";
@@ -30,6 +30,8 @@ const CustomersTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewDetailsModalOpen, setViewDetailsModalOpen] = useState(false);
   const [selectedItemForView, setSelectedItemForView] = useState(null);
+
+  const queryClient = useQueryClient();
 
   // Date filter functionality
   const {
@@ -303,6 +305,27 @@ const CustomersTable = () => {
       { label: "Email Address", key: "email" },
       { label: "Location", key: "location" },
       { label: "Date Joined", key: "dateJoined" },
+      {
+        label: "Onboarding Status",
+        key: "status",
+        render: (_, row) => (
+          <span
+            className={`px-3 py-1 text-sm rounded-md ${
+              row.profile?.approved_by_admin
+                ? "bg-green-100 text-green-600"
+                : row.profile?.approved_by_admin == null
+                  ? "bg-yellow-100 text-yellow-600"
+                  : "bg-red-100 text-red-600"
+            }`}
+          >
+            {row.profile?.approved_by_admin == null
+              ? "Pending"
+              : row.profile?.approved_by_admin
+                ? "Approved"
+                : "Suspended"}
+          </span>
+        ),
+      },
       // {
       //   label: "Action",
       //   key: "action",
@@ -388,32 +411,41 @@ const CustomersTable = () => {
       ];
     }
 
-    // For registered: show full actions including navigation to view page
-    return [
-      {
-        key: "view-details",
-        label: "View Details",
-        action: (item) => {
-          return nav(`/admin/tailors/view-tailor/${item.id}`);
+    // For registered: show actions based on approval status
+    return (item) => {
+      const actions = [
+        {
+          key: "view-details",
+          label: "View Details",
+          action: () => {
+            return nav(`/admin/tailors/view-tailor/${item.id}`);
+          },
         },
-      },
-      {
-        key: "suspend-tailor",
-        label: "Suspend Tailor",
-        action: (item) => {
-          setSuspendModalOpen(true);
-          setNewCategory(item);
-          setOpenDropdown(null);
-        },
-      },
-      {
+      ];
+
+      // Only show suspend/unsuspend if not pending (approved_by_admin !== null)
+      if (item?.profile?.approved_by_admin !== null) {
+        actions.push({
+          key: "suspend-tailor",
+          label: item?.profile?.approved_by_admin ? "Suspend Tailor" : "Unsuspend Tailor",
+          action: () => {
+            setSuspendModalOpen(true);
+            setNewCategory(item);
+            setOpenDropdown(null);
+          },
+        });
+      }
+
+      actions.push({
         key: "delete-tailor",
         label: "Delete Tailor",
-        action: (item) => {
+        action: () => {
           handleDeleteUser(item);
         },
-      },
-    ];
+      });
+
+      return actions;
+    };
   }, [currView, nav]);
 
   // Table columns for invites/pending/rejected (from contact/invites endpoint)

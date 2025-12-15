@@ -23,7 +23,7 @@ import CustomTable from "../../../components/CustomTable";
 import DateFilter from "../../../components/shared/DateFilter";
 import ActiveFilters from "../../../components/shared/ActiveFilters";
 import useDateFilter from "../../../hooks/useDateFilter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import CaryBinApi from "../../../services/CarybinBaseUrl";
 import ViewDetailsModal from "./components/Viewdetailsmodal";
 import PaginationButton from "../../../components/PaginationButton";
@@ -36,6 +36,8 @@ const CustomersTable = () => {
   const [selectedItemForView, setSelectedItemForView] = useState(null);
   const dropdownRef = useRef(null);
   const [activeTab, setActiveTab] = useState("table");
+  
+  const queryClient = useQueryClient();
   const [suspendModalOpen, setSuspendModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
@@ -278,6 +280,27 @@ const CustomersTable = () => {
       { label: "Email Address", key: "email" },
       { label: "Location", key: "location" },
       { label: "Date Joined", key: "dateJoined" },
+      {
+        label: "Onboarding Status",
+        key: "status",
+        render: (_, row) => (
+          <span
+            className={`px-3 py-1 text-sm rounded-md ${
+              row.profile?.approved_by_admin
+                ? "bg-green-100 text-green-600"
+                : row.profile?.approved_by_admin == null
+                  ? "bg-yellow-100 text-yellow-600"
+                  : "bg-red-100 text-red-600"
+            }`}
+          >
+            {row.profile?.approved_by_admin == null
+              ? "Pending"
+              : row.profile?.approved_by_admin
+                ? "Approved"
+                : "Suspended"}
+          </span>
+        ),
+      },
       // {
       //   label: "Action",
       //   key: "action",
@@ -364,32 +387,41 @@ const CustomersTable = () => {
       ];
     }
 
-    // For registered: show full actions including navigation to view page
-    return [
-      {
-        key: "view-details",
-        label: "View Details",
-        action: (item) => {
-          return nav(`/admin/logistics/view/${item.id}`);
+    // For registered: show actions based on approval status
+    return (item) => {
+      const actions = [
+        {
+          key: "view-details",
+          label: "View Details",
+          action: () => {
+            return nav(`/admin/logistics/view/${item.id}`);
+          },
         },
-      },
-      {
-        key: "suspend-vendor",
-        label: "Suspend",
-        action: (item) => {
-          setSuspendModalOpen(true);
-          setNewCategory(item);
-          setOpenDropdown(null);
-        },
-      },
-      {
-        key: "delete-vendor",
-        label: "Delete",
-        action: (item) => {
+      ];
+
+      // Only show suspend/unsuspend if not pending (approved_by_admin !== null)
+      if (item?.profile?.approved_by_admin !== null) {
+        actions.push({
+          key: "suspend-logistics",
+          label: item?.profile?.approved_by_admin ? "Suspend Logistics" : "Unsuspend Logistics",
+          action: () => {
+            setSuspendModalOpen(true);
+            setNewCategory(item);
+            setOpenDropdown(null);
+          },
+        });
+      }
+
+      actions.push({
+        key: "delete-logistics",
+        label: "Delete Logistics",
+        action: () => {
           handleDeleteUser(item);
         },
-      },
-    ];
+      });
+
+      return actions;
+    };
   }, [currView, nav]);
 
   // Table columns for invites/pending/rejected (from contact/invites endpoint)

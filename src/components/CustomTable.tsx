@@ -19,8 +19,9 @@ type Actions = {
 interface CustomTableProps {
   data?: any[];
   columns?: columnType[];
-  actions?: Actions[];
+  actions?: Actions[] | ((item: any) => Actions[]);
   user?: any;
+  loading?: boolean;
 }
 
 export default function CustomTable(props: CustomTableProps) {
@@ -94,7 +95,11 @@ export default function CustomTable(props: CustomTableProps) {
                               setIndex={setSelectedItem}
                               currentIndex={selectedItem}
                               key={rowIdx + "menu"}
-                              actions={props?.actions || []}
+                              actions={
+                                typeof props?.actions === "function"
+                                  ? props.actions(item)
+                                  : props?.actions || []
+                              }
                               item={item}
                             />
                           </td>

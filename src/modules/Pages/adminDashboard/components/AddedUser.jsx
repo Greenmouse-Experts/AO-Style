@@ -223,31 +223,40 @@ const NewlyAddedUsers = () => {
       ];
     }
 
-    // For registered: show full actions including navigation to view page
-    return [
-      {
-        key: "view-details",
-        label: "View Market Rep",
-        action: (item) => {
-          return nav(`/admin/sales-rep/view-sales/${item.id}`);
+    // For registered: return a function that generates actions based on item
+    return (item) => {
+      const itemActions = [
+        {
+          key: "view-details",
+          label: "View Market Rep",
+          action: () => {
+            return nav(`/admin/sales-rep/view-sales/${item.id}`);
+          },
         },
-      },
-      {
-        key: "suspend-vendor",
-        label: currView === "registered" ? "Suspend Vendor" : "Unsuspend Vendor",
-        action: (item) => {
-          setSuspendModalOpen(true);
-          setNewCategory(item);
-        },
-      },
-      {
-        key: "delete-vendor",
+      ];
+
+      // Only show suspend/unsuspend if not pending (approved_by_admin !== null)
+      if (item?.profile?.approved_by_admin !== null) {
+        itemActions.push({
+          key: "suspend-market-rep",
+          label: item?.profile?.approved_by_admin ? "Suspend Market Rep" : "Unsuspend Market Rep",
+          action: () => {
+            setSuspendModalOpen(true);
+            setNewCategory(item);
+          },
+        });
+      }
+
+      itemActions.push({
+        key: "delete-market-rep",
         label: "Delete Market Rep",
-        action: (item) => {
+        action: () => {
           handleDeleteUser(item);
         },
-      },
-    ];
+      });
+
+      return itemActions;
+    };
   }, [currView, nav]);
 
   const MarketRepData = useMemo(() => {
@@ -339,7 +348,7 @@ const NewlyAddedUsers = () => {
               ? "Pending"
               : row.profile?.approved_by_admin
                 ? "Approved"
-                : "Expired"}
+                : "Suspended"}
           </span>
         ),
       },

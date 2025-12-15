@@ -153,34 +153,17 @@ const CustomersTable = () => {
               >
                 View/Edit Admin
               </button>
-              {row?.profile?.approved_by_admin ? (
-                <>
-                  {" "}
-                  <button
-                    onClick={() => {
-                      setSuspendModalOpen(true);
-                      setNewCategory(row);
-                      setOpenDropdown(null);
-                    }}
-                    className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
-                  >
-                    {"Suspend Admin"}
-                  </button>
-                </>
-              ) : (
-                <>
-                  {" "}
-                  <button
-                    onClick={() => {
-                      setSuspendModalOpen(true);
-                      setNewCategory(row);
-                      setOpenDropdown(null);
-                    }}
-                    className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
-                  >
-                    {"Unsuspend Admin"}
-                  </button>
-                </>
+              {row?.profile?.approved_by_admin !== null && (
+                <button
+                  onClick={() => {
+                    setSuspendModalOpen(true);
+                    setNewCategory(row);
+                    setOpenDropdown(null);
+                  }}
+                  className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-center"
+                >
+                  {row?.profile?.approved_by_admin ? "Suspend Admin" : "Unsuspend Admin"}
+                </button>
               )}
 
               {/* <button

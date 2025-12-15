@@ -889,9 +889,9 @@ const CustomersTable = () => {
               </button>
             </div>
             <h3 className="text-lg font-semibold mb-4 -mt-7">
-              {newCategory?.profile?.approved_by_admin
-                ? "Suspend Admin"
-                : "Unsuspend Admin"}
+              {newCategory?.profile?.approved_by_admin === false
+                ? "Unsuspend Logistics"
+                : "Suspend Logistics"}
             </h3>
             <form
               className="mt-6 space-y-4"
@@ -924,7 +924,7 @@ const CustomersTable = () => {
               <div>
                 <label className="block text-black mb-2">
                   Reasons for{" "}
-                  {!newCategory?.profile?.approved_by_admin
+                  {newCategory?.profile?.approved_by_admin === false
                     ? "unsuspending"
                     : "suspending"}
                 </label>

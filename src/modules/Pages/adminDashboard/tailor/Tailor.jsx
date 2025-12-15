@@ -898,9 +898,9 @@ const CustomersTable = () => {
               >
                 {approoveIsPending
                   ? "Please wait..."
-                  : newCategory?.profile?.approved_by_admin
-                    ? "Suspend"
-                    : "Unsuspend"}
+                  : newCategory?.profile?.approved_by_admin === false
+                    ? "Unsuspend"
+                    : "Suspend"}
               </button>
             </form>
           </div>

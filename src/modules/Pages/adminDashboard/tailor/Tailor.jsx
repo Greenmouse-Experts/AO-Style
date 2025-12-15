@@ -417,28 +417,23 @@ const CustomersTable = () => {
             return nav(`/admin/tailors/view-tailor/${item.id}`);
           },
         },
-      ];
-
-      // Only show suspend/unsuspend if not pending (approved_by_admin !== null)
-      if (item?.profile?.approved_by_admin !== null) {
-        actions.push({
+        {
           key: "suspend-tailor",
-          label: item?.profile?.approved_by_admin ? "Suspend Tailor" : "Unsuspend Tailor",
+          label: item?.profile?.approved_by_admin === false ? "Unsuspend Tailor" : "Suspend Tailor",
           action: () => {
             setSuspendModalOpen(true);
             setNewCategory(item);
             setOpenDropdown(null);
           },
-        });
-      }
-
-      actions.push({
-        key: "delete-tailor",
-        label: "Delete Tailor",
-        action: () => {
-          handleDeleteUser(item);
         },
-      });
+        {
+          key: "delete-tailor",
+          label: "Delete Tailor",
+          action: () => {
+            handleDeleteUser(item);
+          },
+        },
+      ];
 
       return actions;
     };

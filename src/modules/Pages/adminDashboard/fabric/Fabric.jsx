@@ -324,28 +324,23 @@ const CustomersTable = () => {
             return nav(`/admin/fabric-vendor/view/${item.id}`);
           },
         },
-      ];
-
-      // Only show suspend/unsuspend if not pending (approved_by_admin !== null)
-      if (item?.profile?.approved_by_admin !== null) {
-        actions.push({
+        {
           key: "suspend-vendor",
-          label: item?.profile?.approved_by_admin ? "Suspend Fabric Vendor" : "Unsuspend Fabric Vendor",
+          label: item?.profile?.approved_by_admin === false ? "Unsuspend Fabric Vendor" : "Suspend Fabric Vendor",
           action: () => {
             setSuspendModalOpen(true);
             setNewCategory(item);
             setOpenDropdown(null);
           },
-        });
-      }
-
-      actions.push({
-        key: "delete-vendor",
-        label: "Delete Fabric Vendor",
-        action: () => {
-          handleDeleteUser(item);
         },
-      });
+        {
+          key: "delete-vendor",
+          label: "Delete Fabric Vendor",
+          action: () => {
+            handleDeleteUser(item);
+          },
+        },
+      ];
 
       return actions;
     };

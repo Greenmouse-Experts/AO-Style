@@ -393,28 +393,23 @@ const CustomersTable = () => {
             return nav(`/admin/logistics/view/${item.id}`);
           },
         },
-      ];
-
-      // Only show suspend/unsuspend if not pending (approved_by_admin !== null)
-      if (item?.profile?.approved_by_admin !== null) {
-        actions.push({
+        {
           key: "suspend-logistics",
-          label: item?.profile?.approved_by_admin ? "Suspend Logistics" : "Unsuspend Logistics",
+          label: item?.profile?.approved_by_admin === false ? "Unsuspend Logistics" : "Suspend Logistics",
           action: () => {
             setSuspendModalOpen(true);
             setNewCategory(item);
             setOpenDropdown(null);
           },
-        });
-      }
-
-      actions.push({
-        key: "delete-logistics",
-        label: "Delete Logistics",
-        action: () => {
-          handleDeleteUser(item);
         },
-      });
+        {
+          key: "delete-logistics",
+          label: "Delete Logistics",
+          action: () => {
+            handleDeleteUser(item);
+          },
+        },
+      ];
 
       return actions;
     };

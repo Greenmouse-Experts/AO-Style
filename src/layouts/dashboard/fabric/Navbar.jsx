@@ -84,9 +84,12 @@ export default function Navbar({ toggleSidebar }) {
         </button>
 
         {/* Page Title */}
-        <h1 className="text-xl font-bold text-gray-700 lg:ml-4">
-          Fabric Vendor Orders Dashboard – Manage Orders, Notifications &
-          Profile
+        <h1 className="text-sm font-bold text-gray-700 lg:text-xl lg:ml-4">
+          <span className="hidden md:inline">
+            Fabric Vendor Orders Dashboard – Manage Orders, Notifications &
+            Profile
+          </span>
+          <span className="inline md:hidden">Vendor Dashboard</span>
         </h1>
 
         {/* Right: Notification & Profile */}

@@ -83,9 +83,12 @@ export default function Navbar({ toggleSidebar }) {
         </button>
 
         {/* Page Title */}
-        <h1 className="text-xl font-bold text-gray-700 lg:ml-4">
-          Tailor & Designer Management Dashboard – Overview of Orders, Clients,
-          and Notifications
+        <h1 className="text-sm font-bold text-gray-700 lg:text-xl lg:ml-4">
+          <span className="hidden md:inline">
+            Tailor & Designer Management Dashboard – Overview of Orders, Clients,
+            and Notifications
+          </span>
+          <span className="inline md:hidden">Tailor Dashboard</span>
         </h1>
 
         {/* Right: Notification & Profile */}

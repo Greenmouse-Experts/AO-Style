@@ -83,8 +83,11 @@ export default function Navbar({ toggleSidebar }) {
         </button>
 
         {/* Page Title */}
-        <h1 className="text-2xl font-bold text-gray-700 lg:ml-4">
-          Logistics Dashboard - Manage Your Orders & Deliveries
+        <h1 className="text-sm font-bold text-gray-700 lg:text-2xl lg:ml-4">
+          <span className="hidden md:inline">
+            Logistics Dashboard - Manage Your Orders & Deliveries
+          </span>
+          <span className="inline md:hidden">Logistics Dashboard</span>
         </h1>
 
         {/* Right: Notification & Profile */}

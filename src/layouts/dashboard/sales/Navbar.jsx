@@ -83,9 +83,12 @@ export default function Navbar({ toggleSidebar }) {
         </button>
 
         {/* Page Title */}
-        <h1 className="text-base font-bold text-gray-700 lg:ml-4">
-          Market Representative Dashboard – Manage Sales, Notifications &
-          Account
+        <h1 className="text-sm font-bold text-gray-700 lg:text-base lg:ml-4">
+          <span className="hidden md:inline">
+            Market Representative Dashboard – Manage Sales, Notifications &
+            Account
+          </span>
+          <span className="inline md:hidden">Market Rep Dashboard</span>
         </h1>
 
         {/* Right: Notification & Profile */}

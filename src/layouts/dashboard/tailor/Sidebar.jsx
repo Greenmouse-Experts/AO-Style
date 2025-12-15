@@ -87,7 +87,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     >
       {/* Sidebar */}
       <div
-        className={`fixed lg:relative top-0 left-0 h-screen bg-gradient p-5 flex flex-col transition-transform duration-300 z-40 ${
+        className={`fixed lg:relative top-0 left-0 h-screen bg-gradient p-5 flex flex-col transition-transform duration-300 z-40 overflow-y-auto ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0 lg:w-72 w-64`}
       >

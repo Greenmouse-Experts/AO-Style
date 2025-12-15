@@ -311,18 +311,14 @@ const CustomersTable = () => {
         render: (_, row) => (
           <span
             className={`px-3 py-1 text-sm rounded-md ${
-              row.profile?.approved_by_admin
-                ? "bg-green-100 text-green-600"
-                : row.profile?.approved_by_admin == null
-                  ? "bg-yellow-100 text-yellow-600"
-                  : "bg-red-100 text-red-600"
+              row.profile?.approved_by_admin === false
+                ? "bg-red-100 text-red-600"
+                : "bg-green-100 text-green-600"
             }`}
           >
-            {row.profile?.approved_by_admin == null
-              ? "Pending"
-              : row.profile?.approved_by_admin
-                ? "Approved"
-                : "Suspended"}
+            {row.profile?.approved_by_admin === false
+              ? "Suspended"
+              : "Active"}
           </span>
         ),
       },

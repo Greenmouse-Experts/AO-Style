@@ -105,16 +105,14 @@ const Toast = ({ type, message, onClose }) => {
   return (
     <div className="fixed top-4 right-4 z-50 animate-slide-in-right">
       <div
-        className={`rounded-lg shadow-lg p-4 flex items-center gap-3 ${
-          isSuccess
-            ? "bg-green-50 border border-green-200"
-            : "bg-red-50 border border-red-200"
-        }`}
+        className={`rounded-lg shadow-lg p-4 flex items-center gap-3 ${isSuccess
+          ? "bg-green-50 border border-green-200"
+          : "bg-red-50 border border-red-200"
+          }`}
       >
         <div
-          className={`rounded-full p-2 ${
-            isSuccess ? "bg-green-100" : "bg-red-100"
-          }`}
+          className={`rounded-full p-2 ${isSuccess ? "bg-green-100" : "bg-red-100"
+            }`}
         >
           {isSuccess ? (
             <CheckCircle className="w-5 h-5 text-green-600" />
@@ -124,25 +122,22 @@ const Toast = ({ type, message, onClose }) => {
         </div>
         <div className="flex-1">
           <p
-            className={`font-medium ${
-              isSuccess ? "text-green-800" : "text-red-800"
-            }`}
+            className={`font-medium ${isSuccess ? "text-green-800" : "text-red-800"
+              }`}
           >
             {isSuccess ? "Success!" : "Error"}
           </p>
           <p
-            className={`text-sm ${
-              isSuccess ? "text-green-600" : "text-red-600"
-            }`}
+            className={`text-sm ${isSuccess ? "text-green-600" : "text-red-600"
+              }`}
           >
             {message}
           </p>
         </div>
         <button
           onClick={onClose}
-          className={`p-1 rounded-full hover:bg-opacity-20 ${
-            isSuccess ? "hover:bg-green-600" : "hover:bg-red-600"
-          }`}
+          className={`p-1 rounded-full hover:bg-opacity-20 ${isSuccess ? "hover:bg-green-600" : "hover:bg-red-600"
+            }`}
         >
           <X className="w-4 h-4" />
         </button>
@@ -278,17 +273,17 @@ const OrderDetails = () => {
     const secondLegType = orderDetails?.second_leg_logistics_type;
     const firstLegTrackingId = orderDetails?.first_leg_external_logistics_tracking_id;
     const secondLegTrackingId = orderDetails?.second_leg_external_logistics_tracking_id;
-    
+
     // Check first leg
     if (firstLegType === "GIG" && firstLegTrackingId) {
       return firstLegTrackingId;
     }
-    
+
     // Check second leg
     if (secondLegType === "GIG" && secondLegTrackingId) {
       return secondLegTrackingId;
     }
-    
+
     return null;
   };
 
@@ -566,8 +561,8 @@ const OrderDetails = () => {
     const timeDisplay = getTimeRemainingDisplay();
 
     return (
-      <div className="bg-gradient-to-br from-purple-50 via-indigo-50 to-purple-50 rounded-xl border-2 border-purple-200 p-6 mt-6 shadow-lg">
-        <div className="flex items-center gap-3 mb-6">
+      <div className="bg-gradient-to-br from-purple-50 via-indigo-50 to-purple-50 rounded-xl border-2 border-purple-200 p-4 sm:p-6 mt-6 shadow-lg">
+        <div className="flex items-center gap-3 mb-6 flex-wrap">
           <div className="bg-indigo-600 p-3 rounded-xl shadow-md">
             <Clock className="w-6 h-6 text-white" />
           </div>
@@ -584,8 +579,8 @@ const OrderDetails = () => {
         </div>
 
         {/* Order Timeline Info */}
-        <div className="bg-white bg-opacity-60 backdrop-blur-sm rounded-lg p-4 mb-4">
-          <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="bg-white bg-opacity-60 backdrop-blur-sm rounded-lg p-3 sm:p-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-gray-600 mb-1">Order Placed:</p>
               <p className="font-semibold text-gray-900">
@@ -606,12 +601,12 @@ const OrderDetails = () => {
         <div className="space-y-4 mb-6">
           {etaData.hasStyleItems ? (
             <>
-              <div className="flex items-start gap-4 p-4 bg-white rounded-lg shadow-sm border border-blue-100">
-                <div className="bg-blue-100 p-2 rounded-lg">
+              <div className="flex items-start gap-4 p-3 sm:p-4 bg-white rounded-lg shadow-sm border border-blue-100 flex-col sm:flex-row">
+                <div className="bg-blue-100 p-2 rounded-lg mb-2 sm:mb-0">
                   <Package className="w-5 h-5 text-blue-600" />
                 </div>
                 <div className="flex-1">
-                  <div className="flex justify-between items-center mb-1">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-1 gap-2">
                     <span className="font-semibold text-gray-800">
                       Processing & Delivery
                     </span>
@@ -626,12 +621,12 @@ const OrderDetails = () => {
                 </div>
               </div>
 
-              <div className="flex items-start gap-4 p-4 bg-white rounded-lg shadow-sm border border-purple-100">
-                <div className="bg-purple-100 p-2 rounded-lg">
+              <div className="flex items-start gap-4 p-3 sm:p-4 bg-white rounded-lg shadow-sm border border-purple-100 flex-col sm:flex-row">
+                <div className="bg-purple-100 p-2 rounded-lg mb-2 sm:mb-0">
                   <Scissors className="w-5 h-5 text-purple-600" />
                 </div>
                 <div className="flex-1">
-                  <div className="flex justify-between items-center mb-1">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-1 gap-2">
                     <span className="font-semibold text-gray-800">
                       Tailoring Time
                     </span>
@@ -647,12 +642,12 @@ const OrderDetails = () => {
               </div>
             </>
           ) : (
-            <div className="flex items-start gap-4 p-4 bg-white rounded-lg shadow-sm border border-green-100">
-              <div className="bg-green-100 p-2 rounded-lg">
+            <div className="flex items-start gap-4 p-3 sm:p-4 bg-white rounded-lg shadow-sm border border-green-100 flex-col sm:flex-row">
+              <div className="bg-green-100 p-2 rounded-lg mb-2 sm:mb-0">
                 <Truck className="w-5 h-5 text-green-600" />
               </div>
               <div className="flex-1">
-                <div className="flex justify-between items-center mb-1">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-1 gap-2">
                   <span className="font-semibold text-gray-800">
                     Standard Delivery
                   </span>
@@ -672,9 +667,9 @@ const OrderDetails = () => {
         {/* Total Estimate with Dynamic Time Remaining */}
         {etaData.isPastDue ? (
           // Overdue - Professional Apology Message
-          <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50 rounded-xl border-2 border-amber-200 p-6 shadow-lg">
-            <div className="flex items-start gap-4 mb-4">
-              <div className="bg-amber-100 p-3 rounded-full flex-shrink-0">
+          <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50 rounded-xl border-2 border-amber-200 p-4 sm:p-6 shadow-lg">
+            <div className="flex items-start gap-4 mb-4 flex-col sm:flex-row">
+              <div className="bg-amber-100 p-3 rounded-full flex-shrink-0 mb-2 sm:mb-0">
                 <Clock className="w-6 h-6 text-amber-600" />
               </div>
               <div className="flex-1">
@@ -713,7 +708,7 @@ const OrderDetails = () => {
             </div>
 
             <div className="bg-gradient-to-r from-amber-400 to-orange-400 rounded-lg p-4 text-white">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <Truck className="w-5 h-5" />
                   <span className="font-semibold">Expected Arrival:</span>
@@ -727,8 +722,8 @@ const OrderDetails = () => {
           </div>
         ) : (
           // Normal - Expected Arrival
-          <div className="bg-indigo-600 rounded-xl p-5 shadow-lg">
-            <div className="flex items-center justify-between mb-3">
+          <div className="bg-indigo-600 rounded-xl p-4 sm:p-5 shadow-lg">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 gap-2">
               <div className="flex items-center gap-2">
                 <div className="bg-white bg-opacity-20 p-2 rounded-lg backdrop-blur-sm">
                   <CheckCircle className="w-5 h-5 text-purple-500" />
@@ -848,13 +843,13 @@ const OrderDetails = () => {
         isLoading={cancelOrderMutation.isPending}
       />
 
-      {/* Shipment Details Modal */}
+      {/* /* Shipment Details Modal */}
       {showShipmentDetailsModal && shipmentDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b bg-purple-50">
-              <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                <Package className="w-7 h-7 text-purple-600" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-2 sm:p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b bg-purple-50">
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2 sm:gap-3">
+                <Package className="w-6 h-6 sm:w-7 sm:h-7 text-purple-600" />
                 Shipment Details
               </h3>
               <button
@@ -864,41 +859,40 @@ const OrderDetails = () => {
                 <X size={24} />
               </button>
             </div>
-            
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+
+            <div className="p-3 sm:p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
               {shipmentDetails.data && shipmentDetails.data.length > 0 ? (
                 (() => {
                   const shipment = shipmentDetails.data[0];
                   return (
-                    <div className="space-y-6">
+                    <div className="space-y-4 sm:space-y-6">
                       {/* Main Shipment Info */}
-                      <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-100">
-                        <div className="grid grid-cols-2 gap-6">
+                      <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-4 sm:p-6 border border-purple-100">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                           <div>
-                            <p className="text-sm font-medium text-gray-500 mb-1">Waybill Number</p>
-                            <p className="text-lg font-mono font-semibold text-gray-900">
+                            <p className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Waybill Number</p>
+                            <p className="text-base sm:text-lg font-mono font-semibold text-gray-900">
                               {shipment.Waybill}
                             </p>
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-gray-500 mb-1">Status</p>
-                            <span className={`inline-block px-4 py-1.5 rounded-full text-sm font-semibold ${
-                              shipment.IsDelivered
-                                ? "bg-green-100 text-green-700" 
-                                : "bg-yellow-100 text-yellow-700"
-                            }`}>
+                            <p className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Status</p>
+                            <span className={`inline-block px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold ${shipment.IsDelivered
+                              ? "bg-green-100 text-green-700"
+                              : "bg-yellow-100 text-yellow-700"
+                              }`}>
                               {shipment.shipmentstatus}
                             </span>
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-gray-500 mb-1">Vehicle Type</p>
-                            <p className="text-base font-semibold text-purple-700">
+                            <p className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Vehicle Type</p>
+                            <p className="text-sm sm:text-base font-semibold text-purple-700">
                               {shipment.VehicleType}
                             </p>
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-gray-500 mb-1">Delivery Type</p>
-                            <p className="text-base font-medium text-gray-900">
+                            <p className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Delivery Type</p>
+                            <p className="text-sm sm:text-base font-medium text-gray-900">
                               {shipment.IsHomeDelivery ? "Home Delivery" : "Pickup"}
                             </p>
                           </div>
@@ -906,86 +900,88 @@ const OrderDetails = () => {
                       </div>
 
                       {/* Sender & Receiver Details */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-white border border-gray-200 rounded-xl p-5">
-                          <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5">
+                          <h4 className="font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center gap-2">
                             <User className="w-5 h-5 text-blue-600" />
                             Sender Information
                           </h4>
-                          <div className="space-y-2 text-sm">
+                          <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
                             <div>
-                              <p className="text-gray-500 text-xs">Name</p>
+                              <p className="text-gray-500 text-[11px] sm:text-xs">Name</p>
                               <p className="font-medium text-gray-900">{shipment.SenderName}</p>
                             </div>
                             <div>
-                              <p className="text-gray-500 text-xs">Phone</p>
+                              <p className="text-gray-500 text-[11px] sm:text-xs">Phone</p>
                               <p className="font-medium text-gray-900">{shipment.SenderPhoneNumber}</p>
                             </div>
                             <div>
-                              <p className="text-gray-500 text-xs">Address</p>
-                              <p className="text-gray-700 text-xs leading-relaxed">{shipment.SenderAddress}</p>
+                              <p className="text-gray-500 text-[11px] sm:text-xs">Address</p>
+                              <p className="text-gray-700 text-[11px] sm:text-xs leading-relaxed">{shipment.SenderAddress}</p>
                             </div>
                           </div>
                         </div>
 
-                        <div className="bg-white border border-gray-200 rounded-xl p-5">
-                          <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5">
+                          <h4 className="font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center gap-2">
                             <MapPin className="w-5 h-5 text-green-600" />
                             Receiver Information
                           </h4>
-                          <div className="space-y-2 text-sm">
+                          <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
                             <div>
-                              <p className="text-gray-500 text-xs">Name</p>
+                              <p className="text-gray-500 text-[11px] sm:text-xs">Name</p>
                               <p className="font-medium text-gray-900">{shipment.ReceiverName}</p>
                             </div>
-                            {/* <div>
+                            {/* Uncomment if you want to show phone/address for receiver
+                            <div>
                               <p className="text-gray-500 text-xs">Phone</p>
                               <p className="font-medium text-gray-900">{shipment.ReceiverPhoneNumber}</p>
                             </div>
                             <div>
                               <p className="text-gray-500 text-xs">Address</p>
                               <p className="text-gray-700 text-xs leading-relaxed">{shipment.ReceiverAddress}</p>
-                            </div> */}
+                            </div>
+                            */}
                           </div>
                         </div>
                       </div>
 
                       {/* Pricing Information */}
-                      <div className="bg-white border border-gray-200 rounded-xl p-5">
-                        <h4 className="font-semibold text-gray-700 mb-4">Pricing Details</h4>
-                        <div className="grid grid-cols-3 gap-4">
+                      <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5">
+                        <h4 className="font-semibold text-gray-700 mb-3 sm:mb-4">Pricing Details</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                           <div>
-                            <p className="text-xs text-gray-500 mb-1">Delivery Price</p>
-                            <p className="text-lg font-bold text-gray-900">₦{shipment.DeliveryPrice.toLocaleString()}</p>
+                            <p className="text-[11px] sm:text-xs text-gray-500 mb-1">Delivery Price</p>
+                            <p className="text-base sm:text-lg font-bold text-gray-900">₦{shipment.DeliveryPrice.toLocaleString()}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-500 mb-1">Insurance</p>
-                            <p className="text-lg font-bold text-gray-900">₦{shipment.InsuranceValue.toLocaleString()}</p>
+                            <p className="text-[11px] sm:text-xs text-gray-500 mb-1">Insurance</p>
+                            <p className="text-base sm:text-lg font-bold text-gray-900">₦{shipment.InsuranceValue.toLocaleString()}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-500 mb-1">Grand Total</p>
-                            <p className="text-lg font-bold text-purple-600">₦{shipment.GrandTotal.toLocaleString()}</p>
+                            <p className="text-[11px] sm:text-xs text-gray-500 mb-1">Grand Total</p>
+                            <p className="text-base sm:text-lg font-bold text-purple-600">₦{shipment.GrandTotal.toLocaleString()}</p>
                           </div>
                         </div>
                       </div>
 
                       {/* Dates */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                          <div className="flex items-center gap-2 mb-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 sm:p-4">
+                          <div className="flex items-center gap-2 mb-1 sm:mb-2">
                             <Calendar className="w-5 h-5 text-blue-600" />
-                            <h4 className="font-semibold text-blue-900">Created</h4>
+                            <h4 className="font-semibold text-blue-900 text-sm">Created</h4>
                           </div>
-                          <p className="text-sm text-blue-800">
+                          <p className="text-xs sm:text-sm text-blue-800">
                             {new Date(shipment.DateCreated).toLocaleString()}
                           </p>
                         </div>
-                        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                          <div className="flex items-center gap-2 mb-2">
+                        <div className="bg-green-50 border border-green-200 rounded-xl p-3 sm:p-4">
+                          <div className="flex items-center gap-2 mb-1 sm:mb-2">
                             <Clock className="w-5 h-5 text-green-600" />
-                            <h4 className="font-semibold text-green-900">Last Modified</h4>
+                            <h4 className="font-semibold text-green-900 text-sm">Last Modified</h4>
                           </div>
-                          <p className="text-sm text-green-800">
+                          <p className="text-xs sm:text-sm text-green-800">
                             {new Date(shipment.DateModified).toLocaleString()}
                           </p>
                         </div>
@@ -993,12 +989,12 @@ const OrderDetails = () => {
 
                       {/* Waybill Image */}
                       {shipment.WaybillImageUrl && (
-                        <div className="bg-white border border-gray-200 rounded-xl p-5">
-                          <h4 className="font-semibold text-gray-700 mb-3">Waybill Image</h4>
-                          <img 
-                            src={shipment.WaybillImageUrl} 
-                            alt="Waybill" 
-                            className="w-full rounded-lg border border-gray-300"
+                        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5">
+                          <h4 className="font-semibold text-gray-700 mb-2 sm:mb-3">Waybill Image</h4>
+                          <img
+                            src={shipment.WaybillImageUrl}
+                            alt="Waybill"
+                            className="w-full rounded-lg border border-gray-300 object-contain max-h-64"
                           />
                         </div>
                       )}
@@ -1015,14 +1011,13 @@ const OrderDetails = () => {
           </div>
         </div>
       )}
-
-      {/* Track Order Modal */}
+      {/* /* Track Order Modal */}
       {showTrackOrderModal && trackingDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b bg-blue-50">
-              <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                <Truck className="w-7 h-7 text-blue-600" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-2 sm:p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b bg-blue-50">
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2 sm:gap-3">
+                <Truck className="w-6 h-6 sm:w-7 sm:h-7 text-blue-600" />
                 Track Order
               </h3>
               <button
@@ -1032,34 +1027,34 @@ const OrderDetails = () => {
                 <X size={24} />
               </button>
             </div>
-            
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+
+            <div className="p-3 sm:p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
               {trackingDetails.data && trackingDetails.data.length > 0 ? (
                 (() => {
                   const shipment = trackingDetails.data[0];
                   const trackings = shipment.MobileShipmentTrackings || [];
-                  
+
                   return (
                     <div className="space-y-6">
                       {/* Shipment Summary */}
-                      <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-100">
-                        <div className="grid grid-cols-3 gap-4">
+                      <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 sm:p-6 border border-blue-100">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                           <div>
-                            <p className="text-sm font-medium text-gray-500 mb-1">Waybill</p>
-                            <p className="text-lg font-mono font-semibold text-gray-900">
+                            <p className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Waybill</p>
+                            <p className="text-base sm:text-lg font-mono font-semibold text-gray-900">
                               {shipment.Waybill}
                             </p>
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-gray-500 mb-1">Amount</p>
-                            <p className="text-lg font-bold text-blue-600">
+                            <p className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Amount</p>
+                            <p className="text-base sm:text-lg font-bold text-blue-600">
                               ₦{shipment.Amount?.toLocaleString()}
                             </p>
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-gray-500 mb-1">Pickup Option</p>
-                            <p className="text-base font-medium text-gray-900">
-                            {shipment.MobileShipmentTrackings[0]?.PickupOptions || "N/A"}
+                            <p className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Pickup Option</p>
+                            <p className="text-sm sm:text-base font-medium text-gray-900">
+                              {shipment.MobileShipmentTrackings[0]?.PickupOptions || "N/A"}
                             </p>
                           </div>
                         </div>
@@ -1068,31 +1063,29 @@ const OrderDetails = () => {
                       {/* Timeline Events */}
                       {trackings.length > 0 ? (
                         <div className="relative">
-                          <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200"></div>
-                          
+                          <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200 hidden sm:block"></div>
                           <div className="space-y-6">
                             {trackings.map((tracking, index) => {
                               const isLatest = index === 0;
                               return (
-                                <div key={index} className="relative flex gap-4 items-start">
-                                  <div className="relative z-10 flex-shrink-0">
-                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                                      isLatest
-                                        ? "bg-green-100 border-4 border-green-500" 
-                                        : "bg-gray-100 border-4 border-gray-300"
-                                    }`}>
+                                <div key={index} className="relative flex flex-col sm:flex-row gap-4 items-start">
+                                  <div className="relative z-10 flex-shrink-0 flex justify-center sm:block">
+                                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center ${isLatest
+                                      ? "bg-green-100 border-4 border-green-500"
+                                      : "bg-gray-100 border-4 border-gray-300"
+                                      }`}>
                                       {isLatest ? (
-                                        <CheckCircle className="w-6 h-6 text-green-600" />
+                                        <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
                                       ) : (
-                                        <Clock className="w-6 h-6 text-gray-500" />
+                                        <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />
                                       )}
                                     </div>
                                   </div>
-                                  
-                                  <div className="flex-1 bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
-                                    <div className="flex justify-between items-start mb-3">
+
+                                  <div className="flex-1 bg-white border border-gray-200 rounded-xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
+                                    <div className="flex flex-col sm:flex-row justify-between items-start mb-3 gap-2">
                                       <div className="flex-1">
-                                        <h4 className="font-semibold text-gray-900 text-lg mb-1">
+                                        <h4 className="font-semibold text-gray-900 text-base sm:text-lg mb-1">
                                           {tracking.Status}
                                         </h4>
                                         {tracking.ScanStatusIncident && (
@@ -1102,38 +1095,38 @@ const OrderDetails = () => {
                                         )}
                                       </div>
                                       {tracking.DateTime && (
-                                        <span className="text-sm text-gray-500 flex items-center gap-1 ml-3">
+                                        <span className="text-xs sm:text-sm text-gray-500 flex items-center gap-1 ml-0 sm:ml-3">
                                           <Calendar className="w-4 h-4" />
                                           {(() => {
-                                              let dateStr = tracking.DateTime?.replace(" WAT", "");
-                                              let dateObj = dateStr ? new Date(dateStr.replace(/-/g, '/')) : null;
-                                              return dateObj && !isNaN(dateObj)
-                                                ? dateObj.toLocaleString(undefined, {
-                                                    year: 'numeric',
-                                                    month: 'short',
-                                                    day: '2-digit',
-                                                    hour: '2-digit',
-                                                    minute: '2-digit',
-                                                  })
-                                                : tracking.DateTime || "N/A";
-                                            })()}
+                                            let dateStr = tracking.DateTime?.replace(" WAT", "");
+                                            let dateObj = dateStr ? new Date(dateStr.replace(/-/g, '/')) : null;
+                                            return dateObj && !isNaN(dateObj)
+                                              ? dateObj.toLocaleString(undefined, {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: '2-digit',
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                              })
+                                              : tracking.DateTime || "N/A";
+                                          })()}
                                         </span>
                                       )}
                                     </div>
-                                    
+
                                     <div className="space-y-2">
                                       {tracking.ScanStatusReason && (
                                         <p className="text-sm text-gray-600">
                                           <span className="font-medium">Reason:</span> {tracking.ScanStatusReason}
                                         </p>
                                       )}
-                                      
+
                                       {tracking.ScanStatusComment && (
                                         <p className="text-sm text-gray-600">
                                           <span className="font-medium">Comment:</span> {tracking.ScanStatusComment}
                                         </p>
                                       )}
-                                      
+
                                       {tracking.DepartureServiceCentre?.Name && (
                                         <p className="text-sm text-gray-500 flex items-center gap-1 mt-2">
                                           <MapPin className="w-4 h-4" />
@@ -1183,9 +1176,9 @@ const OrderDetails = () => {
 
       <CustomBackbtn />
 
-      <div className="bg-white px-6 py-4 mb-6 flex justify-between items-center">
+      <div className="bg-white px-4 sm:px-6 py-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <div>
-          <h1 className="text-lg font-medium mb-3">
+          <h1 className="text-lg font-medium mb-2 sm:mb-3">
             Orders Details :{" "}
             <span className="text-gray-600">
               {orderDetails?.payment?.id
@@ -1216,12 +1209,15 @@ const OrderDetails = () => {
 
       {/* GIG Logistics Buttons */}
       {isGigLogistics() && (
-        <div className="bg-white rounded-xl shadow-sm px-6 py-4 mb-6">
-          <div className="flex gap-4 justify-end">
+        <div className="bg-white rounded-xl shadow-sm px-4 sm:px-6 py-4 mb-6">
+          {/* 1. Container: flex-col (vertical) on mobile, sm:flex-row (horizontal) on tablet/desktop */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:justify-end">
+
             <button
               onClick={fetchShipmentDetails}
               disabled={isLoadingShipment}
-              className="cursor-pointer inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              // 2. Button: w-full (mobile) -> sm:w-auto (desktop) + justify-center
+              className="w-full sm:w-auto justify-center cursor-pointer inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isLoadingShipment ? (
                 <>
@@ -1235,10 +1231,12 @@ const OrderDetails = () => {
                 </>
               )}
             </button>
+
             <button
               onClick={fetchTrackingDetails}
               disabled={isLoadingTracking}
-              className="cursor-pointer inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              // 2. Button: w-full (mobile) -> sm:w-auto (desktop) + justify-center
+              className="w-full sm:w-auto justify-center cursor-pointer inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isLoadingTracking ? (
                 <>
@@ -1252,6 +1250,7 @@ const OrderDetails = () => {
                 </>
               )}
             </button>
+
           </div>
         </div>
       )}
@@ -1261,41 +1260,53 @@ const OrderDetails = () => {
           <Truck className="w-5 h-5 text-purple-600" />
           Order Progress
         </h5>
-        <div className="relative px-8">
+
+        <div className="relative px-0 md:px-8">
+
+          {/* --- DESKTOP LINES (Horizontal) --- */}
+          {/* Only visible on md screens and up */}
           <div
-            className="absolute top-5 h-1 bg-gray-200"
+            className="hidden md:block absolute top-5 h-1 bg-gray-200"
             style={{
               left: `calc(${100 / (orderSteps.length - 1) / 2}%)`,
               right: `calc(${100 / (orderSteps.length - 1) / 2}%)`,
             }}
           />
           <div
-            className={`absolute top-5 h-1 transition-all duration-500 ${
-              orderDetails?.status === "CANCELLED"
-                ? "bg-red-500"
-                : "bg-gradient-to-r from-purple-500 to-purple-600"
-            }`}
+            className={`hidden md:block absolute top-5 h-1 transition-all duration-500 ${orderDetails?.status === "CANCELLED"
+              ? "bg-red-500"
+              : "bg-gradient-to-r from-purple-500 to-purple-600"
+              }`}
             style={{
               left: `calc(${100 / (orderSteps.length - 1) / 2}%)`,
               width:
                 currentStep >= 0
-                  ? `calc(${(currentStep / (orderSteps.length - 1)) * 100}% - ${
-                      100 / (orderSteps.length - 1)
-                    }%)`
+                  ? `calc(${(currentStep / (orderSteps.length - 1)) * 100
+                  }% - ${100 / (orderSteps.length - 1)}%)`
                   : "0%",
             }}
           />
-          <div className="relative flex items-start justify-between">
+
+          {/* --- MOBILE LINE (Vertical) --- */}
+          {/* Only visible on small screens. Connects the dots vertically. */}
+          <div className="absolute left-5 top-4 bottom-10 w-0.5 bg-gray-200 md:hidden -z-0"></div>
+
+          {/* --- STEPS CONTAINER --- */}
+          {/* Flex-col for mobile (stack vertical), Flex-row for desktop (horizontal) */}
+          <div className="relative flex flex-col gap-8 md:flex-row md:items-start md:justify-between md:gap-0">
             {orderSteps.map((step, index) => (
-              <div key={index} className="flex flex-col items-center flex-1">
+              <div
+                key={index}
+                className="flex flex-row md:flex-col items-center flex-1 relative z-10"
+              >
+                {/* ICON CIRCLE */}
                 <div
-                  className={`z-10 w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 ${
-                    orderDetails?.status === "CANCELLED"
-                      ? "bg-red-500 text-white shadow-lg ring-4 ring-red-100"
-                      : index <= currentStep
-                        ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg ring-4 ring-purple-100"
-                        : "bg-white border-2 border-gray-300 text-gray-400"
-                  }`}
+                  className={`shrink-0 w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 border-2 ${orderDetails?.status === "CANCELLED"
+                    ? "bg-red-500 border-red-500 text-white shadow-lg ring-4 ring-red-100"
+                    : index <= currentStep
+                      ? "bg-gradient-to-r from-purple-500 to-purple-600 border-transparent text-white shadow-lg ring-4 ring-purple-100"
+                      : "bg-white border-gray-300 text-gray-400"
+                    }`}
                 >
                   {orderDetails?.status === "CANCELLED" ? (
                     <X size={20} />
@@ -1305,14 +1316,16 @@ const OrderDetails = () => {
                     <Circle size={20} />
                   )}
                 </div>
+
+                {/* TEXT LABEL */}
+                {/* Left margin for mobile, Top margin for desktop */}
                 <span
-                  className={`mt-3 text-sm font-medium text-center ${
-                    orderDetails?.status === "CANCELLED"
-                      ? "text-red-600"
-                      : index <= currentStep
-                        ? "text-purple-600"
-                        : "text-gray-500"
-                  }`}
+                  className={`ml-4 md:ml-0 md:mt-3 text-sm font-medium text-left md:text-center ${orderDetails?.status === "CANCELLED"
+                    ? "text-red-600"
+                    : index <= currentStep
+                      ? "text-purple-600"
+                      : "text-gray-500"
+                    }`}
                 >
                   {step}
                 </span>
@@ -1320,7 +1333,8 @@ const OrderDetails = () => {
             ))}
           </div>
         </div>
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+
+        <div className="mt-8 p-4 bg-gray-50 rounded-lg">
           <p className="text-sm text-gray-700">
             <strong>Status:</strong>{" "}
             {statusMessages[orderSteps[currentStep]] || "Order status unknown"}
@@ -1382,11 +1396,10 @@ const OrderDetails = () => {
                       <div className="flex justify-between">
                         <span className="text-gray-600">Payment Status:</span>
                         <span
-                          className={`px-2 py-1 rounded text-sm ${
-                            orderDetails?.payment?.payment_status === "SUCCESS"
-                              ? "bg-green-100 text-green-600"
-                              : "bg-yellow-100 text-yellow-600"
-                          }`}
+                          className={`px-2 py-1 rounded text-sm ${orderDetails?.payment?.payment_status === "SUCCESS"
+                            ? "bg-green-100 text-green-600"
+                            : "bg-yellow-100 text-yellow-600"
+                            }`}
                         >
                           {orderDetails?.payment?.payment_status || "PENDING"}
                         </span>
@@ -1463,9 +1476,9 @@ const OrderDetails = () => {
                                         ₦{" "}
                                         {item.price && item.quantity
                                           ? (
-                                              parseInt(item.price) *
-                                              parseInt(item.quantity)
-                                            ).toLocaleString()
+                                            parseInt(item.price) *
+                                            parseInt(item.quantity)
+                                          ).toLocaleString()
                                           : "0"}
                                       </span>
                                       <div className="text-xs text-gray-500 mt-1 text-right">
@@ -1527,17 +1540,16 @@ const OrderDetails = () => {
                         ₦ {parseInt(totalAmount || 0).toLocaleString()}
                       </span>
                       <span
-                        className={`px-3 py-1 rounded-full text-sm ${
-                          orderDetails?.status === "DELIVERED"
-                            ? "bg-green-100 text-green-600"
-                            : orderDetails?.status === "CANCELLED"
-                              ? "bg-red-100 text-red-600"
-                              : orderDetails?.status === "SHIPPED" ||
-                                  orderDetails?.status === "IN_TRANSIT" ||
-                                  orderDetails?.status === "OUT_FOR_DELIVERY"
-                                ? "bg-yellow-100 text-yellow-600"
-                                : "bg-blue-100 text-blue-600"
-                        }`}
+                        className={`px-3 py-1 rounded-full text-sm ${orderDetails?.status === "DELIVERED"
+                          ? "bg-green-100 text-green-600"
+                          : orderDetails?.status === "CANCELLED"
+                            ? "bg-red-100 text-red-600"
+                            : orderDetails?.status === "SHIPPED" ||
+                              orderDetails?.status === "IN_TRANSIT" ||
+                              orderDetails?.status === "OUT_FOR_DELIVERY"
+                              ? "bg-yellow-100 text-yellow-600"
+                              : "bg-blue-100 text-blue-600"
+                          }`}
                       >
                         {orderDetails?.status}
                       </span>
@@ -1585,76 +1597,74 @@ const OrderDetails = () => {
                   {orderPurchase.some(
                     (item) => item.product?.type === "STYLE",
                   ) && (
-                    <button
-                      onClick={() => setReviewTab("style")}
-                      className={`px-6 py-3 font-medium transition-all ${
-                        reviewTab === "style"
+                      <button
+                        onClick={() => setReviewTab("style")}
+                        className={`px-6 py-3 font-medium transition-all ${reviewTab === "style"
                           ? "border-b-2 border-purple-600 text-purple-600"
                           : "text-gray-600 hover:text-purple-600"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
-                          />
-                        </svg>
-                        <span>Style Items</span>
-                        <span className="ml-1 px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded-full">
-                          {
-                            orderPurchase.filter(
-                              (item) => item.product?.type === "STYLE",
-                            ).length
-                          }
-                        </span>
-                      </div>
-                    </button>
-                  )}
+                          }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
+                            />
+                          </svg>
+                          <span>Style Items</span>
+                          <span className="ml-1 px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded-full">
+                            {
+                              orderPurchase.filter(
+                                (item) => item.product?.type === "STYLE",
+                              ).length
+                            }
+                          </span>
+                        </div>
+                      </button>
+                    )}
 
                   {orderPurchase.some(
                     (item) => item.product?.type === "FABRIC",
                   ) && (
-                    <button
-                      onClick={() => setReviewTab("fabric")}
-                      className={`px-6 py-3 font-medium transition-all ${
-                        reviewTab === "fabric"
+                      <button
+                        onClick={() => setReviewTab("fabric")}
+                        className={`px-6 py-3 font-medium transition-all ${reviewTab === "fabric"
                           ? "border-b-2 border-blue-600 text-blue-600"
                           : "text-gray-600 hover:text-blue-600"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                          />
-                        </svg>
-                        <span>Fabric Items</span>
-                        <span className="ml-1 px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">
-                          {
-                            orderPurchase.filter(
-                              (item) => item.product?.type === "FABRIC",
-                            ).length
-                          }
-                        </span>
-                      </div>
-                    </button>
-                  )}
+                          }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                            />
+                          </svg>
+                          <span>Fabric Items</span>
+                          <span className="ml-1 px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">
+                            {
+                              orderPurchase.filter(
+                                (item) => item.product?.type === "FABRIC",
+                              ).length
+                            }
+                          </span>
+                        </div>
+                      </button>
+                    )}
                 </div>
               </div>
             )}
@@ -1841,9 +1851,8 @@ const OrderDetails = () => {
                       productId={
                         orderDetails?.payment?.purchase_id || orderDetails?.id
                       }
-                      productName={`${
-                        orderDetails?.payment?.purchase_type || "Product"
-                      } Order`}
+                      productName={`${orderDetails?.payment?.purchase_type || "Product"
+                        } Order`}
                       onClose={null}
                     />
                   </div>

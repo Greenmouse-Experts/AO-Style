@@ -14,6 +14,7 @@ import useDebounce from "../../../../hooks/useDebounce";
 import DateFilter from "../../../../components/shared/DateFilter";
 import ActiveFilters from "../../../../components/shared/ActiveFilters";
 import useDateFilter from "../../../../hooks/useDateFilter";
+import PaginationButton from "../../../../components/PaginationButton";
 
 const OrdersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -24,7 +25,7 @@ const OrdersTable = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [activeReviewModal, setActiveReviewModal] = useState(null);
   const nav = useNavigate();
-  
+
   // Date filter functionality
   const {
     activeFilters,
@@ -33,7 +34,7 @@ const OrdersTable = () => {
     removeFilter,
     clearAllFilters: clearDateFilters,
   } = useDateFilter();
-  
+
   // const { isPending: ordersLoading, data: ordersResponse } = useGetOrder(); // Not needed for search
   const columns = [
     {
@@ -103,29 +104,28 @@ const OrdersTable = () => {
       key: "status",
       render: (status) => (
         <span
-          className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
-            status === "DELIVERED"
+          className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${status === "DELIVERED"
               ? "bg-green-100 text-green-600"
               : [
-                    "PROCESSING",
-                    "SHIPPED",
-                    "IN_TRANSIT",
-                    "OUT_FOR_DELIVERY",
-                  ].includes(status)
+                "PROCESSING",
+                "SHIPPED",
+                "IN_TRANSIT",
+                "OUT_FOR_DELIVERY",
+              ].includes(status)
                 ? "bg-blue-100 text-blue-600"
                 : status === "CANCELLED"
                   ? "bg-red-100 text-red-600"
                   : "bg-yellow-100 text-yellow-600"
-          }`}
+            }`}
         >
           {status === "DELIVERED"
             ? "Completed"
             : [
-                  "PROCESSING",
-                  "SHIPPED",
-                  "IN_TRANSIT",
-                  "OUT_FOR_DELIVERY",
-                ].includes(status)
+              "PROCESSING",
+              "SHIPPED",
+              "IN_TRANSIT",
+              "OUT_FOR_DELIVERY",
+            ].includes(status)
               ? "In Progress"
               : status === "CANCELLED"
                 ? "Cancelled"
@@ -166,7 +166,7 @@ const OrdersTable = () => {
   // Apply date filters to the data
   const filteredData = useMemo(() => {
     if (!data || !Array.isArray(data)) return [];
-    
+
     return data.filter((order) => {
       // Apply date filter based on order creation date
       const dateValue = order.created_at || order.payment?.created_at;
@@ -275,19 +275,19 @@ const OrdersTable = () => {
                   >
                     ×
                   </button>
-                )}>
+                )}
               </div>
             </div>
           </div>
         </div>
-        
+
         {/* Active Filters Display */}
         <ActiveFilters
           activeFilters={activeFilters}
           onRemoveFilter={removeFilter}
           onClearAll={clearDateFilters}
         />
-        
+
         {order_query.isFetching && !searchTerm ? (
           <div className="p-2 text-lg ">loading orders...</div>
         ) : filteredData.length === 0 ? (
@@ -336,13 +336,6 @@ const OrdersTable = () => {
                 actions={actions}
               />
             }
-            {/* <ReusableTable
-              columns={columns}
-              data={currentItems}
-              loading={order_query.isPending}
-            />*/}
-
-            {/* <CustomTable columns={columns} data={currentItems} />*/}
           </>
         )}
         <div className="flex justify-between items-center mt-4">
@@ -366,23 +359,24 @@ const OrdersTable = () => {
               of {filteredData.length} items
             </p>
           </div>
-
-          <div className="flex gap-1">
-            <button
-              onClick={handlePreviousPage}
-              disabled={currentPage === 1}
-              className="px-3 py-1 rounded-md bg-gray-200"
-            >
-              ◀
-            </button>
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 rounded-md bg-gray-200"
-            >
-              ▶
-            </button>
-          </div>
+          {totalPages > 1 && (
+            <div className="flex gap-1">
+              <PaginationButton
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+                className="px-3 py-1 rounded-md bg-gray-200"
+              >
+                ◀ Previous
+              </PaginationButton>
+              <PaginationButton
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 rounded-md bg-gray-200"
+              >
+                Next ▶
+              </PaginationButton>
+            </div>
+          )}
         </div>
       </div>
 

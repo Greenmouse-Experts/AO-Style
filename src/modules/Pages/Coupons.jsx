@@ -31,6 +31,7 @@ import useDeleteCoupon from "../../hooks/coupon/useDeleteCoupon";
 import useEditCoupon from "../../hooks/coupon/useEditCoupon";
 import { useLocation } from "react-router-dom";
 import useGetAllCoupon from "../../hooks/coupon/useGetAllAdminCoupon";
+import PaginationButton from "../../components/PaginationButton";
 
 const Coupons = () => {
   const location = useLocation();
@@ -173,18 +174,17 @@ const Coupons = () => {
     () =>
       couponData?.data
         ? couponData?.data?.map((details) => {
-            return {
-              ...details,
-              code: `${details?.code}`,
-              type: `${details?.type}`,
-              value: `${details?.value}`,
-              dateAdded: `${
-                details?.created_at
-                  ? formatDateStr(details?.created_at.split(".").shift())
-                  : ""
+          return {
+            ...details,
+            code: `${details?.code}`,
+            type: `${details?.type}`,
+            value: `${details?.value}`,
+            dateAdded: `${details?.created_at
+                ? formatDateStr(details?.created_at.split(".").shift())
+                : ""
               }`,
-            };
-          })
+          };
+        })
         : [],
     [data?.data],
   );
@@ -492,30 +492,33 @@ const Coupons = () => {
               <option value={20}>20</option>
             </select>
           </div>
-          <div className="flex gap-1">
-            <button
-              onClick={() => {
-                updateQueryParams({
-                  "pagination[page]": +queryParams["pagination[page]"] - 1,
-                });
-              }}
-              disabled={(queryParams["pagination[page]"] ?? 1) == 1}
-              className="px-3 py-1 rounded-md bg-gray-200"
-            >
-              ◀
-            </button>
-            <button
-              onClick={() => {
-                updateQueryParams({
-                  "pagination[page]": +queryParams["pagination[page]"] + 1,
-                });
-              }}
-              disabled={(queryParams["pagination[page]"] ?? 1) == totalPages}
-              className="px-3 py-1 rounded-md bg-gray-200"
-            >
-              ▶
-            </button>
-          </div>
+          {totalPages > 1 && (
+            <div className="flex gap-1">
+              <PaginationButton
+                onClick={() => {
+                  updateQueryParams({
+                    "pagination[page]": +queryParams["pagination[page]"] - 1,
+                  });
+                }}
+                disabled={(queryParams["pagination[page]"] ?? 1) == 1}
+                className="px-3 py-1 rounded-md bg-gray-200"
+              >
+                ◀ Previous
+              </PaginationButton>
+              <PaginationButton
+                onClick={() => {
+                  updateQueryParams({
+                    "pagination[page]": +queryParams["pagination[page]"] + 1,
+                  });
+                }}
+                disabled={(queryParams["pagination[page]"] ?? 1) == totalPages}
+                className="px-3 py-1 rounded-md bg-gray-200"
+              >
+                Next ▶
+              </PaginationButton>
+            </div>
+          )}
+
         </div>
       )}
 

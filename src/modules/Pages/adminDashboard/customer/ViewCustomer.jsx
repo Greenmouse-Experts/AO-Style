@@ -9,8 +9,6 @@ import { formatDateStr } from "../../../../lib/helper";
 import ReviewList from "../../../../components/reviews/ReviewList";
 import CustomBackbtn from "../../../../components/CustomBackBtn";
 
-// Static orders removed - now using real API data
-
 const ViewCustomer = () => {
   const { id } = useParams();
 
@@ -22,12 +20,10 @@ const ViewCustomer = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
-  // Pass user_id ONLY when in "all" tab, else fetch all (legacy tabs process on frontend)
   const ordersQueryParams = React.useMemo(() => {
     if (filter === "all") {
       return { user_id: id };
     }
-    // Optionally, could extend to support backend tab filtering if API supports
     return {};
   }, [filter, id]);
 
@@ -37,45 +33,12 @@ const ViewCustomer = () => {
   const [activeReviewModal, setActiveReviewModal] = useState(null);
   const [openDropdown, setOpenDropdown] = useState(null);
 
-  // Console log the admin customer orders data
-  console.log("🔍 Admin ViewCustomer - Full API Response:", ordersData);
-  console.log("🔍 Admin ViewCustomer - All Orders Data:", ordersData?.data);
-  console.log(
-    "🔍 Admin ViewCustomer - Total Orders Count:",
-    ordersData?.data?.length
-  );
-  console.log("🔍 Admin ViewCustomer - Customer ID:", id);
-
-  // The API will filter orders on "all" tab; on other tabs, filter here
   let allOrders = ordersData || [];
 
-  // On 'all' tab, API filtered by user_id, so use allOrders directly.
-  // On other tabs, filter out customer's orders by user_id (to support legacy API if still returns others)
   const customerOrders =
     filter === "all"
       ? allOrders
       : allOrders.filter((order) => order.user_id === id);
-
-  console.log("🔍 Admin ViewCustomer - Customer Orders:", customerOrders);
-  console.log(
-    "🔍 Admin ViewCustomer - Customer Orders Count:",
-    customerOrders.length
-  );
-
-  if (customerOrders.length > 0) {
-    console.log(
-      "🔍 Admin ViewCustomer - First Customer Order:",
-      customerOrders[0]
-    );
-    console.log(
-      "🔍 Admin ViewCustomer - Payment Structure:",
-      customerOrders[0]?.payment
-    );
-    console.log(
-      "🔍 Admin ViewCustomer - Purchase Items:",
-      customerOrders[0]?.payment?.purchase?.items
-    );
-  }
 
   const filteredOrders = customerOrders.filter((order) => {
     const statusMatch =
@@ -126,15 +89,6 @@ const ViewCustomer = () => {
   };
 
   const columns = [
-    // {
-    //   label: "#",
-    //   key: "index",
-    //   render: (_, row, index) => (
-    //     <span className="font-mono text-xs text-gray-600">
-    //       {String(index + 1).padStart(2, "0")}
-    //     </span>
-    //   ),
-    // },
     {
       label: "Order ID",
       key: "id",
@@ -270,8 +224,6 @@ const ViewCustomer = () => {
     );
   }
 
-  const customer = data?.data?.user;
-
   return (
     <div>
       <CustomBackbtn />
@@ -282,9 +234,6 @@ const ViewCustomer = () => {
             View Customer:{" "}
             <span className="text-purple-600">{data?.data?.user?.name}</span>
           </h2>
-          {/* <p className="text-sm text-gray-600">
-            KYC: <span className="text-green-600">Approved</span>
-          </p> */}
         </div>
         <div className="bg-white rounded-lg">
           <table className="w-full text-sm">
@@ -293,7 +242,6 @@ const ViewCustomer = () => {
                 <th className="text-left p-4 font-medium text-gray-600">
                   Full Name{" "}
                 </th>
-                {/* <th className="text-left p-4 font-medium text-gray-600">KYC</th> */}
                 <th className="text-left p-4 font-medium text-gray-600">
                   Email Address
                 </th>
@@ -303,9 +251,6 @@ const ViewCustomer = () => {
                 <th className="text-left p-4 font-medium text-gray-600">
                   Address
                 </th>
-                {/* <th className="text-left p-4 font-medium text-gray-600">
-                  Total Orders
-                </th> */}
                 <th className="text-left p-4 font-medium text-gray-600">
                   Date Joined
                 </th>
@@ -321,15 +266,9 @@ const ViewCustomer = () => {
                   />
                   <span>{data?.data?.user?.name}</span>
                 </td>
-                {/* <td className="p-4">
-                  <span className="text-purple-600 cursor-pointer hover:underline">
-                    See KYC
-                  </span>
-                </td> */}
                 <td className="p-4">{data?.data?.user?.email}</td>
                 <td className="p-4">{data?.data?.user?.phone}</td>
                 <td className="p-4">{data?.data?.user?.profile?.address}</td>
-                {/* <td className="p-4">72</td> */}
                 <td className="p-4">
                   {data?.data?.user?.created_at
                     ? formatDateStr(
@@ -389,40 +328,42 @@ const ViewCustomer = () => {
         {/* Table Section */}
         <ReusableTable columns={columns} data={currentItems} />
 
-        {/* Pagination */}
-        <div className="flex justify-between items-center mt-4">
-          <div className="flex">
-            <p className="text-sm text-gray-600">
-              Page {currentPage} of {totalPages}
-            </p>
-            <select
-              value={itemsPerPage}
-              onChange={handleItemsPerPageChange}
-              className="py-2 px-3 border border-gray-200 ml-4 rounded-md outline-none text-sm w-auto"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={15}>15</option>
-              <option value={20}>20</option>
-            </select>
+        {/* Pagination - Only shows if there is more than 1 page */}
+        {totalPages > 1 && (
+          <div className="flex justify-between items-center mt-4">
+            <div className="flex">
+              <p className="text-sm text-gray-600">
+                Page {currentPage} of {totalPages}
+              </p>
+              <select
+                value={itemsPerPage}
+                onChange={handleItemsPerPageChange}
+                className="py-2 px-3 border border-gray-200 ml-4 rounded-md outline-none text-sm w-auto"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={20}>20</option>
+              </select>
+            </div>
+            <div className="flex gap-1">
+              <button
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+                className="px-3 py-1 rounded-md bg-gray-200 disabled:opacity-50"
+              >
+                ◀
+              </button>
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 rounded-md bg-gray-200 disabled:opacity-50"
+              >
+                ▶
+              </button>
+            </div>
           </div>
-          <div className="flex gap-1">
-            <button
-              onClick={handlePreviousPage}
-              disabled={currentPage === 1}
-              className="px-3 py-1 rounded-md bg-gray-200"
-            >
-              ◀
-            </button>
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 rounded-md bg-gray-200"
-            >
-              ▶
-            </button>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Review Modal */}

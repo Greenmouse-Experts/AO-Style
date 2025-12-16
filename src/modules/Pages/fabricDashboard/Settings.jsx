@@ -57,10 +57,6 @@ const Settings = () => {
       enableReinitialize: true,
       onSubmit: (val) => {
         console.log("🔍 Fabric Vendor Settings Form Values:", val);
-        console.log("📍 Coordinates being sent:", {
-          latitude: val.latitude,
-          longitude: val.longitude,
-        });
         if (!navigator.onLine) {
           toastError("No internet connection. Please check your network.");
           return;
@@ -83,9 +79,6 @@ const Settings = () => {
     });
 
   const { data: states, isLoading: loadingStates } = useStates(values.country);
-
-  const statesOptions =
-    states?.map((c) => ({ label: c.name, value: c.name })) || [];
 
   const fileInputRef = useRef(null);
 
@@ -119,12 +112,9 @@ const Settings = () => {
   const { ref } = usePlacesWidget({
     apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
     onPlaceSelected: (place) => {
-      console.log("🗺️ Google Place Selected:", place);
       const lat = place.geometry?.location?.lat();
       const lng = place.geometry?.location?.lng();
-      console.log("📍 Setting coordinates from Google Places:", { lat, lng });
 
-      // Extract state and country from address components
       let state = "";
       let country = "";
 
@@ -140,8 +130,6 @@ const Settings = () => {
         });
       }
 
-      console.log("🌍 Extracted location data:", { state, country });
-
       setFieldValue("address", place.formatted_address);
       setFieldValue("latitude", lat ? lat.toString() : "");
       setFieldValue("longitude", lng ? lng.toString() : "");
@@ -154,28 +142,35 @@ const Settings = () => {
     },
   });
 
+  const menuItems = ["Profile", "KYC", "Bank Details", "Security"];
+
   return (
-    <>
-      <div className="bg-white px-6 py-4 mb-6">
-        <h1 className="text-2xl font-medium mb-3">Settings</h1>
-        <p className="text-gray-500">
+    <div className="min-h-screen bg-gray-50 pb-10">
+      {/* Page Header */}
+      <div className="bg-white px-4 sm:px-6 py-4 mb-4 sm:mb-6 shadow-sm">
+        <h1 className="text-xl sm:text-2xl font-medium mb-2">Settings</h1>
+        <p className="text-sm text-gray-500">
           <Link to="/fabric" className="text-blue-500 hover:underline">
             Dashboard
           </Link>{" "}
           &gt; Settings
         </p>
       </div>
-      <div className="flex flex-col md:flex-row bg-gray-100">
-        {/* Sidebar */}
-        <div className="w-full md:w-1/5 bg-white md:mb-0 mb-6 h-fit p-4 rounded-lg">
-          <ul className="space-y-2 text-gray-600">
-            {["Profile", "KYC", "Bank Details", "Security"].map((item) => (
+
+      <div className="flex flex-col md:flex-row px-4 sm:px-6 gap-4 md:gap-6 max-w-7xl mx-auto">
+        {/* Navigation Sidebar 
+            - Mobile: Horizontal scrollable list
+            - Desktop: Vertical sidebar
+        */}
+        <div className="w-full md:w-1/4 lg:w-1/5 bg-white md:bg-transparent md:h-fit rounded-lg shadow-sm md:shadow-none p-2 md:p-0 sticky top-4 z-10">
+          <ul className="flex flex-row md:flex-col overflow-x-auto md:overflow-visible gap-2 md:gap-2 pb-2 md:pb-0 scrollbar-hide md:bg-white md:p-4 md:rounded-lg">
+            {menuItems.map((item) => (
               <li
                 key={item}
-                className={`cursor-pointer px-4 py-3 rounded-lg transition-colors duration-300 ${
+                className={`cursor-pointer px-4 py-2 sm:py-3 rounded-lg transition-colors duration-300 whitespace-nowrap flex-shrink-0 text-sm sm:text-base ${
                   activeSection === item
                     ? "font-medium text-purple-600 bg-purple-100"
-                    : "hover:text-purple-600"
+                    : "hover:text-purple-600 text-gray-600 bg-gray-50 md:bg-transparent"
                 }`}
                 onClick={() => setActiveSection(item)}
               >
@@ -185,32 +180,39 @@ const Settings = () => {
           </ul>
         </div>
 
-        {/* Main Content */}
-        <div className="w-full md:w-4/5 bg-white p-6 rounded-lg md:ml-6">
+        {/* Main Content Area */}
+        <div className="w-full md:w-3/4 lg:w-4/5 bg-white p-4 sm:p-6 rounded-lg shadow-sm">
           {activeSection === "Profile" && (
             <div>
-              <h2 className="text-xl font-medium mb-4">Profile</h2>
-              <div className="mt-6 flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
+              <h2 className="text-lg sm:text-xl font-medium mb-4">Profile</h2>
+              
+              {/* Profile Picture Section */}
+              <div className="mt-4 flex flex-col sm:flex-row items-center gap-4">
                 {values.profile_picture ? (
                   <img
                     src={values.profile_picture}
                     alt="Profile"
-                    className="w-24 h-24 rounded-full"
+                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-gray-100"
                   />
                 ) : (
-                  <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gray-300 flex items-center justify-center text-xl font-medium text-white">
                     {values?.name?.charAt(0).toUpperCase() || "?"}
                   </div>
                 )}
-                <button
-                  disabled={isPending || profileIsLoading}
-                  onClick={handleButtonClick}
-                  className="border px-4 py-2 text-purple-600 rounded-lg border-purple-600"
-                >
-                  {isPending || profileIsLoading
-                    ? "Please wait..."
-                    : " Change Picture"}
-                </button>
+                <div className="flex flex-col items-center sm:items-start">
+                  <button
+                    disabled={isPending || profileIsLoading}
+                    onClick={handleButtonClick}
+                    className="border px-4 py-2 text-sm text-purple-600 rounded-lg border-purple-600 hover:bg-purple-50 transition-colors"
+                  >
+                    {isPending || profileIsLoading
+                      ? "Uploading..."
+                      : "Change Picture"}
+                  </button>
+                  <p className="text-xs text-gray-500 mt-2 text-center sm:text-left">
+                    Max size: 5MB. Formats: JPG, PNG.
+                  </p>
+                </div>
                 <input
                   type="file"
                   accept="image/*"
@@ -221,39 +223,44 @@ const Settings = () => {
               </div>
 
               {/* Tabs */}
-              <div className="mt-6  flex space-x-6 text-gray-500">
-                <button
-                  className={`pb-2 ${
-                    activeTab === "personalDetails"
-                      ? "border-b-2 border-purple-600 text-purple-600"
-                      : ""
-                  }`}
-                  onClick={() => setActiveTab("personalDetails")}
-                >
-                  Personal Details
-                </button>
+              <div className="mt-6 border-b border-gray-200">
+                <div className="flex space-x-6 text-gray-500">
+                  <button
+                    className={`pb-2 text-sm sm:text-base font-medium transition-colors ${
+                      activeTab === "personalDetails"
+                        ? "border-b-2 border-purple-600 text-purple-600"
+                        : "hover:text-gray-700"
+                    }`}
+                    onClick={() => setActiveTab("personalDetails")}
+                  >
+                    Personal Details
+                  </button>
+                </div>
               </div>
 
               {/* Tab Content */}
               <div className="mt-6">
                 {activeTab === "personalDetails" && (
                   <form className="space-y-4" onSubmit={handleSubmit}>
+                    {/* Full Name */}
                     <div>
-                      <label className="block text-gray-700 mb-4">
+                      <label className="block text-gray-700 mb-2 text-sm font-medium">
                         Full Name
                       </label>
                       <input
                         type="text"
-                        className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                        className="w-full p-3 sm:p-4 border border-[#CCCCCC] outline-none rounded-lg focus:border-purple-500 transition-colors"
                         name={"name"}
                         value={values.name}
                         onChange={handleChange}
                         required
                       />
                     </div>
-                    <div className="grid md:grid-cols-2 gap-4">
+
+                    {/* Phone & Email Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-gray-700 mb-4">
+                        <label className="block text-gray-700 mb-2 text-sm font-medium">
                           Phone Number
                         </label>
                         <PhoneInput
@@ -264,26 +271,25 @@ const Settings = () => {
                             required: true,
                           }}
                           onChange={(value) => {
-                            // Ensure `+` is included and validate
                             if (!value.startsWith("+")) {
                               value = "+" + value;
                             }
                             setFieldValue("phone", value);
                           }}
-                          containerClass="w-full disabled:bg-gray-100"
-                          dropdownClass="flex flex-col gap-2 text-black disabled:bg-gray-100"
-                          buttonClass="bg-gray-100 !border !border-gray-100 hover:!bg-gray-100 disabled:bg-gray-100"
-                          inputClass="!w-full px-4 font-sans disabled:bg-gray-100  !h-[54px] !py-4 border border-gray-300 !rounded-md focus:outline-none"
+                          containerClass="w-full"
+                          dropdownClass="flex flex-col gap-2 text-black"
+                          buttonClass="bg-gray-50 border-r border-gray-300 rounded-l-lg hover:bg-gray-100"
+                          inputClass="!w-full !h-[50px] sm:!h-[54px] !py-3 !text-base !border-[#CCCCCC] !rounded-lg focus:!border-purple-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-gray-700 mb-4">
+                        <label className="block text-gray-700 mb-2 text-sm font-medium">
                           Email
                         </label>
                         <input
                           type="email"
-                          className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                          placeholder="Enter your email address"
+                          className="w-full p-3 sm:p-4 border border-[#CCCCCC] outline-none rounded-lg focus:border-purple-500 transition-colors"
+                          placeholder="Enter your email"
                           required
                           name={"email"}
                           value={values.email}
@@ -291,9 +297,11 @@ const Settings = () => {
                         />
                       </div>
                     </div>
-                    <div className="grid md:grid-cols-2 gap-4">
+
+                    {/* Alt Phone & Address Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-gray-700 mb-4">
+                        <label className="block text-gray-700 mb-2 text-sm font-medium">
                           Alternate Phone Number
                         </label>
                         <PhoneInput
@@ -304,21 +312,20 @@ const Settings = () => {
                             required: true,
                           }}
                           onChange={(value) => {
-                            // Ensure `+` is included and validate
                             if (!value.startsWith("+")) {
                               value = "+" + value;
                             }
                             setFieldValue("alternative_phone", value);
                           }}
-                          containerClass="w-full disabled:bg-gray-100"
-                          dropdownClass="flex flex-col gap-2 text-black disabled:bg-gray-100"
-                          buttonClass="bg-gray-100 !border !border-gray-100 hover:!bg-gray-100 disabled:bg-gray-100"
-                          inputClass="!w-full px-4 font-sans disabled:bg-gray-100  !h-[54px] !py-4 border border-gray-300 !rounded-md focus:outline-none"
+                          containerClass="w-full"
+                          dropdownClass="flex flex-col gap-2 text-black"
+                          buttonClass="bg-gray-50 border-r border-gray-300 rounded-l-lg hover:bg-gray-100"
+                          inputClass="!w-full !h-[50px] sm:!h-[54px] !py-3 !text-base !border-[#CCCCCC] !rounded-lg focus:!border-purple-500"
                         />
                       </div>
                       <div>
-                        <label className="flex items-center gap-2 text-gray-700 mb-4">
-                          Pick Address from Google Suggestions
+                        <label className="flex items-center gap-2 text-gray-700 mb-2 text-sm font-medium">
+                          Address (Google Maps)
                           <AttentionTooltip
                             content="Select from Google dropdown"
                             position="top"
@@ -327,12 +334,11 @@ const Settings = () => {
                         <input
                           type="text"
                           ref={ref}
-                          className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                          placeholder="Start typing your address and select from Google suggestions..."
+                          className="w-full p-3 sm:p-4 border border-[#CCCCCC] outline-none rounded-lg focus:border-purple-500 transition-colors"
+                          placeholder="Type address..."
                           required
                           name="address"
                           maxLength={150}
-                          title="Start typing your address and select from the Google dropdown suggestions for accurate location"
                           onChange={(e) => {
                             setFieldValue("address", e.currentTarget.value);
                             setFieldValue("latitude", "");
@@ -343,69 +349,64 @@ const Settings = () => {
                       </div>
                     </div>
 
-                    {/* Coordinates Display */}
+                    {/* Coordinates Display - Responsive Grid */}
                     {(values.latitude || values.longitude) && (
-                      <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
                         <div>
-                          <label className="block text-gray-700 mb-2 text-sm font-medium">
+                          <label className="block text-gray-700 mb-1 text-xs sm:text-sm font-medium">
                             Latitude
                           </label>
-                          <div className="w-full p-3 bg-white border border-blue-200 rounded-lg text-sm text-gray-600">
+                          <div className="w-full p-3 bg-white border border-blue-200 rounded-lg text-sm text-gray-600 font-mono">
                             {values.latitude || "Not set"}
                           </div>
                         </div>
                         <div>
-                          <label className="block text-gray-700 mb-2 text-sm font-medium">
+                          <label className="block text-gray-700 mb-1 text-xs sm:text-sm font-medium">
                             Longitude
                           </label>
-                          <div className="w-full p-3 bg-white border border-blue-200 rounded-lg text-sm text-gray-600">
+                          <div className="w-full p-3 bg-white border border-blue-200 rounded-lg text-sm text-gray-600 font-mono">
                             {values.longitude || "Not set"}
                           </div>
                         </div>
-                        <div className="col-span-2">
-                          <p className="text-xs text-blue-600">
-                            📍 These coordinates are automatically set when you
-                            select an address using Google Places autocomplete
-                            above.
+                        <div className="col-span-1 sm:col-span-2">
+                          <p className="text-xs text-blue-600 flex items-start gap-1">
+                            <span>📍</span> 
+                            <span>Coordinates auto-detected from address selection.</span>
                           </p>
                         </div>
                       </div>
                     )}
 
-                    <button
-                      disabled={updateIsPending}
-                      type="submit"
-                      className="mt-4 cursor-pointer bg-gradient text-white px-6 py-2 rounded-md"
-                    >
-                      {updateIsPending ? "Please wait..." : "Update"}
-                    </button>
+                    <div className="pt-2">
+                      <button
+                        disabled={updateIsPending}
+                        type="submit"
+                        className="w-full sm:w-auto cursor-pointer bg-purple-600 hover:bg-purple-700 transition-colors text-white px-8 py-3 rounded-lg font-medium disabled:opacity-70 disabled:cursor-not-allowed"
+                      >
+                        {updateIsPending ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"/>
+                            Updating...
+                          </span>
+                        ) : (
+                          "Update Profile"
+                        )}
+                      </button>
+                    </div>
                   </form>
                 )}
               </div>
             </div>
           )}
 
-          {activeSection === "KYC" && (
-            <div>
-              <KYCVerificationUpdate />
-            </div>
-          )}
+          {activeSection === "KYC" && <KYCVerificationUpdate />}
 
-          {activeSection === "Bank Details" && (
-            <div>
-              <BankDetailsUpdate />
-            </div>
-          )}
+          {activeSection === "Bank Details" && <BankDetailsUpdate />}
 
-          {activeSection === "Security" && (
-            <div>
-              {/* <h2 className="text-xl font-medium mb-4">Security Settings</h2>*/}
-              <SecuritySettings />
-            </div>
-          )}
+          {activeSection === "Security" && <SecuritySettings />}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

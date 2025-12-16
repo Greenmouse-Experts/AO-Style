@@ -582,10 +582,10 @@ export default function InboxPage() {
       )}
 
       {/* Fixed Header */}
-      <div className="bg-white shadow-sm px-6 py-4 border-b border-gray-300 flex-shrink-0">
-        <div className="flex items-center justify-between">
+      <div className="bg-white shadow-sm px-4 md:px-6 py-4 border-b border-gray-300 flex-shrink-0">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Inbox</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-800">Inbox</h1>
             <p className="text-sm text-gray-500 mt-1">
               <Link
                 to="/fabric"
@@ -598,9 +598,9 @@ export default function InboxPage() {
             </p>
           </div>
           <div className="flex items-center space-x-2">
-          <motion.button
+            <motion.button
               whileTap={{ scale: 0.95 }}
-              className={` cursor-pointer flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
+              className={`w-full md:w-auto cursor-pointer flex items-center justify-center space-x-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
                 profileLoading
                   ? "bg-yellow-100 text-yellow-700"
                   : isConnected
@@ -610,15 +610,8 @@ export default function InboxPage() {
               onClick={() => setShowToAdminMessages(true)}
             >
               <ChatBubbleBottomCenterTextIcon className="h-5 mr-2" />
-              {/* <FaCircle size={8} /> */}
-              {/* <span>
-                {profileLoading
-                  ? "Loading..."
-                  : isConnected
-                  ? "Online"
-                  : "Offline"}
-              </span> */}
-              View messages to admin
+              <span className="inline">View messages to admin</span>
+              {/* <span className="inline xs:hidden">To admin</span> */}
             </motion.button>
           </div>
         </div>
@@ -900,7 +893,7 @@ export default function InboxPage() {
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Type your message..."
+                  placeholder="Type message..."
                   className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none max-h-32 transition-colors"
                   rows={1}
                   disabled={!selectedChat || !isConnected}

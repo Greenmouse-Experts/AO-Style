@@ -289,18 +289,14 @@ const CustomersTable = () => {
         render: (_, row) => (
           <span
             className={`px-3 py-1 text-sm rounded-md ${
-              row.profile?.approved_by_admin
-                ? "bg-green-100 text-green-600"
-                : row.profile?.approved_by_admin == null
-                  ? "bg-yellow-100 text-yellow-600"
-                  : "bg-red-100 text-red-600"
+              row.profile?.approved_by_admin === false
+                ? "bg-red-100 text-red-600"
+                : "bg-green-100 text-green-600"
             }`}
           >
-            {row.profile?.approved_by_admin == null
-              ? "Pending"
-              : row.profile?.approved_by_admin
-                ? "Active"
-                : "Suspended"}
+            {row.profile?.approved_by_admin === false
+              ? "Suspended"
+              : "Active"}
           </span>
         ),
       },
@@ -402,23 +398,36 @@ const CustomersTable = () => {
       ];
     }
 
-    // For registered: show full actions including navigation to view page
-    return [
-      {
-        key: "view_detail",
-        label: "View Details",
-        action: async (item) => {
-          return navigate(`/admin/view-customers/${item.id}`);
+    // For registered: show actions based on approval status
+    return (item) => {
+      const actions = [
+        {
+          key: "view_detail",
+          label: "View Details",
+          action: () => {
+            return navigate(`/admin/view-customers/${item.id}`);
+          },
         },
-      },
-      {
-        key: "delete_customer",
-        label: "Delete Customer",
-        action: async (item) => {
-          handleDeleteUser(item);
+        {
+          key: "suspend-customer",
+          label: item?.profile?.approved_by_admin === false ? "Unsuspend Customer" : "Suspend Customer",
+          action: () => {
+            setSuspendModalOpen(true);
+            setNewCategory(item);
+            setOpenDropdown(null);
+          },
         },
-      },
-    ];
+        {
+          key: "delete_customer",
+          label: "Delete Customer",
+          action: () => {
+            handleDeleteUser(item);
+          },
+        },
+      ];
+
+      return actions;
+    };
   }, [currView, navigate]);
 
   // Table columns for invites/pending/rejected (from contact/invites endpoint)
@@ -772,9 +781,9 @@ const CustomersTable = () => {
               </button>
             </div>
             <h3 className="text-lg font-semibold mb-4 -mt-7">
-              {newCategory?.profile?.approved_by_admin
-                ? "Suspend User"
-                : "Unsuspend User"}
+              {newCategory?.profile?.approved_by_admin === false
+                ? "Unsuspend Customer"
+                : "Suspend Customer"}
             </h3>
             <form
               className="mt-6 space-y-4"
@@ -807,7 +816,7 @@ const CustomersTable = () => {
               <div>
                 <label className="block text-black mb-2">
                   Reasons for{" "}
-                  {!newCategory?.profile?.approved_by_admin
+                  {newCategory?.profile?.approved_by_admin === false
                     ? "unsuspending"
                     : "suspending"}
                 </label>
@@ -829,9 +838,9 @@ const CustomersTable = () => {
               >
                 {approoveIsPending
                   ? "Please wait..."
-                  : newCategory?.profile?.approved_by_admin
-                    ? "Suspend"
-                    : "Unsuspend"}
+                  : newCategory?.profile?.approved_by_admin === false
+                    ? "Unsuspend"
+                    : "Suspend"}
               </button>
             </form>
           </div>

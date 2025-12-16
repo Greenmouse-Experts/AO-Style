@@ -641,25 +641,25 @@ export default function InboxPage() {
       )}
 
       {/* Fixed Header */}
-      <div className="bg-white shadow-sm px-6 py-4 border-b border-gray-300 flex-shrink-0">
-        <div className="flex items-center justify-between">
+      <div className="bg-white shadow-sm px-4 md:px-6 py-4 border-b border-gray-300 flex-shrink-0">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-0">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Inbox</h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <h1 className="text-xl md:text-2xl font-bold text-gray-800">Inbox</h1>
+            <p className="text-sm text-gray-500 mt-1 flex flex-wrap items-center">
               <Link
                 to="/customer"
                 className="text-purple-600 hover:text-purple-700 transition-colors"
               >
                 Dashboard
               </Link>
-              <span className="mx-2">→</span>
-              <span>Inbox</span>
+              <span className="mx-2 hidden sm:inline">→</span>
+              <span className="truncate">Inbox</span>
             </p>
           </div>
           <div className="flex items-center space-x-2">
             <motion.button
               whileTap={{ scale: 0.95 }}
-              className={` cursor-pointer flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
+              className={`w-full md:w-auto cursor-pointer flex items-center justify-center space-x-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
                 profileLoading
                   ? "bg-yellow-100 text-yellow-700"
                   : isConnected
@@ -669,20 +669,12 @@ export default function InboxPage() {
               onClick={() => setShowToAdminMessages(true)}
             >
               <ChatBubbleBottomCenterTextIcon className="h-5 mr-2" />
-              {/* <FaCircle size={8} /> */}
-              {/* <span>
-                {profileLoading
-                  ? "Loading..."
-                  : isConnected
-                  ? "Online"
-                  : "Offline"}
-              </span> */}
-              View messages to admin
+              <span className="inline">View messages to admin</span>
+              {/* <span className="inline xs:hidden">Admin</span> */}
             </motion.button>
           </div>
         </div>
       </div>
-
       {/* Main Chat Container */}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}

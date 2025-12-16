@@ -641,49 +641,41 @@ export default function InboxPage() {
       )}
 
       {/* Fixed Header */}
-      <div className="bg-white shadow-sm px-6 py-4 border-b border-gray-300 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">Inbox</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              <Link
-                to="/customer"
-                className="text-purple-600 hover:text-purple-700 transition-colors"
-              >
-                Dashboard
-              </Link>
-              <span className="mx-2">→</span>
-              <span>Inbox</span>
-            </p>
-          </div>
-          <div className="flex items-center space-x-2">
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              className={` cursor-pointer flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
-                profileLoading
-                  ? "bg-yellow-100 text-yellow-700"
-                  : isConnected
-                  ? "bg-purple-100 text-purple-700"
-                  : "bg-red-100 text-red-700"
-              }`}
-              onClick={() => setShowToAdminMessages(true)}
+        <div className="bg-white shadow-sm px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-300 flex-shrink-0">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+            <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Inbox</h1>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">
+            <Link
+              to="/customer"
+              className="text-purple-600 hover:text-purple-700 transition-colors"
             >
-              <ChatBubbleBottomCenterTextIcon className="h-5 mr-2" />
-              {/* <FaCircle size={8} /> */}
-              {/* <span>
-                {profileLoading
-                  ? "Loading..."
-                  : isConnected
-                  ? "Online"
-                  : "Offline"}
-              </span> */}
-              View messages to admin
-            </motion.button>
+              Dashboard
+            </Link>
+            <span className="mx-2">→</span>
+            <span>Inbox</span>
+          </p>
+            </div>
+            <div className="flex items-center space-x-2 w-full sm:w-auto">
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            className={`cursor-pointer flex items-center justify-center space-x-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium w-full sm:w-auto ${
+              profileLoading
+            ? "bg-yellow-100 text-yellow-700"
+            : isConnected
+            ? "bg-purple-100 text-purple-700"
+            : "bg-red-100 text-red-700"
+            }`}
+            onClick={() => setShowToAdminMessages(true)}
+          >
+            <ChatBubbleBottomCenterTextIcon className="h-4 sm:h-5" />
+            <span className="whitespace-nowrap">View messages to admin</span>
+          </motion.button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Main Chat Container */}
+        {/* Main Chat Container */}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         <div
@@ -953,27 +945,22 @@ export default function InboxPage() {
               </div>
 
               {/* Input Field */}
-
               <div className="flex-1 relative">
                 <textarea
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Type your message..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none max-h-32 transition-colors"
+                  placeholder="Type message..."
+                  className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none max-h-32 transition-colors text-sm sm:text-base"
                   rows={1}
                   disabled={!selectedChat || !isConnected}
                   style={{
-                    minHeight: "46px",
-
+                    minHeight: "40px",
                     height: "auto",
-
                     lineHeight: "1.5",
                   }}
                 />
               </div>
-
-              {/* Emoji Button */}
 
               <div className="relative" ref={emojiPickerRef}>
                 <button

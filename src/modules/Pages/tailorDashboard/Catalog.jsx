@@ -348,10 +348,10 @@ export default function StylesTable() {
         <div className="px-6 py-6">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200">
             {/* Filters & Controls */}
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+            <div className="p-4 sm:p-6 border-b border-gray-200">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 {/* Filter Tabs */}
-                <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+                <div className="flex gap-1 bg-gray-100 p-1 rounded-lg w-full sm:w-auto overflow-x-auto">
                   {[
                     { key: "all", label: "All Styles", status: undefined },
                     {
@@ -375,7 +375,7 @@ export default function StylesTable() {
                           "pagination[page]": 1,
                         });
                       }}
-                      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                      className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
                         filter === tab.key
                           ? "bg-white text-purple-600 shadow-sm"
                           : "text-gray-600 hover:text-gray-900"
@@ -387,8 +387,8 @@ export default function StylesTable() {
                 </div>
 
                 {/* Search & Export */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <div className="relative">
+                <div className="flex flex-col gap-2 sm:flex-row sm:gap-3 w-full sm:w-auto">
+                  <div className="relative w-full sm:w-64">
                     <Search
                       className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                       size={18}
@@ -396,38 +396,40 @@ export default function StylesTable() {
                     <input
                       type="text"
                       placeholder="Search styles..."
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none w-full sm:w-64"
+                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none w-full"
                       value={queryString || ""}
                       onChange={(evt) =>
                         setQueryString(evt.target.value || undefined)
                       }
                     />
                   </div>
-                  <select
-                    onChange={handleExport}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-                  >
-                    <option value="" disabled>
-                      Export As
-                    </option>
-                    <option value="csv">Export to CSV</option>
-                    <option value="excel">Export to Excel</option>
-                    <option value="pdf">Export to PDF</option>
-                  </select>
-                  <CSVLink
-                    id="csvDownload"
-                    data={
-                      filteredData?.map((row) => ({
-                        Style: row.name,
-                        Price: row.price,
-                        Status: row.approval_status,
-                        Category: row.category,
-                        Created: row.created_date,
-                      })) || []
-                    }
-                    filename="StylesCatalog.csv"
-                    className="hidden"
-                  />
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <select
+                      onChange={handleExport}
+                      className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none w-full sm:w-auto"
+                    >
+                      <option value="" disabled>
+                        Export As
+                      </option>
+                      <option value="csv">Export to CSV</option>
+                      <option value="excel">Export to Excel</option>
+                      <option value="pdf">Export to PDF</option>
+                    </select>
+                    <CSVLink
+                      id="csvDownload"
+                      data={
+                        filteredData?.map((row) => ({
+                          Style: row.name,
+                          Price: row.price,
+                          Status: row.approval_status,
+                          Category: row.category,
+                          Created: row.created_date,
+                        })) || []
+                      }
+                      filename="StylesCatalog.csv"
+                      className="hidden"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -443,8 +445,8 @@ export default function StylesTable() {
 
             {/* Pagination */}
             {filteredData?.length > 0 && (
-              <div className="flex justify-between items-center mt-6 px-6 pb-6">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row justify-between items-center mt-6 px-2 sm:px-6 pb-6 gap-4">
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
                   <p className="text-sm text-gray-600">Items per page:</p>
                   <select
                     value={queryParams["pagination[limit]"] || 10}
@@ -462,7 +464,7 @@ export default function StylesTable() {
                     <option value={20}>20</option>
                   </select>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 w-full sm:w-auto justify-center sm:justify-end">
                   <button
                     onClick={() =>
                       updateQueryParams({
@@ -495,7 +497,6 @@ export default function StylesTable() {
                 </div>
               </div>
             )}
-
             {/* Empty State */}
             {filteredData?.length === 0 &&
               !isPending &&

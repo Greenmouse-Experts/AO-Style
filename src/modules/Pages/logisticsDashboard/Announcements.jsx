@@ -11,7 +11,6 @@ import dayjs from "dayjs";
 import useGetAnnouncementsWithProfile from "../../../hooks/announcement/useGetAnnouncementsWithProfile";
 import useToast from "../../../hooks/useToast";
 import useMarkAnnouncementAsRead from "../../../hooks/announcement/useMarkAnnouncementAsRead";
-import { ref } from "yup";
 
 const LogisticsAnnouncementsPage = () => {
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
@@ -22,7 +21,7 @@ const LogisticsAnnouncementsPage = () => {
     data: announcementsData,
     isLoading,
     error,
-    refetchAll: refetchAll,
+    refetchAll,
     profileData,
     isProfileLoading,
     isAnnouncementsLoading,
@@ -31,15 +30,12 @@ const LogisticsAnnouncementsPage = () => {
   // Mark as read mutation
   const markAsReadMutation = useMarkAnnouncementAsRead();
 
-  // Extract announcements from different possible data structures
+  // Extract announcements
   let announcements = [];
   if (announcementsData) {
     if (Array.isArray(announcementsData)) {
       announcements = announcementsData;
-    } else if (
-      announcementsData.data &&
-      Array.isArray(announcementsData.data)
-    ) {
+    } else if (announcementsData.data && Array.isArray(announcementsData.data)) {
       announcements = announcementsData.data;
     } else if (
       announcementsData.data?.data &&
@@ -66,12 +62,11 @@ const LogisticsAnnouncementsPage = () => {
       console.error("Failed to mark announcement as read:", error);
       toastError(
         error?.response?.data?.message ||
-          "Failed to mark announcement as read. Please try again.",
+          "Failed to mark announcement as read. Please try again."
       );
     }
   };
 
-  // When opening an announcement, mark as read if not already
   const handleAnnouncementClick = (announcement) => {
     setSelectedAnnouncement(announcement);
     if (!isAnnouncementRead(announcement)) {
@@ -99,7 +94,6 @@ const LogisticsAnnouncementsPage = () => {
     }
   };
 
-  // Check if a specific announcement is being marked as read
   const isMarkingAsRead = (announcementId) => {
     return (
       markAsReadMutation.isPending &&
@@ -109,9 +103,9 @@ const LogisticsAnnouncementsPage = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-xl shadow-sm border border-red-200 p-8 text-center">
+          <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6 sm:p-8 text-center">
             <div className="w-16 h-16 bg-red-100 rounded-full mx-auto mb-4 flex items-center justify-center">
               <FaBullhorn className="h-8 w-8 text-red-600" />
             </div>
@@ -134,15 +128,14 @@ const LogisticsAnnouncementsPage = () => {
     );
   }
 
-  // Single Announcement View
+  // --- Single Announcement View (Mobile-Responsive) ---
   if (selectedAnnouncement) {
     const read = isAnnouncementRead(selectedAnnouncement);
     const isMarking = isMarkingAsRead(selectedAnnouncement.id);
 
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
         <div className="max-w-4xl mx-auto">
-          {/* Back Button */}
           <button
             onClick={handleBackToList}
             className="flex items-center space-x-2 text-purple-600 hover:text-purple-700 mb-6 group"
@@ -151,16 +144,14 @@ const LogisticsAnnouncementsPage = () => {
             <span>Back to Announcements</span>
           </button>
 
-          {/* Announcement Detail */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-purple-600 to-pink-400 p-6 text-white">
-              <div className="flex items-center justify-between mb-4">
+            <div className="bg-gradient-to-r from-purple-600 to-pink-400 p-4 sm:p-6 text-white">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                 <div className="flex items-center space-x-3">
                   <div className="p-2 bg-white/20 rounded-lg">
                     <FaBullhorn className="h-6 w-6" />
                   </div>
-                  <span className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full">
+                  <span className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full whitespace-nowrap">
                     Customer Announcement
                   </span>
                 </div>
@@ -171,17 +162,17 @@ const LogisticsAnnouncementsPage = () => {
                   </span>
                 ) : (
                   <button
-                    className="cursor-pointer px-4 py-2 bg-white/20 rounded-lg text-sm font-semibold text-white hover:bg-white/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full sm:w-auto cursor-pointer px-4 py-2 bg-white/20 rounded-lg text-sm font-semibold text-white hover:bg-white/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={isMarking}
                     onClick={() => handleMarkAsRead(selectedAnnouncement)}
                   >
                     {isMarking ? (
-                      <span className="flex items-center">
+                      <span className="flex items-center justify-center">
                         <span className="animate-spin mr-2 h-4 w-4 border-b-2 border-white rounded-full"></span>
-                        Marking as Read...
+                        Marking...
                       </span>
                     ) : (
-                      <span className="flex items-center">
+                      <span className="flex items-center justify-center">
                         <FaCheckCircle className="mr-2" />
                         Mark as Read
                       </span>
@@ -190,10 +181,10 @@ const LogisticsAnnouncementsPage = () => {
                 )}
               </div>
 
-              <h1 className="text-2xl font-bold mb-2">
+              <h1 className="text-xl sm:text-2xl font-bold mb-2 break-words">
                 {selectedAnnouncement.subject}
               </h1>
-              <div className="flex items-center space-x-4 text-sm text-white/80">
+              <div className="flex flex-wrap items-center gap-4 text-sm text-white/80">
                 <div className="flex items-center space-x-1">
                   <FaCalendarAlt className="h-4 w-4" />
                   <span>{formatDate(selectedAnnouncement.created_at)}</span>
@@ -205,10 +196,9 @@ const LogisticsAnnouncementsPage = () => {
               </div>
             </div>
 
-            {/* Content */}
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <div className="prose max-w-none">
-                <p className="text-gray-700 leading-relaxed text-lg whitespace-pre-wrap">
+                <p className="text-gray-700 leading-relaxed text-base sm:text-lg whitespace-pre-wrap">
                   {selectedAnnouncement.message}
                 </p>
               </div>
@@ -219,27 +209,27 @@ const LogisticsAnnouncementsPage = () => {
     );
   }
 
-  // Announcements List View
+  // --- Announcements List View (Mobile-Responsive) ---
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <div className="flex items-center space-x-3 mb-2">
             <div className="p-2 bg-purple-100 rounded-lg">
               <FaBullhorn className="h-6 w-6 text-purple-600" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">Announcements</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              Announcements
+            </h1>
           </div>
-          <p className="text-gray-600">
+          <p className="text-gray-600 text-sm sm:text-base">
             Stay updated with the latest news and important information.
           </p>
         </div>
 
-        {/* Enhanced Loading State */}
+        {/* Loading State Skeleton is kept, adjusted padding */}
         {isLoading && (
           <div className="space-y-4">
-            {/* Loading Status Indicator */}
             <div className="bg-white rounded-xl border border-purple-200 p-4">
               <div className="flex items-center space-x-3">
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
@@ -259,15 +249,14 @@ const LogisticsAnnouncementsPage = () => {
                 </div>
               </div>
             </div>
-
-            {/* Skeleton Loading Cards */}
+            {/* Skeleton Cards - adjusted padding/spacing for responsiveness */}
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="bg-white rounded-xl border border-gray-200 p-6 animate-pulse"
+                className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 animate-pulse"
               >
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0"></div>
                   <div className="flex-1 space-y-3">
                     <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                     <div className="h-3 bg-gray-200 rounded w-1/2"></div>
@@ -282,9 +271,9 @@ const LogisticsAnnouncementsPage = () => {
           </div>
         )}
 
-        {/* Empty State */}
+        {/* Empty State - adjusted padding */}
         {!isLoading && announcements.length === 0 && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 sm:p-12 text-center">
             <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
               <FaBullhorn className="h-8 w-8 text-gray-400" />
             </div>
@@ -298,7 +287,7 @@ const LogisticsAnnouncementsPage = () => {
           </div>
         )}
 
-        {/* Announcements Grid */}
+        {/* Announcements List */}
         {!isLoading && announcements.length > 0 && (
           <div className="space-y-4">
             {announcements.map((announcement) => {
@@ -308,14 +297,16 @@ const LogisticsAnnouncementsPage = () => {
               return (
                 <div
                   key={announcement.id}
-                  className={`bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-all cursor-pointer group relative ${
+                  className={`bg-white rounded-xl border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-all cursor-pointer group relative ${
                     read ? "opacity-75" : ""
                   }`}
                   onClick={() => handleAnnouncementClick(announcement)}
                 >
-                  <div className="flex items-start space-x-4">
-                    {/* Icon */}
-                    <div className="flex-shrink-0">
+                  {/* Container: Stack vertical on mobile, row on desktop */}
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                    
+                    {/* Icon Section */}
+                    <div className="flex-shrink-0 flex items-center justify-between w-full sm:w-auto">
                       <div
                         className={`w-12 h-12 ${
                           read
@@ -325,39 +316,48 @@ const LogisticsAnnouncementsPage = () => {
                       >
                         <FaBullhorn className="h-6 w-6 text-white" />
                       </div>
+                      
+                      {/* Mobile-only Read Badge */}
+                      {read && (
+                        <div className="sm:hidden bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs font-semibold flex items-center">
+                          <FaCheckCircle className="mr-1 h-3 w-3" />
+                          Read
+                        </div>
+                      )}
                     </div>
 
-                    {/* Content */}
+                    {/* Content Section */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between">
+                      <div className="flex flex-col sm:flex-row sm:justify-between">
+                        {/* Text Content */}
                         <div className="flex-1">
                           <h3
                             className={`text-lg font-semibold ${
                               read ? "text-gray-600" : "text-gray-900"
-                            } group-hover:text-purple-600 transition-colors`}
+                            } group-hover:text-purple-600 transition-colors pr-0 sm:pr-20`}
                           >
                             {announcement.subject}
                           </h3>
-                          <div className="flex items-center space-x-4 mt-1 mb-3">
-                            <div className="flex items-center space-x-1 text-sm text-gray-500">
+                          <div className="flex flex-wrap items-center gap-x-4 mt-1 mb-3 text-sm text-gray-500">
+                            <div className="flex items-center space-x-1">
                               <FaCalendarAlt className="h-3 w-3" />
                               <span>{formatDate(announcement.created_at)}</span>
                             </div>
-                            <div className="flex items-center space-x-1 text-sm text-gray-500">
+                            <div className="flex items-center space-x-1">
                               <FaClock className="h-3 w-3" />
                               <span>{formatTime(announcement.created_at)}</span>
                             </div>
                           </div>
-                          <p className="text-gray-600 line-clamp-2">
+                          <p className="text-gray-600 line-clamp-2 text-sm sm:text-base">
                             {announcement.message}
                           </p>
                         </div>
 
-                        {/* Read Status and Actions */}
-                        <div className="flex-shrink-0 ml-4 flex flex-col items-end">
+                        {/* Actions Section: Moves to bottom on mobile, Right on Desktop */}
+                        <div className="mt-4 sm:mt-0 sm:ml-4 flex flex-row sm:flex-col justify-end sm:items-end gap-2 flex-shrink-0">
                           {!read && (
                             <button
-                              className="cursor-pointer flex items-center px-3 py-1 bg-purple-50 text-purple-600 rounded-lg text-sm font-semibold hover:bg-purple-100 transition-colors mb-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="cursor-pointer flex items-center px-3 py-1 bg-purple-50 text-purple-600 rounded-lg text-sm font-semibold hover:bg-purple-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                               disabled={isMarking}
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -377,8 +377,9 @@ const LogisticsAnnouncementsPage = () => {
                               )}
                             </button>
                           )}
-
-                          <div className="p-2 text-gray-400 group-hover:text-purple-600 group-hover:bg-purple-50 rounded-lg transition-colors">
+                          
+                          {/* Eye Icon: Hidden on mobile to save space, shown on desktop */}
+                          <div className="hidden sm:block p-2 text-gray-400 group-hover:text-purple-600 group-hover:bg-purple-50 rounded-lg transition-colors">
                             <FaEye className="h-4 w-4" />
                           </div>
                         </div>
@@ -386,9 +387,9 @@ const LogisticsAnnouncementsPage = () => {
                     </div>
                   </div>
 
-                  {/* Single Read Badge - Only show when read */}
+                  {/* Desktop Read Badge (Absolute position for desktop) */}
                   {read && (
-                    <div className="absolute top-3 right-3 bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs font-semibold flex items-center">
+                    <div className="hidden sm:flex absolute top-4 right-4 bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs font-semibold items-center">
                       <FaCheckCircle className="mr-1 h-3 w-3" />
                       Read
                     </div>

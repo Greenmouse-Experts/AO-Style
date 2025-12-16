@@ -73,7 +73,7 @@ const OrderDetails = () => {
   // Extract order information from API response
   const orderInfo = data?.data || {};
   const orderPurchase = data?.data?.order_items || [];
-  
+
   // Extract customer email from order info
   const customerEmail = orderInfo?.user?.email || "N/A";
 
@@ -134,17 +134,17 @@ const OrderDetails = () => {
     const secondLegType = orderInfo?.second_leg_logistics_type;
     const firstLegTrackingId = orderInfo?.first_leg_external_logistics_tracking_id;
     const secondLegTrackingId = orderInfo?.second_leg_external_logistics_tracking_id;
-    
+
     // Check first leg
     if (firstLegType === "GIG" && firstLegTrackingId) {
       return firstLegTrackingId;
     }
-    
+
     // Check second leg
     if (secondLegType === "GIG" && secondLegTrackingId) {
       return secondLegTrackingId;
     }
-    
+
     return null;
   };
 
@@ -507,27 +507,34 @@ const OrderDetails = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <CustomBackbtn />
-            <h1 className="text-2xl font-bold text-gray-900 ">Order ID: </h1>
-            <span className="ml-2 px-2 py-1 bg-gray-100 text-gray-700 rounded text-base font-mono font-semibold tracking-wide">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4">
+            <div className="flex items-center gap-2">
+              <CustomBackbtn />
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900">
+                Order ID:{" "}
+              </h1>
+            </div>
+            <span className="self-start sm:self-auto ml-0 sm:ml-2 px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm md:text-base font-mono font-semibold tracking-wide">
               {orderInfo?.payment?.id
                 ? orderInfo.payment.id
-                    .replace(/-/g, "")
-                    .substring(0, 12)
-                    .toUpperCase()
+                  .replace(/-/g, "")
+                  .substring(0, 12)
+                  .toUpperCase()
                 : id
                   ? id.replace(/-/g, "").substring(0, 12).toUpperCase()
                   : "N/A"}
             </span>
           </div>
-          <div className="flex justify-between items-start">
-            <div className="flex-1">
-              <div className="bg-white rounded-lg p-6">
+
+          {/* Main Content Layout - Stacks on mobile, Side-by-side on Large screens */}
+          <div className="flex flex-col lg:flex-row gap-6 items-start">
+            {/* Left Content (Order Details) */}
+            <div className="flex-1 w-full">
+              <div className="bg-white rounded-lg p-4 md:p-6 shadow-sm">
                 {/* Order Details Header */}
                 <div className="flex items-center justify-between mb-6">
                   <div>
@@ -536,7 +543,7 @@ const OrderDetails = () => {
                     </p>
                   </div>
                   <div>
-                    <span className="px-3 py-1 bg-yellow-100 text-yellow-600 rounded-full text-sm font-medium">
+                    <span className="px-3 py-1 bg-yellow-100 text-yellow-600 rounded-full text-xs md:text-sm font-medium">
                       {orderInfo?.status || "Pending"}
                     </span>
                   </div>
@@ -545,7 +552,7 @@ const OrderDetails = () => {
                 {/* Order Details - Clean Layout */}
                 <div className="space-y-8 mb-6">
                   {/* Product Information Row - Product Card Style */}
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {/* FABRIC */}
                     <div className="flex flex-col">
                       <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
@@ -556,9 +563,7 @@ const OrderDetails = () => {
                         <div className="h-48 bg-gray-100 overflow-hidden flex-shrink-0">
                           {orderPurchase[0]?.product?.fabric?.photos?.[0] ? (
                             <img
-                              src={
-                                orderPurchase[0]?.product?.fabric?.photos?.[0]
-                              }
+                              src={orderPurchase[0]?.product?.fabric?.photos?.[0]}
                               alt="Fabric"
                               className="w-full h-full object-cover"
                             />
@@ -579,12 +584,10 @@ const OrderDetails = () => {
                             {(orderPurchase[0]?.product?.name || "Product Name")
                               .length > 35
                               ? `${(orderPurchase[0]?.product?.name || "Product Name").substring(0, 35)}...`
-                              : orderPurchase[0]?.product?.name ||
-                                "Product Name"}
+                              : orderPurchase[0]?.product?.name || "Product Name"}
                           </h4>
                           {/* Show available colors for the fabric */}
-                          {orderPurchase[0]?.product?.fabric
-                            ?.available_colors && (
+                          {orderPurchase[0]?.product?.fabric?.available_colors && (
                             <div className="mb-2">
                               <span className="text-xs font-medium text-gray-500 mr-2">
                                 Color:
@@ -601,10 +604,7 @@ const OrderDetails = () => {
                               )}
                               <span className="text-xs text-gray-400 ml-2">
                                 (
-                                {
-                                  orderPurchase[0]?.product?.fabric
-                                    ?.available_colors
-                                }
+                                {orderPurchase[0]?.product?.fabric?.available_colors}
                                 )
                               </span>
                             </div>
@@ -635,18 +635,14 @@ const OrderDetails = () => {
                         <div className="h-48 bg-gray-100 overflow-hidden flex-shrink-0 relative">
                           {orderPurchase[1]?.product?.style?.photos?.[0] ? (
                             <img
-                              src={
-                                orderPurchase[1]?.product?.style?.photos?.[0]
-                              }
+                              src={orderPurchase[1]?.product?.style?.photos?.[0]}
                               alt="Style"
                               className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                               style={{ minWidth: "100%", minHeight: "100%" }}
                             />
                           ) : orderPurchase[2]?.product?.style?.photos?.[0] ? (
                             <img
-                              src={
-                                orderPurchase[2]?.product?.style?.photos?.[0]
-                              }
+                              src={orderPurchase[2]?.product?.style?.photos?.[0]}
                               alt="Style"
                               className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                               style={{ minWidth: "100%", minHeight: "100%" }}
@@ -661,9 +657,7 @@ const OrderDetails = () => {
                         <div className="p-4 flex flex-col flex-1 justify-between">
                           <h4
                             className="font-semibold text-gray-900 text-base leading-tight mb-2 min-h-[2.5rem]"
-                            title={
-                              orderPurchase[1]?.product?.name || "Style Name"
-                            }
+                            title={orderPurchase[1]?.product?.name || "Style Name"}
                           >
                             {(orderPurchase[1]?.product?.name || "Style Name")
                               .length > 35
@@ -680,16 +674,14 @@ const OrderDetails = () => {
                               </p>
                               <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
                                 Piece
-                                {(orderPurchase[1]?.quantity || 1) > 1
-                                  ? "s"
-                                  : ""}
+                                {(orderPurchase[1]?.quantity || 1) > 1 ? "s" : ""}
                               </span>
                             </div>
                             <div className="pt-2 border-t border-gray-100">
                               <p className="text-lg font-bold text-blue-600">
                                 ₦
                                 {formatNumberWithCommas(
-                                  orderPurchase[1]?.product?.price,
+                                  orderPurchase[1]?.product?.price
                                 )}
                               </p>
                             </div>
@@ -726,11 +718,11 @@ const OrderDetails = () => {
 
                   {/* GIG Logistics Buttons */}
                   {isGigLogistics() && (
-                    <div className="flex gap-4 justify-end">
+                    <div className="flex flex-col sm:flex-row gap-4 justify-end">
                       <button
                         onClick={fetchShipmentDetails}
                         disabled={isLoadingShipment}
-                        className="cursor-pointer inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="w-full sm:w-auto cursor-pointer inline-flex items-center justify-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         {isLoadingShipment ? (
                           <>
@@ -747,7 +739,7 @@ const OrderDetails = () => {
                       <button
                         onClick={fetchTrackingDetails}
                         disabled={isLoadingTracking}
-                        className="cursor-pointer inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="w-full sm:w-auto cursor-pointer inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         {isLoadingTracking ? (
                           <>
@@ -769,7 +761,7 @@ const OrderDetails = () => {
                     <div className="flex justify-end mt-4">
                       <button
                         type="button"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-medium hover:bg-blue-200 transition-colors"
+                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-medium hover:bg-blue-200 transition-colors"
                         onClick={handleOpenOrderImageModal}
                       >
                         <Image className="w-5 h-5" />
@@ -781,14 +773,13 @@ const OrderDetails = () => {
 
                 {/* Order Total */}
                 <div className="border-t pt-4">
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
                     <span className="text-lg font-semibold">Order Total :</span>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
                       <span className="text-2xl font-bold text-gray-900">
                         ₦
                         {formatNumberWithCommas(
-                          orderPurchase[1]?.product?.price *
-                            measurements?.length,
+                          orderPurchase[1]?.product?.price * measurements?.length
                         )}
                       </span>
                       <span className="px-3 py-1 bg-yellow-100 text-yellow-600 rounded-full text-sm font-medium">
@@ -800,9 +791,9 @@ const OrderDetails = () => {
               </div>
             </div>
 
-            {/* Right Sidebar */}
-            <div className="w-80 ml-6">
-              <div className="bg-white rounded-lg p-6">
+            {/* Right Sidebar - Full width on mobile, Fixed on Desktop */}
+            <div className="w-full lg:w-80">
+              <div className="bg-white rounded-lg p-4 md:p-6 shadow-sm">
                 <h3 className="text-lg font-semibold mb-4">
                   Order Status Management
                 </h3>
@@ -893,15 +884,15 @@ const OrderDetails = () => {
                       Status Flow
                     </h4>
                     <div className="text-sm text-blue-800 space-y-1">
-                      <div className="flex items-center">
-                        <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+                      <div className="flex items-start md:items-center">
+                        <span className="w-2 h-2 bg-blue-400 rounded-full mr-2 mt-1 md:mt-0 flex-shrink-0"></span>
                         <span>
-                          1. Mark as Processing when you start working on the
-                          order (image required)
+                          1. Mark as Processing when you start working on the order
+                          (image required)
                         </span>
                       </div>
-                      <div className="flex items-center">
-                        <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+                      <div className="flex items-start md:items-center">
+                        <span className="w-2 h-2 bg-blue-400 rounded-full mr-2 mt-1 md:mt-0 flex-shrink-0"></span>
                         <span>
                           2. Mark as Out for Delivery when ready to ship (image
                           required)
@@ -919,9 +910,9 @@ const OrderDetails = () => {
         {showShipmentDetailsModal && shipmentDetails && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-              <div className="flex items-center justify-between p-6 border-b bg-purple-50">
-                <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                  <Package className="w-7 h-7 text-purple-600" />
+              <div className="flex items-center justify-between p-4 md:p-6 border-b bg-purple-50">
+                <h3 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-3">
+                  <Package className="w-6 h-6 md:w-7 md:h-7 text-purple-600" />
                   Shipment Details
                 </h3>
                 <button
@@ -931,49 +922,60 @@ const OrderDetails = () => {
                   <X size={24} />
                 </button>
               </div>
-              
-              <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+
+              <div className="p-4 md:p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
                 {shipmentDetails.data && shipmentDetails.data.length > 0 ? (
                   (() => {
                     const shipment = shipmentDetails.data[0];
                     return (
                       <div className="space-y-6">
                         {/* Main Shipment Info */}
-                        <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-100">
-                          <div className="grid grid-cols-2 gap-6">
+                        <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-4 md:p-6 border border-purple-100">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                             <div>
-                              <p className="text-sm font-medium text-gray-500 mb-1">Waybill Number</p>
-                              <p className="text-lg font-mono font-semibold text-gray-900">
+                              <p className="text-sm font-medium text-gray-500 mb-1">
+                                Waybill Number
+                              </p>
+                              <p className="text-lg font-mono font-semibold text-gray-900 break-all">
                                 {shipment.Waybill}
                               </p>
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-500 mb-1">Status</p>
-                              <span className={`inline-block px-4 py-1.5 rounded-full text-sm font-semibold ${
-                                shipment.IsDelivered
-                                  ? "bg-green-100 text-green-700" 
-                                  : "bg-yellow-100 text-yellow-700"
-                              }`}>
+                              <p className="text-sm font-medium text-gray-500 mb-1">
+                                Status
+                              </p>
+                              <span
+                                className={`inline-block px-4 py-1.5 rounded-full text-sm font-semibold ${shipment.IsDelivered
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-yellow-100 text-yellow-700"
+                                  }`}
+                              >
                                 {shipment.shipmentstatus}
                               </span>
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-500 mb-1">Vehicle Type</p>
+                              <p className="text-sm font-medium text-gray-500 mb-1">
+                                Vehicle Type
+                              </p>
                               <p className="text-base font-semibold text-purple-700">
                                 {shipment.VehicleType}
                               </p>
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-500 mb-1">Delivery Type</p>
+                              <p className="text-sm font-medium text-gray-500 mb-1">
+                                Delivery Type
+                              </p>
                               <p className="text-base font-medium text-gray-900">
-                                {shipment.IsHomeDelivery ? "Home Delivery" : "Pickup"}
+                                {shipment.IsHomeDelivery
+                                  ? "Home Delivery"
+                                  : "Pickup"}
                               </p>
                             </div>
                           </div>
                         </div>
 
                         {/* Sender & Receiver Details */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="bg-white border border-gray-200 rounded-xl p-5">
                             <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
                               <User className="w-5 h-5 text-blue-600" />
@@ -982,15 +984,21 @@ const OrderDetails = () => {
                             <div className="space-y-2 text-sm">
                               <div>
                                 <p className="text-gray-500 text-xs">Name</p>
-                                <p className="font-medium text-gray-900">{shipment.SenderName}</p>
+                                <p className="font-medium text-gray-900">
+                                  {shipment.SenderName}
+                                </p>
                               </div>
                               <div>
                                 <p className="text-gray-500 text-xs">Phone</p>
-                                <p className="font-medium text-gray-900">{shipment.SenderPhoneNumber}</p>
+                                <p className="font-medium text-gray-900">
+                                  {shipment.SenderPhoneNumber}
+                                </p>
                               </div>
                               <div>
                                 <p className="text-gray-500 text-xs">Address</p>
-                                <p className="text-gray-700 text-xs leading-relaxed">{shipment.SenderAddress}</p>
+                                <p className="text-gray-700 text-xs leading-relaxed">
+                                  {shipment.SenderAddress}
+                                </p>
                               </div>
                             </div>
                           </div>
@@ -1003,45 +1011,55 @@ const OrderDetails = () => {
                             <div className="space-y-2 text-sm">
                               <div>
                                 <p className="text-gray-500 text-xs">Name</p>
-                                <p className="font-medium text-gray-900">{shipment.ReceiverName}</p>
+                                <p className="font-medium text-gray-900">
+                                  {shipment.ReceiverName}
+                                </p>
                               </div>
-                              {/* <div>
-                                <p className="text-gray-500 text-xs">Phone</p>
-                                <p className="font-medium text-gray-900">{shipment.ReceiverPhoneNumber}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-500 text-xs">Address</p>
-                                <p className="text-gray-700 text-xs leading-relaxed">{shipment.ReceiverAddress}</p>
-                              </div> */}
                             </div>
                           </div>
                         </div>
 
                         {/* Pricing Information */}
                         <div className="bg-white border border-gray-200 rounded-xl p-5">
-                          <h4 className="font-semibold text-gray-700 mb-4">Pricing Details</h4>
-                          <div className="grid grid-cols-3 gap-4">
+                          <h4 className="font-semibold text-gray-700 mb-4">
+                            Pricing Details
+                          </h4>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div>
-                              <p className="text-xs text-gray-500 mb-1">Delivery Price</p>
-                              <p className="text-lg font-bold text-gray-900">₦{shipment.DeliveryPrice.toLocaleString()}</p>
+                              <p className="text-xs text-gray-500 mb-1">
+                                Delivery Price
+                              </p>
+                              <p className="text-lg font-bold text-gray-900">
+                                ₦{shipment.DeliveryPrice.toLocaleString()}
+                              </p>
                             </div>
                             <div>
-                              <p className="text-xs text-gray-500 mb-1">Insurance</p>
-                              <p className="text-lg font-bold text-gray-900">₦{shipment.InsuranceValue.toLocaleString()}</p>
+                              <p className="text-xs text-gray-500 mb-1">
+                                Insurance
+                              </p>
+                              <p className="text-lg font-bold text-gray-900">
+                                ₦{shipment.InsuranceValue.toLocaleString()}
+                              </p>
                             </div>
                             <div>
-                              <p className="text-xs text-gray-500 mb-1">Grand Total</p>
-                              <p className="text-lg font-bold text-purple-600">₦{shipment.GrandTotal.toLocaleString()}</p>
+                              <p className="text-xs text-gray-500 mb-1">
+                                Grand Total
+                              </p>
+                              <p className="text-lg font-bold text-purple-600">
+                                ₦{shipment.GrandTotal.toLocaleString()}
+                              </p>
                             </div>
                           </div>
                         </div>
 
                         {/* Dates */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                             <div className="flex items-center gap-2 mb-2">
                               <Calendar className="w-5 h-5 text-blue-600" />
-                              <h4 className="font-semibold text-blue-900">Created</h4>
+                              <h4 className="font-semibold text-blue-900">
+                                Created
+                              </h4>
                             </div>
                             <p className="text-sm text-blue-800">
                               {new Date(shipment.DateCreated).toLocaleString()}
@@ -1050,7 +1068,9 @@ const OrderDetails = () => {
                           <div className="bg-green-50 border border-green-200 rounded-xl p-4">
                             <div className="flex items-center gap-2 mb-2">
                               <Clock className="w-5 h-5 text-green-600" />
-                              <h4 className="font-semibold text-green-900">Last Modified</h4>
+                              <h4 className="font-semibold text-green-900">
+                                Last Modified
+                              </h4>
                             </div>
                             <p className="text-sm text-green-800">
                               {new Date(shipment.DateModified).toLocaleString()}
@@ -1061,10 +1081,12 @@ const OrderDetails = () => {
                         {/* Waybill Image */}
                         {shipment.WaybillImageUrl && (
                           <div className="bg-white border border-gray-200 rounded-xl p-5">
-                            <h4 className="font-semibold text-gray-700 mb-3">Waybill Image</h4>
-                            <img 
-                              src={shipment.WaybillImageUrl} 
-                              alt="Waybill" 
+                            <h4 className="font-semibold text-gray-700 mb-3">
+                              Waybill Image
+                            </h4>
+                            <img
+                              src={shipment.WaybillImageUrl}
+                              alt="Waybill"
                               className="w-full rounded-lg border border-gray-300"
                             />
                           </div>
@@ -1075,7 +1097,9 @@ const OrderDetails = () => {
                 ) : (
                   <div className="text-center py-12">
                     <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">No shipment details available</p>
+                    <p className="text-gray-500">
+                      No shipment details available
+                    </p>
                   </div>
                 )}
               </div>
@@ -1087,9 +1111,9 @@ const OrderDetails = () => {
         {showTrackOrderModal && trackingDetails && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-              <div className="flex items-center justify-between p-6 border-b bg-blue-50">
-                <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                  <Truck className="w-7 h-7 text-blue-600" />
+              <div className="flex items-center justify-between p-4 md:p-6 border-b bg-blue-50">
+                <h3 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-3">
+                  <Truck className="w-6 h-6 md:w-7 md:h-7 text-blue-600" />
                   Track Order
                 </h3>
                 <button
@@ -1099,34 +1123,41 @@ const OrderDetails = () => {
                   <X size={24} />
                 </button>
               </div>
-              
-              <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+
+              <div className="p-4 md:p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
                 {trackingDetails.data && trackingDetails.data.length > 0 ? (
                   (() => {
                     const shipment = trackingDetails.data[0];
                     const trackings = shipment.MobileShipmentTrackings || [];
-                    
+
                     return (
                       <div className="space-y-6">
                         {/* Shipment Summary */}
-                        <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-100">
-                          <div className="grid grid-cols-3 gap-4">
+                        <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 md:p-6 border border-blue-100">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div>
-                              <p className="text-sm font-medium text-gray-500 mb-1">Waybill</p>
-                              <p className="text-lg font-mono font-semibold text-gray-900">
+                              <p className="text-sm font-medium text-gray-500 mb-1">
+                                Waybill
+                              </p>
+                              <p className="text-lg font-mono font-semibold text-gray-900 break-all">
                                 {shipment.Waybill}
                               </p>
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-500 mb-1">Amount</p>
+                              <p className="text-sm font-medium text-gray-500 mb-1">
+                                Amount
+                              </p>
                               <p className="text-lg font-bold text-blue-600">
                                 ₦{shipment.Amount?.toLocaleString()}
                               </p>
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-500 mb-1">Pickup Option</p>
+                              <p className="text-sm font-medium text-gray-500 mb-1">
+                                Pickup Option
+                              </p>
                               <p className="text-base font-medium text-gray-900">
-                                {shipment.MobileShipmentTrackings[0]?.PickupOptions || "N/A"}
+                                {shipment.MobileShipmentTrackings[0]
+                                  ?.PickupOptions || "N/A"}
                               </p>
                             </div>
                           </div>
@@ -1136,18 +1167,22 @@ const OrderDetails = () => {
                         {trackings.length > 0 ? (
                           <div className="relative">
                             <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200"></div>
-                            
+
                             <div className="space-y-6">
                               {trackings.map((tracking, index) => {
                                 const isLatest = index === 0;
                                 return (
-                                  <div key={index} className="relative flex gap-4 items-start">
+                                  <div
+                                    key={index}
+                                    className="relative flex gap-4 items-start"
+                                  >
                                     <div className="relative z-10 flex-shrink-0">
-                                      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                                        isLatest
-                                          ? "bg-green-100 border-4 border-green-500" 
-                                          : "bg-gray-100 border-4 border-gray-300"
-                                      }`}>
+                                      <div
+                                        className={`w-12 h-12 rounded-full flex items-center justify-center ${isLatest
+                                            ? "bg-green-100 border-4 border-green-500"
+                                            : "bg-gray-100 border-4 border-gray-300"
+                                          }`}
+                                      >
                                         {isLatest ? (
                                           <CheckCircle className="w-6 h-6 text-green-600" />
                                         ) : (
@@ -1155,11 +1190,11 @@ const OrderDetails = () => {
                                         )}
                                       </div>
                                     </div>
-                                    
-                                    <div className="flex-1 bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
-                                      <div className="flex justify-between items-start mb-3">
+
+                                    <div className="flex-1 bg-white border border-gray-200 rounded-xl p-4 md:p-5 shadow-sm hover:shadow-md transition-shadow min-w-0">
+                                      <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-3 gap-2 md:gap-0">
                                         <div className="flex-1">
-                                          <h4 className="font-semibold text-gray-900 text-lg mb-1">
+                                          <h4 className="font-semibold text-gray-900 text-lg mb-1 leading-tight">
                                             {tracking.Status}
                                           </h4>
                                           {tracking.ScanStatusIncident && (
@@ -1169,58 +1204,81 @@ const OrderDetails = () => {
                                           )}
                                         </div>
                                         {tracking.DateTime && (
-                                          <span className="text-sm text-gray-500 flex items-center gap-1 ml-3">
-                                            <Calendar className="w-4 h-4" />
+                                          <span className="text-sm text-gray-500 flex items-center gap-1 md:ml-3">
+                                            <Calendar className="w-4 h-4 flex-shrink-0" />
                                             {(() => {
-                                              let dateStr = tracking.DateTime?.replace(" WAT", "");
-                                              let dateObj = dateStr ? new Date(dateStr.replace(/-/g, '/')) : null;
+                                              let dateStr = tracking.DateTime?.replace(
+                                                " WAT",
+                                                ""
+                                              );
+                                              let dateObj = dateStr
+                                                ? new Date(
+                                                  dateStr.replace(/-/g, "/")
+                                                )
+                                                : null;
                                               return dateObj && !isNaN(dateObj)
-                                                ? dateObj.toLocaleString(undefined, {
-                                                    year: 'numeric',
-                                                    month: 'short',
-                                                    day: '2-digit',
-                                                    hour: '2-digit',
-                                                    minute: '2-digit',
-                                                  })
+                                                ? dateObj.toLocaleString(
+                                                  undefined,
+                                                  {
+                                                    year: "numeric",
+                                                    month: "short",
+                                                    day: "2-digit",
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                  }
+                                                )
                                                 : tracking.DateTime || "N/A";
                                             })()}
                                           </span>
                                         )}
                                       </div>
-                                      
+
                                       <div className="space-y-2">
                                         {tracking.ScanStatusReason && (
                                           <p className="text-sm text-gray-600">
-                                            <span className="font-medium">Reason:</span> {tracking.ScanStatusReason}
+                                            <span className="font-medium">
+                                              Reason:
+                                            </span>{" "}
+                                            {tracking.ScanStatusReason}
                                           </p>
                                         )}
-                                        
+
                                         {tracking.ScanStatusComment && (
                                           <p className="text-sm text-gray-600">
-                                            <span className="font-medium">Comment:</span> {tracking.ScanStatusComment}
+                                            <span className="font-medium">
+                                              Comment:
+                                            </span>{" "}
+                                            {tracking.ScanStatusComment}
                                           </p>
                                         )}
-                                        
-                                        {tracking.DepartureServiceCentre?.Name && (
-                                          <p className="text-sm text-gray-500 flex items-center gap-1 mt-2">
-                                            <MapPin className="w-4 h-4" />
-                                            {tracking.DepartureServiceCentre.Name}
-                                          </p>
-                                        )}
+
+                                        {tracking.DepartureServiceCentre
+                                          ?.Name && (
+                                            <p className="text-sm text-gray-500 flex items-center gap-1 mt-2">
+                                              <MapPin className="w-4 h-4" />
+                                              {
+                                                tracking.DepartureServiceCentre
+                                                  .Name
+                                              }
+                                            </p>
+                                          )}
                                       </div>
 
                                       {/* Additional Info */}
                                       <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-3">
                                         {tracking.ServiceCentreId && (
                                           <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                                            Service Centre: {tracking.ServiceCentreId}
+                                            Service Centre:{" "}
+                                            {tracking.ServiceCentreId}
                                           </span>
                                         )}
-                                        {tracking.TrackingType !== undefined && (
-                                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                                            Tracking Type: {tracking.TrackingType}
-                                          </span>
-                                        )}
+                                        {tracking.TrackingType !==
+                                          undefined && (
+                                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                                              Tracking Type:{" "}
+                                              {tracking.TrackingType}
+                                            </span>
+                                          )}
                                       </div>
                                     </div>
                                   </div>
@@ -1231,7 +1289,9 @@ const OrderDetails = () => {
                         ) : (
                           <div className="text-center py-12">
                             <Clock className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                            <p className="text-gray-500">No tracking events available yet</p>
+                            <p className="text-gray-500">
+                              No tracking events available yet
+                            </p>
                           </div>
                         )}
                       </div>
@@ -1240,7 +1300,9 @@ const OrderDetails = () => {
                 ) : (
                   <div className="text-center py-12">
                     <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">No tracking details available</p>
+                    <p className="text-gray-500">
+                      No tracking details available
+                    </p>
                   </div>
                 )}
               </div>
@@ -1266,7 +1328,7 @@ const OrderDetails = () => {
                   <X size={24} />
                 </button>
               </div>
-              <div className="p-6">
+              <div className="p-4 md:p-6">
                 <div className="bg-black rounded-xl overflow-hidden">
                   <video
                     src={
@@ -1275,7 +1337,7 @@ const OrderDetails = () => {
                         : orderPurchase[1]?.product?.style?.video_url
                     }
                     controls
-                    className="w-full max-h-[70vh] object-contain"
+                    className="w-full max-h-[50vh] md:max-h-[70vh] object-contain"
                     autoPlay
                   >
                     Your browser does not support the video tag.
@@ -1342,7 +1404,7 @@ const OrderDetails = () => {
         {/* Delivery Details */}
         <div className="bg-white rounded-lg p-6 mb-6">
           <h3 className="text-lg font-semibold mb-6">Delivery Details</h3>
-          <div className="grid grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
               <p className="text-sm text-gray-500 mb-2">DELIVERY METHOD</p>
               <p className="text-gray-900">
@@ -1352,188 +1414,157 @@ const OrderDetails = () => {
           </div>
         </div>
 
-        {/* Customer & Vendor */}
-        {/* <div className="bg-white rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-6">Customer & Vendor</h3>
-          <div className="grid grid-cols-3 gap-8">
-            <div>
-              <p className="text-sm text-gray-500 mb-2">CUSTOMER EMAIL</p>
-              <p className="text-gray-900">
-                {customerEmail}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-2">
-                FABRIC VENDOR BUSINESS ID
-              </p>
-              <p className="text-gray-900">
-                {orderInfo?.order_items?.[0]?.product?.business_id
-                  ? orderInfo.order_items[0].product.business_id
-                      .substring(0, 8)
-                      .toUpperCase()
-                  : ""}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-2">DELIVERY METHOD</p>
-              <p className="text-gray-900">Logistics</p>
-            </div>
-          </div>
-        </div> */}
-      </div>
+        {/* Upload Modal */}
+        {showUploadModal && (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    {getActionTitle()}
+                  </h3>
+                  <button
+                    onClick={handleCloseUploadModal}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                    disabled={isUploading}
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
 
-      {/* Upload Modal */}
-      {showUploadModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-gray-900">
-                  {getActionTitle()}
-                </h3>
-                <button
-                  onClick={handleCloseUploadModal}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                  disabled={isUploading}
-                >
-                  <X size={24} />
-                </button>
-              </div>
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  Upload a clear picture of the garment to update the order status
+                  to{" "}
+                  <span className="font-semibold text-purple-600">
+                    {pendingStatus?.replace("_", " ")}
+                  </span>
+                  . Image upload is required to proceed.
+                </p>
 
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                Upload a clear picture of the garment to update the order status
-                to{" "}
-                <span className="font-semibold text-purple-600">
-                  {pendingStatus?.replace("_", " ")}
-                </span>
-                . Image upload is required to proceed.
-              </p>
-
-              {/* File Upload Area */}
-              <div className="mb-6">
-                {!selectedFile ? (
-                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-purple-400 transition-colors">
-                    <div className="flex justify-center mb-4">
-                      <Upload className="w-12 h-12 text-gray-400" />
-                    </div>
-                    <p className="text-gray-600 font-medium mb-2">
-                      Click to upload photo
-                    </p>
-                    <p className="text-gray-400 text-sm mb-4">
-                      Max file size: 5MB • JPG, PNG, GIF
-                    </p>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      id="garment-upload"
-                      onChange={handleFileSelect}
-                      disabled={isUploading}
-                    />
-                    <label
-                      htmlFor="garment-upload"
-                      className={`inline-block px-6 py-2 rounded-lg cursor-pointer font-medium transition-colors ${
-                        isUploading
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : "bg-purple-100 text-purple-700 hover:bg-purple-200"
-                      }`}
-                    >
-                      Browse Files
-                    </label>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {/* Image Preview */}
-                    <div className="border border-gray-200 rounded-xl overflow-hidden">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="w-full h-48 object-cover"
+                {/* File Upload Area */}
+                <div className="mb-6">
+                  {!selectedFile ? (
+                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-purple-400 transition-colors">
+                      <div className="flex justify-center mb-4">
+                        <Upload className="w-12 h-12 text-gray-400" />
+                      </div>
+                      <p className="text-gray-600 font-medium mb-2">
+                        Click to upload photo
+                      </p>
+                      <p className="text-gray-400 text-sm mb-4">
+                        Max file size: 5MB • JPG, PNG, GIF
+                      </p>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        id="garment-upload"
+                        onChange={handleFileSelect}
+                        disabled={isUploading}
                       />
+                      <label
+                        htmlFor="garment-upload"
+                        className={`inline-block px-6 py-2 rounded-lg cursor-pointer font-medium transition-colors ${isUploading
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            : "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                          }`}
+                      >
+                        Browse Files
+                      </label>
                     </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {/* Image Preview */}
+                      <div className="border border-gray-200 rounded-xl overflow-hidden">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="w-full h-48 object-cover"
+                        />
+                      </div>
 
-                    {/* File Details */}
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Image className="w-5 h-5 text-purple-600" />
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">
-                              {selectedFile.name}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {formatFileSize(selectedFile.size)}
-                            </p>
+                      {/* File Details */}
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Image className="w-5 h-5 text-purple-600" />
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">
+                                {selectedFile.name}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {formatFileSize(selectedFile.size)}
+                              </p>
+                            </div>
                           </div>
+                          <button
+                            onClick={() => {
+                              setSelectedFile(null);
+                              setImagePreview(null);
+                              const fileInput =
+                                document.getElementById("garment-upload");
+                              if (fileInput) fileInput.value = "";
+                            }}
+                            className="text-gray-400 hover:text-red-500 transition-colors"
+                            disabled={isUploading}
+                          >
+                            <X size={18} />
+                          </button>
                         </div>
-                        <button
-                          onClick={() => {
-                            setSelectedFile(null);
-                            setImagePreview(null);
-                            const fileInput =
-                              document.getElementById("garment-upload");
-                            if (fileInput) fileInput.value = "";
-                          }}
-                          className="text-gray-400 hover:text-red-500 transition-colors"
-                          disabled={isUploading}
-                        >
-                          <X size={18} />
-                        </button>
                       </div>
                     </div>
-                  </div>
-                )}
-
-                {/* Upload Status */}
-                {uploadStatus && (
-                  <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      {isUploading && (
-                        <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
-                      )}
-                      <p className="text-sm font-medium text-blue-800">
-                        {uploadStatus}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3">
-                <button
-                  onClick={handleCloseUploadModal}
-                  className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                  disabled={isUploading}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCompleteUpload}
-                  className={`cursor-pointer flex-1 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
-                    selectedFile && !isUploading
-                      ? "bg-purple-600 text-white hover:bg-purple-700"
-                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  }`}
-                  disabled={!selectedFile || isUploading}
-                >
-                  {isUploading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="w-4 h-4" />
-                      Update Status
-                    </>
                   )}
-                </button>
+
+                  {/* Upload Status */}
+                  {uploadStatus && (
+                    <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        {isUploading && (
+                          <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+                        )}
+                        <p className="text-sm font-medium text-blue-800">
+                          {uploadStatus}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleCloseUploadModal}
+                    className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                    disabled={isUploading}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCompleteUpload}
+                    className={`cursor-pointer flex-1 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${selectedFile && !isUploading
+                        ? "bg-purple-600 text-white hover:bg-purple-700"
+                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      }`}
+                    disabled={!selectedFile || isUploading}
+                  >
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4" />
+                        Update Status
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

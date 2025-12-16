@@ -1344,218 +1344,197 @@ const OrderDetails = () => {
 
       <ETADisplay orderDetails={orderDetails} />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-        <div className="bg-white p-6 rounded-md md:col-span-2">
-          <h5 className="text-lg font-meduim text-dark border-b border-[#D9D9D9] pb-3 mb-3">
+        {/* Main Content Area */}
+        <div className="bg-white p-4 sm:p-6 rounded-md md:col-span-2 shadow-sm border border-gray-200">
+          <h5 className="text-lg font-medium text-gray-900 border-b border-gray-200 pb-3 mb-5">
             Order Details
           </h5>
 
-          <div className="bg-white rounded-md">
-            <div>
-              <div className="bg-white mt-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <h6 className="font-semibold text-gray-800">
-                      Order Information
-                    </h6>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Order ID:</span>
-                        <span className="font-medium">
-                          {orderDetails?.payment?.id
-                            ?.replace(/-/g, "")
-                            .slice(0, 12)
-                            .toUpperCase()}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Transaction ID:</span>
-                        <span className="font-medium">
-                          {orderDetails?.payment?.transaction_id || "N/A"}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Payment Method:</span>
-                        <span className="font-medium">
-                          {orderDetails?.payment?.payment_method || "N/A"}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Purchase Type:</span>
-                        <span className="font-medium">
-                          {orderDetails?.payment?.purchase_type || "N/A"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+          <div className="bg-white">
+            {/* 1. Order & Payment Info Grid */}
+            {/* Stack vertical on mobile, 2 columns on desktop */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 md:gap-x-12 mb-8">
 
-                  <div className="space-y-4">
-                    <h6 className="font-semibold text-gray-800">
-                      Payment Information
-                    </h6>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Payment Status:</span>
-                        <span
-                          className={`px-2 py-1 rounded text-sm ${orderDetails?.payment?.payment_status === "SUCCESS"
-                            ? "bg-green-100 text-green-600"
-                            : "bg-yellow-100 text-yellow-600"
-                            }`}
-                        >
-                          {orderDetails?.payment?.payment_status || "PENDING"}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Currency:</span>
-                        <span className="font-medium">
-                          {orderDetails?.payment?.currency || "NGN"}
-                        </span>
-                      </div>
-                    </div>
+              {/* Column 1: Order Info */}
+              <div className="space-y-4">
+                <h6 className="font-semibold text-gray-800 border-l-4 border-purple-500 pl-3">
+                  Order Information
+                </h6>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between items-start">
+                    <span className="text-gray-500">Order ID:</span>
+                    <span className="font-mono font-medium text-gray-900 text-right break-all ml-4">
+                      {orderDetails?.payment?.id?.replace(/-/g, "").slice(0, 12).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-start">
+                    <span className="text-gray-500">Transaction ID:</span>
+                    <span className="font-medium text-gray-900 text-right break-all ml-4">
+                      {orderDetails?.payment?.transaction_id || "N/A"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Payment Method:</span>
+                    <span className="font-medium text-gray-900">
+                      {orderDetails?.payment?.payment_method || "N/A"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Purchase Type:</span>
+                    <span className="font-medium text-gray-900">
+                      {orderDetails?.payment?.purchase_type || "N/A"}
+                    </span>
                   </div>
                 </div>
+              </div>
 
-                {orderPurchase && orderPurchase.length > 0 && (
-                  <div className="mt-6">
-                    <h6 className="font-semibold text-gray-800 mb-4">
-                      Purchase Items
-                    </h6>
-                    <div className="space-y-4">
-                      {orderPurchase.map((item, index) => {
-                        const isStyle = item.product.type === "STYLE";
-                        const tagLabel = isStyle ? "Style" : "Fabric";
-                        const tagColor = isStyle
-                          ? "bg-purple-100 text-purple-700"
-                          : "bg-blue-100 text-blue-700";
-                        const imageSrc = isStyle
-                          ? item.product.style?.photos?.[0]
-                          : item.product.fabric?.photos?.[0];
-                        return (
-                          <div
-                            key={index}
-                            className="flex items-center gap-5 p-4 border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition"
-                          >
-                            <img
-                              src={imageSrc}
-                              alt={item.product.name || "Product"}
-                              className="w-20 h-20 rounded-lg object-cover border border-gray-100"
-                            />
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <p className="font-semibold text-lg">
-                                  {item.product.name || "Product Item"}
-                                </p>
-                                <span
-                                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${tagColor} border border-gray-200`}
-                                >
-                                  {tagLabel}
+              {/* Column 2: Payment Info */}
+              <div className="space-y-4">
+                <h6 className="font-semibold text-gray-800 border-l-4 border-blue-500 pl-3">
+                  Payment Information
+                </h6>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500">Payment Status:</span>
+                    <span
+                      className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${orderDetails?.payment?.payment_status === "SUCCESS"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-yellow-100 text-yellow-700"
+                        }`}
+                    >
+                      {orderDetails?.payment?.payment_status || "PENDING"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Currency:</span>
+                    <span className="font-medium text-gray-900">
+                      {orderDetails?.payment?.currency || "NGN"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Purchase Items List */}
+            {orderPurchase && orderPurchase.length > 0 && (
+              <div className="mt-8">
+                <h6 className="font-semibold text-gray-800 mb-4">Purchase Items</h6>
+                <div className="space-y-4">
+                  {orderPurchase.map((item, index) => {
+                    const isStyle = item.product.type === "STYLE";
+                    const tagLabel = isStyle ? "Style" : "Fabric";
+                    const tagColor = isStyle
+                      ? "bg-purple-100 text-purple-700"
+                      : "bg-blue-100 text-blue-700";
+                    const imageSrc = isStyle
+                      ? item.product.style?.photos?.[0]
+                      : item.product.fabric?.photos?.[0];
+
+                    return (
+                      <div
+                        key={index}
+                        // Mobile: Flex-col (Image top, text bottom). Desktop: Flex-row (Image left)
+                        className="flex flex-col sm:flex-row gap-5 p-4 border border-gray-100 rounded-xl bg-gray-50/50"
+                      >
+                        <img
+                          src={imageSrc}
+                          alt={item.product.name || "Product"}
+                          className="w-full sm:w-24 h-48 sm:h-24 rounded-lg object-cover border border-gray-200"
+                        />
+
+                        <div className="flex-1 w-full">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <p className="font-semibold text-base text-gray-900">
+                              {item.product.name || "Product Item"}
+                            </p>
+                            <span
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${tagColor}`}
+                            >
+                              {tagLabel}
+                            </span>
+                          </div>
+
+                          <div className="flex justify-between text-sm text-gray-600 mb-3">
+                            <span>Quantity: {item.quantity || 1}</span>
+                            <span>
+                              Unit Price: ₦{item.price ? parseInt(item.price).toLocaleString() : "0"}
+                            </span>
+                          </div>
+
+                          {/* Sub-total calculation box */}
+                          <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <span className="text-xs font-medium text-gray-500 uppercase">
+                                Item Total
+                              </span>
+                              <div className="text-right">
+                                <span className="block font-bold text-gray-900">
+                                  ₦{" "}
+                                  {item.price && item.quantity
+                                    ? (parseInt(item.price) * parseInt(item.quantity)).toLocaleString()
+                                    : "0"}
                                 </span>
-                              </div>
-                              <p className="text-gray-500 mb-1">
-                                Quantity:{" "}
-                                <span className="font-medium">
-                                  {item.quantity || 1}
+                                <span className="text-[10px] text-gray-400">
+                                  ({item.price} x {item.quantity})
                                 </span>
-                              </p>
-                              <div>
-                                <p className="text-gray-600 text-sm">
-                                  Amount:{" "}
-                                  <span className="font-semibold text-gray-700">
-                                    ₦
-                                    {item.price
-                                      ? parseInt(item.price).toLocaleString()
-                                      : "0"}
-                                  </span>
-                                </p>
-                                <div className="bg-gray-50 rounded-lg p-3 mt-2 shadow-sm border border-gray-100">
-                                  <div className="flex items-center justify-between">
-                                    <span className="font-medium text-gray-700">
-                                      Total Amount
-                                    </span>
-                                    <span className="flex items-center gap-2">
-                                      <span className="font-semibold text-lg text-blue-700">
-                                        ₦{" "}
-                                        {item.price && item.quantity
-                                          ? (
-                                            parseInt(item.price) *
-                                            parseInt(item.quantity)
-                                          ).toLocaleString()
-                                          : "0"}
-                                      </span>
-                                      <div className="text-xs text-gray-500 mt-1 text-right">
-                                        ({item.price} x {item.quantity})
-                                      </div>
-                                    </span>
-                                  </div>
-                                </div>
                               </div>
                             </div>
                           </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="mt-6">
-                <div className="mt-6 border-t pt-4">
-                  <div className="flex justify-between items-center pb-2">
-                    <span className="text-gray-600 font-medium">Subtotal:</span>
-                    <span className="font-semibold">
-                      ₦ {parseInt(calculatedSubtotal || 0).toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center pb-2">
-                    <span className="text-gray-600 font-medium">Tax:</span>
-                    <span className="font-semibold">
-                      ₦{" "}
-                      {orderDetails?.payment?.purchase?.tax_amount?.toLocaleString() ||
-                        "0"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center pb-2 mt-2">
-                    <span className="text-gray-600 font-medium">
-                      Delivery Fee:
-                    </span>
-                    <span className="font-semibold">
-                      ₦{" "}
-                      {orderDetails?.payment?.purchase?.delivery_fee?.toLocaleString() ||
-                        "N/A"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center pb-2 mt-2">
-                    <span className="text-gray-600 font-medium">Discount:</span>
-                    <span className="font-semibold">
-                      ₦{" "}
-                      {parseInt(
-                        orderDetails?.payment?.discount_applied || 0,
-                      ).toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center mt-4 pt-2 border-t">
-                    <span className="text-gray-600 font-medium text-lg">
-                      Order Total:
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-lg">
-                        ₦ {parseInt(totalAmount || 0).toLocaleString()}
-                      </span>
-                      <span
-                        className={`px-3 py-1 rounded-full text-sm ${orderDetails?.status === "DELIVERED"
-                          ? "bg-green-100 text-green-600"
-                          : orderDetails?.status === "CANCELLED"
-                            ? "bg-red-100 text-red-600"
-                            : orderDetails?.status === "SHIPPED" ||
-                              orderDetails?.status === "IN_TRANSIT" ||
-                              orderDetails?.status === "OUT_FOR_DELIVERY"
-                              ? "bg-yellow-100 text-yellow-600"
-                              : "bg-blue-100 text-blue-600"
-                          }`}
-                      >
-                        {orderDetails?.status}
-                      </span>
-                    </div>
-                  </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
+              </div>
+            )}
+
+            {/* 3. Footer Summary */}
+            <div className="mt-8 border-t border-gray-100 pt-6">
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Subtotal:</span>
+                  <span className="font-medium text-gray-900">
+                    ₦ {parseInt(calculatedSubtotal || 0).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Tax:</span>
+                  <span className="font-medium text-gray-900">
+                    ₦ {orderDetails?.payment?.purchase?.tax_amount?.toLocaleString() || "0"}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Delivery Fee:</span>
+                  <span className="font-medium text-gray-900">
+                    ₦ {orderDetails?.payment?.purchase?.delivery_fee?.toLocaleString() || "N/A"}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm text-green-600">
+                  <span>Discount:</span>
+                  <span>
+                    - ₦ {parseInt(orderDetails?.payment?.discount_applied || 0).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-6 pt-4 border-t border-gray-200 gap-4">
+                <div>
+                  <span className="text-gray-500 text-xs block mb-1">Total Amount Paid</span>
+                  <span className="font-bold text-2xl text-gray-900">
+                    ₦ {parseInt(totalAmount || 0).toLocaleString()}
+                  </span>
+                </div>
+
+                <span
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold border ${orderDetails?.status === "DELIVERED"
+                      ? "bg-green-50 text-green-700 border-green-200"
+                      : orderDetails?.status === "CANCELLED"
+                        ? "bg-red-50 text-red-700 border-red-200"
+                        : "bg-blue-50 text-blue-700 border-blue-200"
+                    }`}
+                >
+                  Order Status: {orderDetails?.status}
+                </span>
               </div>
             </div>
           </div>

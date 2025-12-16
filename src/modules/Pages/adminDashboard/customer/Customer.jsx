@@ -283,23 +283,23 @@ const CustomersTable = () => {
         },
       },
       { label: "Date Joined", key: "dateJoined" },
-      {
-        label: "Account Status",
-        key: "status",
-        render: (_, row) => (
-          <span
-            className={`px-3 py-1 text-sm rounded-md ${
-              row.profile?.approved_by_admin === false
-                ? "bg-red-100 text-red-600"
-                : "bg-green-100 text-green-600"
-            }`}
-          >
-            {row.profile?.approved_by_admin === false
-              ? "Suspended"
-              : "Active"}
-          </span>
-        ),
-      },
+      // {
+      //   label: "Account Status",
+      //   key: "status",
+      //   render: (_, row) => (
+      //     <span
+      //       className={`px-3 py-1 text-sm rounded-md ${
+      //         row.profile?.approved_by_admin === false
+      //           ? "bg-red-100 text-red-600"
+      //           : "bg-green-100 text-green-600"
+      //       }`}
+      //     >
+      //       {row.profile?.approved_by_admin === false
+      //         ? "Suspended"
+      //         : "Active"}
+      //     </span>
+      //   ),
+      // },
     ],
     [],
   );
@@ -408,15 +408,15 @@ const CustomersTable = () => {
             return navigate(`/admin/view-customers/${item.id}`);
           },
         },
-        {
-          key: "suspend-customer",
-          label: item?.profile?.approved_by_admin === false ? "Unsuspend Customer" : "Suspend Customer",
-          action: () => {
-            setSuspendModalOpen(true);
-            setNewCategory(item);
-            setOpenDropdown(null);
-          },
-        },
+        // {
+        //   key: "suspend-customer",
+        //   label: item?.profile?.approved_by_admin === false ? "Unsuspend Customer" : "Suspend Customer",
+        //   action: () => {
+        //     setSuspendModalOpen(true);
+        //     setNewCategory(item);
+        //     setOpenDropdown(null);
+        //   },
+        // },
         {
           key: "delete_customer",
           label: "Delete Customer",

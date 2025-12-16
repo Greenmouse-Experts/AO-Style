@@ -1051,7 +1051,7 @@ export default function InboxPage() {
                 <textarea
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
-                  placeholder="Type your message here..."
+                  placeholder="Type message..."
                   rows={4}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
                 />

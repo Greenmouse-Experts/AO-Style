@@ -1434,7 +1434,7 @@ export default function ImprovedInboxPage() {
                         </label>
                         <textarea
                           className="w-full p-3 md:p-4 border border-gray-300 outline-none rounded-lg text-sm md:text-base focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all resize-none"
-                          placeholder="Type your message..."
+                          placeholder="Type message..."
                           rows="5"
                           value={messageText}
                           onChange={(e) => setMessageText(e.target.value)}

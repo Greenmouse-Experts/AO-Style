@@ -257,7 +257,7 @@ export default function MessagingDebug() {
           <textarea
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
-            placeholder="Type your message here..."
+            placeholder="Type message..."
             rows={4}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />

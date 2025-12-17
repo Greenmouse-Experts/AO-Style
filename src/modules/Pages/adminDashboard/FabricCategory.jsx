@@ -1,13 +1,11 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import ReusableTable from "./components/ReusableTable";
+// import ReusableTable from "./components/ReusableTable"; // Commented out as you are using CustomTable in the render
 import {
   FaEllipsisH,
   FaBars,
   FaTh,
-  FaLayerGroup,
   FaCalendarAlt,
 } from "react-icons/fa";
-import { AiOutlineSearch } from "react-icons/ai";
 import useQueryParams from "../../../hooks/useQueryParams";
 import useGetProducts from "../../../hooks/product/useGetProduct";
 import useDebounce from "../../../hooks/useDebounce";
@@ -24,6 +22,7 @@ import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
 import useToast from "../../../hooks/useToast";
 import CustomTable from "../../../components/CustomTable";
+import PaginationButton from "../../../components/PaginationButton";
 
 const FabricCategoryTable = () => {
   const dropdownRef = useRef(null);
@@ -51,12 +50,9 @@ const FabricCategoryTable = () => {
 
   const {
     handleSubmit,
-    touched,
-    errors,
     values,
     handleChange,
     resetForm,
-    // setFieldError,
   } = useFormik({
     initialValues: initialValues,
     validateOnChange: false,
@@ -106,10 +102,6 @@ const FabricCategoryTable = () => {
       }
     },
   });
-
-  const toggleDropdown = (rowId) => {
-    setOpenDropdown(openDropdown === rowId ? null : rowId);
-  };
 
   const handleDropdownToggle = (id) => {
     setOpenDropdown(openDropdown === id ? null : id);
@@ -170,56 +162,12 @@ const FabricCategoryTable = () => {
 
   const columns = useMemo(
     () => [
-      //   { label: "S/N", key: "id" },
       { label: "Category Name", key: "name" },
-      //   { label: "Total Fabrics", key: "totalFabrics" },
       { label: "Date Added", key: "dateAdded" },
-      // {
-      //   label: "Action",
-      //   key: "action",
-      //   render: (_, row) => (
-      //     <div className="relative">
-      //       <button
-      //         className="bg-gray-100 cursor-pointer text-gray-500 px-3 py-1 rounded-md"
-      //         onClick={() => toggleDropdown(row.id)}
-      //       >
-      //         <FaEllipsisH />
-      //       </button>
-      //       {openDropdown === row.id && (
-      //         <div className="absolute right-0  mt-2 w-40 bg-white rounded-md z-50 shadow-lg">
-      //           <button className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full">
-      //             View Details
-      //           </button>
-      //           <button
-      //             onClick={() => {
-      //               setIsAddModalOpen(true);
-      //               handleDropdownToggle(null);
-      //               setNewCategory(row);
-      //               setType("Edit");
-      //             }}
-      //             className="block cursor-pointer px-4 py-2 text-gray-700 hover:bg-gray-100 w-full"
-      //           >
-      //             Edit Fabric
-      //           </button>
-      //           <button
-      //             onClick={() => {
-      //               setIsAddModalOpen(true);
-      //               handleDropdownToggle(null);
-      //               setNewCategory(row);
-      //               setType("Remove");
-      //             }}
-      //             className="block cursor-pointer px-4 py-2 text-red-500 hover:bg-red-100 w-full"
-      //           >
-      //             Remove Fabric
-      //           </button>
-      //         </div>
-      //       )}
-      //     </div>
-      //   ),
-      // },
     ],
-    [openDropdown],
+    []
   );
+
   const actions = [
     {
       key: "view-details",
@@ -238,7 +186,7 @@ const FabricCategoryTable = () => {
         setIsAddModalOpen(true);
         handleDropdownToggle(null);
         setNewCategory(item);
-        setType("Remove");
+        setType("Edit"); 
       },
     },
     {
@@ -252,9 +200,17 @@ const FabricCategoryTable = () => {
       },
     },
   ];
-  const totalPages = Math.ceil(
-    data?.count / (queryParams["pagination[limit]"] ?? 10),
-  );
+
+  // --- PAGINATION CALCULATIONS ---
+  // Ensure these are numbers to prevent string concatenation errors
+  const limit = Number(queryParams["pagination[limit]"] ?? 10);
+  const currentPage = Number(queryParams["pagination[page]"] ?? 1);
+  const totalCount = data?.count ?? 0;
+  const totalPages = Math.ceil(totalCount / limit);
+
+  // Calculate range for "Showing X-Y of Z"
+  const startEntry = totalCount === 0 ? 0 : (currentPage - 1) * limit + 1;
+  const endEntry = Math.min(currentPage * limit, totalCount);
 
   const actionText = `${type} Fabric Category`;
 
@@ -272,8 +228,6 @@ const FabricCategoryTable = () => {
       body: fabricData?.map((row) => [
         row.name,
         row.dateAdded,
-        // row.location,
-        // row.dateJoined,
       ]),
       headStyles: {
         fillColor: [209, 213, 219],
@@ -343,8 +297,9 @@ const FabricCategoryTable = () => {
           <select
             onChange={handleExport}
             className="bg-gray-100 outline-none text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap"
+            defaultValue=""
           >
-            <option value="" disabled selected>
+            <option value="" disabled>
               Export As
             </option>
             <option value="csv">Export to CSV</option>{" "}
@@ -356,15 +311,10 @@ const FabricCategoryTable = () => {
             data={fabricData?.map((row) => ({
               "Market Name": row.name,
               "Date Added": row.dateAdded,
-              // Location: row.location,
-              // "Date Joined": row.dateJoined,
             }))}
             filename="Fabricategory.csv"
             className="hidden"
-          />{" "}
-          {/* <button className="bg-gray-100 text-gray-700 px-3 py-2 text-sm rounded-md whitespace-nowrap">
-            Sort: Newest First ▾
-          </button>*/}
+          />
           <button
             onClick={() => setIsAddModalOpen(true)}
             className="bg-gradient cursor-pointer text-white px-4 py-2 text-sm rounded-md"
@@ -377,11 +327,6 @@ const FabricCategoryTable = () => {
       {activeTab === "table" ? (
         <div key="fabric-table">
           <CustomTable data={fabricData} columns={columns} actions={actions} />
-          {/* <ReusableTable
-            loading={isPending}
-            columns={columns}
-            data={fabricData}
-          />*/}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -399,10 +344,16 @@ const FabricCategoryTable = () => {
                 </button>
 
                 {openDropdown === item.id && (
-                  <div className="absolute right-0 mt-2 w-32 bg-white rounded-md z-10 border border-gray-200">
+                  <div className="absolute right-0 mt-2 w-32 bg-white rounded-md z-10 border border-gray-200 shadow-lg">
                     <button
-                      to={`.`}
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
+                      onClick={() => {
+                        // Assuming View details just opens edit modal or specific logic
+                        setIsAddModalOpen(true);
+                        handleDropdownToggle(null);
+                        setNewCategory(item);
+                        setType("Edit");
+                      }}
                     >
                       View Details
                     </button>
@@ -434,12 +385,6 @@ const FabricCategoryTable = () => {
 
               <div className="text-center mx-auto">
                 <h3 className="text-[#1E293B] font-medium mb-2">{item.name}</h3>
-                {/* <div className="flex items-center justify-center space-x-2 mt-2">
-                  <FaLayerGroup className="text-[#9847FE]" size={14} />
-                  <span className="text-gray-600 text-sm">
-                    {item.totalFabrics}
-                  </span>
-                </div> */}
                 <div className="flex items-center justify-center space-x-2 mt-2">
                   <FaCalendarAlt className="text-[#9847FE]" size={14} />
                   <span className="text-gray-600 text-sm">
@@ -452,48 +397,65 @@ const FabricCategoryTable = () => {
         </div>
       )}
 
-      {fabricData?.length > 0 && (
-        <div className="flex justify-between items-center mt-4">
-          <div className="flex items-center">
-            <p className="text-sm text-gray-600">Items per page: </p>
-            <select
-              value={queryParams["pagination[limit]"] || 10}
-              onChange={(e) =>
-                updateQueryParams({
-                  "pagination[limit]": +e.target.value,
-                })
-              }
-              className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={15}>15</option>
-              <option value={20}>20</option>
-            </select>
+      {/* --- REVISED PAGINATION SECTION --- */}
+      {/* Logic: Only render if we have data AND more than 1 page is required */}
+      {totalCount > 0 && totalPages > 1 && (
+        <div className="flex flex-wrap justify-between items-center mt-6 gap-4 border-t border-gray-100 pt-4">
+          <div className="flex items-center gap-4">
+            {/* Limit Selector */}
+            <div className="flex items-center">
+              <p className="text-sm text-gray-600">Items per page:</p>
+              <select
+                value={limit}
+                onChange={(e) =>
+                  updateQueryParams({
+                    "pagination[limit]": Number(e.target.value),
+                    "pagination[page]": 1, // Reset to page 1 on limit change
+                  })
+                }
+                className="py-1 px-2 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto bg-white cursor-pointer"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={20}>20</option>
+              </select>
+            </div>
+
+            {/* Range Display */}
+            <p className="text-sm text-gray-500 hidden sm:block">
+              Showing <span className="font-medium text-gray-700">{startEntry}</span> to{" "}
+              <span className="font-medium text-gray-700">{endEntry}</span> of{" "}
+              <span className="font-medium text-gray-700">{totalCount}</span> entries
+            </p>
           </div>
-          <div className="flex gap-1">
-            <button
+
+          {/* Navigation Controls */}
+          <div className="flex gap-2 items-center">
+             <span className="text-sm text-gray-600 mr-2 sm:hidden">
+                 {currentPage} / {totalPages}
+            </span>
+            <PaginationButton
               onClick={() => {
                 updateQueryParams({
-                  "pagination[page]": +queryParams["pagination[page]"] - 1,
+                  "pagination[page]": currentPage - 1,
                 });
               }}
-              disabled={(queryParams["pagination[page]"] ?? 1) == 1}
-              className="px-3 py-1 rounded-md bg-gray-200"
+              disabled={currentPage === 1}
             >
-              ◀
-            </button>
-            <button
+             ◀ Previous
+            </PaginationButton>
+            
+            <PaginationButton
               onClick={() => {
                 updateQueryParams({
-                  "pagination[page]": +queryParams["pagination[page]"] + 1,
+                  "pagination[page]": currentPage + 1,
                 });
               }}
-              disabled={(queryParams["pagination[page]"] ?? 1) == totalPages}
-              className="px-3 py-1 rounded-md bg-gray-200"
+              disabled={currentPage >= totalPages}
             >
-              ▶
-            </button>
+              Next ▶
+            </PaginationButton>
           </div>
         </div>
       )}
@@ -501,17 +463,16 @@ const FabricCategoryTable = () => {
       {/* Add Fabric Category Modal */}
       {isAddModalOpen && (
         <div
-          className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
+          className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm bg-black/20"
           onClick={() => {
             setIsAddModalOpen(false);
             resetForm();
             setNewCategory(null);
-
             setType("Add");
           }}
         >
           <div
-            className="bg-white rounded-xl p-6 w-full max-w-lg"
+            className="bg-white rounded-xl p-6 w-full max-w-lg shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center border-b border-gray-200 pb-4 mb-4">
@@ -523,23 +484,25 @@ const FabricCategoryTable = () => {
                   setIsAddModalOpen(false);
                   resetForm();
                   setNewCategory(null);
-
                   setType("Add");
                 }}
-                className="text-gray-500 cursor-pointer hover:text-gray-700 text-2xl"
+                className="text-gray-500 cursor-pointer hover:text-gray-700 text-2xl leading-none"
               >
                 ✕
               </button>
             </div>
             <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
               {type == "Remove" ? (
-                <label className="block text-sm font-medium text-gray-700 mb-4">
-                  Are you sure you want to delete {newCategory?.name}
-                </label>
+                <div className="text-center py-4">
+                    <p className="block text-gray-700 mb-4 text-lg">
+                    Are you sure you want to delete <span className="font-semibold">{newCategory?.name}</span>?
+                    </p>
+                    <p className="text-sm text-red-500">This action cannot be undone.</p>
+                </div>
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Category Name
                     </label>
                     <input
@@ -549,34 +512,36 @@ const FabricCategoryTable = () => {
                       maxLength={40}
                       value={values.name}
                       onChange={handleChange}
-                      className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                      className="w-full p-3 border border-gray-300 outline-none rounded-lg focus:border-purple-500 transition-colors"
                       placeholder="Enter the category name"
                     />
                   </div>
                 </div>
               )}
 
-              <div className="flex justify-between mt-6 space-x-4">
+              <div className="flex justify-between mt-8 space-x-4">
                 <button
+                  type="button"
                   onClick={() => {
                     setIsAddModalOpen(false);
                     resetForm();
                     setNewCategory(null);
-
                     setType("Add");
                   }}
-                  className="w-full bg-purple-400 text-white px-4 py-2 rounded-md text-sm font-medium"
+                  className="w-full bg-gray-100 text-gray-700 hover:bg-gray-200 px-4 py-3 rounded-md text-sm font-medium transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={createIsPending || editIsPending || deleteIsPending}
-                  className="w-full cursor-pointer bg-gradient text-white px-4 py-4 rounded-md text-sm font-medium"
+                  className={`w-full text-white px-4 py-3 rounded-md text-sm font-medium transition-colors ${
+                      type === "Remove" ? "bg-red-500 hover:bg-red-600" : "bg-gradient cursor-pointer"
+                  }`}
                 >
                   {createIsPending || editIsPending || deleteIsPending
                     ? "Please wait..."
-                    : actionText}
+                    : type === "Remove" ? "Delete Category" : actionText}
                 </button>
               </div>
             </form>

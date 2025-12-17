@@ -657,7 +657,7 @@ const CustomersTable = () => {
             columns={columns}
             data={LogisticsData}
           />*/}
-          {((currView === "registered" ? LogisticsData : InviteData)?.length > 0 || isLoading) && (
+          {((currView === "registered" ? LogisticsData : InviteData)?.length > 0 && totalPages > 1) && (
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center">
                 <p className="text-sm text-gray-600">Items per page: </p>
@@ -817,7 +817,7 @@ const CustomersTable = () => {
 
       {activeTab === "grid" && (
         <>
-          {((currView === "registered" ? LogisticsData : InviteData)?.length > 0 || isLoading) && (
+          {((currView === "registered" ? LogisticsData : InviteData)?.length > 0 && totalPages > 1) && (
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center">
                 <p className="text-sm text-gray-600">Items per page: </p>

@@ -646,7 +646,7 @@ const CustomersTable = () => {
             data={TailorData}
             loading={isPending}
           />*/}
-          {((currView === "registered" ? TailorData : InviteData)?.length > 0 || isLoading) && (
+          {((currView === "registered" ? TailorData : InviteData)?.length > 0 && totalPages > 1) && (
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center">
                 <p className="text-sm text-gray-600">Items per page: </p>
@@ -768,7 +768,7 @@ const CustomersTable = () => {
 
       {activeTab === "grid" && (
         <>
-          {((currView === "registered" ? TailorData : InviteData)?.length > 0 || isLoading) && (
+          {((currView === "registered" ? TailorData : InviteData)?.length > 0 && totalPages > 1) && (
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center">
                 <p className="text-sm text-gray-600">Items per page: </p>

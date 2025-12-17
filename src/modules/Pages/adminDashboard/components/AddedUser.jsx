@@ -23,6 +23,7 @@ import CaryBinApi from "../../../../services/CarybinBaseUrl";
 import DateFilter from "../../../../components/shared/DateFilter";
 import ActiveFilters from "../../../../components/shared/ActiveFilters";
 import useDateFilter from "../../../../hooks/useDateFilter";
+import PaginationButton from "../../../../components/PaginationButton";
 
 const NewlyAddedUsers = () => {
   const [currView, setCurrView] = useState("registered");
@@ -554,51 +555,51 @@ const NewlyAddedUsers = () => {
             data={currView === "registered" ? MarketRepData : InviteData}
           />
         )}
-        <div className="flex justify-between items-center mt-4">
-          <div className="flex items-center">
-            <p className="text-sm text-gray-600">Items per page: </p>
-            <select
-              value={queryParams["pagination[limit]"] || 10}
-              onChange={(e) =>
-                updateQueryParams({
-                  "pagination[limit]": +e.target.value,
-                })
-              }
-              className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={15}>15</option>
-              <option value={20}>20</option>
-            </select>
+        {((currView === "registered" ? MarketRepData : InviteData)?.length > 0 && totalPages > 1) && (
+          <div className="flex justify-between items-center mt-4">
+            <div className="flex items-center">
+              <p className="text-sm text-gray-600">Items per page: </p>
+              <select
+                value={queryParams["pagination[limit]"] || 10}
+                onChange={(e) =>
+                  updateQueryParams({
+                    "pagination[limit]": +e.target.value,
+                  })
+                }
+                className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={20}>20</option>
+              </select>
+            </div>
+            <div className="flex gap-2">
+              <PaginationButton
+                onClick={() => {
+                  updateQueryParams({
+                    "pagination[page]": +queryParams["pagination[page]"] - 1,
+                  });
+                }}
+                disabled={(queryParams["pagination[page]"] ?? 1) == 1}
+              >
+                ◀ Previous
+              </PaginationButton>
+              <PaginationButton
+                onClick={() => {
+                  updateQueryParams({
+                    "pagination[page]": +queryParams["pagination[page]"] + 1,
+                  });
+                }}
+                disabled={
+                  (queryParams["pagination[page]"] ?? 1) == totalPages
+                }
+              >
+                Next ▶
+              </PaginationButton>
+            </div>
           </div>
-          <div className="flex gap-1">
-            <button
-              onClick={() => {
-                updateQueryParams({
-                  "pagination[page]": +queryParams["pagination[page]"] - 1,
-                });
-              }}
-              disabled={(queryParams["pagination[page]"] ?? 1) == 1}
-              className="px-3 py-1 rounded-md bg-gray-200"
-            >
-              ◀
-            </button>
-            <button
-              onClick={() => {
-                updateQueryParams({
-                  "pagination[page]": +queryParams["pagination[page]"] + 1,
-                });
-              }}
-              disabled={
-                (queryParams["pagination[page]"] ?? 1) == totalPageCount
-              }
-              className="px-3 py-1 rounded-md bg-gray-200"
-            >
-              ▶
-            </button>
-          </div>
-        </div>
+        )}
       </div>
       {suspendModalOpen && (
         <div

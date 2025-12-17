@@ -14,6 +14,7 @@ import PaginationButton from "../../../components/PaginationButton";
 
 export default function NotificationPageUpdate() {
   const [filter, setFilter] = useState("all");
+  const [expandedNotifications, setExpandedNotifications] = useState<Set<number>>(new Set());
 
   const { queryParams, updateQueryParams } = useQueryParams({
     "pagination[limit]": 10,
@@ -48,15 +49,31 @@ export default function NotificationPageUpdate() {
     { key: "unread", label: "Unread", params: { read: false } },
   ];
 
+  const toggleExpand = (notificationId: number) => {
+    setExpandedNotifications((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(notificationId)) {
+        newSet.delete(notificationId);
+      } else {
+        newSet.add(notificationId);
+      }
+      return newSet;
+    });
+  };
+
+  const isExpanded = (notificationId: number) => {
+    return expandedNotifications.has(notificationId);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-6">
+      <div className="bg-white border-b border-gray-200 px-3 md:px-6 py-4 md:py-6">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-2">
             Notifications
           </h1>
-          <nav className="text-sm text-gray-500">
+          <nav className="text-xs md:text-sm text-gray-500">
             <Link
               to={
                 // Redirect to dashboard based on current route
@@ -82,12 +99,12 @@ export default function NotificationPageUpdate() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-8">
         {/* Controls */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex flex-col lg:flex-row gap-6 justify-between items-start lg:items-center">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 md:p-6 mb-4 md:mb-6">
+          <div className="flex flex-col lg:flex-row gap-4 md:gap-6 justify-between items-start lg:items-center">
             {/* Filter Tabs */}
-            <div className="flex flex-wrap gap-1 bg-gray-100 rounded-lg p-1">
+            <div className="flex flex-wrap gap-1 bg-gray-100 rounded-lg p-1 w-full lg:w-auto overflow-x-auto">
               {filterButtons.map((button) => (
                 <button
                   key={button.key}
@@ -98,7 +115,7 @@ export default function NotificationPageUpdate() {
                       "pagination[page]": 1,
                     });
                   }}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                  className={`px-3 md:px-4 py-1.5 md:py-2 rounded-md text-xs md:text-sm font-medium transition-all duration-200 whitespace-nowrap ${
                     filter === button.key
                       ? "bg-white text-purple-600 shadow-sm"
                       : "text-gray-600 hover:text-gray-900"
@@ -106,7 +123,7 @@ export default function NotificationPageUpdate() {
                 >
                   {button.label}
                   {filter === button.key && data?.count ? (
-                    <span className="ml-2 bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full text-xs">
+                    <span className="ml-1 md:ml-2 bg-purple-100 text-purple-600 px-1.5 md:px-2 py-0.5 rounded-full text-xs">
                       {data.count}
                     </span>
                   ) : null}
@@ -115,24 +132,24 @@ export default function NotificationPageUpdate() {
             </div>
 
             {/* Search and Actions */}
-            <div className="flex flex-wrap gap-3">
-              <div className="relative">
+            <div className="flex flex-col sm:flex-row gap-2 md:gap-3 w-full lg:w-auto">
+              <div className="relative flex-1 sm:flex-initial">
                 <Search
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  size={18}
+                  className="absolute left-2 md:left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={16}
                 />
                 <input
                   type="text"
                   placeholder="Search notifications..."
-                  className="pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 w-64"
+                  className="pl-8 md:pl-10 pr-3 md:pr-4 py-2 md:py-2.5 w-full sm:w-64 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-sm"
                   value={queryString ?? ""}
                   onChange={(evt) =>
                     setQueryString(evt.target.value ? evt.target.value : "")
                   }
                 />
               </div>
-              <button className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200">
-                <Filter size={16} />
+              <button className="flex items-center justify-center gap-2 px-3 md:px-4 py-2 md:py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200 text-xs md:text-sm whitespace-nowrap">
+                <Filter size={14} className="md:w-4 md:h-4" />
                 Export As ▼
               </button>
             </div>
@@ -152,21 +169,20 @@ export default function NotificationPageUpdate() {
                   {data.data.map((notification: any, idx: number) => (
                     <div
                       key={notification?.id}
-                      className={`relative p-6 transition-all duration-200 hover:bg-gray-50 ${
+                      className={`relative p-3 md:p-6 transition-all duration-200 hover:bg-gray-50 cursor-pointer ${
                         !notification?.read
                           ? "bg-purple-50 border-l-4 border-l-purple-500"
                           : "hover:bg-gray-50"
                       }`}
+                      onClick={() => toggleExpand(notification?.id)}
                     >
-                      <div className="flex items-start gap-4">
-                        {/* Notification Icon */}
-
+                      <div className="flex flex-col sm:flex-row items-start gap-3 md:gap-4">
                         {/* Content */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1">
+                        <div className="flex-1 min-w-0 w-full">
+                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 md:gap-4">
+                            <div className="flex-1 min-w-0">
                               <h3
-                                className={`text-sm font-semibold ${
+                                className={`text-sm md:text-base font-semibold ${
                                   !notification?.read
                                     ? "text-gray-900"
                                     : "text-gray-700"
@@ -174,10 +190,23 @@ export default function NotificationPageUpdate() {
                               >
                                 {notification.title}
                               </h3>
-                              <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                              <p className={`text-xs md:text-sm text-gray-600 mt-1 break-words ${
+                                isExpanded(notification?.id) ? "" : "line-clamp-2"
+                              }`}>
                                 {notification.message}
                               </p>
-                              <div className="flex items-center gap-3 mt-3">
+                              {notification.message && notification.message.length > 100 && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleExpand(notification?.id);
+                                  }}
+                                  className="text-xs md:text-sm text-purple-600 hover:text-purple-700 font-medium mt-1"
+                                >
+                                  {isExpanded(notification?.id) ? "Show less" : "Show more"}
+                                </button>
+                              )}
+                              <div className="flex flex-wrap items-center gap-2 md:gap-3 mt-2 md:mt-3">
                                 <time className="text-xs text-gray-500">
                                   {notification?.created_at
                                     ? formatDateStr(
@@ -197,10 +226,10 @@ export default function NotificationPageUpdate() {
                             </div>
 
                             {/* Action Button */}
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                               {!notification.read ? (
                                 <button
-                                  className="inline-flex items-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                                  className="inline-flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-1.5 md:py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white text-xs md:text-sm font-medium rounded-lg transition-colors duration-200 whitespace-nowrap"
                                   onClick={() => {
                                     if (!notification.read) {
                                       markReadNotificationMutate(
@@ -217,12 +246,13 @@ export default function NotificationPageUpdate() {
                                       : "Mark as Read"
                                   }
                                 >
-                                  <Check size={14} />
-                                  Mark as read
+                                  <Check size={12} className="md:w-3.5 md:h-3.5" />
+                                  <span className="hidden sm:inline">Mark as read</span>
+                                  <span className="sm:hidden">Read</span>
                                 </button>
                               ) : (
-                                <div className="inline-flex items-center gap-2 px-3 py-2 bg-green-100 text-green-800 text-sm font-medium rounded-lg">
-                                  <Check size={14} />
+                                <div className="inline-flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-1.5 md:py-2 bg-green-100 text-green-800 text-xs md:text-sm font-medium rounded-lg">
+                                  <Check size={12} className="md:w-3.5 md:h-3.5" />
                                   Read
                                 </div>
                               )}
@@ -251,10 +281,10 @@ export default function NotificationPageUpdate() {
 
           {/* Pagination */}
           {data?.data?.length > 0 && totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="px-3 md:px-6 py-3 md:py-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-3 md:gap-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">Items per page:</span>
+                  <span className="text-xs md:text-sm text-gray-600">Items per page:</span>
                   <select
                     value={queryParams["pagination[limit]"] || 10}
                     onChange={(e) =>
@@ -263,7 +293,7 @@ export default function NotificationPageUpdate() {
                         "pagination[page]": 1,
                       })
                     }
-                    className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="px-2 md:px-3 py-1 md:py-1.5 border border-gray-300 rounded-md text-xs md:text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   >
                     <option value={5}>5</option>
                     <option value={10}>10</option>
@@ -272,8 +302,8 @@ export default function NotificationPageUpdate() {
                   </select>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">
+                <div className="flex flex-col sm:flex-row items-center gap-2 md:gap-2">
+                  <span className="text-xs md:text-sm text-gray-600">
                     Page {queryParams["pagination[page]"] || 1} of {totalPages}
                   </span>
                   <div className="flex gap-2">

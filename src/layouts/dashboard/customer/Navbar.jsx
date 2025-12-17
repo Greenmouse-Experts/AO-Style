@@ -159,31 +159,34 @@ export default function Navbar({ toggleSidebar }) {
 
   return (
     <div>
-      <nav className="bg-white shadow-md p-6 flex items-center justify-between">
-        {/* Sidebar Toggle Button (Only on Mobile) */}
-        <button
-          className="md:block lg:hidden p-2 text-gray-600"
-          onClick={toggleSidebar}
-        >
-          <Menu size={24} />
-        </button>
+      <nav className="bg-white shadow-md p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        {/* Top Row: Sidebar Toggle & Title */}
+        <div className="flex items-center gap-4 w-full md:flex-1 md:min-w-0 md:max-w-[calc(100%-200px)]">
+          {/* Sidebar Toggle Button (Only on Mobile) */}
+          <button
+            className="md:block lg:hidden p-2 text-gray-600 flex-shrink-0"
+            onClick={toggleSidebar}
+          >
+            <Menu size={24} />
+          </button>
 
-        {/* Page Title */}
-        <h1 className="text-lg font-bold text-gray-700 lg:text-xl lg:ml-4">
-          <span className="hidden md:inline">
-            {token
-              ? "Welcome to Your Customer Dashboard – Manage Orders, Track Deliveries, and View Notifications"
-              : "Welcome to Carybin – Browse Products and Add to Cart"}
-          </span>
-          <span className="inline md:hidden">
-            {token
-              ? "Customer Dashboard"
-              : "Welcome to Carybin"}
-          </span>
-        </h1>
+          {/* Page Title */}
+          <h1 className="text-lg font-bold text-gray-700 lg:text-xl lg:ml-4 flex-1 min-w-0 truncate">
+            <span className="hidden md:inline truncate">
+              {token
+                ? "Welcome to Your Customer Dashboard – Manage Orders, Track Deliveries, and View Notifications"
+                : "Welcome to Carybin – Browse Products and Add to Cart"}
+            </span>
+            <span className="inline md:hidden">
+              {token
+                ? "Customer Dashboard"
+                : "Welcome to Carybin"}
+            </span>
+          </h1>
+        </div>
 
         {/* Right: Cart, Announcements, Notifications & Profile */}
-        <div className="flex items-center space-x-6">
+        <div className="flex items-center space-x-6 w-full md:w-auto md:flex-shrink-0 justify-center">
           {/* Cart - Always visible */}
           <Link
             to="/view-cart"

@@ -10,6 +10,7 @@ import useUpdatedEffect from "../../../hooks/useUpdatedEffect";
 import { formatDateStr } from "../../../lib/helper";
 import useMarkReadNotification from "../../../hooks/notification/useMarkReadNotification";
 import { toast } from "react-toastify";
+import PaginationButton from "../../../components/PaginationButton";
 
 export default function NotificationPageUpdate() {
   const [filter, setFilter] = useState("all");
@@ -249,7 +250,7 @@ export default function NotificationPageUpdate() {
           )}
 
           {/* Pagination */}
-          {data?.data?.length > 0 && (
+          {data?.data?.length > 0 && totalPages > 1 && (
             <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="flex items-center gap-2">
@@ -275,8 +276,8 @@ export default function NotificationPageUpdate() {
                   <span className="text-sm text-gray-600">
                     Page {queryParams["pagination[page]"] || 1} of {totalPages}
                   </span>
-                  <div className="flex gap-1">
-                    <button
+                  <div className="flex gap-2">
+                    <PaginationButton
                       onClick={() => {
                         updateQueryParams({
                           "pagination[page]":
@@ -286,11 +287,10 @@ export default function NotificationPageUpdate() {
                       disabled={
                         Number(queryParams["pagination[page]"] ?? 1) === 1
                       }
-                      className="p-2 rounded-md bg-white border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors duration-200"
                     >
-                      ←
-                    </button>
-                    <button
+                      ◀ Previous
+                    </PaginationButton>
+                    <PaginationButton
                       onClick={() => {
                         updateQueryParams({
                           "pagination[page]":
@@ -301,10 +301,9 @@ export default function NotificationPageUpdate() {
                         Number(queryParams["pagination[page]"] ?? 1) ===
                         totalPages
                       }
-                      className="p-2 rounded-md bg-white border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors duration-200"
                     >
-                      →
-                    </button>
+                      Next ▶
+                    </PaginationButton>
                   </div>
                 </div>
               </div>

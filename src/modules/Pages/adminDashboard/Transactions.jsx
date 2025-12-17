@@ -27,6 +27,7 @@ import { CSVLink } from "react-csv";
 import CustomTable from "../../../components/CustomTable";
 import TransferOperationsModal from "./components/TransferOperationsModal";
 import { toast } from "react-toastify";
+import PaginationButton from "../../../components/PaginationButton";
 const PaymentTransactionTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -664,47 +665,47 @@ const PaymentTransactionTable = () => {
 
         {(getTotalItems() > 0) ? (
           <>
-            <div className="flex justify-between items-center mt-4">
-              <div className="flex items-center">
-                <p className="text-sm text-gray-600">Items per page: </p>
-                <select
-                  value={itemsPerPage}
-                  onChange={(e) => {
-                    setItemsPerPage(Number(e.target.value));
-                    setCurrentPage(1);
-                  }}
-                  className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
-                >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={15}>15</option>
-                  <option value={20}>20</option>
-                </select>
+            {totalPages > 1 && (
+              <div className="flex justify-between items-center mt-4">
+                <div className="flex items-center">
+                  <p className="text-sm text-gray-600">Items per page: </p>
+                  <select
+                    value={itemsPerPage}
+                    onChange={(e) => {
+                      setItemsPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
+                  >
+                    <option value={5}>5</option>
+                    <option value={10}>10</option>
+                    <option value={15}>15</option>
+                    <option value={20}>20</option>
+                  </select>
+                </div>
+                <div className="flex gap-2 items-center">
+                  <span className="text-sm text-gray-500 mr-2">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <PaginationButton
+                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    ◀ Previous
+                  </PaginationButton>
+                  <PaginationButton
+                    onClick={() =>
+                      setCurrentPage((prev) =>
+                        Math.min(totalPages, prev + 1)
+                      )
+                    }
+                    disabled={currentPage >= totalPages}
+                  >
+                    Next ▶
+                  </PaginationButton>
+                </div>
               </div>
-              <div className="flex gap-1 items-center">
-                <span className="text-sm text-gray-500 mr-2">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <button
-                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 rounded-md bg-gray-200"
-                >
-                  ◀
-                </button>
-                <button
-                  onClick={() =>
-                    setCurrentPage((prev) =>
-                      Math.min(totalPages, prev + 1)
-                    )
-                  }
-                  disabled={currentPage >= totalPages}
-                  className="px-3 py-1 rounded-md bg-gray-200"
-                >
-                  ▶
-                </button>
-              </div>
-            </div>
+            )}
           </>
         ) : (
           <div className="text-center py-8">

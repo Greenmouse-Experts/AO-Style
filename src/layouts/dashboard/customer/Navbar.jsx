@@ -186,7 +186,7 @@ export default function Navbar({ toggleSidebar }) {
         </div>
 
         {/* Right: Cart, Announcements, Notifications & Profile */}
-        <div className="flex items-center space-x-6 w-full md:w-auto md:flex-shrink-0 justify-end">
+        <div className="flex items-center space-x-6 w-full md:w-auto md:flex-shrink-0 justify-center">
           {/* Cart - Always visible */}
           <Link
             to="/view-cart"

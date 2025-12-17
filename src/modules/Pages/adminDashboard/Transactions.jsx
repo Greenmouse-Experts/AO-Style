@@ -27,6 +27,7 @@ import { CSVLink } from "react-csv";
 import CustomTable from "../../../components/CustomTable";
 import TransferOperationsModal from "./components/TransferOperationsModal";
 import { toast } from "react-toastify";
+import PaginationButton from "../../../components/PaginationButton";
 const PaymentTransactionTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -681,28 +682,26 @@ const PaymentTransactionTable = () => {
                   <option value={20}>20</option>
                 </select>
               </div>
-              <div className="flex gap-1 items-center">
+              <div className="flex gap-2 items-center">
                 <span className="text-sm text-gray-500 mr-2">
                   Page {currentPage} of {totalPages}
                 </span>
-                <button
+                <PaginationButton
                   onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
-                  className="px-3 py-1 rounded-md bg-gray-200"
                 >
-                  ◀
-                </button>
-                <button
+                  ◀ Previous
+                </PaginationButton>
+                <PaginationButton
                   onClick={() =>
                     setCurrentPage((prev) =>
                       Math.min(totalPages, prev + 1)
                     )
                   }
                   disabled={currentPage >= totalPages}
-                  className="px-3 py-1 rounded-md bg-gray-200"
                 >
-                  ▶
-                </button>
+                  Next ▶
+                </PaginationButton>
               </div>
             </div>
           </>

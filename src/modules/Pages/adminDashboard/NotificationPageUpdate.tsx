@@ -250,7 +250,7 @@ export default function NotificationPageUpdate() {
           )}
 
           {/* Pagination */}
-          {data?.data?.length > 0 && (
+          {data?.data?.length > 0 && totalPages > 1 && (
             <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="flex items-center gap-2">

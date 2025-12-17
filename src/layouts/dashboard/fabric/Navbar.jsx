@@ -74,26 +74,29 @@ export default function Navbar({ toggleSidebar }) {
   return (
     <div>
       {" "}
-      <nav className="bg-white shadow-md p-6 flex items-center justify-between">
-        {/* Sidebar Toggle Button (Only on Mobile) */}
-        <button
-          className="md:block lg:hidden p-2 text-gray-600"
-          onClick={toggleSidebar}
-        >
-          <Menu size={24} />
-        </button>
+      <nav className="bg-white shadow-md p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        {/* Top Row: Sidebar Toggle & Title */}
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          {/* Sidebar Toggle Button (Only on Mobile) */}
+          <button
+            className="md:block lg:hidden p-2 text-gray-600"
+            onClick={toggleSidebar}
+          >
+            <Menu size={24} />
+          </button>
 
-        {/* Page Title */}
-        <h1 className="text-sm font-bold text-gray-700 lg:text-xl lg:ml-4">
-          <span className="hidden md:inline">
-            Fabric Vendor Orders Dashboard – Manage Orders, Notifications &
-            Profile
-          </span>
-          <span className="inline md:hidden">Vendor Dashboard</span>
-        </h1>
+          {/* Page Title */}
+          <h1 className="text-sm font-bold text-gray-700 lg:text-xl lg:ml-4 flex-1 md:flex-none">
+            <span className="hidden md:inline">
+              Fabric Vendor Orders Dashboard – Manage Orders, Notifications &
+              Profile
+            </span>
+            <span className="inline md:hidden">Vendor Dashboard</span>
+          </h1>
+        </div>
 
         {/* Right: Notification & Profile */}
-        <div className="flex flex-col justify-end items-end gap-1">
+        <div className="flex items-center gap-6 md:gap-6 w-full md:w-auto justify-start md:justify-end">
           <div className="flex items-center justify-center space-x-6">
             <Link
               to="/fabric/notifications"

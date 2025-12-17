@@ -36,22 +36,25 @@ export default function Navbar({ toggleSidebar }) {
   return (
     <div>
       {" "}
-      <nav className="bg-white shadow-md p-6 flex items-center justify-between">
-        <button
-          className="md:block lg:hidden p-2 text-gray-600"
-          onClick={toggleSidebar}
-          aria-label="Toggle Sidebar"
-        >
-          <Menu size={24} />
-        </button>
+      <nav className="bg-white shadow-md p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        {/* Top Row: Sidebar Toggle & Title */}
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          <button
+            className="md:block lg:hidden p-2 text-gray-600"
+            onClick={toggleSidebar}
+            aria-label="Toggle Sidebar"
+          >
+            <Menu size={24} />
+          </button>
 
-        {/* Page Title */}
-        <h1 className="text-base font-medium text-gray-700 lg:ml-4">
-          Super Admin Dashboard
-        </h1>
+          {/* Page Title */}
+          <h1 className="text-base font-medium text-gray-700 lg:ml-4 flex-1 md:flex-none">
+            Super Admin Dashboard
+          </h1>
+        </div>
 
         {/* Notification & Profile */}
-        <div className="flex items-center space-x-5 relative">
+        <div className="flex items-center space-x-5 relative w-full md:w-auto justify-start md:justify-end">
           {/* Notification Bell */}
           <Link
             to="/admin/notifications"

@@ -28,6 +28,7 @@ import useToast from "../../../../hooks/useToast";
 import DateFilter from "../../../../components/shared/DateFilter";
 import ActiveFilters from "../../../../components/shared/ActiveFilters";
 import useDateFilter from "../../../../hooks/useDateFilter";
+import PaginationButton from "../../../../components/PaginationButton";
 
 const MarketsTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -540,7 +541,7 @@ const MarketsTable = () => {
             </select>
           </div>
           <div className="flex gap-1">
-            <button
+            <PaginationButton
               onClick={() => {
                 updateQueryParams({
                   "pagination[page]": +queryParams["pagination[page]"] - 1,
@@ -549,9 +550,9 @@ const MarketsTable = () => {
               disabled={(queryParams["pagination[page]"] ?? 1) == 1}
               className="px-3 py-1 rounded-md bg-gray-200"
             >
-              ◀
-            </button>
-            <button
+              ◀ Previous
+            </PaginationButton>
+            <PaginationButton
               onClick={() => {
                 updateQueryParams({
                   "pagination[page]": +queryParams["pagination[page]"] + 1,
@@ -560,8 +561,8 @@ const MarketsTable = () => {
               disabled={(queryParams["pagination[page]"] ?? 1) == totalPages}
               className="px-3 py-1 rounded-md bg-gray-200"
             >
-              ▶
-            </button>
+              Next ▶
+            </PaginationButton>
           </div>
         </div>
       )}

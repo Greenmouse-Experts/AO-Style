@@ -36,31 +36,31 @@ export default function Navbar({ toggleSidebar }) {
   return (
     <div>
       {" "}
-      <nav className="bg-white shadow-md p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        {/* Top Row: Sidebar Toggle & Title */}
-        <div className="flex items-center gap-4 w-full md:flex-1 md:min-w-0 md:max-w-[calc(100%-200px)]">
+      <nav className="bg-white shadow-md p-4 md:p-6 flex items-center justify-between gap-3 md:gap-4">
+        {/* Left: Sidebar Toggle & Title */}
+        <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
           <button
             className="md:block lg:hidden p-2 text-gray-600 flex-shrink-0"
             onClick={toggleSidebar}
             aria-label="Toggle Sidebar"
           >
-            <Menu size={24} />
+            <Menu size={20} className="md:w-6 md:h-6" />
           </button>
 
           {/* Page Title */}
-          <h1 className="text-base font-medium text-gray-700 lg:ml-4 flex-1 min-w-0 truncate">
+          <h1 className="text-xs md:text-sm lg:text-base font-bold lg:ml-4 flex-1 min-w-0 truncate">
             Super Admin Dashboard
           </h1>
         </div>
 
-        {/* Notification & Profile */}
-        <div className="flex items-center space-x-5 relative w-full md:w-auto md:flex-shrink-0 justify-center">
+        {/* Right: Notification & Profile */}
+        <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
           {/* Notification Bell */}
           <Link
             to="/admin/notifications"
-            className="relative bg-purple-100 p-2 rounded-full"
+            className="relative bg-purple-100 p-1.5 md:p-2 rounded-full"
           >
-            <Bell size={20} className="text-purple-600" />
+            <Bell size={18} className="md:w-5 md:h-5 text-purple-600" />
             {unreadNotificationsCount > 0 ? (
               <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
                 {unreadNotificationsCount}
@@ -76,14 +76,14 @@ export default function Navbar({ toggleSidebar }) {
               <img
                 src={carybinAdminUser?.profile?.profile_picture ?? null}
                 alt="User"
-                className="w-8 h-8 rounded-full cursor-pointer"
+                className="w-7 h-7 md:w-8 md:h-8 rounded-full cursor-pointer"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               />
             ) : (
               <div
                 role="button"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="w-8 h-8 cursor-pointer rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white"
+                className="w-7 h-7 md:w-8 md:h-8 cursor-pointer rounded-full bg-gray-300 flex items-center justify-center text-xs md:text-sm font-medium text-white"
               >
                 {carybinAdminUser?.name?.charAt(0).toUpperCase() || "?"}
               </div>

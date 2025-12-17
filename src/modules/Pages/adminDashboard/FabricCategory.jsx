@@ -112,7 +112,7 @@ const FabricCategoryTable = () => {
     "pagination[page]": 1,
   });
 
-  const { data, isPending } = useGetProducts({
+  const { data } = useGetProducts({
     ...queryParams,
     type: "fabric",
   });
@@ -121,15 +121,25 @@ const FabricCategoryTable = () => {
 
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
 
-  const fabricData = useMemo(() => {
-    if (!data?.data) return [];
+  const { uniqueCategoriesCount, fabricData } = useMemo(() => {
+    if (!data?.data) return { uniqueCategoriesCount: 0, fabricData: [] };
 
     // Remove duplicates based on unique category ID
     const uniqueCategories = data.data.filter(
       (item, index, self) => index === self.findIndex((t) => t.id === item.id),
     );
 
-    return uniqueCategories.map((details) => {
+    // Use the count from API if available, otherwise use unique categories length
+    const totalCount = data?.count ?? uniqueCategories.length;
+
+    // Apply pagination limit on frontend as safety measure
+    const limit = Number(queryParams["pagination[limit]"] ?? 10);
+    const currentPage = Number(queryParams["pagination[page]"] ?? 1);
+    const startIndex = (currentPage - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedCategories = uniqueCategories.slice(startIndex, endIndex);
+
+    const mappedData = paginatedCategories.map((details) => {
       return {
         ...details,
         name: `${details?.name}`,
@@ -140,7 +150,9 @@ const FabricCategoryTable = () => {
         }`,
       };
     });
-  }, [data?.data]);
+
+    return { uniqueCategoriesCount: totalCount, fabricData: mappedData };
+  }, [data?.data, data?.count, queryParams]);
 
   useUpdatedEffect(() => {
     // update search params with undefined if debouncedSearchTerm is an empty string
@@ -205,7 +217,7 @@ const FabricCategoryTable = () => {
   // Ensure these are numbers to prevent string concatenation errors
   const limit = Number(queryParams["pagination[limit]"] ?? 10);
   const currentPage = Number(queryParams["pagination[page]"] ?? 1);
-  const totalCount = data?.count ?? 0;
+  const totalCount = uniqueCategoriesCount;
   const totalPages = Math.ceil(totalCount / limit);
 
   // Calculate range for "Showing X-Y of Z"
@@ -406,10 +418,10 @@ const FabricCategoryTable = () => {
             <div className="flex items-center">
               <p className="text-sm text-gray-600">Items per page:</p>
               <select
-                value={limit}
+                value={queryParams["pagination[limit]"] || 10}
                 onChange={(e) =>
                   updateQueryParams({
-                    "pagination[limit]": Number(e.target.value),
+                    "pagination[limit]": +e.target.value,
                     "pagination[page]": 1, // Reset to page 1 on limit change
                   })
                 }

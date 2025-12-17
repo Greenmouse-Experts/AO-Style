@@ -661,17 +661,17 @@ const OrderDetails = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gray-50 p-3 md:p-4 lg:p-6 pb-6">
       <CustomBackbtn />
 
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-sm px-6 py-5 mb-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+      <div className="bg-white rounded-xl shadow-sm px-3 md:px-6 py-4 md:py-5 mb-4 md:mb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 mb-1 md:mb-2 break-words">
               Order ID: {formatOrderId(orderInfo?.payment_id || "")}
             </h1>
-            <p className="text-gray-500 text-sm">
+            <p className="text-xs md:text-sm text-gray-500">
               <a
                 href="/fabric"
                 className="text-purple-600 hover:text-purple-800 transition-colors"
@@ -681,16 +681,16 @@ const OrderDetails = () => {
               → Orders → Order Details
             </p>
           </div>
-          <div className="text-right">
+          <div className="text-left md:text-right flex-shrink-0">
             <div
-              className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(orderInfo?.status)}`}
+              className={`inline-flex items-center px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium ${getStatusColor(orderInfo?.status)}`}
             >
               {getStatusIcon(orderInfo?.status)}
-              <span className="ml-2">
+              <span className="ml-1 md:ml-2">
                 {orderInfo?.status?.replace(/_/g, " ") || "Unknown"}
               </span>
             </div>
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-xs md:text-sm text-gray-500 mt-1 md:mt-2">
               Last Updated:{" "}
               {formatDateStr(orderInfo?.updated_at, "D MMM YYYY h:mm A")}
             </p>
@@ -700,39 +700,41 @@ const OrderDetails = () => {
 
       {/* GIG Logistics Buttons */}
       {isGigLogistics() && (
-        <div className="bg-white rounded-xl shadow-sm px-6 py-4 mb-6">
-          <div className="flex gap-4 justify-end">
+        <div className="bg-white rounded-xl shadow-sm px-3 md:px-6 py-3 md:py-4 mb-4 md:mb-6">
+          <div className="flex flex-col sm:flex-row gap-2 md:gap-4 sm:justify-end">
             <button
               onClick={fetchShipmentDetails}
               disabled={isLoadingShipment}
-              className="cursor-pointer inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="cursor-pointer inline-flex items-center justify-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-purple-600 text-white rounded-lg text-sm md:text-base font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isLoadingShipment ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
                   Loading...
                 </>
               ) : (
                 <>
-                  <Package className="w-5 h-5" />
-                  View Shipment Details
+                  <Package className="w-4 h-4 md:w-5 md:h-5" />
+                  <span className="hidden sm:inline">View Shipment Details</span>
+                  <span className="sm:hidden">Shipment</span>
                 </>
               )}
             </button>
             <button
               onClick={fetchTrackingDetails}
               disabled={isLoadingTracking}
-              className="cursor-pointer inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="cursor-pointer inline-flex items-center justify-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-blue-600 text-white rounded-lg text-sm md:text-base font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isLoadingTracking ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
                   Loading...
                 </>
               ) : (
                 <>
-                  <Truck className="w-5 h-5" />
-                  Track Order
+                  <Truck className="w-4 h-4 md:w-5 md:h-5" />
+                  <span className="hidden sm:inline">Track Order</span>
+                  <span className="sm:hidden">Track</span>
                 </>
               )}
             </button>
@@ -740,60 +742,60 @@ const OrderDetails = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 md:space-y-6">
           {/* Order Summary */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">
+          <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
+            <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-4 md:mb-6">
               Order Summary
             </h3>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-600 font-medium">Order ID:</span>
-                  <span className="text-gray-900 font-semibold">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+              <div className="space-y-3 md:space-y-4">
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2 py-2 border-b border-gray-100">
+                  <span className="text-xs md:text-sm text-gray-600 font-medium">Order ID:</span>
+                  <span className="text-sm md:text-base text-gray-900 font-semibold break-words">
                     {formatOrderId(orderInfo?.payment_id || "")}
                   </span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-600 font-medium">
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2 py-2 border-b border-gray-100">
+                  <span className="text-xs md:text-sm text-gray-600 font-medium">
                     Transaction ID:
                   </span>
-                  <span className="text-gray-900">
+                  <span className="text-sm md:text-base text-gray-900 break-words">
                     {orderInfo?.payment?.transaction_id || "N/A"}
                   </span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-600 font-medium">Order Date:</span>
-                  <span className="text-gray-900">
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2 py-2 border-b border-gray-100">
+                  <span className="text-xs md:text-sm text-gray-600 font-medium">Order Date:</span>
+                  <span className="text-sm md:text-base text-gray-900">
                     {formatDateStr(orderInfo?.created_at, "D MMM YYYY")}
                   </span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-600 font-medium">
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2 py-2 border-b border-gray-100">
+                  <span className="text-xs md:text-sm text-gray-600 font-medium">
                     Payment Method:
                   </span>
-                  <span className="text-gray-900">
+                  <span className="text-sm md:text-base text-gray-900">
                     {orderInfo?.payment?.payment_method || "PAYSTACK"}
                   </span>
                 </div>
               </div>
-              <div className="space-y-4">
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-600 font-medium">
+              <div className="space-y-3 md:space-y-4">
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2 py-2 border-b border-gray-100">
+                  <span className="text-xs md:text-sm text-gray-600 font-medium">
                     Total Amount:
                   </span>
-                  <span className="text-gray-900 font-semibold">
+                  <span className="text-sm md:text-base text-gray-900 font-semibold">
                     ₦
                     {(
                       fabricOnlyTotal || parseInt(orderInfo?.total_amount || 0)
                     ).toLocaleString()}
                   </span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-600 font-medium">Items:</span>
-                  <span className="text-gray-900">
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2 py-2 border-b border-gray-100">
+                  <span className="text-xs md:text-sm text-gray-600 font-medium">Items:</span>
+                  <span className="text-sm md:text-base text-gray-900">
                     {fabricOnlyPurchase.length} fabric item(s)
                   </span>
                 </div>
@@ -802,19 +804,19 @@ const OrderDetails = () => {
           </div>
 
           {/* Product Details */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">
+          <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
+            <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-4 md:mb-6">
               Fabric Items ({fabricOnlyPurchase.length})
             </h3>
             <div className="space-y-4">
               {fabricOnlyPurchase.map((item, index) => (
                 <div
                   key={index}
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  className="border border-gray-200 rounded-lg p-3 md:p-4 hover:shadow-md transition-shadow"
                 >
-                  <div className="flex flex-col lg:flex-row gap-6">
+                  <div className="flex flex-col sm:flex-row gap-4 md:gap-6">
                     {/* Product Image */}
-                    <div className="lg:w-32 lg:h-32 w-full h-48 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                    <div className="sm:w-32 sm:h-32 w-full h-48 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                       {item?.product?.fabric?.photos &&
                       item?.product?.fabric?.photos[0] ? (
                         <img
@@ -830,13 +832,13 @@ const OrderDetails = () => {
                     </div>
 
                     {/* Product Details */}
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h4 className="text-lg font-semibold text-gray-900 mb-1">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3 md:mb-4">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-base md:text-lg font-semibold text-gray-900 mb-1 break-words">
                             {item?.product?.name || "Fabric Item"}
                           </h4>
-                          <div className="flex items-center gap-4 text-sm text-gray-600">
+                          <div className="flex flex-wrap items-center gap-3 md:gap-4 text-xs md:text-sm text-gray-600">
                             <span>Qty: {item?.quantity || 1}</span>
                             <span>
                               ₦{(item?.product?.price || 0).toLocaleString()}/
@@ -844,20 +846,20 @@ const OrderDetails = () => {
                             </span>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-lg font-semibold text-gray-900">
+                        <div className="text-left sm:text-right flex-shrink-0">
+                          <p className="text-base md:text-lg font-semibold text-gray-900">
                             ₦
                             {(
                               (item?.product?.price || 0) *
                               (item?.quantity || 1)
                             ).toLocaleString()}
                           </p>
-                          <p className="text-sm text-gray-500">Total</p>
+                          <p className="text-xs md:text-sm text-gray-500">Total</p>
                         </div>
                       </div>
 
                       {/* Fabric Details */}
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 text-xs md:text-sm">
                         <div>
                           <span className="text-gray-500 font-medium">
                             Color:
@@ -931,23 +933,23 @@ const OrderDetails = () => {
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
           {/* Order Actions */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">
+          <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
+            <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-4 md:mb-6">
               Order Actions
             </h3>
 
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {/* Current Status Display */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 md:p-4">
                 <div className="flex items-center gap-2 mb-2">
                   {getStatusIcon(orderInfo?.status)}
-                  <span className="font-semibold text-gray-700">
+                  <span className="text-sm md:text-base font-semibold text-gray-700">
                     Current Status
                   </span>
                 </div>
-                <p className="text-sm text-blue-800 font-medium mb-1">
+                <p className="text-xs md:text-sm text-blue-800 font-medium mb-1 break-words">
                   {orderInfo?.status || "PENDING"}
                 </p>
                 <p className="text-xs text-blue-600">
@@ -957,12 +959,12 @@ const OrderDetails = () => {
               </div>
 
               {/* Order Type Information */}
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 md:p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Package className="w-4 h-4 text-gray-600" />
-                  <span className="font-medium text-gray-700">Order Type</span>
+                  <span className="text-sm md:text-base font-medium text-gray-700">Order Type</span>
                 </div>
-                <p className="text-sm text-gray-800 font-medium">
+                <p className="text-xs md:text-sm text-gray-800 font-medium">
                   {isFabricOnlyOrder ? "Fabric Only" : "Fabric + Style"}
                 </p>
                 <p className="text-xs text-gray-600 mt-1">
@@ -974,14 +976,14 @@ const OrderDetails = () => {
 
               {/* Status Update Action */}
               {canUpdateStatus() ? (
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
-                    <div className="flex-1">
-                      <span className="font-medium text-gray-900 block mb-1">
+                <div className="border border-gray-200 rounded-lg p-3 md:p-4">
+                  <div className="flex items-start gap-2 md:gap-3">
+                    <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-orange-500 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm md:text-base font-medium text-gray-900 block mb-1">
                         Ready to Dispatch?
                       </span>
-                      <p className="text-sm text-gray-600 mb-3">
+                      <p className="text-xs md:text-sm text-gray-600 mb-3">
                         {getStatusDescription()}
                       </p>
                       <button
@@ -1004,7 +1006,7 @@ const OrderDetails = () => {
                         disabled={
                           isStatusUpdating || isUploading || !canUpdateStatus()
                         }
-                        className="w-full py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center gap-2"
+                        className="w-full py-2 md:py-2.5 px-3 md:px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs md:text-sm font-medium flex items-center justify-center gap-2"
                         title={
                           !canUpdateStatus()
                             ? "Status cannot be updated at this time"
@@ -1021,13 +1023,15 @@ const OrderDetails = () => {
                       >
                         {isStatusUpdating || isUploading ? (
                           <>
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            Updating...
+                            <div className="w-3 h-3 md:w-4 md:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            <span className="hidden sm:inline">Updating...</span>
+                            <span className="sm:hidden">Updating</span>
                           </>
                         ) : (
                           <>
-                            Update to {getNextStatus().replace(/_/g, " ")}
-                            <ArrowRight className="w-4 h-4" />
+                            <span className="hidden sm:inline">Update to {getNextStatus().replace(/_/g, " ")}</span>
+                            <span className="sm:hidden">Update Status</span>
+                            <ArrowRight className="w-3 h-3 md:w-4 md:h-4" />
                           </>
                         )}
                       </button>
@@ -1035,11 +1039,11 @@ const OrderDetails = () => {
                   </div>
                 </div>
               ) : (
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-600">
+                <div className="border border-gray-200 rounded-lg p-3 md:p-4">
+                  <div className="flex items-start gap-2 md:gap-3">
+                    <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs md:text-sm text-gray-600">
                         {orderInfo?.status === "DISPATCHED_TO_AGENT"
                           ? "Order dispatched to logistics agent"
                           : orderInfo?.status === "OUT_FOR_DELIVERY"
@@ -1052,29 +1056,31 @@ const OrderDetails = () => {
               )}
 
               {/* Expected Flow Information */}
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
-                  <div className="flex-1">
-                    <span className="font-medium text-yellow-800 block mb-1">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 md:p-4">
+                <div className="flex items-start gap-2 md:gap-3">
+                  <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm md:text-base font-medium text-yellow-800 block mb-1">
                       Expected Flow
                     </span>
-                    {isFabricOnlyOrder ? (
-                      <>
-                        <div>1. Update to "OUT FOR DELIVERY" when ready</div>
-                        <div>
-                          2. Logistics will deliver directly to customer
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div>1. Update to "DISPATCHED TO AGENT" when ready</div>
-                        <div>2. Logistics will deliver fabric to tailor</div>
-                        <div>
-                          3. Tailor will process and prepare for final delivery
-                        </div>
-                      </>
-                    )}
+                    <div className="text-xs md:text-sm text-yellow-700 space-y-1">
+                      {isFabricOnlyOrder ? (
+                        <>
+                          <div>1. Update to "OUT FOR DELIVERY" when ready</div>
+                          <div>
+                            2. Logistics will deliver directly to customer
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div>1. Update to "DISPATCHED TO AGENT" when ready</div>
+                          <div>2. Logistics will deliver fabric to tailor</div>
+                          <div>
+                            3. Tailor will process and prepare for final delivery
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1085,30 +1091,31 @@ const OrderDetails = () => {
 
       {/* Shipment Details Modal */}
       {showShipmentDetailsModal && shipmentDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b bg-purple-50">
-              <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                <Package className="w-7 h-7 text-purple-600" />
-                Shipment Details
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 md:p-4">
+          <div className="bg-white rounded-xl md:rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] md:max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 md:p-6 border-b bg-purple-50">
+              <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 flex items-center gap-2 md:gap-3">
+                <Package className="w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 text-purple-600" />
+                <span className="hidden sm:inline">Shipment Details</span>
+                <span className="sm:hidden">Shipment</span>
               </h3>
               <button
                 onClick={handleCloseShipmentDetailsModal}
-                className="cursor-pointer text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full"
+                className="cursor-pointer text-gray-400 hover:text-gray-600 transition-colors p-1 md:p-2 hover:bg-gray-100 rounded-full flex-shrink-0"
               >
-                <X size={24} />
+                <X size={20} className="md:w-6 md:h-6" />
               </button>
             </div>
             
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+            <div className="p-4 md:p-6 overflow-y-auto max-h-[calc(95vh-80px)] md:max-h-[calc(90vh-80px)]">
               {shipmentDetails.data && shipmentDetails.data.length > 0 ? (
                 (() => {
                   const shipment = shipmentDetails.data[0];
                   return (
-                    <div className="space-y-6">
+                    <div className="space-y-4 md:space-y-6">
                       {/* Main Shipment Info */}
-                      <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-100">
-                        <div className="grid grid-cols-2 gap-6">
+                      <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-4 md:p-6 border border-purple-100">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                           <div>
                             <p className="text-sm font-medium text-gray-500 mb-1">Waybill Number</p>
                             <p className="text-lg font-mono font-semibold text-gray-900">
@@ -1141,37 +1148,37 @@ const OrderDetails = () => {
                       </div>
 
                       {/* Sender & Receiver Details */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-white border border-gray-200 rounded-xl p-5">
-                          <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                            <User className="w-5 h-5 text-blue-600" />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-5">
+                          <h4 className="text-sm md:text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                            <User className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
                             Sender Information
                           </h4>
-                          <div className="space-y-2 text-sm">
+                          <div className="space-y-2 text-xs md:text-sm">
                             <div>
                               <p className="text-gray-500 text-xs">Name</p>
-                              <p className="font-medium text-gray-900">{shipment.SenderName}</p>
+                              <p className="font-medium text-gray-900 break-words">{shipment.SenderName}</p>
                             </div>
                             <div>
                               <p className="text-gray-500 text-xs">Phone</p>
-                              <p className="font-medium text-gray-900">{shipment.SenderPhoneNumber}</p>
+                              <p className="font-medium text-gray-900 break-words">{shipment.SenderPhoneNumber}</p>
                             </div>
                             <div>
                               <p className="text-gray-500 text-xs">Address</p>
-                              <p className="text-gray-700 text-xs leading-relaxed">{shipment.SenderAddress}</p>
+                              <p className="text-gray-700 text-xs leading-relaxed break-words">{shipment.SenderAddress}</p>
                             </div>
                           </div>
                         </div>
 
-                        <div className="bg-white border border-gray-200 rounded-xl p-5">
-                          <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                            <MapPin className="w-5 h-5 text-green-600" />
+                        <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-5">
+                          <h4 className="text-sm md:text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                            <MapPin className="w-4 h-4 md:w-5 md:h-5 text-green-600" />
                             Receiver Information
                           </h4>
-                          <div className="space-y-2 text-sm">
+                          <div className="space-y-2 text-xs md:text-sm">
                             <div>
                               <p className="text-gray-500 text-xs">Name</p>
-                              <p className="font-medium text-gray-900">{shipment.ReceiverName}</p>
+                              <p className="font-medium text-gray-900 break-words">{shipment.ReceiverName}</p>
                             </div>
                             {/* <div>
                               <p className="text-gray-500 text-xs">Phone</p>
@@ -1186,9 +1193,9 @@ const OrderDetails = () => {
                       </div>
 
                       {/* Pricing Information */}
-                      <div className="bg-white border border-gray-200 rounded-xl p-5">
-                        <h4 className="font-semibold text-gray-700 mb-4">Pricing Details</h4>
-                        <div className="grid grid-cols-3 gap-4">
+                      <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-5">
+                        <h4 className="text-sm md:text-base font-semibold text-gray-700 mb-3 md:mb-4">Pricing Details</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
                           <div>
                             <p className="text-xs text-gray-500 mb-1">Delivery Price</p>
                             <p className="text-lg font-bold text-gray-900">₦{shipment.DeliveryPrice.toLocaleString()}</p>
@@ -1205,22 +1212,22 @@ const OrderDetails = () => {
                       </div>
 
                       {/* Dates */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 md:p-4">
                           <div className="flex items-center gap-2 mb-2">
-                            <Calendar className="w-5 h-5 text-blue-600" />
-                            <h4 className="font-semibold text-blue-900">Created</h4>
+                            <Calendar className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
+                            <h4 className="text-sm md:text-base font-semibold text-blue-900">Created</h4>
                           </div>
-                          <p className="text-sm text-blue-800">
+                          <p className="text-xs md:text-sm text-blue-800 break-words">
                             {new Date(shipment.DateCreated).toLocaleString()}
                           </p>
                         </div>
-                        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                        <div className="bg-green-50 border border-green-200 rounded-xl p-3 md:p-4">
                           <div className="flex items-center gap-2 mb-2">
-                            <Clock className="w-5 h-5 text-green-600" />
-                            <h4 className="font-semibold text-green-900">Last Modified</h4>
+                            <Clock className="w-4 h-4 md:w-5 md:h-5 text-green-600" />
+                            <h4 className="text-sm md:text-base font-semibold text-green-900">Last Modified</h4>
                           </div>
-                          <p className="text-sm text-green-800">
+                          <p className="text-xs md:text-sm text-green-800 break-words">
                             {new Date(shipment.DateModified).toLocaleString()}
                           </p>
                         </div>
@@ -1228,8 +1235,8 @@ const OrderDetails = () => {
 
                       {/* Waybill Image */}
                       {shipment.WaybillImageUrl && (
-                        <div className="bg-white border border-gray-200 rounded-xl p-5">
-                          <h4 className="font-semibold text-gray-700 mb-3">Waybill Image</h4>
+                        <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-5">
+                          <h4 className="text-sm md:text-base font-semibold text-gray-700 mb-3">Waybill Image</h4>
                           <img 
                             src={shipment.WaybillImageUrl} 
                             alt="Waybill" 
@@ -1253,32 +1260,33 @@ const OrderDetails = () => {
 
       {/* Track Order Modal */}
       {showTrackOrderModal && trackingDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b bg-blue-50">
-              <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                <Truck className="w-7 h-7 text-blue-600" />
-                Track Order
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 md:p-4">
+          <div className="bg-white rounded-xl md:rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] md:max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 md:p-6 border-b bg-blue-50">
+              <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 flex items-center gap-2 md:gap-3">
+                <Truck className="w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 text-blue-600" />
+                <span className="hidden sm:inline">Track Order</span>
+                <span className="sm:hidden">Track</span>
               </h3>
               <button
                 onClick={handleCloseTrackOrderModal}
-                className="cursor-pointer text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full"
+                className="cursor-pointer text-gray-400 hover:text-gray-600 transition-colors p-1 md:p-2 hover:bg-gray-100 rounded-full flex-shrink-0"
               >
-                <X size={24} />
+                <X size={20} className="md:w-6 md:h-6" />
               </button>
             </div>
             
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+            <div className="p-4 md:p-6 overflow-y-auto max-h-[calc(95vh-80px)] md:max-h-[calc(90vh-80px)]">
               {trackingDetails.data && trackingDetails.data.length > 0 ? (
                 (() => {
                   const shipment = trackingDetails.data[0];
                   const trackings = shipment.MobileShipmentTrackings || [];
                   
                   return (
-                    <div className="space-y-6">
+                    <div className="space-y-4 md:space-y-6">
                       {/* Shipment Summary */}
-                      <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-100">
-                        <div className="grid grid-cols-3 gap-4">
+                      <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 md:p-6 border border-blue-100">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
                           <div>
                             <p className="text-sm font-medium text-gray-500 mb-1">Waybill</p>
                             <p className="text-lg font-mono font-semibold text-gray-900">
@@ -1303,89 +1311,91 @@ const OrderDetails = () => {
                       {/* Timeline Events */}
                       {trackings.length > 0 ? (
                         <div className="relative">
-                          <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+                          <div className="absolute left-4 md:left-6 top-0 bottom-0 w-0.5 bg-gray-200"></div>
                           
-                          <div className="space-y-6">
+                          <div className="space-y-4 md:space-y-6">
                             {trackings.map((tracking, index) => {
                               const isLatest = index === 0;
                               return (
-                                <div key={index} className="relative flex gap-4 items-start">
+                                <div key={index} className="relative flex gap-3 md:gap-4 items-start">
                                   <div className="relative z-10 flex-shrink-0">
-                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                                    <div className={`w-8 h-8 md:w-12 md:h-12 rounded-full flex items-center justify-center ${
                                       isLatest
-                                        ? "bg-green-100 border-4 border-green-500" 
-                                        : "bg-gray-100 border-4 border-gray-300"
+                                        ? "bg-green-100 border-2 md:border-4 border-green-500" 
+                                        : "bg-gray-100 border-2 md:border-4 border-gray-300"
                                     }`}>
                                       {isLatest ? (
-                                        <CheckCircle className="w-6 h-6 text-green-600" />
+                                        <CheckCircle className="w-4 h-4 md:w-6 md:h-6 text-green-600" />
                                       ) : (
-                                        <Clock className="w-6 h-6 text-gray-500" />
+                                        <Clock className="w-4 h-4 md:w-6 md:h-6 text-gray-500" />
                                       )}
                                     </div>
                                   </div>
                                   
-                                  <div className="flex-1 bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
-                                    <div className="flex justify-between items-start mb-3">
-                                      <div className="flex-1">
-                                        <h4 className="font-semibold text-gray-900 text-lg mb-1">
+                                  <div className="flex-1 bg-white border border-gray-200 rounded-xl p-3 md:p-5 shadow-sm hover:shadow-md transition-shadow min-w-0">
+                                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2 md:mb-3">
+                                      <div className="flex-1 min-w-0">
+                                        <h4 className="text-sm md:text-base lg:text-lg font-semibold text-gray-900 mb-1 break-words">
                                           {tracking.Status}
                                         </h4>
                                         {tracking.ScanStatusIncident && (
-                                          <p className="text-sm text-blue-600 font-medium">
+                                          <p className="text-xs md:text-sm text-blue-600 font-medium break-words">
                                             {tracking.ScanStatusIncident}
                                           </p>
                                         )}
                                       </div>
                                       {tracking.DateTime && (
-                                        <span className="text-sm text-gray-500 flex items-center gap-1 ml-3">
-                                          <Calendar className="w-4 h-4" />
-                                          {(() => {
-                                              let dateStr = tracking.DateTime?.replace(" WAT", "");
-                                              let dateObj = dateStr ? new Date(dateStr.replace(/-/g, '/')) : null;
-                                              return dateObj && !isNaN(dateObj)
-                                                ? dateObj.toLocaleString(undefined, {
-                                                    year: 'numeric',
-                                                    month: 'short',
-                                                    day: '2-digit',
-                                                    hour: '2-digit',
-                                                    minute: '2-digit',
-                                                  })
-                                                : tracking.DateTime || "N/A";
-                                            })()}
+                                        <span className="text-xs md:text-sm text-gray-500 flex items-center gap-1 sm:ml-3 flex-shrink-0">
+                                          <Calendar className="w-3 h-3 md:w-4 md:h-4" />
+                                          <span className="whitespace-nowrap">
+                                            {(() => {
+                                                let dateStr = tracking.DateTime?.replace(" WAT", "");
+                                                let dateObj = dateStr ? new Date(dateStr.replace(/-/g, '/')) : null;
+                                                return dateObj && !isNaN(dateObj)
+                                                  ? dateObj.toLocaleString(undefined, {
+                                                      year: 'numeric',
+                                                      month: 'short',
+                                                      day: '2-digit',
+                                                      hour: '2-digit',
+                                                      minute: '2-digit',
+                                                    })
+                                                  : tracking.DateTime || "N/A";
+                                              })()}
+                                          </span>
                                         </span>
                                       )}
                                     </div>
                                     
-                                    <div className="space-y-2">
+                                    <div className="space-y-1 md:space-y-2">
                                       {tracking.ScanStatusReason && (
-                                        <p className="text-sm text-gray-600">
+                                        <p className="text-xs md:text-sm text-gray-600 break-words">
                                           <span className="font-medium">Reason:</span> {tracking.ScanStatusReason}
                                         </p>
                                       )}
                                       
                                       {tracking.ScanStatusComment && (
-                                        <p className="text-sm text-gray-600">
+                                        <p className="text-xs md:text-sm text-gray-600 break-words">
                                           <span className="font-medium">Comment:</span> {tracking.ScanStatusComment}
                                         </p>
                                       )}
                                       
                                       {tracking.DepartureServiceCentre?.Name && (
-                                        <p className="text-sm text-gray-500 flex items-center gap-1 mt-2">
-                                          <MapPin className="w-4 h-4" />
+                                        <p className="text-xs md:text-sm text-gray-500 flex items-center gap-1 mt-2 break-words">
+                                          <MapPin className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
                                           {tracking.DepartureServiceCentre.Name}
                                         </p>
                                       )}
                                     </div>
 
                                     {/* Additional Info */}
-                                    <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-3">
+                                    <div className="mt-2 md:mt-3 pt-2 md:pt-3 border-t border-gray-100 flex flex-wrap gap-2 md:gap-3">
                                       {tracking.ServiceCentreId && (
-                                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded break-words">
                                           Service Centre: {tracking.ServiceCentreId}
                                         </span>
                                       )}
                                       {tracking.TrackingType !== undefined && (
-                                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded break-words">
                                           Tracking Type: {tracking.TrackingType}
                                         </span>
                                       )}

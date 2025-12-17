@@ -348,26 +348,26 @@ const Settings = () => {
 
   return (
     <>
-      <div className="bg-white px-6 py-4 mb-6">
-        <h1 className="text-2xl font-medium mb-3">Settings</h1>
-        <p className="text-gray-500">
+      <div className="bg-white px-3 md:px-6 py-3 md:py-4 mb-4 md:mb-6">
+        <h1 className="text-lg md:text-2xl font-medium mb-2 md:mb-3">Settings</h1>
+        <p className="text-xs md:text-sm text-gray-500">
           <Link to="/customer" className="text-blue-500 hover:underline">
             Dashboard
           </Link>{" "}
           &gt; Settings
         </p>
       </div>
-      <div className="flex flex-col md:flex-row bg-gray-100">
+      <div className="flex flex-col md:flex-row bg-gray-100 px-3 md:px-0">
         {/* Sidebar */}
-        <div className="w-full md:w-1/5 bg-white md:mb-0 mb-6 h-fit p-4 rounded-lg">
-          <ul className="space-y-2 text-gray-600">
+        <div className="w-full md:w-1/5 bg-white md:mb-0 mb-4 h-fit p-3 md:p-4 rounded-lg sticky top-4 z-10 md:static">
+          <ul className="flex flex-row md:flex-col overflow-x-auto md:overflow-visible gap-2 md:gap-2 pb-2 md:pb-0 scrollbar-hide text-gray-600">
             {["Profile", "Security"].map((item) => (
               <li
                 key={item}
-                className={`cursor-pointer px-4 py-3 rounded-lg transition-colors duration-300 ${
+                className={`cursor-pointer px-3 md:px-4 py-2 md:py-3 rounded-lg transition-colors duration-300 whitespace-nowrap flex-shrink-0 text-sm md:text-base ${
                   activeSection === item
                     ? "font-medium text-purple-600 bg-purple-100"
-                    : "hover:text-purple-600"
+                    : "hover:text-purple-600 bg-gray-50 md:bg-transparent"
                 }`}
                 onClick={() => setActiveSection(item)}
               >
@@ -378,33 +378,30 @@ const Settings = () => {
         </div>
 
         {/* Main Content */}
-        <div className="w-full md:w-4/5 bg-white p-6 rounded-lg md:ml-6">
+        <div className="w-full md:w-4/5 bg-white p-3 md:p-6 rounded-lg md:ml-6">
           {activeSection === "Profile" && (
             <div>
-              <h2 className="text-xl font-medium mb-4">Profile</h2>
-              <div className="mt-6 flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
+              <h2 className="text-lg md:text-xl font-medium mb-3 md:mb-4">Profile</h2>
+              <div className="mt-4 md:mt-6 flex flex-col sm:flex-row items-center gap-3 md:gap-4">
                 {values.profile_picture ? (
                   <img
                     src={values.profile_picture}
                     alt="Profile"
-                    className="w-24 h-24 rounded-full"
+                    className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover flex-shrink-0"
                   />
                 ) : (
-                  <>
-                    {" "}
-                    <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white">
-                      {values?.name?.charAt(0).toUpperCase() || "?"}
-                    </div>
-                  </>
+                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gray-300 flex items-center justify-center text-base md:text-lg font-medium text-white flex-shrink-0">
+                    {values?.name?.charAt(0).toUpperCase() || "?"}
+                  </div>
                 )}
                 <button
                   disabled={isPending || profileIsLoading}
                   onClick={handleButtonClick}
-                  className="border px-4 py-2 text-purple-600 rounded-lg border-purple-600"
+                  className="border px-3 md:px-4 py-2 text-sm md:text-base text-purple-600 rounded-lg border-purple-600 hover:bg-purple-50 transition-colors whitespace-nowrap"
                 >
                   {isPending || profileIsLoading
                     ? "Please wait..."
-                    : " Change Picture"}
+                    : "Change Picture"}
                 </button>
                 <input
                   type="file"
@@ -416,9 +413,9 @@ const Settings = () => {
               </div>
 
               {/* Tabs */}
-              <div className="mt-6  flex space-x-6 text-gray-500">
+              <div className="mt-4 md:mt-6 flex space-x-4 md:space-x-6 text-gray-500 overflow-x-auto scrollbar-hide">
                 <button
-                  className={`pb-2 ${
+                  className={`pb-2 whitespace-nowrap text-sm md:text-base ${
                     activeTab === "personalDetails"
                       ? "border-b-2 border-purple-600 text-purple-600"
                       : ""
@@ -428,7 +425,7 @@ const Settings = () => {
                   Personal Details
                 </button>
                 <button
-                  className={`pb-2 ${
+                  className={`pb-2 whitespace-nowrap text-sm md:text-base ${
                     activeTab === "bodyMeasurement"
                       ? "border-b-2 border-purple-600 text-purple-600"
                       : ""
@@ -440,16 +437,16 @@ const Settings = () => {
               </div>
 
               {/* Tab Content */}
-              <div className="mt-6">
+              <div className="mt-4 md:mt-6">
                 {activeTab === "personalDetails" && (
                   <form className="space-y-4" onSubmit={handleSubmit}>
                     <div>
-                      <label className="block text-gray-700 mb-4">
+                      <label className="block text-gray-700 mb-2 md:mb-4 text-sm md:text-base font-medium">
                         Full Name
                       </label>
                       <input
                         type="text"
-                        className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
+                        className="w-full p-3 md:p-4 border border-[#CCCCCC] outline-none rounded-lg text-sm md:text-base focus:border-purple-500 transition-colors"
                         name={"name"}
                         value={values.name}
                         onChange={handleChange}
@@ -458,9 +455,9 @@ const Settings = () => {
                     </div>
 
                     {/* Mobile responsive grid - single column on mobile */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-gray-700 mb-4">
+                        <label className="block text-gray-700 mb-2 md:mb-4 text-sm md:text-base font-medium">
                           Phone Number
                         </label>
                         <PhoneInput
@@ -503,7 +500,7 @@ const Settings = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-gray-700 mb-4">
+                        <label className="block text-gray-700 mb-2 md:mb-4 text-sm md:text-base font-medium">
                           Email
                         </label>
                         <input
@@ -520,7 +517,7 @@ const Settings = () => {
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-gray-700 mb-4">
+                        <label className="block text-gray-700 mb-2 md:mb-4 text-sm md:text-base font-medium">
                           Alternate Phone Number
                         </label>
                         <PhoneInput
@@ -544,8 +541,8 @@ const Settings = () => {
                         />
                       </div>
                       <div>
-                        <label className="flex items-center gap-2 text-gray-700 mb-4">
-                          Pick Address from Google Suggestions
+                        <label className="flex items-center gap-2 text-gray-700 mb-2 md:mb-4 text-sm md:text-base font-medium flex-wrap">
+                          <span>Pick Address from Google Suggestions</span>
                           <AttentionTooltip
                             content="Select from Google dropdown"
                             position="top"
@@ -554,8 +551,8 @@ const Settings = () => {
                         <input
                           type="text"
                           ref={ref}
-                          className="w-full p-4 border border-[#CCCCCC] outline-none rounded-lg"
-                          placeholder="Start typing your address and select from Google suggestions..."
+                          className="w-full p-3 md:p-4 border border-[#CCCCCC] outline-none rounded-lg text-sm md:text-base focus:border-purple-500 transition-colors"
+                          placeholder="Start typing your address..."
                           required
                           name="address"
                           maxLength={150}
@@ -580,7 +577,7 @@ const Settings = () => {
                     {/* Mobile responsive grid - single column on mobile */}
                     {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-gray-700 mb-4">
+                        <label className="block text-gray-700 mb-2 md:mb-4 text-sm md:text-base font-medium">
                           Phone Number
                         </label>
                         <PhoneInput
@@ -623,7 +620,7 @@ const Settings = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-gray-700 mb-4">
+                        <label className="block text-gray-700 mb-2 md:mb-4 text-sm md:text-base font-medium">
                           Email
                         </label>
                         <input
@@ -640,7 +637,7 @@ const Settings = () => {
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-gray-700 mb-4">
+                        <label className="block text-gray-700 mb-2 md:mb-4 text-sm md:text-base font-medium">
                           Alternate Phone Number
                         </label>
                         <PhoneInput
@@ -692,28 +689,28 @@ const Settings = () => {
 
                     {/* Coordinates Display - Improved overflow handling */}
                     {(values.latitude || values.longitude) && (
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 p-3 md:p-4 bg-blue-50 rounded-lg">
                         <div>
-                          <label className="block text-gray-700 mb-2 text-sm font-medium">
+                          <label className="block text-gray-700 mb-2 text-xs md:text-sm font-medium">
                             Latitude
                           </label>
-                          <div className="w-full p-3 bg-white border border-blue-200 rounded-lg text-sm text-gray-600 overflow-hidden">
+                          <div className="w-full p-2 md:p-3 bg-white border border-blue-200 rounded-lg text-xs md:text-sm text-gray-600 overflow-hidden">
                             <span className="break-all">
                               {values.latitude || "Not set"}
                             </span>
                           </div>
                         </div>
                         <div>
-                          <label className="block text-gray-700 mb-2 text-sm font-medium">
+                          <label className="block text-gray-700 mb-2 text-xs md:text-sm font-medium">
                             Longitude
                           </label>
-                          <div className="w-full p-3 bg-white border border-blue-200 rounded-lg text-sm text-gray-600 overflow-hidden">
+                          <div className="w-full p-2 md:p-3 bg-white border border-blue-200 rounded-lg text-xs md:text-sm text-gray-600 overflow-hidden">
                             <span className="break-all">
                               {values.longitude || "Not set"}
                             </span>
                           </div>
                         </div>
-                        <div className="col-span-1 lg:col-span-2">
+                        <div className="col-span-1 md:col-span-2">
                           <p className="text-xs text-blue-600">
                             📍 These coordinates are automatically set when you
                             select an address using Google Places autocomplete
@@ -724,18 +721,18 @@ const Settings = () => {
                     )}
 
                     {/* Country and State Fields */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-gray-700 mb-4">
+                        <label className="block text-gray-700 mb-2 md:mb-4 text-sm md:text-base font-medium">
                           Country
                         </label>
                         <input
                           type="text"
-                          className={`w-full p-4 border outline-none rounded-lg ${
+                          className={`w-full p-3 md:p-4 border outline-none rounded-lg text-sm md:text-base ${
                             fieldStates.country === "backend" ||
                             fieldStates.country === "google"
                               ? "border-gray-300 bg-gray-50 cursor-not-allowed"
-                              : "border-[#CCCCCC]"
+                              : "border-[#CCCCCC] focus:border-purple-500"
                           }`}
                           placeholder={
                             fieldStates.country === "backend"
@@ -790,16 +787,16 @@ const Settings = () => {
                         )}
                       </div>
                       <div>
-                        <label className="block text-gray-700 mb-4">
+                        <label className="block text-gray-700 mb-2 md:mb-4 text-sm md:text-base font-medium">
                           State
                         </label>
                         <input
                           type="text"
-                          className={`w-full p-4 border outline-none rounded-lg ${
+                          className={`w-full p-3 md:p-4 border outline-none rounded-lg text-sm md:text-base ${
                             fieldStates.state === "backend" ||
                             fieldStates.state === "google"
                               ? "border-gray-300 bg-gray-50 cursor-not-allowed"
-                              : "border-[#CCCCCC]"
+                              : "border-[#CCCCCC] focus:border-purple-500"
                           }`}
                           placeholder={
                             fieldStates.state === "backend"
@@ -883,7 +880,7 @@ const Settings = () => {
                     <button
                       disabled={updateIsPending}
                       type="submit"
-                      className="mt-4 cursor-pointer bg-gradient text-white px-6 py-2 rounded-md"
+                      className="mt-4 cursor-pointer bg-gradient text-white px-4 md:px-6 py-2 md:py-3 rounded-md text-sm md:text-base font-medium w-full sm:w-auto"
                     >
                       {updateIsPending ? "Please wait..." : "Update"}
                     </button>
@@ -892,11 +889,11 @@ const Settings = () => {
 
                 {activeTab === "bodyMeasurement" && (
                   <div>
-                    <div className="border-b-4 border-[#D9D9D9] flex space-x-6 lg:space-x-10 text-gray-500 overflow-x-auto">
+                    <div className="border-b-4 border-[#D9D9D9] flex space-x-4 md:space-x-6 lg:space-x-10 text-gray-500 overflow-x-auto scrollbar-hide pb-2">
                       <button
-                        className={`pb-2 whitespace-nowrap ${
+                        className={`pb-2 whitespace-nowrap text-sm md:text-base ${
                           bodyTab === "upperBody"
-                            ? "border-b-1 border-purple-600 text-purple-600"
+                            ? "border-b-2 border-purple-600 text-purple-600 font-medium"
                             : ""
                         }`}
                         onClick={() => setBodyTab("upperBody")}
@@ -904,9 +901,9 @@ const Settings = () => {
                         Upper Body
                       </button>
                       <button
-                        className={`pb-2 whitespace-nowrap ${
+                        className={`pb-2 whitespace-nowrap text-sm md:text-base ${
                           bodyTab === "lowerBody"
-                            ? "border-b-1 border-purple-600 text-purple-600"
+                            ? "border-b-2 border-purple-600 text-purple-600 font-medium"
                             : ""
                         }`}
                         onClick={() => setBodyTab("lowerBody")}
@@ -914,9 +911,9 @@ const Settings = () => {
                         Lower Body
                       </button>
                       <button
-                        className={`pb-2 whitespace-nowrap ${
+                        className={`pb-2 whitespace-nowrap text-sm md:text-base ${
                           bodyTab === "fullBody"
-                            ? "border-b-1 border-purple-600 text-purple-600"
+                            ? "border-b-2 border-purple-600 text-purple-600 font-medium"
                             : ""
                         }`}
                         onClick={() => setBodyTab("fullBody")}
@@ -927,11 +924,11 @@ const Settings = () => {
 
                     {bodyTab === "upperBody" && (
                       <form
-                        className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-8"
+                        className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 md:mt-8"
                         onSubmit={handleSubmit}
                       >
                         <div>
-                          <label className="block text-gray-700 mb-4">
+                          <label className="block text-gray-700 mb-2 md:mb-4 text-sm md:text-base font-medium">
                             {"Bust Circumference [female]"}
                           </label>
                           <div className="flex">
@@ -965,7 +962,7 @@ const Settings = () => {
                         </div>
 
                         <div>
-                          <label className="block text-gray-700 mb-4">
+                          <label className="block text-gray-700 mb-2 md:mb-4 text-sm md:text-base font-medium">
                             {"Shoulder Width"}
                           </label>
                           <div className="flex">
@@ -997,7 +994,7 @@ const Settings = () => {
                         </div>
 
                         <div>
-                          <label className="block text-gray-700 mb-4">
+                          <label className="block text-gray-700 mb-2 md:mb-4 text-sm md:text-base font-medium">
                             {"Armhole Circumference"}
                           </label>
                           <div className="flex">
@@ -1031,7 +1028,7 @@ const Settings = () => {
                         </div>
 
                         <div>
-                          <label className="block text-gray-700 mb-4">
+                          <label className="block text-gray-700 mb-2 md:mb-4 text-sm md:text-base font-medium">
                             {"Sleeve Length"}
                           </label>
                           <div className="flex">
@@ -1063,7 +1060,7 @@ const Settings = () => {
                         </div>
 
                         <div>
-                          <label className="block text-gray-700 mb-4">
+                          <label className="block text-gray-700 mb-2 md:mb-4 text-sm md:text-base font-medium">
                             {"Bicep Circumference"}
                           </label>
                           <div className="flex">
@@ -1097,7 +1094,7 @@ const Settings = () => {
                         </div>
 
                         <div>
-                          <label className="block text-gray-700 mb-4">
+                          <label className="block text-gray-700 mb-2 md:mb-4 text-sm md:text-base font-medium">
                             {"Wrist Circumference"}
                           </label>
                           <div className="flex">
@@ -1149,7 +1146,7 @@ const Settings = () => {
                         className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4"
                       >
                         <div>
-                          <label className="block text-gray-700 mb-4">
+                          <label className="block text-gray-700 mb-2 md:mb-4 text-sm md:text-base font-medium">
                             {"Waist Circumference"}
                           </label>
                           <div className="flex">
@@ -1181,7 +1178,7 @@ const Settings = () => {
                         </div>
 
                         <div>
-                          <label className="block text-gray-700 mb-4">
+                          <label className="block text-gray-700 mb-2 md:mb-4 text-sm md:text-base font-medium">
                             {"Hip Circumference"}
                           </label>
                           <div className="flex">
@@ -1213,7 +1210,7 @@ const Settings = () => {
                         </div>
 
                         <div>
-                          <label className="block text-gray-700 mb-4">
+                          <label className="block text-gray-700 mb-2 md:mb-4 text-sm md:text-base font-medium">
                             {"Thigh Circumference"}
                           </label>
                           <div className="flex">
@@ -1245,7 +1242,7 @@ const Settings = () => {
                         </div>
 
                         <div>
-                          <label className="block text-gray-700 mb-4">
+                          <label className="block text-gray-700 mb-2 md:mb-4 text-sm md:text-base font-medium">
                             {"Knee Circumference"}
                           </label>
                           <div className="flex">
@@ -1277,7 +1274,7 @@ const Settings = () => {
                         </div>
 
                         <div className="lg:col-span-2">
-                          <label className="block text-gray-700 mb-4">
+                          <label className="block text-gray-700 mb-2 md:mb-4 text-sm md:text-base font-medium">
                             {"Trouser Length (Waist to Ankle)"}
                           </label>
                           <div className="flex">
@@ -1327,7 +1324,7 @@ const Settings = () => {
                         className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4"
                       >
                         <div>
-                          <label className="block text-gray-700 mb-4">
+                          <label className="block text-gray-700 mb-2 md:mb-4 text-sm md:text-base font-medium">
                             {"Height"}
                           </label>
                           <div className="flex">
@@ -1359,7 +1356,7 @@ const Settings = () => {
                         </div>
 
                         <div>
-                          <label className="block text-gray-700 mb-4">
+                          <label className="block text-gray-700 mb-2 md:mb-4 text-sm md:text-base font-medium">
                             {"Dress/Gown Length"}
                           </label>
                           <div className="flex">

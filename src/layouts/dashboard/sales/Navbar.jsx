@@ -73,19 +73,19 @@ export default function Navbar({ toggleSidebar }) {
   return (
     <div>
       {" "}
-      <nav className="bg-white shadow-md p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        {/* Top Row: Sidebar Toggle & Title */}
-        <div className="flex items-center gap-4 w-full md:flex-1 md:min-w-0 md:max-w-[calc(100%-200px)]">
+      <nav className="bg-white shadow-md p-4 md:p-6 flex items-center justify-between gap-3 md:gap-4">
+        {/* Left: Sidebar Toggle & Title */}
+        <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
           {/* Sidebar Toggle Button (Only on Mobile) */}
           <button
             className="md:block lg:hidden p-2 text-gray-600 flex-shrink-0"
             onClick={toggleSidebar}
           >
-            <Menu size={24} />
+            <Menu size={20} className="md:w-6 md:h-6" />
           </button>
 
           {/* Page Title */}
-          <h1 className="text-sm font-bold text-gray-700 lg:text-base lg:ml-4 flex-1 min-w-0 truncate">
+          <h1 className="text-xs md:text-sm lg:text-base font-bold lg:ml-4 flex-1 min-w-0 truncate">
             <span className="hidden md:inline truncate">
               Market Representative Dashboard – Manage Sales, Notifications &
               Account
@@ -95,96 +95,93 @@ export default function Navbar({ toggleSidebar }) {
         </div>
 
         {/* Right: Notification & Profile */}
-        <div className="flex items-center gap-6 w-full md:w-auto md:flex-shrink-0 justify-center">
-          <div className="flex items-center justify-center space-x-6">
-            <Link
-              to="/sales/notifications"
-              className="relative bg-purple-100 p-2 rounded-full"
-            >
-              <Bell size={20} className="text-purple-600" />
-              {unreadNotificationsCount > 0 ? (
-                <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                  {unreadNotificationsCount}
-                </span>
-              ) : (
-                <></>
-              )}
-            </Link>
-            <Link
-              to="/sales/announcements"
-              className="relative bg-purple-100 p-2 rounded-full"
-            >
-              <FaBullhorn size={20} className="text-purple-600" />
-              {unreadAnnouncementsCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                  {unreadAnnouncementsCount}
-                </span>
-              )}
-            </Link>
-            {/* Profile Section */}
-            <div className="relative">
-              {carybinUser?.profile?.profile_picture ? (
-                <img
-                  src={carybinUser?.profile?.profile_picture ?? null}
-                  alt="User"
-                  className="w-8 h-8 rounded-full cursor-pointer"
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                />
-              ) : (
-                <>
-                  {" "}
-                  <div
-                    role="button"
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="w-8 h-8 cursor-pointer rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-white"
-                  >
-                    {carybinUser?.name?.charAt(0).toUpperCase() || "?"}
-                  </div>
-                </>
-              )}
-
-              {/* Dropdown */}
-              {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg z-50">
-                  <ul className="py-2">
-                    {/* <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                  Profile
-                </li> */}
-                    <Link
-                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      to="/sales/settings"
-                    >
-                      <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                        Settings
-                      </li>
-                    </Link>
-                    <button
-                      onClick={() => {
-                        setIsAddModalOpen(true);
-                        setIsDropdownOpen(!isDropdownOpen);
-                      }}
-                      className="px-4 py-2 hover:bg-gray-100 text-red-500 cursor-pointer"
-                    >
-                      Logout
-                    </button>
-                  </ul>
-                </div>
-              )}
-            </div>
-          </div>
-          {kycIsPending ? (
-            <></>
-          ) : kycinfo?.data?.is_approved ? (
-            <span className="p-1 text-[10px] rounded-full bg-green-100 text-green-700">
-              VERIFIED
-            </span>
-          ) : (
-            <Link to="/sales/settings?q=kyc">
-              <span className="p-1 text-[10px] rounded-full bg-red-100 text-red-700 underline cursor-pointer">
-                UNVERIFIED
+        <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
+          <Link
+            to="/sales/notifications"
+            className="relative bg-purple-100 p-1.5 md:p-2 rounded-full"
+          >
+            <Bell size={18} className="md:w-5 md:h-5 text-purple-600" />
+            {unreadNotificationsCount > 0 ? (
+              <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                {unreadNotificationsCount}
               </span>
-            </Link>
-          )}
+            ) : (
+              <></>
+            )}
+          </Link>
+          {/* Announcement button commented out for space */}
+          {/* <Link
+            to="/sales/announcements"
+            className="relative bg-purple-100 p-2 rounded-full"
+          >
+            <FaBullhorn size={20} className="text-purple-600" />
+            {unreadAnnouncementsCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-xs font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                {unreadAnnouncementsCount}
+              </span>
+            )}
+          </Link> */}
+          {/* Profile Section */}
+          <div className="relative">
+            {carybinUser?.profile?.profile_picture ? (
+              <img
+                src={carybinUser?.profile?.profile_picture ?? null}
+                alt="User"
+                className="w-7 h-7 md:w-8 md:h-8 rounded-full cursor-pointer"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              />
+            ) : (
+              <div
+                role="button"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="w-7 h-7 md:w-8 md:h-8 cursor-pointer rounded-full bg-gray-300 flex items-center justify-center text-xs md:text-sm font-medium text-white"
+              >
+                {carybinUser?.name?.charAt(0).toUpperCase() || "?"}
+              </div>
+            )}
+
+            {/* VERIFIED Badge - Positioned below profile icon */}
+            {!kycIsPending && (
+              <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
+                {kycinfo?.data?.is_approved ? (
+                  <span className="px-1.5 py-0.5 text-[9px] md:text-[10px] rounded-full bg-green-100 text-green-700 whitespace-nowrap">
+                    VERIFIED
+                  </span>
+                ) : (
+                  <Link to="/sales/settings?q=kyc">
+                    <span className="px-1.5 py-0.5 text-[9px] md:text-[10px] rounded-full bg-red-100 text-red-700 underline cursor-pointer whitespace-nowrap">
+                      UNVERIFIED
+                    </span>
+                  </Link>
+                )}
+              </div>
+            )}
+
+            {/* Dropdown */}
+            {isDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg z-50">
+                <ul className="py-2">
+                  <Link
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    to="/sales/settings"
+                  >
+                    <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                      Settings
+                    </li>
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setIsAddModalOpen(true);
+                      setIsDropdownOpen(!isDropdownOpen);
+                    }}
+                    className="px-4 py-2 hover:bg-gray-100 text-red-500 cursor-pointer"
+                  >
+                    Logout
+                  </button>
+                </ul>
+              </div>
+            )}
+          </div>
         </div>
       </nav>
       {isAddModalOpen && (

@@ -23,12 +23,11 @@ import { saveAs } from "file-saver";
 import { CSVLink } from "react-csv";
 import useToast from "../../../hooks/useToast";
 import CustomTable from "../../../components/CustomTable";
+import PaginationButton from "../../../components/PaginationButton";
 
 const StyleCategoriesTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newStyleCategory, setNewStyleCategory] = useState("");
   const [activeTab, setActiveTab] = useState("table");
@@ -127,15 +126,25 @@ const StyleCategoriesTable = () => {
 
   const debouncedSearchTerm = useDebounce(queryString ?? "", 1000);
 
-  const styleData = useMemo(() => {
-    if (!data?.data) return [];
+  const { uniqueCategoriesCount, styleData } = useMemo(() => {
+    if (!data?.data) return { uniqueCategoriesCount: 0, styleData: [] };
 
     // Remove duplicates based on unique style category ID
     const uniqueStyleCategories = data.data.filter(
       (item, index, self) => index === self.findIndex((t) => t.id === item.id),
     );
 
-    return uniqueStyleCategories.map((details) => {
+    // Use the count from API if available, otherwise use unique categories length
+    const totalCount = data?.count ?? uniqueStyleCategories.length;
+
+    // Apply pagination limit on frontend as safety measure
+    const limit = Number(queryParams["pagination[limit]"] ?? 10);
+    const currentPage = Number(queryParams["pagination[page]"] ?? 1);
+    const startIndex = (currentPage - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedCategories = uniqueStyleCategories.slice(startIndex, endIndex);
+
+    const mappedData = paginatedCategories.map((details) => {
       return {
         ...details,
         name: `${details?.name}`,
@@ -146,7 +155,9 @@ const StyleCategoriesTable = () => {
         }`,
       };
     });
-  }, [data?.data]);
+
+    return { uniqueCategoriesCount: totalCount, styleData: mappedData };
+  }, [data?.data, data?.count, queryParams]);
 
   useUpdatedEffect(() => {
     // update search params with undefined if debouncedSearchTerm is an empty string
@@ -219,9 +230,16 @@ const StyleCategoriesTable = () => {
     [openDropdown],
   );
 
-  const totalPages = Math.ceil(
-    data?.count / (queryParams["pagination[limit]"] ?? 10),
-  );
+  // --- PAGINATION CALCULATIONS ---
+  // Ensure these are numbers to prevent string concatenation errors
+  const limit = Number(queryParams["pagination[limit]"] ?? 10);
+  const currentPage = Number(queryParams["pagination[page]"] ?? 1);
+  const totalCount = uniqueCategoriesCount;
+  const totalPages = Math.ceil(totalCount / limit);
+
+  // Calculate range for "Showing X-Y of Z"
+  const startEntry = totalCount === 0 ? 0 : (currentPage - 1) * limit + 1;
+  const endEntry = Math.min(currentPage * limit, totalCount);
 
   const actionText = `${type} Style Category`;
 
@@ -273,7 +291,7 @@ const StyleCategoriesTable = () => {
       action: (item) => {
         setIsAddModalOpen(true);
         handleDropdownToggle(null);
-        setNewCategory(item);
+        setNewStyleCategory(item);
         setType("Edit");
       },
     },
@@ -283,17 +301,17 @@ const StyleCategoriesTable = () => {
       action: (item) => {
         setIsAddModalOpen(true);
         handleDropdownToggle(null);
-        setNewCategory(item);
-        setType("Remove");
+        setNewStyleCategory(item);
+        setType("Edit");
       },
     },
     {
-      key: "remove-fabric",
+      key: "remove-style",
       label: "Remove Style",
       action: (item) => {
         setIsAddModalOpen(true);
         handleDropdownToggle(null);
-        setNewCategory(item);
+        setNewStyleCategory(item);
         setType("Remove");
       },
     },
@@ -442,48 +460,65 @@ const StyleCategoriesTable = () => {
         </div>
       )}
 
-      {styleData?.length > 0 && (
-        <div className="flex justify-between items-center mt-4">
-          <div className="flex items-center">
-            <p className="text-sm text-gray-600">Items per page: </p>
-            <select
-              value={queryParams["pagination[limit]"] || 10}
-              onChange={(e) =>
-                updateQueryParams({
-                  "pagination[limit]": +e.target.value,
-                })
-              }
-              className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={15}>15</option>
-              <option value={20}>20</option>
-            </select>
+      {/* --- REVISED PAGINATION SECTION --- */}
+      {/* Logic: Only render if we have data AND more than 1 page is required */}
+      {totalCount > 0 && totalPages > 1 && (
+        <div className="flex flex-wrap justify-between items-center mt-6 gap-4 border-t border-gray-100 pt-4">
+          <div className="flex items-center gap-4">
+            {/* Limit Selector */}
+            <div className="flex items-center">
+              <p className="text-sm text-gray-600">Items per page:</p>
+              <select
+                value={queryParams["pagination[limit]"] || 10}
+                onChange={(e) =>
+                  updateQueryParams({
+                    "pagination[limit]": +e.target.value,
+                    "pagination[page]": 1, // Reset to page 1 on limit change
+                  })
+                }
+                className="py-1 px-2 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto bg-white cursor-pointer"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={20}>20</option>
+              </select>
+            </div>
+
+            {/* Range Display */}
+            <p className="text-sm text-gray-500 hidden sm:block">
+              Showing <span className="font-medium text-gray-700">{startEntry}</span> to{" "}
+              <span className="font-medium text-gray-700">{endEntry}</span> of{" "}
+              <span className="font-medium text-gray-700">{totalCount}</span> entries
+            </p>
           </div>
-          <div className="flex gap-1">
-            <button
+
+          {/* Navigation Controls */}
+          <div className="flex gap-2 items-center">
+             <span className="text-sm text-gray-600 mr-2 sm:hidden">
+                 {currentPage} / {totalPages}
+            </span>
+            <PaginationButton
               onClick={() => {
                 updateQueryParams({
-                  "pagination[page]": +queryParams["pagination[page]"] - 1,
+                  "pagination[page]": currentPage - 1,
                 });
               }}
-              disabled={(queryParams["pagination[page]"] ?? 1) == 1}
-              className="px-3 py-1 rounded-md bg-gray-200"
+              disabled={currentPage === 1}
             >
-              ◀
-            </button>
-            <button
+             ◀ Previous
+            </PaginationButton>
+            
+            <PaginationButton
               onClick={() => {
                 updateQueryParams({
-                  "pagination[page]": +queryParams["pagination[page]"] + 1,
+                  "pagination[page]": currentPage + 1,
                 });
               }}
-              disabled={(queryParams["pagination[page]"] ?? 1) == totalPages}
-              className="px-3 py-1 rounded-md bg-gray-200"
+              disabled={currentPage >= totalPages}
             >
-              ▶
-            </button>
+              Next ▶
+            </PaginationButton>
           </div>
         </div>
       )}

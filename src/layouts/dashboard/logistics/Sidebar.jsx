@@ -1,4 +1,4 @@
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import {
   FaHome,
   FaStore,
@@ -23,7 +23,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const navigate = useNavigate();
   const { toastSuccess } = useToast();
 
   // Get auth data to determine if user is logged in

@@ -54,7 +54,7 @@ export default function Navbar({ toggleSidebar }) {
         </div>
 
         {/* Notification & Profile */}
-        <div className="flex items-center space-x-5 relative w-full md:w-auto md:flex-shrink-0 justify-end">
+        <div className="flex items-center space-x-5 relative w-full md:w-auto md:flex-shrink-0 justify-center">
           {/* Notification Bell */}
           <Link
             to="/admin/notifications"

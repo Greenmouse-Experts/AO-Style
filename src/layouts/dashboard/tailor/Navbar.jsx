@@ -95,7 +95,7 @@ export default function Navbar({ toggleSidebar }) {
         </div>
 
         {/* Right: Notification & Profile */}
-        <div className="flex items-center gap-6 w-full md:w-auto md:flex-shrink-0 justify-end">
+        <div className="flex items-center gap-6 w-full md:w-auto md:flex-shrink-0 justify-center">
           <div className="flex items-center justify-center space-x-6">
             <Link
               to="/tailor/notifications"

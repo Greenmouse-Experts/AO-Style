@@ -24,6 +24,7 @@ import useToast from "../../../hooks/useToast";
 import DateFilter from "../../../components/shared/DateFilter";
 import ActiveFilters from "../../../components/shared/ActiveFilters";
 import useDateFilter from "../../../hooks/useDateFilter";
+import PaginationButton from "../../../components/PaginationButton";
 
 const CustomersTable = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -512,7 +513,7 @@ const CustomersTable = () => {
           </div>
         )}
 
-        {SubAdminData?.length > 0 && (
+        {SubAdminData?.length > 0 && totalPages > 1 && (
           <div className="flex justify-between items-center mt-4">
             <div className="flex items-center">
               <p className="text-sm text-gray-600">Items per page: </p>
@@ -531,29 +532,27 @@ const CustomersTable = () => {
                 <option value={20}>20</option>
               </select>
             </div>
-            <div className="flex gap-1">
-              <button
+            <div className="flex gap-2">
+              <PaginationButton
                 onClick={() => {
                   updateQueryParams({
                     "pagination[page]": +queryParams["pagination[page]"] - 1,
                   });
                 }}
                 disabled={(queryParams["pagination[page]"] ?? 1) == 1}
-                className="px-3 py-1 rounded-md bg-gray-200"
               >
-                ◀
-              </button>
-              <button
+                ◀ Previous
+              </PaginationButton>
+              <PaginationButton
                 onClick={() => {
                   updateQueryParams({
                     "pagination[page]": +queryParams["pagination[page]"] + 1,
                   });
                 }}
                 disabled={(queryParams["pagination[page]"] ?? 1) == totalPages}
-                className="px-3 py-1 rounded-md bg-gray-200"
               >
-                ▶
-              </button>
+                Next ▶
+              </PaginationButton>
             </div>
           </div>
         )}

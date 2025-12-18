@@ -5,7 +5,7 @@ const ThanksModal = ({ isOpen, onClose }) => {
 
     return (
         isOpen && (
-            <div className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm">
+            <div className="fixed inset-0 flex justify-center items-center z-[10000] backdrop-blur-sm">
                 <div className="bg-white p-6 rounded-lg w-[100%] sm:w-[500px]">
                     {/* Header */}
                     <div className="flex justify-between items-center border-b border-[#CCCCCC] outline-none pb-3  mb-4">

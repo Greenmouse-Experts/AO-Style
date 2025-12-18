@@ -544,7 +544,7 @@ export default function StylesTable() {
           onClick={() => setOpenDropdown(null)}
         >
           <div
-            className="absolute bg-white shadow-lg rounded-lg border border-gray-200 py-2 w-48 z-50"
+            className="absolute bg-white shadow-lg rounded-lg border border-gray-200 py-2 w-48 z-[10000]"
             style={{
               left: `${dropdownPosition.x}px`,
               top: `${dropdownPosition.y}px`,
@@ -657,7 +657,7 @@ export default function StylesTable() {
 
       {/* Delete Confirmation Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-[10000]">
           <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Delete Style

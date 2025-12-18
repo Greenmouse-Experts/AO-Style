@@ -292,7 +292,7 @@ export default function Navbar({ toggleSidebar }) {
       {/* Logout Modal - Only show if authenticated */}
       {token && isAddModalOpen && (
         <div
-          className="fixed inset-0 flex justify-center items-center z-[9999] backdrop-blur-sm"
+          className="fixed inset-0 flex justify-center items-center z-[10000] backdrop-blur-sm"
           onClick={() => {
             setIsAddModalOpen(false);
           }}

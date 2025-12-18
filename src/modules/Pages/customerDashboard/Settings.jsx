@@ -359,7 +359,7 @@ const Settings = () => {
       </div>
       <div className="flex flex-col md:flex-row bg-gray-100 px-3 md:px-0">
         {/* Sidebar */}
-        <div className="w-full md:w-1/5 bg-white md:mb-0 mb-4 h-fit p-3 md:p-4 rounded-lg sticky top-4 z-10 md:static">
+        <div className="w-full md:w-1/5 bg-white md:mb-0 mb-4 h-fit p-3 md:p-4 rounded-lg">
           <ul className="flex flex-row md:flex-col overflow-x-auto md:overflow-visible gap-2 md:gap-2 pb-2 md:pb-0 scrollbar-hide text-gray-600">
             {["Profile", "Security"].map((item) => (
               <li

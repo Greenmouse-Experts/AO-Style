@@ -35,7 +35,7 @@ const CancelOrderModal = ({ isOpen, onClose, onConfirm, isLoading }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 bg-opacity-50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 bg-opacity-50 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden transform transition-all">
         {/* Header */}
         <div className="bg-gradient-to-r from-red-500 to-red-600 p-6">
@@ -103,7 +103,7 @@ const Toast = ({ type, message, onClose }) => {
   }, [onClose]);
 
   return (
-    <div className="fixed top-4 right-4 z-50 animate-slide-in-right">
+    <div className="fixed top-4 right-4 z-[10000] animate-slide-in-right">
       <div
         className={`rounded-lg shadow-lg p-4 flex items-center gap-3 ${isSuccess
           ? "bg-green-50 border border-green-200"
@@ -845,7 +845,7 @@ const OrderDetails = () => {
 
       {/* /* Shipment Details Modal */}
       {showShipmentDetailsModal && shipmentDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-2 sm:p-4">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-2 sm:p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
             <div className="flex items-center justify-between p-4 sm:p-6 border-b bg-purple-50">
               <h3 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2 sm:gap-3">
@@ -1013,7 +1013,7 @@ const OrderDetails = () => {
       )}
       {/* /* Track Order Modal */}
       {showTrackOrderModal && trackingDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-2 sm:p-4">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-2 sm:p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
             <div className="flex items-center justify-between p-4 sm:p-6 border-b bg-blue-50">
               <h3 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2 sm:gap-3">

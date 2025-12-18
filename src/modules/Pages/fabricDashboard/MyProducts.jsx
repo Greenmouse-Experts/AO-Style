@@ -985,7 +985,7 @@ const ProductPage = () => {
           onClick={() => setOpenDropdown(null)}
         >
           <div
-            className="absolute w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden"
+            className="absolute w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-[10000] overflow-hidden"
             style={{
               left: `${dropdownPosition.x}px`,
               top: `${dropdownPosition.y}px`,
@@ -1282,7 +1282,7 @@ const ProductPage = () => {
 
       {isAddModalOpen && (
         <div
-          className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
+          className="fixed inset-0 flex justify-center items-center z-[10000] backdrop-blur-sm"
           onClick={() => {
             setIsAddModalOpen(false);
           }}

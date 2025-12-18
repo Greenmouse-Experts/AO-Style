@@ -1091,7 +1091,7 @@ const OrderDetails = () => {
 
       {/* Shipment Details Modal */}
       {showShipmentDetailsModal && shipmentDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 md:p-4">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 md:p-4">
           <div className="bg-white rounded-xl md:rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] md:max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 md:p-6 border-b bg-purple-50">
               <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 flex items-center gap-2 md:gap-3">
@@ -1260,7 +1260,7 @@ const OrderDetails = () => {
 
       {/* Track Order Modal */}
       {showTrackOrderModal && trackingDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 md:p-4">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 md:p-4">
           <div className="bg-white rounded-xl md:rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] md:max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 md:p-6 border-b bg-blue-50">
               <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 flex items-center gap-2 md:gap-3">
@@ -1428,7 +1428,7 @@ const OrderDetails = () => {
 
       {/* Video Modal */}
       {expandedVideo && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[10000]">
           <div className="relative bg-white rounded-lg p-4 max-w-4xl max-h-[90vh] overflow-auto">
             <button
               onClick={handleCloseVideoModal}
@@ -1450,7 +1450,7 @@ const OrderDetails = () => {
 
       {/* Upload Modal */}
       {showUploadModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[10000] p-4">
           {console.log("🟢 FABRIC VENDOR UPLOAD MODAL IS RENDERING")}
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="p-6">

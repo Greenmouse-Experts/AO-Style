@@ -360,7 +360,8 @@ const priceToDisplay = (item: Order) => {
   if(item?.status === "OUT_FOR_DELIVERY" || (item?.status === "IN_TRANSIT" && item?.logistics_agent_id)) {
     return item?.payment?.purchase?.delivery_data?.data?.second_leg_delivery_fee
   } else{
-    return item?.payment?.purchase?.delivery_data?.data?.first_leg_delivery_fee
+    const fee = item?.payment?.purchase?.delivery_data?.data?.first_leg_delivery_fee === 0 ? item?.payment?.purchase?.delivery_data?.data?.second_leg_delivery_fee : ""
+    return fee
   }
 }
 

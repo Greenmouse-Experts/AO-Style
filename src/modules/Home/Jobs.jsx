@@ -50,11 +50,11 @@ export default function JobBoard() {
   // Handle job application with authentication check
   const handleApplyClick = (job) => {
     // Check if user is logged in
-    if (!carybinUser) {
-      // Redirect to login page if not authenticated
-      navigate('/login');
-      return;
-    }
+    // if (!carybinUser) {
+    //   // Redirect to login page if not authenticated
+    //   navigate('/login');
+    //   return;
+    // }
     
     // If authenticated, proceed with application
     setSelectedJob(job);

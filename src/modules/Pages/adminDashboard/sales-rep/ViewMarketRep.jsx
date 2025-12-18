@@ -634,7 +634,7 @@ const ViewMarketDetails = () => {
                 <button
                   disabled={isPending}
                   onClick={handleProceed}
-                  className="bg-green-600 text-white cursor-pointer py-3 px-6 rounded-md hover:bg-green-700 disabled:opacity-50"
+                  className="bg-purple-600 text-white cursor-pointer py-3 px-6 rounded-md hover:bg-green-700 disabled:opacity-50"
                 >
                   {isPending ? "Processing..." : "✓ Approve KYC"}
                 </button>

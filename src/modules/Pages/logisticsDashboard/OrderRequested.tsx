@@ -358,10 +358,12 @@ const StatusBadge = ({ status }: { status: string }) => {
 
 const priceToDisplay = (item: Order) => {
   if(item?.status === "OUT_FOR_DELIVERY" || (item?.status === "IN_TRANSIT" && item?.logistics_agent_id)) {
-    return item?.payment?.purchase?.delivery_data?.data?.second_leg_delivery_fee
+    return item?.payment?.purchase?.delivery_data?.data?.second_leg_delivery_fee || "0"
   } else{
-    const fee = item?.payment?.purchase?.delivery_data?.data?.first_leg_delivery_fee === 0 ? item?.payment?.purchase?.delivery_data?.data?.second_leg_delivery_fee : ""
-    return fee
+    const firstLegFee = item?.payment?.purchase?.delivery_data?.data?.first_leg_delivery_fee
+    // If first leg delivery fee is 0 or falsy, use second leg delivery fee
+    const fee = !firstLegFee || firstLegFee === 0 ? item?.payment?.purchase?.delivery_data?.data?.second_leg_delivery_fee : firstLegFee
+    return fee || "0"
   }
 }
 

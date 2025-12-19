@@ -344,7 +344,7 @@ export default function JobBoard() {
                     <div className="flex-shrink-0 flex flex-row sm:flex-col gap-2 w-full sm:w-auto">
                       <button
                         onClick={() => handleViewJob(job)}
-                        className="flex-1 sm:flex-initial inline-flex items-center justify-center px-3 sm:px-4 py-2 bg-gradient-to-r from-[#9847FE] to-[#8036D3] text-white rounded-lg hover:from-[#8036D3] hover:to-[#6B2BB5] transition-all duration-200 font-medium text-xs sm:text-sm"
+                        className="cursor-pointer flex-1 sm:flex-initial inline-flex items-center justify-center px-3 sm:px-4 py-2 bg-gradient-to-r from-[#9847FE] to-[#8036D3] text-white rounded-lg hover:from-[#8036D3] hover:to-[#6B2BB5] transition-all duration-200 font-medium text-xs sm:text-sm"
                       >
                         View Job
                       </button>
@@ -354,14 +354,14 @@ export default function JobBoard() {
                           href={job.application_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex-1 sm:flex-initial inline-flex items-center justify-center px-3 sm:px-4 py-2 border-2 border-[#9847FE] text-[#9847FE] rounded-lg hover:bg-[#9847FE] hover:text-white transition-all duration-200 font-medium text-xs sm:text-sm"
+                          className="cursor-pointer flex-1 sm:flex-initial inline-flex items-center justify-center px-3 sm:px-4 py-2 border-2 border-[#9847FE] text-[#9847FE] rounded-lg hover:bg-[#9847FE] hover:text-white transition-all duration-200 font-medium text-xs sm:text-sm"
                         >
                           Apply Now →
                         </a>
                       ) : (
                         <button
                           onClick={() => handleApplyClick(job)}
-                          className="flex-1 sm:flex-initial inline-flex items-center justify-center px-3 sm:px-4 py-2 border-2 border-[#9847FE] text-[#9847FE] rounded-lg hover:bg-[#9847FE] hover:text-white transition-all duration-200 font-medium text-xs sm:text-sm"
+                          className="cursor-pointer flex-1 sm:flex-initial inline-flex items-center justify-center px-3 sm:px-4 py-2 border-2 border-[#9847FE] text-[#9847FE] rounded-lg hover:bg-[#9847FE] hover:text-white transition-all duration-200 font-medium text-xs sm:text-sm"
                         >
                           Apply Now →
                         </button>

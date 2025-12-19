@@ -132,7 +132,7 @@ export default function Jobs() {
     const { mutate: uploadDocument } = useMutation({
       mutationFn: MediaService.uploadDocument,
       onError: (error) => {
-        toastError(error.message || "Failed to upload document");
+        toastError(error?.data?.message || "Failed to upload document");
       },
     });
 

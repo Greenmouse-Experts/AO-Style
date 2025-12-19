@@ -31,7 +31,8 @@ const JobApplicationModal = ({ job, isOpen, onClose }) => {
   const { mutate: uploadDocument } = useMutation({
     mutationFn: MediaService.uploadDocument,
     onError: (error) => {
-      toastError(error.message || "Failed to upload document");
+      console.log(error)
+      toastError(error?.data?.message || "Failed to upload document");
     },
   });
 

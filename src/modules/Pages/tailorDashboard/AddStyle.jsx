@@ -443,8 +443,13 @@ export default function StyleForm() {
       categoryList.length > 0 &&
       !values.category_id
     ) {
+      // Handle category as either an object with name property or a string
+      const categoryName = typeof styleInfo?.category === 'string' 
+        ? styleInfo.category 
+        : styleInfo?.category?.name || '';
+      
       const foundCategory = categoryList.find(
-        (cat) => cat.label.toLowerCase() === styleInfo?.category?.toLowerCase(),
+        (cat) => cat.label.toLowerCase() === categoryName.toLowerCase(),
       );
 
       if (foundCategory) {

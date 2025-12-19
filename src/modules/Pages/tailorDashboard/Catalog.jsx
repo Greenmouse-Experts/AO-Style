@@ -137,16 +137,16 @@ export default function StylesTable() {
         key: "name",
         width: "300px",
         render: (name, row) => (
-          <div className="flex items-center gap-3 min-w-[300px]">
-            <div className="relative">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 sm:min-w-[300px]">
+            <div className="relative flex-shrink-0">
               {row.image ? (
                 <img
                   src={row.image}
                   alt={name}
-                  className="w-16 h-16 rounded-lg object-cover border-2 border-gray-200"
+                  className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg object-cover border-2 border-gray-200"
                 />
               ) : (
-                <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center border-2 border-purple-200">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center border-2 border-purple-200">
                   <span className="text-xs font-bold text-purple-600">
                     {name?.charAt(0)?.toUpperCase() || "S"}
                   </span>
@@ -155,13 +155,13 @@ export default function StylesTable() {
             </div>
             <div className="flex-1 min-w-0">
               <div
-                className="font-semibold text-gray-900 text-sm truncate"
+                className="font-semibold text-gray-900 text-xs sm:text-sm truncate"
                 title={name}
               >
                 {name || "Unnamed Style"}
               </div>
-              <div className="text-xs text-gray-500 mt-1">{row.category}</div>
-              <div className="text-xs text-gray-400 mt-1">
+              <div className="text-xs text-gray-500 mt-0.5 sm:mt-1 truncate">{row.category}</div>
+              <div className="text-xs text-gray-400 mt-0.5 sm:mt-1">
                 Uploaded on {row.created_date}
               </div>
             </div>
@@ -174,8 +174,8 @@ export default function StylesTable() {
         width: "120px",
         align: "right",
         render: (price) => (
-          <div className="text-right min-w-[120px]">
-            <div className="text-lg font-bold text-purple-700 whitespace-nowrap">
+          <div className="text-right min-w-[100px] sm:min-w-[120px]">
+            <div className="text-sm sm:text-lg font-bold text-purple-700 whitespace-nowrap">
               {price}
             </div>
             <div className="text-xs text-gray-500">per piece</div>
@@ -214,12 +214,12 @@ export default function StylesTable() {
         width: "100px",
         align: "center",
         render: (_, row) => (
-          <div className="min-w-[100px] flex justify-center">
+          <div className="min-w-[80px] sm:min-w-[100px] flex justify-center">
             <button
-              className="flex items-center justify-center w-8 h-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all duration-200"
+              className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all duration-200 cursor-pointer"
               onClick={(e) => toggleDropdown(row.id, e)}
             >
-              <FaEllipsisH className="w-4 h-4" />
+              <FaEllipsisH className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </div>
         ),
@@ -283,13 +283,13 @@ export default function StylesTable() {
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <div className="bg-white border-b border-gray-200">
-          <div className="px-6 py-6">
+          <div className="px-3 sm:px-4 md:px-6 py-4 sm:py-6">
             <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center space-y-3 sm:space-y-0">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
+              <div className="w-full sm:w-auto">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                   Style Catalog
                 </h1>
-                <p className="text-gray-600 mt-1">
+                <p className="text-xs sm:text-sm text-gray-600 mt-1">
                   <Link
                     to={isAdminStyleRoute ? "/admin" : "/tailor"}
                     className="text-purple-600 hover:text-purple-800 transition-colors"
@@ -309,7 +309,7 @@ export default function StylesTable() {
                   }
                   className="w-full sm:w-auto"
                 >
-                  <button className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 w-full sm:w-auto justify-center">
+                  <button className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 w-full sm:w-auto justify-center text-sm sm:text-base font-medium">
                     <Plus className="w-4 h-4" />
                     Add Style
                   </button>
@@ -319,7 +319,7 @@ export default function StylesTable() {
 
             {/* Tab Navigation for Admin */}
             {isAdminStyleRoute && (
-              <div className="flex gap-6 mt-6 border-b border-gray-200">
+              <div className="flex gap-4 sm:gap-6 mt-4 sm:mt-6 border-b border-gray-200 overflow-x-auto scrollbar-hide -mx-3 sm:mx-0 px-3 sm:px-0">
                 {["all", "my"].map((tab) => (
                   <button
                     key={tab}
@@ -330,7 +330,7 @@ export default function StylesTable() {
                         "pagination[page]": 1,
                       });
                     }}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    className={`py-2 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap flex-shrink-0 ${
                       currProd === tab
                         ? "border-purple-600 text-purple-600"
                         : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -345,13 +345,13 @@ export default function StylesTable() {
         </div>
 
         {/* Main Content */}
-        <div className="px-6 py-6">
+        <div className="px-3 sm:px-4 md:px-6 py-4 sm:py-6">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200">
             {/* Filters & Controls */}
-            <div className="p-4 sm:p-6 border-b border-gray-200">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="p-3 sm:p-4 md:p-6 border-b border-gray-200">
+              <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center lg:justify-between">
                 {/* Filter Tabs */}
-                <div className="flex gap-1 bg-gray-100 p-1 rounded-lg w-full sm:w-auto overflow-x-auto">
+                <div className="flex gap-1 bg-gray-100 p-1 rounded-lg w-full sm:w-auto overflow-x-auto scrollbar-hide -mx-3 sm:mx-0 px-3 sm:px-0">
                   {[
                     { key: "all", label: "All Styles", status: undefined },
                     {
@@ -375,7 +375,7 @@ export default function StylesTable() {
                           "pagination[page]": 1,
                         });
                       }}
-                      className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
+                      className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap flex-shrink-0 ${
                         filter === tab.key
                           ? "bg-white text-purple-600 shadow-sm"
                           : "text-gray-600 hover:text-gray-900"
@@ -390,13 +390,13 @@ export default function StylesTable() {
                 <div className="flex flex-col gap-2 sm:flex-row sm:gap-3 w-full sm:w-auto">
                   <div className="relative w-full sm:w-64">
                     <Search
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                      size={18}
+                      className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                      size={16}
                     />
                     <input
                       type="text"
                       placeholder="Search styles..."
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none w-full"
+                      className="pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none w-full text-sm"
                       value={queryString || ""}
                       onChange={(evt) =>
                         setQueryString(evt.target.value || undefined)
@@ -406,7 +406,7 @@ export default function StylesTable() {
                   <div className="flex gap-2 w-full sm:w-auto">
                     <select
                       onChange={handleExport}
-                      className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none w-full sm:w-auto"
+                      className="px-3 sm:px-4 py-2 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none w-full sm:w-auto text-sm cursor-pointer"
                     >
                       <option value="" disabled>
                         Export As
@@ -445,9 +445,9 @@ export default function StylesTable() {
 
             {/* Pagination */}
             {filteredData?.length > 0 && (
-              <div className="flex flex-col sm:flex-row justify-between items-center mt-6 px-2 sm:px-6 pb-6 gap-4">
+              <div className="flex flex-col sm:flex-row justify-between items-center mt-4 sm:mt-6 px-3 sm:px-4 md:px-6 pb-4 sm:pb-6 gap-3 sm:gap-4">
                 <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
-                  <p className="text-sm text-gray-600">Items per page:</p>
+                  <p className="text-xs sm:text-sm text-gray-600 whitespace-nowrap">Items per page:</p>
                   <select
                     value={queryParams["pagination[limit]"] || 10}
                     onChange={(e) =>
@@ -456,7 +456,7 @@ export default function StylesTable() {
                         "pagination[page]": 1,
                       })
                     }
-                    className="px-3 py-1 border border-gray-300 rounded-md text-sm"
+                    className="px-2 sm:px-3 py-1 border border-gray-300 rounded-md text-xs sm:text-sm cursor-pointer"
                   >
                     <option value={5}>5</option>
                     <option value={10}>10</option>
@@ -473,11 +473,11 @@ export default function StylesTable() {
                       })
                     }
                     disabled={(queryParams["pagination[page]"] ?? 1) <= 1}
-                    className="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-1.5 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm cursor-pointer hover:bg-gray-50 transition-colors"
                   >
                     Previous
                   </button>
-                  <span className="px-3 py-1 text-sm text-gray-600">
+                  <span className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 whitespace-nowrap">
                     Page {queryParams["pagination[page]"] || 1} of {totalPages}
                   </span>
                   <button
@@ -490,7 +490,7 @@ export default function StylesTable() {
                     disabled={
                       (queryParams["pagination[page]"] ?? 1) >= totalPages
                     }
-                    className="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-1.5 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm cursor-pointer hover:bg-gray-50 transition-colors"
                   >
                     Next
                   </button>
@@ -501,14 +501,14 @@ export default function StylesTable() {
             {filteredData?.length === 0 &&
               !isPending &&
               !adminProductIsPending && (
-                <div className="text-center py-12">
+                <div className="text-center py-8 sm:py-12 px-4">
                   <div className="text-gray-400 mb-4">
-                    <Search className="w-16 h-16 mx-auto" />
+                    <Search className="w-12 h-12 sm:w-16 sm:h-16 mx-auto" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
                     No styles found
                   </h3>
-                  <p className="text-gray-600 mb-6">
+                  <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
                     {filter === "published"
                       ? "No published styles available"
                       : filter === "unpublished"
@@ -525,7 +525,7 @@ export default function StylesTable() {
                           : "/tailor/catalog-add-style"
                       }
                     >
-                      <button className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors mx-auto">
+                      <button className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors mx-auto text-sm sm:text-base">
                         <Plus className="w-4 h-4" />
                         Add Style
                       </button>
@@ -544,9 +544,9 @@ export default function StylesTable() {
           onClick={() => setOpenDropdown(null)}
         >
           <div
-            className="absolute bg-white shadow-lg rounded-lg border border-gray-200 py-2 w-48 z-[10000]"
+            className="absolute bg-white shadow-lg rounded-lg border border-gray-200 py-2 w-40 sm:w-48 z-[10000]"
             style={{
-              left: `${dropdownPosition.x}px`,
+              left: `${Math.max(10, Math.min(dropdownPosition.x, window.innerWidth - 170))}px`,
               top: `${dropdownPosition.y}px`,
             }}
             onClick={(e) => e.stopPropagation()}
@@ -566,13 +566,13 @@ export default function StylesTable() {
                         : "/tailor/catalog-edit-style"
                     }
                     state={{ info: row }}
-                    className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 transition-colors text-gray-700"
+                    className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 text-xs sm:text-sm hover:bg-gray-100 transition-colors text-gray-700 cursor-pointer"
                     onClick={() => setOpenDropdown(null)}
                   >
                     {isAdminStyleRoute ? (
-                      <Eye className="w-4 h-4" />
+                      <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     ) : (
-                      <Edit3 className="w-4 h-4" />
+                      <Edit3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     )}
                     {isAdminStyleRoute ? "View" : "View/Edit"}
                   </Link>
@@ -614,9 +614,9 @@ export default function StylesTable() {
                           );
                         }}
                         disabled={updateAdminIsPending}
-                        className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 transition-colors w-full text-left text-gray-700 disabled:opacity-50"
+                        className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 text-xs sm:text-sm hover:bg-gray-100 transition-colors w-full text-left text-gray-700 disabled:opacity-50 cursor-pointer"
                       >
-                        <Eye className="w-4 h-4" />
+                        <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         {updateAdminIsPending
                           ? "Updating..."
                           : row.approval_status === "PUBLISHED"
@@ -627,10 +627,10 @@ export default function StylesTable() {
                       <Link
                         to="/admin/style/edit-product"
                         state={{ info: row }}
-                        className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 transition-colors text-gray-700"
+                        className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 text-xs sm:text-sm hover:bg-gray-100 transition-colors text-gray-700 cursor-pointer"
                         onClick={() => setOpenDropdown(null)}
                       >
-                        <Edit3 className="w-4 h-4" />
+                        <Edit3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         Edit
                       </Link>
                     </>
@@ -643,9 +643,9 @@ export default function StylesTable() {
                       setIsAddModalOpen(true);
                       setOpenDropdown(null);
                     }}
-                    className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-red-50 transition-colors w-full text-left text-red-500"
+                    className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 text-xs sm:text-sm hover:bg-red-50 transition-colors w-full text-left text-red-500 cursor-pointer"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     Delete
                   </button>
                 </>
@@ -657,22 +657,22 @@ export default function StylesTable() {
 
       {/* Delete Confirmation Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-[10000]">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-[10000] p-3 sm:p-4">
+          <div className="bg-white rounded-xl p-4 sm:p-6 w-full max-w-md">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
               Delete Style
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
               Are you sure you want to delete "{newCategory?.name}"? This action
               cannot be undone.
             </p>
-            <div className="flex gap-3 justify-end">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-end">
               <button
                 onClick={() => {
                   setIsAddModalOpen(false);
                   setNewCategory(null);
                 }}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base cursor-pointer"
               >
                 Cancel
               </button>
@@ -714,7 +714,7 @@ export default function StylesTable() {
                   }
                 }}
                 disabled={deleteIsPending || deleteAdminIsPending}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 cursor-pointer text-sm sm:text-base"
               >
                 {deleteIsPending || deleteAdminIsPending
                   ? "Deleting..."

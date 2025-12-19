@@ -95,7 +95,7 @@ export default function JobBoard() {
   // Handle navigation to login
   const handleGoToLogin = () => {
     setShowLoginModal(false);
-    navigate('/login');
+    navigate('/login?redirect_url=/customer/jobs');
   };
 
   // Handle navigation to signup

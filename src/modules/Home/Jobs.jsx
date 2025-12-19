@@ -30,6 +30,7 @@ export default function JobBoard() {
   const [selectedJob, setSelectedJob] = useState(null);
   const [showApplicationModal, setShowApplicationModal] = useState(false);
   const [showJobModal, setShowJobModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   // Navigation and authentication
   const navigate = useNavigate();
@@ -50,11 +51,12 @@ export default function JobBoard() {
   // Handle job application with authentication check
   const handleApplyClick = (job) => {
     // Check if user is logged in
-    // if (!carybinUser) {
-    //   // Redirect to login page if not authenticated
-    //   navigate('/login');
-    //   return;
-    // }
+    if (!carybinUser) {
+      // Show login modal instead of redirecting
+      setSelectedJob(job);
+      setShowLoginModal(true);
+      return;
+    }
     
     // If authenticated, proceed with application
     setSelectedJob(job);
@@ -71,16 +73,35 @@ export default function JobBoard() {
   const handleApplyFromModal = () => {
     // Check if user is logged in
     if (!carybinUser) {
-      // Close the job modal first, then redirect to login
+      // Close the job modal first, then show login modal
       setShowJobModal(false);
-      setSelectedJob(null);
-      navigate('/login');
+      setShowLoginModal(true);
       return;
     }
     
     // If authenticated, proceed with application
     setShowJobModal(false);
     setShowApplicationModal(true);
+  };
+
+  // Handle login modal close
+  const handleLoginModalClose = () => {
+    setShowLoginModal(false);
+    if (!showJobModal && !showApplicationModal) {
+      setSelectedJob(null);
+    }
+  };
+
+  // Handle navigation to login
+  const handleGoToLogin = () => {
+    setShowLoginModal(false);
+    navigate('/login');
+  };
+
+  // Handle navigation to signup
+  const handleGoToSignup = () => {
+    setShowLoginModal(false);
+    navigate('/sign-in-as-customer');
   };
 
   const handleApplicationClose = () => {
@@ -362,6 +383,90 @@ export default function JobBoard() {
           onClose={handleApplicationClose}
         />
       )}
+
+      {/* Login Required Modal */}
+      <AnimatePresence>
+        {showLoginModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-3 sm:p-4"
+            onClick={handleLoginModalClose}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="bg-white rounded-xl sm:rounded-2xl max-w-md w-full shadow-2xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="bg-gradient-to-r from-[#9847FE] to-[#8036D3] p-3 sm:p-4 text-white">
+                <div className="flex justify-between items-start gap-2 sm:gap-3">
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-base sm:text-lg font-bold mb-1 sm:mb-1.5">Login Required</h2>
+                    <p className="text-white/90 text-xs sm:text-sm leading-relaxed">
+                      You need to be signed in to apply for this job
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleLoginModalClose}
+                    className="p-1 sm:p-1.5 hover:bg-white/20 rounded-lg transition-colors flex-shrink-0 cursor-pointer"
+                  >
+                    <X className="h-4 w-4 sm:h-4 sm:w-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-4 sm:p-5">
+                <div className="flex items-center justify-center mb-3 sm:mb-4">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 bg-violet-100 rounded-full flex items-center justify-center">
+                    <Briefcase className="h-6 w-6 sm:h-7 sm:w-7 text-violet-600" />
+                  </div>
+                </div>
+
+                <div className="text-center mb-4 sm:mb-5">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
+                    Join Our Team
+                  </h3>
+                  <p className="text-xs sm:text-sm text-gray-600 leading-relaxed px-1">
+                    To apply for this position, please{" "}
+                    <span className="font-medium text-violet-600">sign in</span> to your customer
+                    account or{" "}
+                    <span className="font-medium text-violet-600">create a new account</span> if you
+                    don't have one yet.
+                  </p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                  <button
+                    onClick={handleGoToLogin}
+                    className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-[#9847FE] to-[#8036D3] text-white rounded-lg hover:from-[#8036D3] hover:to-[#6B2BB5] transition-all duration-200 font-medium text-xs sm:text-sm flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer"
+                  >
+                    <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    Sign In
+                  </button>
+                  <button
+                    onClick={handleGoToSignup}
+                    className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 border-2 border-[#9847FE] text-[#9847FE] rounded-lg hover:bg-[#9847FE] hover:text-white transition-all duration-200 font-medium text-xs sm:text-sm flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer"
+                  >
+                    <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    Create Account
+                  </button>
+                </div>
+
+                <p className="text-xs text-gray-500 text-center mt-3 sm:mt-4">
+                  Already have an account? Sign in to continue with your application.
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Job View Modal */}
       <AnimatePresence>

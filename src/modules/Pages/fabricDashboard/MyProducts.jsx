@@ -280,14 +280,14 @@ const ProductPage = () => {
         key: "name",
         width: "280px",
         render: (name, row) => (
-          <div className="min-w-[280px] max-w-xs">
+          <div className="min-w-0 sm:min-w-[200px] md:min-w-[280px] max-w-xs">
             <div
-              className="font-semibold text-gray-900 text-sm truncate"
+              className="font-semibold text-gray-900 text-xs sm:text-sm truncate"
               title={name}
             >
               {name || "Unnamed Product"}
             </div>
-            <div className="text-xs text-gray-500 mt-1 truncate">
+            <div className="text-xs text-gray-500 mt-0.5 sm:mt-1 truncate">
               {row.description && row.description.length > 50
                 ? `${row.description.substring(0, 50)}...`
                 : row.description || "No description"}
@@ -300,12 +300,12 @@ const ProductPage = () => {
         key: "image",
         width: "80px",
         render: (image, row) => (
-          <div className="flex items-center justify-center min-w-[80px]">
+          <div className="flex items-center justify-center min-w-[60px] sm:min-w-[80px]">
             {row?.fabric?.photos && row?.fabric?.photos.length > 0 ? (
               <img
                 src={row.fabric.photos[0]}
                 alt={row?.name || "Product"}
-                className="w-14 h-14 rounded-lg object-cover border-2 border-gray-200"
+                className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg object-cover border-2 border-gray-200"
                 onError={(e) => {
                   e.target.style.display = "none";
                   e.target.nextSibling.style.display = "flex";
@@ -313,7 +313,7 @@ const ProductPage = () => {
               />
             ) : null}
             <div
-              className="w-14 h-14 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center font-bold text-white text-lg border-2 border-gray-200"
+              className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center font-bold text-white text-sm sm:text-base md:text-lg border-2 border-gray-200"
               style={{
                 display:
                   row?.fabric?.photos && row?.fabric?.photos.length > 0
@@ -361,8 +361,8 @@ const ProductPage = () => {
         key: "price",
         width: "120px",
         render: (price) => (
-          <div className="text-right min-w-[120px]">
-            <div className="text-lg font-bold text-green-700 whitespace-nowrap">
+          <div className="text-right min-w-[100px] sm:min-w-[120px]">
+            <div className="text-sm sm:text-base md:text-lg font-bold text-green-700 whitespace-nowrap">
               {price}
             </div>
             <div className="text-xs text-gray-500">per unit</div>
@@ -431,12 +431,12 @@ const ProductPage = () => {
         key: "action",
         width: "100px",
         render: (_, row) => (
-          <div className="min-w-[100px] flex justify-center">
+          <div className="min-w-[80px] sm:min-w-[100px] flex justify-center">
             <button
-              className="flex items-center justify-center w-8 h-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all duration-200"
+              className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all duration-200 cursor-pointer"
               onClick={(e) => toggleDropdown(row.id, e)}
             >
-              <FaEllipsisH className="w-4 h-4" />
+              <FaEllipsisH className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </div>
         ),
@@ -503,17 +503,17 @@ const ProductPage = () => {
   const { toastError } = useToast();
   return (
     <>
-      <div className="bg-gradient-to-r from-white to-gray-50 px-6 py-8 mb-8 relative border-b border-gray-200">
-        <div className="flex flex-col lg:flex-row lg:justify-between items-start lg:items-center space-y-4 lg:space-y-0">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+      <div className="bg-gradient-to-r from-white to-gray-50 px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8 mb-4 sm:mb-6 md:mb-8 relative border-b border-gray-200">
+        <div className="flex flex-col lg:flex-row lg:justify-between items-start lg:items-center space-y-3 sm:space-y-4 lg:space-y-0">
+          <div className="w-full sm:w-auto">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">
               {!isAdminRoute
                 ? "My Products"
                 : currProd == "all"
                   ? `All ${productType === "STYLE" ? "Styles" : "Fabrics"}`
                   : `My ${productType === "STYLE" ? "Styles" : "Fabrics"}`}
             </h1>
-            <p className="text-gray-600 flex items-center">
+            <p className="text-xs sm:text-sm text-gray-600 flex items-center flex-wrap">
               <Link
                 to={isAdminFabricRoute ? "/admin" : "/fabric"}
                 className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
@@ -521,7 +521,7 @@ const ProductPage = () => {
                 Dashboard
               </Link>
               <svg
-                className="w-4 h-4 mx-2 text-gray-400"
+                className="w-3 h-3 sm:w-4 sm:h-4 mx-1 sm:mx-2 text-gray-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -539,15 +539,15 @@ const ProductPage = () => {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
             {!isAdminRoute ? (
               <Link
                 to="/fabric/product/add-product"
                 className="w-full sm:w-auto"
               >
-                <button className="flex items-center justify-center bg-gradient text-white px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl w-full sm:w-auto font-medium">
+                <button className="flex items-center justify-center bg-gradient text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl w-full sm:w-auto font-medium text-sm sm:text-base cursor-pointer">
                   <svg
-                    className="w-5 h-5 mr-2"
+                    className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -563,9 +563,9 @@ const ProductPage = () => {
                 </button>
               </Link>
             ) : currProd == "all" ? (
-              <div className="flex items-center bg-gray-100 px-4 py-2 rounded-lg">
+              <div className="flex items-center bg-gray-100 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg">
                 <svg
-                  className="w-5 h-5 mr-2 text-gray-500"
+                  className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 text-gray-500 flex-shrink-0"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -577,7 +577,7 @@ const ProductPage = () => {
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                <span className="text-gray-600 text-sm font-medium">
+                <span className="text-gray-600 text-xs sm:text-sm font-medium whitespace-nowrap">
                   {FabricData.length} Products Total
                 </span>
               </div>
@@ -592,9 +592,9 @@ const ProductPage = () => {
                 }
                 className="w-full sm:w-auto"
               >
-                <button className="flex items-center justify-center bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl w-full sm:w-auto font-medium">
+                <button className="flex items-center justify-center bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl w-full sm:w-auto font-medium text-sm sm:text-base cursor-pointer">
                   <svg
-                    className="w-5 h-5 mr-2"
+                    className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -613,15 +613,15 @@ const ProductPage = () => {
           </div>
         </div>
         {isAdminRoute && (
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <div className="flex flex-wrap justify-center sm:justify-start gap-2">
+          <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
+            <div className="flex flex-wrap justify-center sm:justify-start gap-2 overflow-x-auto scrollbar-hide -mx-3 sm:mx-0 px-3 sm:px-0 pb-2 sm:pb-0">
               {["all", "my"].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => {
                     setCurrProd(tab);
                   }}
-                  className={`font-medium cursor-pointer capitalize px-4 py-2 rounded-lg transition-all duration-200 ${
+                  className={`font-medium cursor-pointer capitalize px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all duration-200 text-xs sm:text-sm whitespace-nowrap flex-shrink-0 ${
                     currProd === tab
                       ? "bg-purple-100 text-purple-700 border-2 border-purple-200 shadow-sm"
                       : "text-gray-600 hover:text-gray-800 hover:bg-gray-100 border-2 border-transparent"
@@ -630,7 +630,7 @@ const ProductPage = () => {
                   <span className="flex items-center">
                     {tab === "all" ? (
                       <svg
-                        className="w-4 h-4 mr-2"
+                        className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -644,7 +644,7 @@ const ProductPage = () => {
                       </svg>
                     ) : (
                       <svg
-                        className="w-4 h-4 mr-2"
+                        className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -666,10 +666,10 @@ const ProductPage = () => {
           </div>
         )}
       </div>
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 mb-6">
+      <div className="bg-white p-3 sm:p-4 md:p-6 rounded-xl shadow-sm border border-gray-200">
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6">
           {/* Product Filters */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 overflow-x-auto scrollbar-hide -mx-3 sm:mx-0 px-3 sm:px-0 pb-2 sm:pb-0">
             {["all", "published", "unpublished"].map((tab) => (
               <button
                 key={tab}
@@ -696,7 +696,7 @@ const ProductPage = () => {
                     });
                   }
                 }}
-                className={`font-medium capitalize px-4 py-2.5 rounded-lg transition-all duration-200 border-2 ${
+                className={`font-medium capitalize px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg transition-all duration-200 border-2 text-xs sm:text-sm whitespace-nowrap flex-shrink-0 ${
                   filter === tab
                     ? "bg-purple-100 text-purple-700 border-purple-200 shadow-sm"
                     : "text-gray-600 hover:text-gray-800 hover:bg-gray-50 border-transparent hover:border-gray-200"
@@ -705,7 +705,7 @@ const ProductPage = () => {
                 <span className="flex items-center">
                   {tab === "all" && (
                     <svg
-                      className="w-4 h-4 mr-2"
+                      className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -720,7 +720,7 @@ const ProductPage = () => {
                   )}
                   {tab === "published" && (
                     <svg
-                      className="w-4 h-4 mr-2"
+                      className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -735,7 +735,7 @@ const ProductPage = () => {
                   )}
                   {tab === "unpublished" && (
                     <svg
-                      className="w-4 h-4 mr-2"
+                      className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -748,23 +748,27 @@ const ProductPage = () => {
                       />
                     </svg>
                   )}
-                  {tab} Product{filter === tab && ` (${FabricData.length})`}
+                  <span className="hidden sm:inline">{tab} Product</span>
+                  <span className="sm:hidden">{tab}</span>
+                  {filter === tab && (
+                    <span className="ml-1">({FabricData.length})</span>
+                  )}
                 </span>
               </button>
             ))}
           </div>
           {/* Search Bar */}
-          <div className="flex flex-wrap gap-3 w-full sm:w-auto">
-            <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 w-full lg:w-auto">
-              <div className="relative">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+              <div className="relative flex-1 sm:flex-initial">
                 <Search
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  size={18}
+                  className="absolute left-2 sm:left-3 md:left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={16}
                 />
                 <input
                   type="text"
-                  placeholder="Search products, SKU, or category..."
-                  className="w-full lg:w-80 pl-12 pr-4 py-3 border-2 border-gray-200 rounded-lg outline-none text-sm bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 placeholder-gray-400"
+                  placeholder="Search products..."
+                  className="w-full sm:w-64 lg:w-80 pl-8 sm:pl-10 md:pl-12 pr-3 sm:pr-4 py-2 sm:py-2.5 md:py-3 border-2 border-gray-200 rounded-lg outline-none text-xs sm:text-sm bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 placeholder-gray-400"
                   value={queryString}
                   onChange={(evt) =>
                     setQueryString(
@@ -773,10 +777,10 @@ const ProductPage = () => {
                   }
                 />
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 w-full sm:w-auto">
                 <select
                   onChange={handleExport}
-                  className="bg-white border-2 border-gray-200 outline-none text-gray-700 px-4 py-3 text-sm rounded-lg whitespace-nowrap focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+                  className="bg-white border-2 border-gray-200 outline-none text-gray-700 px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm rounded-lg whitespace-nowrap focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-gray-300 flex-1 sm:flex-initial cursor-pointer"
                 >
                   <option value="" disabled selected>
                     📊 Export Data
@@ -785,9 +789,9 @@ const ProductPage = () => {
                   <option value="excel">📊 Export to Excel</option>
                   <option value="pdf">📋 Export to PDF</option>
                 </select>
-                <button className="bg-white border-2 border-gray-200 text-gray-700 px-4 py-3 text-sm rounded-lg whitespace-nowrap hover:border-gray-300 transition-all duration-200 flex items-center">
+                <button className="bg-white border-2 border-gray-200 text-gray-700 px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm rounded-lg whitespace-nowrap hover:border-gray-300 transition-all duration-200 flex items-center justify-center cursor-pointer">
                   <svg
-                    className="w-4 h-4 mr-2"
+                    className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -799,7 +803,7 @@ const ProductPage = () => {
                       d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"
                     />
                   </svg>
-                  Filter
+                  <span className="hidden sm:inline">Filter</span>
                 </button>
               </div>
             </div>
@@ -861,46 +865,46 @@ const ProductPage = () => {
           </div>
         </div>
 
-        {!(FabricData?.length > 0) &&
-          (currProd === "all"
-            ? isAdminRoute
-              ? adminProductIsPending
-              : isPending
-            : isAdminRoute
-              ? isAdminStyleRoute
-                ? adminManageStyleIsPending
-                : adminManageFabricIsPending
-              : isPending) && (
-            <div className="flex flex-col items-center justify-center py-12 bg-white rounded-xl shadow-sm border border-gray-200">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <svg
-                  className="w-8 h-8 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                  />
-                </svg>
-              </div>
-              <p className="text-gray-500 text-lg font-medium">
-                Loading products...
-              </p>
-              <p className="text-gray-400 text-sm mt-2">
-                Please wait while we fetch your data
-              </p>
-            </div>
-          )}
+            {!(FabricData?.length > 0) &&
+              (currProd === "all"
+                ? isAdminRoute
+                  ? adminProductIsPending
+                  : isPending
+                : isAdminRoute
+                  ? isAdminStyleRoute
+                    ? adminManageStyleIsPending
+                    : adminManageFabricIsPending
+                  : isPending) && (
+                <div className="flex flex-col items-center justify-center py-8 sm:py-12 bg-white rounded-xl shadow-sm border border-gray-200 px-4">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3 sm:mb-4">
+                    <svg
+                      className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                      />
+                    </svg>
+                  </div>
+                  <p className="text-gray-500 text-base sm:text-lg font-medium">
+                    Loading products...
+                  </p>
+                  <p className="text-gray-400 text-xs sm:text-sm mt-2 text-center">
+                    Please wait while we fetch your data
+                  </p>
+                </div>
+              )}
       </div>
       {FabricData?.length ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mt-6">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-3">
-              <p className="text-sm text-gray-600 font-medium">Show:</p>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 mt-4 sm:mt-6">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-center sm:justify-start">
+              <p className="text-xs sm:text-sm text-gray-600 font-medium whitespace-nowrap">Show:</p>
               <select
                 value={queryParams["pagination[limit]"] || 10}
                 onChange={(e) =>
@@ -908,18 +912,18 @@ const ProductPage = () => {
                     "pagination[limit]": +e.target.value,
                   })
                 }
-                className="py-2 px-3 border border-gray-300 rounded-lg outline-none text-sm bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                className="py-1.5 sm:py-2 px-2 sm:px-3 border border-gray-300 rounded-lg outline-none text-xs sm:text-sm bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 cursor-pointer"
               >
                 <option value={5}>5 items</option>
                 <option value={10}>10 items</option>
                 <option value={15}>15 items</option>
                 <option value={20}>20 items</option>
               </select>
-              <p className="text-sm text-gray-500">
+              <p className="text-xs sm:text-sm text-gray-500 whitespace-nowrap">
                 of {currentData?.count || FabricData.length} total
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-end">
               <button
                 onClick={() => {
                   updateQueryParams({
@@ -927,10 +931,10 @@ const ProductPage = () => {
                   });
                 }}
                 disabled={(queryParams["pagination[page]"] ?? 1) == 1}
-                className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                className="flex items-center px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer"
               >
                 <svg
-                  className="w-4 h-4 mr-2"
+                  className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -942,9 +946,10 @@ const ProductPage = () => {
                     d="M15 19l-7-7 7-7"
                   />
                 </svg>
-                Previous
+                <span className="hidden sm:inline">Previous</span>
+                <span className="sm:hidden">Prev</span>
               </button>
-              <span className="px-4 py-2 text-sm font-medium text-gray-700 bg-purple-50 border border-purple-200 rounded-lg">
+              <span className="px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-purple-50 border border-purple-200 rounded-lg whitespace-nowrap">
                 Page {queryParams["pagination[page]"] ?? 1}
               </span>
               <button
@@ -954,11 +959,12 @@ const ProductPage = () => {
                   });
                 }}
                 disabled={(queryParams["pagination[page]"] ?? 1) == totalPages}
-                className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                className="flex items-center px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer"
               >
-                Next
+                <span className="hidden sm:inline">Next</span>
+                <span className="sm:hidden">Next</span>
                 <svg
-                  className="w-4 h-4 ml-2"
+                  className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-1 sm:ml-2 flex-shrink-0"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -985,9 +991,9 @@ const ProductPage = () => {
           onClick={() => setOpenDropdown(null)}
         >
           <div
-            className="absolute w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden"
+            className="absolute w-40 sm:w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-[10000] overflow-hidden"
             style={{
-              left: `${dropdownPosition.x}px`,
+              left: `${Math.max(10, Math.min(dropdownPosition.x, window.innerWidth - 170))}px`,
               top: `${dropdownPosition.y}px`,
             }}
             onClick={(e) => e.stopPropagation()}
@@ -1063,10 +1069,10 @@ const ProductPage = () => {
                           });
                         }
                       }}
-                      className="flex items-center w-full px-4 py-3 text-sm text-green-700 hover:bg-green-50 transition-colors duration-150"
+                      className="flex items-center w-full px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-green-700 hover:bg-green-50 transition-colors duration-150 cursor-pointer"
                     >
                       <svg
-                        className="w-4 h-4 mr-3"
+                        className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 sm:mr-3 flex-shrink-0"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -1156,10 +1162,10 @@ const ProductPage = () => {
                           });
                         }
                       }}
-                      className="flex items-center w-full px-4 py-3 text-sm text-yellow-700 hover:bg-yellow-50 transition-colors duration-150"
+                      className="flex items-center w-full px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-yellow-700 hover:bg-yellow-50 transition-colors duration-150 cursor-pointer"
                     >
                       <svg
-                        className="w-4 h-4 mr-3"
+                        className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 sm:mr-3 flex-shrink-0"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -1190,14 +1196,14 @@ const ProductPage = () => {
                           : "/admin/fabric/view-product"
                         : "/fabric/product/view-product"
                     }
-                    className="flex items-center w-full px-4 py-3 text-sm text-blue-700 hover:bg-blue-50 transition-colors duration-150"
+                    className="flex items-center w-full px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-blue-700 hover:bg-blue-50 transition-colors duration-150 cursor-pointer"
                     onClick={() => {
                       console.log("👁️ Viewing fabric product:", row);
                       setOpenDropdown(null);
                     }}
                   >
                     <svg
-                      className="w-4 h-4 mr-3"
+                      className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 sm:mr-3 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -1227,14 +1233,14 @@ const ProductPage = () => {
                           : "/admin/fabric/edit-product"
                         : "/fabric/product/edit-product"
                     }
-                    className="flex items-center w-full px-4 py-3 text-sm text-indigo-700 hover:bg-indigo-50 transition-colors duration-150"
+                    className="flex items-center w-full px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-indigo-700 hover:bg-indigo-50 transition-colors duration-150 cursor-pointer"
                     onClick={() => {
                       console.log("✏️ Editing product:", row);
                       setOpenDropdown(null);
                     }}
                   >
                     <svg
-                      className="w-4 h-4 mr-3"
+                      className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 sm:mr-3 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -1256,10 +1262,10 @@ const ProductPage = () => {
                       setIsAddModalOpen(true);
                       setOpenDropdown(null);
                     }}
-                    className="flex items-center w-full px-4 py-3 text-sm text-red-700 hover:bg-red-50 border-t border-gray-100 transition-colors duration-150"
+                    className="flex items-center w-full px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-red-700 hover:bg-red-50 border-t border-gray-100 transition-colors duration-150 cursor-pointer"
                   >
                     <svg
-                      className="w-4 h-4 mr-3"
+                      className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 sm:mr-3 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -1282,13 +1288,13 @@ const ProductPage = () => {
 
       {isAddModalOpen && (
         <div
-          className="fixed inset-0 flex justify-center items-center z-50 backdrop-blur-sm"
+          className="fixed inset-0 flex justify-center items-center z-[10000] backdrop-blur-sm p-3 sm:p-4"
           onClick={() => {
             setIsAddModalOpen(false);
           }}
         >
           <div
-            className="bg-white rounded-lg p-6 w-full max-w-md"
+            className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-end">
@@ -1296,16 +1302,16 @@ const ProductPage = () => {
                 onClick={() => {
                   setIsAddModalOpen(false);
                 }}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                className="text-gray-500 hover:text-gray-700 text-xl sm:text-2xl cursor-pointer"
               >
                 ×
               </button>
             </div>
-            <h3 className="text-lg font-semibold mb-4 -mt-7">
+            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 -mt-7 sm:-mt-7">
               {`Delete ${productType === "STYLE" ? "Style" : "Fabric"}`}
             </h3>
             <form
-              className="mt-6 space-y-4"
+              className="mt-4 sm:mt-6 space-y-4"
               onSubmit={(e) => {
                 if (!navigator.onLine) {
                   toastError(
@@ -1359,13 +1365,13 @@ const ProductPage = () => {
                 }
               }}
             >
-              <label className="block text-sm font-medium text-gray-700 mb-4">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-3 sm:mb-4">
                 Are you sure you want to delete {newCategory?.name}
               </label>
-              <div className="flex w-full justify-end gap-4 mt-6">
+              <div className="flex flex-col sm:flex-row w-full justify-end gap-2 sm:gap-4 mt-4 sm:mt-6">
                 <button
-                  className="mt-6 cursor-pointer w-full bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-3 text-sm rounded-md"
-                  //   className="bg-gray-300 hover:bg-gray-400 text-gray-800 w-full rounded-md"
+                  type="button"
+                  className="cursor-pointer w-full sm:w-auto bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 sm:py-3 text-xs sm:text-sm rounded-md transition-colors"
                   onClick={() => {
                     setIsAddModalOpen(false);
                   }}
@@ -1379,7 +1385,7 @@ const ProductPage = () => {
                     deleteAdminIsPending ||
                     deleteAdminStyleIsPending
                   }
-                  className="mt-6 cursor-pointer w-full bg-gradient text-white px-4 py-3 text-sm rounded-md"
+                  className="cursor-pointer w-full sm:w-auto bg-gradient text-white px-4 py-2 sm:py-3 text-xs sm:text-sm rounded-md transition-colors disabled:opacity-50"
                 >
                   {deleteIsPending ||
                   deleteAdminIsPending ||

@@ -35,7 +35,7 @@ const MeasurementsModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-gradient-to-br from-purple-50 via-white to-blue-50 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[95vh] overflow-hidden relative border border-purple-100">
         {/* Header */}
         <div className="bg-white/80 backdrop-blur-sm border-b border-purple-100 p-6">

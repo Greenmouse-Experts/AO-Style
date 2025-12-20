@@ -650,7 +650,7 @@ export default function InboxPage() {
     <div className="h-screen flex flex-col bg-gray-50">
       {/* Show loading state while profile is loading */}
       {profileLoading && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000]">
           <div className="bg-white rounded-lg p-6 flex items-center space-x-3">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
             <span className="text-gray-700">Loading profile...</span>
@@ -698,7 +698,7 @@ export default function InboxPage() {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         <div
-          className={`fixed inset-y-0 left-0 bg-white border-r border-gray-200 shadow-lg z-50 w-80 transition-transform duration-300 ease-in-out md:relative md:shadow-none md:translate-x-0 flex flex-col ${
+          className={`fixed inset-y-0 left-0 bg-white border-r border-gray-200 shadow-lg z-[10000] w-80 transition-transform duration-300 ease-in-out md:relative md:shadow-none md:translate-x-0 flex flex-col ${
             showSidebar ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -1022,7 +1022,7 @@ export default function InboxPage() {
 
       {/* New Message Modal */}
       {showNewMessageModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-[10000] p-4">
           <div className="bg-white rounded-lg w-full max-w-md">
             <div className="p-6 border-b border-gray-200">
               <div className="flex justify-between items-center">
@@ -1091,7 +1091,7 @@ export default function InboxPage() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.98 }}
           transition={{ type: "spring", stiffness: 350, damping: 30 }}
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-40 flex justify-center items-center z-50"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm bg-opacity-40 flex justify-center items-center z-[10000]"
         >
           <div
             className="bg-white p-8 rounded-lg max-w-xl w-full shadow-lg my-10"

@@ -46,8 +46,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       {/* Sidebar */}
       <div
         className={`fixed lg:relative top-0 left-0 h-screen bg-gradient p-5 flex flex-col transition-transform duration-300 z-40 overflow-y-auto ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 lg:w-72 w-64`}
+          isOpen ? "translate-x-0 z-40" : "-translate-x-full z-40"
+        } lg:translate-x-0 lg:w-72 w-64 z-40`}
       >
         {/* Logo */}
         <div className="flex justify-center">
@@ -169,7 +169,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
       {isAddModalOpen && (
         <div
-          className="fixed inset-0 flex justify-center items-center z-[999] backdrop-blur-sm"
+          className="fixed inset-0 flex justify-center items-center z-[10000] backdrop-blur-sm"
           onClick={() => {
             setIsAddModalOpen(false);
           }}

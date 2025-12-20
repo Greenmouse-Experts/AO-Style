@@ -278,7 +278,7 @@ export default function Filters({
           type="color"
           value={selectedColor}
           onChange={(e) => handleColorSelect(e.target.value)}
-          className="w-full h-10 mt-4 relative z-[9999] border rounded"
+          className="w-full h-10 mt-4 relative z-[10000] border rounded"
         />
       </div>
 

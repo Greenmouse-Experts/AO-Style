@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import useSignIn from "./hooks/useSigninMutate";
@@ -20,6 +20,8 @@ const initialValues = {
 };
 
 export default function SignInCustomer() {
+  const location = useLocation();
+  
   useEffect(() => {
     // Push a dummy state so that user can't go back
     window.history.pushState(null, "", window.location.href);

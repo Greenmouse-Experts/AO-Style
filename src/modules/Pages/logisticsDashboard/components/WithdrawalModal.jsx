@@ -105,7 +105,7 @@ const WithdrawalModal = ({ isOpen, onClose, businessWallet }) => {
 
   return (
     <div
-      className={`fixed inset-0 flex justify-center items-center z-50 transition-all duration-300 ease-out ${
+      className={`fixed inset-0 flex justify-center items-center z-[10000] transition-all duration-300 ease-out ${
         isOpen
           ? "opacity-100 backdrop-blur-sm bg-black/40 bg-opacity-30 visible"
           : "opacity-0 invisible"

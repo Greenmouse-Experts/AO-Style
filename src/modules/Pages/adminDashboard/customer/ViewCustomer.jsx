@@ -8,6 +8,7 @@ import Loader from "../../../../components/ui/Loader";
 import { formatDateStr } from "../../../../lib/helper";
 import ReviewList from "../../../../components/reviews/ReviewList";
 import CustomBackbtn from "../../../../components/CustomBackBtn";
+import PaginationButton from "../../../../components/PaginationButton";
 
 const ViewCustomer = () => {
   const { id } = useParams();
@@ -329,16 +330,14 @@ const ViewCustomer = () => {
         <ReusableTable columns={columns} data={currentItems} />
 
         {/* Pagination - Only shows if there is more than 1 page */}
-        {totalPages > 1 && (
+        {filteredOrders.length > 0 && totalPages > 1 && (
           <div className="flex justify-between items-center mt-4">
-            <div className="flex">
-              <p className="text-sm text-gray-600">
-                Page {currentPage} of {totalPages}
-              </p>
+            <div className="flex items-center">
+              <p className="text-sm text-gray-600">Items per page: </p>
               <select
                 value={itemsPerPage}
                 onChange={handleItemsPerPageChange}
-                className="py-2 px-3 border border-gray-200 ml-4 rounded-md outline-none text-sm w-auto"
+                className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
               >
                 <option value={5}>5</option>
                 <option value={10}>10</option>
@@ -346,21 +345,19 @@ const ViewCustomer = () => {
                 <option value={20}>20</option>
               </select>
             </div>
-            <div className="flex gap-1">
-              <button
+            <div className="flex gap-2">
+              <PaginationButton
                 onClick={handlePreviousPage}
                 disabled={currentPage === 1}
-                className="px-3 py-1 rounded-md bg-gray-200 disabled:opacity-50"
               >
-                ◀
-              </button>
-              <button
+                ◀ Previous
+              </PaginationButton>
+              <PaginationButton
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
-                className="px-3 py-1 rounded-md bg-gray-200 disabled:opacity-50"
               >
-                ▶
-              </button>
+                Next ▶
+              </PaginationButton>
             </div>
           </div>
         )}

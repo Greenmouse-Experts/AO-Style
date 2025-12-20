@@ -27,6 +27,7 @@ import useDeleteAdminFabric from "../../../../hooks/fabric/useDeleteAdminFabric"
 import useToast from "../../../../hooks/useToast";
 import useFetchVendorOrders from "../../../../hooks/order/useAdminFetchVendorOrders";
 import CustomTable from "../../../../components/CustomTable";
+import PaginationButton from "../../../../components/PaginationButton";
 
 // Removed static catalogData to prevent duplication with dynamic data
 
@@ -826,103 +827,52 @@ const ViewFabric = () => {
             }
           />
           {/* Pagination for Admin FAQs */}
-          {getAllFabricFabricData?.count > pageSize && (
-            <div className="mt-6 border-t border-gray-100 pt-6">
-              <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
-                <div className="text-sm text-gray-500">
-                  Showing {(currentPage - 1) * pageSize + 1}-
-                  {Math.min(
-                    currentPage * pageSize,
-                    getAllFabricFabricData?.count || 0,
-                  )}{" "}
-                  of {getAllFabricFabricData?.count || 0} Products
-                </div>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(1, prev - 1))
-                    }
-                    disabled={currentPage === 1 || adminProductIsPending}
-                    className={`px-3 py-1 rounded text-sm transition-all duration-200 ${
-                      currentPage === 1 || adminProductIsPending
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-white border border-gray-300 text-gray-700 hover:bg-[#9847FE] hover:text-white hover:border-[#9847FE]"
-                    }`}
-                  >
-                    Previous
-                  </button>
-
-                  {(() => {
-                    const totalPages = Math.ceil(
-                      (getAllFabricFabricData?.count || 0) / pageSize,
-                    );
-                    const maxVisiblePages = 5;
-                    let startPage = Math.max(
-                      1,
-                      currentPage - Math.floor(maxVisiblePages / 2),
-                    );
-                    let endPage = Math.min(
-                      totalPages,
-                      startPage + maxVisiblePages - 1,
-                    );
-
-                    if (endPage - startPage + 1 < maxVisiblePages) {
-                      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-                    }
-
-                    const pages = [];
-                    for (let i = startPage; i <= endPage; i++) {
-                      pages.push(i);
-                    }
-
-                    return pages.map((page) => (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        disabled={adminProductIsPending}
-                        className={`px-3 py-1 rounded text-sm transition-all duration-200 ${
-                          page === currentPage
-                            ? "bg-[#9847FE] text-white border border-[#9847FE]"
-                            : "bg-white border border-gray-300 text-gray-700 hover:bg-[#9847FE] hover:text-white hover:border-[#9847FE]"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ));
-                  })()}
-
-                  <button
-                    onClick={() =>
-                      setCurrentPage((prev) =>
-                        Math.min(
-                          Math.ceil(
-                            (getAllFabricFabricData?.count || 0) / pageSize,
-                          ),
-                          prev + 1,
-                        ),
-                      )
-                    }
-                    disabled={
-                      currentPage ===
-                        Math.ceil(
-                          (getAllFabricFabricData?.count || 0) / pageSize,
-                        ) || adminProductIsPending
-                    }
-                    className={`px-3 py-1 rounded text-sm transition-all duration-200 ${
-                      currentPage ===
-                        Math.ceil(
-                          (getAllFabricFabricData?.count || 0) / pageSize,
-                        ) || adminProductIsPending
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-white border border-gray-300 text-gray-700 hover:bg-[#9847FE] hover:text-white hover:border-[#9847FE]"
-                    }`}
-                  >
-                    Next
-                  </button>
+          {(() => {
+            const totalPages = Math.ceil(
+              (getAllFabricFabricData?.count || 0) / pageSize,
+            );
+            return getAllFabricFabricData?.count > 0 && totalPages > 1 && (
+              <div className="mt-6 border-t border-gray-100 pt-6">
+                <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+                  <div className="flex items-center">
+                    <p className="text-sm text-gray-600">Items per page: </p>
+                    <select
+                      value={pageSize}
+                      onChange={(e) => {
+                        // Note: pageSize is constant, but if you want to make it dynamic, you'd need to add state
+                      }}
+                      className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
+                      disabled
+                    >
+                      <option value={10}>10</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-2">
+                    <PaginationButton
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(1, prev - 1))
+                      }
+                      disabled={currentPage === 1 || adminProductIsPending}
+                    >
+                      ◀ Previous
+                    </PaginationButton>
+                    <PaginationButton
+                      onClick={() =>
+                        setCurrentPage((prev) =>
+                          Math.min(totalPages, prev + 1)
+                        )
+                      }
+                      disabled={
+                        currentPage === totalPages || adminProductIsPending
+                      }
+                    >
+                      Next ▶
+                    </PaginationButton>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
         </div>
 
         {/* Orders Handled */}
@@ -992,103 +942,52 @@ const ViewFabric = () => {
             columns={updatedColumn}
             data={fabricOrderData}
           />
-          {fetchVendorOrders?.count > orderPageSize && (
-            <div className="mt-6 border-t border-gray-100 pt-6">
-              <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
-                <div className="text-sm text-gray-500">
-                  Showing {(orderCurrentPage - 1) * orderPageSize + 1}-
-                  {Math.min(
-                    orderCurrentPage * orderPageSize,
-                    fetchVendorOrders?.count || 0,
-                  )}{" "}
-                  of {fetchVendorOrders?.count || 0} Orders
-                </div>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(1, prev - 1))
-                    }
-                    disabled={orderCurrentPage === 1 || fetchIsPending}
-                    className={`px-3 py-1 rounded text-sm transition-all duration-200 ${
-                      orderCurrentPage === 1 || fetchIsPending
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-white border border-gray-300 text-gray-700 hover:bg-[#9847FE] hover:text-white hover:border-[#9847FE]"
-                    }`}
-                  >
-                    Previous
-                  </button>
-
-                  {(() => {
-                    const totalPages = Math.ceil(
-                      (fetchVendorOrders?.count || 0) / orderPageSize,
-                    );
-                    const maxVisiblePages = 5;
-                    let startPage = Math.max(
-                      1,
-                      orderCurrentPage - Math.floor(maxVisiblePages / 2),
-                    );
-                    let endPage = Math.min(
-                      totalPages,
-                      startPage + maxVisiblePages - 1,
-                    );
-
-                    if (endPage - startPage + 1 < maxVisiblePages) {
-                      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-                    }
-
-                    const pages = [];
-                    for (let i = startPage; i <= endPage; i++) {
-                      pages.push(i);
-                    }
-
-                    return pages.map((page) => (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        disabled={fetchIsPending}
-                        className={`px-3 py-1 rounded text-sm transition-all duration-200 ${
-                          page === currentPage
-                            ? "bg-[#9847FE] text-white border border-[#9847FE]"
-                            : "bg-white border border-gray-300 text-gray-700 hover:bg-[#9847FE] hover:text-white hover:border-[#9847FE]"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ));
-                  })()}
-
-                  <button
-                    onClick={() =>
-                      setCurrentPage((prev) =>
-                        Math.min(
-                          Math.ceil(
-                            (fetchVendorOrders?.count || 0) / orderPageSize,
-                          ),
-                          prev + 1,
-                        ),
-                      )
-                    }
-                    disabled={
-                      orderCurrentPage ===
-                        Math.ceil(
-                          (fetchVendorOrders?.count || 0) / orderPageSize,
-                        ) || fetchIsPending
-                    }
-                    className={`px-3 py-1 rounded text-sm transition-all duration-200 ${
-                      orderCurrentPage ===
-                        Math.ceil(
-                          (fetchVendorOrders?.count || 0) / orderPageSize,
-                        ) || fetchIsPending
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-white border border-gray-300 text-gray-700 hover:bg-[#9847FE] hover:text-white hover:border-[#9847FE]"
-                    }`}
-                  >
-                    Next
-                  </button>
+          {(() => {
+            const totalPages = Math.ceil(
+              (fetchVendorOrders?.count || 0) / orderPageSize,
+            );
+            return fetchVendorOrders?.count > 0 && totalPages > 1 && (
+              <div className="mt-6 border-t border-gray-100 pt-6">
+                <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+                  <div className="flex items-center">
+                    <p className="text-sm text-gray-600">Items per page: </p>
+                    <select
+                      value={orderPageSize}
+                      onChange={(e) => {
+                        // Note: orderPageSize is constant, but if you want to make it dynamic, you'd need to add state
+                      }}
+                      className="py-2 px-3 border border-gray-200 ml-2 rounded-md outline-none text-sm w-auto"
+                      disabled
+                    >
+                      <option value={10}>10</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-2">
+                    <PaginationButton
+                      onClick={() =>
+                        setOrderCurrentPage((prev) => Math.max(1, prev - 1))
+                      }
+                      disabled={orderCurrentPage === 1 || fetchIsPending}
+                    >
+                      ◀ Previous
+                    </PaginationButton>
+                    <PaginationButton
+                      onClick={() =>
+                        setOrderCurrentPage((prev) =>
+                          Math.min(totalPages, prev + 1)
+                        )
+                      }
+                      disabled={
+                        orderCurrentPage === totalPages || fetchIsPending
+                      }
+                    >
+                      Next ▶
+                    </PaginationButton>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
         </div>
       </div>
 

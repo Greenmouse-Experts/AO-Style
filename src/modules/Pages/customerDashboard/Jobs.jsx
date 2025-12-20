@@ -132,7 +132,7 @@ export default function Jobs() {
     const { mutate: uploadDocument } = useMutation({
       mutationFn: MediaService.uploadDocument,
       onError: (error) => {
-        toastError(error.message || "Failed to upload document");
+        toastError(error?.data?.message || "Failed to upload document");
       },
     });
 
@@ -257,7 +257,7 @@ export default function Jobs() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[10000] p-4"
         onClick={handleClose}
       >
         <motion.div
@@ -678,7 +678,7 @@ export default function Jobs() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[10000] p-4"
             onClick={handleJobModalClose}
           >
             <motion.div

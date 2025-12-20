@@ -1,0 +1,40 @@
+name: Deploy to AWS EC2 Instance
+
+on:
+  push:
+    branches:
+      - new_carybin
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+
+            echo "🚀 Deploying Doexcess..."
+
+            cd /var/www/website
+
+            echo "📥 Pulling latest changes..."
+            git pull origin new_carybin
+
+            echo "📦 Installing dependencies..."
+            npm install --production
+
+            echo "♻️ Restarting PM2..."
+            pm2 restart 1 || pm2 start ecosystem.config.js
+
+            pm2 save
+
+            echo "✅ Deployment completed successfully!"

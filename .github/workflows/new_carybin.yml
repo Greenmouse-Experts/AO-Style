@@ -32,6 +32,9 @@ jobs:
             echo "📦 Installing dependencies..."
             npm install --force
 
+            echo "Run build"
+            npm run build
+
             echo "♻️ Restarting PM2..."
             pm2 restart 1 || pm2 start ecosystem.config.js
 

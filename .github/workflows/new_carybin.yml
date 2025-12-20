@@ -22,7 +22,7 @@ jobs:
           script: |
             set -e
 
-            echo "🚀 Deploying Doexcess..."
+            echo "🚀 Deploying Carybin..."
 
             cd /var/www/website
 
@@ -30,7 +30,7 @@ jobs:
             git pull origin new_carybin
 
             echo "📦 Installing dependencies..."
-            npm install
+            npm install --force
 
             echo "♻️ Restarting PM2..."
             pm2 restart 1 || pm2 start ecosystem.config.js

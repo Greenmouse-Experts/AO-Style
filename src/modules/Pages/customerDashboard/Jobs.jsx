@@ -135,7 +135,7 @@ export default function Jobs() {
         toastError(error?.data?.message || "Failed to upload document");
       },
     });
-
+ 
     const handleInputChange = (e) => {
       const { name, value } = e.target;
       setFormData((prev) => ({

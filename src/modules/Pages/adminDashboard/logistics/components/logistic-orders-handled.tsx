@@ -250,7 +250,7 @@ export default function LogisticsOrdersHandled({ id }: { id: string }) {
     queryFn: async () => {
       let resp = await CaryBinApi.get("/orders/fetch", {
         params: {
-          user_id: id,
+          logistics_agent_id: id,
           ...(currentStatus.trim() ? { status: currentStatus } : {}),
         },
       });

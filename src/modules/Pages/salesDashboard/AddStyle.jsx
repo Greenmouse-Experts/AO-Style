@@ -120,7 +120,7 @@ const AddStyle = () => {
       name: "",
       category_id: "",
       description: "",
-      gender: "female",
+      gender: "",
       tags: "",
       price: "",
       estimated_sewing_time: 1,
@@ -128,14 +128,33 @@ const AddStyle = () => {
       video_url: "",
     },
     validationSchema,
-    onSubmit: (values) => {
-      // Filter out empty strings to get only uploaded images
-      const uploadedPhotos = photoUrls.filter((url) => url !== "");
+    validateOnChange: true,
+    validateOnBlur: true,
+    onSubmit: async (values, { setSubmitting, setTouched, setErrors }) => {
+      // Mark all fields as touched to show validation errors
+      setTouched({
+        vendor_id: true,
+        name: true,
+        category_id: true,
+        description: true,
+        gender: true,
+        price: true,
+        estimated_sewing_time: true,
+        minimum_fabric_qty: true,
+      });
 
-      if (uploadedPhotos.length === 0) {
-        toastError("Please upload at least one photo");
-        return;
-      }
+      try {
+        // Validate the form
+        await validationSchema.validate(values, { abortEarly: false });
+
+        // Filter out empty strings to get only uploaded images
+        const uploadedPhotos = photoUrls.filter((url) => url !== "");
+
+        if (uploadedPhotos.length === 0) {
+          toastError("Please upload at least one photo");
+          setSubmitting(false);
+          return;
+        }
 
       const payload = {
         vendor_id: values.vendor_id,
@@ -160,27 +179,46 @@ const AddStyle = () => {
         },
       };
 
-      console.log("🔧 STYLE PAYLOAD: Sending payload to API:", payload);
+        console.log("🔧 STYLE PAYLOAD: Sending payload to API:", payload);
 
-      createMarketRepStyleMutate(payload, {
-        onSuccess: (response) => {
-          console.log("🎉 Style creation response:", response);
-          clearDraft(); // Clear draft on successful submission
-          toastSuccess(response.message || "Style created successfully!");
-          navigate("/sales/my-products");
-        },
-        onError: (error) => {
-          console.log(error)
-          const errorMessage =
-            error?.response?.data?.data?.message ||
-            error?.response?.data?.message ||
-            error?.message ||
-            error?.data?.message
-            "Failed to create style. Please try again.";
+        createMarketRepStyleMutate(payload, {
+          onSuccess: (response) => {
+            console.log("🎉 Style creation response:", response);
+            clearDraft(); // Clear draft on successful submission
+            toastSuccess(response.message || "Style created successfully!");
+            navigate("/sales/my-products");
+            setSubmitting(false);
+          },
+          onError: (error) => {
+            console.log(error);
+            const errorMessage =
+              error?.response?.data?.data?.message ||
+              error?.response?.data?.message ||
+              error?.message ||
+              error?.data?.message ||
+              "Failed to create style. Please try again.";
 
-          toastError(errorMessage);
-        },
-      });
+            toastError(errorMessage);
+            setSubmitting(false);
+          },
+        });
+      } catch (validationErrors) {
+        // Handle validation errors
+        setSubmitting(false);
+        const errorMessages = validationErrors.inner?.map((err) => err.message) || [];
+        
+        // Set errors in Formik so they display below fields
+        const formikErrors = {};
+        validationErrors.inner?.forEach((error) => {
+          if (error.path) {
+            formikErrors[error.path] = error.message;
+          }
+        });
+        setErrors(formikErrors);
+        
+        // Show toast notification
+        toastError("Please fill in all required fields before submitting.");
+      }
     },
   });
 
@@ -850,7 +888,31 @@ const AddStyle = () => {
           </button>
           <button
             type="submit"
-            disabled={isCreating}
+            disabled={
+              isCreating ||
+              isUploadingImages.some((uploading) => uploading) ||
+              isUploadingVideo
+            }
+            onClick={async () => {
+              // Mark all fields as touched first
+              formik.setTouched({
+                vendor_id: true,
+                name: true,
+                category_id: true,
+                description: true,
+                gender: true,
+                price: true,
+                estimated_sewing_time: true,
+                minimum_fabric_qty: true,
+              });
+
+              // Validate and show toast if errors exist
+              try {
+                await validationSchema.validate(formik.values, { abortEarly: false });
+              } catch {
+                toastError("Please fill in all required fields before submitting.");
+              }
+            }}
             className="cursor-pointer px-6 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-md hover:from-purple-600 hover:to-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
           >
             {isCreating ? (

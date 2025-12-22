@@ -167,72 +167,116 @@ const AddFabric = () => {
       enable_increment: false,
     },
     validationSchema,
-    onSubmit: (values) => {
-      // Filter out empty strings to get only uploaded images
-      const uploadedPhotos = photoUrls.filter((url) => url !== "");
+    validateOnChange: true,
+    validateOnBlur: true,
+    onSubmit: async (values, { setSubmitting, setTouched, setErrors }) => {
+      // Mark all fields as touched to show validation errors
+      setTouched({
+        vendor_id: true,
+        name: true,
+        category_id: true,
+        description: true,
+        gender: true,
+        price: true,
+        quantity: true,
+        market_id: true,
+        weight_per_unit: true,
+        local_name: true,
+        manufacturer_name: true,
+        material_type: true,
+        fabric_texture: true,
+        minimum_yards: true,
+        available_colors: true,
+        fabric_colors: true,
+      });
 
-      if (uploadedPhotos.length === 0) {
-        toastError("Please upload at least one photo");
-        return;
+      try {
+        // Validate the form
+        await validationSchema.validate(values, { abortEarly: false });
+          // Filter out empty strings to get only uploaded images
+          const uploadedPhotos = photoUrls.filter((url) => url !== "");
+
+          if (uploadedPhotos.length === 0) {
+            toastError("Please upload at least one photo");
+            setSubmitting(false);
+            return;
+          }
+
+          console.log("Selected vendor ID:", values.vendor_id);
+          const payload = {
+            vendor_id: values.vendor_id,
+            product: {
+              type: "FABRIC",
+              status: "PUBLISHED",
+              approval_status: "DRAFT",
+              name: values.name,
+              category_id: values.category_id,
+              description: values.description,
+              gender: values.gender,
+              tags: values.tags
+                ? values.tags.split(",").map((tag) => tag.trim())
+                : [],
+              price: values.price.toString(),
+              enable_increment: !!values.enable_increment,
+            },
+            fabric: {
+              market_id: values.market_id,
+              weight_per_unit: values.weight_per_unit.toString(),
+              local_name: values.local_name,
+              manufacturer_name: values.manufacturer_name,
+              material_type: values.material_type,
+              alternative_names: values.alternative_names,
+              fabric_texture: values.fabric_texture,
+              feel_a_like: values.feel_a_like,
+              quantity: parseInt(values.quantity),
+              minimum_yards: values.minimum_yards.toString(),
+              available_colors: selectedColors.length.toString(), // Count of colors as string
+              fabric_colors: selectedColors.join(","), // Actual color values
+              photos: uploadedPhotos, // Send only non-empty URLs
+              video_url: values.video_url,
+            },
+          };
+
+          console.log("🔧 FABRIC PAYLOAD: Sending payload to API:", payload);
+          console.log("🔧 FABRIC PAYLOAD: Payload structure:", {
+            vendor_id: payload.vendor_id,
+            product: payload.product,
+            fabric: payload.fabric,
+          });
+          console.log(
+            "🔧 FABRIC PAYLOAD: Photos count:",
+            payload.fabric.photos.length,
+          );
+
+          createMarketRepFabricMutate(payload, {
+            onSuccess: (response) => {
+              console.log("🎉 Fabric creation response:", response);
+              clearDraft();
+              toastSuccess("Fabric created successfully!");
+              navigate("/sales/my-products");
+              setSubmitting(false);
+            },
+            onError: (error) => {
+              console.log(error?.data?.message || error?.message);
+              setSubmitting(false);
+            },
+          });
+      } catch (validationErrors) {
+        // Handle validation errors
+        setSubmitting(false);
+        
+        // Set errors in Formik so they display below fields
+        const formikErrors = {};
+        validationErrors.inner?.forEach((error) => {
+          if (error.path) {
+            formikErrors[error.path] = error.message;
+          }
+        });
+        setErrors(formikErrors);
+        
+        // Show toast notification
+        toastError("Please fill in all required fields before submitting.");
       }
-
-      console.log("Selected vendor ID:", values.vendor_id);
-      const payload = {
-        vendor_id: values.vendor_id,
-        product: {
-          type: "FABRIC",
-          status: "PUBLISHED",
-          approval_status: "DRAFT",
-          name: values.name,
-          category_id: values.category_id,
-          description: values.description,
-          gender: values.gender,
-          tags: values.tags
-            ? values.tags.split(",").map((tag) => tag.trim())
-            : [],
-          price: values.price.toString(),
-          enable_increment: !!values.enable_increment,
-        },
-        fabric: {
-          market_id: values.market_id,
-          weight_per_unit: values.weight_per_unit.toString(),
-          local_name: values.local_name,
-          manufacturer_name: values.manufacturer_name,
-          material_type: values.material_type,
-          alternative_names: values.alternative_names,
-          fabric_texture: values.fabric_texture,
-          feel_a_like: values.feel_a_like,
-          quantity: parseInt(values.quantity),
-          minimum_yards: values.minimum_yards.toString(),
-          available_colors: selectedColors.length.toString(), // Count of colors as string
-          fabric_colors: selectedColors.join(","), // Actual color values
-          photos: uploadedPhotos, // Send only non-empty URLs
-          video_url: values.video_url,
-        },
-      };
-
-      console.log("🔧 FABRIC PAYLOAD: Sending payload to API:", payload);
-      console.log("🔧 FABRIC PAYLOAD: Payload structure:", {
-        vendor_id: payload.vendor_id,
-        product: payload.product,
-        fabric: payload.fabric,
-      });
-      console.log(
-        "🔧 FABRIC PAYLOAD: Photos count:",
-        payload.fabric.photos.length,
-      );
-
-      createMarketRepFabricMutate(payload, {
-        onSuccess: (response) => {
-          console.log("🎉 Fabric creation response:", response);
-          clearDraft();
-          toastSuccess("Fabric created successfully!");
-          navigate("/sales/my-products");
-        },
-        onError: (error) => {
-          console.log(error?.data?.message || error?.message);
-        },
-      });
     },
   });
 
@@ -689,6 +733,9 @@ const AddFabric = () => {
               <option value="female">Female</option>
               <option value="unisex">Unisex</option>
             </select>
+            {formik.touched.gender && formik.errors.gender && (
+              <p className="text-red-500 text-sm mt-1">{formik.errors.gender}</p>
+            )}
           </div>
 
           <div>
@@ -1153,6 +1200,34 @@ const AddFabric = () => {
               isUploadingImages.some((uploading) => uploading) ||
               isUploadingVideo
             }
+            onClick={async () => {
+              // Mark all fields as touched first
+              formik.setTouched({
+                vendor_id: true,
+                name: true,
+                category_id: true,
+                description: true,
+                gender: true,
+                price: true,
+                quantity: true,
+                market_id: true,
+                weight_per_unit: true,
+                local_name: true,
+                manufacturer_name: true,
+                material_type: true,
+                fabric_texture: true,
+                minimum_yards: true,
+                available_colors: true,
+                fabric_colors: true,
+              });
+
+              // Validate and show toast if errors exist
+              try {
+                await validationSchema.validate(formik.values, { abortEarly: false });
+              } catch {
+                toastError("Please fill in all required fields before submitting.");
+              }
+            }}
             className="cursor-pointer px-6 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-md hover:from-purple-600 hover:to-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
           >
             {isCreating ? (

@@ -39,7 +39,7 @@ export default function StatsCard() {
                   customerExpensesStat?.data?.styleExpenses
               )
         }`,
-        label: "Total Spent",
+        label: "Fabric/Tailors",
       },
     ],
     [data?.data]

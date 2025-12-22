@@ -6,7 +6,7 @@ import { FaEllipsisH } from "react-icons/fa";
 import { AiOutlineSearch } from "react-icons/ai";
 import { BsFilter } from "react-icons/bs";
 
-import useQueryParams from "../../../hooks/useQueryParams";
+// import useQueryParams from "../../../hooks/useQueryParams"; // Commented out - not currently used
 // import useFetchAllCartTransactions from "../../../hooks/admin/useFetchAllCartTransactions";
 
 import { formatDateStr } from "../../../lib/helper";
@@ -32,7 +32,7 @@ const PaymentTransactionTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [activeTab, setActiveTab] = useState("All Transactions");
+  const [activeTab, setActiveTab] = useState("Income");
   const [payoutSubTab, setPayoutSubTab] = useState("All");
   const [_selectAll, setSelectAll] = useState(false);
   const [_selectedRows, setSelectedRows] = useState(new Set());
@@ -81,7 +81,7 @@ const PaymentTransactionTable = () => {
             notesData?.transfer_reference ||
             null
           );
-        } catch (e) {
+        } catch {
           // Ignore
         }
       }
@@ -122,7 +122,9 @@ const PaymentTransactionTable = () => {
   const { data: withdrawalData, isPending: isWithdrawalPending } =
     useFetchAllWithdrawals({});
 
-  const tabs = ["All Transactions", "Income", "Payouts"];
+  // const tabs = ["All Transactions", "Income", "Payouts"];
+  const tabs = ["Income", "Payouts"]; // Commented out "All Transactions" - can be restored later
+  
   const nav = useNavigate();
 
   // Handle transfer operations
@@ -349,12 +351,13 @@ const PaymentTransactionTable = () => {
 
     // Remove frontend filtering - backend now handles filtering via query params
     // Income and Payouts are now filtered on the backend
-    if (activeTab === "All Transactions") {
-      return [...arr, ...WithdrawalData];
-    }
+    // Commented out "All Transactions" logic - can be restored later
+    // if (activeTab === "All Transactions") {
+    //   return [...arr, ...WithdrawalData];
+    // }
 
     return arr;
-  }, [getAllTransactionData?.data, searchTerm, activeTab, WithdrawalData]);
+  }, [getAllTransactionData?.data, searchTerm]); // Removed WithdrawalData and activeTab - not used since "All Transactions" is commented out
 
   // AGINATION LOGIC (Frontend-based)
   // Get current page data for display; calculate page count from filtered dataset

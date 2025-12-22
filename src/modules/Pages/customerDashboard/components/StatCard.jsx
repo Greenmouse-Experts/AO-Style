@@ -40,7 +40,7 @@ export default function StatsCard() {
               )
         }`,
         label: "Fabric/Tailors",
-      },
+      }, 
     ],
     [data?.data]
   );

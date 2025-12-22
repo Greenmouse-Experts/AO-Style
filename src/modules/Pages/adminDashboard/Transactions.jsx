@@ -103,9 +103,18 @@ const PaymentTransactionTable = () => {
   // We will use our own local pagination
   // Fetch all data as before; optionally fetch pages server-side if API supports; else do front-end paging
   const { data: getAllTransactionData, isPending: isPending } = useQuery({
-    queryKey: ["transactions_admin"],
+    queryKey: ["transactions_admin", activeTab],
     queryFn: async () => {
-      let resp = await CaryBinApi.get("/payment/fetch-all", {});
+      // Build query parameters based on active tab
+      const params = {};
+      if (activeTab === "Income") {
+        params.transaction_type = "CREDIT";
+      } else if (activeTab === "Payouts") {
+        params.purchase_type = "PRODUCT";
+      }
+      // For "All Transactions", don't add any filter params
+      
+      let resp = await CaryBinApi.get("/payment/fetch-all", { params });
       return resp.data;
     },
   });
@@ -338,14 +347,8 @@ const PaymentTransactionTable = () => {
       );
     }
 
-    if (activeTab === "Income") {
-      arr = arr.filter(
-        (transaction) =>
-          transaction.transactionType &&
-          transaction.transactionType.toLowerCase() !== "withdrawal",
-      );
-    }
-
+    // Remove frontend filtering - backend now handles filtering via query params
+    // Income and Payouts are now filtered on the backend
     if (activeTab === "All Transactions") {
       return [...arr, ...WithdrawalData];
     }

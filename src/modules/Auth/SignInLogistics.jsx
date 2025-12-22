@@ -107,7 +107,9 @@ export default function SignUpAsLogisticsAgent() {
             business: {
               business_name: val.business_name,
               business_type: val.business_type,
-              business_registration_number: val.business_registration_number,
+              ...(val.business_registration_number && val.business_registration_number.trim() !== "" 
+                ? { business_registration_number: val.business_registration_number } 
+                : {}),
               location: val.location,
               state: val.state || "",
             },

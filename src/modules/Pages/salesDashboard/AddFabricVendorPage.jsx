@@ -190,6 +190,9 @@ export default function AddFabricVendorPage() {
           business: {
             business_name: val?.business_name,
             business_type: val?.business_type,
+            ...(val?.business_registration_number && val.business_registration_number.trim() !== "" 
+              ? { business_registration_number: val.business_registration_number } 
+              : {}),
             location: val?.location,
             country: val?.business_country || val?.country,
             state: val?.business_state || val?.state_raw || val?.state, // Use raw Google value

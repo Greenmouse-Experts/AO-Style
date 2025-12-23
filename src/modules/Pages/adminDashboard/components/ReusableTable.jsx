@@ -1,6 +1,18 @@
 import Loader from "../../../../components/ui/Loader";
 
 const ReusableTable = ({ columns, data, loading }) => {
+  // Safety check: ensure columns is an array
+  if (!columns || !Array.isArray(columns) || columns.length === 0) {
+    return (
+      <div className="bg-white overflow-visible p-6 text-center text-gray-500">
+        No columns defined
+      </div>
+    );
+  }
+
+  // Safety check: ensure data is an array
+  const safeData = Array.isArray(data) ? data : [];
+
   return (
     <div className="bg-white overflow-visible">
       {loading ? (
@@ -13,6 +25,7 @@ const ReusableTable = ({ columns, data, loading }) => {
           <thead>
             <tr className="text-left text-gray-600">
               {columns.map((col, index) => {
+                if (!col) return null;
                 const alignClass = col.align === "right" 
                   ? "text-right" 
                   : col.align === "center" 
@@ -38,7 +51,7 @@ const ReusableTable = ({ columns, data, loading }) => {
           {/* Table Body */}
 
           <tbody>
-            {data.map((row, rowIndex) => (
+            {safeData.map((row, rowIndex) => (
               <tr
                 key={row.id || `row-${rowIndex}`}
                 className={`border-b border-gray-200 ${
@@ -46,6 +59,7 @@ const ReusableTable = ({ columns, data, loading }) => {
                 } hover:bg-gray-100`}
               >
                 {columns.map((col, colIndex) => {
+                  if (!col || !col.key) return null;
                   const alignClass = col.align === "right" 
                     ? "text-right" 
                     : col.align === "center" 
@@ -72,17 +86,27 @@ const ReusableTable = ({ columns, data, loading }) => {
 
       {/* Mobile View: Custom Card Layout Designed for Mobile */}
       <div className="block sm:hidden">
-        {data?.map((row, rowIndex) => {
-          // Find specific columns for mobile layout
-          const imageCol = columns?.find((col) => col.key === "image");
-          const nameCol = columns?.find((col) => col.key === "name");
-          const skuCol = columns?.find((col) => col.key === "sku");
-          const categoryCol = columns?.find((col) => col.key === "category");
-          const fabricTypeCol = columns?.find((col) => col.key === "fabric_type");
-          const priceCol = columns?.find((col) => col.key === "price");
-          const stockCol = columns?.find((col) => col.key === "qty");
-          const statusCol = columns?.find((col) => col.key === "admin-status");
-          const actionCol = columns?.find((col) => col.key === "action");
+        {safeData?.map((row, rowIndex) => {
+          // Safety check: ensure columns exist and is an array
+          if (!columns || !Array.isArray(columns) || columns.length === 0) {
+            return null;
+          }
+          
+          // Find specific columns for mobile layout - with null safety
+          const imageCol = columns.find((col) => col && col.key === "image");
+          const nameCol = columns.find((col) => col && col.key === "name");
+          const skuCol = columns.find((col) => col && col.key === "sku");
+          const categoryCol = columns.find((col) => col && col.key === "category");
+          const fabricTypeCol = columns.find((col) => col && col.key === "fabric_type");
+          const priceCol = columns.find((col) => col && col.key === "price");
+          const stockCol = columns.find((col) => col && col.key === "qty");
+          const statusCol = columns.find((col) => col && col.key === "admin-status");
+          const actionCol = columns.find((col) => col && col.key === "action");
+          
+          // Get other columns that aren't the special ones
+          const otherCols = columns.filter(
+            (col) => col && col.key && !["image", "name", "sku", "category", "fabric_type", "price", "qty", "admin-status", "action"].includes(col.key)
+          );
 
 
           return (
@@ -94,7 +118,7 @@ const ReusableTable = ({ columns, data, loading }) => {
               <div className="p-4">
                 <div className="flex gap-3 items-start">
                   {/* Product Image */}
-                  {imageCol && (
+                  {imageCol && imageCol.key && (
                     <div className="flex-shrink-0">
                       {imageCol.render
                         ? imageCol.render(row[imageCol.key], row)
@@ -107,19 +131,25 @@ const ReusableTable = ({ columns, data, loading }) => {
                     <div className="flex items-start justify-between gap-2 mb-1">
                       {/* Product Name - Takes available space */}
                       <div className="flex-1 min-w-0">
-                        {nameCol && nameCol.render ? (
-                          <div className="pr-2">
-                            {nameCol.render(row[nameCol.key], row)}
-                          </div>
+                        {nameCol && nameCol.key ? (
+                          nameCol.render ? (
+                            <div className="pr-2">
+                              {nameCol.render(row[nameCol.key], row)}
+                            </div>
+                          ) : (
+                            <div className="font-semibold text-gray-900 text-sm leading-tight pr-2">
+                              {row[nameCol.key] || "Unnamed Product"}
+                            </div>
+                          )
                         ) : (
                           <div className="font-semibold text-gray-900 text-sm leading-tight pr-2">
-                            {row[nameCol.key] || "Unnamed Product"}
+                            {row.name || "Unnamed Product"}
                           </div>
                         )}
                       </div>
                       
                       {/* Actions Button - Fixed on right */}
-                      {actionCol && (
+                      {actionCol && actionCol.key && (
                         <div className="flex-shrink-0">
                           {actionCol.render
                             ? actionCol.render(row[actionCol.key], row)
@@ -129,7 +159,7 @@ const ReusableTable = ({ columns, data, loading }) => {
                     </div>
                     
                     {/* SKU */}
-                    {skuCol && (
+                    {skuCol && skuCol.key && (
                       <div className="mt-2">
                         {skuCol.render
                           ? skuCol.render(row[skuCol.key], row)
@@ -146,7 +176,7 @@ const ReusableTable = ({ columns, data, loading }) => {
               {/* Details Section - All items stacked vertically */}
               <div className="px-4 py-3 space-y-3">
                 {/* Category */}
-                {categoryCol && (
+                {categoryCol && categoryCol.key && (
                   <div>
                     <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
                       Category
@@ -160,7 +190,7 @@ const ReusableTable = ({ columns, data, loading }) => {
                 )}
 
                 {/* Fabric Type */}
-                {fabricTypeCol && (
+                {fabricTypeCol && fabricTypeCol.key && (
                   <div>
                     <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
                       Fabric Type
@@ -174,7 +204,7 @@ const ReusableTable = ({ columns, data, loading }) => {
                 )}
 
                 {/* Price */}
-                {priceCol && (
+                {priceCol && priceCol.key && (
                   <div>
                     <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
                       Price
@@ -188,7 +218,7 @@ const ReusableTable = ({ columns, data, loading }) => {
                 )}
 
                 {/* Stock */}
-                {stockCol && (
+                {stockCol && stockCol.key && (
                   <div>
                     <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
                       Stock
@@ -206,7 +236,7 @@ const ReusableTable = ({ columns, data, loading }) => {
               <div className="border-t border-gray-100"></div>
 
               {/* Status Section */}
-              {statusCol && (
+              {statusCol && statusCol.key && (
                 <div className="px-4 py-3 bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
@@ -219,6 +249,30 @@ const ReusableTable = ({ columns, data, loading }) => {
                     </div>
                   </div>
                 </div>
+              )}
+
+              {/* Other columns that don't match the special keys */}
+              {otherCols.length > 0 && (
+                <>
+                  <div className="border-t border-gray-100"></div>
+                  <div className="px-4 py-3 space-y-3">
+                    {otherCols.map((col, colIndex) => {
+                      if (!col || !col.key) return null;
+                      return (
+                        <div key={`other-${colIndex}`}>
+                          <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+                            {col.label || col.key}
+                          </div>
+                          <div>
+                            {col.render
+                              ? col.render(row[col.key], row)
+                              : row[col.key] || "N/A"}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
               )}
             </div>
           );

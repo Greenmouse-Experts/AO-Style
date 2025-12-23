@@ -248,9 +248,10 @@ export default function LogisticsOrdersHandled({ id }: { id: string }) {
   const orders = useQuery<LogisticsOrdersResponse>({
     queryKey: ["logistis", id, currentStatus],
     queryFn: async () => {
+      // Fetch all orders without filtering by logistics_agent_id on the backend
+      // We'll filter on the frontend based on first_leg_logistics_agent_id and logistics_agent_id
       let resp = await CaryBinApi.get("/orders/fetch", {
         params: {
-          logistics_agent_id: id,
           ...(currentStatus.trim() ? { status: currentStatus } : {}),
         },
       });
@@ -325,7 +326,26 @@ export default function LogisticsOrdersHandled({ id }: { id: string }) {
     );
   }
 
-  const data = orders.data?.data;
+  // Filter orders based on the requirements:
+  // 1. Exclude orders that don't have both first_leg_logistics_agent_id AND logistics_agent_id
+  // 2. For orders with either ID, show only if it matches the viewed agent's ID
+  const filteredData = orders.data?.data?.filter((order) => {
+    // Exclude if both IDs are missing/null
+    if (!order.first_leg_logistics_agent_id && !order.logistics_agent_id) {
+      return false;
+    }
+    // Show if either ID matches the viewed agent's ID
+    return (
+      order.first_leg_logistics_agent_id === id ||
+      order.logistics_agent_id === id
+    );
+  }) || [];
+
+  // Apply status filter if needed
+  const data = currentStatus.trim()
+    ? filteredData.filter((order) => order.status === currentStatus)
+    : filteredData;
+
   interface column {
     key: string;
     label: string;
@@ -336,12 +356,17 @@ export default function LogisticsOrdersHandled({ id }: { id: string }) {
       key: "id",
       label: "id",
       render: (_, item) => {
+        // Format order ID: first 12 characters without hyphens, all uppercase
+        const formattedId = item.id
+          .replace(/-/g, "")
+          .slice(0, 12)
+          .toUpperCase();
         return (
           <span
             className="bg-transparent w-[120px] line-clamp-1 overflow-ellipsis"
             data-theme="nord"
           >
-            {item.id}
+            {formattedId}
           </span>
         );
       },
@@ -431,7 +456,7 @@ export default function LogisticsOrdersHandled({ id }: { id: string }) {
           ))}
         </div>
         <div className="badge my-auto badge-primary badge-soft">
-          count: {orders.data?.count}
+          count: {data.length}
         </div>
       </div>
       <CustomTable data={data} columns={columns} actions={actions} />

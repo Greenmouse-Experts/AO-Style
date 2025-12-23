@@ -177,21 +177,25 @@ const PaymentTransactionTable = () => {
         label: "Status",
         key: "status",
         className: "text-gray-500 font-medium text-sm py-4",
-        render: (status) => (
-          <span
-            className={`px-2 py-1 text-sm rounded-full font-medium ${
-              status === "In-Progress" || status === "PENDING"
-                ? "bg-blue-100 text-blue-500"
-                : status === "ACCEPTED" || status === "Completed"
-                  ? "bg-green-100 text-green-500"
-                  : status === "DECLINED"
-                    ? "bg-red-100 text-red-500"
-                    : "bg-gray-100 text-gray-500"
-            }`}
-          >
-            {status}
-          </span>
-        ),
+        render: (status) => {
+          // For Income tab, show "CANCELLED" instead of "PENDING"
+          const displayStatus = activeTab === "Income" && status === "PENDING" ? "CANCELLED" : status;
+          return (
+            <span
+              className={`px-2 py-1 text-sm rounded-full font-medium ${
+                displayStatus === "In-Progress" || displayStatus === "PENDING"
+                  ? "bg-blue-100 text-blue-500"
+                  : displayStatus === "ACCEPTED" || displayStatus === "Completed" || displayStatus === "SUCCESS"
+                    ? "bg-green-100 text-green-500"
+                    : displayStatus === "DECLINED" || displayStatus === "CANCELLED"
+                      ? "bg-red-100 text-red-500"
+                      : "bg-gray-100 text-gray-500"
+              }`}
+            >
+              {displayStatus}
+            </span>
+          );
+        },
       },
       {
         key: "action",
@@ -217,7 +221,8 @@ const PaymentTransactionTable = () => {
             >
               View Details
             </button>
-            {!item.isInitiated && item.status === "PENDING" && (
+            {/* Only show transfer buttons for Payouts tab, not Income */}
+            {activeTab !== "Income" && !item.isInitiated && item.status === "PENDING" && (
               <button
                 onClick={() => openTransferModal("initiate", item)}
                 className="cursor-pointer text-blue-600 hover:text-blue-800 text-sm font-medium"
@@ -225,7 +230,7 @@ const PaymentTransactionTable = () => {
                 Initiate Transfer
               </button>
             )}
-            {item.isInitiated && (
+            {activeTab !== "Income" && item.isInitiated && (
               <button
                 onClick={() => openTransferModal("finalize", item)}
                 className="cursor-pointer text-green-600 hover:text-green-800 text-sm font-medium"

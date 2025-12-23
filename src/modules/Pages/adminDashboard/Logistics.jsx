@@ -599,6 +599,40 @@ const CustomersTable = () => {
         </div>
       </div>
 
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pb-3 mb-4 gap-4">
+        <div className="flex flex-wrap justify-center sm:justify-start gap-3 text-gray-600 text-sm font-medium">
+          {["registered", "pending", "rejected", "invites"].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => {
+                setCurrView(tab);
+                updateQueryParams({
+                  "pagination[page]": 1,
+                });
+              }}
+              className={`font-medium capitalize px-3 py-1 ${
+                currView === tab
+                  ? "text-[#A14DF6] border-b-2 border-[#A14DF6]"
+                  : "text-gray-500"
+              }`}
+            >
+              {tab === "rejected"
+                ? "Expired"
+                : tab === "pending"
+                ? "pending invite"
+                : tab}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Active Filters Display */}
+      <ActiveFilters
+        activeFilters={activeFilters}
+        onRemoveFilter={removeFilter}
+        onClearAll={clearDateFilters}
+      />
+
       {activeTab === "table" ? (
         <>
           {!isLoading && (currView === "registered" ? LogisticsData : InviteData).length === 0 ? (
@@ -969,6 +1003,12 @@ const CustomersTable = () => {
         cancelText="Cancel"
         type="danger"
         isLoading={deleteIsPending}
+      />
+
+      {/* Add New Logistics Modal */}
+      <AddNewUser
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
       />
     </div>
   );

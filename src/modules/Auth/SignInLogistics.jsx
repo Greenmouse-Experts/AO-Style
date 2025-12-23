@@ -12,6 +12,7 @@ import Select from "react-select";
 import PhoneInput from "react-phone-input-2";
 import { usePlacesWidget } from "react-google-autocomplete";
 import NotFoundPage from "../../components/ui/NotFoundPage";
+import { removeStateSuffix } from "../../lib/helper";
 
 export default function SignUpAsLogisticsAgent() {
   const { toastError } = useToast();
@@ -78,6 +79,9 @@ export default function SignUpAsLogisticsAgent() {
       }
       console.log("📤 Logistics Agent - Submitting with state:", val.state);
       
+      // Remove "State" suffix if present before sending to backend
+      const cleanedState = removeStateSuffix(val.state);
+      
       const payload = agentType === "individual"
         ? {
             ...val,
@@ -86,7 +90,7 @@ export default function SignUpAsLogisticsAgent() {
             alternative_phone:
               val?.alternative_phone === "" ? undefined : altno,
             location: val.location,
-            state: val.state || "",
+            state: cleanedState || "",
             coordinates: {
               longitude: val.longitude,
               latitude: val.latitude,
@@ -99,7 +103,7 @@ export default function SignUpAsLogisticsAgent() {
             alternative_phone:
               val?.alternative_phone === "" ? undefined : altno,
             location: val.location,
-            state: val.state || "",
+            state: cleanedState || "",
             coordinates: {
               longitude: val.longitude,
               latitude: val.latitude,
@@ -111,7 +115,7 @@ export default function SignUpAsLogisticsAgent() {
                 ? { business_registration_number: val.business_registration_number } 
                 : {}),
               location: val.location,
-              state: val.state || "",
+              state: cleanedState || "",
             },
           };
 

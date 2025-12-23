@@ -34,3 +34,20 @@ export const formatNumberWithCommas = (num) => {
 
 export const generateUniqueId = () =>
   "id" + Math.random().toString(36).substr(2, 19);
+
+/**
+ * Removes "State" suffix from state names when sending to backend
+ * @param {string} state - The state name (e.g., "Lagos State", "Ogun State", "Lagos")
+ * @returns {string} - State name without "State" suffix (e.g., "Lagos", "Ogun")
+ */
+export const removeStateSuffix = (state) => {
+  if (!state || typeof state !== "string") return state || "";
+  
+  // Trim whitespace and check if it ends with "State" (case-insensitive)
+  const trimmed = state.trim();
+  if (trimmed.toLowerCase().endsWith(" state")) {
+    return trimmed.slice(0, -6).trim(); // Remove " State" (6 characters)
+  }
+  
+  return trimmed;
+};

@@ -22,6 +22,7 @@ import { AttentionTooltip } from "../../components/ui/Tooltip";
 import { useQueryClient } from "@tanstack/react-query";
 import useSessionManager from "../../hooks/useSessionManager";
 import NotFoundPage from "../../components/ui/NotFoundPage";
+import { removeStateSuffix } from "../../lib/helper";
 
 export default function SignInAsCustomer() {
   const { toastError } = useToast();
@@ -104,6 +105,9 @@ export default function SignInAsCustomer() {
 
       console.log("📤 Customer - Submitting with state:", val.state);
 
+      // Remove "State" suffix if present before sending to backend
+      const cleanedState = removeStateSuffix(val.state);
+
       // If there's a token, use acceptInvite, otherwise use register
       if (token) {
         acceptInviteMutate({
@@ -113,7 +117,7 @@ export default function SignInAsCustomer() {
           phone: phoneno,
           alternative_phone: val?.alternative_phone === "" ? undefined : altno,
           location: val.location,
-          state: val.state || "",
+          state: cleanedState || "",
           coordinates: {
             longitude: val.longitude,
             latitude: val.latitude,
@@ -127,7 +131,7 @@ export default function SignInAsCustomer() {
           alternative_phone: val?.alternative_phone === "" ? undefined : altno,
           allowOtp: true,
           location: val.location,
-          state: val.state || "",
+          state: cleanedState || "",
           coordinates: {
             longitude: val.longitude,
             latitude: val.latitude,

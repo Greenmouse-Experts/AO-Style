@@ -13,6 +13,7 @@ import PhoneInput from "react-phone-input-2";
 import { useCountries } from "../../../hooks/location/useGetCountries";
 import useToast from "../../../hooks/useToast";
 import { usePlacesWidget } from "react-google-autocomplete";
+import { removeStateSuffix } from "../../../lib/helper";
 import { AttentionTooltip } from "../../../components/ui/Tooltip";
 
 const Settings = () => {
@@ -56,9 +57,13 @@ const Settings = () => {
           toastError("No internet connection. Please check your network.");
           return;
         }
+        // Remove "State" suffix if present before sending to backend
+        const cleanedState = removeStateSuffix(val.state);
+        
         updatePersonalMutate(
           {
             ...val,
+            state: cleanedState || val.state || "",
             coordinates: {
               longitude: val.longitude,
               latitude: val.latitude,

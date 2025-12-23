@@ -15,6 +15,7 @@ import Select from "react-select";
 import useToast from "../../hooks/useToast";
 import { usePlacesWidget } from "react-google-autocomplete";
 import { AttentionTooltip } from "../../components/ui/Tooltip";
+import { removeStateSuffix } from "../../lib/helper";
 
 export default function MarketRepInvite() {
   const { toastError } = useToast();
@@ -42,6 +43,7 @@ export default function MarketRepInvite() {
     location: "",
     latitude: "",
     longitude: "",
+    state: "",
     years_of_experience: "",
     phoneCode: "+234",
     altCode: "+234",
@@ -82,6 +84,9 @@ export default function MarketRepInvite() {
         ? `${val.altCode}${val.alternative_phone}`
         : undefined;
 
+      // Remove "State" suffix if present before sending to backend
+      const cleanedState = removeStateSuffix(val.state);
+
       acceptInviteMutate(
         {
           ...val,
@@ -89,6 +94,7 @@ export default function MarketRepInvite() {
           role: "market-representative",
           phone: phoneno,
           alternative_phone: altno,
+          state: cleanedState || "",
           coordinates: {
             longitude: val.longitude,
             latitude: val.latitude,
@@ -133,9 +139,32 @@ export default function MarketRepInvite() {
   const { ref } = usePlacesWidget({
     apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
     onPlaceSelected: (place) => {
+      console.log("🗺️ Market Rep - Google Place Selected:", place);
+      
+      const lat = place.geometry?.location?.lat();
+      const lng = place.geometry?.location?.lng();
+      
+      // Extract state from address_components
+      let state = "";
+      if (place.address_components) {
+        const stateComponent = place.address_components.find(
+          (component) =>
+            component.types.includes("administrative_area_level_1")
+        );
+        state = stateComponent ? stateComponent.long_name : "";
+      }
+      
+      console.log("📍 Market Rep - Extracted data:", {
+        lat,
+        lng,
+        state,
+        formatted_address: place.formatted_address,
+      });
+
       setFieldValue("location", place.formatted_address);
-      setFieldValue("latitude", place.geometry?.location?.lat().toString());
-      setFieldValue("longitude", place.geometry?.location?.lng().toString());
+      setFieldValue("latitude", lat ? lat.toString() : "");
+      setFieldValue("longitude", lng ? lng.toString() : "");
+      setFieldValue("state", state);
     },
     options: {
       componentRestrictions: { country: "ng" },
@@ -188,7 +217,7 @@ export default function MarketRepInvite() {
             </Link>
           </div>
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-            Become a Market Rep
+            Become a  Rep
           </h2>
           <p className="text-gray-500 text-sm mt-1">
             Fill the form become a Market rep on Carybin

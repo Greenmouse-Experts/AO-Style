@@ -19,6 +19,7 @@ import {
 import useToast from "../../../hooks/useToast";
 import { usePlacesWidget } from "react-google-autocomplete";
 import { AttentionTooltip } from "../../../components/ui/Tooltip";
+import { removeStateSuffix } from "../../../lib/helper";
 
 const Settings = () => {
   const query = new URLSearchParams(useLocation().search);
@@ -169,9 +170,13 @@ const Settings = () => {
         toastError("No internet connection. Please check your network.");
         return;
       }
+      // Remove "State" suffix if present before sending to backend
+      const cleanedState = removeStateSuffix(val.state);
+      
       updatePersonalMutate(
         {
           ...val,
+          state: cleanedState || val.state || "",
           alternative_phone: val.alternative_phone,
           phone: val.phone,
           measurement: {

@@ -15,6 +15,7 @@ import useAddFabricVendor from "../../../hooks/marketRep/useAddFabricVendor";
 import CustomLocationInput from "../../../components/customLocationInput";
 import CustomBackbtn from "../../../components/CustomBackBtn";
 import { useLoadScript } from "@react-google-maps/api";
+import { removeStateSuffix } from "../../../lib/helper";
 
 /**
  * If the user navigates between tabs (steps), previously entered address/location fields are now *retained* and Google Autocomplete remains functional.
@@ -169,6 +170,11 @@ export default function AddFabricVendorPage() {
       }
       if (step === 2) setStep(3);
       if (step === 3) {
+        // Remove "State" suffix if present before sending to backend
+        const profileState = removeStateSuffix(val?.state_raw || val?.state);
+        const businessState = removeStateSuffix(val?.business_state || val?.state_raw || val?.state);
+        const kycState = removeStateSuffix(val?.business_state || val?.state_raw || val?.state);
+        
         const payload = {
           role: isExact ? "fashion-designer" : "fabric-vendor",
           profile: {
@@ -181,7 +187,7 @@ export default function AddFabricVendorPage() {
             date_of_birth: "",
             gender: val?.gender,
             address: val.address,
-            state: val?.state_raw || val?.state, // Use raw Google value
+            state: profileState, // Cleaned state without "State" suffix
             coordinates: {
               latitude: val?.business_latitude || val?.latitude || "",
               longitude: val?.business_longitude || val?.longitude || "",
@@ -195,7 +201,7 @@ export default function AddFabricVendorPage() {
               : {}),
             location: val?.location,
             country: val?.business_country || val?.country,
-            state: val?.business_state || val?.state_raw || val?.state, // Use raw Google value
+            state: businessState, // Cleaned state without "State" suffix
             // coordinates: {
             //   latitude: val?.business_latitude || val?.latitude || "",
             //   longitude: val?.business_longitude || val?.longitude || "",
@@ -206,7 +212,7 @@ export default function AddFabricVendorPage() {
             doc_back: val?.doc_back,
             utility_doc: val?.utility_doc,
             location: val?.location,
-            state: val?.business_state || val?.state_raw || val?.state, // Use raw Google value
+            state: kycState, // Cleaned state without "State" suffix
             city: val?.business_city || val?.city,
             country: val?.business_country || val?.country,
             id_type: val?.id_type,

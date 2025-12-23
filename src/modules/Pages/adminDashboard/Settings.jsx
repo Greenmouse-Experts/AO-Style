@@ -6,6 +6,7 @@ import KYCVerification from "./components/KYCVerification";
 import { useFormik } from "formik";
 import useUploadImage from "../../../hooks/multimedia/useUploadImage";
 import useUpdateProfile from "../../../hooks/settings/useUpdateProfile";
+import { removeStateSuffix } from "../../../lib/helper";
 import { useCarybinAdminUserStore } from "../../../store/carybinAdminUserStore";
 import PhoneInput from "react-phone-input-2";
 import {
@@ -132,6 +133,9 @@ const Settings = () => {
         toastError("No internet connection. Please check your network.");
         return;
       }
+      // Remove "State" suffix if present before sending to backend
+      const cleanedState = removeStateSuffix(val.state || carybinAdminUser?.profile?.state || "");
+      
       // Filter data to match backend API structure
       const filteredData = {
         name: val.name,
@@ -139,7 +143,7 @@ const Settings = () => {
         address: val.address,
         phone: val.phone || "",
         alternative_phone: val.alternative_phone || "",
-        state: val.state || carybinAdminUser?.profile?.state || "",
+        state: cleanedState || "",
         country: val.country || carybinAdminUser?.profile?.country || "",
         coordinates: {
           longitude:

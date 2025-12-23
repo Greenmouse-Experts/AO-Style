@@ -70,28 +70,159 @@ const ReusableTable = ({ columns, data, loading }) => {
         </table>
       )}
 
-      {/* Mobile View: Stacked Layout */}
+      {/* Mobile View: Custom Card Layout Designed for Mobile */}
       <div className="block sm:hidden">
-        {data?.map((row, rowIndex) => (
-          <div
-            key={`mobile-${row.id || rowIndex}`}
-            className="border border-gray-200 rounded-lg mb-4 p-4 bg-white"
-          >
-            {columns?.map((col, colIndex) => (
-              <div
-                key={`mobile-${row.id || rowIndex}-${col.key || colIndex}`}
-                className="flex justify-between py-2 border-b border-gray-100 last:border-none"
-              >
-                <span className="text-sm text-gray-600 font-normal">
-                  {col?.label}:
-                </span>
-                <span className="text-sm text-gray-800 font-medium">
-                  {col?.render ? col?.render(row[col.key], row) : row[col.key]}
-                </span>
+        {data?.map((row, rowIndex) => {
+          // Find specific columns for mobile layout
+          const imageCol = columns?.find((col) => col.key === "image");
+          const nameCol = columns?.find((col) => col.key === "name");
+          const skuCol = columns?.find((col) => col.key === "sku");
+          const categoryCol = columns?.find((col) => col.key === "category");
+          const fabricTypeCol = columns?.find((col) => col.key === "fabric_type");
+          const priceCol = columns?.find((col) => col.key === "price");
+          const stockCol = columns?.find((col) => col.key === "qty");
+          const statusCol = columns?.find((col) => col.key === "admin-status");
+          const actionCol = columns?.find((col) => col.key === "action");
+
+
+          return (
+            <div
+              key={`mobile-${row.id || rowIndex}`}
+              className="mb-4 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
+            >
+              {/* Top Section: Image, Product Info, and Actions */}
+              <div className="p-4">
+                <div className="flex gap-3 items-start">
+                  {/* Product Image */}
+                  {imageCol && (
+                    <div className="flex-shrink-0">
+                      {imageCol.render
+                        ? imageCol.render(row[imageCol.key], row)
+                        : row[imageCol.key]}
+                    </div>
+                  )}
+                  
+                  {/* Product Name, Description, SKU */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      {/* Product Name - Takes available space */}
+                      <div className="flex-1 min-w-0">
+                        {nameCol && nameCol.render ? (
+                          <div className="pr-2">
+                            {nameCol.render(row[nameCol.key], row)}
+                          </div>
+                        ) : (
+                          <div className="font-semibold text-gray-900 text-sm leading-tight pr-2">
+                            {row[nameCol.key] || "Unnamed Product"}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Actions Button - Fixed on right */}
+                      {actionCol && (
+                        <div className="flex-shrink-0">
+                          {actionCol.render
+                            ? actionCol.render(row[actionCol.key], row)
+                            : row[actionCol.key]}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* SKU */}
+                    {skuCol && (
+                      <div className="mt-2">
+                        {skuCol.render
+                          ? skuCol.render(row[skuCol.key], row)
+                          : row[skuCol.key]}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            ))}
-          </div>
-        ))}
+
+              {/* Divider */}
+              <div className="border-t border-gray-100"></div>
+
+              {/* Details Section - All items stacked vertically */}
+              <div className="px-4 py-3 space-y-3">
+                {/* Category */}
+                {categoryCol && (
+                  <div>
+                    <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+                      Category
+                    </div>
+                    <div>
+                      {categoryCol.render
+                        ? categoryCol.render(row[categoryCol.key], row)
+                        : row[categoryCol.key]}
+                    </div>
+                  </div>
+                )}
+
+                {/* Fabric Type */}
+                {fabricTypeCol && (
+                  <div>
+                    <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+                      Fabric Type
+                    </div>
+                    <div>
+                      {fabricTypeCol.render
+                        ? fabricTypeCol.render(row[fabricTypeCol.key], row)
+                        : row[fabricTypeCol.key]}
+                    </div>
+                  </div>
+                )}
+
+                {/* Price */}
+                {priceCol && (
+                  <div>
+                    <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+                      Price
+                    </div>
+                    <div>
+                      {priceCol.render
+                        ? priceCol.render(row[priceCol.key], row)
+                        : row[priceCol.key]}
+                    </div>
+                  </div>
+                )}
+
+                {/* Stock */}
+                {stockCol && (
+                  <div>
+                    <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+                      Stock
+                    </div>
+                    <div>
+                      {stockCol.render
+                        ? stockCol.render(row[stockCol.key], row)
+                        : row[stockCol.key]}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-gray-100"></div>
+
+              {/* Status Section */}
+              {statusCol && (
+                <div className="px-4 py-3 bg-gray-50">
+                  <div className="flex items-center justify-between">
+                    <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                      Status
+                    </div>
+                    <div>
+                      {statusCol.render
+                        ? statusCol.render(row[statusCol.key], row)
+                        : row[statusCol.key]}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import useToast from "../../hooks/useToast";
 import PhoneInput from "react-phone-input-2";
 import { usePlacesWidget } from "react-google-autocomplete";
 import { AttentionTooltip } from "../../components/ui/Tooltip";
+import { removeStateSuffix } from "../../lib/helper";
 
 const initialValues = {
   name: "",
@@ -48,10 +49,63 @@ export default function SignInAsCustomer() {
     return component?.long_name || "";
   };
 
+  const {
+    handleSubmit,
+    values,
+    handleChange,
+    resetForm,
+    setFieldValue,
+    // setFieldError,
+  } = useFormik({
+    initialValues: initialValues,
+    validateOnChange: false,
+    validateOnBlur: false,
+    enableReinitialize: true,
+    onSubmit: (val) => {
+      const phoneno = `${val.phone}`;
+      const altno = `${val.alternative_phone}`;
+
+      if (values.password_confirmation !== values.password) {
+        return toastError("Password must match");
+      }
+
+      // Remove "State" suffix if present before sending to backend
+      const cleanedState = removeStateSuffix(val.state);
+
+      console.log("📤 Submitting registration data:", {
+        ...val,
+        state: cleanedState || val.state || "",
+        role: "market-representative",
+        phone: phoneno,
+        alternative_phone: val?.alternative_phone === "" ? undefined : altno,
+        allowOtp: true,
+      });
+
+      registerMutate(
+        {
+          ...val,
+          state: cleanedState || val.state || "",
+          role: "market-representative",
+          phone: phoneno,
+          alternative_phone: val?.alternative_phone === "" ? undefined : altno,
+          allowOtp: true,
+        },
+        {
+          onSuccess: () => {
+            resetForm();
+          },
+        },
+      );
+    },
+  });
+
+  const { isPending, registerMutate } = useRegister(values.email);
+
+  // Google Places Autocomplete setup - moved after useFormik to access setFieldValue
   const { ref } = usePlacesWidget({
     apiKey: import.meta.env.VITE_GOOGLE_MAP_API_KEY,
     onPlaceSelected: (place) => {
-      console.log("🗺️ Google Place selected:", place);
+      console.log("🗺️ Market Rep - Google Place selected:", place);
       
       // Set formatted address
       setFieldValue("location", place.formatted_address);
@@ -72,7 +126,7 @@ export default function SignInAsCustomer() {
         getAddressComponent(components, "administrative_area_level_2");
       const country = getAddressComponent(components, "country");
 
-      console.log("🏘️ Address components extracted:", {
+      console.log("🏘️ Market Rep - Address components extracted:", {
         state,
         city,
         country,
@@ -97,53 +151,6 @@ export default function SignInAsCustomer() {
       types: [],
     },
   });
-
-  const {
-    handleSubmit,
-    values,
-    handleChange,
-    resetForm,
-    setFieldValue,
-    // setFieldError,
-  } = useFormik({
-    initialValues: initialValues,
-    validateOnChange: false,
-    validateOnBlur: false,
-    enableReinitialize: true,
-    onSubmit: (val) => {
-      const phoneno = `${val.phone}`;
-      const altno = `${val.alternative_phone}`;
-
-      if (values.password_confirmation !== values.password) {
-        return toastError("Password must match");
-      }
-
-      console.log("📤 Submitting registration data:", {
-        ...val,
-        role: "market-representative",
-        phone: phoneno,
-        alternative_phone: val?.alternative_phone === "" ? undefined : altno,
-        allowOtp: true,
-      });
-
-      registerMutate(
-        {
-          ...val,
-          role: "market-representative",
-          phone: phoneno,
-          alternative_phone: val?.alternative_phone === "" ? undefined : altno,
-          allowOtp: true,
-        },
-        {
-          onSuccess: () => {
-            resetForm();
-          },
-        },
-      );
-    },
-  });
-
-  const { isPending, registerMutate } = useRegister(values.email);
 
   return (
     <div className="h-screen w-full flex overflow-hidden">
